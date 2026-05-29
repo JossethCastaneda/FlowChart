@@ -16,6 +16,12 @@ export default function InvitePage() {
   const [accepting, setAccepting] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+  const [regName, setRegName] = useState("");
+  const [regPassword, setRegPassword] = useState("");
+  const [regConfirm, setRegConfirm] = useState("");
+  const [regLoading, setRegLoading] = useState(false);
+  const [regError, setRegError] = useState("");
 
   useEffect(() => {
     fetch(`/api/invite/${token}`)
@@ -39,6 +45,61 @@ export default function InvitePage() {
     if (!res.ok) {
       setError(data.error || "Error al aceptar");
       setAccepting(false);
+      return;
+    }
+    setDone(true);
+    await update();
+    setTimeout(() => router.push("/dashboard/resumen"), 1500);
+  }
+
+  async function handleRegisterAndAccept() {
+    if (!regName || !regPassword) {
+      setRegError("Completa todos los campos");
+      return;
+    }
+    if (regPassword.length < 8) {
+      setRegError("Mínimo 8 caracteres");
+      return;
+    }
+    if (regPassword !== regConfirm) {
+      setRegError("Las contraseñas no coinciden");
+      return;
+    }
+    setRegLoading(true);
+    setRegError("");
+    // 1. Registrar
+    const regRes = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: regName,
+        email: invite?.email,
+        password: regPassword,
+      }),
+    });
+    const regData = await regRes.json();
+    if (!regRes.ok) {
+      setRegLoading(false);
+      setRegError(regData.error || "Error al registrar");
+      return;
+    }
+    // 2. Auto-login
+    const result = await signIn("credentials", {
+      email: invite?.email,
+      password: regPassword,
+      redirect: false,
+    });
+    if (result?.error) {
+      setRegLoading(false);
+      setRegError("Cuenta creada pero login falló. Intenta login manual.");
+      return;
+    }
+    // 3. Aceptar invitación
+    const acceptRes = await fetch(`/api/invite/${token}`, { method: "POST" });
+    const acceptData = await acceptRes.json();
+    if (!acceptRes.ok) {
+      setRegLoading(false);
+      setRegError(acceptData.error || "Error al aceptar invitación");
       return;
     }
     setDone(true);
@@ -162,6 +223,90 @@ export default function InvitePage() {
                     fontSize: "13px" }}>
                   Continuar con Facebook
                 </button>
+
+                {/* Divider */}
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", margin: "4px 0" }}>
+                  <span style={{ flex: 1, height: "1px", background: "rgba(0,212,255,0.1)" }} />
+                  <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.3)",
+                    fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>O</span>
+                  <span style={{ flex: 1, height: "1px", background: "rgba(0,212,255,0.1)" }} />
+                </div>
+
+                {!showRegister ? (
+                  <button
+                    onClick={() => setShowRegister(true)}
+                    style={{ width: "100%", padding: "12px",
+                      background: "transparent",
+                      border: "1px solid rgba(0,212,255,0.1)",
+                      color: "rgba(148,163,184,0.6)", cursor: "pointer",
+                      fontSize: "13px" }}>
+                    Crear cuenta con email
+                  </button>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <input
+                      type="text"
+                      placeholder="Tu nombre"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      style={{ width: "100%", padding: "10px 14px",
+                        background: "rgba(0,212,255,0.03)",
+                        border: "1px solid rgba(0,212,255,0.15)",
+                        color: "white", fontSize: "13px", outline: "none",
+                        boxSizing: "border-box" }}
+                    />
+                    <input
+                      type="email"
+                      value={invite?.email || ""}
+                      disabled
+                      style={{ width: "100%", padding: "10px 14px",
+                        background: "rgba(0,212,255,0.03)",
+                        border: "1px solid rgba(0,212,255,0.1)",
+                        color: "rgba(148,163,184,0.5)", fontSize: "13px",
+                        outline: "none", boxSizing: "border-box" }}
+                    />
+                    <input
+                      type="password"
+                      placeholder="Contraseña (mín. 8 caracteres)"
+                      value={regPassword}
+                      onChange={(e) => setRegPassword(e.target.value)}
+                      style={{ width: "100%", padding: "10px 14px",
+                        background: "rgba(0,212,255,0.03)",
+                        border: "1px solid rgba(0,212,255,0.15)",
+                        color: "white", fontSize: "13px", outline: "none",
+                        boxSizing: "border-box" }}
+                    />
+                    <input
+                      type="password"
+                      placeholder="Confirmar contraseña"
+                      value={regConfirm}
+                      onChange={(e) => setRegConfirm(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleRegisterAndAccept()}
+                      style={{ width: "100%", padding: "10px 14px",
+                        background: "rgba(0,212,255,0.03)",
+                        border: "1px solid rgba(0,212,255,0.15)",
+                        color: "white", fontSize: "13px", outline: "none",
+                        boxSizing: "border-box" }}
+                    />
+                    {regError && (
+                      <p style={{ fontSize: "11px", color: "#ff2d55", margin: 0 }}>
+                        {regError}
+                      </p>
+                    )}
+                    <button
+                      onClick={handleRegisterAndAccept}
+                      disabled={regLoading}
+                      style={{ width: "100%", padding: "12px",
+                        background: "rgba(0,212,255,0.1)",
+                        border: "1px solid rgba(0,212,255,0.3)",
+                        color: regLoading ? "rgba(148,163,184,0.4)" : "white",
+                        cursor: regLoading ? "not-allowed" : "pointer",
+                        fontFamily: "'Orbitron', sans-serif",
+                        fontSize: "11px", letterSpacing: "0.15em" }}>
+                      {regLoading ? "PROCESANDO..." : "CREAR CUENTA Y UNIRME →"}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <button
