@@ -11,7 +11,8 @@ export default withAuth(
       pathname.startsWith("/login") ||
       pathname.startsWith("/onboarding") ||
       pathname.startsWith("/invite") ||
-      pathname.startsWith("/api/auth")
+      pathname.startsWith("/api/auth") ||
+      pathname.startsWith("/api/invite")
     ) {
       return NextResponse.next();
     }
