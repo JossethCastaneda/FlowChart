@@ -56,13 +56,13 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async jwt({ token, account, user }) {
-      // Cuando hay un user object, es un login nuevo (no refresh)
+    async jwt({ token, account, user, trigger }) {
+      // ── Primer login: user object solo existe aquí ──
       if (user) {
         token.sub = user.id;
 
-        // Upsert del usuario en Neon para que las foreign keys funcionen
-        // Necesario porque usamos JWT sin PrismaAdapter
+        // CRÍTICO: upsert del usuario en Neon
+        // JWT no usa PrismaAdapter → el usuario puede no existir en DB
         try {
           const { default: prisma } = await import("@/lib/prisma");
           await prisma.user.upsert({
@@ -80,7 +80,7 @@ export const authOptions: NextAuthOptions = {
             },
           });
         } catch (err) {
-          console.error("[AUTH] Failed to upsert user:", err);
+          console.error("[AUTH] User upsert failed:", err);
         }
       }
 
@@ -91,20 +91,31 @@ export const authOptions: NextAuthOptions = {
         token.provider = account.provider;
       }
 
-      // Verificar workspace (solo en login nuevo, cuando user existe)
-      if (user?.id) {
-        try {
-          const { default: prisma } = await import("@/lib/prisma");
-          const membership = await prisma.workspaceMember.findFirst({
-            where: { userId: user.id },
-            select: { workspaceId: true },
-          });
-          token.hasWorkspace = !!membership;
-          token.activeWorkspaceId = membership?.workspaceId || null;
-        } catch (err) {
-          console.error("[AUTH] Failed to check workspace:", err);
-          token.hasWorkspace = false;
-          token.activeWorkspaceId = null;
+      // ── Verificar workspace en CADA jwt call ──
+      // Esto incluye: primer login, session refresh (useSession().update()),
+      // y re-evaluaciones del middleware.
+      // Antes solo se hacía en primer login, lo que causaba que
+      // hasWorkspace quedara en false después de aceptar una invitación.
+      if (token.sub) {
+        // Solo re-verificar si es un update() explícito, primer login,
+        // o si hasWorkspace es false (necesita re-check)
+        if (trigger === "update" || user || !token.hasWorkspace) {
+          try {
+            const { default: prisma } = await import("@/lib/prisma");
+            const membership = await prisma.workspaceMember.findFirst({
+              where: { userId: token.sub },
+              select: { workspaceId: true },
+            });
+            token.hasWorkspace = !!membership;
+            token.activeWorkspaceId = membership?.workspaceId || null;
+          } catch (err) {
+            console.error("[AUTH] Workspace check failed:", err);
+            // No sobreescribir si ya tenía un valor
+            if (token.hasWorkspace === undefined) {
+              token.hasWorkspace = false;
+              token.activeWorkspaceId = null;
+            }
+          }
         }
       }
 
