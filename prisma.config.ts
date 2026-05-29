@@ -1,5 +1,5 @@
-// Prisma 7 configuration for Sodare
-// npm install --save-dev prisma dotenv
+// Prisma 7 configuration for Sodare + Neon PostgreSQL
+// In Prisma 7, url/directUrl go HERE, not in schema.prisma
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
@@ -9,9 +9,9 @@ export default defineConfig({
     path: "prisma/migrations",
   },
   datasource: {
-    // For Neon: this uses the POOLED connection (PgBouncer) at runtime.
-    // For migrations, run: DATABASE_URL=$DIRECT_URL npx prisma migrate dev
-    // Or set DIRECT_URL in .env.local and use the migrate script in package.json.
-    url: process.env["DATABASE_URL"],
+    // Pooled connection (PgBouncer) — used by the app at runtime
+    url: process.env["DATABASE_URL"]!,
+    // Direct connection — used by Prisma CLI for migrations
+    directUrl: process.env["DIRECT_URL"],
   },
-});
+} as any); // Type assertion needed: directUrl is valid but types lag behind
