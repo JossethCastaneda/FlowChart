@@ -31,12 +31,6 @@ export default function InvitePage() {
   }, [token]);
 
   async function handleAccept() {
-    if (status !== "authenticated") {
-      sessionStorage.setItem("pendingInvite", token);
-      signIn("facebook", { callbackUrl: `/invite/${token}` });
-      return;
-    }
-
     setAccepting(true);
     const res = await fetch(`/api/invite/${token}`, { method: "POST" });
     const data = await res.json();
@@ -90,19 +84,52 @@ export default function InvitePage() {
               </div>
             </div>
 
-            <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.7)", marginBottom: "24px" }}>
-              Fuiste invitado a unirte a este workspace.
-              {status !== "authenticated" && " Deberás iniciar sesión con Facebook para continuar."}
-            </p>
+            {status !== "authenticated" ? (
+              <>
+                <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.6)", marginBottom: "20px" }}>
+                  Elige cómo quieres iniciar sesión para unirte al workspace.
+                </p>
 
-            <button
-              onClick={handleAccept}
-              disabled={accepting}
-              className="btn-primary"
-              style={{ width: "100%", justifyContent: "center", opacity: accepting ? 0.6 : 1 }}
-            >
-              {accepting ? "Aceptando..." : status === "authenticated" ? "Aceptar invitación →" : "Iniciar sesión y aceptar →"}
-            </button>
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                  <button
+                    onClick={() => signIn("google", { callbackUrl: `/invite/${token}` })}
+                    className="btn-primary"
+                    style={{ width: "100%", justifyContent: "center" }}
+                  >
+                    Continuar con Google
+                  </button>
+                  <button
+                    onClick={() => signIn("facebook", { callbackUrl: `/invite/${token}` })}
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      background: "transparent",
+                      border: "1px solid rgba(0,212,255,0.15)",
+                      color: "rgba(148,163,184,0.6)",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Continuar con Facebook
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.7)", marginBottom: "24px" }}>
+                  Fuiste invitado a unirte a este workspace.
+                </p>
+
+                <button
+                  onClick={handleAccept}
+                  disabled={accepting}
+                  className="btn-primary"
+                  style={{ width: "100%", justifyContent: "center", opacity: accepting ? 0.6 : 1 }}
+                >
+                  {accepting ? "Aceptando..." : "Aceptar invitación →"}
+                </button>
+              </>
+            )}
           </>
         )}
       </div>

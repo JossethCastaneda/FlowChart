@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
+import { useSession as useSessionHook } from "next-auth/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, ChevronDown } from "lucide-react";
 import DateRangePicker from "@/components/DateRangePicker";
@@ -78,6 +79,9 @@ const ALL_COLUMNS = [
 
 
 export default function AdsManagerPage() {
+  // Auth guard: check if user authenticated with Facebook
+  const { data: session } = useSessionHook();
+
   // Accounts state
   const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState("");
@@ -725,6 +729,33 @@ export default function AdsManagerPage() {
       setSelectedIds(filteredData.map((item) => item.id));
     }
   };
+
+  // Guard: si el usuario no autenticó con Facebook, mostrar aviso
+  if (session && session.provider !== "facebook") {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Ads Manager" icon={<Megaphone className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
+        <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
+          <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.2)" }} />
+          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "rgba(148,163,184,0.4)", textTransform: "uppercase", marginBottom: "8px" }}>
+            Conexión Meta requerida
+          </p>
+          <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.3)", marginBottom: "20px" }}>
+            Este módulo requiere autenticación con Facebook para acceder a la API de Meta Ads.
+          </p>
+          <button
+            className="btn-primary"
+            onClick={async () => {
+              const { signIn } = await import("next-auth/react");
+              signIn("facebook", { callbackUrl: window.location.href });
+            }}
+          >
+            Conectar con Facebook
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col overflow-hidden">

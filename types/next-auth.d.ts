@@ -8,6 +8,7 @@ declare module "next-auth" {
     accessToken?: string;
     hasWorkspace?: boolean;
     activeWorkspaceId?: string | null;
+    provider?: string | null;
   }
 }
 
@@ -18,5 +19,6 @@ declare module "next-auth/jwt" {
     accessTokenExpires?: number | null;
     hasWorkspace?: boolean;
     activeWorkspaceId?: string | null;
+    provider?: string | null;
   }
 }

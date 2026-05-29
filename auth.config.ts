@@ -1,5 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import FacebookProvider from "next-auth/providers/facebook";
+import GoogleProvider from "next-auth/providers/google";
 
 /**
  * Shared auth configuration — used by both [...nextauth]/route.ts and middleware.
@@ -20,6 +21,18 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          // Solo pedir nombre, email y foto — sin permisos adicionales
+          scope: "openid email profile",
+          // Forzar selector de cuenta para que el usuario pueda elegir
+          prompt: "select_account",
+        },
+      },
+    }),
   ],
 
   pages: {
@@ -37,9 +50,14 @@ export const authOptions: NextAuthOptions = {
         token.sub = user.id;
       }
       if (account) {
-        token.accessToken = account.access_token;
+        // Solo guardar accessToken para Facebook (Meta API lo necesita)
+        // Google no necesita accessToken en el JWT
+        if (account.provider === "facebook") {
+          token.accessToken = account.access_token;
+        }
+        token.provider = account.provider;
       }
-      // Verificar si el usuario ya tiene workspace (primera vez = no tiene)
+      // Verificar workspace (igual que en el Master Prompt de workspaces)
       if (user?.id) {
         const { default: prisma } = await import("@/lib/prisma");
         const membership = await prisma.workspaceMember.findFirst({
@@ -51,6 +69,7 @@ export const authOptions: NextAuthOptions = {
       }
       return token;
     },
+
     async session({ session, token }) {
       if (token.sub && session.user) {
         session.user.id = token.sub;
@@ -60,6 +79,7 @@ export const authOptions: NextAuthOptions = {
       }
       session.hasWorkspace = token.hasWorkspace as boolean ?? false;
       session.activeWorkspaceId = token.activeWorkspaceId as string | null ?? null;
+      session.provider = token.provider as string ?? null;
       return session;
     },
   },

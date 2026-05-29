@@ -353,17 +353,52 @@
   font-family: monospace;
 }
 
-/* ─── Phase 2 ─── */
-.phase2-notice {
-  text-align: center;
-  font-size: 10px;
-  color: rgba(58,85,112,0.4);
-  font-family: monospace;
-  letter-spacing: 0.15em;
-  margin-bottom: 28px;
+/* ─── Google Button ─── */
+.google-btn {
+  position: relative;
+  width: 100%;
+  padding: 16px 24px;
+  border: none;
+  cursor: pointer;
+  overflow: hidden;
+  clip-path: polygon(
+    0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px,
+    100% calc(100% - 10px), calc(100% - 10px) 100%,
+    10px 100%, 0 calc(100% - 10px)
+  );
+  background: transparent;
+  margin-bottom: 8px;
 }
-.phase2-bracket {
-  color: rgba(0,212,255,0.2);
+.google-btn .fb-btn-bg {
+  background: linear-gradient(135deg, #1a1e2e 0%, #0d1117 50%, #1a1e2e 100%);
+  background-size: 200% 200%;
+  animation: fb-shimmer 3s ease-in-out infinite;
+}
+.google-btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(66, 133, 244, 0.3);
+  clip-path: inherit;
+  z-index: 1;
+}
+.google-btn:hover:not(:disabled) .fb-btn-bg {
+  opacity: 0.9;
+}
+.google-btn:hover:not(:disabled) {
+  box-shadow: 0 0 40px rgba(66, 133, 244, 0.2);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+.google-btn:hover:not(:disabled)::before {
+  border-color: rgba(66, 133, 244, 0.6);
+}
+.google-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+.google-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
 }
 
 /* ─── Status ─── */
