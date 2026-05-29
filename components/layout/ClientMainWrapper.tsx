@@ -19,6 +19,7 @@ import {
   LogOut,
   FolderKanban,
   Megaphone,
+  Plug,
 } from "lucide-react";
 
 const NAV_ITEMS = [
@@ -29,7 +30,8 @@ const NAV_ITEMS = [
   { name: "Briefing", short: "BRIEF", href: "/dashboard/briefing", icon: Target, color: "#ff6b35" },
   { name: "Ads Manager", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB" },
   { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55" },
-  { name: "Integrations", short: "APIs", href: "/dashboard/integrations", icon: Settings, color: "#00d4ff" },
+  { name: "Integrations", short: "APIs", href: "/dashboard/integrations", icon: Plug, color: "#00d4ff" },
+  { name: "Settings", short: "SET", href: "/dashboard/settings", icon: Settings, color: "#94a3b8" },
 ];
 
 export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
