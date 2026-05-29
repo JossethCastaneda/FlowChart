@@ -5,6 +5,13 @@ import React, { useState, useEffect } from "react";
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [showCredentials, setShowCredentials] = useState(false);
+  const [isRegister, setIsRegister] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [name, setName] = useState("");
+  const [credError, setCredError] = useState("");
   const [status, setStatus] = useState<{
     type: "idle" | "connecting" | "success" | "error";
     message: string;
@@ -42,6 +49,76 @@ export default function LoginPage() {
       setIsLoading(false);
       setStatus({ type: "error", message: "⚠ Connection failed. Retry." });
     }
+  }
+
+  async function handleCredentialsLogin() {
+    if (!email || !password) {
+      setCredError("Completa todos los campos");
+      return;
+    }
+    setIsLoading(true);
+    setCredError("");
+    setStatus({ type: "connecting", message: "Authenticating..." });
+    const { signIn } = await import("next-auth/react");
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+    if (result?.error) {
+      setIsLoading(false);
+      setCredError("Email o contraseña incorrectos");
+      setStatus({ type: "error", message: "Authentication failed" });
+      return;
+    }
+    setStatus({ type: "success", message: "Access granted" });
+    window.location.href = "/dashboard/resumen";
+  }
+
+  async function handleRegister() {
+    if (!name || !email || !password) {
+      setCredError("Completa todos los campos");
+      return;
+    }
+    if (password.length < 8) {
+      setCredError("La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+    if (password !== confirmPassword) {
+      setCredError("Las contraseñas no coinciden");
+      return;
+    }
+    setIsLoading(true);
+    setCredError("");
+    setStatus({ type: "connecting", message: "Creating account..." });
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, password }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      setIsLoading(false);
+      setCredError(data.error || "Error al registrar");
+      setStatus({ type: "error", message: "Registration failed" });
+      return;
+    }
+    // Auto-login después del registro
+    const { signIn } = await import("next-auth/react");
+    const result = await signIn("credentials", {
+      email,
+      password,
+      redirect: false,
+    });
+    if (result?.error) {
+      setIsLoading(false);
+      setCredError("Cuenta creada. Inicia sesión.");
+      setIsRegister(false);
+      setStatus({ type: "idle", message: "Awaiting authentication..." });
+      return;
+    }
+    setStatus({ type: "success", message: "Access granted" });
+    window.location.href = "/dashboard/resumen";
   }
 
   return (
@@ -159,6 +236,155 @@ export default function LoginPage() {
               )}
             </div>
           </button>
+
+          {/* Divider */}
+          <div className="divider-or">
+            <span className="divider-line" />
+            <span className="divider-text">OR</span>
+            <span className="divider-line" />
+          </div>
+
+          {/* Email/Password toggle */}
+          {!showCredentials ? (
+            <button
+              onClick={() => setShowCredentials(true)}
+              className="google-btn"
+              style={{ opacity: 0.7 }}
+            >
+              <div className="fb-btn-bg" />
+              <div className="fb-btn-content">
+                <svg viewBox="0 0 24 24" className="fb-icon" style={{ fill: "white" }}>
+                  <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
+                </svg>
+                <span>LOGIN WITH EMAIL</span>
+              </div>
+            </button>
+          ) : (
+            <div style={{ width: "100%" }}>
+              {/* Toggle login/register */}
+              <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
+                <button
+                  onClick={() => { setIsRegister(false); setCredError(""); }}
+                  style={{
+                    flex: 1, padding: "8px", fontSize: "10px",
+                    fontFamily: "'Orbitron', monospace", letterSpacing: "0.1em",
+                    background: !isRegister ? "rgba(0,212,255,0.1)" : "transparent",
+                    border: `1px solid ${!isRegister ? "rgba(0,212,255,0.4)" : "rgba(0,212,255,0.1)"}`,
+                    color: !isRegister ? "#00d4ff" : "rgba(148,163,184,0.5)",
+                    cursor: "pointer",
+                  }}
+                >
+                  LOGIN
+                </button>
+                <button
+                  onClick={() => { setIsRegister(true); setCredError(""); }}
+                  style={{
+                    flex: 1, padding: "8px", fontSize: "10px",
+                    fontFamily: "'Orbitron', monospace", letterSpacing: "0.1em",
+                    background: isRegister ? "rgba(0,212,255,0.1)" : "transparent",
+                    border: `1px solid ${isRegister ? "rgba(0,212,255,0.4)" : "rgba(0,212,255,0.1)"}`,
+                    color: isRegister ? "#00d4ff" : "rgba(148,163,184,0.5)",
+                    cursor: "pointer",
+                  }}
+                >
+                  REGISTER
+                </button>
+              </div>
+
+              {/* Name (register only) */}
+              {isRegister && (
+                <input
+                  type="text"
+                  placeholder="Nombre completo"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  disabled={isLoading}
+                  style={{
+                    width: "100%", padding: "10px 14px", marginBottom: "8px",
+                    background: "rgba(0,212,255,0.03)",
+                    border: "1px solid rgba(0,212,255,0.15)",
+                    color: "white", fontSize: "13px", outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                />
+              )}
+
+              <input
+                type="email"
+                placeholder="Email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                disabled={isLoading}
+                style={{
+                  width: "100%", padding: "10px 14px", marginBottom: "8px",
+                  background: "rgba(0,212,255,0.03)",
+                  border: "1px solid rgba(0,212,255,0.15)",
+                  color: "white", fontSize: "13px", outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+
+              <input
+                type="password"
+                placeholder="Contraseña"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+                onKeyDown={(e) => !isRegister && e.key === "Enter" && handleCredentialsLogin()}
+                style={{
+                  width: "100%", padding: "10px 14px", marginBottom: isRegister ? "8px" : "12px",
+                  background: "rgba(0,212,255,0.03)",
+                  border: "1px solid rgba(0,212,255,0.15)",
+                  color: "white", fontSize: "13px", outline: "none",
+                  boxSizing: "border-box",
+                }}
+              />
+
+              {/* Confirm password (register only) */}
+              {isRegister && (
+                <input
+                  type="password"
+                  placeholder="Confirmar contraseña"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={isLoading}
+                  onKeyDown={(e) => e.key === "Enter" && handleRegister()}
+                  style={{
+                    width: "100%", padding: "10px 14px", marginBottom: "12px",
+                    background: "rgba(0,212,255,0.03)",
+                    border: "1px solid rgba(0,212,255,0.15)",
+                    color: "white", fontSize: "13px", outline: "none",
+                    boxSizing: "border-box",
+                  }}
+                />
+              )}
+
+              {credError && (
+                <p style={{ fontSize: "11px", color: "#ff2d55", marginBottom: "8px" }}>
+                  {credError}
+                </p>
+              )}
+
+              <button
+                onClick={isRegister ? handleRegister : handleCredentialsLogin}
+                disabled={isLoading}
+                className="fb-btn"
+                style={{ width: "100%" }}
+              >
+                <div className="fb-btn-bg" />
+                <div className="fb-btn-content">
+                  {!isLoading ? (
+                    <span>{isRegister ? "CREATE ACCOUNT" : "LOGIN →"}</span>
+                  ) : (
+                    <>
+                      <span>{isRegister ? "CREATING ACCOUNT" : "AUTHENTICATING"}</span>
+                      <span className="loader-dots"><i /><i /><i /></span>
+                    </>
+                  )}
+                </div>
+              </button>
+            </div>
+          )}
 
           {/* Status */}
           <div className="status-section">
