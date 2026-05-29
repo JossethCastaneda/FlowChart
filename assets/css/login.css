@@ -1,0 +1,153 @@
+/* login.css */
+
+#starfield-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  padding: 20px;
+}
+
+.login-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--border-holo);
+  box-shadow: 0 0 60px rgba(0,212,255,0.1), 0 0 120px rgba(0,212,255,0.05);
+  width: 420px;
+  max-width: 100%;
+  padding: 40px;
+  text-align: center;
+  clip-path: polygon(0 15px, 15px 0, calc(100% - 15px) 0, 100% 15px, 100% calc(100% - 15px), calc(100% - 15px) 100%, 15px 100%, 0 calc(100% - 15px));
+  position: relative;
+}
+
+.login-logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 36px;
+  font-weight: 900;
+  color: var(--holo-primary);
+  letter-spacing: 6px;
+  text-shadow: 0 0 20px var(--holo-primary);
+  animation: holo-flicker 4s infinite;
+  margin-bottom: 10px;
+}
+
+.login-subtitle {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  letter-spacing: 4px;
+  color: var(--text-secondary);
+  margin-bottom: 20px;
+}
+
+.login-divider-top {
+  color: var(--border-holo);
+  letter-spacing: 2px;
+  margin-bottom: 40px;
+}
+
+.fb-login-btn {
+  background: linear-gradient(135deg, #1877F2 0%, #0d5dbf 100%);
+  border: 1px solid rgba(24,119,242,0.5);
+  box-shadow: 0 0 20px rgba(24,119,242,0.3);
+  color: white;
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  padding: 14px 28px;
+  width: 100%;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  clip-path: polygon(0 8px, 8px 0, calc(100% - 8px) 0, 100% 8px,
+                     100% calc(100% - 8px), calc(100% - 8px) 100%,
+                     8px 100%, 0 calc(100% - 8px));
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 30px;
+}
+
+.fb-login-btn:hover:not(:disabled) {
+  box-shadow: 0 0 35px rgba(24,119,242,0.6);
+  transform: translateY(-1px);
+}
+
+.fb-login-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.fb-login-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.fb-icon svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+.login-divider-or {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--text-muted);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  margin: 30px 0;
+}
+
+.login-divider-or::before, .login-divider-or::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-subtle);
+  margin: 0 10px;
+}
+
+.future-phase {
+  font-family: 'Share Tech Mono', monospace;
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-bottom: 40px;
+  opacity: 0.5;
+}
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 20px 0 0;
+  border-top: 1px solid var(--border-subtle);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+[data-type="success"] { color: var(--jedi-green); }
+[data-type="error"]   { color: var(--sith-red);   }
+[data-type="info"]    { color: var(--holo-primary); }
+[data-type="connecting"] { color: var(--gold-primary); }
+
+.version-info {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: var(--text-muted);
+}

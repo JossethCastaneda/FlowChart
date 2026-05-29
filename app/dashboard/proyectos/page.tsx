@@ -1,0 +1,871 @@
+"use client";
+
+import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
+import { useRouter } from "next/navigation";
+import { PageHeader } from "@/components/ui/PageHeader";
+import {
+  FolderKanban, Plus, X, Users, Globe, DollarSign, Target,
+  Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown
+} from "lucide-react";
+
+/* ═══════════════════════════════════════
+   TYPES
+   ═══════════════════════════════════════ */
+
+interface ChannelConfig {
+  platformId: string;
+  platformName: string;
+  adAccounts: string[];
+  budget: string;
+  period: string;
+  goal: string;
+  cpr: string;
+}
+
+interface Project {
+  id: string;
+  alias: string;
+  client: string;
+  vertical: string;
+  fanpage: string;
+  instagram: string;
+  whatsapp: string;
+  website: string;
+  channels: ChannelConfig[];
+  dateStart: string;
+  dateEnd: string;
+  persona: string;
+  geo: string;
+  status: "Activo" | "Pausado" | "Draft" | "Completado";
+  createdAt: string;
+}
+
+interface MetaPage {
+  id: string;
+  name: string;
+  picture: string;
+  portfolio: string;
+  instagram: {
+    id: string;
+    username: string;
+    picture: string;
+  } | null;
+}
+
+const EMPTY_PROJECT: Omit<Project, "id" | "createdAt"> = {
+  alias: "", client: "", vertical: "", fanpage: "", instagram: "",
+  whatsapp: "", website: "", channels: [],
+  dateStart: "", dateEnd: "", persona: "", geo: "",
+  status: "Draft",
+};
+
+/* ═══════════════════════════════════════
+   DATA
+   ═══════════════════════════════════════ */
+
+const VERTICALS = [
+  "E-commerce", "Real Estate", "Fintech", "Health & Wellness", "Education",
+  "Food & Beverage", "Automotive", "SaaS / Tech", "Fashion", "Travel",
+];
+
+const PLATFORMS = [
+  { id: "meta",      name: "Meta Ads",            connected: true,  color: "#0081FB" },
+  { id: "google",    name: "Google Ads",           connected: false, color: "#4285F4" },
+  { id: "tiktok",    name: "TikTok Ads",           connected: false, color: "#25F4EE" },
+  { id: "whatsapp",  name: "WhatsApp Business",    connected: false, color: "#25D366" },
+];
+
+const GOALS = [
+  "Conversaciones", "Clics al sitio", "Seguidores", "Leads",
+  "Ventas (Purchase)", "Registros", "Descargas app", "Video views",
+  "Alcance (Reach)", "Tráfico a tienda",
+];
+const CPR_MAP: Record<string, string> = {
+  "Conversaciones": "Costo / conversación",
+  "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
+  "Leads": "CPL", "Ventas (Purchase)": "CPA",
+  "Registros": "Costo / registro", "Descargas app": "CPI",
+  "Video views": "CPV", "Alcance (Reach)": "CPM",
+  "Tráfico a tienda": "Costo / visita",
+};
+const STATUSES = ["Activo", "Pausado", "Draft", "Completado"] as const;
+const STATUS_COLORS: Record<string, string> = {
+  Activo: "emerald", Pausado: "amber", Draft: "muted", Completado: "cyan",
+};
+
+/* ═══════════════════════════════════════
+   PERSISTENCE
+   ═══════════════════════════════════════ */
+
+const STORAGE_KEY = "sodare_projects_v2";
+
+function loadProjects(): Project[] {
+  if (typeof window === "undefined") return [];
+  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : []; }
+  catch { return []; }
+}
+function saveProjects(p: Project[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
+
+/* ═══════════════════════════════════════
+   STYLES
+   ═══════════════════════════════════════ */
+
+const inp: React.CSSProperties = {
+  width: "100%", padding: "8px 10px", fontSize: "12px", color: "#e2e8f0",
+  background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.1)",
+  outline: "none", fontFamily: "inherit",
+};
+const sel: React.CSSProperties = {
+  ...inp, appearance: "none" as const, cursor: "pointer", paddingRight: "28px",
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='rgba(148,163,184,0.4)' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
+  backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center",
+};
+
+/* ═══════════════════════════════════════
+   CUSTOM UI COMPONENTS
+   ═══════════════════════════════════════ */
+
+function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: any) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selected = options.find((o: any) => o.value === value);
+  const filtered = options.filter((o: any) => o.label.toLowerCase().includes(search.toLowerCase()));
+
+  const grouped: Record<string, any[]> = {};
+  filtered.forEach((o: any) => {
+    const p = o.portfolio || "Independientes";
+    if (!grouped[p]) grouped[p] = [];
+    grouped[p].push(o);
+  });
+
+  return (
+    <div ref={ref} style={{ position: "relative", width: "100%" }}>
+      <div 
+        onClick={() => !ro && !disabled && setOpen(!open)}
+        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1 }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
+          {selected?.picture && <img src={selected.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
+          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: selected ? "#e2e8f0" : "rgba(148,163,184,0.5)" }}>
+            {selected ? selected.label : placeholder}
+          </span>
+        </div>
+        {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5 }} />}
+      </div>
+      {open && !ro && !disabled && (
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+          <div style={{ padding: "8px", position: "sticky", top: 0, background: "rgba(10,15,30,0.95)", zIndex: 10 }}>
+            <input 
+              type="text" 
+              placeholder="Buscar..." 
+              value={search} 
+              onChange={e => setSearch(e.target.value)}
+              onClick={e => e.stopPropagation()}
+              style={{ ...inp, padding: "6px 8px", fontSize: "11px", background: "rgba(0,0,0,0.3)" }} 
+            />
+          </div>
+          {Object.entries(grouped).map(([portfolio, items]) => (
+            <div key={portfolio}>
+              <div style={{ padding: "4px 10px", fontSize: "8px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+                {portfolio}
+              </div>
+              {items.map((o: any) => (
+                <div key={o.value} onClick={() => { onChange(o.value); setOpen(false); setSearch(""); }} 
+                     style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "#e2e8f0" }} 
+                     onMouseEnter={e => e.currentTarget.style.background = "rgba(0,212,255,0.1)"} 
+                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                  {o.picture && <img src={o.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
+                  {o.label}
+                </div>
+              ))}
+            </div>
+          ))}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Sin opciones disponibles</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CustomMultiSelect({ values, options, onChange, placeholder, disabled, ro }: any) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filtered = options.filter((o: any) => o.name.toLowerCase().includes(search.toLowerCase()));
+  
+  const grouped: Record<string, any[]> = {};
+  filtered.forEach((o: any) => {
+    const p = o.portfolio || "Independientes";
+    if (!grouped[p]) grouped[p] = [];
+    grouped[p].push(o);
+  });
+
+  return (
+    <div ref={ref} style={{ position: "relative", width: "100%" }}>
+      <div 
+        onClick={() => !ro && !disabled && setOpen(!open)}
+        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "34px", height: "auto" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap" }}>
+          {values.length === 0 ? <span style={{ color: "rgba(148,163,184,0.5)" }}>{placeholder}</span> : 
+            values.map((v: string) => {
+              const opt = options.find((o: any) => o.id === v);
+              return (
+                <span key={v} style={{ fontSize: "9px", padding: "2px 6px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "#00d4ff", borderRadius: "2px", display: "flex", alignItems: "center", gap: "4px" }}>
+                  {opt ? opt.name : v} 
+                  {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
+                </span>
+              );
+            })
+          }
+        </div>
+        {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
+      </div>
+      {open && !ro && !disabled && (
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+          <div style={{ padding: "8px", position: "sticky", top: 0, background: "rgba(10,15,30,0.95)", zIndex: 10 }}>
+            <input 
+              type="text" 
+              placeholder="Buscar..." 
+              value={search} 
+              onChange={e => setSearch(e.target.value)}
+              onClick={e => e.stopPropagation()}
+              style={{ ...inp, padding: "6px 8px", fontSize: "11px", background: "rgba(0,0,0,0.3)" }} 
+            />
+          </div>
+          {Object.entries(grouped).map(([portfolio, items]) => (
+            <div key={portfolio}>
+              <div style={{ padding: "4px 10px", fontSize: "8px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+                {portfolio}
+              </div>
+              {items.map((o: any) => {
+                const selected = values.includes(o.id);
+                return (
+                  <div key={o.id} onClick={() => {
+                    if (selected) onChange(values.filter((v: string) => v !== o.id));
+                    else onChange([...values, o.id]);
+                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "#00d4ff" : "#e2e8f0", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
+                    <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "#00d4ff" : "rgba(255,255,255,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "#00d4ff" : "transparent" }}>
+                      {selected && <Check className="w-2 h-2 text-black" />}
+                    </div>
+                    {o.name}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>No hay cuentas publicitarias</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function CustomCreatableSelect({ value, options, onChange, placeholder, disabled, ro }: any) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filtered = options.filter((o: any) => o.label.toLowerCase().includes(search.toLowerCase()));
+  const exactMatch = options.some((o: any) => o.label.toLowerCase() === search.toLowerCase());
+
+  return (
+    <div ref={ref} style={{ position: "relative", width: "100%" }}>
+      <div 
+        onClick={() => !ro && !disabled && setOpen(true)}
+        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "text", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1, padding: 0 }}
+      >
+        <input 
+          type="text" 
+          placeholder={placeholder}
+          value={open ? search : value}
+          onChange={e => { setSearch(e.target.value); setOpen(true); onChange(e.target.value); }}
+          onFocus={() => { setOpen(true); setSearch(value); }}
+          readOnly={ro || disabled}
+          style={{ width: "100%", height: "100%", background: "transparent", border: "none", outline: "none", color: "#e2e8f0", fontSize: "12px", padding: "8px 10px" }}
+        />
+        {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, marginRight: "10px", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); setOpen(!open); }} />}
+      </div>
+      {open && !ro && !disabled && (
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+          {filtered.map((o: any) => (
+            <div key={o.value} onClick={() => { onChange(o.value); setSearch(o.value); setOpen(false); }} 
+                 style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "#e2e8f0" }} 
+                 onMouseEnter={e => e.currentTarget.style.background = "rgba(0,212,255,0.1)"} 
+                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+              {o.label}
+            </div>
+          ))}
+          {search && !exactMatch && (
+            <div onClick={() => { onChange(search); setOpen(false); }} 
+                 style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--emerald)" }} 
+                 onMouseEnter={e => e.currentTarget.style.background = "rgba(6,214,160,0.1)"} 
+                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+              <Plus className="w-3 h-3" /> Crear "{search}"
+            </div>
+          )}
+          {filtered.length === 0 && !search && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Empieza a escribir...</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════
+   PAGE
+   ═══════════════════════════════════════ */
+
+export default function ProyectosPage() {
+  const router = useRouter();
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [modalMode, setModalMode] = useState<"closed" | "create" | "edit" | "view">("closed");
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState<string | null>(null);
+
+  const [adAccounts, setAdAccounts] = useState<Record<string, { id: string; name: string; portfolio?: string }[]>>({
+    meta: [],
+    google: [{ id: "gads_001", name: "Google Ads MX — 123-456", portfolio: "Sodare MCC" }],
+    tiktok: [{ id: "tt_001", name: "TikTok Business — tt_main", portfolio: "Sodare Business Center" }],
+    whatsapp: [{ id: "wa_001", name: "WhatsApp API — +52 55 1234", portfolio: "Sodare Hub" }],
+  });
+
+  const [metaPages, setMetaPages] = useState<MetaPage[]>([]);
+
+  const fetchMetaAccounts = useCallback(async () => {
+    try {
+      const res = await fetch("/api/meta/adaccounts");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) setAdAccounts(prev => ({ ...prev, meta: json.data }));
+      }
+    } catch (err) { console.error("Failed to fetch meta ad accounts", err); }
+  }, []);
+
+  const fetchMetaPages = useCallback(async () => {
+    try {
+      const res = await fetch("/api/meta/pages");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) setMetaPages(json.data);
+      }
+    } catch (err) { console.error("Failed to fetch meta pages", err); }
+  }, []);
+
+  useEffect(() => {
+    setProjects(loadProjects());
+    fetchMetaAccounts();
+    fetchMetaPages();
+    const interval = setInterval(() => {
+      fetchMetaAccounts();
+      fetchMetaPages();
+    }, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, [fetchMetaAccounts, fetchMetaPages]);
+
+  const persist = useCallback((p: Project[]) => { setProjects(p); saveProjects(p); }, []);
+
+  function handleCreate(data: Omit<Project, "id" | "createdAt">) {
+    persist([{ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() }, ...projects]);
+    setModalMode("closed");
+  }
+  function handleUpdate(data: Omit<Project, "id" | "createdAt">) {
+    persist(projects.map(p => p.id === editingId ? { ...p, ...data } : p));
+    setModalMode("closed"); setEditingId(null);
+  }
+  function handleDelete(id: string) {
+    if (!confirm("¿Eliminar este proyecto?")) return;
+    persist(projects.filter(p => p.id !== id)); setMenuOpen(null);
+  }
+  function handleStatusChange(id: string, s: Project["status"]) {
+    persist(projects.map(p => p.id === id ? { ...p, status: s } : p)); setMenuOpen(null);
+  }
+
+  const editingProject = editingId ? projects.find(p => p.id === editingId) : null;
+  const activeCount = projects.filter(p => p.status === "Activo").length;
+  const totalBudget = projects.reduce((acc, p) => {
+    return acc + p.channels.reduce((a, c) => a + (parseFloat(c.budget.replace(/[^0-9.]/g, "")) || 0), 0);
+  }, 0);
+
+  return (
+    <div className="space-y-6">
+      <PageHeader
+        title="Proyectos"
+        description="Gestiona tus proyectos de clientes, campañas y presupuestos."
+        icon={<FolderKanban className="w-6 h-6" style={{ color: "#06d6a0" }} />}
+        action={
+          <button className="btn-primary" onClick={() => { setEditingId(null); setModalMode("create"); }} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <Plus className="w-4 h-4" /> Nuevo Proyecto
+          </button>
+        }
+      />
+
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <KpiCard color="emerald" icon={<FolderKanban className="w-4 h-4" />} value={projects.length} label="Total Proyectos" />
+        <KpiCard color="cyan" icon={<Target className="w-4 h-4" />} value={activeCount} label="Activos" />
+        <KpiCard color="amber" icon={<DollarSign className="w-4 h-4" />} value={`$${totalBudget.toLocaleString()}`} label="Budget Total" />
+      </div>
+
+      {/* List */}
+      <div className="glass-panel">
+        <div className="section-header">
+          <span className="section-title">Todos los Proyectos</span>
+          <span className="badge badge-emerald">{projects.length}</span>
+        </div>
+
+        {projects.length === 0 ? (
+          <div style={{ padding: "48px 24px", textAlign: "center" }}>
+            <FolderKanban className="w-10 h-10 mx-auto mb-3" style={{ color: "rgba(148,163,184,0.15)" }} />
+            <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "10px", letterSpacing: "0.2em", color: "rgba(148,163,184,0.3)", textTransform: "uppercase" }}>Sin proyectos</p>
+            <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.2)", marginTop: "4px" }}>Crea tu primer proyecto.</p>
+          </div>
+        ) : projects.map(p => (
+          <div key={p.id} className="data-row" style={{ position: "relative" }}>
+            <div className="flex items-center gap-3" style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
+              onClick={() => router.push(`/dashboard/proyectos/${p.id}`)}>
+              <div className="status-indicator" style={{
+                background: p.status === "Activo" ? "var(--emerald)" : p.status === "Pausado" ? "var(--amber)" : p.status === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.3)",
+                boxShadow: p.status === "Activo" ? "0 0 8px var(--emerald)" : "none",
+              }} />
+              <div style={{ minWidth: 0 }}>
+                <p style={{ fontSize: "13px", fontWeight: 600, color: "#e2e8f0" }}>{p.alias || "Sin nombre"}</p>
+                <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.4)", marginTop: "1px" }}>
+                  {p.vertical}{p.channels.length ? ` · ${p.channels.map(c => c.platformName).join(", ")}` : ""}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {/* Channel pills */}
+              {p.channels.slice(0, 3).map(c => {
+                const pl = PLATFORMS.find(x => x.id === c.platformId);
+                return <span key={c.platformId} style={{ fontSize: "9px", padding: "2px 6px", border: `1px solid ${pl?.color || "var(--border)"}`, color: pl?.color || "#94a3b8", fontWeight: 600, letterSpacing: "0.05em" }}>{c.platformName}</span>;
+              })}
+              {p.channels.length > 3 && <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.3)" }}>+{p.channels.length - 3}</span>}
+              <span className={`badge badge-${STATUS_COLORS[p.status]}`}>{p.status}</span>
+
+              <div style={{ position: "relative" }}>
+                <button onClick={() => setMenuOpen(menuOpen === p.id ? null : p.id)}
+                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.3)", padding: "4px" }}>
+                  <MoreHorizontal className="w-4 h-4" />
+                </button>
+                {menuOpen === p.id && (
+                  <div style={{ position: "absolute", right: 0, top: "100%", zIndex: 50, background: "rgba(5,8,18,0.97)", border: "1px solid var(--border)", minWidth: "160px", padding: "4px 0" }}>
+                    <MenuBtn icon={<Eye className="w-3.5 h-3.5" />} text="Abrir Dashboard" onClick={() => { router.push(`/dashboard/proyectos/${p.id}`); setMenuOpen(null); }} />
+                    <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Ajustes Rápidos" onClick={() => { setEditingId(p.id); setModalMode("edit"); setMenuOpen(null); }} />
+                    <div style={{ height: "1px", background: "var(--border)", margin: "4px 0" }} />
+                    {STATUSES.filter(s => s !== p.status).map(s => (
+                      <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "Activo" ? "var(--emerald)" : s === "Pausado" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.3)" }} />}
+                        text={`→ ${s}`} onClick={() => handleStatusChange(p.id, s)} />
+                    ))}
+                    <div style={{ height: "1px", background: "var(--border)", margin: "4px 0" }} />
+                    <MenuBtn icon={<Trash2 className="w-3.5 h-3.5" />} text="Eliminar" onClick={() => handleDelete(p.id)} danger />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {menuOpen && <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setMenuOpen(null)} />}
+
+      {modalMode !== "closed" && (
+        <ProjectModal
+          mode={modalMode}
+          initial={editingProject || EMPTY_PROJECT}
+          adAccountsByPlatform={adAccounts}
+          metaPages={metaPages}
+          onClose={() => { setModalMode("closed"); setEditingId(null); }}
+          onSave={editingId ? handleUpdate : handleCreate}
+        />
+      )}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════
+   MODAL
+   ═══════════════════════════════════════ */
+
+function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose, onSave }: {
+  mode: "create" | "edit" | "view";
+  initial: Omit<Project, "id" | "createdAt">;
+  adAccountsByPlatform: Record<string, { id: string; name: string; portfolio?: string }[]>;
+  metaPages: MetaPage[];
+  onClose: () => void;
+  onSave: (d: Omit<Project, "id" | "createdAt">) => void;
+}) {
+  const [form, setForm] = useState({ ...initial, channels: [...(initial.channels || []).map(c => ({ ...c, adAccounts: [...c.adAccounts] }))] });
+  const [errors, setErrors] = useState<string[]>([]);
+  const [mounted, setMounted] = useState(false);
+  const ro = mode === "view";
+
+  useEffect(() => { setMounted(true); }, []);
+
+  function set(k: string, v: string) {
+    setForm(prev => ({ ...prev, [k]: v }));
+    setErrors(prev => prev.filter(e => e !== k));
+  }
+
+  /* ─── Channel toggle ─── */
+  function toggleChannel(platformId: string) {
+    if (ro) return;
+    setForm(prev => {
+      const exists = prev.channels.find(c => c.platformId === platformId);
+      if (exists) {
+        return { ...prev, channels: prev.channels.filter(c => c.platformId !== platformId) };
+      }
+      const pl = PLATFORMS.find(p => p.id === platformId)!;
+      return {
+        ...prev,
+        channels: [...prev.channels, {
+          platformId, platformName: pl.name,
+          adAccounts: [], budget: "", period: "Mensual", goal: "", cpr: "",
+        }],
+      };
+    });
+  }
+
+  /* ─── Channel config update ─── */
+  function setChannel(platformId: string, key: keyof ChannelConfig, val: string | string[]) {
+    setForm(prev => ({
+      ...prev,
+      channels: prev.channels.map(c => c.platformId === platformId ? { ...c, [key]: val } : c),
+    }));
+  }
+
+  function handleSubmit() {
+    const missing: string[] = [];
+    if (!form.alias) missing.push("alias");
+    if (form.channels.length === 0) missing.push("channels");
+    if (missing.length) { setErrors(missing); return; }
+    onSave(form);
+  }
+
+  if (!mounted) return null;
+
+  const title = mode === "create" ? "Nuevo Proyecto" : mode === "edit" ? "Editar Proyecto" : "Detalle";
+  const accent = mode === "create" ? "#06d6a0" : mode === "edit" ? "#ffbe0b" : "#00d4ff";
+  
+  const fanpageOptions = metaPages.map(p => ({
+    value: p.name,
+    label: p.name,
+    picture: p.picture,
+    portfolio: p.portfolio
+  }));
+  
+  const instagramOptions = metaPages
+    .filter(p => p.instagram)
+    .map(p => ({
+      value: `@${p.instagram!.username}`,
+      label: `@${p.instagram!.username}`,
+      picture: p.instagram!.picture,
+      portfolio: p.portfolio
+    }));
+
+  const verticalOptions = VERTICALS.map(v => ({ value: v, label: v }));
+
+  return createPortal(
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, zIndex: 9999,
+      display: "flex", alignItems: "flex-start", justifyContent: "center",
+      overflowY: "auto", padding: "3vh 16px",
+      background: "rgba(0,0,0,0.8)", backdropFilter: "blur(6px)",
+    }}>
+      <div onClick={e => e.stopPropagation()} className="page-enter" style={{
+        width: "640px", maxWidth: "100%",
+        background: "rgba(5,8,18,0.97)", border: "1px solid rgba(0,212,255,0.12)",
+        flexShrink: 0, marginBottom: "3vh",
+      }}>
+        <div style={{ height: "2px", background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
+
+        {/* Header */}
+        <div style={{ padding: "16px 24px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)" }}>
+          <h2 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "13px", fontWeight: 700, color: "white", letterSpacing: "0.1em" }}>{title}</h2>
+          <button onClick={onClose} style={{ color: "rgba(148,163,184,0.4)", cursor: "pointer", background: "none", border: "none" }}><X className="w-5 h-5" /></button>
+        </div>
+
+        <div style={{ padding: "14px 24px 24px" }}>
+
+          {/* ── Identidad ── */}
+          <Sec icon={<Users className="w-3 h-3" />} text="Identidad del Proyecto" />
+          <Row>
+            <Field l="Alias del proyecto" error={errors.includes("alias")} el={
+              <input type="text" value={form.alias} readOnly={ro} placeholder="Ej. Lanzamiento Q3"
+                style={{ ...inp, ...(errors.includes("alias") ? { borderColor: "var(--red)" } : {}) }}
+                onChange={e => set("alias", e.target.value)} />
+            } />
+            <Field l="Cliente" el={
+              <input type="text" value={form.client} readOnly={ro} placeholder="Nombre de la marca"
+                style={inp}
+                onChange={e => set("client", e.target.value)} />
+            } />
+          </Row>
+          <Row>
+            <Field l="Vertical" el={
+              <CustomCreatableSelect 
+                value={form.vertical} 
+                options={verticalOptions} 
+                onChange={(val: string) => set("vertical", val)} 
+                placeholder="Seleccionar o escribir..." 
+                ro={ro} 
+              />
+            } />
+            {/* Vacío para mantener el grid parejo, o se puede reacomodar */}
+            <div />
+          </Row>
+
+          {/* ── Redes ── */}
+          <Sec icon={<Globe className="w-3 h-3" />} text="Redes Sociales" />
+          <Row>
+            <Field l="Fanpage" el={
+              <CustomSelect 
+                value={form.fanpage} 
+                options={fanpageOptions} 
+                onChange={(val: string) => set("fanpage", val)} 
+                placeholder="Seleccionar Fanpage..." 
+                ro={ro} 
+              />
+            } />
+            <Field l="Instagram" el={
+              <CustomSelect 
+                value={form.instagram} 
+                options={instagramOptions} 
+                onChange={(val: string) => set("instagram", val)} 
+                placeholder="Seleccionar Instagram..." 
+                ro={ro} 
+              />
+            } />
+          </Row>
+          <Row>
+            <Field l="WhatsApp" el={<input type="tel" value={form.whatsapp} readOnly={ro} placeholder="+52 55 1234 5678" style={inp} onChange={e => set("whatsapp", e.target.value)} />} />
+            <Field l="Página Web" el={<input type="url" value={form.website} readOnly={ro} placeholder="https://sitio.com" style={inp} onChange={e => set("website", e.target.value)} />} />
+          </Row>
+
+          {/* ── Channel selector ── */}
+          <Sec icon={<DollarSign className="w-3 h-3" />} text={`Canales Publicitarios${errors.includes("channels") ? " — Selecciona al menos 1" : ""}`} />
+
+          {/* Platform checkboxes */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "14px" }}>
+            {PLATFORMS.map(pl => {
+              const selected = form.channels.some(c => c.platformId === pl.id);
+              const disabled = !pl.connected && !selected;
+              return (
+                <button
+                  key={pl.id}
+                  onClick={() => !disabled && toggleChannel(pl.id)}
+                  style={{
+                    display: "flex", alignItems: "center", gap: "6px",
+                    padding: "6px 12px", fontSize: "11px", fontWeight: 600,
+                    border: `1px solid ${selected ? pl.color : disabled ? "rgba(148,163,184,0.08)" : "rgba(148,163,184,0.15)"}`,
+                    background: selected ? `${pl.color}12` : "transparent",
+                    color: selected ? pl.color : disabled ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.5)",
+                    cursor: disabled ? "not-allowed" : "pointer",
+                    opacity: disabled ? 0.4 : 1,
+                    transition: "all 0.15s",
+                  }}
+                >
+                  {selected && <Check className="w-3 h-3" />}
+                  {pl.name}
+                  {!pl.connected && !selected && <span style={{ fontSize: "8px", opacity: 0.5 }}>(offline)</span>}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* ── Per-channel config cards ── */}
+          {form.channels.map(ch => {
+            const pl = PLATFORMS.find(p => p.id === ch.platformId) || { name: ch.platformId, color: "#00d4ff" };
+            const accounts = adAccountsByPlatform[ch.platformId] || [];
+
+            return (
+              <div key={ch.platformId} style={{
+                border: `1px solid ${pl.color}30`,
+                background: `${pl.color}05`,
+                marginBottom: "12px",
+                padding: "14px 16px",
+              }}>
+                {/* Channel header */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: pl.color }} />
+                    <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", color: pl.color }}>{pl.name}</span>
+                  </div>
+                  {!ro && (
+                    <button onClick={() => toggleChannel(ch.platformId)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.3)", fontSize: "10px" }}>
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                </div>
+
+                {/* Ad accounts multi-select dropdown */}
+                <label style={{ display: "block", fontSize: "9px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(148,163,184,0.4)", marginBottom: "6px" }}>
+                  Cuentas Publicitarias
+                </label>
+                <div style={{ marginBottom: "12px" }}>
+                  <CustomMultiSelect 
+                    values={ch.adAccounts}
+                    options={accounts}
+                    onChange={(vals: string[]) => setChannel(ch.platformId, "adAccounts", vals)}
+                    placeholder="Seleccionar cuentas..."
+                    ro={ro}
+                  />
+                </div>
+
+                {/* Metrics row */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "8px" }}>
+                  <div>
+                    <label style={{ display: "block", fontSize: "8px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)", marginBottom: "3px" }}>Budget</label>
+                    <input type="text" value={ch.budget} readOnly={ro} placeholder="$0.00"
+                      style={{ ...inp, fontSize: "11px", padding: "6px 8px" }}
+                      onChange={e => setChannel(ch.platformId, "budget", e.target.value)} />
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "8px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)", marginBottom: "3px" }}>Período</label>
+                    <select style={{ ...sel, fontSize: "11px", padding: "6px 8px" }} value={ch.period} disabled={ro}
+                      onChange={e => setChannel(ch.platformId, "period", e.target.value)}>
+                      {["Diario","Semanal","Mensual","Anual"].map(b => <option key={b}>{b}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "8px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)", marginBottom: "3px" }}>Meta</label>
+                    <select style={{ ...sel, fontSize: "11px", padding: "6px 8px" }} value={ch.goal} disabled={ro}
+                      onChange={e => setChannel(ch.platformId, "goal", e.target.value)}>
+                      <option value="">—</option>{GOALS.map(g => <option key={g}>{g}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label style={{ display: "block", fontSize: "8px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)", marginBottom: "3px" }}>{CPR_MAP[ch.goal] || "CPR"}</label>
+                    <input type="text" value={ch.cpr} readOnly={ro} placeholder="$0.00"
+                      style={{ ...inp, fontSize: "11px", padding: "6px 8px" }}
+                      onChange={e => setChannel(ch.platformId, "cpr", e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+
+          {/* ── Audiencia ── */}
+          <Sec icon={<Users className="w-3 h-3" />} text="Audiencia & Calendario" />
+          <Row>
+            <Field l="Buyer Persona" el={<input type="text" value={form.persona} readOnly={ro} placeholder="Mujeres 25-40, fitness" style={inp} onChange={e => set("persona", e.target.value)} />} />
+            <Field l="Geo-Targeting" el={<input type="text" value={form.geo} readOnly={ro} placeholder="País / Ciudad" style={inp} onChange={e => set("geo", e.target.value)} />} />
+          </Row>
+          <Row>
+            <Field l="Fecha Inicio" el={<input type="date" value={form.dateStart} readOnly={ro} style={{ ...inp, colorScheme: "dark" }} onChange={e => set("dateStart", e.target.value)} />} />
+            <Field l="Fecha Fin" el={<input type="date" value={form.dateEnd} readOnly={ro} style={{ ...inp, colorScheme: "dark" }} onChange={e => set("dateEnd", e.target.value)} />} />
+          </Row>
+
+          {/* Actions */}
+          {!ro ? (
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
+              <button onClick={onClose} style={{
+                fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase",
+                padding: "8px 20px", border: "1px solid rgba(148,163,184,0.12)", color: "rgba(148,163,184,0.4)",
+                background: "transparent", cursor: "pointer",
+              }}>Cancelar</button>
+              <button onClick={handleSubmit} className="btn-primary" style={{
+                padding: "8px 24px", background: "rgba(6,214,160,0.08)",
+                borderColor: "rgba(6,214,160,0.35)", color: "var(--emerald)",
+              }}>{mode === "create" ? "Crear Proyecto" : "Guardar"}</button>
+            </div>
+          ) : (
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
+              <button onClick={onClose} className="btn-primary" style={{ padding: "8px 24px" }}>Cerrar</button>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
+/* ═══════════════════════════════════════
+   HELPERS
+   ═══════════════════════════════════════ */
+
+function KpiCard({ color, icon, value, label }: { color: string; icon: React.ReactNode; value: string | number; label: string }) {
+  const c = `var(--${color})`;
+  return (
+    <div className={`kpi-card ${color}`}>
+      <div className="flex items-center gap-3">
+        <div style={{ width: 36, height: 36, background: `${c}12`.replace("var(--", "rgba(").replace(")", ",0.08)"), border: `1px solid ${c}25`.replace("var(--", "rgba(").replace(")", ",0.15)"), display: "flex", alignItems: "center", justifyContent: "center", color: c }}>{icon}</div>
+        <div>
+          <p className="kpi-value" style={{ color: c }}>{value}</p>
+          <p className="kpi-label">{label}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function MenuBtn({ icon, text, onClick, danger }: { icon: React.ReactNode; text: string; onClick: () => void; danger?: boolean }) {
+  return (
+    <button onClick={onClick} style={{
+      display: "flex", alignItems: "center", gap: "8px", width: "100%",
+      padding: "7px 14px", fontSize: "11px", border: "none", background: "none",
+      color: danger ? "var(--red)" : "rgba(200,214,229,0.7)", cursor: "pointer", textAlign: "left",
+    }}
+      onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,212,255,0.05)")}
+      onMouseLeave={e => (e.currentTarget.style.background = "none")}
+    >{icon}{text}</button>
+  );
+}
+
+function Sec({ icon, text }: { icon: React.ReactNode; text: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px", marginTop: "14px" }}>
+      <span style={{ color: "var(--cyan)", opacity: 0.4 }}>{icon}</span>
+      <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "8px", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)" }}>{text}</span>
+      <span style={{ flex: 1, height: "1px", background: "var(--border)" }} />
+    </div>
+  );
+}
+function Row({ children }: { children: React.ReactNode }) {
+  return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "10px" }}>{children}</div>;
+}
+function Field({ l, el, error }: { l: string; el: React.ReactNode; error?: boolean }) {
+  return (
+    <div>
+      <label style={{ display: "block", fontSize: "9px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: error ? "var(--red)" : "rgba(148,163,184,0.4)", marginBottom: "4px" }}>{l}{error ? " *" : ""}</label>
+      {el}
+    </div>
+  );
+}
