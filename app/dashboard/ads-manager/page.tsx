@@ -27,6 +27,7 @@ import { BulkBudgetModal } from "@/components/ads-manager/BulkBudgetModal";
 import { SpendCapModal } from "@/components/ads-manager/SpendCapModal";
 import { RulesBuilderModal } from "@/components/ads-manager/RulesBuilderModal";
 import { RulesManagerModal } from "@/components/ads-manager/RulesManagerModal";
+import { ImportModal } from "@/components/ads-manager/ImportModal";
 import { useClipboardStore } from "@/stores/clipboardStore";
 import { calcROAS, isAdvantagePlus, findActionValue } from "@/lib/ads-metrics";
 
@@ -100,7 +101,23 @@ export default function AdsManagerPage() {
   const [activeFilters, setActiveFilters] = useState<FilterItem[]>([]);
   
   const [selectedBreakdown, setSelectedBreakdown] = useState("none");
-  const [visibleColumns, setVisibleColumns] = useState<string[]>(DEFAULT_COLUMNS.map((c) => c.key));
+
+  // Column persistence via localStorage
+  const [visibleColumns, setVisibleColumns] = useState<string[]>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("sodare_ads_columns");
+      if (saved) try { return JSON.parse(saved); } catch {}
+    }
+    return DEFAULT_COLUMNS.map((c) => c.key);
+  });
+
+  // Persist columns when they change
+  const handleColumnsChange = (cols: string[]) => {
+    setVisibleColumns(cols);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("sodare_ads_columns", JSON.stringify(cols));
+    }
+  };
 
   // Date picker state
   const [datePreset, setDatePreset] = useState("maximum");
@@ -135,6 +152,7 @@ export default function AdsManagerPage() {
   const [confirmAction, setConfirmAction] = useState<{ title: string; message: string; variant: "danger" | "warning" | "info"; onConfirm: () => Promise<void> } | null>(null);
   const [showRulesBuilder, setShowRulesBuilder] = useState(false);
   const [showRulesManager, setShowRulesManager] = useState(false);
+  const [showImportModal, setShowImportModal] = useState(false);
 
   // Auto-sync effect
   useEffect(() => {
@@ -249,8 +267,18 @@ export default function AdsManagerPage() {
     });
   }, [selectedBreakdown, activeLevel, campaigns, adsets, ads]);
 
-  // Handle single status updates
+  // Handle single status updates (optimistic)
   const handleUpdateStatus = async (id: string, status: "ACTIVE" | "PAUSED") => {
+    // Optimistic update — apply immediately
+    const updateList = (list: any[]) =>
+      list.map((item) => (item.id === id ? { ...item, status, effective_status: status } : item));
+    const prevCampaigns = [...campaigns];
+    const prevAdsets = [...adsets];
+    const prevAds = [...ads];
+    if (activeLevel === "campaigns") setCampaigns(updateList(campaigns));
+    else if (activeLevel === "adsets") setAdsets(updateList(adsets));
+    else if (activeLevel === "ads") setAds(updateList(ads));
+
     try {
       const res = await fetch(`/api/meta/${activeLevel}`, {
         method: "POST",
@@ -262,16 +290,20 @@ export default function AdsManagerPage() {
       });
       const data = await res.json();
       if (data.success) {
-        // Update local list
-        const updateList = (list: any[]) =>
-          list.map((item) => (item.id === id ? { ...item, status } : item));
-        if (activeLevel === "campaigns") setCampaigns(updateList(campaigns));
-        else if (activeLevel === "adsets") setAdsets(updateList(adsets));
-        else if (activeLevel === "ads") setAds(updateList(ads));
         return true;
       }
+      // Revert on failure
+      if (activeLevel === "campaigns") setCampaigns(prevCampaigns);
+      else if (activeLevel === "adsets") setAdsets(prevAdsets);
+      else if (activeLevel === "ads") setAds(prevAds);
+      addToast("error", `Error al cambiar estado: ${data.error || "Error desconocido"}`);
       return false;
     } catch (err) {
+      // Revert on error
+      if (activeLevel === "campaigns") setCampaigns(prevCampaigns);
+      else if (activeLevel === "adsets") setAdsets(prevAdsets);
+      else if (activeLevel === "ads") setAds(prevAds);
+      addToast("error", "Error de red al cambiar estado");
       return false;
     }
   };
@@ -988,7 +1020,7 @@ export default function AdsManagerPage() {
         onDelete={handleDelete}
         onCreateRule={() => setShowRulesBuilder(true)}
         onManageRules={() => setShowRulesManager(true)}
-        onImportBulk={() => addToast("info", "Importación masiva: próximamente")}
+        onImportBulk={() => setShowImportModal(true)}
         onExportCSV={handleExportCSV}
         onExportExcel={handleExportExcel}
         onExportPDF={() => { window.print(); addToast("info", "PDF: usando impresión del navegador"); }}
@@ -1002,9 +1034,9 @@ export default function AdsManagerPage() {
           <ColumnSelector
             columns={ALL_COLUMNS}
             selectedKeys={visibleColumns}
-            onChange={setVisibleColumns}
+            onChange={handleColumnsChange}
           />
-          <ColumnPresets currentColumns={visibleColumns} onApply={setVisibleColumns} />
+          <ColumnPresets currentColumns={visibleColumns} onApply={handleColumnsChange} />
         </div>
       </TableActionBar>
       </div>
@@ -1151,6 +1183,14 @@ export default function AdsManagerPage() {
         <RulesManagerModal
           adAccountId={selectedAccountId}
           onClose={() => setShowRulesManager(false)}
+        />
+      )}
+      {showImportModal && (
+        <ImportModal
+          adAccountId={selectedAccountId}
+          level={activeLevel}
+          onClose={() => setShowImportModal(false)}
+          onImported={() => { fetchData(); addToast("success", "✅ Importación completada"); }}
         />
       )}
 
