@@ -63,7 +63,7 @@ model VerificationToken {
 }
 
 // ------------------------------------------------------
-// APP MODELS
+// WORKSPACE & MULTI-TENANT
 // ------------------------------------------------------
 
 model Workspace {
@@ -75,6 +75,10 @@ model Workspace {
   members   WorkspaceMember[]
   projects  Project[]
   invites   WorkspaceInvite[]
+  tasks     Task[]
+  posts     ScheduledPost[]
+  leads     Lead[]
+  integrations Integration[]
 }
 
 model WorkspaceMember {
@@ -100,9 +104,25 @@ model WorkspaceInvite {
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
+// ------------------------------------------------------
+// PROJECT & CHANNELS
+// ------------------------------------------------------
+
 model Project {
   id          String   @id @default(cuid())
   name        String
+  alias       String?
+  client      String?
+  vertical    String?
+  fanpage     String?
+  instagram   String?
+  whatsapp    String?
+  website     String?
+  persona     String?
+  geo         String?
+  status      String   @default("Activo") // Activo, Pausado, Draft, Completado
+  dateStart   String?
+  dateEnd     String?
   workspaceId String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -111,6 +131,7 @@ model Project {
   members     ProjectMember[]
   channels    Channel[]
   botmaker    BotMakerConfig?
+  briefs      Brief[]
 }
 
 model ProjectMember {
@@ -150,21 +171,97 @@ model BotMakerConfig {
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
-model OpsTask {
+// ------------------------------------------------------
+// OPS / TASKS
+// ------------------------------------------------------
+
+model Task {
   id          String   @id @default(cuid())
   title       String
-  description String?
-  status      String   @default("TODO") // TODO, IN_PROGRESS, DONE
-  priority    String   @default("NORMAL")
+  assignee    String?
+  priority    String   @default("P2")  // P0, P1, P2
+  status      String   @default("Backlog") // Backlog, WIP, Done
+  projectId   String?
+  workspaceId String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
-model ScheduledPublish {
-  id        String   @id @default(cuid())
-  content   String
-  scheduledAt DateTime
-  status    String   @default("PENDING") // PENDING, PUBLISHED, FAILED
-  channelId String
-  createdAt DateTime @default(now())
+// ------------------------------------------------------
+// BRIEFING
+// ------------------------------------------------------
+
+model Brief {
+  id          String   @id @default(cuid())
+  projectId   String
+  title       String
+  content     Json?    // Full form data stored as JSON
+  status      String   @default("Draft") // Draft, Review, Approved
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
+
+// ------------------------------------------------------
+// PUBLISHER / SCHEDULING
+// ------------------------------------------------------
+
+model ScheduledPost {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  projectId    String?
+  channels     String[] // ["facebook", "instagram", "tiktok"]
+  content      String
+  mediaUrl     String?
+  scheduledAt  DateTime
+  status       String   @default("Scheduled") // Scheduled, Published, Failed
+  createdAt    DateTime @default(now())
+
+  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+// ------------------------------------------------------
+// CRM / LEADS
+// ------------------------------------------------------
+
+model Lead {
+  id          String   @id @default(cuid())
+  workspaceId String
+  projectId   String?
+  name        String
+  phone       String?
+  email       String?
+  status      String   @default("Nuevo") // Nuevo, En Contacto, Negociación, Ganado, Perdido
+  temperature String   @default("Frío") // Frío, Tibio, Caliente
+  value       Float    @default(0)
+  campaign    String?
+  adset       String?
+  source      String   @default("Meta Ads")
+  messages    Json?    // Array of chat messages
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+}
+
+// ------------------------------------------------------
+// INTEGRATIONS
+// ------------------------------------------------------
+
+model Integration {
+  id          String    @id @default(cuid())
+  workspaceId String
+  provider    String    // "meta", "google_ads", "tiktok", "whatsapp"
+  credentials Json      // Encrypted with AES-256
+  connected   Boolean   @default(false)
+  connectedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, provider])
 }

@@ -1,17 +1,23 @@
-import NextAuth, { DefaultSession } from "next-auth";
-import { JWT } from "next-auth/jwt";
+import "next-auth";
+import "next-auth/jwt";
 
 declare module "next-auth" {
   interface Session {
     user: {
       id: string;
-    } & DefaultSession["user"];
-    // accessToken is NOT on Session — kept server-side in JWT only
+      name?: string | null;
+      email?: string | null;
+      image?: string | null;
+    };
+    // accessToken is NOT on Session — kept server-side in JWT only.
+    // API routes use getMetaAccessToken() from lib/server-auth.ts
   }
 }
 
 declare module "next-auth/jwt" {
   interface JWT {
+    sub?: string;
     accessToken?: string;
+    accessTokenExpires?: number | null;
   }
 }
