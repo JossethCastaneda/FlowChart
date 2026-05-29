@@ -42,47 +42,59 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const body = await req.json();
-  const { name } = body;
+    const body = await req.json();
+    const { name } = body;
 
-  if (!name || typeof name !== "string" || name.trim().length < 2) {
-    return NextResponse.json(
-      { error: "El nombre del workspace debe tener al menos 2 caracteres" },
-      { status: 400 }
-    );
-  }
+    if (!name || typeof name !== "string" || name.trim().length < 2) {
+      return NextResponse.json(
+        { error: "El nombre del workspace debe tener al menos 2 caracteres" },
+        { status: 400 }
+      );
+    }
 
-  const baseSlug = generateSlug(name);
-  let slug = baseSlug;
-  let attempts = 0;
+    const baseSlug = generateSlug(name);
+    let slug = baseSlug;
+    let attempts = 0;
 
-  while (attempts < 10) {
-    const existing = await prisma.workspace.findUnique({ where: { slug } });
-    if (!existing) break;
-    attempts++;
-    slug = `${baseSlug}-${attempts}`;
-  }
+    while (attempts < 10) {
+      const existing = await prisma.workspace.findUnique({ where: { slug } });
+      if (!existing) break;
+      attempts++;
+      slug = `${baseSlug}-${attempts}`;
+    }
 
-  const workspace = await prisma.workspace.create({
-    data: {
-      name: name.trim(),
-      slug,
-      members: {
-        create: {
-          userId: session.user.id,
-          role: "OWNER",
+    console.log("[WORKSPACE] Creating workspace for user:", session.user.id, "slug:", slug);
+
+    const workspace = await prisma.workspace.create({
+      data: {
+        name: name.trim(),
+        slug,
+        members: {
+          create: {
+            userId: session.user.id,
+            role: "OWNER",
+          },
         },
       },
-    },
-    include: {
-      members: true,
-    },
-  });
+      include: {
+        members: true,
+      },
+    });
 
-  return NextResponse.json({ data: workspace }, { status: 201 });
+    console.log("[WORKSPACE] Created successfully:", workspace.id);
+
+    return NextResponse.json({ data: workspace }, { status: 201 });
+  } catch (err: any) {
+    console.error("[WORKSPACE] Error creating workspace:", err);
+    return NextResponse.json(
+      { error: err?.message || "Error interno al crear workspace" },
+      { status: 500 }
+    );
+  }
 }
