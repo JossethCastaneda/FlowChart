@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
-import fs from 'fs';
+import { getMetaAccessToken } from "@/lib/server-auth";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const accessToken = await getMetaAccessToken(req);
   
-  if (!session || !session.accessToken) {
+  if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -24,7 +22,7 @@ export async function GET(req: NextRequest) {
     adAccountId = `act_${adAccountId}`;
   }
 
-  const token = session.accessToken;
+  const token = accessToken;
   const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
   const baseUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights`;
 
@@ -48,22 +46,13 @@ export async function GET(req: NextRequest) {
 
     const url = `${baseUrl}?access_token=${token}${timeRange}&level=${level}&fields=${fields}&${params}`;
     const res = await fetch(url);
-    const logData = {
-      timestamp: new Date().toISOString(),
-      url: url.replace(/access_token=[^&]+/, "access_token=HIDDEN"),
-      status: res.status,
-      level,
-      params,
-    };
 
     if (!res.ok) {
       const err = await res.json().catch(()=>({}));
       console.error(`Meta API Error for level=${level} params=${params}:`, err);
-      fs.appendFileSync('meta-api.log', JSON.stringify({ ...logData, error: err }) + "\n");
       throw new Error(err?.error?.message || `Error ${res.status} from Meta API`);
     }
     const json = await res.json();
-    fs.appendFileSync('meta-api.log', JSON.stringify({ ...logData, responseDataLength: json.data?.length || 0, firstItem: json.data?.[0] }) + "\n");
     return json.data || [];
   };
 

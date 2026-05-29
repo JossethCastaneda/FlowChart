@@ -1,14 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
+import { getMetaAccessToken } from "@/lib/server-auth";
 
 // POST — Update a rule
 export async function POST(req: NextRequest, { params }: { params: Promise<{ ruleId: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { ruleId } = await params;
-  const token = session.accessToken;
+  const token = accessToken;
   const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
 
   try {
@@ -31,11 +30,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ rul
 
 // DELETE — Delete a rule
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ ruleId: string }> }) {
-  const session = await getServerSession(authOptions);
-  if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { ruleId } = await params;
-  const token = session.accessToken;
+  const token = accessToken;
   const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
 
   try {

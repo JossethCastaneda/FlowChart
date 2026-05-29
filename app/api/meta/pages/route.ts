@@ -1,26 +1,21 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth.config";
+import { getMetaAccessToken } from "@/lib/server-auth";
 
 // No mock pages in production
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const accessToken = await getMetaAccessToken(request);
 
-    if (!session || !session.accessToken) {
+    if (!accessToken) {
       return NextResponse.json({
         data: [],
         source: "no_session",
       });
     }
 
-    // DEBUG: Write token to file so I can debug Graph API
-    const fs = require('fs');
-    fs.writeFileSync('token.txt', session.accessToken);
-
     let allData: any[] = [];
-    let nextUrl: string | null = `https://graph.facebook.com/v20.0/me/accounts?fields=id,name,fan_count,picture{url},instagram_business_account{id,username,profile_picture_url,followers_count}&limit=100&access_token=${session.accessToken}`;
+    let nextUrl: string | null = `https://graph.facebook.com/v20.0/me/accounts?fields=id,name,fan_count,picture{url},instagram_business_account{id,username,profile_picture_url,followers_count}&limit=100&access_token=${accessToken}`;
 
     while (nextUrl) {
       const res: Response = await fetch(nextUrl, { headers: { "Content-Type": "application/json" } });

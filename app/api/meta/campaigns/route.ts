@@ -1,20 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
-import fs from "fs";
-
-function logApiCall(details: any) {
-  try {
-    fs.appendFileSync(
-      "meta-api.log",
-      JSON.stringify({ timestamp: new Date().toISOString(), ...details }) + "\n"
-    );
-  } catch (e) {}
-}
+import { getMetaAccessToken } from "@/lib/server-auth";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.accessToken) {
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -31,7 +20,7 @@ export async function GET(req: NextRequest) {
     adAccountId = `act_${adAccountId}`;
   }
 
-  const token = session.accessToken;
+  const token = accessToken;
   const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
 
   let timeRange = "&date_preset=maximum";
@@ -49,7 +38,6 @@ export async function GET(req: NextRequest) {
     const campaignsRes = await fetch(campaignsUrl);
     if (!campaignsRes.ok) {
       const err = await campaignsRes.json().catch(() => ({}));
-      logApiCall({ action: "GET_campaigns_failed", adAccountId, error: err });
       return NextResponse.json({ error: err?.error?.message || "Failed to fetch campaigns" }, { status: campaignsRes.status });
     }
     const campaignsJson = await campaignsRes.json();
@@ -94,17 +82,15 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    logApiCall({ action: "GET_campaigns_success", adAccountId, count: mergedCampaigns.length });
     return NextResponse.json({ data: mergedCampaigns });
   } catch (error: any) {
-    logApiCall({ action: "GET_campaigns_error", adAccountId, error: error.message });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.accessToken) {
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -115,7 +101,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing campaignId" }, { status: 400 });
     }
 
-    const token = session.accessToken;
+    const token = accessToken;
     const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
     const updateUrl = `https://graph.facebook.com/${version}/${campaignId}?access_token=${token}`;
 
@@ -135,14 +121,11 @@ export async function POST(req: NextRequest) {
 
     const json = await res.json();
     if (!res.ok) {
-      logApiCall({ action: "POST_campaign_failed", campaignId, fields: updateFields, error: json });
       return NextResponse.json({ error: json?.error?.message || "Failed to update campaign" }, { status: res.status });
     }
 
-    logApiCall({ action: "POST_campaign_success", campaignId, fields: updateFields });
     return NextResponse.json({ success: true, data: json });
   } catch (error: any) {
-    logApiCall({ action: "POST_campaign_error", error: error.message });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

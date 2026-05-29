@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
+import { getMetaAccessToken } from "@/lib/server-auth";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.accessToken) {
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -17,7 +16,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
 
-  const token = session.accessToken;
+  const token = accessToken;
   const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
 
   // Build time range for last N days

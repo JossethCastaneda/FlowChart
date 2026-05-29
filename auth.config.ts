@@ -36,9 +36,9 @@ export const authOptions: NextAuthOptions = {
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
-      if (token.accessToken) {
-        session.accessToken = token.accessToken as string;
-      }
+      // NOTE: accessToken is NOT exposed to the client session.
+      // API routes use getMetaAccessToken() from lib/server-auth.ts
+      // which reads the JWT directly via getToken() (server-side only).
       return session;
     },
     async jwt({ token, account, user }) {

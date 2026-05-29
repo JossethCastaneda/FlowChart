@@ -1,20 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
-import fs from "fs";
-
-function logApiCall(details: any) {
-  try {
-    fs.appendFileSync(
-      "meta-api.log",
-      JSON.stringify({ timestamp: new Date().toISOString(), ...details }) + "\n"
-    );
-  } catch (e) {}
-}
+import { getMetaAccessToken } from "@/lib/server-auth";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.accessToken) {
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -31,7 +20,7 @@ export async function GET(req: NextRequest) {
     adAccountId = `act_${adAccountId}`;
   }
 
-  const token = session.accessToken;
+  const token = accessToken;
   const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
 
   let timeRange = "&date_preset=maximum";
@@ -50,7 +39,6 @@ export async function GET(req: NextRequest) {
     const adsRes = await fetch(adsUrl);
     if (!adsRes.ok) {
       const err = await adsRes.json().catch(() => ({}));
-      logApiCall({ action: "GET_ads_failed", adAccountId, error: err });
       return NextResponse.json({ error: err?.error?.message || "Failed to fetch ads" }, { status: adsRes.status });
     }
     const adsJson = await adsRes.json();
@@ -95,17 +83,15 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    logApiCall({ action: "GET_ads_success", adAccountId, count: mergedAds.length });
     return NextResponse.json({ data: mergedAds });
   } catch (error: any) {
-    logApiCall({ action: "GET_ads_error", adAccountId, error: error.message });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.accessToken) {
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -116,7 +102,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing adId" }, { status: 400 });
     }
 
-    const token = session.accessToken;
+    const token = accessToken;
     const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
 
     // If creative update needed: create new creative first, then assign
@@ -131,7 +117,6 @@ export async function POST(req: NextRequest) {
       });
       const creativeJson = await creativeRes.json();
       if (!creativeRes.ok) {
-        logApiCall({ action: "POST_creative_failed", adId, error: creativeJson });
         return NextResponse.json({ error: creativeJson?.error?.message || "Failed to create creative" }, { status: creativeRes.status });
       }
       creativeId = creativeJson.id;
@@ -152,14 +137,11 @@ export async function POST(req: NextRequest) {
 
     const json = await res.json();
     if (!res.ok) {
-      logApiCall({ action: "POST_ad_failed", adId, fields: updateFields, error: json });
       return NextResponse.json({ error: json?.error?.message || "Failed to update ad" }, { status: res.status });
     }
 
-    logApiCall({ action: "POST_ad_success", adId, fields: updateFields });
     return NextResponse.json({ success: true, data: json });
   } catch (error: any) {
-    logApiCall({ action: "POST_ad_error", error: error.message });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

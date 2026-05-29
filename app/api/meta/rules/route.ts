@@ -1,19 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
+import { getMetaAccessToken } from "@/lib/server-auth";
 
 const RULE_FIELDS = "name,status,evaluation_spec,execution_spec,schedule_spec,entity_type,filter_spec";
 
 // GET — List all rules for an ad account
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
   const adAccountId = searchParams.get("adAccountId");
   if (!adAccountId) return NextResponse.json({ error: "Missing adAccountId" }, { status: 400 });
 
-  const token = session.accessToken;
+  const token = accessToken;
   const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
 
   try {
@@ -31,10 +30,10 @@ export async function GET(req: NextRequest) {
 
 // POST — Create a new rule
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session?.accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const token = session.accessToken;
+  const token = accessToken;
   const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
 
   try {

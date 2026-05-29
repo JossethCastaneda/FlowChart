@@ -1,20 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
-import fs from "fs";
-
-function logApiCall(details: any) {
-  try {
-    fs.appendFileSync(
-      "meta-api.log",
-      JSON.stringify({ timestamp: new Date().toISOString(), ...details }) + "\n"
-    );
-  } catch (e) {}
-}
+import { getMetaAccessToken } from "@/lib/server-auth";
 
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
-  if (!session || !session.accessToken) {
+  const accessToken = await getMetaAccessToken(req);
+  if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -25,7 +14,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const token = session.accessToken;
+    const token = accessToken;
     const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
 
     const results = await Promise.allSettled(
@@ -131,10 +120,8 @@ export async function POST(req: NextRequest) {
     const successCount = processedResults.filter((r: any) => r.success).length;
     const failCount = processedResults.length - successCount;
 
-    logApiCall({ action: `BULK_${action}`, level, idsCount: ids.length, successCount, failCount });
     return NextResponse.json({ success: true, results: processedResults, successCount, failCount });
   } catch (error: any) {
-    logApiCall({ action: "BULK_action_error", error: error.message });
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }

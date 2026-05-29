@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth.config";
+import { getMetaAccessToken } from "@/lib/server-auth";
 
 // No mock accounts in production
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions);
+    const accessToken = await getMetaAccessToken(request);
 
-    if (!session || !session.accessToken) {
+    if (!accessToken) {
       return NextResponse.json({
         data: [],
         source: "no_session",
@@ -17,7 +16,7 @@ export async function GET() {
     }
 
     let allData: any[] = [];
-    let nextUrl: string | null = `https://graph.facebook.com/v20.0/me/adaccounts?fields=id,name,account_id,business{id,name}&limit=100&access_token=${session.accessToken}`;
+    let nextUrl: string | null = `https://graph.facebook.com/v20.0/me/adaccounts?fields=id,name,account_id,business{id,name}&limit=100&access_token=${accessToken}`;
 
     while (nextUrl) {
       const res: Response = await fetch(nextUrl, { headers: { "Content-Type": "application/json" } });
