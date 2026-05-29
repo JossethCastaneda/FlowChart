@@ -84,6 +84,22 @@ export async function POST(
         { error: "Ya eres miembro de este workspace" }, { status: 409 }
       );
     }
+    // CRÍTICO: Asegurar que el usuario existe en la tabla User
+    // antes de crear WorkspaceMember (FK constraint)
+    await prisma.user.upsert({
+      where: { id: session.user.id },
+      update: {
+        name: session.user.name ?? undefined,
+        email: session.user.email ?? undefined,
+        image: session.user.image ?? undefined,
+      },
+      create: {
+        id: session.user.id,
+        name: session.user.name,
+        email: session.user.email,
+        image: session.user.image,
+      },
+    });
     await prisma.$transaction([
       prisma.workspaceMember.create({
         data: {

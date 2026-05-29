@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Settings, Users, Mail, Trash2, Copy,
-  CheckCircle, Clock } from "lucide-react";
+  CheckCircle, Clock, AlertTriangle, Shield } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function SettingsPage() {
   const { data: session } = useSession();
@@ -18,6 +19,8 @@ export default function SettingsPage() {
   const [lastInviteUrl, setLastInviteUrl] = useState("");
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const [workspaceName, setWorkspaceName] = useState("");
+  const router = useRouter();
 
   const inp: React.CSSProperties = {
     padding: "8px 12px",
@@ -53,6 +56,7 @@ export default function SettingsPage() {
         if (data.data?.[0]) {
           const ws = data.data[0];
           setWorkspaceId(ws.id);
+          setWorkspaceName(ws.name || "");
           fetchData(ws.id);
         }
         setLoading(false);
@@ -104,6 +108,52 @@ export default function SettingsPage() {
     ADMIN: "var(--amber)",
     MEMBER: "rgba(148,163,184,0.5)",
   };
+
+  async function handleRoleChange(userId: string, newRole: string) {
+    const res = await fetch(`/api/workspace/${workspaceId}/members/role`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, role: newRole }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      alert(data.error || "Error al cambiar rol");
+      return;
+    }
+    fetchData(workspaceId);
+  }
+
+  async function handleRenameWorkspace() {
+    if (!workspaceName || workspaceName.trim().length < 2) {
+      alert("El nombre debe tener al menos 2 caracteres");
+      return;
+    }
+    const res = await fetch(`/api/workspace/${workspaceId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: workspaceName.trim() }),
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || "Error al renombrar");
+    }
+  }
+
+  async function handleDeleteWorkspace() {
+    const confirm1 = prompt(
+      "Escribe ELIMINAR para confirmar la eliminación del workspace"
+    );
+    if (confirm1 !== "ELIMINAR") return;
+    const res = await fetch(`/api/workspace/${workspaceId}`, {
+      method: "DELETE",
+    });
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.error || "Error al eliminar");
+      return;
+    }
+    router.push("/onboarding");
+  }
 
   if (loading) {
     return (
@@ -299,9 +349,89 @@ export default function SettingsPage() {
                   <Trash2 style={{ width: 14, height: 14 }} />
                 </button>
               )}
+              {m.role !== "OWNER" &&
+                m.user.id !== session?.user?.id && (
+                <select
+                  value={m.role}
+                  onChange={(e) => handleRoleChange(m.user.id, e.target.value)}
+                  style={{
+                    background: "rgba(0,212,255,0.03)",
+                    border: "1px solid rgba(0,212,255,0.1)",
+                    color: "#e2e8f0", fontSize: "10px",
+                    padding: "2px 6px", cursor: "pointer",
+                    outline: "none",
+                  }}
+                >
+                  <option value="MEMBER">MEMBER</option>
+                  <option value="ADMIN">ADMIN</option>
+                  <option value="OWNER">OWNER</option>
+                </select>
+              )}
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ZONA PELIGROSA — WORKSPACE MANAGEMENT */}
+      <div className="glass-panel" style={{ padding: "24px",
+        borderColor: "rgba(255,45,85,0.15)" }}>
+        <div className="section-header" style={{ marginBottom: "16px" }}>
+          <span className="section-title" style={{ display: "flex",
+            alignItems: "center", gap: "8px" }}>
+            <Shield style={{ width: 14, height: 14,
+              color: "var(--red)" }} />
+            Workspace
+          </span>
+        </div>
+
+        {/* Renombrar */}
+        <div style={{ display: "flex", gap: "12px", marginBottom: "16px",
+          flexWrap: "wrap" }}>
+          <input
+            type="text"
+            value={workspaceName}
+            onChange={(e) => setWorkspaceName(e.target.value)}
+            style={{ ...inp, flex: 1, minWidth: "200px" }}
+          />
+          <button
+            onClick={handleRenameWorkspace}
+            className="btn-primary"
+          >
+            Renombrar
+          </button>
+        </div>
+
+        {/* Eliminar */}
+        <div style={{ padding: "12px",
+          background: "rgba(255,45,85,0.03)",
+          border: "1px solid rgba(255,45,85,0.15)" }}>
+          <div style={{ display: "flex", alignItems: "center",
+            gap: "8px", marginBottom: "8px" }}>
+            <AlertTriangle style={{ width: 14, height: 14,
+              color: "#ff2d55" }} />
+            <span style={{ fontSize: "11px", color: "#ff2d55",
+              fontFamily: "'Orbitron', sans-serif",
+              letterSpacing: "0.1em" }}>
+              ZONA PELIGROSA
+            </span>
+          </div>
+          <p style={{ fontSize: "12px",
+            color: "rgba(148,163,184,0.5)", marginBottom: "12px" }}>
+            Eliminar este workspace borrará todos los proyectos,
+            miembros e invitaciones. Esta acción no se puede deshacer.
+          </p>
+          <button
+            onClick={handleDeleteWorkspace}
+            style={{ padding: "8px 16px",
+              background: "rgba(255,45,85,0.1)",
+              border: "1px solid rgba(255,45,85,0.3)",
+              color: "#ff2d55", cursor: "pointer",
+              fontSize: "11px",
+              fontFamily: "'Orbitron', sans-serif",
+              letterSpacing: "0.1em" }}>
+            ELIMINAR WORKSPACE
+          </button>
+        </div>
       </div>
     </div>
   );
