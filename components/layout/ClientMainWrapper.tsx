@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
+import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -76,6 +77,11 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white">
             <X className="w-5 h-5" />
           </button>
+        </div>
+
+        {/* Workspace Switcher */}
+        <div style={{ padding: "12px 0 0" }}>
+          <WorkspaceSwitcher />
         </div>
 
         {/* Nav section label */}

@@ -69,15 +69,17 @@ model VerificationToken {
 model Workspace {
   id        String   @id @default(cuid())
   name      String
+  slug      String   @unique
+  plan      String   @default("free") // free, pro, agency
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members   WorkspaceMember[]
-  projects  Project[]
-  invites   WorkspaceInvite[]
-  tasks     Task[]
-  posts     ScheduledPost[]
-  leads     Lead[]
+  members      WorkspaceMember[]
+  projects     Project[]
+  invites      WorkspaceInvite[]
+  tasks        Task[]
+  posts        ScheduledPost[]
+  leads        Lead[]
   integrations Integration[]
 }
 
@@ -85,7 +87,7 @@ model WorkspaceMember {
   id          String   @id @default(cuid())
   workspaceId String
   userId      String
-  role        String   @default("MEMBER") // ADMIN, MEMBER
+  role        String   @default("MEMBER") // OWNER, ADMIN, MEMBER
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -94,13 +96,14 @@ model WorkspaceMember {
 }
 
 model WorkspaceInvite {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   workspaceId String
   email       String
-  token       String   @unique
-  role        String   @default("MEMBER")
+  token       String    @unique
+  role        String    @default("MEMBER")
   expires     DateTime
-  
+  acceptedAt  DateTime?
+
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 

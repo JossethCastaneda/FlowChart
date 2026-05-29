@@ -32,15 +32,6 @@ export const authOptions: NextAuthOptions = {
   },
 
   callbacks: {
-    async session({ session, token }) {
-      if (token.sub && session.user) {
-        session.user.id = token.sub;
-      }
-      // NOTE: accessToken is NOT exposed to the client session.
-      // API routes use getMetaAccessToken() from lib/server-auth.ts
-      // which reads the JWT directly via getToken() (server-side only).
-      return session;
-    },
     async jwt({ token, account, user }) {
       if (user) {
         token.sub = user.id;
@@ -48,7 +39,28 @@ export const authOptions: NextAuthOptions = {
       if (account) {
         token.accessToken = account.access_token;
       }
+      // Verificar si el usuario ya tiene workspace (primera vez = no tiene)
+      if (user?.id) {
+        const { default: prisma } = await import("@/lib/prisma");
+        const membership = await prisma.workspaceMember.findFirst({
+          where: { userId: user.id },
+          select: { workspaceId: true },
+        });
+        token.hasWorkspace = !!membership;
+        token.activeWorkspaceId = membership?.workspaceId || null;
+      }
       return token;
+    },
+    async session({ session, token }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
+      if (token.accessToken) {
+        session.accessToken = token.accessToken as string;
+      }
+      session.hasWorkspace = token.hasWorkspace as boolean ?? false;
+      session.activeWorkspaceId = token.activeWorkspaceId as string | null ?? null;
+      return session;
     },
   },
 };
