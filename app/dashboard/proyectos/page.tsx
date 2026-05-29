@@ -25,6 +25,7 @@ interface ChannelConfig {
 
 interface Project {
   id: string;
+  name?: string;
   alias: string;
   client: string;
   vertical: string;
@@ -38,7 +39,9 @@ interface Project {
   persona: string;
   geo: string;
   status: "Activo" | "Pausado" | "Draft" | "Completado";
+  workspaceId?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 interface MetaPage {
@@ -95,17 +98,17 @@ const STATUS_COLORS: Record<string, string> = {
 };
 
 /* ═══════════════════════════════════════
-   PERSISTENCE
+   PERSISTENCE — API (database)
    ═══════════════════════════════════════ */
 
-const STORAGE_KEY = "sodare_projects_v2";
-
-function loadProjects(): Project[] {
-  if (typeof window === "undefined") return [];
-  try { const r = localStorage.getItem(STORAGE_KEY); return r ? JSON.parse(r) : []; }
-  catch { return []; }
+async function fetchProjectsFromAPI(): Promise<Project[]> {
+  try {
+    const res = await fetch("/api/projects");
+    if (!res.ok) return [];
+    const json = await res.json();
+    return json.success ? json.data : [];
+  } catch { return []; }
 }
-function saveProjects(p: Project[]) { localStorage.setItem(STORAGE_KEY, JSON.stringify(p)); }
 
 /* ═══════════════════════════════════════
    STYLES
@@ -354,6 +357,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
 export default function ProyectosPage() {
   const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
   const [modalMode, setModalMode] = useState<"closed" | "create" | "edit" | "view">("closed");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
@@ -387,8 +391,15 @@ export default function ProyectosPage() {
     } catch (err) { console.error("Failed to fetch meta pages", err); }
   }, []);
 
+  const loadProjects = useCallback(async () => {
+    setLoading(true);
+    const data = await fetchProjectsFromAPI();
+    setProjects(data);
+    setLoading(false);
+  }, []);
+
   useEffect(() => {
-    setProjects(loadProjects());
+    loadProjects();
     fetchMetaAccounts();
     fetchMetaPages();
     const interval = setInterval(() => {
@@ -396,24 +407,64 @@ export default function ProyectosPage() {
       fetchMetaPages();
     }, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [fetchMetaAccounts, fetchMetaPages]);
+  }, [loadProjects, fetchMetaAccounts, fetchMetaPages]);
 
-  const persist = useCallback((p: Project[]) => { setProjects(p); saveProjects(p); }, []);
-
-  function handleCreate(data: Omit<Project, "id" | "createdAt">) {
-    persist([{ ...data, id: crypto.randomUUID(), createdAt: new Date().toISOString() }, ...projects]);
+  async function handleCreate(data: Omit<Project, "id" | "createdAt">) {
+    try {
+      const res = await fetch("/api/projects", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, name: data.alias }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setProjects(prev => [json.data, ...prev]);
+      }
+    } catch (err) { console.error("Failed to create project", err); }
     setModalMode("closed");
   }
-  function handleUpdate(data: Omit<Project, "id" | "createdAt">) {
-    persist(projects.map(p => p.id === editingId ? { ...p, ...data } : p));
+
+  async function handleUpdate(data: Omit<Project, "id" | "createdAt">) {
+    if (!editingId) return;
+    const prev = [...projects];
+    setProjects(projects.map(p => p.id === editingId ? { ...p, ...data } : p));
+    try {
+      const res = await fetch(`/api/projects/${editingId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, name: data.alias }),
+      });
+      const json = await res.json();
+      if (!json.success) setProjects(prev);
+    } catch { setProjects(prev); }
     setModalMode("closed"); setEditingId(null);
   }
-  function handleDelete(id: string) {
+
+  async function handleDelete(id: string) {
     if (!confirm("¿Eliminar este proyecto?")) return;
-    persist(projects.filter(p => p.id !== id)); setMenuOpen(null);
+    const prev = [...projects];
+    setProjects(projects.filter(p => p.id !== id));
+    try {
+      const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!json.success) setProjects(prev);
+    } catch { setProjects(prev); }
+    setMenuOpen(null);
   }
-  function handleStatusChange(id: string, s: Project["status"]) {
-    persist(projects.map(p => p.id === id ? { ...p, status: s } : p)); setMenuOpen(null);
+
+  async function handleStatusChange(id: string, s: Project["status"]) {
+    const prev = [...projects];
+    setProjects(projects.map(p => p.id === id ? { ...p, status: s } : p));
+    try {
+      const res = await fetch(`/api/projects/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: s }),
+      });
+      const json = await res.json();
+      if (!json.success) setProjects(prev);
+    } catch { setProjects(prev); }
+    setMenuOpen(null);
   }
 
   const editingProject = editingId ? projects.find(p => p.id === editingId) : null;
