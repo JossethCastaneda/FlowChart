@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { Zap } from "lucide-react";
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const { update } = useSession();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,10 +34,9 @@ export default function OnboardingPage() {
         return;
       }
 
-      // Forzar refresh de sesión para que hasWorkspace = true
-      // Redirigir al dashboard
+      // Refrescar JWT para que hasWorkspace = true
+      await update();
       router.push("/dashboard/resumen");
-      router.refresh();
     } catch {
       setError("Error de red. Intenta de nuevo.");
       setLoading(false);
