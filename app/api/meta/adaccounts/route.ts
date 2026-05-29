@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     }
 
     let allData: any[] = [];
-    let nextUrl: string | null = `https://graph.facebook.com/v20.0/me/adaccounts?fields=id,name,account_id,business{id,name}&limit=100&access_token=${accessToken}`;
+    let nextUrl: string | null = `https://graph.facebook.com/v22.0/me/adaccounts?fields=id,name,account_id,business{id,name}&limit=100&access_token=${accessToken}`;
 
     while (nextUrl) {
       const res: Response = await fetch(nextUrl, { headers: { "Content-Type": "application/json" } });

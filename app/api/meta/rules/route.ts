@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   if (!adAccountId) return NextResponse.json({ error: "Missing adAccountId" }, { status: 400 });
 
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
+  const version = process.env.META_API_VERSION || "v22.0";
 
   try {
     const url = `https://graph.facebook.com/${version}/act_${adAccountId}/adrules_library?access_token=${token}&fields=${RULE_FIELDS}&limit=100`;
@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
+  const version = process.env.META_API_VERSION || "v22.0";
 
   try {
     const body = await req.json();

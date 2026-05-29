@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
     const token = accessToken;
-    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
+    const version = process.env.META_API_VERSION || "v22.0";
 
     const results = await Promise.allSettled(
       ids.map(async (id: string, index: number) => {

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest) {
   }
 
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
+  const version = process.env.META_API_VERSION || "v22.0";
 
   let timeRange = "&date_preset=maximum";
   if (dateStart && dateEnd) {
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
     }
 
     const token = accessToken;
-    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
+    const version = process.env.META_API_VERSION || "v22.0";
 
     // If creative update needed: create new creative first, then assign
     let creativeId: string | undefined;
