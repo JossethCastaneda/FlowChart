@@ -7,6 +7,8 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  // Prisma 7: url and directUrl MUST go in prisma.config.ts, NOT here.
+  // See: https://pris.ly/d/config-datasource
 }
 
 // ------------------------------------------------------
