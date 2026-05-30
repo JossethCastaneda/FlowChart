@@ -1,16 +1,40 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Zap } from "lucide-react";
+import { Zap, Loader2 } from "lucide-react";
 
 export default function OnboardingPage() {
   const router = useRouter();
   const { update } = useSession();
   const [name, setName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
+
+  // CRÍTICO: Verificar si el usuario YA tiene workspace
+  // Esto cubre el caso donde un invitado fue redirigido aquí
+  // porque el JWT tenía hasWorkspace: false (cacheado antes de
+  // aceptar la invitación)
+  useEffect(() => {
+    fetch("/api/workspace")
+      .then((r) => r.json())
+      .then(async (data) => {
+        if (data.data && data.data.length > 0) {
+          // Ya tiene workspace — refrescar JWT y redirigir
+          await update();
+          router.push("/dashboard/resumen");
+          router.refresh();
+        } else {
+          setChecking(false);
+        }
+      })
+      .catch(() => {
+        setChecking(false);
+      });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   async function handleCreate() {
     if (name.trim().length < 2) {
@@ -37,10 +61,24 @@ export default function OnboardingPage() {
       // Refrescar JWT para que hasWorkspace = true
       await update();
       router.push("/dashboard/resumen");
+      router.refresh();
     } catch {
       setError("Error de red. Intenta de nuevo.");
       setLoading(false);
     }
+  }
+
+  // Mientras verifica si ya tiene workspace
+  if (checking) {
+    return (
+      <div style={{
+        minHeight: "100vh", background: "var(--background)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+      }}>
+        <Loader2 style={{ width: 32, height: 32, color: "#00d4ff",
+          animation: "spin 1s linear infinite" }} />
+      </div>
+    );
   }
 
   return (
