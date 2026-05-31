@@ -8,7 +8,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ rul
 
   const { ruleId } = await params;
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
+  const version = process.env.META_API_VERSION || "v22.0";
 
   try {
     const body = await req.json();
@@ -35,7 +35,7 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ r
 
   const { ruleId } = await params;
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v21.0";
+  const version = process.env.META_API_VERSION || "v22.0";
 
   try {
     const url = `https://graph.facebook.com/${version}/${ruleId}?access_token=${token}`;
