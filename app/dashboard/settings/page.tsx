@@ -20,6 +20,7 @@ export default function SettingsPage() {
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [workspaceName, setWorkspaceName] = useState("");
+  const [userRole, setUserRole] = useState<string>("");
   const router = useRouter();
 
   const inp: React.CSSProperties = {
@@ -42,7 +43,14 @@ export default function SettingsPage() {
         membersRes.json(),
         invitesRes.json(),
       ]);
-      if (membersData.data) setMembers(membersData.data);
+      if (membersData.data) {
+        setMembers(membersData.data);
+        // Determinar rol del usuario actual
+        const me = membersData.data.find(
+          (m: any) => m.user.id === session?.user?.id
+        );
+        if (me) setUserRole(me.role);
+      }
       if (invitesData.data) setInvites(invitesData.data);
     } catch (err) {
       console.error("[SETTINGS] Fetch error:", err);
@@ -176,7 +184,8 @@ export default function SettingsPage() {
         icon={<Settings className="w-6 h-6" style={{ color: "#00d4ff" }} />}
       />
 
-      {/* INVITAR MIEMBRO */}
+      {/* INVITAR MIEMBRO (solo OWNER/ADMIN) */}
+      {(userRole === "OWNER" || userRole === "ADMIN") && (
       <div className="glass-panel" style={{ padding: "24px" }}>
         <div className="section-header" style={{ marginBottom: "20px" }}>
           <span className="section-title" style={{ display: "flex",
@@ -257,6 +266,7 @@ export default function SettingsPage() {
           </div>
         )}
       </div>
+      )}
 
       {/* INVITACIONES PENDIENTES */}
       {invites.length > 0 && (
@@ -338,7 +348,8 @@ export default function SettingsPage() {
                 {m.role}
               </span>
               {m.role !== "OWNER" &&
-                m.user.id !== session?.user?.id && (
+                m.user.id !== session?.user?.id &&
+                (userRole === "OWNER" || userRole === "ADMIN") && (
                 <button
                   onClick={() => handleRemoveMember(m.user.id)}
                   style={{ background: "none", border: "none",
@@ -350,7 +361,8 @@ export default function SettingsPage() {
                 </button>
               )}
               {m.role !== "OWNER" &&
-                m.user.id !== session?.user?.id && (
+                m.user.id !== session?.user?.id &&
+                (userRole === "OWNER" || userRole === "ADMIN") && (
                 <select
                   value={m.role}
                   onChange={(e) => handleRoleChange(m.user.id, e.target.value)}
@@ -372,7 +384,8 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      {/* ZONA PELIGROSA — WORKSPACE MANAGEMENT */}
+      {/* ZONA PELIGROSA — Solo OWNER */}
+      {userRole === "OWNER" && (
       <div className="glass-panel" style={{ padding: "24px",
         borderColor: "rgba(255,45,85,0.15)" }}>
         <div className="section-header" style={{ marginBottom: "16px" }}>
@@ -433,6 +446,7 @@ export default function SettingsPage() {
           </button>
         </div>
       </div>
+      )}
     </div>
   );
 }
