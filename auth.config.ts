@@ -76,8 +76,21 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (account) {
-        if (account.provider === "facebook") {
+        if (account.provider === "facebook" && account.access_token) {
           token.accessToken = account.access_token;
+          // Guardar token en Integration table del workspace
+          // para que TODOS los miembros puedan usar Meta APIs
+          if (token.sub) {
+            try {
+              const { saveMetaTokenToWorkspace } =
+                await import("@/lib/server-auth");
+              await saveMetaTokenToWorkspace(
+                token.sub, account.access_token
+              );
+            } catch (err) {
+              console.error("[AUTH] Save Meta token failed:", err);
+            }
+          }
         }
         token.provider = account.provider;
       }
