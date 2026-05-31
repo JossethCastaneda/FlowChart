@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
+import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import {
   apiSuccess,
   apiUnauthorized,
@@ -20,17 +21,14 @@ export async function GET() {
       return apiUnauthorized();
     }
 
-    // Find all workspaces the user belongs to
-    const memberships = await prisma.workspaceMember.findMany({
-      where: { userId: session.user.id },
-      select: { workspaceId: true },
-    });
+    // Filtrar por workspace ACTIVO (no todos los workspaces)
+    const activeWorkspaceId = await getActiveWorkspaceId(session.user.id);
+    if (!activeWorkspaceId) {
+      return apiSuccess([]);
+    }
 
-    const workspaceIds = memberships.map((m) => m.workspaceId);
-
-    // Fetch projects across those workspaces
     const projects = await prisma.project.findMany({
-      where: { workspaceId: { in: workspaceIds } },
+      where: { workspaceId: activeWorkspaceId },
       include: { channels: true },
       orderBy: { createdAt: "desc" },
     });

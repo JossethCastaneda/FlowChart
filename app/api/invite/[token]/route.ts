@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
+import { ACTIVE_WORKSPACE_COOKIE } from "@/lib/active-workspace";
 
 export async function GET(
   _req: NextRequest,
@@ -113,11 +114,20 @@ export async function POST(
         data: { acceptedAt: new Date() },
       }),
     ]);
-    return NextResponse.json({
+    // Setear cookie para que el workspace de la invite sea el activo
+    const response = NextResponse.json({
       success: true,
       workspaceId: invite.workspaceId,
       redirectTo: "/dashboard/resumen",
     });
+    response.cookies.set(ACTIVE_WORKSPACE_COOKIE, invite.workspaceId, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 365,
+      path: "/",
+    });
+    return response;
   } catch (err: any) {
     console.error("[INVITE] Accept error:", err);
     return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
