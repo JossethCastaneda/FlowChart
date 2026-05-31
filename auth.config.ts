@@ -46,23 +46,14 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
 
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
-
-  session: {
-    strategy: "jwt",
-  },
+  pages: { signIn: "/login", error: "/login" },
+  session: { strategy: "jwt" },
 
   callbacks: {
     async jwt({ token, account, user, trigger }) {
-      // ── Primer login: user object solo existe aquí ──
       if (user) {
         token.sub = user.id;
-
-        // CRÍTICO: upsert del usuario en Neon
-        // JWT no usa PrismaAdapter → el usuario puede no existir en DB
+        // Upsert del usuario en Neon (FK fix — JWT no usa PrismaAdapter)
         try {
           const { default: prisma } = await import("@/lib/prisma");
           await prisma.user.upsert({
@@ -85,35 +76,39 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (account) {
-        if (account.provider === "facebook") {
+        if (account.provider === "facebook" && account.access_token) {
           token.accessToken = account.access_token;
+          // Guardar token en Integration table del workspace
+          // para que TODOS los miembros puedan usar Meta APIs
+          if (token.sub) {
+            try {
+              const { saveMetaTokenToWorkspace } =
+                await import("@/lib/server-auth");
+              await saveMetaTokenToWorkspace(
+                token.sub, account.access_token
+              );
+            } catch (err) {
+              console.error("[AUTH] Save Meta token failed:", err);
+            }
+          }
         }
         token.provider = account.provider;
       }
 
-      // ── Verificar workspace en CADA jwt call ──
-      // Esto incluye: primer login, session refresh (useSession().update()),
-      // y re-evaluaciones del middleware.
-      // Antes solo se hacía en primer login, lo que causaba que
-      // hasWorkspace quedara en false después de aceptar una invitación.
+      // hasWorkspace: re-evaluar en login, update(), o si es false
+      // El workspace ACTIVO se maneja con cookie, NO en el JWT
       if (token.sub) {
-        // Solo re-verificar si es un update() explícito, primer login,
-        // o si hasWorkspace es false (necesita re-check)
         if (trigger === "update" || user || !token.hasWorkspace) {
           try {
             const { default: prisma } = await import("@/lib/prisma");
-            const membership = await prisma.workspaceMember.findFirst({
+            const count = await prisma.workspaceMember.count({
               where: { userId: token.sub },
-              select: { workspaceId: true },
             });
-            token.hasWorkspace = !!membership;
-            token.activeWorkspaceId = membership?.workspaceId || null;
+            token.hasWorkspace = count > 0;
           } catch (err) {
             console.error("[AUTH] Workspace check failed:", err);
-            // No sobreescribir si ya tenía un valor
             if (token.hasWorkspace === undefined) {
               token.hasWorkspace = false;
-              token.activeWorkspaceId = null;
             }
           }
         }
@@ -130,7 +125,6 @@ export const authOptions: NextAuthOptions = {
         session.accessToken = token.accessToken as string;
       }
       session.hasWorkspace = (token.hasWorkspace as boolean) ?? false;
-      session.activeWorkspaceId = (token.activeWorkspaceId as string | null) ?? null;
       session.provider = (token.provider as string) ?? null;
       return session;
     },

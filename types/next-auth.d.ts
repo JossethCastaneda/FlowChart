@@ -7,7 +7,6 @@ declare module "next-auth" {
     } & DefaultSession["user"];
     accessToken?: string;
     hasWorkspace?: boolean;
-    activeWorkspaceId?: string | null;
     provider?: string | null;
   }
 }
@@ -16,9 +15,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     sub?: string;
     accessToken?: string;
-    accessTokenExpires?: number | null;
     hasWorkspace?: boolean;
-    activeWorkspaceId?: string | null;
     provider?: string | null;
   }
 }
