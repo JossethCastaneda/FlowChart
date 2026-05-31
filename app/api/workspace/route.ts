@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
+import {
+  getActiveWorkspaceId,
+  ACTIVE_WORKSPACE_COOKIE,
+} from "@/lib/active-workspace";
 
 function generateSlug(name: string): string {
   return name
@@ -31,12 +35,24 @@ export async function GET() {
     orderBy: { workspace: { createdAt: "asc" } },
   });
 
+  const activeId = await getActiveWorkspaceId(session.user.id);
+
   const workspaces = memberships.map((m) => ({
-    ...m.workspace,
+    id: m.workspace.id,
+    name: m.workspace.name,
+    slug: m.workspace.slug,
     role: m.role,
     memberCount: m.workspace._count.members,
     projectCount: m.workspace._count.projects,
+    createdAt: m.workspace.createdAt,
   }));
+
+  // Ordenar: active primero
+  workspaces.sort((a, b) => {
+    if (a.id === activeId) return -1;
+    if (b.id === activeId) return 1;
+    return 0;
+  });
 
   return NextResponse.json({ data: workspaces });
 }
