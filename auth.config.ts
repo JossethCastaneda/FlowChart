@@ -1,6 +1,8 @@
 import type { NextAuthOptions } from "next-auth";
 import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
+import bcrypt from "bcryptjs";
 
 // Build providers dynamically — only register if credentials are configured
 const providers: NextAuthOptions["providers"] = [];
@@ -35,6 +37,28 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     })
   );
 }
+
+// Email + Password (always available)
+providers.push(
+  CredentialsProvider({
+    name: "Email",
+    credentials: {
+      email: { label: "Email", type: "email" },
+      password: { label: "Password", type: "password" },
+    },
+    async authorize(credentials) {
+      if (!credentials?.email || !credentials?.password) return null;
+      const { default: prisma } = await import("@/lib/prisma");
+      const user = await prisma.user.findUnique({
+        where: { email: credentials.email.toLowerCase() },
+      });
+      if (!user?.password) return null;
+      const valid = await bcrypt.compare(credentials.password, user.password);
+      if (!valid) return null;
+      return { id: user.id, name: user.name, email: user.email, image: user.image };
+    },
+  })
+);
 
 export const authOptions: NextAuthOptions = {
   providers,
