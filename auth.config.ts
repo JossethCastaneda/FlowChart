@@ -35,7 +35,7 @@ export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
 
   callbacks: {
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user, trigger }) {
       if (user) {
         token.sub = user.id;
         try {
@@ -57,21 +57,45 @@ export const authOptions: NextAuthOptions = {
               image: user.image,
             },
           });
-          // Verificar si ya tiene workspace
-          const count =
-            await prisma.workspaceMember.count({
-              where: { userId: user.id },
-            });
+        } catch (err) {
+          console.error("[AUTH jwt callback] upsert error:", err);
+        }
+      }
+
+      // Re-check hasWorkspace on login, session update, or when false
+      // This prevents redirect loops after creating first workspace
+      if (token.sub && (user || trigger === "update" || !token.hasWorkspace)) {
+        try {
+          const { default: prisma } =
+            await import("@/lib/prisma");
+          const count = await prisma.workspaceMember.count({
+            where: { userId: token.sub },
+          });
           token.hasWorkspace = count > 0;
         } catch (err) {
-          console.error("[AUTH jwt callback]", err);
-          token.hasWorkspace = false;
+          console.error("[AUTH] Workspace check failed:", err);
+          if (token.hasWorkspace === undefined) {
+            token.hasWorkspace = false;
+          }
         }
       }
 
       if (account) {
-        if (account.provider === "facebook") {
+        if (account.provider === "facebook" && account.access_token) {
           token.accessToken = account.access_token;
+          // Save token to Integration table so ALL workspace members
+          // can use Meta APIs (not just the owner)
+          if (token.sub) {
+            try {
+              const { saveMetaTokenToWorkspace } =
+                await import("@/lib/server-auth");
+              await saveMetaTokenToWorkspace(
+                token.sub, account.access_token
+              );
+            } catch (err) {
+              console.error("[AUTH] Save Meta token failed:", err);
+            }
+          }
         }
         token.provider = account.provider;
       }

@@ -30,7 +30,7 @@ export async function GET(
     return NextResponse.json({ data: members });
   } catch (err: any) {
     console.error("[MEMBERS] Error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
+    return NextResponse.json({ error: "Error al obtener miembros" }, { status: 500 });
   }
 }
 
@@ -60,6 +60,20 @@ export async function DELETE(
     if (!target) {
       return NextResponse.json({ error: "Miembro no encontrado" }, { status: 404 });
     }
+
+    // Get the requesting user's role
+    const requester = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+    });
+
+    // ADMIN can only remove MEMBERs. Only OWNER can remove ADMINs/OWNERs.
+    if (requester?.role === "ADMIN" && target.role !== "MEMBER") {
+      return NextResponse.json(
+        { error: "Solo el OWNER puede eliminar ADMINs u OWNERs" },
+        { status: 403 }
+      );
+    }
+
     if (target.role === "OWNER") {
       const ownerCount = await prisma.workspaceMember.count({
         where: { workspaceId, role: "OWNER" },
@@ -77,6 +91,6 @@ export async function DELETE(
     return NextResponse.json({ success: true });
   } catch (err: any) {
     console.error("[MEMBERS] Delete error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
+    return NextResponse.json({ error: "Error al eliminar miembro" }, { status: 500 });
   }
 }
