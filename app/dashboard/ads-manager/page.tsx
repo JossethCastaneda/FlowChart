@@ -761,40 +761,18 @@ export default function AdsManagerPage() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden" style={{ margin: "-24px -28px -40px", padding: 0, height: "calc(100vh - 48px)" }}>
-      {/* ── COMPACT CONTROLS (no header) ── */}
-      {/* Date Range Picker - compact, top-right */}
-      <div style={{ flexShrink: 0, display: "flex", justifyContent: "flex-end", padding: "6px 16px 0 16px" }}>
-        <DateRangePicker
-          datePreset={datePreset}
-          dateStart={dateStart}
-          dateEnd={dateEnd}
-          showDatePicker={showDatePicker}
-          setShowDatePicker={setShowDatePicker}
-          onPresetSelect={(preset) => {
-            setDatePreset(preset);
-            setDateStart("");
-            setDateEnd("");
-          }}
-          onCustomRange={(start, end) => {
-            setDatePreset("custom");
-            setDateStart(start);
-            setDateEnd(end);
-          }}
-        />
-      </div>
-
-      {/* ── MAIN CONTENT ── */}
-      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", padding: "8px 16px 0 16px", gap: "6px" }}>
+      {/* ── TOOLBAR (fixed top) ── */}
+      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", padding: "6px 12px 0", gap: "4px" }}>
       
       {/* ── TOP CONTROLS ── */}
       <div
         className="glass-panel"
         style={{
-          padding: "8px 12px",
+          padding: "6px 10px",
           display: "flex",
           alignItems: "center",
-          gap: "12px",
-          flexWrap: "wrap",
+          gap: "8px",
+          flexWrap: "nowrap",
           position: "relative",
           zIndex: 60,
           overflow: "visible",
@@ -816,12 +794,12 @@ export default function AdsManagerPage() {
             display: "flex",
             alignItems: "center",
             gap: "6px",
-            padding: "8px 12px",
+            padding: "5px 10px",
             background: "rgba(0,0,0,0.3)",
             border: "1px solid var(--border)",
-            borderRadius: "6px",
+            borderRadius: "4px",
             flex: 1,
-            minWidth: "200px",
+            minWidth: "160px",
           }}
         >
           <Search className="w-3.5 h-3.5 text-slate-500" />
@@ -841,42 +819,41 @@ export default function AdsManagerPage() {
           />
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+        {/* Sync + Date */}
+        <div style={{ display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
           <button
             onClick={() => { fetchData(); setLastSynced(new Date()); }}
             disabled={loadingData}
             style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 12px",
-              background: "rgba(10, 15, 30, 0.6)",
+              display: "flex", alignItems: "center", gap: "5px",
+              padding: "5px 10px",
+              background: "rgba(10,15,30,0.6)",
               border: "1px solid var(--border)",
-              borderRadius: "6px",
-              color: "white",
-              fontSize: "11px",
-              fontWeight: 600,
-              cursor: "pointer",
+              borderRadius: "4px",
+              color: "white", fontSize: "10px", fontWeight: 600, cursor: "pointer",
             }}
           >
-            <RefreshCw className={`w-3.5 h-3.5 ${loadingData ? "animate-spin" : ""}`} />
-            Sincronizar
+            <RefreshCw className={`w-3 h-3 ${loadingData ? "animate-spin" : ""}`} />
+            Sync
           </button>
-          {lastSynced && (
-            <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)" }}>
-              Última: {lastSynced.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" })}
-            </span>
-          )}
           <button
             onClick={() => setAutoSync(!autoSync)}
             title={autoSync ? "Auto-sync cada 30 min (activo)" : "Auto-sync desactivado"}
             style={{
-              width: "8px", height: "8px", borderRadius: "50%",
+              width: "7px", height: "7px", borderRadius: "50%",
               background: autoSync ? "#34d399" : "rgba(148,163,184,0.3)",
               border: "none", cursor: "pointer",
               boxShadow: autoSync ? "0 0 6px rgba(52,211,153,0.4)" : "none",
-              transition: "all 0.2s",
             }}
+          />
+          <DateRangePicker
+            datePreset={datePreset}
+            dateStart={dateStart}
+            dateEnd={dateEnd}
+            showDatePicker={showDatePicker}
+            setShowDatePicker={setShowDatePicker}
+            onPresetSelect={(preset) => { setDatePreset(preset); setDateStart(""); setDateEnd(""); }}
+            onCustomRange={(start, end) => { setDatePreset("custom"); setDateStart(start); setDateEnd(end); }}
           />
         </div>
       </div>
@@ -888,20 +865,8 @@ export default function AdsManagerPage() {
         level={activeLevel}
       />
       {error && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            padding: "12px 16px",
-            background: "rgba(255,45,85,0.1)",
-            border: "1px solid var(--red-dim)",
-            borderRadius: "8px",
-            color: "var(--red)",
-            fontSize: "12px",
-          }}
-        >
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "rgba(255,45,85,0.1)", border: "1px solid var(--red-dim)", borderRadius: "4px", color: "var(--red)", fontSize: "10px" }}>
+          <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span>{error}</span>
         </div>
       )}
@@ -911,62 +876,34 @@ export default function AdsManagerPage() {
 
       {/* Info advisory removed for compactness */}
 
-      {/* ── LEVEL TABS & VIEW CUSTOMIZATIONS ── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          borderBottom: "1px solid var(--border)",
-          paddingBottom: "8px",
-          gap: "16px",
-          flexWrap: "wrap",
-        }}
-      >
-        {/* Level tabs */}
-        <div style={{ display: "flex", gap: "8px" }}>
-          {(["campaigns", "adsets", "ads"] as const).map((lvl) => {
-            const active = activeLevel === lvl;
-            const label = lvl === "campaigns" ? "Campañas" : lvl === "adsets" ? "Conjuntos" : "Anuncios";
-            const count = lvl === "campaigns" ? campaigns.length : lvl === "adsets" ? adsets.length : ads.length;
-            return (
-              <button
-                key={lvl}
-                onClick={() => setActiveLevel(lvl)}
-                style={{
-                  padding: "8px 16px",
-                  fontSize: "12px",
-                  fontWeight: 600,
-                  borderRadius: "6px",
-                  background: active ? "rgba(0,129,251,0.15)" : "transparent",
-                  border: `1px solid ${active ? "var(--cyan)" : "transparent"}`,
-                  color: active ? "var(--cyan)" : "rgba(148,163,184,0.6)",
-                  cursor: "pointer",
-                  transition: "all 0.2s",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "6px",
-                }}
-              >
-                {label}
-                {count > 0 && (
-                  <span style={{
-                    fontSize: "9px",
-                    fontWeight: 700,
-                    padding: "1px 6px",
-                    borderRadius: "10px",
-                    background: active ? "rgba(0,212,255,0.2)" : "rgba(148,163,184,0.1)",
-                    color: active ? "var(--cyan)" : "rgba(148,163,184,0.5)",
-                  }}>
-                    {count}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* View actions (moved to TableActionBar) */}
+      {/* ── LEVEL TABS ── */}
+      <div style={{ display: "flex", alignItems: "center", gap: "4px", borderBottom: "1px solid var(--border)", paddingBottom: "4px" }}>
+        {(["campaigns", "adsets", "ads"] as const).map((lvl) => {
+          const active = activeLevel === lvl;
+          const label = lvl === "campaigns" ? "Campañas" : lvl === "adsets" ? "Conjuntos" : "Anuncios";
+          const count = lvl === "campaigns" ? campaigns.length : lvl === "adsets" ? adsets.length : ads.length;
+          return (
+            <button
+              key={lvl}
+              onClick={() => setActiveLevel(lvl)}
+              style={{
+                padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "4px",
+                background: active ? "rgba(0,129,251,0.15)" : "transparent",
+                border: `1px solid ${active ? "var(--cyan)" : "transparent"}`,
+                color: active ? "var(--cyan)" : "rgba(148,163,184,0.6)",
+                cursor: "pointer", transition: "all 0.15s",
+                display: "flex", alignItems: "center", gap: "5px",
+              }}
+            >
+              {label}
+              {count > 0 && (
+                <span style={{ fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "8px", background: active ? "rgba(0,212,255,0.2)" : "rgba(148,163,184,0.1)", color: active ? "var(--cyan)" : "rgba(148,163,184,0.5)" }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
       </div>
 
       <TableActionBar
@@ -1009,7 +946,7 @@ export default function AdsManagerPage() {
       </div>
 
       {/* ── TABLE CONTAINER ── */}
-      <div style={{ position: "relative", flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "4px 16px 0 16px", minHeight: 0 }}>
+      <div style={{ position: "relative", flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "4px 12px 0", minHeight: 0 }}>
         {loadingData && (
           <div
             style={{
