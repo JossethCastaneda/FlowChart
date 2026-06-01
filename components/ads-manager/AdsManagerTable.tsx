@@ -945,49 +945,51 @@ export function AdsManagerTable({
               })
             )}
           </tbody>
-
-          {/* ════ TFOOT / TOTALS ════ */}
-          <tfoot>
-            <tr>
-              <td style={{ ...tfFrozen(L_CHECK, CHECKBOX_W, statusIsLast) }} />
-              <td style={{ ...tfFrozen(L_STATUS, STATUS_W, statusIsLast), color: "white" }}>
-                TOTAL
-              </td>
-              {showName && (
-                <td style={{ ...tfFrozen(L_NAME, nameW, isLastFrozen("name")), color: "rgba(148,163,184,0.5)", fontWeight: 400 }}>
-                  {sortedData.length} elemento{sortedData.length !== 1 ? "s" : ""}
-                </td>
-              )}
-              {showDel && <td style={tfFrozen(L_DEL, DELIVERY_W, isLastFrozen("delivery"))} />}
-              {showBudg && <td style={tfFrozen(L_BUDG, BUDGET_W, isLastFrozen("budget"))} />}
-              {showBid  && <td style={tfFrozen(L_BID, BID_W, isLastFrozen("bid"))} />}
-
-              {/* Metric totals */}
-              {visibleColumns.includes("objective") && level === "campaigns" && <td style={tfBase} />}
-              {visibleColumns.includes("roas") && <td style={tfBase}>—</td>}
-              {visibleColumns.includes("learning_phase") && level === "adsets" && <td style={tfBase} />}
-              {visibleColumns.includes("advantage_plus") && level === "campaigns" && <td style={tfBase} />}
-              {visibleColumns.includes("reach") && <td style={tfBase}>{fmtNum(totalReach)}</td>}
-              {visibleColumns.includes("impressions") && <td style={tfBase}>{fmtNum(totalImpressions)}</td>}
-              {visibleColumns.includes("cpm") && <td style={tfBase}>{fmt$(avgCpm)}</td>}
-              {visibleColumns.includes("frequency") && <td style={tfBase}>{fmtDec(avgFreq)}</td>}
-              {visibleColumns.includes("clicks") && <td style={tfBase}>{fmtNum(totalClicks)}</td>}
-              {visibleColumns.includes("ctr") && <td style={tfBase}>{fmtPct(avgCtr)}</td>}
-              {visibleColumns.includes("cpc") && <td style={tfBase}>{fmt$(avgCpc)}</td>}
-              {visibleColumns.includes("results") && <td style={{ ...tfBase, color: "white" }}>{fmtNum(totalResults)}</td>}
-              {visibleColumns.includes("conversations") && <td style={{ ...tfBase, color: "white" }}>{fmtNum(totalConversations)}</td>}
-              {visibleColumns.includes("cost_per_message") && <td style={{ ...tfBase, color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
-              {visibleColumns.includes("cost_per_conversation") && <td style={{ ...tfBase, color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
-              {visibleColumns.includes("cpa") && <td style={{ ...tfBase, color: "var(--cyan)" }}>{fmt$(avgCpa)}</td>}
-              {visibleColumns.includes("landing_page_views") && <td style={tfBase}>{fmtNum(totalLPV)}</td>}
-              {visibleColumns.includes("hook_rate") && <td style={tfBase}>—</td>}
-              {visibleColumns.includes("spend") && <td style={{ ...tfBase, color: "white" }}>{fmt$(totalSpend)}</td>}
-              {visibleColumns.includes("quality_ranking") && level === "ads" && <td style={tfBase} />}
-              <td style={tfBase} />
-            </tr>
-          </tfoot>
         </table>
       </div>
+
+      {/* ════ TOTALS BAR (always visible, outside scroll) ════ */}
+      {sortedData.length > 0 && (
+        <div style={{ flexShrink: 0, borderTop: TF_BORDER_TOP, background: BG_FOOTER, overflowX: "hidden" }}>
+          <table style={{ borderCollapse: "collapse", textAlign: "left", minWidth: FROZEN_TOTAL + 200 }}>
+            <tbody>
+              <tr>
+                <td style={{ ...tfFrozen(L_CHECK, CHECKBOX_W, statusIsLast) }} />
+                <td style={{ ...tfFrozen(L_STATUS, STATUS_W, statusIsLast), color: "white" }}>TOTAL</td>
+                {showName && (
+                  <td style={{ ...tfFrozen(L_NAME, nameW, isLastFrozen("name")), color: "rgba(148,163,184,0.5)", fontWeight: 400 }}>
+                    {sortedData.length} elemento{sortedData.length !== 1 ? "s" : ""}
+                  </td>
+                )}
+                {showDel && <td style={tfFrozen(L_DEL, DELIVERY_W, isLastFrozen("delivery"))} />}
+                {showBudg && <td style={tfFrozen(L_BUDG, BUDGET_W, isLastFrozen("budget"))} />}
+                {showBid  && <td style={tfFrozen(L_BID, BID_W, isLastFrozen("bid"))} />}
+                {visibleColumns.includes("objective") && level === "campaigns" && <td style={tfBase} />}
+                {visibleColumns.includes("roas") && <td style={tfBase}>—</td>}
+                {visibleColumns.includes("learning_phase") && level === "adsets" && <td style={tfBase} />}
+                {visibleColumns.includes("advantage_plus") && level === "campaigns" && <td style={tfBase} />}
+                {visibleColumns.includes("reach") && <td style={tfBase}>{fmtNum(totalReach)}</td>}
+                {visibleColumns.includes("impressions") && <td style={tfBase}>{fmtNum(totalImpressions)}</td>}
+                {visibleColumns.includes("cpm") && <td style={tfBase}>{fmt$(avgCpm)}</td>}
+                {visibleColumns.includes("frequency") && <td style={tfBase}>{fmtDec(avgFreq)}</td>}
+                {visibleColumns.includes("clicks") && <td style={tfBase}>{fmtNum(totalClicks)}</td>}
+                {visibleColumns.includes("ctr") && <td style={tfBase}>{fmtPct(avgCtr)}</td>}
+                {visibleColumns.includes("cpc") && <td style={tfBase}>{fmt$(avgCpc)}</td>}
+                {visibleColumns.includes("results") && <td style={{ ...tfBase, color: "white" }}>{fmtNum(totalResults)}</td>}
+                {visibleColumns.includes("conversations") && <td style={{ ...tfBase, color: "white" }}>{fmtNum(totalConversations)}</td>}
+                {visibleColumns.includes("cost_per_message") && <td style={{ ...tfBase, color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
+                {visibleColumns.includes("cost_per_conversation") && <td style={{ ...tfBase, color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
+                {visibleColumns.includes("cpa") && <td style={{ ...tfBase, color: "var(--cyan)" }}>{fmt$(avgCpa)}</td>}
+                {visibleColumns.includes("landing_page_views") && <td style={tfBase}>{fmtNum(totalLPV)}</td>}
+                {visibleColumns.includes("hook_rate") && <td style={tfBase}>—</td>}
+                {visibleColumns.includes("spend") && <td style={{ ...tfBase, color: "white" }}>{fmt$(totalSpend)}</td>}
+                {visibleColumns.includes("quality_ranking") && level === "ads" && <td style={tfBase} />}
+                <td style={tfBase} />
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
