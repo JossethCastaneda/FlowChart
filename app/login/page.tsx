@@ -332,13 +332,30 @@ export default function LoginPage() {
                 disabled={isLoading}
                 onKeyDown={(e) => !isRegister && e.key === "Enter" && handleCredentialsLogin()}
                 style={{
-                  width: "100%", padding: "10px 14px", marginBottom: isRegister ? "8px" : "12px",
+                  width: "100%", padding: "10px 14px", marginBottom: isRegister ? "8px" : "4px",
                   background: "rgba(0,212,255,0.03)",
                   border: "1px solid rgba(0,212,255,0.15)",
                   color: "white", fontSize: "13px", outline: "none",
                   boxSizing: "border-box",
                 }}
               />
+
+              {!isRegister && (
+                <div style={{ textAlign: "right", marginBottom: "12px" }}>
+                  <a
+                    href="/forgot-password"
+                    style={{
+                      fontSize: "11px",
+                      color: "rgba(0, 240, 255, 0.6)",
+                      textDecoration: "none",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "#00f0ff"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(0, 240, 255, 0.6)"; }}
+                  >
+                    ¿Olvidaste tu contraseña?
+                  </a>
+                </div>
+              )}
 
               {/* Confirm password (register only) */}
               {isRegister && (
