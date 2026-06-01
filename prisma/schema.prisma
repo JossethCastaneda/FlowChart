@@ -81,6 +81,7 @@ model Workspace {
   projects     Project[]
   invites      WorkspaceInvite[]
   tasks        Task[]
+  briefs       Brief[]
   posts        ScheduledPost[]
   leads        Lead[]
   integrations Integration[]
@@ -124,7 +125,7 @@ model Project {
   instagram   String?
   whatsapp    String?
   website     String?
-  persona     String?
+  persona     String?  @db.Text
   geo         String?
   status      String   @default("Activo") // Activo, Pausado, Draft, Completado
   dateStart   String?
@@ -184,6 +185,7 @@ model BotMakerConfig {
 model Task {
   id          String   @id @default(cuid())
   title       String
+  description String?  @db.Text
   assignee    String?
   priority    String   @default("P2")  // P0, P1, P2
   status      String   @default("Backlog") // Backlog, WIP, Done
@@ -201,14 +203,16 @@ model Task {
 
 model Brief {
   id          String   @id @default(cuid())
-  projectId   String
+  workspaceId String
+  projectId   String?
   title       String
-  content     Json?    // Full form data stored as JSON
+  content     Json     @default("{}")
   status      String   @default("Draft") // Draft, Review, Approved
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
 }
 
 // ------------------------------------------------------
