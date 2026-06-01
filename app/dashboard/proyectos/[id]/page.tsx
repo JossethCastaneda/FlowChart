@@ -244,7 +244,7 @@ export default function ProjectDashboardPage() {
 
   useEffect(() => {
     if (activeTab === "audiencia") { loadBreakdown("age_gender"); loadBreakdown("region"); loadBreakdown("platform"); loadBreakdown("device"); }
-    if (activeTab === "creativos") { loadBreakdown("dynamic_headline"); loadBreakdown("dynamic_text"); loadBreakdown("dynamic_description"); loadBreakdown("dynamic_cta"); }
+    if (activeTab === "creativos") { loadBreakdown("dynamic_image"); loadBreakdown("dynamic_headline"); loadBreakdown("dynamic_text"); loadBreakdown("dynamic_description"); loadBreakdown("dynamic_cta"); }
   }, [activeTab, loadBreakdown]);
 
   const saveChanges = async () => {
@@ -633,37 +633,79 @@ export default function ProjectDashboardPage() {
       {/* ═══ TAB: CREATIVOS ═══ */}
       {activeTab === "creativos" && (
         <div className="space-y-6">
-          {/* Top Ads from insights */}
+          {/* Top Ads with thumbnails */}
           <div style={panelStyle}>
             <h3 style={headingStyle}>Top Anuncios por Rendimiento</h3>
             <p style={subStyle}>Los anuncios con mejor retorno de inversión</p>
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  {["Anuncio", "Inversión", "Resultados", "CPR", "CTR", "Clicks"].map(h => <th key={h} style={{ padding: "8px 10px", textAlign: h === "Anuncio" ? "left" : "right", fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", textTransform: "uppercase" }}>{h}</th>)}
-                </tr></thead>
-                <tbody>
+              {(insights?.ads || []).length > 0 ? (
+                <div style={{ display: "grid", gap: 12 }}>
                   {(insights?.ads || []).map((ad: any) => {
                     const s = parseFloat(ad.spend || "0"); const c = parseInt(ad.clicks || "0", 10); const imp = parseInt(ad.impressions || "0", 10);
                     const ra = findResultAction(ad.actions); const r = ra ? parseInt(ra.value, 10) : 0;
-                    return { name: ad.ad_name || "?", spend: s, results: r, cpr: r > 0 ? s / r : 0, ctr: imp > 0 ? (c / imp) * 100 : 0, clicks: c };
-                  }).sort((a: any, b: any) => b.results - a.results).slice(0, 10).map((ad: any, i: number) => (
-                    <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.025)" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <td style={{ padding: "8px 10px", color: "#e2e8f0", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.name}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "#fdab3d" }}>{fmtMXN(ad.spend)}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "#00c875", fontWeight: 600 }}>{ad.results}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "#e2e8f0" }}>{fmtMXN(ad.cpr)}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "#7b61ff" }}>{pct(ad.ctr)}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "rgba(148,163,184,0.6)" }}>{fmtNum(ad.clicks)}</td>
-                    </tr>
+                    return { id: ad.ad_id || "", name: ad.ad_name || "?", spend: s, results: r, cpr: r > 0 ? s / r : 0, ctr: imp > 0 ? (c / imp) * 100 : 0, clicks: c, impressions: imp };
+                  }).sort((a: any, b: any) => b.results - a.results).slice(0, 15).map((ad: any, i: number) => (
+                    <div key={i} style={{ display: "flex", gap: 12, padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.03)", alignItems: "center" }}
+                      onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                      {/* Rank */}
+                      <span style={{ width: 24, height: 24, borderRadius: 4, background: `${CHART_COLORS[i % CHART_COLORS.length]}20`, color: CHART_COLORS[i % CHART_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+                      {/* Ad info */}
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <p style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.name}</p>
+                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.3)", fontFamily: "monospace" }}>ID: {ad.id}</p>
+                      </div>
+                      {/* Metrics */}
+                      <div style={{ display: "flex", gap: 16, flexShrink: 0, alignItems: "center" }}>
+                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>Inversión</p><p style={{ fontSize: 12, fontWeight: 600, color: "#fdab3d" }}>{fmtMXN(ad.spend)}</p></div>
+                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>Resultados</p><p style={{ fontSize: 12, fontWeight: 700, color: "#00c875" }}>{ad.results}</p></div>
+                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>{CPR_MAP[ch?.goal || ""] || "CPR"}</p><p style={{ fontSize: 12, fontWeight: 600, color: cprTarget > 0 && ad.cpr > cprTarget ? "#e2445c" : "#00d4ff" }}>{fmtMXN(ad.cpr)}</p></div>
+                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>CTR</p><p style={{ fontSize: 12, fontWeight: 500, color: "#7b61ff" }}>{pct(ad.ctr)}</p></div>
+                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>Clicks</p><p style={{ fontSize: 12, color: "rgba(148,163,184,0.6)" }}>{fmtNum(ad.clicks)}</p></div>
+                      </div>
+                    </div>
                   ))}
-                </tbody>
-              </table>
-              {!insights?.ads?.length && <NoData />}
+                </div>
+              ) : <NoData />}
             </div>
           </div>
 
-          {/* Dynamic Creative Breakdowns */}
+          {/* Image Creatives */}
+          <div style={panelStyle}>
+            <h3 style={headingStyle}>Mejores Imágenes</h3>
+            <p style={subStyle}>Rendimiento por imagen creativa</p>
+            {(() => {
+              const imgs = (breakdownData["dynamic_image"] || []).map((r: any) => {
+                const img = r.image_asset || {};
+                return { url: img.url || img.thumbnail_url || "", hash: img.hash || "", name: img.name || "Sin nombre", spend: parseFloat(r.spend || "0"), clicks: parseInt(r.clicks || "0", 10), impressions: parseInt(r.impressions || "0", 10) };
+              }).sort((a: any, b: any) => b.spend - a.spend).slice(0, 8);
+              return imgs.length > 0 ? (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
+                  {imgs.map((img: any, i: number) => (
+                    <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, overflow: "hidden" }}>
+                      {img.url ? (
+                        <div style={{ width: "100%", height: 140, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
+                          <img src={img.url} alt={img.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        </div>
+                      ) : (
+                        <div style={{ width: "100%", height: 140, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <BarChart2 style={{ width: 24, height: 24, color: "rgba(148,163,184,0.15)" }} />
+                        </div>
+                      )}
+                      <div style={{ padding: "10px 12px" }}>
+                        <p style={{ fontSize: 11, color: "#e2e8f0", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{img.name}</p>
+                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+                          <span style={{ fontSize: 10, color: "#fdab3d", fontWeight: 600 }}>{fmtMXN(img.spend)}</span>
+                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.5)" }}>{fmtNum(img.clicks)} clicks</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : <NoData msg="Requiere anuncios con contenido dinámico e imágenes" />;
+            })()}
+          </div>
+
+          {/* Dynamic Creative Breakdowns — Texts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {([
               { key: "dynamic_headline", title: "Mejores Títulos", field: "title_asset" },
@@ -672,21 +714,31 @@ export default function ProjectDashboardPage() {
               { key: "dynamic_cta", title: "Mejores CTAs", field: "call_to_action_asset" },
             ] as const).map(cfg => {
               const data = (breakdownData[cfg.key] || []).map((r: any) => {
-                const label = r[cfg.field]?.text || r[cfg.field]?.name || r[cfg.field] || "?";
-                return { name: typeof label === "string" ? label.slice(0, 40) : String(label), spend: parseFloat(r.spend || "0"), impressions: parseInt(r.impressions || "0", 10), clicks: parseInt(r.clicks || "0", 10) };
+                const asset = r[cfg.field];
+                let label = "?";
+                if (typeof asset === "string") label = asset;
+                else if (asset?.text) label = asset.text;
+                else if (asset?.name) label = asset.name;
+                else if (asset?.id) label = `ID: ${asset.id}`;
+                const ra = findResultAction(r.actions); const results = ra ? parseInt(ra.value, 10) : 0;
+                return { name: label.length > 80 ? label.slice(0, 80) + "..." : label, fullText: label, spend: parseFloat(r.spend || "0"), impressions: parseInt(r.impressions || "0", 10), clicks: parseInt(r.clicks || "0", 10), results };
               }).sort((a: any, b: any) => b.spend - a.spend).slice(0, 5);
               return (
                 <div key={cfg.key} style={panelStyle}>
                   <h3 style={headingStyle}>{cfg.title}</h3>
                   <p style={subStyle}>Top 5 por inversión (contenido dinámico)</p>
                   {data.length > 0 ? data.map((d: any, i: number) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 0", borderBottom: "1px solid rgba(255,255,255,0.025)" }}>
-                      <span style={{ width: 20, height: 20, borderRadius: 4, background: `${CHART_COLORS[i]}20`, color: CHART_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.025)" }}>
+                      <span style={{ width: 22, height: 22, borderRadius: 4, background: `${CHART_COLORS[i]}20`, color: CHART_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, color: "#e2e8f0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{d.name}</p>
-                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{fmtMXN(d.spend)} · {fmtNum(d.clicks)} clicks</p>
+                        <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.4, wordBreak: "break-word" }} title={d.fullText}>{d.name}</p>
+                        <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
+                          <span style={{ fontSize: 10, color: "#fdab3d" }}>{fmtMXN(d.spend)}</span>
+                          <span style={{ fontSize: 10, color: "#00c875" }}>{d.results} resultados</span>
+                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{fmtNum(d.clicks)} clicks</span>
+                        </div>
                       </div>
-                      <div style={{ height: 4, width: 60, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ height: 4, width: 60, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden", flexShrink: 0 }}>
                         <div style={{ height: "100%", width: `${data[0]?.spend > 0 ? (d.spend / data[0].spend) * 100 : 0}%`, background: CHART_COLORS[i], borderRadius: 2 }} />
                       </div>
                     </div>
