@@ -8,17 +8,16 @@ export async function GET(request: Request) {
     const accessToken = await getMetaAccessToken(request);
 
     if (!accessToken) {
-      return NextResponse.json({
-        data: [],
-        source: "no_session",
-      });
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const version = process.env.META_API_VERSION || "v22.0";
+
     let allData: any[] = [];
-    let nextUrl: string | null = `https://graph.facebook.com/v22.0/me/accounts?fields=id,name,fan_count,picture{url},instagram_business_account{id,username,profile_picture_url,followers_count}&limit=100&access_token=${accessToken}`;
+    let nextUrl: string | null = `https://graph.facebook.com/${version}/me/accounts?fields=id,name,fan_count,picture{url},instagram_business_account{id,username,profile_picture_url,followers_count}&limit=100`;
 
     while (nextUrl) {
-      const res: Response = await fetch(nextUrl, { headers: { "Content-Type": "application/json" } });
+      const res: Response = await fetch(nextUrl, { headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` } });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         console.warn("Meta API pages request failed:", errData);
@@ -65,6 +64,7 @@ export async function GET(request: Request) {
     return NextResponse.json({
       data: [],
       source: "catch_error",
+      error: "Error fetching pages",
     });
   }
 }

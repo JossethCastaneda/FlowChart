@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
     try {
       const tr = JSON.stringify({ since: dateStart, until: dateEnd });
       timeRange = `&time_range=${encodeURIComponent(tr)}`;
-    } catch(e) {}
+    } catch(e) { console.warn('[INSIGHTS] time_range parse warning:', e); }
   } else if (preset) {
     timeRange = `&date_preset=${preset}`;
   }
@@ -44,8 +44,10 @@ export async function GET(req: NextRequest) {
     if (level === "adset") fields += ",adset_name,adset_id";
     if (level === "ad") fields += ",ad_name,ad_id";
 
-    const url = `${baseUrl}?access_token=${token}${timeRange}&level=${level}&fields=${fields}&${params}`;
-    const res = await fetch(url);
+    const url = `${baseUrl}?${timeRange}&level=${level}&fields=${fields}&${params}`;
+    const res = await fetch(url, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     if (!res.ok) {
       const err = await res.json().catch(()=>({}));

@@ -21,46 +21,49 @@ export async function POST(req: NextRequest) {
       ids.map(async (id: string, index: number) => {
         try {
           if (action === "delete") {
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
-            const res = await fetch(url, { method: "DELETE" });
+            const url = `https://graph.facebook.com/${version}/${id}`;
+            const res = await fetch(url, {
+              method: "DELETE",
+              headers: { Authorization: `Bearer ${token}` },
+            });
             const json = await res.json();
             return { id, success: res.ok, data: json };
 
           } else if (action === "duplicate") {
-            const url = `https://graph.facebook.com/${version}/${id}/copies?access_token=${token}`;
+            const url = `https://graph.facebook.com/${version}/${id}/copies`;
             const res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ deep_copy: true, status_option: "PAUSED" }),
             });
             const json = await res.json();
             return { id, success: res.ok, data: json };
 
           } else if (action === "archive") {
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
+            const url = `https://graph.facebook.com/${version}/${id}`;
             const res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ status: "ARCHIVED" }),
             });
             const json = await res.json();
             return { id, success: res.ok, data: json };
 
           } else if (action === "pause") {
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
+            const url = `https://graph.facebook.com/${version}/${id}`;
             const res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ status: "PAUSED" }),
             });
             const json = await res.json();
             return { id, success: res.ok, data: json };
 
           } else if (action === "activate") {
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
+            const url = `https://graph.facebook.com/${version}/${id}`;
             const res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ status: "ACTIVE" }),
             });
             const json = await res.json();
@@ -69,10 +72,10 @@ export async function POST(req: NextRequest) {
           } else if (action === "rename") {
             const update = updates?.[index];
             if (!update?.newName) return { id, success: false, error: "Missing newName" };
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
+            const url = `https://graph.facebook.com/${version}/${id}`;
             const res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ name: update.newName }),
             });
             const json = await res.json();
@@ -83,10 +86,10 @@ export async function POST(req: NextRequest) {
             if (!update) return { id, success: false, error: "Missing budget update" };
             const budgetField = update.type === "lifetime" ? "lifetime_budget" : "daily_budget";
             const budgetCentavos = Math.round(update.budget * 100);
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
+            const url = `https://graph.facebook.com/${version}/${id}`;
             const res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ [budgetField]: budgetCentavos }),
             });
             const json = await res.json();
@@ -95,10 +98,10 @@ export async function POST(req: NextRequest) {
           } else if (action === "spend_cap") {
             const update = updates?.[index];
             if (!update) return { id, success: false, error: "Missing spend_cap" };
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
+            const url = `https://graph.facebook.com/${version}/${id}`;
             const res = await fetch(url, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
+              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
               body: JSON.stringify({ spend_cap: update.spend_cap }),
             });
             const json = await res.json();

@@ -33,9 +33,11 @@ export async function GET(req: NextRequest) {
   try {
     // 1. Fetch adsets details (full targeting included)
     const fields = "id,name,status,effective_status,daily_budget,lifetime_budget,bid_amount,bid_strategy,targeting,start_time,end_time,optimization_goal,billing_event,campaign_id,promoted_object,learning_phase_info,attribution_spec";
-    const adsetsUrl = `https://graph.facebook.com/${version}/${adAccountId}/adsets?access_token=${token}&fields=${fields}&limit=150`;
+    const adsetsUrl = `https://graph.facebook.com/${version}/${adAccountId}/adsets?fields=${fields}&limit=150`;
     
-    const adsetsRes = await fetch(adsetsUrl);
+    const adsetsRes = await fetch(adsetsUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     if (!adsetsRes.ok) {
       const err = await adsetsRes.json().catch(() => ({}));
       return NextResponse.json({ error: err?.error?.message || "Failed to fetch adsets" }, { status: adsetsRes.status });
@@ -45,9 +47,11 @@ export async function GET(req: NextRequest) {
 
     // 2. Fetch insights
     const insightsFields = "adset_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas";
-    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?access_token=${token}${timeRange}&level=adset&fields=${insightsFields}&limit=150`;
+    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.startsWith('&') ? timeRange.slice(1) : timeRange}&level=adset&fields=${insightsFields}&limit=150`;
     
-    const insightsRes = await fetch(insightsUrl);
+    const insightsRes = await fetch(insightsUrl, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
     let insights: any[] = [];
     if (insightsRes.ok) {
       const insightsJson = await insightsRes.json();
@@ -103,7 +107,7 @@ export async function POST(req: NextRequest) {
 
     const token = accessToken;
     const version = process.env.META_API_VERSION || "v22.0";
-    const updateUrl = `https://graph.facebook.com/${version}/${adsetId}?access_token=${token}`;
+    const updateUrl = `https://graph.facebook.com/${version}/${adsetId}`;
 
     const updateFields: any = {};
     if (status !== undefined) updateFields.status = status;
@@ -119,7 +123,7 @@ export async function POST(req: NextRequest) {
 
     const res = await fetch(updateUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
       body: JSON.stringify(updateFields),
     });
 
