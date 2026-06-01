@@ -730,8 +730,8 @@ export default function AdsManagerPage() {
     }
   };
 
-  // Guard: si el usuario no autenticó con Facebook, mostrar aviso
-  if (session && session.provider !== "facebook") {
+  // Guard: si no hay cuentas de Meta conectadas en el workspace
+  if (!loadingAccounts && accounts.length === 0) {
     return (
       <div className="space-y-6">
         <PageHeader title="Ads Manager" icon={<Megaphone className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
@@ -741,17 +741,19 @@ export default function AdsManagerPage() {
             Conexión Meta requerida
           </p>
           <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.3)", marginBottom: "20px" }}>
-            Este módulo requiere autenticación con Facebook para acceder a la API de Meta Ads.
+            Este workspace necesita que un OWNER o ADMIN conecte su cuenta de Facebook para acceder a la API de Meta Ads.
           </p>
-          <button
-            className="btn-primary"
-            onClick={async () => {
-              const { signIn } = await import("next-auth/react");
-              signIn("facebook", { callbackUrl: window.location.href });
-            }}
-          >
-            Conectar con Facebook
-          </button>
+          {session?.provider !== "facebook" && (
+            <button
+              className="btn-primary"
+              onClick={async () => {
+                const { signIn } = await import("next-auth/react");
+                signIn("facebook", { callbackUrl: window.location.href });
+              }}
+            >
+              Conectar con Facebook
+            </button>
+          )}
         </div>
       </div>
     );
