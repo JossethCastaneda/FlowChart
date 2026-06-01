@@ -966,7 +966,7 @@ export default function ProjectDashboardPage() {
           <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 200px)", margin: "-24px -28px -40px", padding: 0 }}>
             {/* Embedded Ads Manager via iframe */}
             <iframe
-              src={`/dashboard/ads-manager${firstAccount ? `?account=${firstAccount}` : ""}`}
+              src={`/dashboard/ads-manager?embedded=1${firstAccount ? `&account=${firstAccount}` : ""}`}
               style={{
                 width: "100%",
                 flex: 1,

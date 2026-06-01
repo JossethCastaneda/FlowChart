@@ -36,17 +36,34 @@ const NAV_ITEMS = [
   { name: "Settings", short: "SET", href: "/dashboard/settings", icon: Settings, color: "#94a3b8" },
 ];
 
+
+
 export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [isEmbedded, setIsEmbedded] = useState(false);
   const pathname = usePathname();
 
   const { data: session } = useSession();
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Detect iframe on mount (client-side only)
+  useEffect(() => {
+    try { setIsEmbedded(window.self !== window.top); } catch { setIsEmbedded(true); }
+  }, []);
+
   if (!pathname?.startsWith("/dashboard")) {
     return <>{children}</>;
+  }
+
+  // When embedded in an iframe, skip the full layout (sidebar, topbar, background)
+  if (isEmbedded) {
+    return (
+      <div className="h-screen overflow-hidden flex flex-col" style={{ background: "var(--background)" }}>
+        {children}
+      </div>
+    );
   }
 
   return (
