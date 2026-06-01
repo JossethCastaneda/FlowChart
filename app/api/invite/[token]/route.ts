@@ -87,12 +87,14 @@ export async function POST(
     }
     // CRÍTICO: Asegurar que el usuario existe en la tabla User
     // antes de crear WorkspaceMember (FK constraint)
+    // NOTA: No incluir password en update para no borrar passwords existentes
     await prisma.user.upsert({
       where: { id: session.user.id },
       update: {
-        name: session.user.name ?? undefined,
-        email: session.user.email ?? undefined,
-        image: session.user.image ?? undefined,
+        // Solo actualizar campos si tienen valor (no sobrescribir con null)
+        ...(session.user.name ? { name: session.user.name } : {}),
+        ...(session.user.image ? { image: session.user.image } : {}),
+        // NO actualizar email (podría romper auth) ni password
       },
       create: {
         id: session.user.id,
