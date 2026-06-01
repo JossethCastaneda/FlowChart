@@ -762,7 +762,7 @@ export default function AdsManagerPage() {
   return (
     <div className="h-full flex flex-col overflow-hidden" style={{ margin: "-24px -28px -40px", padding: 0, height: "calc(100vh - 48px)" }}>
       {/* ── TOOLBAR (fixed top) ── */}
-      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", padding: "6px 12px 0", gap: "4px" }}>
+      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", padding: "6px 12px 0", gap: "4px", position: "relative", zIndex: 50, overflow: "visible" }}>
       
       {/* ── TOP CONTROLS ── */}
       <div

@@ -79,16 +79,16 @@ export function TableActionBar({
   const levelLabelPlural = level === "campaigns" ? "campañas" : level === "adsets" ? "conjuntos" : "anuncios";
 
   const buttonStyle: React.CSSProperties = {
-    display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px",
+    display: "flex", alignItems: "center", gap: "4px", padding: "4px 8px",
     background: "transparent", border: "1px solid var(--border)", borderRadius: "4px",
-    color: "rgba(255,255,255,0.9)", fontSize: "12px", fontWeight: 500, cursor: "pointer", transition: "all 0.1s",
+    color: "rgba(255,255,255,0.9)", fontSize: "10px", fontWeight: 500, cursor: "pointer", transition: "all 0.1s",
   };
 
   const disabledButtonStyle: React.CSSProperties = {
     ...buttonStyle, color: "rgba(148,163,184,0.3)", cursor: "not-allowed", borderColor: "rgba(148,163,184,0.08)",
   };
 
-  const iconButtonStyle: React.CSSProperties = { ...buttonStyle, padding: "6px 8px" };
+  const iconButtonStyle: React.CSSProperties = { ...buttonStyle, padding: "4px 6px" };
 
   const menuStyle: React.CSSProperties = {
     position: "absolute", top: "100%", left: 0, marginTop: "4px",
@@ -125,17 +125,17 @@ export function TableActionBar({
       ref={menuRef}
       style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "12px 0", borderBottom: "1px solid var(--border)", gap: "16px", flexWrap: "wrap",
+        padding: "4px 0", borderBottom: "1px solid var(--border)", gap: "8px", flexWrap: "nowrap",
       }}
     >
       {/* Left side actions */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "nowrap" }}>
         <button style={{
-          display: "flex", alignItems: "center", gap: "6px", padding: "6px 16px",
+          display: "flex", alignItems: "center", gap: "4px", padding: "4px 10px",
           background: "#008a47", border: "none", borderRadius: "4px",
-          color: "white", fontSize: "13px", fontWeight: 600, cursor: "pointer",
+          color: "white", fontSize: "10px", fontWeight: 600, cursor: "pointer",
         }}>
-          <Plus className="w-4 h-4" /> Crear
+          <Plus className="w-3 h-3" /> Crear
         </button>
 
         {/* ── DUPLICAR ── */}
@@ -278,7 +278,7 @@ export function TableActionBar({
       </div>
 
       {/* Right side actions */}
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
         {children}
       </div>
     </div>
