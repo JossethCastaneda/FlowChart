@@ -73,8 +73,7 @@ export default function InvitePage() {
           setSuccess(true);
           await update();
           setTimeout(() => {
-            router.push("/dashboard/resumen");
-            router.refresh();
+            window.location.href = "/dashboard/resumen";
           }, 1000);
           return;
         }
@@ -87,10 +86,12 @@ export default function InvitePage() {
 
       // Forzar refresh del JWT para que hasWorkspace = true
       await update();
+      // Dar tiempo extra para que el JWT se propague al middleware
+      await new Promise((r) => setTimeout(r, 500));
+      await update();
 
       setTimeout(() => {
-        router.push("/dashboard/resumen");
-        router.refresh();
+        window.location.href = "/dashboard/resumen";
       }, 1500);
     } catch {
       setError("Error de red. Intenta de nuevo.");
