@@ -96,6 +96,24 @@ export default function SettingsPage() {
     fetchData(workspaceId);
   }
 
+  async function handleCancelInvite(inviteId: string) {
+    if (!confirm("¿Cancelar esta invitación?")) return;
+    try {
+      const res = await fetch(
+        `/api/workspace/${workspaceId}/invite/${inviteId}`,
+        { method: "DELETE" }
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Error al cancelar invitación");
+        return;
+      }
+      fetchData(workspaceId);
+    } catch {
+      alert("Error de red al cancelar invitación");
+    }
+  }
+
   async function handleCopyUrl() {
     await navigator.clipboard.writeText(lastInviteUrl);
     setCopied(true);
@@ -293,7 +311,32 @@ export default function SettingsPage() {
                   {new Date(inv.expires).toLocaleDateString("es-MX")}
                 </p>
               </div>
-              <span className="badge badge-amber">Pendiente</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span className="badge badge-amber">Pendiente</span>
+                {(userRole === "OWNER" || userRole === "ADMIN") && (
+                  <button
+                    onClick={() => handleCancelInvite(inv.id)}
+                    style={{
+                      background: "rgba(239,68,68,0.15)",
+                      border: "1px solid rgba(239,68,68,0.3)",
+                      borderRadius: "6px",
+                      color: "#ef4444",
+                      fontSize: "11px",
+                      padding: "4px 10px",
+                      cursor: "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.background = "rgba(239,68,68,0.3)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.background = "rgba(239,68,68,0.15)";
+                    }}
+                  >
+                    Cancelar
+                  </button>
+                )}
+              </div>
             </div>
           ))}
         </div>
