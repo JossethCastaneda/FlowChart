@@ -213,6 +213,7 @@ export default function ProjectDashboardPage() {
     if (activePlatform !== "meta" || !ch?.adAccounts?.length) { setInsights(null); return; }
     setIsLoading(true);
     setBreakdownData({}); // Clear breakdown cache on any filter change
+    setAdCreatives([]); // Clear creatives cache too
     const accs = selectedAccountId === "all" ? ch.adAccounts : [selectedAccountId];
     let dp = ""; if (dateStart && dateEnd) dp = `&dateStart=${dateStart}&dateEnd=${dateEnd}`; else if (datePreset && datePreset !== "custom") dp = `&preset=${datePreset}`;
     Promise.all(accs.map(a => fetch(`/api/meta/insights?adAccountId=${a}${dp}`).then(r => r.json()).catch(() => null)))
@@ -253,10 +254,31 @@ export default function ProjectDashboardPage() {
     } catch {}
   }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, breakdownData]);
 
+  // Ad Creatives state
+  const [adCreatives, setAdCreatives] = useState<any[]>([]);
+  const [creativesLoading, setCreativesLoading] = useState(false);
+
+  // Load ad creatives when on creativos tab
+  const loadAdCreatives = useCallback(async () => {
+    if (!project || creativesLoading) return;
+    const ch = project.channels.find(c => c.platformId === activePlatform);
+    if (!ch?.adAccounts?.length) return;
+    setCreativesLoading(true);
+    const accs = selectedAccountId === "all" ? ch.adAccounts : [selectedAccountId];
+    let dp = ""; if (dateStart && dateEnd) dp = `&dateStart=${dateStart}&dateEnd=${dateEnd}`; else if (datePreset && datePreset !== "custom") dp = `&preset=${datePreset}`;
+    try {
+      const results = await Promise.all(accs.map(a => fetch(`/api/meta/adcreatives?adAccountId=${a}${dp}`).then(r => r.json()).catch(() => null)));
+      const all: any[] = [];
+      results.forEach((r: any) => { if (r?.data) all.push(...r.data); });
+      setAdCreatives(all.sort((a, b) => b.spend - a.spend));
+    } catch {}
+    setCreativesLoading(false);
+  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, creativesLoading]);
+
   useEffect(() => {
     if (activeTab === "audiencia") { loadBreakdown("age_gender"); loadBreakdown("region"); loadBreakdown("platform"); loadBreakdown("device"); }
-    if (activeTab === "creativos") { loadBreakdown("dynamic_image"); loadBreakdown("dynamic_headline"); loadBreakdown("dynamic_text"); loadBreakdown("dynamic_description"); loadBreakdown("dynamic_cta"); }
-  }, [activeTab, loadBreakdown]);
+    if (activeTab === "creativos" && adCreatives.length === 0 && !creativesLoading) { loadAdCreatives(); }
+  }, [activeTab, loadBreakdown, loadAdCreatives, adCreatives.length, creativesLoading]);
 
   const saveChanges = async () => {
     if (!project) return;
@@ -644,122 +666,92 @@ export default function ProjectDashboardPage() {
       {/* ═══ TAB: CREATIVOS ═══ */}
       {activeTab === "creativos" && (
         <div className="space-y-6">
-          {/* Top Ads with thumbnails */}
-          <div style={panelStyle}>
-            <h3 style={headingStyle}>Top Anuncios por Rendimiento</h3>
-            <p style={subStyle}>Los anuncios con mejor retorno de inversión</p>
-            <div style={{ overflowX: "auto" }}>
-              {(insights?.ads || []).length > 0 ? (
-                <div style={{ display: "grid", gap: 12 }}>
-                  {(insights?.ads || []).map((ad: any) => {
-                    const s = parseFloat(ad.spend || "0"); const c = parseInt(ad.clicks || "0", 10); const imp = parseInt(ad.impressions || "0", 10);
-                    const ra = findResultAction(ad.actions); const r = ra ? parseInt(ra.value, 10) : 0;
-                    return { id: ad.ad_id || "", name: ad.ad_name || "?", spend: s, results: r, cpr: r > 0 ? s / r : 0, ctr: imp > 0 ? (c / imp) * 100 : 0, clicks: c, impressions: imp };
-                  }).sort((a: any, b: any) => b.results - a.results).slice(0, 15).map((ad: any, i: number) => (
-                    <div key={i} style={{ display: "flex", gap: 12, padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.03)", alignItems: "center" }}
-                      onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      {/* Rank */}
-                      <span style={{ width: 24, height: 24, borderRadius: 4, background: `${CHART_COLORS[i % CHART_COLORS.length]}20`, color: CHART_COLORS[i % CHART_COLORS.length], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
-                      {/* Ad info */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.name}</p>
-                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.3)", fontFamily: "monospace" }}>ID: {ad.id}</p>
-                      </div>
-                      {/* Metrics */}
-                      <div style={{ display: "flex", gap: 16, flexShrink: 0, alignItems: "center" }}>
-                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>Inversión</p><p style={{ fontSize: 12, fontWeight: 600, color: "#fdab3d" }}>{fmtMXN(ad.spend)}</p></div>
-                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>Resultados</p><p style={{ fontSize: 12, fontWeight: 700, color: "#00c875" }}>{ad.results}</p></div>
-                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>{CPR_MAP[ch?.goal || ""] || "CPR"}</p><p style={{ fontSize: 12, fontWeight: 600, color: cprTarget > 0 && ad.cpr > cprTarget ? "#e2445c" : "#00d4ff" }}>{fmtMXN(ad.cpr)}</p></div>
-                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>CTR</p><p style={{ fontSize: 12, fontWeight: 500, color: "#7b61ff" }}>{pct(ad.ctr)}</p></div>
-                        <div style={{ textAlign: "right" }}><p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "uppercase" }}>Clicks</p><p style={{ fontSize: 12, color: "rgba(148,163,184,0.6)" }}>{fmtNum(ad.clicks)}</p></div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : <NoData />}
-            </div>
-          </div>
+          {creativesLoading && <LoadingOverlay />}
 
-          {/* Image Creatives */}
+          {/* Ad Cards with thumbnails */}
           <div style={panelStyle}>
-            <h3 style={headingStyle}>Mejores Imágenes</h3>
-            <p style={subStyle}>Rendimiento por imagen creativa</p>
-            {(() => {
-              const imgs = (breakdownData["dynamic_image"] || []).map((r: any) => {
-                const img = r.image_asset || {};
-                return { url: img.url || img.thumbnail_url || "", hash: img.hash || "", name: img.name || "Sin nombre", spend: parseFloat(r.spend || "0"), clicks: parseInt(r.clicks || "0", 10), impressions: parseInt(r.impressions || "0", 10) };
-              }).sort((a: any, b: any) => b.spend - a.spend).slice(0, 8);
-              return imgs.length > 0 ? (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 12 }}>
-                  {imgs.map((img: any, i: number) => (
-                    <div key={i} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, overflow: "hidden" }}>
-                      {img.url ? (
-                        <div style={{ width: "100%", height: 140, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
-                          <img src={img.url} alt={img.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <h3 style={headingStyle}>Anuncios con Creativos</h3>
+            <p style={subStyle}>Vista previa, textos y rendimiento de cada anuncio</p>
+            {adCreatives.length > 0 ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16, marginTop: 12 }}>
+                {adCreatives.filter(a => a.spend > 0).slice(0, 20).map((ad: any, i: number) => {
+                  const ra = findResultAction(ad.actions); const results = ra ? parseInt(ra.value, 10) : 0;
+                  const cprVal = results > 0 ? ad.spend / results : 0;
+                  return (
+                    <div key={ad.adId || i} style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 8, overflow: "hidden", transition: "border-color 0.2s" }}
+                      onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.2)"} onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.04)"}>
+                      {ad.thumbnailUrl ? (
+                        <div style={{ width: "100%", height: 160, background: "rgba(0,0,0,0.4)", overflow: "hidden" }}>
+                          <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         </div>
                       ) : (
-                        <div style={{ width: "100%", height: 140, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <BarChart2 style={{ width: 24, height: 24, color: "rgba(148,163,184,0.15)" }} />
+                        <div style={{ width: "100%", height: 80, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                          <Palette style={{ width: 20, height: 20, color: "rgba(148,163,184,0.15)" }} />
                         </div>
                       )}
-                      <div style={{ padding: "10px 12px" }}>
-                        <p style={{ fontSize: 11, color: "#e2e8f0", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{img.name}</p>
-                        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-                          <span style={{ fontSize: 10, color: "#fdab3d", fontWeight: 600 }}>{fmtMXN(img.spend)}</span>
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.5)" }}>{fmtNum(img.clicks)} clicks</span>
+                      <div style={{ padding: "12px 14px" }}>
+                        <p style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 2 }}>{ad.adName}</p>
+                        <p style={{ fontSize: 9, color: "rgba(148,163,184,0.25)", fontFamily: "monospace", marginBottom: 8 }}>ID: {ad.adId}</p>
+                        {ad.title && <div style={{ marginBottom: 6 }}><span style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Título</span><p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.3, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.title}</p></div>}
+                        {ad.body && <div style={{ marginBottom: 6 }}><span style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", textTransform: "uppercase", letterSpacing: "0.1em" }}>Texto principal</span><p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.3, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" as const, overflow: "hidden" }}>{ad.body}</p></div>}
+                        {ad.cta && <div style={{ marginBottom: 8 }}><span style={{ display: "inline-block", padding: "2px 8px", fontSize: 9, fontWeight: 600, background: "rgba(0,120,255,0.1)", color: "#0081FB", borderRadius: 3, textTransform: "uppercase" }}>{ad.cta}</span></div>}
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                          <span style={{ width: 6, height: 6, borderRadius: "50%", background: ad.status === "ACTIVE" ? "#00c875" : ad.status === "PAUSED" ? "#fdab3d" : "rgba(148,163,184,0.3)" }} />
+                          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.4)" }}>{ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status}</span>
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, padding: "8px 0 0", borderTop: "1px solid rgba(255,255,255,0.04)" }}>
+                          <div><p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", textTransform: "uppercase" }}>Inversión</p><p style={{ fontSize: 12, fontWeight: 600, color: "#fdab3d" }}>{fmtMXN(ad.spend)}</p></div>
+                          <div><p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", textTransform: "uppercase" }}>Resultados</p><p style={{ fontSize: 12, fontWeight: 700, color: "#00c875" }}>{results}</p></div>
+                          <div><p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", textTransform: "uppercase" }}>{CPR_MAP[ch?.goal || ""] || "CPR"}</p><p style={{ fontSize: 12, fontWeight: 600, color: cprTarget > 0 && cprVal > cprTarget ? "#e2445c" : "#00d4ff" }}>{fmtMXN(cprVal)}</p></div>
                         </div>
                       </div>
                     </div>
-                  ))}
-                </div>
-              ) : <NoData msg="Requiere anuncios con contenido dinámico e imágenes" />;
-            })()}
+                  );
+                })}
+              </div>
+            ) : !creativesLoading ? <NoData msg="Sin anuncios con datos en el periodo seleccionado" /> : null}
           </div>
 
-          {/* Dynamic Creative Breakdowns — Texts */}
+          {/* Text Analysis */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {([
-              { key: "dynamic_headline", title: "Mejores Títulos", field: "title_asset" },
-              { key: "dynamic_text", title: "Mejores Textos Principales", field: "body_asset" },
-              { key: "dynamic_description", title: "Mejores Descripciones", field: "description_asset" },
-              { key: "dynamic_cta", title: "Mejores CTAs", field: "call_to_action_asset" },
+              { key: "title", label: "Mejores Títulos" },
+              { key: "body", label: "Mejores Textos Principales" },
+              { key: "description", label: "Mejores Descripciones" },
+              { key: "cta", label: "Mejores CTAs" },
             ] as const).map(cfg => {
-              const data = (breakdownData[cfg.key] || []).map((r: any) => {
-                const asset = r[cfg.field];
-                let label = "?";
-                if (typeof asset === "string") label = asset;
-                else if (asset?.text) label = asset.text;
-                else if (asset?.name) label = asset.name;
-                else if (asset?.id) label = `ID: ${asset.id}`;
-                const ra = findResultAction(r.actions); const results = ra ? parseInt(ra.value, 10) : 0;
-                return { name: label.length > 80 ? label.slice(0, 80) + "..." : label, fullText: label, spend: parseFloat(r.spend || "0"), impressions: parseInt(r.impressions || "0", 10), clicks: parseInt(r.clicks || "0", 10), results };
-              }).sort((a: any, b: any) => b.spend - a.spend).slice(0, 5);
+              const grouped: Record<string, { text: string; spend: number; results: number; clicks: number; count: number }> = {};
+              adCreatives.forEach((ad: any) => {
+                const text = (ad[cfg.key] || "").trim();
+                if (!text) return;
+                const ra = findResultAction(ad.actions); const results = ra ? parseInt(ra.value, 10) : 0;
+                if (!grouped[text]) grouped[text] = { text, spend: 0, results: 0, clicks: 0, count: 0 };
+                grouped[text].spend += ad.spend; grouped[text].results += results; grouped[text].clicks += ad.clicks; grouped[text].count++;
+              });
+              const data = Object.values(grouped).sort((a, b) => b.spend - a.spend).slice(0, 5);
               return (
                 <div key={cfg.key} style={panelStyle}>
-                  <h3 style={headingStyle}>{cfg.title}</h3>
-                  <p style={subStyle}>Top 5 por inversión (contenido dinámico)</p>
-                  {data.length > 0 ? data.map((d: any, i: number) => (
+                  <h3 style={headingStyle}>{cfg.label}</h3>
+                  <p style={subStyle}>Top 5 por inversión</p>
+                  {data.length > 0 ? data.map((d, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.025)" }}>
                       <span style={{ width: 22, height: 22, borderRadius: 4, background: `${CHART_COLORS[i]}20`, color: CHART_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.4, wordBreak: "break-word" }} title={d.fullText}>{d.name}</p>
+                        <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>{d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text}</p>
                         <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
                           <span style={{ fontSize: 10, color: "#fdab3d" }}>{fmtMXN(d.spend)}</span>
                           <span style={{ fontSize: 10, color: "#00c875" }}>{d.results} resultados</span>
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{fmtNum(d.clicks)} clicks</span>
+                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{d.count} anuncios</span>
                         </div>
                       </div>
-                      <div style={{ height: 4, width: 60, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden", flexShrink: 0 }}>
-                        <div style={{ height: "100%", width: `${data[0]?.spend > 0 ? (d.spend / data[0].spend) * 100 : 0}%`, background: CHART_COLORS[i], borderRadius: 2 }} />
-                      </div>
                     </div>
-                  )) : <NoData msg="Requiere anuncios con contenido dinámico activo" />}
+                  )) : <NoData msg="Sin datos de texto" />}
                 </div>
               );
             })}
           </div>
 
-          {/* Top Adsets */}
+          {/* Combinación Ganadora */}
           <div style={panelStyle}>
             <h3 style={headingStyle}><Zap style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#fdab3d" }} />Combinación Ganadora</h3>
             <p style={subStyle}>Campaña y conjunto con mejor rendimiento</p>
@@ -776,6 +768,7 @@ export default function ProjectDashboardPage() {
           </div>
         </div>
       )}
+
 
       {/* ═══ TAB: CONFIGURACIÓN ═══ */}
       {activeTab === "config" && (
