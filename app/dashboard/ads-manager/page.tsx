@@ -760,7 +760,7 @@ export default function AdsManagerPage() {
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden">
+    <div className="h-full flex flex-col overflow-hidden" style={{ margin: "-24px -28px -40px", padding: 0, height: "calc(100vh - 48px)" }}>
       {/* ── COMPACT CONTROLS (no header) ── */}
       {/* Date Range Picker - compact, top-right */}
       <div style={{ flexShrink: 0, display: "flex", justifyContent: "flex-end", padding: "6px 16px 0 16px" }}>

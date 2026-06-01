@@ -196,8 +196,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Page content */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="page-content page-enter" key={pathname}>
+        <div className="flex-1 overflow-y-auto" style={{ display: "flex", flexDirection: "column" }}>
+          <div className="page-content page-enter" key={pathname} style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
             {children}
           </div>
         </div>
