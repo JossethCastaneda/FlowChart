@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { SodareLogo } from "@/components/ui/SodareLogo";
+import { NotificationBell } from "@/components/ui/NotificationBell";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -177,14 +178,26 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <SodareLogo size="sm" />
           </div>
-          <button onClick={() => setSidebarOpen(true)} className="text-slate-400 hover:text-white">
-            <Menu className="w-5 h-5" />
-          </button>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            <button onClick={() => setSidebarOpen(true)} className="text-slate-400 hover:text-white">
+              <Menu className="w-5 h-5" />
+            </button>
+          </div>
         </header>
+
+        {/* Desktop top bar */}
+        <div className="hidden lg:flex items-center justify-end px-6 py-3" style={{
+          borderBottom: "1px solid var(--border)",
+          background: "rgba(5,8,18,0.6)",
+          backdropFilter: "blur(20px)",
+        }}>
+          <NotificationBell />
+        </div>
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto">
-          <div className={`page-enter ${mounted ? "" : ""}`} key={pathname} style={{ padding: "0" }}>
+          <div className="page-content page-enter" key={pathname}>
             {children}
           </div>
         </div>

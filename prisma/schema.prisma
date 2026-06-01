@@ -57,6 +57,7 @@ model User {
   projects      ProjectMember[]
   capturista    Capturista?
   integrations  Integration[]     @relation("UserIntegrations")
+  notifications Notification[]
 }
 
 model VerificationToken {
@@ -190,16 +191,23 @@ model Task {
   title       String
   description String?  @db.Text
   assignee    String?
-  priority    String   @default("P2")  // P0, P1, P2
-  status      String   @default("Backlog") // Backlog, WIP, Done
+  priority    String   @default("P2")  // P0, P1, P2, P3
+  status      String   @default("Backlog") // Backlog, WIP, Review, Done
+  dueDate     DateTime?
+  tags        String[]
+  order       Int      @default(0)
   projectId   String?
+  parentId    String?
   workspaceId String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent      Task?     @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Task[]    @relation("SubTasks")
 
   @@index([workspaceId])
+  @@index([parentId])
 }
 // ------------------------------------------------------
 
@@ -282,4 +290,24 @@ model Integration {
   connectedUser User?     @relation("UserIntegrations", fields: [connectedBy], references: [id], onDelete: SetNull)
 
   @@unique([workspaceId, provider])
+}
+
+// ------------------------------------------------------
+// NOTIFICATIONS
+// ------------------------------------------------------
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // task_assigned, sla_warning, sla_expired, status_changed, mention
+  title     String
+  message   String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, read])
 }
