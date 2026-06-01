@@ -289,8 +289,9 @@ export default function ProjectDashboardPage() {
   const timeSeriesData = (insights?.timeSeries || []).map((d: any) => {
     const s = parseFloat(d.spend || "0"); const ra = findResultAction(d.actions); const r = ra ? parseInt(ra.value, 10) : 0;
     const imp = parseInt(d.impressions || "0", 10); const cl = parseInt(d.clicks || "0", 10);
-    return { date: d.date_start?.split('-').slice(1).join('/') || "", spend: +s.toFixed(2), results: r, cpr: r > 0 ? +(s / r).toFixed(2) : 0, ctr: imp > 0 ? +((cl / imp) * 100).toFixed(2) : 0, cpc: cl > 0 ? +(s / cl).toFixed(2) : 0, impressions: imp, clicks: cl };
-  }).sort((a: any, b: any) => a.date.localeCompare(b.date));
+    const parts = d.date_start?.split('-') || []; const dateLabel = parts.length >= 3 ? `${parts[2]}/${parts[1]}` : d.date_start || "";
+    return { date: dateLabel, fullDate: d.date_start || "", spend: +s.toFixed(2), results: r, cpr: r > 0 ? +(s / r).toFixed(2) : 0, ctr: imp > 0 ? +((cl / imp) * 100).toFixed(2) : 0, cpc: cl > 0 ? +(s / cl).toFixed(2) : 0, impressions: imp, clicks: cl };
+  }).sort((a: any, b: any) => a.fullDate.localeCompare(b.fullDate));
 
   // Spend table with aggregation
   const getSpendTable = () => {
@@ -386,16 +387,16 @@ export default function ProjectDashboardPage() {
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6" style={{ position: "relative" }}>
               {isLoading && <LoadingOverlay />}
               <div style={panelStyle}><h3 style={headingStyle}>Inversión vs Resultados</h3><p style={subStyle}>Gasto diario y volumen de conversiones</p>
-                <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                   <defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fdab3d" stopOpacity={0.3} /><stop offset="95%" stopColor="#fdab3d" stopOpacity={0} /></linearGradient></defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} /><YAxis yAxisId="left" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="left" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="#fdab3d" strokeWidth={2} fillOpacity={1} fill="url(#gs)" /><Bar yAxisId="right" dataKey="results" name="Resultados" fill="#00c875" radius={[3, 3, 0, 0]} barSize={6} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
               <div style={panelStyle}><h3 style={headingStyle}>CTR vs CPC</h3><p style={subStyle}>Calidad de tráfico y costo por clic</p>
-                <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                   <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7b61ff" stopOpacity={0.3} /><stop offset="95%" stopColor="#7b61ff" stopOpacity={0} /></linearGradient></defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} /><YAxis yAxisId="l" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} /><YAxis yAxisId="r" orientation="right" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="l" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} /><YAxis yAxisId="r" orientation="right" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                   <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="#7b61ff" strokeWidth={2} fillOpacity={1} fill="url(#gc)" /><Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="#fdab3d" strokeWidth={2} dot={{ r: 3, fill: "rgba(10,15,30,1)" }} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
@@ -487,8 +488,8 @@ export default function ProjectDashboardPage() {
           <div style={panelStyle}>
             <h3 style={headingStyle}>Curva de Gasto vs Presupuesto Ideal</h3>
             <div style={{ width: "100%", height: 280 }}>
-              {timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData.map((d: any, i: number) => ({ ...d, idealAccum: bk.daily * (i + 1), spendAccum: timeSeriesData.slice(0, i + 1).reduce((a: number, b: any) => a + b.spend, 0) }))} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+              {timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData.map((d: any, i: number) => ({ ...d, idealAccum: bk.daily * (i + 1), spendAccum: timeSeriesData.slice(0, i + 1).reduce((a: number, b: any) => a + b.spend, 0) }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
                 <YAxis stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: any, n: any) => [fmtMXN(v as number), n]} /><Legend wrapperStyle={{ fontSize: 10 }} />
                 <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="#fdab3d" strokeWidth={2} dot={false} />
