@@ -44,12 +44,16 @@ export default function ResumenPage() {
 
     setInsightsLoading(true);
     const fetches = activeProjects.map(async (p: any) => {
+      // Find meta channel: check config.platformId, channel name, or any channel with adAccounts
       const metaCh = p.channels?.find((c: any) => {
-        const cfg = c.config as any;
-        return cfg?.platformId === "meta" || c.type === "FACEBOOK";
+        const cfg = (typeof c.config === "string" ? JSON.parse(c.config) : c.config) || {};
+        return cfg?.platformId === "meta" || cfg?.platformId === "facebook" || (c.name || "").toLowerCase().includes("meta") || (c.type || "").toLowerCase().includes("facebook");
+      }) || p.channels?.find((c: any) => {
+        const cfg = (typeof c.config === "string" ? JSON.parse(c.config) : c.config) || {};
+        return cfg?.adAccounts?.length > 0;
       });
       if (!metaCh) return null;
-      const cfg = metaCh.config as any || {};
+      const cfg = (typeof metaCh.config === "string" ? JSON.parse(metaCh.config) : metaCh.config) || {};
       if (!cfg.adAccounts?.length) return null;
       const accId = cfg.adAccounts[0].startsWith("act_") ? cfg.adAccounts[0] : `act_${cfg.adAccounts[0]}`;
       try {
@@ -162,68 +166,73 @@ export default function ResumenPage() {
       {/* ═══ PROJECT HEALTH CARDS ═══ */}
       {activeProjects.length > 0 && (
         <div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
             <span className="section-title">Salud de Proyectos Activos</span>
             {insightsLoading && <Loader2 style={{ width: 14, height: 14, color: "#00d4ff", animation: "spin 1s linear infinite" }} />}
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {projectCards.map((pc: any) => (
-              <Link key={pc.id} href={`/dashboard/proyectos/${pc.id}`} style={{ textDecoration: "none" }}>
-                <div className="glass-panel" style={{ padding: 0, overflow: "hidden", cursor: "pointer", transition: "border-color 0.2s" }}>
-                  {/* Header */}
-                  <div style={{ padding: "14px 18px", borderBottom: "1px solid rgba(255,255,255,0.04)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                    <div>
-                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "white", margin: 0 }}>{pc.alias}</h3>
-                      {pc.alias !== pc.name && <p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", margin: 0 }}>{pc.name}</p>}
-                    </div>
-                    <div style={{
-                      fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 4, letterSpacing: "0.05em",
-                      color: pc.cumplimiento >= 90 ? "#00c875" : pc.cumplimiento >= 60 ? "#fdab3d" : "#e2445c",
-                      background: pc.cumplimiento >= 90 ? "rgba(0,200,117,0.1)" : pc.cumplimiento >= 60 ? "rgba(253,171,61,0.1)" : "rgba(226,68,92,0.1)",
-                      border: `1px solid ${pc.cumplimiento >= 90 ? "rgba(0,200,117,0.2)" : pc.cumplimiento >= 60 ? "rgba(253,171,61,0.2)" : "rgba(226,68,92,0.2)"}`,
-                    }}>
-                      {pc.hasData ? pct(pc.cumplimiento) : "SIN DATOS"}
-                    </div>
-                  </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {projectCards.map((pc: any) => {
+              const cColor = pc.cumplimiento >= 90 ? "#00c875" : pc.cumplimiento >= 60 ? "#fdab3d" : "#e2445c";
+              const sColor = pc.spendPct > 110 ? "#e2445c" : pc.spendPct > 100 ? "#fdab3d" : "#00c875";
+              const rColor = pc.resultsPct >= 90 ? "#00c875" : pc.resultsPct >= 60 ? "#fdab3d" : "#e2445c";
 
-                  {!pc.hasData ? (
-                    <div style={{ padding: "20px 18px", textAlign: "center", color: "rgba(148,163,184,0.3)", fontSize: 11 }}>
-                      Sin datos de Meta conectados
+              return (
+                <Link key={pc.id} href={`/dashboard/proyectos/${pc.id}`} style={{ textDecoration: "none" }}>
+                  <div className="glass-panel" style={{ padding: 0, overflow: "hidden", cursor: "pointer", transition: "border-color 0.2s" }}>
+                    {/* Single row: Name + all metrics */}
+                    <div style={{ display: "flex", alignItems: "stretch" }}>
+                      {/* Left: Project name + badge */}
+                      <div style={{ minWidth: 160, maxWidth: 200, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.04)", flexShrink: 0 }}>
+                        <h3 style={{ fontSize: 12, fontWeight: 700, color: "white", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pc.alias}</h3>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+                          <span style={{
+                            fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 3, letterSpacing: "0.05em",
+                            color: cColor, background: `${cColor}12`, border: `1px solid ${cColor}25`,
+                          }}>{pc.hasData ? pct(pc.cumplimiento) : "—"}</span>
+                        </div>
+                      </div>
+
+                      {!pc.hasData ? (
+                        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", color: "rgba(148,163,184,0.25)", fontSize: 10 }}>
+                          Sin datos de Meta
+                        </div>
+                      ) : (
+                        /* Right: Metrics in horizontal flow */
+                        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(11, 1fr)", alignItems: "center", padding: "8px 0" }}>
+                          {([
+                            ["Presupuesto", fmtMXN0(pc.budgetTotal), "#00d4ff"],
+                            ["Pres. al día", fmtMXN0(pc.budgetToDate), "#00d4ff"],
+                            ["Gasto", fmtMXN0(pc.spendToDate), sColor],
+                            ["Gasto %", pct(pc.spendPct), sColor],
+                            ["Meta Mes", Math.round(pc.goalMonth).toLocaleString(), "#7b61ff"],
+                            ["Meta Día", Math.round(pc.goalToDate).toLocaleString(), "#7b61ff"],
+                            ["Resultados", pc.results.toLocaleString(), rColor],
+                            ["Res. %", pct(pc.resultsPct), rColor],
+                            ["CPR Meta", pc.cprProjected > 0 ? fmtMXN(pc.cprProjected) : "—", "#fdab3d"],
+                            ["CPR Actual", pc.cprActual > 0 ? fmtMXN(pc.cprActual) : "—", cColor],
+                            ["Cumpl.", pct(pc.cumplimiento), cColor],
+                          ] as [string, string, string][]).map(([label, value, color], i) => (
+                            <div key={i} style={{ textAlign: "center", padding: "0 4px" }}>
+                              <p style={{ fontSize: 7, color: "rgba(148,163,184,0.35)", textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 2px", whiteSpace: "nowrap" }}>{label}</p>
+                              <p style={{ fontSize: i >= 10 ? 12 : 10.5, fontWeight: i >= 10 ? 800 : 600, color, margin: 0, fontFamily: i >= 10 ? "'Orbitron',sans-serif" : "inherit", whiteSpace: "nowrap" }}>{value}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div style={{ padding: "12px 18px 16px" }}>
-                      {/* Row 1: Presupuesto */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
-                        <MetricCell label="Presupuesto Total" value={fmtMXN0(pc.budgetTotal)} color="#00d4ff" />
-                        <MetricCell label="Presupuesto al día" value={fmtMXN0(pc.budgetToDate)} color="#00d4ff" />
-                        <MetricCell label="Gasto al día" value={fmtMXN0(pc.spendToDate)} color={pc.spendPct > 110 ? "#e2445c" : pc.spendPct > 100 ? "#fdab3d" : "#00c875"} />
-                        <MetricCell label="Gasto %" value={pct(pc.spendPct)} color={pc.spendPct > 110 ? "#e2445c" : pc.spendPct > 100 ? "#fdab3d" : "#00c875"} highlight />
-                      </div>
-                      {/* Row 2: Resultados */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 8, marginBottom: 10 }}>
-                        <MetricCell label="Meta Resultados Mes" value={Math.round(pc.goalMonth).toLocaleString()} color="#7b61ff" />
-                        <MetricCell label="Meta al día" value={Math.round(pc.goalToDate).toLocaleString()} color="#7b61ff" />
-                        <MetricCell label="Resultados" value={pc.results.toLocaleString()} color={pc.resultsPct >= 90 ? "#00c875" : pc.resultsPct >= 60 ? "#fdab3d" : "#e2445c"} />
-                        <MetricCell label="Resultados %" value={pct(pc.resultsPct)} color={pc.resultsPct >= 90 ? "#00c875" : pc.resultsPct >= 60 ? "#fdab3d" : "#e2445c"} highlight />
-                      </div>
-                      {/* Row 3: CPR */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
-                        <MetricCell label="CPR Meta" value={pc.cprProjected > 0 ? fmtMXN(pc.cprProjected) : "—"} color="#fdab3d" />
-                        <MetricCell label="CPR Actual" value={pc.cprActual > 0 ? fmtMXN(pc.cprActual) : "—"} color={pc.cumplimiento >= 90 ? "#00c875" : pc.cumplimiento >= 60 ? "#fdab3d" : "#e2445c"} />
-                        <MetricCell label="Cumplimiento" value={pct(pc.cumplimiento)} color={pc.cumplimiento >= 90 ? "#00c875" : pc.cumplimiento >= 60 ? "#fdab3d" : "#e2445c"} highlight />
-                      </div>
-                      {/* Progress bar */}
-                      <div style={{ marginTop: 10, height: 4, background: "rgba(255,255,255,0.04)", borderRadius: 2, overflow: "hidden" }}>
+                    {/* Thin progress bar */}
+                    {pc.hasData && (
+                      <div style={{ height: 2, background: "rgba(255,255,255,0.03)" }}>
                         <div style={{
-                          height: "100%", width: `${Math.min(100, pc.cumplimiento)}%`, borderRadius: 2, transition: "width 0.6s ease",
-                          background: pc.cumplimiento >= 90 ? "linear-gradient(90deg, #00c875, #06d6a0)" : pc.cumplimiento >= 60 ? "linear-gradient(90deg, #fdab3d, #ffbe0b)" : "linear-gradient(90deg, #e2445c, #ff6b6b)",
+                          height: "100%", width: `${Math.min(100, pc.cumplimiento)}%`, transition: "width 0.6s ease",
+                          background: cColor,
                         }} />
                       </div>
-                    </div>
-                  )}
-                </div>
-              </Link>
-            ))}
+                    )}
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         </div>
       )}
