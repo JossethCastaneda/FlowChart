@@ -145,7 +145,7 @@ export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"config">("resumen");
+  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config">("resumen");
   const [activePlatform, setActivePlatform] = useState("");
   const [insights, setInsights] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -160,6 +160,7 @@ export default function ProjectDashboardPage() {
   const [timeGranularity, setTimeGranularity] = useState("day");
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Project>>({});
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   // Load project from API
   useEffect(() => {
@@ -401,6 +402,7 @@ export default function ProjectDashboardPage() {
           <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
           <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
           <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
+          <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
           <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -944,6 +946,144 @@ export default function ProjectDashboardPage() {
                   </div>
                 </div>
               </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ═══ TAB: ADS MANAGER ═══ */}
+      {activeTab === "ads" && (() => {
+        // Build tree: campaigns -> adsets -> ads
+        const campaignsRaw = insights?.campaigns || [];
+        const adsetsRaw = insights?.adsets || [];
+        const adsRaw = insights?.ads || [];
+
+        interface AdsRow {
+          id: string; name: string; level: "campaign"|"adset"|"ad"; objective?: string;
+          spend: number; results: number; cpr: number; impressions: number; clicks: number; ctr: number; cpc: number;
+          children?: AdsRow[]; parentId?: string;
+        }
+
+        const parseRow = (d: any, level: "campaign"|"adset"|"ad"): AdsRow => {
+          const s = parseFloat(d.spend || "0"); const imp = parseInt(d.impressions || "0", 10);
+          const cl = parseInt(d.clicks || "0", 10); const ra = findResultAction(d.actions);
+          const r = ra ? parseInt(ra.value, 10) : 0;
+          return {
+            id: d.campaign_id || d.adset_id || d.ad_id || "",
+            name: d.campaign_name || d.adset_name || d.ad_name || "—",
+            level, objective: d.objective,
+            spend: s, results: r, cpr: r > 0 ? s / r : 0,
+            impressions: imp, clicks: cl, ctr: imp > 0 ? (cl / imp) * 100 : 0, cpc: cl > 0 ? s / cl : 0,
+            parentId: level === "adset" ? d.campaign_id : level === "ad" ? d.adset_id : undefined,
+          };
+        };
+
+        const campaigns = campaignsRaw.map((c: any) => parseRow(c, "campaign"));
+        const adsets = adsetsRaw.map((a: any) => parseRow(a, "adset"));
+        const ads = adsRaw.map((a: any) => parseRow(a, "ad"));
+
+        // Group adsets under campaigns, ads under adsets
+        campaigns.forEach((c: AdsRow) => {
+          c.children = adsets.filter((a: AdsRow) => a.parentId === c.id);
+          c.children?.forEach((as: AdsRow) => {
+            as.children = ads.filter((ad: AdsRow) => ad.parentId === as.id);
+          });
+        });
+
+        // toggleRow
+        const toggleRow = (id: string) => {
+          setExpandedRows(prev => {
+            const n = new Set(prev);
+            n.has(id) ? n.delete(id) : n.add(id);
+            return n;
+          });
+        };
+
+        const colHeaderStyle: React.CSSProperties = { fontSize: 9, fontWeight: 600, color: "rgba(148,163,184,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "8px 10px", textAlign: "right", borderBottom: "1px solid rgba(255,255,255,0.06)", position: "sticky", top: 0, background: "#0d1220", zIndex: 2 };
+        const colCellStyle: React.CSSProperties = { fontSize: 11, padding: "8px 10px", textAlign: "right", borderBottom: "1px solid rgba(255,255,255,0.03)", color: "#e2e8f0" };
+
+        const renderRow = (row: AdsRow, depth: number): React.ReactNode => {
+          const hasChildren = row.children && row.children.length > 0;
+          const isExpanded = expandedRows.has(row.id);
+          const levelColors: any = { campaign: "#00d4ff", adset: "#7b61ff", ad: "#fdab3d" };
+          const levelLabels: any = { campaign: "CMP", adset: "ADSET", ad: "AD" };
+          const indent = depth * 24;
+
+          return (
+            <> 
+              <tr style={{ cursor: hasChildren ? "pointer" : "default", transition: "background 0.15s" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                onClick={() => hasChildren && toggleRow(row.id)}>
+                <td style={{ ...colCellStyle, textAlign: "left", paddingLeft: 10 + indent }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    {hasChildren ? (
+                      <ChevronDown style={{ width: 12, height: 12, color: "rgba(148,163,184,0.4)", transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 0.2s" }} />
+                    ) : <div style={{ width: 12 }} />}
+                    <span style={{ fontSize: 8, fontWeight: 700, color: levelColors[row.level], background: `${levelColors[row.level]}15`, padding: "1px 5px", borderRadius: 3, letterSpacing: "0.05em" }}>{levelLabels[row.level]}</span>
+                    <span style={{ fontSize: 11, color: "white", fontWeight: row.level === "campaign" ? 600 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 300 }}>{row.name}</span>
+                    {row.objective && <span style={{ fontSize: 8, color: "rgba(148,163,184,0.35)", marginLeft: 4 }}>{row.objective.replace("OUTCOME_", "")}</span>}
+                  </div>
+                </td>
+                <td style={colCellStyle}><span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600 }}>{fmtMXN0(row.spend)}</span></td>
+                <td style={colCellStyle}><span style={{ color: "#00c875", fontWeight: 600 }}>{fmtNum(row.results)}</span></td>
+                <td style={colCellStyle}>{row.results > 0 ? fmtMXN(row.cpr) : "—"}</td>
+                <td style={colCellStyle}>{fmtNum(row.impressions)}</td>
+                <td style={colCellStyle}>{fmtNum(row.clicks)}</td>
+                <td style={colCellStyle}>{row.ctr > 0 ? pct(row.ctr) : "—"}</td>
+                <td style={colCellStyle}>{row.cpc > 0 ? fmtMXN(row.cpc) : "—"}</td>
+              </tr>
+              {isExpanded && row.children?.map(child => renderRow(child, depth + 1))}
+            </>
+          );
+        };
+
+        // Summary
+        const totalCampaigns = campaigns.length;
+        const totalAdsets = adsets.length;
+        const totalAds = ads.length;
+
+        return (
+          <div className="space-y-4">
+            {/* Summary bar */}
+            <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <span style={{ fontSize: 8, fontWeight: 700, color: "#00d4ff", background: "rgba(0,212,255,0.1)", padding: "2px 6px", borderRadius: 3 }}>CMP</span>
+                <span style={{ fontSize: 12, color: "white", fontWeight: 600 }}>{totalCampaigns}</span>
+              </div>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <span style={{ fontSize: 8, fontWeight: 700, color: "#7b61ff", background: "rgba(123,97,255,0.1)", padding: "2px 6px", borderRadius: 3 }}>ADSETS</span>
+                <span style={{ fontSize: 12, color: "white", fontWeight: 600 }}>{totalAdsets}</span>
+              </div>
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <span style={{ fontSize: 8, fontWeight: 700, color: "#fdab3d", background: "rgba(253,171,61,0.1)", padding: "2px 6px", borderRadius: 3 }}>ADS</span>
+                <span style={{ fontSize: 12, color: "white", fontWeight: 600 }}>{totalAds}</span>
+              </div>
+              <button onClick={() => setExpandedRows(new Set(campaigns.map((c: AdsRow) => c.id)))} style={{ fontSize: 10, color: "rgba(148,163,184,0.5)", background: "none", border: "1px solid rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 4, cursor: "pointer" }}>Expandir todo</button>
+              <button onClick={() => setExpandedRows(new Set())} style={{ fontSize: 10, color: "rgba(148,163,184,0.5)", background: "none", border: "1px solid rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 4, cursor: "pointer" }}>Colapsar todo</button>
+            </div>
+
+            {/* Table */}
+            <div style={{ ...panelStyle, padding: 0, overflow: "auto", maxHeight: 600 }}>
+              {isLoading && <LoadingOverlay />}
+              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 800, position: "relative" }}>
+                <thead>
+                  <tr>
+                    <th style={{ ...colHeaderStyle, textAlign: "left", paddingLeft: 10, minWidth: 300 }}>Nombre</th>
+                    <th style={{ ...colHeaderStyle, minWidth: 90 }}>Inversión</th>
+                    <th style={{ ...colHeaderStyle, minWidth: 80 }}>Resultados</th>
+                    <th style={{ ...colHeaderStyle, minWidth: 80 }}>CPR</th>
+                    <th style={{ ...colHeaderStyle, minWidth: 90 }}>Impresiones</th>
+                    <th style={{ ...colHeaderStyle, minWidth: 70 }}>Clicks</th>
+                    <th style={{ ...colHeaderStyle, minWidth: 60 }}>CTR</th>
+                    <th style={{ ...colHeaderStyle, minWidth: 70 }}>CPC</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {campaigns.length > 0 ? campaigns.sort((a: AdsRow, b: AdsRow) => b.spend - a.spend).map((c: AdsRow) => renderRow(c, 0))
+                    : <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.3)", fontSize: 12 }}>Sin datos de campañas</td></tr>}
+                </tbody>
+              </table>
             </div>
           </div>
         );

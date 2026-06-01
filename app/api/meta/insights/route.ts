@@ -40,9 +40,9 @@ export async function GET(req: NextRequest) {
   
   const fetchInsights = async (level: string, params: string = "") => {
     let fields = baseFields;
-    if (level === "campaign") fields += ",campaign_name,campaign_id";
-    if (level === "adset") fields += ",adset_name,adset_id";
-    if (level === "ad") fields += ",ad_name,ad_id";
+    if (level === "campaign") fields += ",campaign_name,campaign_id,objective";
+    if (level === "adset") fields += ",adset_name,adset_id,campaign_name,campaign_id";
+    if (level === "ad") fields += ",ad_name,ad_id,adset_name,adset_id,campaign_name,campaign_id";
 
     const url = `${baseUrl}?${timeRange.replace(/^&/, '')}&level=${level}&fields=${fields}&${params}`;
     const res = await metaFetch(url, token);
