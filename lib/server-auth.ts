@@ -10,18 +10,20 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
  *   1. Integration table (workspace-level token — shared by all members)
  *   2. JWT accessToken (user-level — fallback for owner who just connected)
  *
- * This ensures all workspace members can use Meta APIs,
- * not just the owner who originally connected.
+ * Auto-sync: If the token is found in JWT but NOT in the Integration table,
+ * it is automatically persisted so all workspace members can use it.
  */
 export async function getMetaAccessToken(
   request: Request | NextRequest
 ): Promise<string | null> {
   try {
-    const token = await getToken({ req: request as NextRequest });
-    if (!token?.sub) return null;
+    const jwtToken = await getToken({ req: request as NextRequest });
+    if (!jwtToken?.sub) return null;
+
+    const userId = jwtToken.sub;
+    const workspaceId = await getActiveWorkspaceId(userId);
 
     // 1. Try workspace Integration (shared token)
-    const workspaceId = await getActiveWorkspaceId(token.sub);
     if (workspaceId) {
       const integration = await prisma.integration.findUnique({
         where: {
@@ -39,13 +41,27 @@ export async function getMetaAccessToken(
       }
     }
 
-    // 2. Fallback: JWT token (owner who just logged in with Facebook)
-    return (token?.accessToken as string) || null;
+    // 2. Fallback: JWT token (owner who logged in with Facebook)
+    const jwtAccessToken = (jwtToken?.accessToken as string) || null;
+
+    // AUTO-SYNC: If the owner has a Meta token in their JWT but it's NOT
+    // in the Integration table, save it now so all members can use it.
+    if (jwtAccessToken && workspaceId) {
+      try {
+        await saveMetaTokenToWorkspace(userId, jwtAccessToken);
+        console.log("[SERVER-AUTH] Auto-synced Meta token from JWT to Integration table");
+      } catch (syncErr) {
+        console.error("[SERVER-AUTH] Auto-sync failed:", syncErr);
+      }
+    }
+
+    return jwtAccessToken;
   } catch (err) {
     console.error("[SERVER-AUTH] getMetaAccessToken error:", err);
     return null;
   }
 }
+
 
 /**
  * Save Meta access token to the workspace Integration table.
