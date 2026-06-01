@@ -422,9 +422,15 @@ export default function AdsManagerPage() {
       });
       const data = await res.json();
       if (data.success) {
-        const { successCount, failCount } = data;
+        const { successCount, failCount, results: actionResults } = data;
         if (failCount === 0) {
-          addToast("success", `✅ ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} — ${action} completado`);
+          // Check if delete was actually an archive (Meta behavior)
+          const archivedCount = action === "delete" && actionResults ? actionResults.filter((r: any) => r.method === "archived").length : 0;
+          if (archivedCount > 0) {
+            addToast("success", `✅ ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} archivada${successCount > 1 ? "s" : ""} (Meta no permite eliminar campañas con historial)`);
+          } else {
+            addToast("success", `✅ ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} — ${action} completado`);
+          }
         } else {
           addToast("warning", `${successCount} de ${n} ${action} exitosas. ${failCount} fallaron.`);
         }
@@ -501,7 +507,7 @@ export default function AdsManagerPage() {
     const capturedIds = [...selectedIds];
     setConfirmAction({
       title: `¿Eliminar ${capturedIds.length} elemento${capturedIds.length > 1 ? "s" : ""}?`,
-      message: "Esta acción no se puede deshacer.",
+      message: "Las campañas con historial de gasto serán archivadas (comportamiento estándar de Meta). Las campañas sin gasto serán eliminadas permanentemente.",
       variant: "danger",
       onConfirm: async () => { await handleBulkAction("delete", { ids: capturedIds }); setConfirmAction(null); },
     });

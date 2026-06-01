@@ -23,9 +23,20 @@ export async function POST(req: NextRequest) {
           const baseUrl = `https://graph.facebook.com/${version}/${id}`;
 
           if (action === "delete") {
-            const res = await metaFetch(baseUrl, token, { method: "DELETE" });
-            const json = await res.json();
-            return { id, success: res.ok, data: json };
+            // Meta doesn't allow DELETE on campaigns/adsets/ads with spend history.
+            // The real Ads Manager "deletes" by archiving. Try DELETE first, fallback to ARCHIVE.
+            const delRes = await metaFetch(baseUrl, token, { method: "DELETE" });
+            if (delRes.ok) {
+              const json = await delRes.json();
+              return { id, success: true, data: json, method: "deleted" };
+            }
+            // Fallback: archive instead (this is what Meta Ads Manager does)
+            const archRes = await metaFetch(baseUrl, token, {
+              method: "POST",
+              body: JSON.stringify({ status: "ARCHIVED" }),
+            });
+            const archJson = await archRes.json();
+            return { id, success: archRes.ok, data: archJson, method: "archived" };
 
           } else if (action === "duplicate") {
             const res = await metaFetch(`${baseUrl}/copies`, token, {
