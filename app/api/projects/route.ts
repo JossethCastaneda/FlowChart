@@ -52,10 +52,24 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
 
     // Validate required fields
-    const { name, workspaceId } = body;
-    if (!name || !workspaceId) {
+    const { name } = body;
+    let { workspaceId } = body;
+
+    if (!name) {
       return apiError(
-        "Los campos 'name' y 'workspaceId' son obligatorios",
+        "El campo 'name' es obligatorio",
+        "VALIDATION_ERROR",
+        400
+      );
+    }
+
+    // Infer workspaceId from active workspace if not provided
+    if (!workspaceId) {
+      workspaceId = await getActiveWorkspaceId(session.user.id);
+    }
+    if (!workspaceId) {
+      return apiError(
+        "No tienes un workspace activo",
         "VALIDATION_ERROR",
         400
       );
