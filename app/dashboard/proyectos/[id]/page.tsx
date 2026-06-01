@@ -955,157 +955,27 @@ export default function ProjectDashboardPage() {
 
       {/* ═══ TAB: ADS MANAGER ═══ */}
       {activeTab === "ads" && (() => {
-        const campaignsRaw = insights?.campaigns || [];
-        const adsetsRaw = insights?.adsets || [];
-        const adsRaw = insights?.ads || [];
-
-        interface AdsRow {
-          id: string; name: string; level: "campaign"|"adset"|"ad"; objective?: string;
-          spend: number; results: number; cpr: number; impressions: number; clicks: number;
-          ctr: number; cpc: number; cpm: number; reach: number; frequency: number;
-          children?: AdsRow[]; parentId?: string;
-        }
-
-        const parseRow = (d: any, level: "campaign"|"adset"|"ad"): AdsRow => {
-          const s = parseFloat(d.spend || "0");
-          const imp = parseInt(d.impressions || "0", 10);
-          const cl = parseInt(d.clicks || "0", 10);
-          const reach = parseInt(d.reach || "0", 10);
-          const ra = findResultAction(d.actions);
-          const r = ra ? parseInt(ra.value, 10) : 0;
-          const freq = reach > 0 ? imp / reach : 0;
-          return {
-            id: d.campaign_id || d.adset_id || d.ad_id || "",
-            name: d.campaign_name || d.adset_name || d.ad_name || "—",
-            level, objective: d.objective,
-            spend: s, results: r, cpr: r > 0 ? s / r : 0,
-            impressions: imp, clicks: cl, reach, frequency: freq,
-            ctr: imp > 0 ? (cl / imp) * 100 : 0, cpc: cl > 0 ? s / cl : 0,
-            cpm: imp > 0 ? (s / imp) * 1000 : 0,
-            parentId: level === "adset" ? d.campaign_id : level === "ad" ? d.adset_id : undefined,
-          };
-        };
-
-        const campaigns = campaignsRaw.map((c: any) => parseRow(c, "campaign"));
-        const adsets = adsetsRaw.map((a: any) => parseRow(a, "adset"));
-        const ads = adsRaw.map((a: any) => parseRow(a, "ad"));
-        campaigns.forEach((c: AdsRow) => { c.children = adsets.filter((a: AdsRow) => a.parentId === c.id); c.children?.forEach((as: AdsRow) => { as.children = ads.filter((ad: AdsRow) => ad.parentId === as.id); }); });
-        const toggleRow = (id: string) => { setExpandedRows(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; }); };
-
-        const LC: Record<string,string> = { campaign: "#00d4ff", adset: "#7b61ff", ad: "#fdab3d" };
-        const LL: Record<string,string> = { campaign: "CMP", adset: "ADSET", ad: "AD" };
-        const thS: React.CSSProperties = { fontSize: 8, fontWeight: 700, color: "rgba(148,163,184,0.45)", textTransform: "uppercase", letterSpacing: "0.1em", padding: "6px 10px", textAlign: "right", borderBottom: "1px solid rgba(0,212,255,0.12)", whiteSpace: "nowrap" };
-        const tdS: React.CSSProperties = { fontSize: 10.5, padding: "5px 10px", textAlign: "right", borderBottom: "1px solid rgba(255,255,255,0.025)", color: "#cbd5e1", whiteSpace: "nowrap" };
-        const sThN: React.CSSProperties = { ...thS, position: "sticky", left: 0, zIndex: 4, background: "#0b0f1e", textAlign: "left", borderRight: "1px solid rgba(255,255,255,0.05)", minWidth: 260 };
-        const sTdN = (d: number): React.CSSProperties => ({ ...tdS, position: "sticky", left: 0, zIndex: 3, background: "#0b0f1e", textAlign: "left", borderRight: "1px solid rgba(255,255,255,0.03)", paddingLeft: 8 + d * 18, minWidth: 260 });
-        const tfS: React.CSSProperties = { ...tdS, fontWeight: 700, color: "white", borderBottom: "none", background: "#0d1225", padding: "7px 10px" };
-        const colW = <><col style={{ width: 260 }} /><col style={{ width: 85 }} /><col style={{ width: 75 }} /><col style={{ width: 80 }} /><col style={{ width: 85 }} /><col style={{ width: 90 }} /><col style={{ width: 70 }} /><col style={{ width: 68 }} /><col style={{ width: 65 }} /><col style={{ width: 55 }} /><col style={{ width: 65 }} /></>;
-
-        const renderRow = (row: AdsRow, depth: number): React.ReactNode => {
-          const hk = row.children && row.children.length > 0;
-          const op = expandedRows.has(row.id);
-          const c = LC[row.level];
-          return (<>
-            <tr style={{ cursor: hk ? "pointer" : "default", transition: "background 0.1s" }}
-              onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.015)"; const t = e.currentTarget.querySelector("td") as HTMLElement; if(t) t.style.background = "#0d1225"; }}
-              onMouseLeave={e => { e.currentTarget.style.background = ""; const t = e.currentTarget.querySelector("td") as HTMLElement; if(t) t.style.background = "#0b0f1e"; }}
-              onClick={() => hk && toggleRow(row.id)}>
-              <td style={sTdN(depth)}>
-                <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  {hk ? <ChevronDown style={{ width: 10, height: 10, color: "rgba(148,163,184,0.35)", transform: op ? "rotate(0)" : "rotate(-90deg)", transition: "transform 0.15s", flexShrink: 0 }} /> : <div style={{ width: 10, flexShrink: 0 }} />}
-                  <span style={{ fontSize: 7, fontWeight: 800, color: c, background: `${c}10`, padding: "1px 4px", borderRadius: 2, flexShrink: 0 }}>{LL[row.level]}</span>
-                  <span style={{ fontSize: 10.5, color: "white", fontWeight: row.level === "campaign" ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis" }}>{row.name}</span>
-                  {row.objective && <span style={{ fontSize: 7, color: "rgba(148,163,184,0.2)", flexShrink: 0 }}>{row.objective.replace("OUTCOME_", "")}</span>}
-                </div>
-              </td>
-              <td style={tdS}><span style={{ fontWeight: 600 }}>{fmtMXN0(row.spend)}</span></td>
-              <td style={tdS}><span style={{ color: "#00c875", fontWeight: 700 }}>{fmtNum(row.results)}</span></td>
-              <td style={tdS}>{row.results > 0 ? fmtMXN(row.cpr) : <span style={{ color: "rgba(148,163,184,0.15)" }}>—</span>}</td>
-              <td style={tdS}>{fmtNum(row.reach)}</td>
-              <td style={tdS}>{fmtNum(row.impressions)}</td>
-              <td style={tdS}>{row.cpm > 0 ? fmtMXN(row.cpm) : <span style={{ color: "rgba(148,163,184,0.15)" }}>—</span>}</td>
-              <td style={tdS}>{row.frequency > 0 ? row.frequency.toFixed(2) : <span style={{ color: "rgba(148,163,184,0.15)" }}>—</span>}</td>
-              <td style={tdS}>{fmtNum(row.clicks)}</td>
-              <td style={tdS}>{row.ctr > 0 ? pct(row.ctr) : <span style={{ color: "rgba(148,163,184,0.15)" }}>—</span>}</td>
-              <td style={tdS}>{row.cpc > 0 ? fmtMXN(row.cpc) : <span style={{ color: "rgba(148,163,184,0.15)" }}>—</span>}</td>
-            </tr>
-            {op && row.children?.map(child => renderRow(child, depth + 1))}
-          </>);
-        };
-
-        const tSpend = campaigns.reduce((a: number, c: AdsRow) => a + c.spend, 0);
-        const tResults = campaigns.reduce((a: number, c: AdsRow) => a + c.results, 0);
-        const tReach = campaigns.reduce((a: number, c: AdsRow) => a + c.reach, 0);
-        const tImp = campaigns.reduce((a: number, c: AdsRow) => a + c.impressions, 0);
-        const tClicks = campaigns.reduce((a: number, c: AdsRow) => a + c.clicks, 0);
-        const tCpr = tResults > 0 ? tSpend / tResults : 0;
-        const tCpm = tImp > 0 ? (tSpend / tImp) * 1000 : 0;
-        const tFreq = tReach > 0 ? tImp / tReach : 0;
-        const tCtr = tImp > 0 ? (tClicks / tImp) * 100 : 0;
-        const tCpc = tClicks > 0 ? tSpend / tClicks : 0;
+        // Get this project's ad account IDs
+        const projectAccounts = project?.channels
+          ?.filter(ch => ch.platformName?.toLowerCase().includes("meta"))
+          ?.flatMap(ch => ch.adAccounts || [])
+          ?.filter(Boolean) || [];
+        const firstAccount = projectAccounts[0] || "";
 
         return (
-          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 200px)" }}>
-            {/* Compact Toolbar - fixed top */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 0 6px", gap: 8, flexShrink: 0 }}>
-              <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                {([["CMP", campaigns.length, "#00d4ff"], ["ADSETS", adsets.length, "#7b61ff"], ["ADS", ads.length, "#fdab3d"]] as [string, number, string][]).map(([l, v, c]) => (
-                  <div key={l} style={{ display: "flex", gap: 4, alignItems: "center" }}>
-                    <span style={{ fontSize: 7, fontWeight: 800, color: c, background: `${c}10`, padding: "1px 5px", borderRadius: 2 }}>{l}</span>
-                    <span style={{ fontSize: 11, color: "white", fontWeight: 700 }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-              <div style={{ display: "flex", gap: 4 }}>
-                <button onClick={() => setExpandedRows(new Set(campaigns.map((c: AdsRow) => c.id)))} style={{ fontSize: 8, color: "rgba(148,163,184,0.4)", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", padding: "3px 8px", borderRadius: 3, cursor: "pointer" }}>Expandir</button>
-                <button onClick={() => setExpandedRows(new Set())} style={{ fontSize: 8, color: "rgba(148,163,184,0.4)", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", padding: "3px 8px", borderRadius: 3, cursor: "pointer" }}>Colapsar</button>
-              </div>
-            </div>
-            {/* Table container - fills remaining space */}
-            <div style={{ background: "#0b0f1e", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 6, overflow: "hidden", position: "relative", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-              {isLoading && <LoadingOverlay />}
-              {/* Scrollable body */}
-              <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
-                <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1000 }}>
-                  <colgroup>{colW}</colgroup>
-                  <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "#0b0f1e" }}>
-                    <tr>
-                      <th style={sThN}>Campaña</th><th style={thS}>Inversión</th><th style={thS}>Resultados</th><th style={thS}>CPR</th>
-                      <th style={thS}>Alcance</th><th style={thS}>Impresiones</th><th style={thS}>CPM</th><th style={thS}>Frecuencia</th>
-                      <th style={thS}>Clicks</th><th style={thS}>CTR</th><th style={thS}>CPC</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {campaigns.length > 0 ? campaigns.sort((a: AdsRow, b: AdsRow) => b.spend - a.spend).map((c: AdsRow) => renderRow(c, 0))
-                      : <tr><td colSpan={11} style={{ padding: 36, textAlign: "center", color: "rgba(148,163,184,0.2)", fontSize: 11 }}>Sin datos</td></tr>}
-                  </tbody>
-                </table>
-              </div>
-              {/* TOTAL row - always visible at bottom */}
-              {campaigns.length > 0 && (
-                <div style={{ borderTop: "1px solid rgba(0,212,255,0.12)", background: "#0d1225", flexShrink: 0 }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1000 }}>
-                    <colgroup>{colW}</colgroup>
-                    <tbody><tr>
-                      <td style={{ ...tfS, position: "sticky", left: 0, zIndex: 3, background: "#0d1225", textAlign: "left", borderRight: "1px solid rgba(255,255,255,0.03)", paddingLeft: 8 }}>
-                        <span style={{ fontSize: 8, fontWeight: 800, color: "#00d4ff", letterSpacing: "0.1em" }}>TOTAL</span>
-                        <span style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", marginLeft: 8 }}>{campaigns.length} campañas</span>
-                      </td>
-                      <td style={tfS}>{fmtMXN0(tSpend)}</td>
-                      <td style={{ ...tfS, color: "#00c875" }}>{fmtNum(tResults)}</td>
-                      <td style={tfS}>{tCpr > 0 ? fmtMXN(tCpr) : "—"}</td>
-                      <td style={tfS}>{fmtNum(tReach)}</td>
-                      <td style={tfS}>{fmtNum(tImp)}</td>
-                      <td style={tfS}>{tCpm > 0 ? fmtMXN(tCpm) : "—"}</td>
-                      <td style={tfS}>{tFreq > 0 ? tFreq.toFixed(2) : "—"}</td>
-                      <td style={tfS}>{fmtNum(tClicks)}</td>
-                      <td style={tfS}>{tCtr > 0 ? pct(tCtr) : "—"}</td>
-                      <td style={tfS}>{tCpc > 0 ? fmtMXN(tCpc) : "—"}</td>
-                    </tr></tbody>
-                  </table>
-                </div>
-              )}
-            </div>
+          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 200px)", margin: "-24px -28px -40px", padding: 0 }}>
+            {/* Embedded Ads Manager via iframe */}
+            <iframe
+              src={`/dashboard/ads-manager${firstAccount ? `?account=${firstAccount}` : ""}`}
+              style={{
+                width: "100%",
+                flex: 1,
+                border: "none",
+                borderRadius: 0,
+                background: "var(--background)",
+              }}
+              title="Ads Manager"
+            />
           </div>
         );
       })()}
