@@ -303,22 +303,16 @@ export default function ProjectDashboardPage() {
 
   const ch = project.channels.find(c => c.platformId === activePlatform);
   const budgetNum = ch ? parseBudget(ch.budget) : 0;
-  const cprTarget = ch ? parseBudget(ch.cpr) : 0;
-  const goalNum = cprTarget > 0 ? Math.floor(budgetNum / cprTarget) : 0; // meta de resultados = presupuesto / CPR meta
+  const cprTarget = ch ? parseBudget(ch.cpr || "0") : 0;
   const bk = getBudgetBreakdown(budgetNum, ch?.period || "Mensual");
-  // Goal breakdown by period (same logic as budget)
-  const goalBreakdown = (() => {
-    if (goalNum <= 0) return { daily: 0, weekly: 0, monthly: 0 };
-    const period = (ch?.period || "Mensual").toLowerCase();
-    const dim = getDaysInCurrentMonth();
-    switch (period) {
-      case "mensual": case "mes": return { daily: goalNum / dim, weekly: (goalNum / dim) * 7, monthly: goalNum };
-      case "semanal": case "semana": return { daily: goalNum / 7, weekly: goalNum, monthly: goalNum * 4.33 };
-      case "anual": case "año": return { daily: goalNum / 365, weekly: goalNum / 52, monthly: goalNum / 12 };
-      case "diario": case "dia": case "día": return { daily: goalNum, weekly: goalNum * 7, monthly: goalNum * dim };
-      default: return { daily: goalNum / dim, weekly: (goalNum / dim) * 7, monthly: goalNum };
-    }
-  })();
+  // Meta de resultados = presupuesto mensual / CPR meta
+  const goalMonthly = cprTarget > 0 ? Math.floor(bk.monthly / cprTarget) : 0;
+  const goalNum = goalMonthly; // siempre meta mensual para proyecciones
+  const goalBreakdown = {
+    daily: cprTarget > 0 ? bk.daily / cprTarget : 0,
+    weekly: cprTarget > 0 ? bk.weekly / cprTarget : 0,
+    monthly: goalMonthly,
+  };
 
   // Aggregate metrics
   let totalSpend = 0, totalResults = 0, totalImpressions = 0, totalClicks = 0, totalReach = 0, totalActionValue = 0;
@@ -428,14 +422,15 @@ export default function ProjectDashboardPage() {
             {/* Proyeccion al Cierre */}
             <div style={panelStyle}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <div><h3 style={headingStyle}>Proyección al Cierre</h3><p style={subStyle}>Día {daysElapsed} de {daysInMonth} del mes</p></div>
+                <div><h3 style={headingStyle}>Proyección al Cierre</h3><p style={subStyle}>Día {daysElapsed} de {daysInMonth} del mes{goalNum > 0 ? ` · Meta: ${fmtNum(goalNum)} resultados (${fmtMXN0(bk.monthly)} ÷ ${fmtMXN(cprTarget)})` : ""}</p></div>
                 <div style={{ padding: "4px 12px", borderRadius: 4, fontSize: 10, fontWeight: 700, background: trackStatus === "on-track" ? "rgba(0,200,117,0.1)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.1)" : "rgba(226,68,92,0.1)", color: trackStatus === "on-track" ? "#00c875" : trackStatus === "at-risk" ? "#fdab3d" : "#e2445c", border: `1px solid ${trackStatus === "on-track" ? "rgba(0,200,117,0.2)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.2)" : "rgba(226,68,92,0.2)"}` }}>
-                  {trackStatus === "on-track" ? "EN TRACK" : trackStatus === "at-risk" ? "EN RIESGO" : trackStatus === "off-track" ? "FUERA DE TRACK" : "SIN OBJETIVO"}
+                  {trackStatus === "on-track" ? "EN TRACK" : trackStatus === "at-risk" ? "EN RIESGO" : trackStatus === "off-track" ? "FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
                 </div>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
                 <div><p style={labelStyle}>Resultados proyectados</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtNum(projectedResults)}</p>{goalNum > 0 && <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>de {fmtNum(goalNum)} objetivo</p>}</div>
-                <div><p style={labelStyle}>Gasto proyectado</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(projectedSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>de {fmtMXN0(budgetNum)} presupuesto</p></div>
+                <div><p style={labelStyle}>Gasto proyectado</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(projectedSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>de {fmtMXN0(bk.monthly)} mensual</p></div>
+                <div><p style={labelStyle}>Meta diaria ideal</p><p style={{ fontSize: 18, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>resultados/día</p></div>
                 <div><p style={labelStyle}>Ritmo diario necesario</p><p style={{ fontSize: 18, fontWeight: 700, color: dailyNeeded > 0 ? "#fdab3d" : "white", fontFamily: "'Orbitron',sans-serif" }}>{dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>resultados/día restantes</p></div>
                 <div><p style={labelStyle}>Cumplimiento</p><p style={{ fontSize: 18, fontWeight: 700, color: goalCompletion >= 100 ? "#00c875" : "white", fontFamily: "'Orbitron',sans-serif" }}>{goalNum > 0 ? pct(goalCompletion) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{daysRemaining} días restantes</p></div>
               </div>
