@@ -953,27 +953,33 @@ export default function ProjectDashboardPage() {
 
       {/* ═══ TAB: ADS MANAGER ═══ */}
       {activeTab === "ads" && (() => {
-        // Build tree: campaigns -> adsets -> ads
         const campaignsRaw = insights?.campaigns || [];
         const adsetsRaw = insights?.adsets || [];
         const adsRaw = insights?.ads || [];
 
         interface AdsRow {
           id: string; name: string; level: "campaign"|"adset"|"ad"; objective?: string;
-          spend: number; results: number; cpr: number; impressions: number; clicks: number; ctr: number; cpc: number;
+          spend: number; results: number; cpr: number; impressions: number; clicks: number;
+          ctr: number; cpc: number; cpm: number; reach: number;
           children?: AdsRow[]; parentId?: string;
         }
 
         const parseRow = (d: any, level: "campaign"|"adset"|"ad"): AdsRow => {
-          const s = parseFloat(d.spend || "0"); const imp = parseInt(d.impressions || "0", 10);
-          const cl = parseInt(d.clicks || "0", 10); const ra = findResultAction(d.actions);
+          const s = parseFloat(d.spend || "0");
+          const imp = parseInt(d.impressions || "0", 10);
+          const cl = parseInt(d.clicks || "0", 10);
+          const reach = parseInt(d.reach || "0", 10);
+          const ra = findResultAction(d.actions);
           const r = ra ? parseInt(ra.value, 10) : 0;
           return {
             id: d.campaign_id || d.adset_id || d.ad_id || "",
             name: d.campaign_name || d.adset_name || d.ad_name || "—",
             level, objective: d.objective,
             spend: s, results: r, cpr: r > 0 ? s / r : 0,
-            impressions: imp, clicks: cl, ctr: imp > 0 ? (cl / imp) * 100 : 0, cpc: cl > 0 ? s / cl : 0,
+            impressions: imp, clicks: cl, reach,
+            ctr: imp > 0 ? (cl / imp) * 100 : 0,
+            cpc: cl > 0 ? s / cl : 0,
+            cpm: imp > 0 ? (s / imp) * 1000 : 0,
             parentId: level === "adset" ? d.campaign_id : level === "ad" ? d.adset_id : undefined,
           };
         };
@@ -982,7 +988,6 @@ export default function ProjectDashboardPage() {
         const adsets = adsetsRaw.map((a: any) => parseRow(a, "adset"));
         const ads = adsRaw.map((a: any) => parseRow(a, "ad"));
 
-        // Group adsets under campaigns, ads under adsets
         campaigns.forEach((c: AdsRow) => {
           c.children = adsets.filter((a: AdsRow) => a.parentId === c.id);
           c.children?.forEach((as: AdsRow) => {
@@ -990,7 +995,6 @@ export default function ProjectDashboardPage() {
           });
         });
 
-        // toggleRow
         const toggleRow = (id: string) => {
           setExpandedRows(prev => {
             const n = new Set(prev);
@@ -999,95 +1003,159 @@ export default function ProjectDashboardPage() {
           });
         };
 
-        const colHeaderStyle: React.CSSProperties = { fontSize: 9, fontWeight: 600, color: "rgba(148,163,184,0.5)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "8px 10px", textAlign: "right", borderBottom: "1px solid rgba(255,255,255,0.06)", position: "sticky", top: 0, background: "#0d1220", zIndex: 2 };
-        const colCellStyle: React.CSSProperties = { fontSize: 11, padding: "8px 10px", textAlign: "right", borderBottom: "1px solid rgba(255,255,255,0.03)", color: "#e2e8f0" };
+        const levelColors: Record<string,string> = { campaign: "#00d4ff", adset: "#7b61ff", ad: "#fdab3d" };
+        const levelLabels: Record<string,string> = { campaign: "CMP", adset: "ADSET", ad: "AD" };
+
+        // Sticky column shared styles
+        const stickyNameTh: React.CSSProperties = {
+          position: "sticky", left: 0, zIndex: 4, background: "#0c1021",
+          textAlign: "left", padding: "10px 12px", fontSize: 9, fontWeight: 600,
+          color: "rgba(148,163,184,0.5)", textTransform: "uppercase", letterSpacing: "0.08em",
+          borderBottom: "2px solid rgba(0,212,255,0.15)", borderRight: "1px solid rgba(255,255,255,0.06)",
+          minWidth: 320, whiteSpace: "nowrap",
+        };
+        const stickyNameTd = (depth: number): React.CSSProperties => ({
+          position: "sticky", left: 0, zIndex: 3, background: "#0c1021",
+          textAlign: "left", padding: "7px 12px", paddingLeft: 12 + depth * 22,
+          borderBottom: "1px solid rgba(255,255,255,0.03)", borderRight: "1px solid rgba(255,255,255,0.04)",
+          minWidth: 320, whiteSpace: "nowrap",
+        });
+        const metricTh: React.CSSProperties = {
+          fontSize: 9, fontWeight: 600, color: "rgba(148,163,184,0.5)", textTransform: "uppercase",
+          letterSpacing: "0.08em", padding: "10px 14px", textAlign: "right",
+          borderBottom: "2px solid rgba(0,212,255,0.15)", whiteSpace: "nowrap", minWidth: 100,
+        };
+        const metricTd: React.CSSProperties = {
+          fontSize: 11, padding: "7px 14px", textAlign: "right",
+          borderBottom: "1px solid rgba(255,255,255,0.03)", color: "#e2e8f0", whiteSpace: "nowrap",
+        };
 
         const renderRow = (row: AdsRow, depth: number): React.ReactNode => {
           const hasChildren = row.children && row.children.length > 0;
           const isExpanded = expandedRows.has(row.id);
-          const levelColors: any = { campaign: "#00d4ff", adset: "#7b61ff", ad: "#fdab3d" };
-          const levelLabels: any = { campaign: "CMP", adset: "ADSET", ad: "AD" };
-          const indent = depth * 24;
+          const indent = depth;
+          const lc = levelColors[row.level] || "#00d4ff";
 
           return (
-            <> 
-              <tr style={{ cursor: hasChildren ? "pointer" : "default", transition: "background 0.15s" }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            <>
+              <tr key={`${row.level}-${row.id}`}
+                style={{ cursor: hasChildren ? "pointer" : "default", transition: "background 0.12s" }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.015)"; const td = e.currentTarget.querySelector("td") as HTMLElement; if(td) td.style.background = "#0e1225"; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "transparent"; const td = e.currentTarget.querySelector("td") as HTMLElement; if(td) td.style.background = "#0c1021"; }}
                 onClick={() => hasChildren && toggleRow(row.id)}>
-                <td style={{ ...colCellStyle, textAlign: "left", paddingLeft: 10 + indent }}>
+                {/* Sticky Name Column */}
+                <td style={stickyNameTd(indent)}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     {hasChildren ? (
-                      <ChevronDown style={{ width: 12, height: 12, color: "rgba(148,163,184,0.4)", transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 0.2s" }} />
-                    ) : <div style={{ width: 12 }} />}
-                    <span style={{ fontSize: 8, fontWeight: 700, color: levelColors[row.level], background: `${levelColors[row.level]}15`, padding: "1px 5px", borderRadius: 3, letterSpacing: "0.05em" }}>{levelLabels[row.level]}</span>
-                    <span style={{ fontSize: 11, color: "white", fontWeight: row.level === "campaign" ? 600 : 400, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 300 }}>{row.name}</span>
-                    {row.objective && <span style={{ fontSize: 8, color: "rgba(148,163,184,0.35)", marginLeft: 4 }}>{row.objective.replace("OUTCOME_", "")}</span>}
+                      <ChevronDown style={{ width: 11, height: 11, color: "rgba(148,163,184,0.4)", transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)", transition: "transform 0.2s", flexShrink: 0 }} />
+                    ) : <div style={{ width: 11, flexShrink: 0 }} />}
+                    <span style={{ fontSize: 7, fontWeight: 800, color: lc, background: `${lc}12`, padding: "1px 5px", borderRadius: 3, letterSpacing: "0.06em", flexShrink: 0 }}>{levelLabels[row.level]}</span>
+                    <span style={{ fontSize: 11, color: "white", fontWeight: row.level === "campaign" ? 600 : 400, overflow: "hidden", textOverflow: "ellipsis", maxWidth: 220 }}>{row.name}</span>
+                    {row.objective && <span style={{ fontSize: 7, color: "rgba(148,163,184,0.3)", flexShrink: 0, marginLeft: 2 }}>{row.objective.replace("OUTCOME_", "")}</span>}
                   </div>
                 </td>
-                <td style={colCellStyle}><span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 10, fontWeight: 600 }}>{fmtMXN0(row.spend)}</span></td>
-                <td style={colCellStyle}><span style={{ color: "#00c875", fontWeight: 600 }}>{fmtNum(row.results)}</span></td>
-                <td style={colCellStyle}>{row.results > 0 ? fmtMXN(row.cpr) : "—"}</td>
-                <td style={colCellStyle}>{fmtNum(row.impressions)}</td>
-                <td style={colCellStyle}>{fmtNum(row.clicks)}</td>
-                <td style={colCellStyle}>{row.ctr > 0 ? pct(row.ctr) : "—"}</td>
-                <td style={colCellStyle}>{row.cpc > 0 ? fmtMXN(row.cpc) : "—"}</td>
+                {/* Metric Columns */}
+                <td style={metricTd}><span style={{ fontWeight: 600 }}>{fmtMXN0(row.spend)}</span></td>
+                <td style={metricTd}><span style={{ color: "#00c875", fontWeight: 700 }}>{fmtNum(row.results)}</span></td>
+                <td style={metricTd}>{row.results > 0 ? <span style={{ fontWeight: 600 }}>{fmtMXN(row.cpr)}</span> : <span style={{ color: "rgba(148,163,184,0.2)" }}>—</span>}</td>
+                <td style={metricTd}>{fmtNum(row.reach)}</td>
+                <td style={metricTd}>{fmtNum(row.impressions)}</td>
+                <td style={metricTd}>{fmtNum(row.clicks)}</td>
+                <td style={metricTd}>{row.ctr > 0 ? pct(row.ctr) : <span style={{ color: "rgba(148,163,184,0.2)" }}>—</span>}</td>
+                <td style={metricTd}>{row.cpc > 0 ? fmtMXN(row.cpc) : <span style={{ color: "rgba(148,163,184,0.2)" }}>—</span>}</td>
+                <td style={metricTd}>{row.cpm > 0 ? fmtMXN(row.cpm) : <span style={{ color: "rgba(148,163,184,0.2)" }}>—</span>}</td>
               </tr>
               {isExpanded && row.children?.map(child => renderRow(child, depth + 1))}
             </>
           );
         };
 
-        // Summary
         const totalCampaigns = campaigns.length;
         const totalAdsets = adsets.length;
         const totalAds = ads.length;
+        const totalSpendAds = campaigns.reduce((a: number, c: AdsRow) => a + c.spend, 0);
+        const totalResultsAds = campaigns.reduce((a: number, c: AdsRow) => a + c.results, 0);
 
         return (
-          <div className="space-y-4">
-            {/* Summary bar */}
-            <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            {/* Toolbar */}
+            <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap", padding: "4px 0" }}>
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <span style={{ fontSize: 8, fontWeight: 700, color: "#00d4ff", background: "rgba(0,212,255,0.1)", padding: "2px 6px", borderRadius: 3 }}>CMP</span>
-                <span style={{ fontSize: 12, color: "white", fontWeight: 600 }}>{totalCampaigns}</span>
+                <span style={{ fontSize: 7, fontWeight: 800, color: "#00d4ff", background: "rgba(0,212,255,0.1)", padding: "2px 6px", borderRadius: 3 }}>CMP</span>
+                <span style={{ fontSize: 13, color: "white", fontWeight: 700 }}>{totalCampaigns}</span>
               </div>
+              <div style={{ width: 1, height: 14, background: "rgba(255,255,255,0.06)" }} />
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <span style={{ fontSize: 8, fontWeight: 700, color: "#7b61ff", background: "rgba(123,97,255,0.1)", padding: "2px 6px", borderRadius: 3 }}>ADSETS</span>
-                <span style={{ fontSize: 12, color: "white", fontWeight: 600 }}>{totalAdsets}</span>
+                <span style={{ fontSize: 7, fontWeight: 800, color: "#7b61ff", background: "rgba(123,97,255,0.1)", padding: "2px 6px", borderRadius: 3 }}>ADSETS</span>
+                <span style={{ fontSize: 13, color: "white", fontWeight: 700 }}>{totalAdsets}</span>
               </div>
+              <div style={{ width: 1, height: 14, background: "rgba(255,255,255,0.06)" }} />
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-                <span style={{ fontSize: 8, fontWeight: 700, color: "#fdab3d", background: "rgba(253,171,61,0.1)", padding: "2px 6px", borderRadius: 3 }}>ADS</span>
-                <span style={{ fontSize: 12, color: "white", fontWeight: 600 }}>{totalAds}</span>
+                <span style={{ fontSize: 7, fontWeight: 800, color: "#fdab3d", background: "rgba(253,171,61,0.1)", padding: "2px 6px", borderRadius: 3 }}>ADS</span>
+                <span style={{ fontSize: 13, color: "white", fontWeight: 700 }}>{totalAds}</span>
               </div>
-              <button onClick={() => setExpandedRows(new Set(campaigns.map((c: AdsRow) => c.id)))} style={{ fontSize: 10, color: "rgba(148,163,184,0.5)", background: "none", border: "1px solid rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 4, cursor: "pointer" }}>Expandir todo</button>
-              <button onClick={() => setExpandedRows(new Set())} style={{ fontSize: 10, color: "rgba(148,163,184,0.5)", background: "none", border: "1px solid rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 4, cursor: "pointer" }}>Colapsar todo</button>
+              <div style={{ width: 1, height: 14, background: "rgba(255,255,255,0.06)" }} />
+              <span style={{ fontSize: 10, color: "rgba(148,163,184,0.35)" }}>Total: {fmtMXN0(totalSpendAds)} · {fmtNum(totalResultsAds)} resultados</span>
+              <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
+                <button onClick={() => setExpandedRows(new Set(campaigns.map((c: AdsRow) => c.id)))}
+                  style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 4, cursor: "pointer", transition: "all 0.15s" }}>
+                  Expandir todo
+                </button>
+                <button onClick={() => setExpandedRows(new Set())}
+                  style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", padding: "4px 10px", borderRadius: 4, cursor: "pointer", transition: "all 0.15s" }}>
+                  Colapsar
+                </button>
+              </div>
             </div>
 
-            {/* Table */}
-            <div style={{ ...panelStyle, padding: 0, overflow: "auto", maxHeight: 600 }}>
+            {/* Table Container - like Ads Manager */}
+            <div style={{
+              background: "#0c1021", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8,
+              position: "relative", overflow: "hidden",
+            }}>
               {isLoading && <LoadingOverlay />}
-              <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 800, position: "relative" }}>
-                <thead>
-                  <tr>
-                    <th style={{ ...colHeaderStyle, textAlign: "left", paddingLeft: 10, minWidth: 300 }}>Nombre</th>
-                    <th style={{ ...colHeaderStyle, minWidth: 90 }}>Inversión</th>
-                    <th style={{ ...colHeaderStyle, minWidth: 80 }}>Resultados</th>
-                    <th style={{ ...colHeaderStyle, minWidth: 80 }}>CPR</th>
-                    <th style={{ ...colHeaderStyle, minWidth: 90 }}>Impresiones</th>
-                    <th style={{ ...colHeaderStyle, minWidth: 70 }}>Clicks</th>
-                    <th style={{ ...colHeaderStyle, minWidth: 60 }}>CTR</th>
-                    <th style={{ ...colHeaderStyle, minWidth: 70 }}>CPC</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {campaigns.length > 0 ? campaigns.sort((a: AdsRow, b: AdsRow) => b.spend - a.spend).map((c: AdsRow) => renderRow(c, 0))
-                    : <tr><td colSpan={8} style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.3)", fontSize: 12 }}>Sin datos de campañas</td></tr>}
-                </tbody>
-              </table>
+              <div style={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}>
+                <table style={{ width: "100%", borderCollapse: "collapse", tableLayout: "fixed", minWidth: 1100 }}>
+                  <colgroup>
+                    <col style={{ width: 320, minWidth: 320 }} />
+                    <col style={{ width: 100 }} />
+                    <col style={{ width: 90 }} />
+                    <col style={{ width: 100 }} />
+                    <col style={{ width: 100 }} />
+                    <col style={{ width: 100 }} />
+                    <col style={{ width: 80 }} />
+                    <col style={{ width: 70 }} />
+                    <col style={{ width: 80 }} />
+                    <col style={{ width: 80 }} />
+                  </colgroup>
+                  <thead style={{ position: "sticky", top: 0, zIndex: 5 }}>
+                    <tr style={{ background: "#0c1021" }}>
+                      <th style={stickyNameTh}>Nombre</th>
+                      <th style={metricTh}>Inversión</th>
+                      <th style={metricTh}>Resultados</th>
+                      <th style={metricTh}>CPR</th>
+                      <th style={metricTh}>Alcance</th>
+                      <th style={metricTh}>Impresiones</th>
+                      <th style={metricTh}>Clicks</th>
+                      <th style={metricTh}>CTR</th>
+                      <th style={metricTh}>CPC</th>
+                      <th style={metricTh}>CPM</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {campaigns.length > 0 ? (
+                      campaigns.sort((a: AdsRow, b: AdsRow) => b.spend - a.spend).map((c: AdsRow) => renderRow(c, 0))
+                    ) : (
+                      <tr><td colSpan={10} style={{ padding: 50, textAlign: "center", color: "rgba(148,163,184,0.25)", fontSize: 12 }}>Sin datos de campañas para el periodo seleccionado</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         );
       })()}
+
 
       {/* ═══ TAB: CONFIGURACIÓN ═══ */}
       {activeTab === "config" && (

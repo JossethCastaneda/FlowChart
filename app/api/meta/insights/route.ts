@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
     timeRange = `&date_preset=${preset}`;
   }
 
-  const baseFields = "spend,impressions,clicks,actions,action_values,cpc,cpm,ctr";
+  const baseFields = "spend,impressions,reach,clicks,actions,action_values,cpc,cpm,ctr";
   
   const fetchInsights = async (level: string, params: string = "") => {
     let fields = baseFields;
