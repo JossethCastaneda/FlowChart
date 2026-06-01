@@ -196,8 +196,10 @@ model Task {
   dueDate     DateTime?
   tags        String[]
   order       Int      @default(0)
+  attachments Json     @default("[]") // [{name, url, type, size, uploadedAt}]
   projectId   String?
   parentId    String?
+  createdBy   String?  // userId who created the task
   workspaceId String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -205,9 +207,41 @@ model Task {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   parent      Task?     @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
   children    Task[]    @relation("SubTasks")
+  comments    TaskComment[]
+  activities  TaskActivity[]
 
   @@index([workspaceId])
   @@index([parentId])
+}
+
+model TaskComment {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  userName  String   // denormalized for display
+  userImage String?  // denormalized avatar
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+}
+
+model TaskActivity {
+  id        String   @id @default(cuid())
+  taskId    String
+  userId    String
+  userName  String
+  action    String   // "created", "status_changed", "assigned", "priority_changed", "commented", "attachment_added"
+  field     String?  // which field changed
+  oldValue  String?
+  newValue  String?
+  createdAt DateTime @default(now())
+
+  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
 }
 // ------------------------------------------------------
 

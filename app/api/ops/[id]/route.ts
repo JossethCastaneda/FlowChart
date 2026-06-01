@@ -28,7 +28,7 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { title, description, assignee, priority, status, dueDate, tags, order, parentId } = body;
+    const { title, description, assignee, priority, status, dueDate, tags, order, parentId, attachments } = body;
 
     const updated = await prisma.task.update({
       where: { id },
@@ -42,9 +42,23 @@ export async function PATCH(
         ...(tags !== undefined && { tags }),
         ...(order !== undefined && { order }),
         ...(parentId !== undefined && { parentId }),
+        ...(attachments !== undefined && { attachments }),
       },
       include: { children: true },
     });
+
+    // Log activity for meaningful field changes
+    const userName = session.user?.name || session.user?.email?.split("@")[0] || "Usuario";
+    const activities: { action: string; field: string; oldValue: string | null; newValue: string | null }[] = [];
+    if (status !== undefined && status !== task.status) activities.push({ action: "status_changed", field: "status", oldValue: task.status, newValue: status });
+    if (assignee !== undefined && assignee !== task.assignee) activities.push({ action: "assigned", field: "assignee", oldValue: task.assignee, newValue: assignee || null });
+    if (priority !== undefined && priority !== task.priority) activities.push({ action: "priority_changed", field: "priority", oldValue: task.priority, newValue: priority });
+
+    if (activities.length > 0) {
+      await prisma.taskActivity.createMany({
+        data: activities.map(a => ({ taskId: id, userId: session.user.id, userName, ...a })),
+      });
+    }
 
     // Send notification if assignee changed
     if (assignee !== undefined && assignee !== task.assignee && assignee) {
