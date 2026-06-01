@@ -29,9 +29,9 @@ interface Project {
   alias: string;
   client: string;
   vertical: string;
-  fanpage: string;
-  instagram: string;
-  whatsapp: string;
+  fanpage: string[];
+  instagram: string[];
+  whatsapp: string[];
   website: string;
   channels: ChannelConfig[];
   dateStart: string;
@@ -57,8 +57,8 @@ interface MetaPage {
 }
 
 const EMPTY_PROJECT: Omit<Project, "id" | "createdAt"> = {
-  alias: "", client: "", vertical: "", fanpage: "", instagram: "",
-  whatsapp: "", website: "", channels: [],
+  alias: "", client: "", vertical: "", fanpage: [], instagram: [],
+  whatsapp: [], website: "", channels: [],
   dateStart: "", dateEnd: "", persona: "", geo: "",
   status: "Draft",
 };
@@ -199,6 +199,138 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
           ))}
           {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Sin opciones disponibles</div>}
         </div>
+      )}
+    </div>
+  );
+}
+
+function CustomMultiSelectPictures({ values, options, onChange, placeholder, disabled, ro }: any) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setOpen(false);
+        setSearch("");
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const filtered = options.filter((o: any) => o.label.toLowerCase().includes(search.toLowerCase()));
+  const grouped: Record<string, any[]> = {};
+  filtered.forEach((o: any) => {
+    const p = o.portfolio || "Páginas";
+    if (!grouped[p]) grouped[p] = [];
+    grouped[p].push(o);
+  });
+
+  return (
+    <div ref={ref} style={{ position: "relative", width: "100%" }}>
+      <div
+        onClick={() => !ro && !disabled && setOpen(!open)}
+        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "34px", height: "auto" }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap" }}>
+          {values.length === 0 ? <span style={{ color: "rgba(148,163,184,0.5)" }}>{placeholder}</span> :
+            values.map((v: string) => {
+              const opt = options.find((o: any) => o.value === v);
+              return (
+                <span key={v} style={{ fontSize: "9px", padding: "2px 6px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "#00d4ff", borderRadius: "2px", display: "flex", alignItems: "center", gap: "4px" }}>
+                  {opt?.picture && <img src={opt.picture} alt="" style={{ width: 12, height: 12, borderRadius: "50%", objectFit: "cover" }} />}
+                  {opt ? opt.label : v}
+                  {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
+                </span>
+              );
+            })
+          }
+        </div>
+        {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
+      </div>
+      {open && !ro && !disabled && (
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+          <div style={{ padding: "8px", position: "sticky", top: 0, background: "rgba(10,15,30,0.95)", zIndex: 10 }}>
+            <input
+              type="text"
+              placeholder="Buscar..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              onClick={e => e.stopPropagation()}
+              style={{ ...inp, padding: "6px 8px", fontSize: "11px", background: "rgba(0,0,0,0.3)" }}
+            />
+          </div>
+          {Object.entries(grouped).map(([portfolio, items]) => (
+            <div key={portfolio}>
+              <div style={{ padding: "4px 10px", fontSize: "8px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+                {portfolio}
+              </div>
+              {items.map((o: any) => {
+                const selected = values.includes(o.value);
+                return (
+                  <div key={o.value} onClick={() => {
+                    if (selected) onChange(values.filter((v: string) => v !== o.value));
+                    else onChange([...values, o.value]);
+                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "#00d4ff" : "#e2e8f0", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
+                    <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "#00d4ff" : "rgba(255,255,255,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "#00d4ff" : "transparent" }}>
+                      {selected && <Check className="w-2 h-2 text-black" />}
+                    </div>
+                    {o.picture && <img src={o.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
+                    {o.label}
+                  </div>
+                );
+              })}
+            </div>
+          ))}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Sin opciones disponibles</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TagsInput({ values, onChange, placeholder, ro }: { values: string[]; onChange: (v: string[]) => void; placeholder: string; ro?: boolean }) {
+  const [input, setInput] = useState("");
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Enter" || e.key === "," || e.key === "Tab") {
+      e.preventDefault();
+      const val = input.trim();
+      if (val && !values.includes(val)) {
+        onChange([...values, val]);
+      }
+      setInput("");
+    } else if (e.key === "Backspace" && !input && values.length > 0) {
+      onChange(values.slice(0, -1));
+    }
+  }
+
+  return (
+    <div style={{ ...inp, display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", minHeight: "34px", height: "auto", cursor: ro ? "not-allowed" : "text" }}>
+      {values.map((v, i) => (
+        <span key={i} style={{ fontSize: "9px", padding: "2px 6px", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", borderRadius: "2px", display: "flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
+          {v}
+          {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={() => onChange(values.filter((_, j) => j !== i))} />}
+        </span>
+      ))}
+      {!ro && (
+        <input
+          type="tel"
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={handleKeyDown}
+          onBlur={() => {
+            const val = input.trim();
+            if (val && !values.includes(val)) {
+              onChange([...values, val]);
+            }
+            setInput("");
+          }}
+          placeholder={values.length === 0 ? placeholder : "Agregar..."}
+          style={{ flex: 1, minWidth: "80px", background: "transparent", border: "none", outline: "none", color: "#e2e8f0", fontSize: "12px", padding: "0" }}
+        />
       )}
     </div>
   );
@@ -705,27 +837,34 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
           {/* ── Redes ── */}
           <Sec icon={<Globe className="w-3 h-3" />} text="Redes Sociales" />
           <Row>
-            <Field l="Fanpage" el={
-              <CustomSelect 
-                value={form.fanpage} 
+            <Field l="Fanpages" el={
+              <CustomMultiSelectPictures 
+                values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []} 
                 options={fanpageOptions} 
-                onChange={(val: string) => set("fanpage", val)} 
-                placeholder="Seleccionar Fanpage..." 
+                onChange={(vals: string[]) => setForm(prev => ({ ...prev, fanpage: vals }))} 
+                placeholder="Seleccionar Fanpages..." 
                 ro={ro} 
               />
             } />
             <Field l="Instagram" el={
-              <CustomSelect 
-                value={form.instagram} 
+              <CustomMultiSelectPictures 
+                values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []} 
                 options={instagramOptions} 
-                onChange={(val: string) => set("instagram", val)} 
+                onChange={(vals: string[]) => setForm(prev => ({ ...prev, instagram: vals }))} 
                 placeholder="Seleccionar Instagram..." 
                 ro={ro} 
               />
             } />
           </Row>
           <Row>
-            <Field l="WhatsApp" el={<input type="tel" value={form.whatsapp} readOnly={ro} placeholder="+52 55 1234 5678" style={inp} onChange={e => set("whatsapp", e.target.value)} />} />
+            <Field l="WhatsApp" el={
+              <TagsInput
+                values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
+                onChange={(vals) => setForm(prev => ({ ...prev, whatsapp: vals }))}
+                placeholder="+52 55 1234 5678 (Enter para agregar)"
+                ro={ro}
+              />
+            } />
             <Field l="Página Web" el={<input type="url" value={form.website} readOnly={ro} placeholder="https://sitio.com" style={inp} onChange={e => set("website", e.target.value)} />} />
           </Row>
 

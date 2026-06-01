@@ -124,9 +124,9 @@ model Project {
   alias       String?
   client      String?
   vertical    String?
-  fanpage     String?
-  instagram   String?
-  whatsapp    String?
+  fanpage     String[]
+  instagram   String[]
+  whatsapp    String[]
   website     String?
   persona     String?  @db.Text
   geo         String?
