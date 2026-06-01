@@ -18,7 +18,7 @@ import DateRangePicker from "@/components/DateRangePicker";
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; }
 interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"; createdAt: string; }
 
-const STORAGE_KEY = "sodare_projects_v2";
+
 const PLATFORMS = [
   { id: "meta", name: "Meta Ads", color: "#0081FB" },
   { id: "google", name: "Google Ads", color: "#4285F4" },
@@ -109,6 +109,23 @@ function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
+/* ═══ DB → Frontend Channel Mapper ═══ */
+function mapDbChannelsToConfig(dbChannels: any[]): ChannelConfig[] {
+  if (!dbChannels?.length) return [];
+  return dbChannels.map((ch: any) => {
+    const cfg = ch.config || {};
+    return {
+      platformId: cfg.platformId || ch.type?.toLowerCase() || ch.name?.toLowerCase() || "",
+      platformName: cfg.platformName || ch.name || "",
+      adAccounts: cfg.adAccounts || [],
+      budget: cfg.budget || "",
+      period: cfg.period || "Mensual",
+      goal: cfg.goal || "",
+      cpr: cfg.cpr || "",
+    };
+  });
+}
+
 /* ═══ MAIN PAGE ═══ */
 export default function ProjectDashboardPage() {
   const params = useParams();
@@ -130,15 +147,42 @@ export default function ProjectDashboardPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Project>>({});
 
-  // Load project
+  // Load project from API
   useEffect(() => {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      const projects: Project[] = JSON.parse(raw);
-      const found = projects.find(p => p.id === params.id);
-      if (found) { setProject(found); setEditForm(found); if (found.channels.length > 0) setActivePlatform(found.channels[0].platformId); }
-      else router.push("/dashboard/proyectos");
+    async function loadProject() {
+      try {
+        const res = await fetch(`/api/projects/${params.id}`);
+        const json = await res.json();
+        if (json.success && json.data) {
+          const raw = json.data;
+          const mapped: Project = {
+            id: raw.id,
+            alias: raw.alias || raw.name || "",
+            client: raw.client || "",
+            vertical: raw.vertical || "",
+            fanpage: raw.fanpage || [],
+            instagram: raw.instagram || [],
+            whatsapp: raw.whatsapp || [],
+            website: raw.website || "",
+            channels: mapDbChannelsToConfig(raw.channels || []),
+            dateStart: raw.dateStart || "",
+            dateEnd: raw.dateEnd || "",
+            persona: raw.persona || "",
+            geo: raw.geo || "",
+            status: raw.status || "Draft",
+            createdAt: raw.createdAt || "",
+          };
+          setProject(mapped);
+          setEditForm(mapped);
+          if (mapped.channels.length > 0) setActivePlatform(mapped.channels[0].platformId);
+        } else {
+          router.push("/dashboard/proyectos");
+        }
+      } catch {
+        router.push("/dashboard/proyectos");
+      }
     }
+    loadProject();
   }, [params.id, router]);
 
   // Load account names + pages
@@ -190,15 +234,22 @@ export default function ProjectDashboardPage() {
     if (activeTab === "creativos") { loadBreakdown("dynamic_headline"); loadBreakdown("dynamic_text"); loadBreakdown("dynamic_description"); loadBreakdown("dynamic_cta"); }
   }, [activeTab, loadBreakdown]);
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     if (!project) return;
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      let projects: Project[] = JSON.parse(raw);
-      const updated = { ...project, ...editForm } as Project;
-      projects = projects.map(p => p.id === updated.id ? updated : p);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
-      setProject(updated); setIsEditing(false);
+    try {
+      const res = await fetch(`/api/projects/${project.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...editForm, name: editForm.alias }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        const updated = { ...project, ...editForm } as Project;
+        setProject(updated);
+        setIsEditing(false);
+      }
+    } catch (err) {
+      console.error("Failed to save project", err);
     }
   };
 
