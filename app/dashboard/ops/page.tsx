@@ -318,7 +318,7 @@ export default function OpsPage() {
   };
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <PageHeader
         title="Marketing Ops"
         description="Gestión de tareas, workflows y operaciones del equipo de marketing."
@@ -421,7 +421,7 @@ export default function OpsPage() {
               <div style={{ borderLeft: `4px solid ${group.color}` }}>
                 {/* Column headers */}
                 {groupTasks.length > 0 && (
-                  <div style={{
+                  <div className="ops-table-header" style={{
                     display: "grid",
                     gridTemplateColumns: "1fr 140px 110px 90px 85px 40px",
                     gap: "0",
@@ -440,6 +440,7 @@ export default function OpsPage() {
                 {groupTasks.map((task, i) => (
                   <div
                     key={task.id}
+                    className="ops-table-row"
                     style={{
                       display: "grid",
                       gridTemplateColumns: "1fr 140px 110px 90px 85px 40px",

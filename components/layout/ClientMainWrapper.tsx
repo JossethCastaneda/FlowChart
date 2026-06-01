@@ -184,7 +184,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto">
-          <div className={`page-enter ${mounted ? "" : ""}`} key={pathname} style={{ padding: "0" }}>
+          <div className="page-content page-enter" key={pathname}>
             {children}
           </div>
         </div>

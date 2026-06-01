@@ -363,6 +363,35 @@
   background: rgba(0,212,255,0.25);
 }
 
+/* ─── Page Content Container ─── */
+.page-content {
+  padding: 24px 28px 40px;
+}
+@media (max-width: 768px) {
+  .page-content {
+    padding: 16px 16px 32px;
+  }
+}
+@media (min-width: 1440px) {
+  .page-content {
+    padding: 28px 36px 48px;
+  }
+}
+
+/* ─── Responsive Table (OPS etc.) ─── */
+@media (max-width: 768px) {
+  .ops-table-row {
+    grid-template-columns: 1fr !important;
+    gap: 8px !important;
+  }
+  .ops-table-header {
+    display: none !important;
+  }
+  .ops-cell-label {
+    display: inline-block !important;
+  }
+}
+
 /* ─── Page Transition ─── */
 .page-enter {
   animation: page-fade-in 0.4s ease-out forwards;
