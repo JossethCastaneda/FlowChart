@@ -106,7 +106,23 @@ async function fetchProjectsFromAPI(): Promise<Project[]> {
     const res = await fetch("/api/projects");
     if (!res.ok) return [];
     const json = await res.json();
-    return json.success ? json.data : [];
+    if (!json.success) return [];
+    return (json.data || []).map((p: any) => ({
+      ...p,
+      alias: p.alias || p.name || "",
+      channels: (p.channels || []).map((ch: any) => {
+        const cfg = ch.config || {};
+        return {
+          platformId: cfg.platformId || ch.type?.toLowerCase() || ch.name?.toLowerCase() || "",
+          platformName: cfg.platformName || ch.name || "",
+          adAccounts: cfg.adAccounts || [],
+          budget: cfg.budget || "",
+          period: cfg.period || "Mensual",
+          goal: cfg.goal || "",
+          cpr: cfg.cpr || "",
+        };
+      }),
+    }));
   } catch { return []; }
 }
 
@@ -542,16 +558,33 @@ export default function ProyectosPage() {
     return () => clearInterval(interval);
   }, [loadProjects, fetchMetaAccounts, fetchMetaPages]);
 
+  // Transform ChannelConfig[] to DB Channel format for API
+  function channelsToApi(channels: ChannelConfig[]) {
+    return channels.map(c => ({
+      name: c.platformName,
+      type: c.platformId.toUpperCase(),
+      config: {
+        platformId: c.platformId,
+        platformName: c.platformName,
+        adAccounts: c.adAccounts,
+        budget: c.budget,
+        period: c.period,
+        goal: c.goal,
+        cpr: c.cpr,
+      },
+    }));
+  }
+
   async function handleCreate(data: Omit<Project, "id" | "createdAt">) {
     try {
       const res = await fetch("/api/projects", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, name: data.alias }),
+        body: JSON.stringify({ ...data, name: data.alias, channels: channelsToApi(data.channels) }),
       });
       const json = await res.json();
       if (json.success) {
-        setProjects(prev => [json.data, ...prev]);
+        await loadProjects();
       }
     } catch (err) { console.error("Failed to create project", err); }
     setModalMode("closed");
@@ -565,10 +598,11 @@ export default function ProyectosPage() {
       const res = await fetch(`/api/projects/${editingId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...data, name: data.alias }),
+        body: JSON.stringify({ ...data, name: data.alias, channels: channelsToApi(data.channels) }),
       });
       const json = await res.json();
       if (!json.success) setProjects(prev);
+      else await loadProjects();
     } catch { setProjects(prev); }
     setModalMode("closed"); setEditingId(null);
   }
