@@ -204,7 +204,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         </header>
 
         {/* Desktop top bar */}
-        <div className="hidden lg:flex items-center justify-end px-6 py-3" style={{
+        <div className="hidden lg:flex items-center justify-end px-4 py-2" style={{
           borderBottom: "1px solid var(--border)",
           background: "rgba(5,8,18,0.6)",
           backdropFilter: "blur(20px)",

@@ -963,7 +963,7 @@ export default function ProjectDashboardPage() {
         const firstAccount = projectAccounts[0] || "";
 
         return (
-          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 200px)", margin: "-24px -28px -40px", padding: 0 }}>
+          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 160px)", margin: "-14px -18px -14px", padding: 0 }}>
             {/* Embedded Ads Manager via iframe */}
             <iframe
               src={`/dashboard/ads-manager?embedded=1${firstAccount ? `&account=${firstAccount}` : ""}`}
