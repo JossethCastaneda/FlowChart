@@ -761,56 +761,9 @@ export default function AdsManagerPage() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      {/* ── HEADER SECTION ── */}
-      <div 
-        style={{
-          flexShrink: 0,
-          background: "var(--background)",
-          paddingTop: "20px",
-          paddingBottom: "16px",
-          paddingLeft: "24px",
-          paddingRight: "24px",
-          display: "flex",
-          flexDirection: "column",
-          gap: "16px",
-          borderBottom: "1px solid var(--border)",
-        }}
-      >
-        {/* ── HEADER ── */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <PageHeader
-            title="Meta Ads Manager"
-            description="Entorno unificado de administración y edición en tiempo real de tus campañas publicitarias."
-            icon={<Megaphone className="w-6 h-6" style={{ color: "var(--cyan)" }} />}
-          />
-          {/* Mock Profile Info */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '4px' }}>
-            <div style={{ 
-              width: '40px', height: '40px', borderRadius: '50%', background: 'linear-gradient(45deg, var(--cyan), var(--purple))',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '14px',
-              border: '2px solid rgba(255,255,255,0.1)'
-            }}>
-              <img src="https://ui-avatars.com/api/?name=Meta+Page&background=random" alt="Profile" style={{ width: '100%', height: '100%', borderRadius: '50%' }} />
-            </div>
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ color: 'white', fontSize: '14px', fontWeight: 600 }}>Mi Página de Negocio</span>
-                <span style={{ fontSize: '10px', background: 'rgba(0,129,251,0.2)', color: 'var(--cyan)', padding: '2px 6px', borderRadius: '4px' }}>✓ Verificada</span>
-              </div>
-              <div style={{ color: 'rgba(148,163,184,0.7)', fontSize: '11px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>124.5K Seguidores</span>
-                <span>•</span>
-                <a href="https://example.com" target="_blank" rel="noreferrer" style={{ color: 'var(--cyan)', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                  Visitar sitio web
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Date Selector */}
+      {/* ── COMPACT CONTROLS (no header) ── */}
+      {/* Date Range Picker - compact, top-right */}
+      <div style={{ flexShrink: 0, display: "flex", justifyContent: "flex-end", padding: "6px 16px 0 16px" }}>
         <DateRangePicker
           datePreset={datePreset}
           dateStart={dateStart}
@@ -829,16 +782,15 @@ export default function AdsManagerPage() {
           }}
         />
       </div>
-      </div>
 
       {/* ── MAIN CONTENT ── */}
-      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", padding: "12px 24px 0 24px", gap: "8px" }}>
+      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", padding: "8px 16px 0 16px", gap: "6px" }}>
       
       {/* ── TOP CONTROLS ── */}
       <div
         className="glass-panel"
         style={{
-          padding: "16px",
+          padding: "8px 12px",
           display: "flex",
           alignItems: "center",
           gap: "12px",
@@ -957,25 +909,7 @@ export default function AdsManagerPage() {
       {/* ── ALERTS CENTER ── */}
       <AlertsCenterConnected data={filteredData} level={activeLevel} />
 
-      {/* ── INFO ADVISORY ── */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
-          padding: "7px 12px",
-          background: "rgba(0,212,255,0.03)",
-          border: "1px solid rgba(0,212,255,0.08)",
-          borderRadius: "8px",
-          color: "rgba(148,163,184,0.7)",
-          fontSize: "11px",
-        }}
-      >
-        <Info className="w-4 h-4 text-sky-400 flex-shrink-0" />
-        <span>
-          Las modificaciones realizadas en esta pestaña se sincronizan instantáneamente con el Administrador de Anuncios oficial de Meta.
-        </span>
-      </div>
+      {/* Info advisory removed for compactness */}
 
       {/* ── LEVEL TABS & VIEW CUSTOMIZATIONS ── */}
       <div
@@ -1075,7 +1009,7 @@ export default function AdsManagerPage() {
       </div>
 
       {/* ── TABLE CONTAINER ── */}
-      <div style={{ position: "relative", flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "8px 24px 16px 24px" }}>
+      <div style={{ position: "relative", flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "4px 16px 0 16px", minHeight: 0 }}>
         {loadingData && (
           <div
             style={{
