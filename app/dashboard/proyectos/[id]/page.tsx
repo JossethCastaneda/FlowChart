@@ -303,8 +303,22 @@ export default function ProjectDashboardPage() {
 
   const ch = project.channels.find(c => c.platformId === activePlatform);
   const budgetNum = ch ? parseBudget(ch.budget) : 0;
-  const goalNum = ch ? parseGoal(ch.goal) : 0;
+  const cprTarget = ch ? parseBudget(ch.cpr) : 0;
+  const goalNum = cprTarget > 0 ? Math.floor(budgetNum / cprTarget) : 0; // meta de resultados = presupuesto / CPR meta
   const bk = getBudgetBreakdown(budgetNum, ch?.period || "Mensual");
+  // Goal breakdown by period (same logic as budget)
+  const goalBreakdown = (() => {
+    if (goalNum <= 0) return { daily: 0, weekly: 0, monthly: 0 };
+    const period = (ch?.period || "Mensual").toLowerCase();
+    const dim = getDaysInCurrentMonth();
+    switch (period) {
+      case "mensual": case "mes": return { daily: goalNum / dim, weekly: (goalNum / dim) * 7, monthly: goalNum };
+      case "semanal": case "semana": return { daily: goalNum / 7, weekly: goalNum, monthly: goalNum * 4.33 };
+      case "anual": case "año": return { daily: goalNum / 365, weekly: goalNum / 52, monthly: goalNum / 12 };
+      case "diario": case "dia": case "día": return { daily: goalNum, weekly: goalNum * 7, monthly: goalNum * dim };
+      default: return { daily: goalNum / dim, weekly: (goalNum / dim) * 7, monthly: goalNum };
+    }
+  })();
 
   // Aggregate metrics
   let totalSpend = 0, totalResults = 0, totalImpressions = 0, totalClicks = 0, totalReach = 0, totalActionValue = 0;
@@ -354,7 +368,6 @@ export default function ProjectDashboardPage() {
     return Object.values(grouped).map((g: any) => ({ ...g, spend: +g.spend.toFixed(2), cpr: g.results > 0 ? +(g.spend / g.results).toFixed(2) : 0, ctr: g.impressions > 0 ? +((g.clicks / g.impressions) * 100).toFixed(2) : 0 }));
   };
 
-  const cprTarget = ch ? parseBudget(ch.cpr) : 0;
 
   return (
     <div className="space-y-6 page-enter">
