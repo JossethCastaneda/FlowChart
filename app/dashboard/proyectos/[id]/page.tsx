@@ -148,7 +148,7 @@ export default function ProjectDashboardPage() {
   const [activePlatform, setActivePlatform] = useState("");
   const [insights, setInsights] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [datePreset, setDatePreset] = useState("maximum");
+  const [datePreset, setDatePreset] = useState("this_month");
   const [dateStart, setDateStart] = useState("");
   const [dateEnd, setDateEnd] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -206,12 +206,13 @@ export default function ProjectDashboardPage() {
     fetch("/api/meta/pages").then(r => r.json()).then(d => { if (d.data) setMetaPages(d.data); }).catch(() => {});
   }, []);
 
-  // Load insights
+  // Load insights — only core data, lazy-load tab-specific data
   useEffect(() => {
     if (!project || !activePlatform) return;
     const ch = project.channels.find(c => c.platformId === activePlatform);
     if (activePlatform !== "meta" || !ch?.adAccounts?.length) { setInsights(null); return; }
     setIsLoading(true);
+    setBreakdownData({}); // Clear breakdown cache on any filter change
     const accs = selectedAccountId === "all" ? ch.adAccounts : [selectedAccountId];
     let dp = ""; if (dateStart && dateEnd) dp = `&dateStart=${dateStart}&dateEnd=${dateEnd}`; else if (datePreset && datePreset !== "custom") dp = `&preset=${datePreset}`;
     Promise.all(accs.map(a => fetch(`/api/meta/insights?adAccountId=${a}${dp}`).then(r => r.json()).catch(() => null)))
@@ -228,19 +229,29 @@ export default function ProjectDashboardPage() {
       });
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
 
-  // Load breakdowns for audience/creative tabs
+  // Load breakdowns for audience/creative tabs — uses same date range
   const loadBreakdown = useCallback(async (key: string) => {
     if (breakdownData[key] || !project) return;
     const ch = project.channels.find(c => c.platformId === activePlatform);
     if (!ch?.adAccounts?.length) return;
     const accId = selectedAccountId === "all" ? ch.adAccounts[0] : selectedAccountId;
     const id = accId.startsWith("act_") ? accId : `act_${accId}`;
+    // Build date params matching the insights query
+    let dp = datePreset || "this_month";
+    let extraParams = `&preset=${dp}`;
+    if (dateStart && dateEnd) {
+      extraParams = `&dateStart=${dateStart}&dateEnd=${dateEnd}`;
+      dp = "custom";
+    }
     try {
-      const r = await fetch(`/api/meta/breakdowns?id=${id}&breakdown=${key}&preset=${datePreset}`);
+      const url = dateStart && dateEnd
+        ? `/api/meta/breakdowns?id=${id}&breakdown=${key}&dateStart=${dateStart}&dateEnd=${dateEnd}`
+        : `/api/meta/breakdowns?id=${id}&breakdown=${key}&preset=${dp}`;
+      const r = await fetch(url);
       const d = await r.json();
       if (d.data) setBreakdownData(prev => ({ ...prev, [key]: d.data }));
     } catch {}
-  }, [project, activePlatform, selectedAccountId, datePreset, breakdownData]);
+  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, breakdownData]);
 
   useEffect(() => {
     if (activeTab === "audiencia") { loadBreakdown("age_gender"); loadBreakdown("region"); loadBreakdown("platform"); loadBreakdown("device"); }

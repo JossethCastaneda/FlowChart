@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
   const version = process.env.META_API_VERSION || "v22.0";
   const baseUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights`;
 
-  let timeRange = "&date_preset=maximum";
+  let timeRange = "&date_preset=this_month";
   if (dateStart && dateEnd) {
     try {
       const tr = JSON.stringify({ since: dateStart, until: dateEnd });

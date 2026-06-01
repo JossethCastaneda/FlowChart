@@ -36,7 +36,9 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   const breakdownKey = searchParams.get("breakdown") || "age_gender";
-  const preset = searchParams.get("preset") || "last_30d";
+  const preset = searchParams.get("preset") || "this_month";
+  const dateStart = searchParams.get("dateStart");
+  const dateEnd = searchParams.get("dateEnd");
   const level = searchParams.get("level");
 
   if (!id) {
@@ -60,8 +62,17 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: `Breakdown key '${breakdownKey}' not supported` }, { status: 400 });
   }
 
+  // Build time range
+  let timeParam: string;
+  if (dateStart && dateEnd) {
+    const tr = JSON.stringify({ since: dateStart, until: dateEnd });
+    timeParam = `time_range=${encodeURIComponent(tr)}`;
+  } else {
+    timeParam = `date_preset=${preset}`;
+  }
+
   try {
-    let url = `https://graph.facebook.com/${version}/${id}/insights?fields=${insightsFields}&date_preset=${preset}&limit=200`;
+    let url = `https://graph.facebook.com/${version}/${id}/insights?fields=${insightsFields}&${timeParam}&limit=200`;
 
     if (mapping.breakdowns) {
       url += `&breakdowns=${mapping.breakdowns}`;
