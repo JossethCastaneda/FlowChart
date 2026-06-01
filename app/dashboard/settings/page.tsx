@@ -17,6 +17,7 @@ export default function SettingsPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [lastInviteUrl, setLastInviteUrl] = useState("");
+  const [emailSent, setEmailSent] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
   const [workspaceName, setWorkspaceName] = useState("");
@@ -90,7 +91,8 @@ export default function SettingsPage() {
       setSending(false);
       return;
     }
-    setLastInviteUrl(data.data.inviteUrl);
+    setLastInviteUrl(data.data.inviteUrl || "");
+    setEmailSent(data.data.emailSent || false);
     setInviteEmail("");
     setSending(false);
     fetchData(workspaceId);
@@ -247,8 +249,19 @@ export default function SettingsPage() {
             marginTop: "8px" }}>{error}</p>
         )}
 
-        {/* URL de invitación generada */}
-        {lastInviteUrl && (
+        {/* Resultado de invitación */}
+        {emailSent && (
+          <div style={{ marginTop: "16px", padding: "12px",
+            background: "rgba(6,214,160,0.05)",
+            border: "1px solid rgba(6,214,160,0.2)" }}>
+            <p style={{ fontSize: "13px", color: "#06d6a0",
+              display: "flex", alignItems: "center", gap: "8px" }}>
+              <CheckCircle style={{ width: 16, height: 16 }} />
+              Invitación enviada por email. Expira en 7 días.
+            </p>
+          </div>
+        )}
+        {!emailSent && lastInviteUrl && (
           <div style={{ marginTop: "16px", padding: "12px",
             background: "rgba(6,214,160,0.05)",
             border: "1px solid rgba(6,214,160,0.2)" }}>

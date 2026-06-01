@@ -94,14 +94,70 @@ export async function POST(
     });
     const baseUrl = process.env.NEXTAUTH_URL || "https://sodare.vercel.app";
     const inviteUrl = `${baseUrl}/invite/${token}`;
-    console.log(`[INVITE] ${email} → ${inviteUrl}`);
+
+    // Enviar email de invitación via Resend
+    let emailSent = false;
+    if (process.env.RESEND_API_KEY) {
+      try {
+        const templateId = process.env.RESEND_TEMPLATE_WORKSPACE_INVITE;
+        const fromEmail = process.env.RESEND_FROM_EMAIL || "SODARE <onboarding@resend.dev>";
+
+        const emailPayload: Record<string, unknown> = {
+          from: fromEmail,
+          to: [email],
+        };
+
+        if (templateId) {
+          emailPayload.template_id = templateId;
+          emailPayload.template_data = {
+            INVITER_NAME: session.user.name || "Un administrador",
+            WORKSPACE_NAME: invite.workspace.name,
+            ROLE: role,
+            INVITE_URL: inviteUrl,
+          };
+        } else {
+          emailPayload.subject = `Te invitaron a ${invite.workspace.name} — SODARE`;
+          emailPayload.html = `
+            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #030508; color: #e2e8f0; border-radius: 12px;">
+              <h2 style="color: #00f0ff; margin: 0 0 16px;">⚡ SODARE</h2>
+              <p><strong>${session.user.name || "Un administrador"}</strong> te ha invitado a unirte a <strong style="color:#00f0ff;">${invite.workspace.name}</strong> como <strong>${role}</strong>.</p>
+              <a href="${inviteUrl}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #00f0ff, #0080ff); color: #030508; font-weight: bold; text-decoration: none; border-radius: 8px; margin: 16px 0;">
+                Aceptar invitación →
+              </a>
+              <p style="font-size: 12px; color: #64748b; margin-top: 24px;">Esta invitación expira en 7 días.</p>
+            </div>
+          `;
+        }
+
+        const emailRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+          },
+          body: JSON.stringify(emailPayload),
+        });
+
+        if (emailRes.ok) {
+          emailSent = true;
+          console.log(`[INVITE] Email sent to ${email}`);
+        } else {
+          console.error("[INVITE] Email error:", await emailRes.text());
+        }
+      } catch (emailErr) {
+        console.error("[INVITE] Email send error:", emailErr);
+      }
+    }
+
+    console.log(`[INVITE] ${email} → ${inviteUrl} (emailSent: ${emailSent})`);
     return NextResponse.json({
       data: {
         id: invite.id,
         email: invite.email,
         role: invite.role,
         expires: invite.expires,
-        inviteUrl,
+        inviteUrl: emailSent ? null : inviteUrl,
+        emailSent,
         workspaceName: invite.workspace.name,
       },
     }, { status: 201 });
