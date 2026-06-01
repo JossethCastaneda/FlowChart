@@ -27,7 +27,7 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { title, description, assignee, priority, status, dueDate, tags } = body;
+    const { title, description, assignee, priority, status, dueDate, tags, order, parentId } = body;
 
     const updated = await prisma.task.update({
       where: { id },
@@ -39,7 +39,10 @@ export async function PATCH(
         ...(status !== undefined && { status }),
         ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
         ...(tags !== undefined && { tags }),
+        ...(order !== undefined && { order }),
+        ...(parentId !== undefined && { parentId }),
       },
+      include: { children: true },
     });
 
     return NextResponse.json({ data: updated });
@@ -49,7 +52,7 @@ export async function PATCH(
   }
 }
 
-// DELETE /api/ops/[id] — delete a task
+// DELETE /api/ops/[id] — delete a task (cascades to children)
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }

@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 
-// GET /api/ops — list tasks for the active workspace
+// GET /api/ops — list tasks + workspace members
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -15,22 +15,46 @@ export async function GET() {
 
     const workspaceId = await getActiveWorkspaceId(session.user.id);
     if (!workspaceId) {
-      return NextResponse.json({ data: [] });
+      return NextResponse.json({ data: [], members: [] });
     }
 
+    // Fetch top-level tasks (no parent) with their children
     const tasks = await prisma.task.findMany({
-      where: { workspaceId },
-      orderBy: [{ status: "asc" }, { priority: "asc" }, { createdAt: "desc" }],
+      where: { workspaceId, parentId: null },
+      include: {
+        children: {
+          orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+        },
+      },
+      orderBy: [{ order: "asc" }, { createdAt: "desc" }],
     });
 
-    return NextResponse.json({ data: tasks });
+    // Fetch workspace members for People column
+    const members = await prisma.workspaceMember.findMany({
+      where: { workspaceId },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true, image: true },
+        },
+      },
+    });
+
+    const memberList = members.map((m) => ({
+      id: m.user.id,
+      name: m.user.name || m.user.email?.split("@")[0] || "Sin nombre",
+      email: m.user.email,
+      image: m.user.image,
+      role: m.role,
+    }));
+
+    return NextResponse.json({ data: tasks, members: memberList });
   } catch (err: any) {
     console.error("[OPS] GET error:", err);
     return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
   }
 }
 
-// POST /api/ops — create a task
+// POST /api/ops — create a task or subitem
 export async function POST(req: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
@@ -49,11 +73,26 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, assignee, priority, status, projectId, dueDate, tags } = body;
+    const { title, description, assignee, priority, status, projectId, dueDate, tags, parentId } = body;
 
     if (!title || typeof title !== "string" || title.trim().length < 1) {
       return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
     }
+
+    // If creating a subitem, verify parent exists
+    if (parentId) {
+      const parent = await prisma.task.findUnique({ where: { id: parentId } });
+      if (!parent || parent.workspaceId !== workspaceId) {
+        return NextResponse.json({ error: "Tarea padre no encontrada" }, { status: 404 });
+      }
+    }
+
+    // Get next order value
+    const lastTask = await prisma.task.findFirst({
+      where: { workspaceId, parentId: parentId || null },
+      orderBy: { order: "desc" },
+    });
+    const nextOrder = (lastTask?.order ?? -1) + 1;
 
     const task = await prisma.task.create({
       data: {
@@ -65,8 +104,11 @@ export async function POST(req: NextRequest) {
         status: status || "Backlog",
         dueDate: dueDate ? new Date(dueDate) : null,
         tags: tags || [],
+        order: nextOrder,
         projectId: projectId || null,
+        parentId: parentId || null,
       },
+      include: { children: true },
     });
 
     return NextResponse.json({ data: task }, { status: 201 });

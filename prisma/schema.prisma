@@ -194,14 +194,19 @@ model Task {
   status      String   @default("Backlog") // Backlog, WIP, Review, Done
   dueDate     DateTime?
   tags        String[]
+  order       Int      @default(0)
   projectId   String?
+  parentId    String?
   workspaceId String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  parent      Task?     @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
+  children    Task[]    @relation("SubTasks")
 
   @@index([workspaceId])
+  @@index([parentId])
 }
 // ------------------------------------------------------
 
