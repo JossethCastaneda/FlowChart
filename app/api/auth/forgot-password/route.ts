@@ -60,11 +60,13 @@ export async function POST(req: NextRequest) {
         };
 
         if (templateId) {
-          // Usar template de Resend
-          emailPayload.template_id = templateId;
-          emailPayload.template_data = {
-            NAME: user.name || "usuario",
-            RESET_URL: resetUrl,
+          // Resend API requires "template" object, NOT "template_id"
+          emailPayload.template = {
+            id: templateId,
+            variables: {
+              NAME: user.name || "usuario",
+              RESET_URL: resetUrl,
+            },
           };
         } else {
           // Fallback: HTML inline
