@@ -71,19 +71,10 @@ export async function POST(req: NextRequest) {
         } else {
           // Fallback: HTML inline
           emailPayload.subject = "Recuperar contraseña — SODARE";
-          emailPayload.html = `
-            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #030508; color: #e2e8f0; border-radius: 12px;">
-              <h2 style="color: #00f0ff; margin: 0 0 16px;">⚡ SODARE</h2>
-              <p>Hola ${user.name || "usuario"},</p>
-              <p>Recibimos una solicitud para restablecer tu contraseña.</p>
-              <a href="${resetUrl}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #00f0ff, #0080ff); color: #030508; font-weight: bold; text-decoration: none; border-radius: 8px; margin: 16px 0;">
-                Restablecer contraseña →
-              </a>
-              <p style="font-size: 12px; color: #64748b; margin-top: 24px;">
-                Este enlace expira en 1 hora.<br/>Si no solicitaste esto, ignora este email.
-              </p>
-            </div>
-          `;
+          emailPayload.html = (await import("@/lib/email-templates")).getPasswordResetEmailHtml({
+            userName: user.name || "usuario",
+            resetUrl,
+          });
         }
 
         const res = await fetch("https://api.resend.com/emails", {

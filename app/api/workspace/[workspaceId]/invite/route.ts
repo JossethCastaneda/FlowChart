@@ -121,17 +121,12 @@ export async function POST(
         } else {
           // Fallback: inline HTML (no template)
           emailPayload.subject = `Te invitaron a ${invite.workspace.name} — SODARE`;
-          emailPayload.html = `
-            <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #030508; color: #e2e8f0; border-radius: 12px;">
-              <h2 style="color: #00f0ff; margin: 0 0 16px;">⚡ SODARE</h2>
-              <p><strong>${session.user.name || "Un administrador"}</strong> te ha invitado a unirte a <strong style="color:#00f0ff;">${invite.workspace.name}</strong> como <strong>${role}</strong>.</p>
-              <a href="${inviteUrl}" style="display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #00f0ff, #0080ff); color: #030508; font-weight: bold; text-decoration: none; border-radius: 8px; margin: 16px 0;">
-                Aceptar invitación →
-              </a>
-              <p style="font-size: 12px; color: #64748b; margin-top: 24px;">Esta invitación expira en 7 días.</p>
-              <p style="font-size: 11px; color: #475569; margin-top: 12px;">Si el botón no funciona, copia este enlace: <span style="color: #00f0ff;">${inviteUrl}</span></p>
-            </div>
-          `;
+          emailPayload.html = (await import("@/lib/email-templates")).getInviteEmailHtml({
+            inviterName: session.user.name || "Un administrador",
+            workspaceName: invite.workspace.name,
+            role,
+            inviteUrl,
+          });
         }
 
         console.log(`[INVITE] Sending email to ${email} from ${fromEmail} (template: ${templateId || 'inline'})`);
