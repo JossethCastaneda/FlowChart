@@ -18,43 +18,51 @@ function generateSlug(name: string): string {
 }
 
 export async function GET() {
-  const session = await getServerSession(authOptions);
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-  const memberships = await prisma.workspaceMember.findMany({
-    where: { userId: session.user.id },
-    include: {
-      workspace: {
-        include: {
-          _count: { select: { members: true, projects: true } },
+    const memberships = await prisma.workspaceMember.findMany({
+      where: { userId: session.user.id },
+      include: {
+        workspace: {
+          include: {
+            _count: { select: { members: true, projects: true } },
+          },
         },
       },
-    },
-    orderBy: { workspace: { createdAt: "asc" } },
-  });
+      orderBy: { workspace: { createdAt: "asc" } },
+    });
 
-  const activeId = await getActiveWorkspaceId(session.user.id);
+    const activeId = await getActiveWorkspaceId(session.user.id);
 
-  const workspaces = memberships.map((m) => ({
-    id: m.workspace.id,
-    name: m.workspace.name,
-    slug: m.workspace.slug,
-    role: m.role,
-    memberCount: m.workspace._count.members,
-    projectCount: m.workspace._count.projects,
-    createdAt: m.workspace.createdAt,
-  }));
+    const workspaces = memberships.map((m) => ({
+      id: m.workspace.id,
+      name: m.workspace.name,
+      slug: m.workspace.slug,
+      role: m.role,
+      memberCount: m.workspace._count.members,
+      projectCount: m.workspace._count.projects,
+      createdAt: m.workspace.createdAt,
+    }));
 
-  // Ordenar: active primero
-  workspaces.sort((a, b) => {
-    if (a.id === activeId) return -1;
-    if (b.id === activeId) return 1;
-    return 0;
-  });
+    // Ordenar: active primero
+    workspaces.sort((a, b) => {
+      if (a.id === activeId) return -1;
+      if (b.id === activeId) return 1;
+      return 0;
+    });
 
-  return NextResponse.json({ data: workspaces });
+    return NextResponse.json({ data: workspaces });
+  } catch (err: any) {
+    console.error("[WORKSPACE] GET error:", err);
+    return NextResponse.json(
+      { error: "Error al obtener workspaces" },
+      { status: 500 }
+    );
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -109,7 +117,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("[WORKSPACE] Error creating workspace:", err);
     return NextResponse.json(
-      { error: err?.message || "Error interno al crear workspace" },
+      { error: "Error interno al crear workspace" },
       { status: 500 }
     );
   }
