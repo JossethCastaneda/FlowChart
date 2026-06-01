@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 const RULE_FIELDS = "name,status,evaluation_spec,execution_spec,schedule_spec,entity_type,filter_spec";
 
@@ -16,8 +16,8 @@ export async function GET(req: NextRequest) {
   const version = process.env.META_API_VERSION || "v22.0";
 
   try {
-    const url = `https://graph.facebook.com/${version}/act_${adAccountId}/adrules_library?access_token=${token}&fields=${RULE_FIELDS}&limit=100`;
-    const res = await fetch(url);
+    const url = `https://graph.facebook.com/${version}/act_${adAccountId}/adrules_library?fields=${RULE_FIELDS}&limit=100`;
+    const res = await metaFetch(url, token);
     const json = await res.json();
     if (!res.ok) {
       return NextResponse.json({ error: json.error?.message || "Error fetching rules" }, { status: res.status });
@@ -44,10 +44,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const url = `https://graph.facebook.com/${version}/act_${adAccountId}/adrules_library?access_token=${token}`;
-    const res = await fetch(url, {
+    const url = `https://graph.facebook.com/${version}/act_${adAccountId}/adrules_library`;
+    const res = await metaFetch(url, token, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name,
         evaluation_spec: JSON.stringify(evaluation_spec),

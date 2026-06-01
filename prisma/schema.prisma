@@ -99,6 +99,7 @@ model WorkspaceMember {
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, userId])
+  @@index([userId])
 }
 
 model WorkspaceInvite {
@@ -197,10 +198,9 @@ model Task {
   updatedAt   DateTime @updatedAt
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-}
 
-// ------------------------------------------------------
-// BRIEFING
+  @@index([workspaceId])
+}
 // ------------------------------------------------------
 
 model Brief {
@@ -215,6 +215,8 @@ model Brief {
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
 }
 
 // ------------------------------------------------------
@@ -257,6 +259,8 @@ model Lead {
   updatedAt   DateTime @updatedAt
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
 }
 
 // ------------------------------------------------------

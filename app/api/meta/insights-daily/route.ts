@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req);
@@ -31,9 +31,9 @@ export async function GET(req: NextRequest) {
   const insightsFields = "spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas";
 
   try {
-    const url = `https://graph.facebook.com/${version}/${id}/insights?access_token=${token}&fields=${insightsFields}&time_range=${encodeURIComponent(timeRange)}&time_increment=1&limit=90`;
+    const url = `https://graph.facebook.com/${version}/${id}/insights?fields=${insightsFields}&time_range=${encodeURIComponent(timeRange)}&time_increment=1&limit=90`;
 
-    const res = await fetch(url);
+    const res = await metaFetch(url, token);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       return NextResponse.json(

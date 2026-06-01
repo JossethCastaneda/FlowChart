@@ -1,47 +1,25 @@
 import { NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
-
-// No mock pages in production
+import { getMetaAccessToken, metaGetAll } from "@/lib/server-auth";
 
 export async function GET(request: Request) {
   try {
     const accessToken = await getMetaAccessToken(request);
 
     if (!accessToken) {
+      return NextResponse.json({ data: [], source: "no_session" });
+    }
+
+    const url = `https://graph.facebook.com/v22.0/me/accounts?fields=id,name,fan_count,picture{url},instagram_business_account{id,username,profile_picture_url,followers_count}&limit=100`;
+    const { data: allData, error } = await metaGetAll(url, accessToken);
+
+    if (error && allData.length === 0) {
       return NextResponse.json({
         data: [],
-        source: "no_session",
+        source: "api_error",
+        error,
       });
     }
 
-    let allData: any[] = [];
-    let nextUrl: string | null = `https://graph.facebook.com/v22.0/me/accounts?fields=id,name,fan_count,picture{url},instagram_business_account{id,username,profile_picture_url,followers_count}&limit=100&access_token=${accessToken}`;
-
-    while (nextUrl) {
-      const res: Response = await fetch(nextUrl, { headers: { "Content-Type": "application/json" } });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        console.warn("Meta API pages request failed:", errData);
-        if (allData.length === 0) {
-          return NextResponse.json({ 
-            data: [{ 
-              id: "error", 
-              name: `ERROR: ${errData?.error?.message || JSON.stringify(errData)}`, 
-              picture: "", 
-              portfolio: "Error API", 
-              instagram: null 
-            }], 
-            source: "fallback_api_error", 
-            error: errData 
-          });
-        }
-        break; // Return what we have so far
-      }
-      const json = await res.json();
-      if (json.data) allData = allData.concat(json.data);
-      nextUrl = json.paging?.next || null;
-    }
-    
     const pages = allData.map((page: any) => ({
       id: page.id,
       name: page.name,
@@ -56,15 +34,9 @@ export async function GET(request: Request) {
       } : null
     }));
 
-    return NextResponse.json({
-      data: pages,
-      source: "meta_api",
-    });
+    return NextResponse.json({ data: pages, source: "meta_api" });
   } catch (error: any) {
     console.error("Error in Meta pages API:", error);
-    return NextResponse.json({
-      data: [],
-      source: "catch_error",
-    });
+    return NextResponse.json({ data: [], source: "catch_error" });
   }
 }

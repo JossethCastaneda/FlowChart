@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 export async function POST(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req);
@@ -20,47 +20,40 @@ export async function POST(req: NextRequest) {
     const results = await Promise.allSettled(
       ids.map(async (id: string, index: number) => {
         try {
+          const baseUrl = `https://graph.facebook.com/${version}/${id}`;
+
           if (action === "delete") {
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
-            const res = await fetch(url, { method: "DELETE" });
+            const res = await metaFetch(baseUrl, token, { method: "DELETE" });
             const json = await res.json();
             return { id, success: res.ok, data: json };
 
           } else if (action === "duplicate") {
-            const url = `https://graph.facebook.com/${version}/${id}/copies?access_token=${token}`;
-            const res = await fetch(url, {
+            const res = await metaFetch(`${baseUrl}/copies`, token, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ deep_copy: true, status_option: "PAUSED" }),
             });
             const json = await res.json();
             return { id, success: res.ok, data: json };
 
           } else if (action === "archive") {
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
-            const res = await fetch(url, {
+            const res = await metaFetch(baseUrl, token, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "ARCHIVED" }),
             });
             const json = await res.json();
             return { id, success: res.ok, data: json };
 
           } else if (action === "pause") {
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
-            const res = await fetch(url, {
+            const res = await metaFetch(baseUrl, token, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "PAUSED" }),
             });
             const json = await res.json();
             return { id, success: res.ok, data: json };
 
           } else if (action === "activate") {
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
-            const res = await fetch(url, {
+            const res = await metaFetch(baseUrl, token, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ status: "ACTIVE" }),
             });
             const json = await res.json();
@@ -69,10 +62,8 @@ export async function POST(req: NextRequest) {
           } else if (action === "rename") {
             const update = updates?.[index];
             if (!update?.newName) return { id, success: false, error: "Missing newName" };
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
-            const res = await fetch(url, {
+            const res = await metaFetch(baseUrl, token, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ name: update.newName }),
             });
             const json = await res.json();
@@ -83,10 +74,8 @@ export async function POST(req: NextRequest) {
             if (!update) return { id, success: false, error: "Missing budget update" };
             const budgetField = update.type === "lifetime" ? "lifetime_budget" : "daily_budget";
             const budgetCentavos = Math.round(update.budget * 100);
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
-            const res = await fetch(url, {
+            const res = await metaFetch(baseUrl, token, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ [budgetField]: budgetCentavos }),
             });
             const json = await res.json();
@@ -95,10 +84,8 @@ export async function POST(req: NextRequest) {
           } else if (action === "spend_cap") {
             const update = updates?.[index];
             if (!update) return { id, success: false, error: "Missing spend_cap" };
-            const url = `https://graph.facebook.com/${version}/${id}?access_token=${token}`;
-            const res = await fetch(url, {
+            const res = await metaFetch(baseUrl, token, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ spend_cap: update.spend_cap }),
             });
             const json = await res.json();

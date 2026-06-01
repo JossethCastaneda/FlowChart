@@ -174,6 +174,19 @@ export async function DELETE(
     if (notFound) return apiNotFound("Proyecto no encontrado");
     if (!authorized) return apiForbidden("No tienes acceso a este proyecto");
 
+    // Only OWNER/ADMIN can delete projects
+    const membership = await prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: {
+          workspaceId: project!.workspaceId,
+          userId: session.user.id,
+        },
+      },
+    });
+    if (membership?.role === "MEMBER") {
+      return apiForbidden("Solo OWNER o ADMIN pueden eliminar proyectos");
+    }
+
     // Cascade delete handles channels, briefs, members, etc.
     await prisma.project.delete({ where: { id } });
 

@@ -97,13 +97,19 @@ export async function saveMetaTokenToWorkspace(
 
 /**
  * Fetch from Meta Graph API with Authorization Bearer header.
+ * IMPORTANT: Use this instead of putting access_token in the URL query string.
  */
 export async function metaFetch(
   url: string,
   token: string,
   options: RequestInit = {}
 ): Promise<Response> {
-  return fetch(url, {
+  // Strip any access_token from URL (safety net)
+  const cleanUrl = url.replace(/([?&])access_token=[^&]+(&?)/g, (_, prefix, suffix) => {
+    return suffix ? prefix : '';
+  }).replace(/[?&]$/, '');
+
+  return fetch(cleanUrl, {
     ...options,
     headers: {
       "Content-Type": "application/json",
@@ -124,3 +130,32 @@ export function metaUrl(
   const search = new URLSearchParams(params).toString();
   return search ? `${base}?${search}` : base;
 }
+
+/**
+ * Paginated Meta Graph API GET — fetches all pages using Bearer header.
+ * Returns concatenated data from all pages.
+ */
+export async function metaGetAll(
+  initialUrl: string,
+  token: string
+): Promise<{ data: any[]; error?: string }> {
+  const allData: any[] = [];
+  let nextUrl: string | null = initialUrl;
+
+  while (nextUrl) {
+    const res = await metaFetch(nextUrl, token);
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      const msg = errData?.error?.message || "Meta API error";
+      if (allData.length === 0) return { data: [], error: msg };
+      break;
+    }
+    const json = await res.json();
+    if (json.data) allData.push(...json.data);
+    // Pagination cursors from Meta — strip access_token, use Bearer instead
+    nextUrl = json.paging?.next || null;
+  }
+
+  return { data: allData };
+}
+
