@@ -7,8 +7,9 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // Prisma 7: url and directUrl MUST go in prisma.config.ts, NOT here.
-  // See: https://pris.ly/d/config-datasource
+  // Prisma 7: url + directUrl are in prisma.config.ts (required by Prisma 7)
+  // DATABASE_URL → pooled Neon connection
+  // DIRECT_URL  → direct Neon connection (for migrations)
 }
 
 // ------------------------------------------------------

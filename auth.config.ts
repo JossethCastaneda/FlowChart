@@ -1,8 +1,6 @@
 import type { NextAuthOptions } from "next-auth";
 import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
-import CredentialsProvider from "next-auth/providers/credentials";
-import bcrypt from "bcryptjs";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -11,7 +9,8 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
       authorization: {
         params: {
-          config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID || "2028091691078800",
+          config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID
+            || "2028091691078800",
           auth_type: "rerequest",
         },
       },
@@ -26,36 +25,24 @@ export const authOptions: NextAuthOptions = {
         },
       },
     }),
-    CredentialsProvider({
-      name: "Email",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) return null;
-        const { default: prisma } = await import("@/lib/prisma");
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email.toLowerCase() },
-        });
-        if (!user?.password) return null;
-        const valid = await bcrypt.compare(credentials.password, user.password);
-        if (!valid) return null;
-        return { id: user.id, name: user.name, email: user.email, image: user.image };
-      },
-    }),
   ],
 
-  pages: { signIn: "/login", error: "/login" },
+  pages: {
+    signIn: "/login",
+    error: "/login",
+  },
+
   session: { strategy: "jwt" },
 
   callbacks: {
-    async jwt({ token, account, user, trigger }) {
+    async jwt({ token, account, user }) {
       if (user) {
         token.sub = user.id;
-        // Upsert del usuario en Neon (FK fix — JWT no usa PrismaAdapter)
         try {
-          const { default: prisma } = await import("@/lib/prisma");
+          const { default: prisma } =
+            await import("@/lib/prisma");
+          // CRÍTICO: Upsert del usuario en Neon
+          // (FK constraint fix para WorkspaceMember.create)
           await prisma.user.upsert({
             where: { id: user.id },
             update: {
@@ -70,48 +57,23 @@ export const authOptions: NextAuthOptions = {
               image: user.image,
             },
           });
+          // Verificar si ya tiene workspace
+          const count =
+            await prisma.workspaceMember.count({
+              where: { userId: user.id },
+            });
+          token.hasWorkspace = count > 0;
         } catch (err) {
-          console.error("[AUTH] User upsert failed:", err);
+          console.error("[AUTH jwt callback]", err);
+          token.hasWorkspace = false;
         }
       }
 
       if (account) {
-        if (account.provider === "facebook" && account.access_token) {
+        if (account.provider === "facebook") {
           token.accessToken = account.access_token;
-          // Guardar token en Integration table del workspace
-          // para que TODOS los miembros puedan usar Meta APIs
-          if (token.sub) {
-            try {
-              const { saveMetaTokenToWorkspace } =
-                await import("@/lib/server-auth");
-              await saveMetaTokenToWorkspace(
-                token.sub, account.access_token
-              );
-            } catch (err) {
-              console.error("[AUTH] Save Meta token failed:", err);
-            }
-          }
         }
         token.provider = account.provider;
-      }
-
-      // hasWorkspace: re-evaluar en login, update(), o si es false
-      // El workspace ACTIVO se maneja con cookie, NO en el JWT
-      if (token.sub) {
-        if (trigger === "update" || user || !token.hasWorkspace) {
-          try {
-            const { default: prisma } = await import("@/lib/prisma");
-            const count = await prisma.workspaceMember.count({
-              where: { userId: token.sub },
-            });
-            token.hasWorkspace = count > 0;
-          } catch (err) {
-            console.error("[AUTH] Workspace check failed:", err);
-            if (token.hasWorkspace === undefined) {
-              token.hasWorkspace = false;
-            }
-          }
-        }
       }
 
       return token;
@@ -124,8 +86,10 @@ export const authOptions: NextAuthOptions = {
       if (token.accessToken) {
         session.accessToken = token.accessToken as string;
       }
-      session.hasWorkspace = (token.hasWorkspace as boolean) ?? false;
-      session.provider = (token.provider as string) ?? null;
+      session.hasWorkspace =
+        (token.hasWorkspace as boolean) ?? false;
+      session.provider =
+        (token.provider as string) ?? null;
       return session;
     },
   },
