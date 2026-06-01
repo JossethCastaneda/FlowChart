@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
+import { SodareLogo } from "@/components/ui/SodareLogo";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -71,10 +72,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--border)" }}>
           <Link href="/dashboard/resumen" className="flex items-center gap-3">
-            <div className="sidebar-logo-icon">
-              <Zap className="w-5 h-5" style={{ color: "var(--cyan)" }} />
-            </div>
-            <span className="sidebar-logo-text sidebar-hide-compact">SODARE</span>
+            <SodareLogo size="sm" />
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white">
             <X className="w-5 h-5" />
@@ -177,10 +175,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           }}
         >
           <div className="flex items-center gap-3">
-            <div className="sidebar-logo-icon" style={{ width: "32px", height: "32px" }}>
-              <Zap className="w-4 h-4" style={{ color: "var(--cyan)" }} />
-            </div>
-            <span className="sidebar-logo-text" style={{ fontSize: "16px" }}>SODARE</span>
+            <SodareLogo size="sm" />
           </div>
           <button onClick={() => setSidebarOpen(true)} className="text-slate-400 hover:text-white">
             <Menu className="w-5 h-5" />

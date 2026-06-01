@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { SodareLogo } from "@/components/ui/SodareLogo";
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -154,16 +155,7 @@ export default function LoginPage() {
 
           {/* Logo section */}
           <div className="logo-section">
-            <div className="logo-icon">
-              <svg viewBox="0 0 40 40" className="logo-diamond">
-                <path d="M20 2 L38 20 L20 38 L2 20 Z" fill="none" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M20 8 L32 20 L20 32 L8 20 Z" fill="currentColor" opacity="0.3" />
-                <circle cx="20" cy="20" r="4" fill="currentColor" />
-              </svg>
-              <div className="logo-icon-glow" />
-            </div>
-
-            <h1 className="logo-text">SODARE</h1>
+            <SodareLogo size="xl" />
             <div className="logo-underline">
               <span className="line-segment" />
               <span className="line-diamond">◆</span>

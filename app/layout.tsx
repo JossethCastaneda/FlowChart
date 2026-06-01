@@ -7,7 +7,7 @@ import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Sodare | Next-Gen AI & CRM Platform",
+  title: "Sodare",
   description: "An advanced CRM, Analytics and BotMaker operations platform.",
 };
 

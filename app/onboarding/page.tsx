@@ -3,7 +3,8 @@
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Zap, Loader2 } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { SodareLogo } from "@/components/ui/SodareLogo";
 
 export default function OnboardingPage() {
   return (
@@ -128,21 +129,8 @@ function OnboardingContent() {
         }}
       >
         {/* Logo */}
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "32px" }}>
-          <div className="sidebar-logo-icon">
-            <Zap style={{ color: "var(--cyan)", width: 20, height: 20 }} />
-          </div>
-          <span
-            style={{
-              fontFamily: "'Orbitron', sans-serif",
-              fontSize: "18px",
-              fontWeight: 700,
-              color: "white",
-              letterSpacing: "0.2em",
-            }}
-          >
-            SODARE
-          </span>
+        <div style={{ marginBottom: "32px" }}>
+          <SodareLogo size="md" />
         </div>
 
         <h1
