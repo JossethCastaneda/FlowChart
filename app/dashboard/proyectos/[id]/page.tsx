@@ -66,10 +66,10 @@ function getBudgetBreakdown(budget: number, period: string) {
 }
 
 /* ═══ SHARED UI ═══ */
-const panelStyle: React.CSSProperties = { background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 8, padding: 20 };
+const panelStyle: React.CSSProperties = { background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 14 };
 const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 };
 const headingStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#e2e8f0", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 };
-const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.5)", marginBottom: 16 };
+const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.5)", marginBottom: 10 };
 const tooltipStyle = { backgroundColor: "rgba(10,15,30,0.95)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12, color: "white" };
 const CHART_COLORS = ["#00d4ff", "#00c875", "#fdab3d", "#e2445c", "#7b61ff", "#579bfc", "#ff007f", "#25F4EE"];
 
@@ -78,12 +78,12 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
   return (
     <div style={{ ...panelStyle, position: "relative", overflow: "hidden", paddingBottom: progress !== undefined ? 24 : 20 }}>
       <div style={{ position: "absolute", top: 0, right: 0, width: 100, height: 100, background: `radial-gradient(circle, ${c}15 0%, transparent 70%)`, transform: "translate(30%, -30%)" }} />
-      <div style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(148,163,184,0.6)", marginBottom: 12 }}>
-        <div style={{ padding: 6, background: "rgba(0,0,0,0.3)", borderRadius: 6, color: c }}>{icon}</div>
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.05em", textTransform: "uppercase" }}>{title}</span>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(148,163,184,0.6)", marginBottom: 8 }}>
+        <div style={{ padding: 4, background: "rgba(0,0,0,0.3)", borderRadius: 4, color: c }}>{icon}</div>
+        <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>{title}</span>
       </div>
-      <div style={{ fontSize: 24, fontWeight: 700, color: "white", marginBottom: 4, fontFamily: "'Orbitron',sans-serif" }}>{value}</div>
-      <div style={{ fontSize: 11, color: "rgba(148,163,184,0.4)" }}>{sub}</div>
+      <div style={{ fontSize: 20, fontWeight: 700, color: "white", marginBottom: 2, fontFamily: "'Orbitron',sans-serif" }}>{value}</div>
+      <div style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{sub}</div>
       {progress !== undefined && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "rgba(148,163,184,0.1)" }}><div style={{ height: "100%", width: `${Math.min(progress, 100)}%`, background: c, transition: "width 1s" }} /></div>}
     </div>
   );
@@ -100,11 +100,11 @@ function LoadingOverlay() {
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
-      display: "flex", alignItems: "center", gap: 6, padding: "8px 16px", fontSize: 11, fontWeight: 600,
+      display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", fontSize: 10, fontWeight: 600,
       background: active ? "rgba(0,212,255,0.08)" : "transparent",
       border: `1px solid ${active ? "rgba(0,212,255,0.2)" : "transparent"}`,
       color: active ? "#00d4ff" : "rgba(148,163,184,0.5)",
-      borderRadius: 6, cursor: "pointer", transition: "all 0.2s", letterSpacing: "0.03em",
+      borderRadius: 4, cursor: "pointer", transition: "all 0.2s", letterSpacing: "0.03em",
     }}>{icon}{label}</button>
   );
 }
@@ -366,17 +366,17 @@ export default function ProjectDashboardPage() {
 
 
   return (
-    <div className="space-y-6 page-enter">
+    <div className="space-y-2 page-enter">
       {/* ── HEADER ── */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <button onClick={() => router.push("/dashboard/proyectos")} style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(10,15,30,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, color: "rgba(148,163,184,0.7)", cursor: "pointer" }}><ArrowLeft style={{ width: 16, height: 16 }} /></button>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button onClick={() => router.push("/dashboard/proyectos")} style={{ width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(10,15,30,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, color: "rgba(148,163,184,0.7)", cursor: "pointer" }}><ArrowLeft style={{ width: 14, height: 14 }} /></button>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-              <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 20, fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>{project.alias}</h1>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
+              <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>{project.alias}</h1>
               <span className={`badge badge-${STATUS_COLORS[project.status]}`}>{project.status}</span>
             </div>
-            <p style={{ fontSize: 12, color: "rgba(148,163,184,0.6)" }}>{project.vertical}{project.client && ` · ${project.client}`}</p>
+            <p style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>{project.vertical}{project.client && ` · ${project.client}`}</p>
           </div>
         </div>
         <DateRangePicker datePreset={datePreset} dateStart={dateStart} dateEnd={dateEnd} showDatePicker={showDatePicker} setShowDatePicker={setShowDatePicker}
@@ -386,7 +386,7 @@ export default function ProjectDashboardPage() {
 
       {/* ── KPIs ── (hidden on Ads Manager tab) */}
       {activeTab !== "ads" && (
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3" style={{ position: "relative" }}>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2" style={{ position: "relative" }}>
         {isLoading && <LoadingOverlay />}
         <KpiBox title="Inversión" value={fmtMXN0(totalSpend)} sub={`de ${fmtMXN0(budgetNum)} (${bk.label})`} icon={<DollarSign style={{ width: 16, height: 16 }} />} color="amber" progress={spendProgress} />
         <KpiBox title="Resultados" value={fmtNum(totalResults)} sub={ch?.goal || "Objetivo"} icon={<Target style={{ width: 16, height: 16 }} />} color="emerald" progress={goalCompletion} />
@@ -397,8 +397,8 @@ export default function ProjectDashboardPage() {
       )}
 
       {/* ── TABS + PLATFORM SELECTOR ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: 12 }}>
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: 6 }}>
+        <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
           <TabButton active={activeTab === "resumen"} label="Resumen" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resumen")} />
           <TabButton active={activeTab === "gasto"} label="Gasto & Presupuesto" icon={<DollarSign style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("gasto")} />
           <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
@@ -423,8 +423,8 @@ export default function ProjectDashboardPage() {
 
       {/* ═══ TAB: RESUMEN ═══ */}
       {activeTab === "resumen" && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2 space-y-3">
             {/* Proyeccion al Cierre */}
             <div style={panelStyle}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
@@ -444,7 +444,7 @@ export default function ProjectDashboardPage() {
             </div>
 
             {/* Charts Row */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6" style={{ position: "relative" }}>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3" style={{ position: "relative" }}>
               {isLoading && <LoadingOverlay />}
               <div style={panelStyle}><h3 style={headingStyle}>Inversión vs Resultados</h3><p style={subStyle}>Gasto diario y volumen de conversiones</p>
                 <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
@@ -464,7 +464,7 @@ export default function ProjectDashboardPage() {
           </div>
 
           {/* Right: Accounts Panel */}
-          <div className="space-y-6">
+          <div className="space-y-3">
             <div style={panelStyle}>
               <h3 style={headingStyle}>Cuentas Vinculadas</h3>
               <p style={subStyle}>{ch?.adAccounts?.length || 0} cuentas seleccionadas</p>
@@ -496,7 +496,7 @@ export default function ProjectDashboardPage() {
 
       {/* ═══ TAB: GASTO & PRESUPUESTO ═══ */}
       {activeTab === "gasto" && (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* Budget Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div style={panelStyle}><p style={labelStyle}>Presupuesto {bk.label}</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(budgetNum)}</p></div>
@@ -610,8 +610,8 @@ export default function ProjectDashboardPage() {
 
       {/* ═══ TAB: AUDIENCIA ═══ */}
       {activeTab === "audiencia" && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {/* Age & Gender */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Users style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Edad y Género</h3>
@@ -679,7 +679,7 @@ export default function ProjectDashboardPage() {
 
       {/* ═══ TAB: CREATIVOS ═══ */}
       {activeTab === "creativos" && (
-        <div className="space-y-6">
+        <div className="space-y-3">
           {creativesLoading && <LoadingOverlay />}
 
           {/* Ad Cards with thumbnails */}
@@ -727,7 +727,7 @@ export default function ProjectDashboardPage() {
           </div>
 
           {/* Text Analysis */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {([
               { key: "title", label: "Mejores Títulos" },
               { key: "body", label: "Mejores Textos Principales" },
@@ -835,9 +835,9 @@ export default function ProjectDashboardPage() {
         if (recs.length === 0) recs.push({ severity: "success", text: "Todas las métricas están dentro de rangos saludables. Mantén la estrategia actual y monitorea diariamente." });
 
         return (
-          <div className="space-y-6">
+          <div className="space-y-3">
             {/* Top row: Gauge + Indicators */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               {/* Health Score Gauge */}
               <div style={{ ...panelStyle, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 280 }}>
                 <h3 style={{ ...headingStyle, marginBottom: 16 }}>Health Score</h3>
@@ -905,7 +905,7 @@ export default function ProjectDashboardPage() {
             </div>
 
             {/* Diagnostic + Recommendations */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <div style={panelStyle}>
                 <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Diagnóstico</h3>
                 <p style={subStyle}>Evaluación automática basada en benchmarks de industria</p>
@@ -983,7 +983,7 @@ export default function ProjectDashboardPage() {
 
       {/* ═══ TAB: CONFIGURACIÓN ═══ */}
       {activeTab === "config" && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div style={panelStyle}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <h3 style={headingStyle}>Información General</h3>
