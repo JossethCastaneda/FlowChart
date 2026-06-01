@@ -1,0 +1,8 @@
+{
+  "crons": [
+    {
+      "path": "/api/notifications/check-sla",
+      "schedule": "0 */6 * * *"
+    }
+  ]
+}

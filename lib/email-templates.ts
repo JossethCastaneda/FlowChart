@@ -520,3 +520,160 @@ export function getWelcomeEmailHtml({
 
   return baseWrapper(content);
 }
+
+// ─────────────────────────────────────────────────
+// TASK ASSIGNED EMAIL
+// ─────────────────────────────────────────────────
+export function getTaskAssignedEmailHtml({
+  assigneeName,
+  taskTitle,
+  assignerName,
+  priority,
+  dueDate,
+  taskUrl,
+}: {
+  assigneeName: string;
+  taskTitle: string;
+  assignerName: string;
+  priority: string;
+  dueDate: string | null;
+  taskUrl: string;
+}): string {
+  const prioColors: Record<string, { color: string; bg: string; label: string }> = {
+    P0: { color: "#e2445c", bg: "rgba(226,68,92,0.08)", label: "URGENTE" },
+    P1: { color: "#fdab3d", bg: "rgba(253,171,61,0.08)", label: "ALTA" },
+    P2: { color: "#579bfc", bg: "rgba(86,148,251,0.08)", label: "MEDIA" },
+    P3: { color: "#c4c4c4", bg: "rgba(196,196,196,0.08)", label: "BAJA" },
+  };
+  const prio = prioColors[priority] || prioColors.P2;
+
+  const content = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="
+      background:linear-gradient(135deg,rgba(0,240,255,0.04),rgba(86,148,251,0.02));
+      border:1px solid rgba(0,240,255,0.12);
+      border-radius:4px;
+      margin-bottom:24px;
+    ">
+      <tr>
+        <td style="padding:18px 22px;">
+          <p style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:9px;color:rgba(0,240,255,0.45);letter-spacing:4px;">
+            NUEVA MISION ASIGNADA
+          </p>
+          <p style="margin:0;font-size:15px;color:#e8ecf1;line-height:1.6;">
+            <strong style="color:#00f0ff;">${assignerName}</strong> te asigno una tarea
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="
+      background:linear-gradient(135deg,rgba(0,20,40,0.8),rgba(0,10,25,0.6));
+      border:1px solid rgba(0,240,255,0.1);
+      border-left:3px solid ${prio.color};
+      border-radius:0 4px 4px 0;
+      margin-bottom:28px;
+      box-shadow:0 4px 24px rgba(0,0,0,0.3);
+    ">
+      <tr>
+        <td style="padding:24px;">
+          <p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:8px;color:rgba(148,163,184,0.4);letter-spacing:3px;">TAREA</p>
+          <p style="margin:0 0 16px;font-size:18px;font-weight:800;color:#f0f4f8;">${taskTitle}</p>
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="font-family:'Courier New',monospace;font-size:10px;font-weight:800;color:${prio.color};background:${prio.bg};border:1px solid ${prio.color}30;padding:4px 12px;border-radius:3px;letter-spacing:3px;margin-right:8px;">${prio.label}</td>
+            ${dueDate ? `<td style="padding-left:12px;font-family:'Courier New',monospace;font-size:10px;color:rgba(148,163,184,0.5);letter-spacing:2px;">LIMITE: ${dueDate}</td>` : ""}
+          </tr></table>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding:4px 0 32px;">
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="background:linear-gradient(135deg,#00e0ff,#0080ff);border-radius:4px;box-shadow:0 0 30px rgba(0,240,255,0.25);">
+              <a href="${taskUrl}" target="_blank" style="display:inline-block;padding:16px 48px;font-family:'Courier New',monospace;font-size:13px;font-weight:900;color:#020409;text-decoration:none;letter-spacing:3px;">VER TAREA &#8594;</a>
+            </td>
+          </tr></table>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  return baseWrapper(content);
+}
+
+// ─────────────────────────────────────────────────
+// SLA WARNING EMAIL
+// ─────────────────────────────────────────────────
+export function getSLAWarningEmailHtml({
+  userName,
+  taskTitle,
+  hoursLeft,
+  dueDate,
+  taskUrl,
+}: {
+  userName: string;
+  taskTitle: string;
+  hoursLeft: number;
+  dueDate: string;
+  taskUrl: string;
+}): string {
+  const isOverdue = hoursLeft <= 0;
+  const alertColor = isOverdue ? "#e2445c" : "#fdab3d";
+  const alertBg = isOverdue ? "rgba(226,68,92,0.05)" : "rgba(253,171,61,0.05)";
+  const alertBorder = isOverdue ? "rgba(226,68,92,0.15)" : "rgba(253,171,61,0.15)";
+  const alertLabel = isOverdue ? "SLA VENCIDO" : "SLA POR VENCER";
+  const timeLabel = isOverdue ? `Vencido hace ${Math.abs(hoursLeft)}h` : `Quedan ${hoursLeft}h`;
+
+  const content = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="
+      background:${alertBg};
+      border:1px solid ${alertBorder};
+      border-radius:4px;
+      margin-bottom:24px;
+    ">
+      <tr>
+        <td style="padding:18px 22px;">
+          <p style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:9px;color:${alertColor};letter-spacing:4px;">
+            ${alertLabel}
+          </p>
+          <p style="margin:0;font-size:15px;color:#e8ecf1;line-height:1.6;">
+            ${timeLabel} para completar esta tarea
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="
+      background:linear-gradient(135deg,rgba(0,20,40,0.8),rgba(0,10,25,0.6));
+      border:1px solid ${alertBorder};
+      border-left:3px solid ${alertColor};
+      border-radius:0 4px 4px 0;
+      margin-bottom:28px;
+    ">
+      <tr>
+        <td style="padding:24px;">
+          <p style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:8px;color:rgba(148,163,184,0.4);letter-spacing:3px;">TAREA</p>
+          <p style="margin:0 0 12px;font-size:18px;font-weight:800;color:#f0f4f8;">${taskTitle}</p>
+          <p style="margin:0;font-family:'Courier New',monospace;font-size:10px;color:rgba(148,163,184,0.5);letter-spacing:2px;">
+            ASIGNADO A: ${userName} &bull; LIMITE: ${dueDate}
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding:4px 0 32px;">
+          <table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="background:linear-gradient(135deg,${alertColor},${isOverdue ? "#ff6b35" : "#ffbe0b"});border-radius:4px;box-shadow:0 0 30px ${alertColor}40;">
+              <a href="${taskUrl}" target="_blank" style="display:inline-block;padding:16px 48px;font-family:'Courier New',monospace;font-size:13px;font-weight:900;color:#ffffff;text-decoration:none;letter-spacing:3px;">ATENDER AHORA &#8594;</a>
+            </td>
+          </tr></table>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  return baseWrapper(content);
+}
