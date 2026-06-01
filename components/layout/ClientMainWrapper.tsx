@@ -29,7 +29,7 @@ const NAV_ITEMS = [
   { name: "Proyectos", short: "PROJ", href: "/dashboard/proyectos", icon: FolderKanban, color: "#06d6a0" },
   { name: "CRM BotMaker", short: "CRM", href: "/dashboard/crm", icon: MessageSquare, color: "#7b61ff" },
   { name: "Publisher", short: "PUB", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b" },
-  { name: "Briefing", short: "BRIEF", href: "/dashboard/briefing", icon: Target, color: "#ff6b35" },
+  { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500" },
   { name: "Ads Manager", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB" },
   { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55" },
   { name: "Integrations", short: "APIs", href: "/dashboard/integrations", icon: Plug, color: "#00d4ff" },
