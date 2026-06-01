@@ -32,7 +32,8 @@ export async function POST(req: NextRequest) {
     }
 
     // Verify the token works with Meta
-    const testRes = await fetch(`https://graph.facebook.com/v22.0/me?access_token=${metaToken}`);
+    const { metaFetch: mf } = await import("@/lib/server-auth");
+    const testRes = await mf(`https://graph.facebook.com/v22.0/me`, metaToken);
     if (!testRes.ok) {
       return NextResponse.json(
         { error: "Tu token de Meta expiró. Vuelve a iniciar sesión con Facebook." },

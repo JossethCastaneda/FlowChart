@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 // Maps BreakdownSelector keys → Meta API parameters
 const BREAKDOWN_MAP: Record<string, { breakdowns?: string; time_increment?: string }> = {
@@ -61,7 +61,7 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    let url = `https://graph.facebook.com/${version}/${id}/insights?access_token=${token}&fields=${insightsFields}&date_preset=${preset}&limit=200`;
+    let url = `https://graph.facebook.com/${version}/${id}/insights?fields=${insightsFields}&date_preset=${preset}&limit=200`;
 
     if (mapping.breakdowns) {
       url += `&breakdowns=${mapping.breakdowns}`;
@@ -70,7 +70,7 @@ export async function GET(req: NextRequest) {
       url += `&time_increment=${mapping.time_increment}`;
     }
 
-    const res = await fetch(url);
+    const res = await metaFetch(url, token);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       return NextResponse.json(

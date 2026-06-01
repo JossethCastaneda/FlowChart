@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { SodareLogo } from "@/components/ui/SodareLogo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -118,16 +119,9 @@ export default function ForgotPasswordPage() {
   return (
     <div style={containerStyle}>
       <div style={cardStyle}>
-        <h1 style={{
-          color: "#00f0ff",
-          fontSize: "20px",
-          fontWeight: 700,
-          marginBottom: "8px",
-          textAlign: "center",
-          letterSpacing: "2px",
-        }}>
-          ⚡ SODARE
-        </h1>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px" }}>
+          <SodareLogo size="lg" />
+        </div>
         <p style={{
           color: "#94a3b8",
           fontSize: "14px",

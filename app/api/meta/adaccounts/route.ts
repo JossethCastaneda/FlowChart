@@ -1,7 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
-
-// No mock accounts in production
+import { getMetaAccessToken, metaGetAll } from "@/lib/server-auth";
 
 export async function GET(request: Request) {
   try {
@@ -15,31 +13,19 @@ export async function GET(request: Request) {
       });
     }
 
-    let allData: any[] = [];
-    let nextUrl: string | null = `https://graph.facebook.com/v22.0/me/adaccounts?fields=id,name,account_id,business{id,name}&limit=100&access_token=${accessToken}`;
+    const url = `https://graph.facebook.com/v22.0/me/adaccounts?fields=id,name,account_id,business{id,name}&limit=100`;
+    const { data: allData, error } = await metaGetAll(url, accessToken);
 
-    while (nextUrl) {
-      const res: Response = await fetch(nextUrl, { headers: { "Content-Type": "application/json" } });
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        console.warn("Meta API request failed:", errData);
-        if (allData.length === 0) {
-          return NextResponse.json({ 
-            data: [{ id: "error", name: `API Error: ${errData?.error?.message || "Unknown error"}` }], 
-            source: "api_error" 
-          });
-        }
-        break; // Return what we have so far
-      }
-      const json = await res.json();
-      if (json.data) allData = allData.concat(json.data);
-      nextUrl = json.paging?.next || null;
+    if (error && allData.length === 0) {
+      return NextResponse.json({
+        data: [],
+        source: "api_error",
+        error,
+      });
     }
-    
-    // Map Meta API fields to the format expected by the app
+
     const accounts = allData.map((acc: any) => {
       const portfolioName = acc.business?.name || "Sin Portafolio Comercial";
-
       return {
         id: acc.id,
         name: acc.name ? `${acc.name} — ${acc.id}` : `Ad Account ${acc.account_id} — ${acc.id}`,

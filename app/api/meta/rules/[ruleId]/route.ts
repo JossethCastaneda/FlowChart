@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 // POST — Update a rule
 export async function POST(req: NextRequest, { params }: { params: Promise<{ ruleId: string }> }) {
@@ -12,10 +12,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ rul
 
   try {
     const body = await req.json();
-    const url = `https://graph.facebook.com/${version}/${ruleId}?access_token=${token}`;
-    const res = await fetch(url, {
+    const url = `https://graph.facebook.com/${version}/${ruleId}`;
+    const res = await metaFetch(url, token, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
     const json = await res.json();
@@ -38,8 +37,8 @@ export async function DELETE(req: NextRequest, { params }: { params: Promise<{ r
   const version = process.env.META_API_VERSION || "v22.0";
 
   try {
-    const url = `https://graph.facebook.com/${version}/${ruleId}?access_token=${token}`;
-    const res = await fetch(url, { method: "DELETE" });
+    const url = `https://graph.facebook.com/${version}/${ruleId}`;
+    const res = await metaFetch(url, token, { method: "DELETE" });
     const json = await res.json();
     if (!res.ok) {
       return NextResponse.json({ error: json.error?.message || "Error deleting rule" }, { status: res.status });

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req);
@@ -34,9 +34,9 @@ export async function GET(req: NextRequest) {
     // 1. Fetch ads with full creative details
     const creativeFields = "id,name,thumbnail_url,image_url,title,body,object_story_spec,call_to_action_type,effective_object_story_id,image_hash";
     const fields = `id,name,status,effective_status,adset_id,campaign_id,creative{${creativeFields}}`;
-    const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?access_token=${token}&fields=${fields}&limit=150`;
+    const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?fields=${fields}&limit=150`;
     
-    const adsRes = await fetch(adsUrl);
+    const adsRes = await metaFetch(adsUrl, token);
     if (!adsRes.ok) {
       const err = await adsRes.json().catch(() => ({}));
       return NextResponse.json({ error: err?.error?.message || "Failed to fetch ads" }, { status: adsRes.status });
@@ -46,9 +46,9 @@ export async function GET(req: NextRequest) {
 
     // 2. Fetch insights
     const insightsFields = "ad_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,quality_ranking,engagement_rate_ranking,conversion_rate_ranking,action_values,purchase_roas,video_p25_watched_actions,video_p100_watched_actions";
-    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?access_token=${token}${timeRange}&level=ad&fields=${insightsFields}&limit=150`;
+    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=ad&fields=${insightsFields}&limit=150`;
     
-    const insightsRes = await fetch(insightsUrl);
+    const insightsRes = await metaFetch(insightsUrl, token);
     let insights: any[] = [];
     if (insightsRes.ok) {
       const insightsJson = await insightsRes.json();
@@ -109,10 +109,9 @@ export async function POST(req: NextRequest) {
     let creativeId: string | undefined;
     if (creative && adAccountId) {
       const actId = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
-      const creativeUrl = `https://graph.facebook.com/${version}/${actId}/adcreatives?access_token=${token}`;
-      const creativeRes = await fetch(creativeUrl, {
+      const creativeUrl = `https://graph.facebook.com/${version}/${actId}/adcreatives`;
+      const creativeRes = await metaFetch(creativeUrl, token, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(creative),
       });
       const creativeJson = await creativeRes.json();
@@ -123,15 +122,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Update the ad
-    const updateUrl = `https://graph.facebook.com/${version}/${adId}?access_token=${token}`;
+    const updateUrl = `https://graph.facebook.com/${version}/${adId}`;
     const updateFields: any = {};
     if (status !== undefined) updateFields.status = status;
     if (name !== undefined) updateFields.name = name;
     if (creativeId) updateFields.creative = { creative_id: creativeId };
 
-    const res = await fetch(updateUrl, {
+    const res = await metaFetch(updateUrl, token, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updateFields),
     });
 

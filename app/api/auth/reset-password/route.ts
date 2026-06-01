@@ -20,50 +20,47 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Buscar token válido
-    const verification = await prisma.verificationToken.findUnique({
-      where: { token },
+    // Wrap in transaction to prevent race conditions (two requests using same token)
+    const result = await prisma.$transaction(async (tx) => {
+      const verification = await tx.verificationToken.findUnique({
+        where: { token },
+      });
+
+      if (!verification) {
+        return { error: "Token inválido o expirado", status: 400 };
+      }
+
+      if (verification.expires < new Date()) {
+        await tx.verificationToken.delete({ where: { token } });
+        return { error: "El enlace ha expirado. Solicita uno nuevo.", status: 410 };
+      }
+
+      const user = await tx.user.findUnique({
+        where: { email: verification.identifier },
+      });
+
+      if (!user) {
+        return { error: "Usuario no encontrado", status: 404 };
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 12);
+      await tx.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword },
+      });
+
+      await tx.verificationToken.delete({ where: { token } });
+
+      console.log("[RESET-PASSWORD] Password updated for:", user.email);
+      return { success: true };
     });
 
-    if (!verification) {
+    if ("error" in result) {
       return NextResponse.json(
-        { error: "Token inválido o expirado" },
-        { status: 400 }
+        { error: result.error },
+        { status: result.status }
       );
     }
-
-    if (verification.expires < new Date()) {
-      // Limpiar token expirado
-      await prisma.verificationToken.delete({ where: { token } });
-      return NextResponse.json(
-        { error: "El enlace ha expirado. Solicita uno nuevo." },
-        { status: 410 }
-      );
-    }
-
-    // Buscar usuario
-    const user = await prisma.user.findUnique({
-      where: { email: verification.identifier },
-    });
-
-    if (!user) {
-      return NextResponse.json(
-        { error: "Usuario no encontrado" },
-        { status: 404 }
-      );
-    }
-
-    // Actualizar password
-    const hashedPassword = await bcrypt.hash(password, 12);
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { password: hashedPassword },
-    });
-
-    // Eliminar token usado
-    await prisma.verificationToken.delete({ where: { token } });
-
-    console.log("[RESET-PASSWORD] Password updated for:", user.email);
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

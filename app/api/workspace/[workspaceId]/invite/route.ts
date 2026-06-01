@@ -108,14 +108,18 @@ export async function POST(
         };
 
         if (templateId) {
-          emailPayload.template_id = templateId;
-          emailPayload.template_data = {
-            INVITER_NAME: session.user.name || "Un administrador",
-            WORKSPACE_NAME: invite.workspace.name,
-            ROLE: role,
-            INVITE_URL: inviteUrl,
+          // Resend API requires "template" object, NOT "template_id"
+          emailPayload.template = {
+            id: templateId,
+            variables: {
+              INVITER_NAME: session.user.name || "Un administrador",
+              WORKSPACE_NAME: invite.workspace.name,
+              ROLE: role,
+              INVITE_URL: inviteUrl,
+            },
           };
         } else {
+          // Fallback: inline HTML (no template)
           emailPayload.subject = `Te invitaron a ${invite.workspace.name} — SODARE`;
           emailPayload.html = `
             <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 32px; background: #030508; color: #e2e8f0; border-radius: 12px;">
@@ -125,9 +129,12 @@ export async function POST(
                 Aceptar invitación →
               </a>
               <p style="font-size: 12px; color: #64748b; margin-top: 24px;">Esta invitación expira en 7 días.</p>
+              <p style="font-size: 11px; color: #475569; margin-top: 12px;">Si el botón no funciona, copia este enlace: <span style="color: #00f0ff;">${inviteUrl}</span></p>
             </div>
           `;
         }
+
+        console.log(`[INVITE] Sending email to ${email} from ${fromEmail} (template: ${templateId || 'inline'})`);
 
         const emailRes = await fetch("https://api.resend.com/emails", {
           method: "POST",
@@ -138,15 +145,18 @@ export async function POST(
           body: JSON.stringify(emailPayload),
         });
 
+        const emailResBody = await emailRes.text();
         if (emailRes.ok) {
           emailSent = true;
-          console.log(`[INVITE] Email sent to ${email}`);
+          console.log(`[INVITE] Email sent to ${email} — response: ${emailResBody}`);
         } else {
-          console.error("[INVITE] Email error:", await emailRes.text());
+          console.error(`[INVITE] Email FAILED (${emailRes.status}): ${emailResBody}`);
         }
       } catch (emailErr) {
-        console.error("[INVITE] Email send error:", emailErr);
+        console.error("[INVITE] Email send exception:", emailErr);
       }
+    } else {
+      console.warn("[INVITE] RESEND_API_KEY not configured — email not sent");
     }
 
     console.log(`[INVITE] ${email} → ${inviteUrl} (emailSent: ${emailSent})`);

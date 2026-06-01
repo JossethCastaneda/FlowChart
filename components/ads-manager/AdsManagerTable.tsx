@@ -37,7 +37,7 @@ const fmtDec = (n: number) => n.toFixed(2);
 // ── Sticky column layout ─────────────────────────────────────────────────────
 const CHECKBOX_W = 44;
 const STATUS_W   = 56;
-const NAME_W_DEFAULT = 280;
+const NAME_W_DEFAULT = 340;
 const DELIVERY_W = 120;
 const BUDGET_W   = 150;
 const BID_W      = 120;
@@ -563,47 +563,101 @@ export function AdsManagerTable({
                     {/* ── FROZEN: Name ── */}
                     {showName && (
                       <td data-frozen style={tdFrozen(L_NAME, nameW, rowBg, isLastFrozen("name"))} onClick={e => e.stopPropagation()}>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                            <InlineEditor
-                              value={row.name}
-                              onSave={name => onUpdateName(row.id, name as string)}
-                            />
-                            {onEdit && (
-                              <button
-                                onClick={() => onEdit(row)}
-                                title="Editar en detalle"
-                                style={{
-                                  display: "flex", alignItems: "center", justifyContent: "center",
-                                  width: 20, height: 20,
-                                  background: "rgba(0,129,251,0.12)",
-                                  border: "1px solid rgba(0,212,255,0.2)",
-                                  borderRadius: 4,
-                                  cursor: "pointer",
-                                  color: "var(--cyan)",
-                                  padding: 0,
-                                  flexShrink: 0,
-                                  transition: "all 0.15s",
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,129,251,0.25)"; }}
-                                onMouseLeave={e => { e.currentTarget.style.background = "rgba(0,129,251,0.12)"; }}
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          {/* ── Ad Creative Preview (ads level only) ── */}
+                          {level === "ads" && (() => {
+                            const creative = row.creative || {};
+                            const thumbUrl = creative.thumbnail_url || creative.image_url || null;
+                            if (!thumbUrl) return (
+                              <div style={{
+                                width: 44, height: 44, minWidth: 44, borderRadius: 6,
+                                background: "rgba(30,40,60,0.8)",
+                                border: "1px solid rgba(100,120,150,0.15)",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 8, color: "rgba(148,163,184,0.3)",
+                                fontWeight: 600, letterSpacing: "0.05em",
+                              }}>
+                                AD
+                              </div>
+                            );
+                            return (
+                              <div style={{ position: "relative", flexShrink: 0 }} className="ad-thumb-wrap">
+                                <img
+                                  src={thumbUrl}
+                                  alt={row.name || "Ad preview"}
+                                  loading="lazy"
+                                  style={{
+                                    width: 44, height: 44, borderRadius: 6,
+                                    objectFit: "cover",
+                                    border: "1px solid rgba(100,120,150,0.2)",
+                                    transition: "transform 0.2s, box-shadow 0.2s",
+                                    cursor: "zoom-in",
+                                  }}
+                                  onError={e => {
+                                    (e.target as HTMLImageElement).style.display = "none";
+                                  }}
+                                  onMouseEnter={e => {
+                                    const img = e.currentTarget;
+                                    img.style.transform = "scale(3.5)";
+                                    img.style.zIndex = "100";
+                                    img.style.position = "relative";
+                                    img.style.boxShadow = "0 8px 32px rgba(0,0,0,0.8)";
+                                    img.style.borderRadius = "8px";
+                                  }}
+                                  onMouseLeave={e => {
+                                    const img = e.currentTarget;
+                                    img.style.transform = "scale(1)";
+                                    img.style.zIndex = "auto";
+                                    img.style.position = "static";
+                                    img.style.boxShadow = "none";
+                                    img.style.borderRadius = "6px";
+                                  }}
+                                />
+                              </div>
+                            );
+                          })()}
+                          <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 0, overflow: "hidden" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                              <InlineEditor
+                                value={row.name}
+                                onSave={name => onUpdateName(row.id, name as string)}
+                              />
+                              {onEdit && (
+                                <button
+                                  onClick={() => onEdit(row)}
+                                  title="Editar en detalle"
+                                  style={{
+                                    display: "flex", alignItems: "center", justifyContent: "center",
+                                    width: 20, height: 20,
+                                    background: "rgba(0,129,251,0.12)",
+                                    border: "1px solid rgba(0,212,255,0.2)",
+                                    borderRadius: 4,
+                                    cursor: "pointer",
+                                    color: "var(--cyan)",
+                                    padding: 0,
+                                    flexShrink: 0,
+                                    transition: "all 0.15s",
+                                  }}
+                                  onMouseEnter={e => { e.currentTarget.style.background = "rgba(0,129,251,0.25)"; }}
+                                  onMouseLeave={e => { e.currentTarget.style.background = "rgba(0,129,251,0.12)"; }}
+                                >
+                                  <Pencil style={{ width: 10, height: 10 }} />
+                                </button>
+                              )}
+                            </div>
+                            <span style={{ fontSize: 9, color: "rgba(148,163,184,0.4)", display: "flex", alignItems: "center", gap: 4 }}>
+                              ID: {row.id}{" "}
+                              <a
+                                href={`https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${row.campaign_id || row.id}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                style={{ display: "inline-flex", alignItems: "center", color: "var(--cyan)" }}
+                                onClick={e => e.stopPropagation()}
                               >
-                                <Pencil style={{ width: 10, height: 10 }} />
-                              </button>
-                            )}
+                                <ExternalLink className="w-2.5 h-2.5" />
+                              </a>
+                            </span>
                           </div>
-                          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.4)", display: "flex", alignItems: "center", gap: 4 }}>
-                            ID: {row.id}{" "}
-                            <a
-                              href={`https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${row.campaign_id || row.id}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              style={{ display: "inline-flex", alignItems: "center", color: "var(--cyan)" }}
-                              onClick={e => e.stopPropagation()}
-                            >
-                              <ExternalLink className="w-2.5 h-2.5" />
-                            </a>
-                          </span>
                         </div>
                       </td>
                     )}

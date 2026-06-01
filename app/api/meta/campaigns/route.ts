@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req);
@@ -33,9 +33,9 @@ export async function GET(req: NextRequest) {
   try {
     // 1. Fetch campaigns details
     const fields = "id,name,status,effective_status,objective,daily_budget,lifetime_budget,budget_remaining,bid_strategy,special_ad_categories,buying_type,smart_promotion_type,start_time,stop_time,created_time,updated_time";
-    const campaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/campaigns?access_token=${token}&fields=${fields}&limit=150`;
+    const campaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/campaigns?fields=${fields}&limit=150`;
     
-    const campaignsRes = await fetch(campaignsUrl);
+    const campaignsRes = await metaFetch(campaignsUrl, token);
     if (!campaignsRes.ok) {
       const err = await campaignsRes.json().catch(() => ({}));
       return NextResponse.json({ error: err?.error?.message || "Failed to fetch campaigns" }, { status: campaignsRes.status });
@@ -45,9 +45,9 @@ export async function GET(req: NextRequest) {
 
     // 2. Fetch insights
     const insightsFields = "campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions";
-    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?access_token=${token}${timeRange}&level=campaign&fields=${insightsFields}&limit=150`;
+    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=campaign&fields=${insightsFields}&limit=150`;
     
-    const insightsRes = await fetch(insightsUrl);
+    const insightsRes = await metaFetch(insightsUrl, token);
     let insights: any[] = [];
     if (insightsRes.ok) {
       const insightsJson = await insightsRes.json();
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 
     const token = accessToken;
     const version = process.env.META_API_VERSION || "v22.0";
-    const updateUrl = `https://graph.facebook.com/${version}/${campaignId}?access_token=${token}`;
+    const updateUrl = `https://graph.facebook.com/${version}/${campaignId}`;
 
     const updateFields: any = {};
     if (status !== undefined) updateFields.status = status;
@@ -113,9 +113,8 @@ export async function POST(req: NextRequest) {
     if (bid_strategy !== undefined) updateFields.bid_strategy = bid_strategy;
     if (special_ad_categories !== undefined) updateFields.special_ad_categories = special_ad_categories;
 
-    const res = await fetch(updateUrl, {
+    const res = await metaFetch(updateUrl, token, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updateFields),
     });
 

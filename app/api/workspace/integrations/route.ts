@@ -34,10 +34,16 @@ export async function GET() {
 
     const integrations = await prisma.integration.findMany({
       where: { workspaceId },
-      include: {
+      select: {
+        id: true,
+        provider: true,
+        connected: true,
+        connectedAt: true,
+        connectedBy: true,
         connectedUser: {
           select: { id: true, name: true, image: true },
         },
+        // NEVER select credentials — contains access tokens
       },
     });
 

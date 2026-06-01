@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req);
@@ -33,9 +33,9 @@ export async function GET(req: NextRequest) {
   try {
     // 1. Fetch adsets details (full targeting included)
     const fields = "id,name,status,effective_status,daily_budget,lifetime_budget,bid_amount,bid_strategy,targeting,start_time,end_time,optimization_goal,billing_event,campaign_id,promoted_object,learning_phase_info,attribution_spec";
-    const adsetsUrl = `https://graph.facebook.com/${version}/${adAccountId}/adsets?access_token=${token}&fields=${fields}&limit=150`;
+    const adsetsUrl = `https://graph.facebook.com/${version}/${adAccountId}/adsets?fields=${fields}&limit=150`;
     
-    const adsetsRes = await fetch(adsetsUrl);
+    const adsetsRes = await metaFetch(adsetsUrl, token);
     if (!adsetsRes.ok) {
       const err = await adsetsRes.json().catch(() => ({}));
       return NextResponse.json({ error: err?.error?.message || "Failed to fetch adsets" }, { status: adsetsRes.status });
@@ -45,9 +45,9 @@ export async function GET(req: NextRequest) {
 
     // 2. Fetch insights
     const insightsFields = "adset_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas";
-    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?access_token=${token}${timeRange}&level=adset&fields=${insightsFields}&limit=150`;
+    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=adset&fields=${insightsFields}&limit=150`;
     
-    const insightsRes = await fetch(insightsUrl);
+    const insightsRes = await metaFetch(insightsUrl, token);
     let insights: any[] = [];
     if (insightsRes.ok) {
       const insightsJson = await insightsRes.json();
@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 
     const token = accessToken;
     const version = process.env.META_API_VERSION || "v22.0";
-    const updateUrl = `https://graph.facebook.com/${version}/${adsetId}?access_token=${token}`;
+    const updateUrl = `https://graph.facebook.com/${version}/${adsetId}`;
 
     const updateFields: any = {};
     if (status !== undefined) updateFields.status = status;
@@ -117,9 +117,8 @@ export async function POST(req: NextRequest) {
     if (end_time !== undefined) updateFields.end_time = end_time;
     if (targeting !== undefined) updateFields.targeting = targeting; // Must be full object
 
-    const res = await fetch(updateUrl, {
+    const res = await metaFetch(updateUrl, token, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
       body: JSON.stringify(updateFields),
     });
 
