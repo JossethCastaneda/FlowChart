@@ -384,7 +384,8 @@ export default function ProjectDashboardPage() {
           onCustomRange={(s: string, e: string) => { setDatePreset("custom"); setDateStart(s); setDateEnd(e); setBreakdownData({}); }} />
       </div>
 
-      {/* ── KPIs ── */}
+      {/* ── KPIs ── (hidden on Ads Manager tab) */}
+      {activeTab !== "ads" && (
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-3" style={{ position: "relative" }}>
         {isLoading && <LoadingOverlay />}
         <KpiBox title="Inversión" value={fmtMXN0(totalSpend)} sub={`de ${fmtMXN0(budgetNum)} (${bk.label})`} icon={<DollarSign style={{ width: 16, height: 16 }} />} color="amber" progress={spendProgress} />
@@ -393,6 +394,7 @@ export default function ProjectDashboardPage() {
         <KpiBox title="CTR" value={pct(ctr)} sub="Click-through rate" icon={<Eye style={{ width: 16, height: 16 }} />} color="purple" />
         <KpiBox title="ROAS" value={`${roas.toFixed(1)}x`} sub="Return on ad spend" icon={<TrendingUp style={{ width: 16, height: 16 }} />} color="#7b61ff" />
       </div>
+      )}
 
       {/* ── TABS + PLATFORM SELECTOR ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: 12 }}>
@@ -1043,9 +1045,9 @@ export default function ProjectDashboardPage() {
         const tCpc = tClicks > 0 ? tSpend / tClicks : 0;
 
         return (
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            {/* Compact Toolbar */}
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 0 6px", gap: 8 }}>
+          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 200px)" }}>
+            {/* Compact Toolbar - fixed top */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "0 0 6px", gap: 8, flexShrink: 0 }}>
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {([["CMP", campaigns.length, "#00d4ff"], ["ADSETS", adsets.length, "#7b61ff"], ["ADS", ads.length, "#fdab3d"]] as [string, number, string][]).map(([l, v, c]) => (
                   <div key={l} style={{ display: "flex", gap: 4, alignItems: "center" }}>
@@ -1059,10 +1061,11 @@ export default function ProjectDashboardPage() {
                 <button onClick={() => setExpandedRows(new Set())} style={{ fontSize: 8, color: "rgba(148,163,184,0.4)", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", padding: "3px 8px", borderRadius: 3, cursor: "pointer" }}>Colapsar</button>
               </div>
             </div>
-            {/* Table */}
-            <div style={{ background: "#0b0f1e", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 6, overflow: "hidden", position: "relative", display: "flex", flexDirection: "column" }}>
+            {/* Table container - fills remaining space */}
+            <div style={{ background: "#0b0f1e", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 6, overflow: "hidden", position: "relative", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
               {isLoading && <LoadingOverlay />}
-              <div style={{ overflow: "auto", maxHeight: "calc(100vh - 340px)", flex: 1 }}>
+              {/* Scrollable body */}
+              <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1000 }}>
                   <colgroup>{colW}</colgroup>
                   <thead style={{ position: "sticky", top: 0, zIndex: 5, background: "#0b0f1e" }}>
@@ -1078,7 +1081,7 @@ export default function ProjectDashboardPage() {
                   </tbody>
                 </table>
               </div>
-              {/* Sticky Totals */}
+              {/* TOTAL row - always visible at bottom */}
               {campaigns.length > 0 && (
                 <div style={{ borderTop: "1px solid rgba(0,212,255,0.12)", background: "#0d1225", flexShrink: 0 }}>
                   <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1000 }}>
@@ -1086,6 +1089,7 @@ export default function ProjectDashboardPage() {
                     <tbody><tr>
                       <td style={{ ...tfS, position: "sticky", left: 0, zIndex: 3, background: "#0d1225", textAlign: "left", borderRight: "1px solid rgba(255,255,255,0.03)", paddingLeft: 8 }}>
                         <span style={{ fontSize: 8, fontWeight: 800, color: "#00d4ff", letterSpacing: "0.1em" }}>TOTAL</span>
+                        <span style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", marginLeft: 8 }}>{campaigns.length} campañas</span>
                       </td>
                       <td style={tfS}>{fmtMXN0(tSpend)}</td>
                       <td style={{ ...tfS, color: "#00c875" }}>{fmtNum(tResults)}</td>
