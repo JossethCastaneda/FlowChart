@@ -1,5 +1,10 @@
+"use client";
+
+import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Settings, CheckCircle, XCircle } from "lucide-react";
+import {
+  Settings, CheckCircle, XCircle, Loader2, Shield, User,
+} from "lucide-react";
 
 /* ─── Official Platform SVG Icons ─── */
 const MetaIcon = () => (
@@ -55,65 +60,73 @@ const AIEngineIcon = () => (
   </svg>
 );
 
+// Platform config with metadata
+const PLATFORMS = [
+  { provider: "meta", name: "Meta Ads", description: "Campaigns, Ad Sets, Pixel CAPI, Audiences", Icon: MetaIcon, gradient: "linear-gradient(135deg, #0064E0, #0081FB)" },
+  { provider: "instagram", name: "Instagram", description: "Feed, Stories, Reels, Insights API", Icon: InstagramIcon, gradient: "linear-gradient(135deg, #833AB4, #E1306C, #F77737)" },
+  { provider: "whatsapp", name: "WhatsApp Business", description: "API Cloud, Templates, Webhooks", Icon: WhatsAppIcon, gradient: "linear-gradient(135deg, #075E54, #25D366)" },
+  { provider: "google_ads", name: "Google Ads", description: "Search, Display, YouTube, PMax", Icon: GoogleAdsIcon, gradient: "linear-gradient(135deg, #185ABC, #4285F4)" },
+  { provider: "tiktok", name: "TikTok Ads", description: "In-Feed, TopView, Spark Ads, Pixel", Icon: TikTokIcon, gradient: "linear-gradient(135deg, #1a1a2e, #000000)" },
+  { provider: "ai_engine", name: "AI Engine", description: "Creative generation, Copy, Audience prediction", Icon: AIEngineIcon, gradient: "linear-gradient(135deg, #5B21B6, #7C3AED)" },
+  { provider: "ga4", name: "GA4 Analytics", description: "Events, Conversions, Attribution, UTM tracking", Icon: GA4Icon, gradient: "linear-gradient(135deg, #E37400, #F9AB00)" },
+  { provider: "hubspot", name: "HubSpot", description: "Email automation, Drip campaigns, CRM sync", Icon: HubSpotIcon, gradient: "linear-gradient(135deg, #FF5C35, #FF7A59)" },
+];
+
+interface IntegrationData {
+  id: string;
+  provider: string;
+  connected: boolean;
+  connectedAt: string | null;
+  connectedBy: { id: string; name: string | null; image: string | null } | null;
+  canDisconnect: boolean;
+}
+
 export default function IntegrationsPage() {
-  const integrations = [
-    {
-      name: "Meta Ads",
-      description: "Campaigns, Ad Sets, Pixel CAPI, Audiences",
-      Icon: MetaIcon,
-      connected: true,
-      gradient: "linear-gradient(135deg, #0064E0, #0081FB)",
-    },
-    {
-      name: "Instagram",
-      description: "Feed, Stories, Reels, Insights API",
-      Icon: InstagramIcon,
-      connected: false,
-      gradient: "linear-gradient(135deg, #833AB4, #E1306C, #F77737)",
-    },
-    {
-      name: "WhatsApp Business",
-      description: "API Cloud, Templates, Webhooks",
-      Icon: WhatsAppIcon,
-      connected: false,
-      gradient: "linear-gradient(135deg, #075E54, #25D366)",
-    },
-    {
-      name: "Google Ads",
-      description: "SEM, Display, YouTube Ads, Smart Bidding",
-      Icon: GoogleAdsIcon,
-      connected: false,
-      gradient: "linear-gradient(135deg, #1a73e8, #4285F4)",
-    },
-    {
-      name: "TikTok Ads",
-      description: "Spark Ads, Lead Gen, Pixel, Audiences",
-      Icon: TikTokIcon,
-      connected: false,
-      gradient: "linear-gradient(135deg, #010101, #25F4EE)",
-    },
-    {
-      name: "AI Engine",
-      description: "Copy generation, A/B variants, SEO assist",
-      Icon: AIEngineIcon,
-      connected: false,
-      gradient: "linear-gradient(135deg, #5B21B6, #7C3AED)",
-    },
-    {
-      name: "GA4 Analytics",
-      description: "Events, Conversions, Attribution, UTM tracking",
-      Icon: GA4Icon,
-      connected: false,
-      gradient: "linear-gradient(135deg, #E37400, #F9AB00)",
-    },
-    {
-      name: "HubSpot",
-      description: "Email automation, Drip campaigns, CRM sync",
-      Icon: HubSpotIcon,
-      connected: false,
-      gradient: "linear-gradient(135deg, #FF5C35, #FF7A59)",
-    },
-  ];
+  const [integrations, setIntegrations] = useState<IntegrationData[]>([]);
+  const [userRole, setUserRole] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+  const [disconnecting, setDisconnecting] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/workspace/integrations")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.data) setIntegrations(res.data);
+        if (res.userRole) setUserRole(res.userRole);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, []);
+
+  async function handleDisconnect(provider: string) {
+    if (!confirm("¿Estás seguro de desconectar esta integración?")) return;
+    setDisconnecting(provider);
+    const res = await fetch("/api/workspace/integrations", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider }),
+    });
+    const data = await res.json();
+    if (res.ok) {
+      setIntegrations((prev) =>
+        prev.map((i) =>
+          i.provider === provider
+            ? { ...i, connected: false, connectedBy: null, connectedAt: null, canDisconnect: false }
+            : i
+        )
+      );
+    } else {
+      alert(data.error || "Error al desconectar");
+    }
+    setDisconnecting(null);
+  }
+
+  // Merge DB data with platform config
+  function getPlatformState(provider: string) {
+    return integrations.find((i) => i.provider === provider) || null;
+  }
+
+  const connectedCount = PLATFORMS.filter((p) => getPlatformState(p.provider)?.connected).length;
 
   return (
     <div className="space-y-6">
@@ -127,63 +140,115 @@ export default function IntegrationsPage() {
       <div className="glass-panel" style={{ padding: "14px 24px", display: "flex", alignItems: "center", gap: "10px", borderLeft: "2px solid var(--cyan)" }}>
         <CheckCircle className="w-4 h-4" style={{ color: "var(--cyan)" }} />
         <span style={{ fontSize: "12px", color: "#e2e8f0", fontWeight: 500 }}>
-          {integrations.filter((i) => i.connected).length} de {integrations.length} plataformas conectadas
+          {loading ? "..." : connectedCount} de {PLATFORMS.length} plataformas conectadas
         </span>
-        <span className="badge badge-amber" style={{ marginLeft: "auto" }}>Setup requerido</span>
+        {connectedCount < PLATFORMS.length && (
+          <span className="badge badge-amber" style={{ marginLeft: "auto" }}>Setup requerido</span>
+        )}
       </div>
 
       {/* Integration Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {integrations.map((integration, i) => (
-          <div key={i} className="glass-panel" style={{ overflow: "hidden" }}>
-            {/* Header with brand gradient + official logo */}
-            <div style={{
-              background: integration.gradient,
-              padding: "20px 16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}>
-              <div className="flex items-center gap-3">
-                <div style={{
-                  width: "36px",
-                  height: "36px",
-                  background: "rgba(255,255,255,0.15)",
-                  backdropFilter: "blur(8px)",
-                  borderRadius: "8px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}>
-                  <integration.Icon />
+        {PLATFORMS.map((platform) => {
+          const state = getPlatformState(platform.provider);
+          const isConnected = state?.connected || false;
+          const canDisconnect = state?.canDisconnect || false;
+          const connectedByUser = state?.connectedBy;
+          const isDisconnecting = disconnecting === platform.provider;
+
+          return (
+            <div key={platform.provider} className="glass-panel" style={{ overflow: "hidden" }}>
+              {/* Header with brand gradient + official logo */}
+              <div style={{
+                background: platform.gradient,
+                padding: "20px 16px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}>
+                <div className="flex items-center gap-3">
+                  <div style={{
+                    width: "36px", height: "36px",
+                    background: "rgba(255,255,255,0.15)",
+                    backdropFilter: "blur(8px)",
+                    borderRadius: "8px",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    flexShrink: 0,
+                  }}>
+                    <platform.Icon />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: "12px", fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>{platform.name}</p>
+                    <p style={{ fontSize: "9px", color: "rgba(255,255,255,0.6)", letterSpacing: "0.03em", marginTop: "2px" }}>{platform.description}</p>
+                  </div>
                 </div>
-                <div>
-                  <p style={{ fontSize: "12px", fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>{integration.name}</p>
-                  <p style={{ fontSize: "9px", color: "rgba(255,255,255,0.6)", letterSpacing: "0.03em", marginTop: "2px" }}>{integration.description}</p>
+                {isConnected ? (
+                  <CheckCircle className="w-5 h-5 flex-shrink-0" style={{ color: "#a7f3d0" }} />
+                ) : (
+                  <XCircle className="w-5 h-5 flex-shrink-0" style={{ color: "rgba(255,255,255,0.25)" }} />
+                )}
+              </div>
+
+              {/* Footer */}
+              <div style={{ padding: "12px 16px" }}>
+                {/* Connected by info */}
+                {isConnected && connectedByUser && (
+                  <div style={{
+                    display: "flex", alignItems: "center", gap: "6px",
+                    marginBottom: "10px", fontSize: "10px",
+                    color: "rgba(148,163,184,0.5)",
+                  }}>
+                    <User style={{ width: 10, height: 10 }} />
+                    <span>Conectado por {connectedByUser.name || "Usuario"}</span>
+                  </div>
+                )}
+
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span className={`badge ${isConnected ? "badge-emerald" : "badge-muted"}`}>
+                    {isConnected ? "Live" : "Offline"}
+                  </span>
+
+                  {isConnected ? (
+                    canDisconnect ? (
+                      <button
+                        className="btn-primary"
+                        disabled={isDisconnecting}
+                        onClick={() => handleDisconnect(platform.provider)}
+                        style={{
+                          fontSize: "9px", padding: "4px 12px",
+                          borderColor: "rgba(255,45,85,0.3)",
+                          color: "var(--red)",
+                          opacity: isDisconnecting ? 0.5 : 1,
+                        }}
+                      >
+                        {isDisconnecting ? (
+                          <Loader2 style={{ width: 12, height: 12, animation: "spin 1s linear infinite" }} />
+                        ) : "Disconnect"}
+                      </button>
+                    ) : (
+                      <div style={{
+                        display: "flex", alignItems: "center", gap: "4px",
+                        fontSize: "9px", color: "rgba(148,163,184,0.35)",
+                        padding: "4px 8px",
+                        border: "1px solid rgba(148,163,184,0.1)",
+                      }}>
+                        <Shield style={{ width: 10, height: 10 }} />
+                        <span>Protegido</span>
+                      </div>
+                    )
+                  ) : (
+                    <button
+                      className="btn-primary"
+                      style={{ fontSize: "9px", padding: "4px 12px" }}
+                    >
+                      Connect
+                    </button>
+                  )}
                 </div>
               </div>
-              {integration.connected ? (
-                <CheckCircle className="w-5 h-5 flex-shrink-0" style={{ color: "#a7f3d0" }} />
-              ) : (
-                <XCircle className="w-5 h-5 flex-shrink-0" style={{ color: "rgba(255,255,255,0.25)" }} />
-              )}
             </div>
-            {/* Footer */}
-            <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <span className={`badge ${integration.connected ? "badge-emerald" : "badge-muted"}`}>
-                {integration.connected ? "Live" : "Offline"}
-              </span>
-              <button className="btn-primary" style={{
-                fontSize: "9px",
-                padding: "4px 12px",
-                ...(integration.connected ? { borderColor: "rgba(255,45,85,0.3)", color: "var(--red)" } : {}),
-              }}>
-                {integration.connected ? "Disconnect" : "Connect"}
-              </button>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* Webhooks section */}
