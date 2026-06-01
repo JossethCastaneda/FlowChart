@@ -493,6 +493,7 @@ export default function ProyectosPage() {
   const [modalMode, setModalMode] = useState<"closed" | "create" | "edit" | "view">("closed");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
 
   const [adAccounts, setAdAccounts] = useState<Record<string, { id: string; name: string; portfolio?: string }[]>>({
     meta: [],
@@ -626,7 +627,7 @@ export default function ProyectosPage() {
       </div>
 
       {/* List */}
-      <div className="glass-panel">
+      <div className="glass-panel" style={{ overflow: "visible" }}>
         <div className="section-header">
           <span className="section-title">Todos los Proyectos</span>
           <span className="badge badge-emerald">{projects.length}</span>
@@ -654,39 +655,45 @@ export default function ProyectosPage() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              {/* Channel pills */}
               {p.channels.slice(0, 3).map(c => {
                 const pl = PLATFORMS.find(x => x.id === c.platformId);
                 return <span key={c.platformId} style={{ fontSize: "9px", padding: "2px 6px", border: `1px solid ${pl?.color || "var(--border)"}`, color: pl?.color || "#94a3b8", fontWeight: 600, letterSpacing: "0.05em" }}>{c.platformName}</span>;
               })}
               {p.channels.length > 3 && <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.3)" }}>+{p.channels.length - 3}</span>}
               <span className={`badge badge-${STATUS_COLORS[p.status]}`}>{p.status}</span>
-
-              <div style={{ position: "relative" }}>
-                <button onClick={() => setMenuOpen(menuOpen === p.id ? null : p.id)}
-                  style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.3)", padding: "4px" }}>
-                  <MoreHorizontal className="w-4 h-4" />
-                </button>
-                {menuOpen === p.id && (
-                  <div style={{ position: "absolute", right: 0, top: "100%", zIndex: 50, background: "rgba(5,8,18,0.97)", border: "1px solid var(--border)", minWidth: "160px", padding: "4px 0" }}>
-                    <MenuBtn icon={<Eye className="w-3.5 h-3.5" />} text="Abrir Dashboard" onClick={() => { router.push(`/dashboard/proyectos/${p.id}`); setMenuOpen(null); }} />
-                    <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Ajustes Rápidos" onClick={() => { setEditingId(p.id); setModalMode("edit"); setMenuOpen(null); }} />
-                    <div style={{ height: "1px", background: "var(--border)", margin: "4px 0" }} />
-                    {STATUSES.filter(s => s !== p.status).map(s => (
-                      <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "Activo" ? "var(--emerald)" : s === "Pausado" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.3)" }} />}
-                        text={`→ ${s}`} onClick={() => handleStatusChange(p.id, s)} />
-                    ))}
-                    <div style={{ height: "1px", background: "var(--border)", margin: "4px 0" }} />
-                    <MenuBtn icon={<Trash2 className="w-3.5 h-3.5" />} text="Eliminar" onClick={() => handleDelete(p.id)} danger />
-                  </div>
-                )}
-              </div>
+              <button onClick={(e) => {
+                e.stopPropagation();
+                if (menuOpen === p.id) { setMenuOpen(null); return; }
+                const rect = e.currentTarget.getBoundingClientRect();
+                setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                setMenuOpen(p.id);
+              }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.3)", padding: "4px" }}>
+                <MoreHorizontal className="w-4 h-4" />
+              </button>
             </div>
           </div>
         ))}
       </div>
 
-      {menuOpen && <div style={{ position: "fixed", inset: 0, zIndex: 40 }} onClick={() => setMenuOpen(null)} />}
+      {/* Context Menu Portal */}
+      {menuOpen && createPortal(
+        <>
+          <div style={{ position: "fixed", inset: 0, zIndex: 9990 }} onClick={() => setMenuOpen(null)} />
+          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "rgba(5,8,18,0.98)", border: "1px solid rgba(0,212,255,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0", backdropFilter: "blur(12px)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+            <MenuBtn icon={<Eye className="w-3.5 h-3.5" />} text="Abrir Dashboard" onClick={() => { router.push(`/dashboard/proyectos/${menuOpen}`); setMenuOpen(null); }} />
+            <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Editar Proyecto" onClick={() => { setEditingId(menuOpen); setModalMode("edit"); setMenuOpen(null); }} />
+            <div style={{ height: "1px", background: "rgba(255,255,255,0.04)", margin: "4px 0" }} />
+            {STATUSES.filter(s => s !== projects.find(pp => pp.id === menuOpen)?.status).map(s => (
+              <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "Activo" ? "var(--emerald)" : s === "Pausado" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.3)" }} />}
+                text={`Cambiar a ${s}`} onClick={() => handleStatusChange(menuOpen, s)} />
+            ))}
+            <div style={{ height: "1px", background: "rgba(255,255,255,0.04)", margin: "4px 0" }} />
+            <MenuBtn icon={<Trash2 className="w-3.5 h-3.5" />} text="Eliminar" onClick={() => handleDelete(menuOpen)} danger />
+          </div>
+        </>,
+        document.body
+      )}
 
       {modalMode !== "closed" && (
         <ProjectModal
