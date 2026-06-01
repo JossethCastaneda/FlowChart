@@ -33,7 +33,7 @@ export async function GET() {
       }),
       prisma.project.findMany({
         where: { workspaceId },
-        select: { id: true, status: true },
+        select: { id: true, name: true, alias: true, status: true, channels: { select: { id: true, name: true, type: true, config: true } } },
       }),
       prisma.workspaceMember.count({ where: { workspaceId } }),
       prisma.task.findMany({
@@ -56,6 +56,7 @@ export async function GET() {
           total: projects.length,
           active: projects.filter((p) => p.status === "Activo").length,
         },
+        projectsList: projects,
         members: { total: members },
         tasks: {
           total: tasks.length,
