@@ -190,8 +190,10 @@ model Task {
   title       String
   description String?  @db.Text
   assignee    String?
-  priority    String   @default("P2")  // P0, P1, P2
-  status      String   @default("Backlog") // Backlog, WIP, Done
+  priority    String   @default("P2")  // P0, P1, P2, P3
+  status      String   @default("Backlog") // Backlog, WIP, Review, Done
+  dueDate     DateTime?
+  tags        String[]
   projectId   String?
   workspaceId String
   createdAt   DateTime @default(now())

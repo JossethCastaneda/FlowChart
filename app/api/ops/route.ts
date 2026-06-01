@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, assignee, priority, status, projectId } = body;
+    const { title, description, assignee, priority, status, projectId, dueDate, tags } = body;
 
     if (!title || typeof title !== "string" || title.trim().length < 1) {
       return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
@@ -63,6 +63,8 @@ export async function POST(req: NextRequest) {
         assignee: assignee || null,
         priority: priority || "P2",
         status: status || "Backlog",
+        dueDate: dueDate ? new Date(dueDate) : null,
+        tags: tags || [],
         projectId: projectId || null,
       },
     });
