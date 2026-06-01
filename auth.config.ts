@@ -152,5 +152,13 @@ export const authOptions: NextAuthOptions = {
         (token.provider as string) ?? null;
       return session;
     },
+
+    async redirect({ url, baseUrl }) {
+      // Allow relative URLs (like /invite/token)
+      if (url.startsWith("/")) return `${baseUrl}${url}`;
+      // Allow same-origin URLs
+      if (url.startsWith(baseUrl)) return url;
+      return baseUrl;
+    },
   },
 };
