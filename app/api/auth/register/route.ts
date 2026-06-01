@@ -27,24 +27,35 @@ export async function POST(req: NextRequest) {
     const existing = await prisma.user.findUnique({
       where: { email: email.toLowerCase() },
     });
-    if (existing) {
-      return NextResponse.json(
-        { error: "Este email ya está registrado" },
-        { status: 409 }
-      );
-    }
 
-    // Hashear password
     const hashedPassword = await bcrypt.hash(password, 12);
 
-    // Crear usuario
-    await prisma.user.create({
-      data: {
-        name: name.trim(),
-        email: email.toLowerCase(),
-        password: hashedPassword,
-      },
-    });
+    if (existing) {
+      if (existing.password) {
+        // Ya tiene password → no permitir re-registro
+        return NextResponse.json(
+          { error: "Este email ya está registrado" },
+          { status: 409 }
+        );
+      }
+      // Existe pero sin password (OAuth o bug de invite) → setear password
+      await prisma.user.update({
+        where: { id: existing.id },
+        data: {
+          password: hashedPassword,
+          name: name.trim(),
+        },
+      });
+    } else {
+      // Usuario nuevo → crear
+      await prisma.user.create({
+        data: {
+          name: name.trim(),
+          email: email.toLowerCase(),
+          password: hashedPassword,
+        },
+      });
+    }
 
     console.log("[REGISTER] New user created:", email.toLowerCase());
 
