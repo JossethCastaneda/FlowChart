@@ -78,6 +78,7 @@ export async function saveMetaTokenToWorkspace(
           credentials: { accessToken },
           connected: true,
           connectedAt: new Date(),
+          connectedBy: userId,
         },
         create: {
           workspaceId: m.workspaceId,
@@ -85,6 +86,7 @@ export async function saveMetaTokenToWorkspace(
           credentials: { accessToken },
           connected: true,
           connectedAt: new Date(),
+          connectedBy: userId,
         },
       });
     }

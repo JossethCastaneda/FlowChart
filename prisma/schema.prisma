@@ -56,6 +56,7 @@ model User {
   workspaces    WorkspaceMember[]
   projects      ProjectMember[]
   capturista    Capturista?
+  integrations  Integration[]     @relation("UserIntegrations")
 }
 
 model VerificationToken {
@@ -263,16 +264,18 @@ model Lead {
 // ------------------------------------------------------
 
 model Integration {
-  id          String    @id @default(cuid())
-  workspaceId String
-  provider    String    // "meta", "google_ads", "tiktok", "whatsapp"
-  credentials Json      // Encrypted with AES-256
-  connected   Boolean   @default(false)
-  connectedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id            String    @id @default(cuid())
+  workspaceId   String
+  provider      String    // "meta", "google_ads", "tiktok", "whatsapp"
+  credentials   Json      // Encrypted with AES-256
+  connected     Boolean   @default(false)
+  connectedAt   DateTime?
+  connectedBy   String?   // userId of who connected this integration
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  connectedUser User?     @relation("UserIntegrations", fields: [connectedBy], references: [id], onDelete: SetNull)
 
   @@unique([workspaceId, provider])
 }
