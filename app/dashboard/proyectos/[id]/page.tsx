@@ -26,6 +26,19 @@ const PLATFORMS = [
   { id: "whatsapp", name: "WhatsApp Business", color: "#25D366" },
 ];
 const STATUS_COLORS: Record<string, string> = { Activo: "emerald", Pausado: "amber", Draft: "muted", Completado: "cyan" };
+const CPR_MAP: Record<string, string> = {
+  "Conversaciones": "Costo / conversación", "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
+  "Leads": "CPL", "Ventas (Purchase)": "CPA", "Registros": "Costo / registro", "Descargas app": "CPI",
+  "Video views": "CPV", "Alcance (Reach)": "CPM", "Tráfico a tienda": "Costo / visita",
+};
+const goalLabel = (goal?: string) => {
+  if (!goal) return "Resultados";
+  if (goal.includes("Lead")) return "Leads";
+  if (goal.includes("Conversacion")) return "Conversaciones";
+  if (goal.includes("Compra") || goal.includes("Purchase")) return "Compras";
+  if (goal.includes("Registro")) return "Registros";
+  return "Resultados";
+};
 const RESULT_TYPES = ['lead','purchase','complete_registration','offsite_conversion','onsite_conversion','messaging_conversation_started_7d','omni_purchase','app_install','landing_page_view','link_click'];
 const findResultAction = (actions: any[] | undefined) => { if (!actions?.length) return null; for (const t of RESULT_TYPES) { const f = actions.find((a: any) => a.action_type.includes(t)); if (f) return f; } return actions[0]; };
 const parseBudget = (s: string) => parseFloat(s.replace(/[^0-9.]/g, "")) || 0;
@@ -445,42 +458,90 @@ export default function ProjectDashboardPage() {
             <div style={panelStyle}><p style={labelStyle}>Restante</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p></div>
           </div>
 
-          {/* Spend Table */}
+          {/* Spend Table — Spreadsheet Style (dates as columns) */}
           <div style={panelStyle}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div><h3 style={headingStyle}>Tabla de Gasto</h3><p style={subStyle}>Desglose de inversión y rendimiento</p></div>
               <TimeToggle value={timeGranularity} onChange={setTimeGranularity} />
             </div>
             <div style={{ overflowX: "auto" }}>
-              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
-                <thead><tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                  {["Período", "Inversión", "Resultados", "CPR", "Impresiones", "Clicks", "CTR"].map(h => <th key={h} style={{ padding: "8px 10px", textAlign: h === "Período" ? "left" : "right", fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{h}</th>)}
-                </tr></thead>
-                <tbody>
-                  {getSpendTable().map((r: any, i: number) => (
-                    <tr key={i} style={{ borderBottom: "1px solid rgba(255,255,255,0.025)" }} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <td style={{ padding: "8px 10px", color: "#e2e8f0", fontWeight: 500 }}>{r.date}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "#fdab3d", fontWeight: 600 }}>{fmtMXN(r.spend)}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "#00c875", fontWeight: 600 }}>{r.results}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right" }}>
-                        <span style={{ padding: "2px 8px", borderRadius: 3, fontSize: 11, fontWeight: 600, background: cprTarget > 0 && r.cpr > cprTarget ? "rgba(226,68,92,0.1)" : cprTarget > 0 && r.cpr <= cprTarget ? "rgba(0,200,117,0.1)" : "transparent", color: cprTarget > 0 && r.cpr > cprTarget ? "#e2445c" : cprTarget > 0 ? "#00c875" : "#e2e8f0" }}>{fmtMXN(r.cpr)}</span>
-                      </td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "rgba(148,163,184,0.6)" }}>{fmtNum(r.impressions)}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "rgba(148,163,184,0.6)" }}>{fmtNum(r.clicks)}</td>
-                      <td style={{ padding: "8px 10px", textAlign: "right", color: "#7b61ff", fontWeight: 500 }}>{pct(r.ctr)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot><tr style={{ borderTop: "2px solid rgba(0,212,255,0.15)" }}>
-                  <td style={{ padding: "10px", fontWeight: 700, color: "#00d4ff", fontSize: 11 }}>TOTAL</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#fdab3d" }}>{fmtMXN(totalSpend)}</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#00c875" }}>{totalResults}</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#e2e8f0" }}>{fmtMXN(cpr)}</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "rgba(148,163,184,0.6)" }}>{fmtNum(totalImpressions)}</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "rgba(148,163,184,0.6)" }}>{fmtNum(totalClicks)}</td>
-                  <td style={{ padding: "10px", textAlign: "right", fontWeight: 700, color: "#7b61ff" }}>{pct(ctr)}</td>
-                </tr></tfoot>
-              </table>
+              {(() => {
+                const tableData = getSpendTable();
+                const DAYS_ES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+
+                // Build column info with day name
+                const cols = tableData.map((d: any) => {
+                  let dayName = "";
+                  if (d.fullDate) {
+                    const dt = new Date(d.fullDate + "T12:00:00");
+                    dayName = DAYS_ES[dt.getDay()] || "";
+                  }
+                  return { ...d, dayName };
+                });
+
+                // Accumulated totals for "AL DIA" column
+                const totPresupuesto = budgetNum;
+                const totGastado = totalSpend;
+                const pctGastado = budgetNum > 0 ? (totalSpend / budgetNum) * 100 : 0;
+                const totLeads = totalResults;
+                const totCPL = totalResults > 0 ? totalSpend / totalResults : 0;
+                const totCumplimiento = goalNum > 0 ? (totalResults / goalNum) * 100 : 0;
+                const projCPL = projectedResults > 0 ? projectedSpend / projectedResults : 0;
+                const desvioCPL = cprTarget > 0 ? ((totCPL / cprTarget) - 1) * 100 : 0;
+
+                const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "#e2e8f0", borderBottom: "1px solid rgba(255,255,255,0.03)", whiteSpace: "nowrap" };
+                const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 700, fontSize: 10, background: "rgba(0,120,255,0.7)", borderBottom: "none" };
+                const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 600, fontSize: 9, background: "rgba(0,120,255,0.5)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
+                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 500, color: "rgba(148,163,184,0.7)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "rgba(5,8,18,0.98)", zIndex: 2 };
+                const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "rgba(255,255,255,0.02)", position: "sticky" as const, left: 0, zIndex: 2 };
+
+                const metricRows = [
+                  { label: "Presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "#e2e8f0" },
+                  { label: "Importe Gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "#fdab3d" },
+                  { label: "%Gastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "#e2e8f0" },
+                  { label: goalLabel(ch?.goal), total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "#00c875" },
+                  { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map(() => "—"), color: "#7b61ff" },
+                  { label: CPR_MAP[ch?.goal || ""] || "CPR", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "#00d4ff" },
+                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Proyección`, total: fmtMXN(projCPL), values: cols.map(() => "—"), color: "rgba(148,163,184,0.5)" },
+                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(0)}%`; }), color: "rgba(148,163,184,0.5)" },
+                ];
+
+                return (
+                  <table style={{ borderCollapse: "collapse", fontSize: 11, minWidth: "100%" }}>
+                    {/* Day names header */}
+                    <thead>
+                      <tr>
+                        <th style={{ ...totalCellStyle, background: "rgba(5,8,18,0.98)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 9, color: "rgba(148,163,184,0.3)" }}>AL DÍA</th>
+                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 9, color: "rgba(148,163,184,0.3)" }}>FECHA</th>
+                        {cols.map((c: any, i: number) => <th key={i} style={headerCellStyle}>{c.dayName}</th>)}
+                      </tr>
+                      {/* Date numbers row */}
+                      <tr>
+                        <th style={{ ...totalCellStyle, background: "rgba(5,8,18,0.98)", borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
+                        <th style={{ ...labelCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
+                        {cols.map((c: any, i: number) => <th key={i} style={subHeaderStyle}>{c.date}</th>)}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {/* Campaign name row */}
+                      <tr>
+                        <td colSpan={2 + cols.length} style={{ padding: "8px 12px", fontWeight: 700, fontSize: 11, color: "#00d4ff", background: "rgba(0,212,255,0.04)", borderBottom: "1px solid rgba(0,212,255,0.1)", letterSpacing: "0.05em" }}>
+                          {project.alias?.toUpperCase() || "PROYECTO"}
+                        </td>
+                      </tr>
+                      {metricRows.map((row, ri) => (
+                        <tr key={ri} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.015)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                          <td style={{ ...totalCellStyle, color: row.color, textAlign: "right", paddingRight: 12, minWidth: 100 }}>{row.total}</td>
+                          <td style={labelCellStyle}>{row.label}</td>
+                          {row.values.map((v: string, ci: number) => (
+                            <td key={ci} style={{ ...cellStyle, color: row.color === "#e2e8f0" ? "rgba(148,163,184,0.6)" : row.color, fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400 }}>{v}</td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                );
+              })()}
             </div>
           </div>
 
