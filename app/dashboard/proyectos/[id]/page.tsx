@@ -1186,8 +1186,7 @@ export default function ProjectDashboardPage() {
                   if (!adCreatives.length && creativesLoading) return <NoData msg="Cargando..." />;
                   const formatMap: Record<string, { name: string; spend: number; results: number; count: number }> = {};
                   adCreatives.forEach((ad: any) => {
-                    const isVideo = (ad.actions || []).some((a: any) => a.action_type === "video_view") || ad.adName?.toLowerCase().includes("video") || ad.adName?.toLowerCase().includes("reel");
-                    const fmt = isVideo ? "Video" : "Imagen";
+                    const fmt = ad.format === "video" ? "Video" : ad.format === "carousel" ? "Carrusel" : "Imagen";
                     if (!formatMap[fmt]) formatMap[fmt] = { name: fmt, spend: 0, results: 0, count: 0 };
                     formatMap[fmt].spend += ad.spend || 0;
                     const ra = findResultAction(ad.actions, ch?.goal);
@@ -1196,7 +1195,7 @@ export default function ProjectDashboardPage() {
                   });
                   const d = Object.values(formatMap).filter(f => f.spend > 0);
                   if (!d.length) return <NoData msg="Sin datos de formato" />;
-                  const formatColors = ["#00d4ff", "#a25ddc", "#fdab3d"];
+                  const formatColors = ["#00d4ff", "#a25ddc", "#fdab3d", "#00c875"];
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -1222,8 +1221,7 @@ export default function ProjectDashboardPage() {
                 {(() => {
                   const formatStats: Record<string, { spend: number; results: number; count: number }> = {};
                   adCreatives.forEach((ad: any) => {
-                    const isVideo = (ad.actions || []).some((a: any) => a.action_type === "video_view") || ad.adName?.toLowerCase().includes("video") || ad.adName?.toLowerCase().includes("reel");
-                    const fmt = isVideo ? "Video" : "Imagen";
+                    const fmt = ad.format === "video" ? "Video" : ad.format === "carousel" ? "Carrusel" : "Imagen";
                     if (!formatStats[fmt]) formatStats[fmt] = { spend: 0, results: 0, count: 0 };
                     formatStats[fmt].spend += ad.spend || 0;
                     const ra = findResultAction(ad.actions, ch?.goal);

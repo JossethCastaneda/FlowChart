@@ -84,6 +84,29 @@ function extractTexts(creative: {
   };
 }
 
+// Detects creative format based on creative structure — NOT action types
+// Meta records video_view for ALL ads (even images with autoplay preview)
+function detectFormat(creative: any, detail: any): "video" | "image" | "carousel" {
+  const spec = creative.object_story_spec || {};
+  const feed = creative.asset_feed_spec || detail?.assetFeedSpec || {};
+  const adName = (creative.name || "").toLowerCase();
+
+  // 1. object_story_spec.video_data → definitely a video ad
+  if (spec.video_data) return "video";
+
+  // 2. asset_feed_spec has videos array → DCO video
+  if (Array.isArray(feed.videos) && feed.videos.length > 0) return "video";
+
+  // 3. Name-based detection (reliable for Mexican agencies like SODARE)
+  if (adName.includes("video") || adName.includes("reel")) return "video";
+
+  // 4. Carousel detection
+  if (spec.link_data?.child_attachments?.length > 1) return "carousel";
+
+  // 5. Default: image
+  return "image";
+}
+
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req);
   if (!accessToken) {
@@ -113,7 +136,7 @@ export async function GET(req: NextRequest) {
   const timeQs = timeParams.toString();
 
   // ── API URLs ─────────────────────────────────────────────────────────────
-  // Creative fields: everything needed to extract image + text
+  // Creative fields: everything needed to extract image + text + format
   const creativeFields = [
     "id", "name", "thumbnail_url", "image_url",
     "title", "body", "call_to_action_type",
@@ -167,7 +190,14 @@ export async function GET(req: NextRequest) {
   }
 
   // Full-res image + DCO texts by creative_id (from /adcreatives endpoint)
-  const creativeDetailMap: Record<string, { imageUrl: string; thumbUrl: string; feedTitles: string[]; feedBodies: string[] }> = {};
+  const creativeDetailMap: Record<string, {
+    imageUrl: string;
+    thumbUrl: string;
+    feedTitles: string[];
+    feedBodies: string[];
+    assetFeedSpec: any;
+    objectStorySpec: any;
+  }> = {};
   for (const cr of (creativesJson.data || [])) {
     const imageUrl = extractImageUrl(cr);
     const feed = cr.asset_feed_spec || {};
@@ -176,6 +206,8 @@ export async function GET(req: NextRequest) {
       thumbUrl: cr.thumbnail_url || "",
       feedTitles: (feed.titles || []).map((t: any) => t.text || "").filter(Boolean),
       feedBodies: (feed.bodies || []).map((b: any) => b.text || "").filter(Boolean),
+      assetFeedSpec: cr.asset_feed_spec || {},
+      objectStorySpec: cr.object_story_spec || {},
     };
   }
 
@@ -197,12 +229,19 @@ export async function GET(req: NextRequest) {
     const allTitles = detail?.feedTitles?.length ? detail.feedTitles : texts.allTitles;
     const allBodies = detail?.feedBodies?.length ? detail.feedBodies : texts.allBodies;
 
+    // Detect format from creative structure (NOT from actions)
+    const format = detectFormat(
+      { ...creative, name: ad.name },
+      detail
+    );
+
     return {
       adId:        ad.id,
       adName:      ad.name || "Sin nombre",
       status:      ad.status || "UNKNOWN",
       creativeId:  creative.id || "",
       thumbnailUrl: imageUrl,
+      format,      // "video" | "image" | "carousel"
       title:       allTitles[0] || texts.title,
       body:        allBodies[0] || texts.body,
       description: texts.description,
@@ -226,3 +265,4 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({ data: creatives });
 }
+
