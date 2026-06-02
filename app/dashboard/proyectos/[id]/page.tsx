@@ -1300,6 +1300,7 @@ export default function ProjectDashboardPage() {
               fmtNum={fmtNum}
               cprTarget={cprTarget}
               cprLabel={"CPR"}
+              pageName={project?.fanpage?.[0] || project?.alias || ""}
             />
           )}
         </div>

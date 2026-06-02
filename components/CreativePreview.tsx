@@ -93,7 +93,7 @@ const VideoPlayer = ({
     <div style={{ position: "relative", width: "100%", height: "100%" }} onClick={toggle}>
       <video
         ref={ref} src={src} poster={poster} muted={muted} loop playsInline
-        style={{ width: "100%", height: "100%", objectFit: "cover", cursor: "pointer" }}
+        style={{ width: "100%", height: "100%", objectFit: "contain", cursor: "pointer", background: "#000" }}
       />
       {/* Play/Pause overlay */}
       {!playing && (
@@ -265,9 +265,9 @@ export const CreativeCard = ({
 
 /* ═══ LIGHTBOX / PREVIEW MODAL ═══ */
 export const CreativeLightbox = ({
-  ad, onClose, fmtMXN, cprTarget, cprLabel, fmtNum,
+  ad, onClose, fmtMXN, cprTarget, cprLabel, fmtNum, pageName,
 }: {
-  ad: AdCreative; onClose: () => void; fmtMXN: (n: number) => string; cprTarget: number; cprLabel: string; fmtNum: (n: number) => string;
+  ad: AdCreative; onClose: () => void; fmtMXN: (n: number) => string; cprTarget: number; cprLabel: string; fmtNum: (n: number) => string; pageName?: string;
 }) => {
   // Close on ESC
   useEffect(() => {
@@ -295,18 +295,18 @@ export const CreativeLightbox = ({
         onClick={e => e.stopPropagation()}
         style={{
           background: "#0f1219", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12,
-          maxWidth: 900, width: "100%", maxHeight: "90vh", overflow: "auto",
+          maxWidth: 960, width: "100%", maxHeight: "92vh", overflow: "hidden",
           display: "flex", flexDirection: "row", animation: "slideUp 0.25s ease",
         }}
       >
         {/* Left: Media */}
         <div style={{
-          flex: "0 0 50%", maxWidth: 450, background: "#000", position: "relative",
+          flex: "0 0 50%", maxWidth: 480, background: "#000", position: "relative",
           display: "flex", alignItems: "center", justifyContent: "center",
-          minHeight: 400,
+          minHeight: 350, maxHeight: "92vh", overflow: "hidden",
         }}>
           {ad.format === "video" ? (
-            <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} autoPlay />
+            <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} autoPlay={!!ad.videoUrl} />
           ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
             <CarouselViewer items={ad.carouselItems} />
           ) : ad.thumbnailUrl ? (
@@ -320,7 +320,7 @@ export const CreativeLightbox = ({
         </div>
 
         {/* Right: Info + Preview */}
-        <div style={{ flex: 1, padding: "20px 24px", display: "flex", flexDirection: "column", overflow: "auto" }}>
+        <div style={{ flex: 1, padding: "20px 24px", display: "flex", flexDirection: "column", overflow: "auto", maxHeight: "92vh" }}>
           {/* Close */}
           <button onClick={onClose} style={{
             position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.05)",
@@ -374,7 +374,7 @@ export const CreativeLightbox = ({
                   <span style={{ fontSize: 12, fontWeight: 700, color: "white" }}>{(ad.adName || "A")[0].toUpperCase()}</span>
                 </div>
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Anunciante</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{pageName || ad.title || ad.adName}</p>
                   <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>Publicidad · 🌐</p>
                 </div>
               </div>
