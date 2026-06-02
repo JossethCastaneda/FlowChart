@@ -329,7 +329,7 @@ export default function ProjectDashboardPage() {
   }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd]);
 
   useEffect(() => {
-    if (activeTab === "audiencia") { loadBreakdown("age_gender"); loadBreakdown("region"); loadBreakdown("platform"); loadBreakdown("device"); }
+    if (activeTab === "audiencia") { loadBreakdown("age_gender"); loadBreakdown("region"); loadBreakdown("country"); loadBreakdown("platform"); loadBreakdown("device"); loadBreakdown("placement"); loadBreakdown("time_of_day"); }
     if (activeTab === "creativos") { loadAdCreatives(); }
   }, [activeTab, loadBreakdown, loadAdCreatives]);
 
@@ -740,6 +740,34 @@ export default function ProjectDashboardPage() {
               </div>
             </div>
 
+            {/* ── País ── */}
+            <div style={panelStyle}>
+              <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />País</h3>
+              <p style={subStyle}>Distribución del gasto por país</p>
+              <div style={{ width: "100%", height: 280 }}>
+                {(() => {
+                  const raw = breakdownData["country"];
+                  if (raw === undefined) return <NoData msg="Cargando..." />;
+                  const d = raw
+                    .map((r: any) => ({ country: r.country || "?", spend: Number(r.spend) || 0, impressions: Number(r.impressions) || 0, clicks: Number(r.clicks) || 0 }))
+                    .sort((a: any, b: any) => b.spend - a.spend)
+                    .slice(0, 8);
+                  if (!d.length) return <NoData msg="Sin datos de país" />;
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
+                        <XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="country" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} width={40} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
+                        <Bar dataKey="spend" fill="#00d4ff" radius={[0, 4, 4, 0]} barSize={14} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
+              </div>
+            </div>
+
             {/* ── Plataforma ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Plataforma</h3>
@@ -747,11 +775,12 @@ export default function ProjectDashboardPage() {
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["platform"];
-                  // platform breakdown hasn't been fetched yet → show loading
                   if (raw === undefined) return <NoData msg="Cargando..." />;
                   const d = raw.map((r: any) => ({
                     name: (r.publisher_platform || "otro").charAt(0).toUpperCase() + (r.publisher_platform || "otro").slice(1),
                     spend: Number(r.spend) || 0,
+                    impressions: Number(r.impressions) || 0,
+                    clicks: Number(r.clicks) || 0,
                   }));
                   if (!d.length) return <NoData msg="Sin datos de plataforma" />;
                   return (
@@ -764,7 +793,10 @@ export default function ProjectDashboardPage() {
                         >
                           {d.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
+                          if (name === "spend") return [fmtMXN(Number(v)), "Inversión"];
+                          return [Number(v).toLocaleString(), name];
+                        }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </PieChart>
                     </ResponsiveContainer>
@@ -781,15 +813,18 @@ export default function ProjectDashboardPage() {
                 {(() => {
                   const raw = breakdownData["device"];
                   if (raw === undefined) return <NoData msg="Cargando..." />;
-                  const merged: Record<string, number> = {};
+                  const merged: Record<string, { spend: number; impressions: number; clicks: number }> = {};
                   for (const r of raw) {
                     const dp = r.device_platform || "";
                     const name = dp === "mobile_app" || dp === "mobile_web" ? "Mobile"
                       : dp === "desktop" ? "Desktop" : dp || "Otro";
-                    merged[name] = (merged[name] || 0) + (Number(r.spend) || 0);
+                    if (!merged[name]) merged[name] = { spend: 0, impressions: 0, clicks: 0 };
+                    merged[name].spend += (Number(r.spend) || 0);
+                    merged[name].impressions += (Number(r.impressions) || 0);
+                    merged[name].clicks += (Number(r.clicks) || 0);
                   }
                   const cd = Object.entries(merged)
-                    .map(([name, spend]) => ({ name, spend }))
+                    .map(([name, v]) => ({ name, spend: v.spend, impressions: v.impressions, clicks: v.clicks }))
                     .sort((a, b) => b.spend - a.spend);
                   if (!cd.length) return <NoData msg="Sin datos de dispositivo" />;
                   return (
@@ -802,9 +837,90 @@ export default function ProjectDashboardPage() {
                         >
                           {cd.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
+                          if (name === "spend") return [fmtMXN(Number(v)), "Inversión"];
+                          return [Number(v).toLocaleString(), name];
+                        }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </PieChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
+              </div>
+            </div>
+
+          </div>
+
+          {/* ── Row 3: Placement + Hora del Día ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+
+            {/* ── Placement ── */}
+            <div style={panelStyle}>
+              <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Placement</h3>
+              <p style={subStyle}>Feed, Stories, Reels, Explore y más</p>
+              <div style={{ width: "100%", height: 280 }}>
+                {(() => {
+                  const raw = breakdownData["placement"];
+                  if (raw === undefined) return <NoData msg="Cargando..." />;
+                  const d = raw
+                    .map((r: any) => {
+                      const plat = r.publisher_platform || "";
+                      const pos = r.platform_position || "";
+                      const label = pos ? `${plat.charAt(0).toUpperCase() + plat.slice(1)} — ${pos.replace(/_/g, " ")}` : plat;
+                      return { placement: label, spend: Number(r.spend) || 0, impressions: Number(r.impressions) || 0, clicks: Number(r.clicks) || 0 };
+                    })
+                    .sort((a: any, b: any) => b.spend - a.spend)
+                    .slice(0, 10);
+                  if (!d.length) return <NoData msg="Sin datos de placement" />;
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
+                        <XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="placement" stroke="rgba(148,163,184,0.4)" fontSize={8} tickLine={false} axisLine={false} width={120} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
+                        <Bar dataKey="spend" fill="#a25ddc" radius={[0, 4, 4, 0]} barSize={12} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
+              </div>
+            </div>
+
+            {/* ── Hora del Día ── */}
+            <div style={panelStyle}>
+              <h3 style={headingStyle}><Clock style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Rendimiento por Hora</h3>
+              <p style={subStyle}>Distribución de gasto e impresiones por hora del día</p>
+              <div style={{ width: "100%", height: 280 }}>
+                {(() => {
+                  const raw = breakdownData["time_of_day"];
+                  if (raw === undefined) return <NoData msg="Cargando..." />;
+                  const hourMap: Record<string, { hour: string; spend: number; impressions: number; clicks: number }> = {};
+                  for (const r of raw) {
+                    const h = r.hourly_stats_aggregated_by_audience_time_zone || "?";
+                    const label = `${h}:00`;
+                    if (!hourMap[label]) hourMap[label] = { hour: label, spend: 0, impressions: 0, clicks: 0 };
+                    hourMap[label].spend += Number(r.spend) || 0;
+                    hourMap[label].impressions += Number(r.impressions) || 0;
+                    hourMap[label].clicks += Number(r.clicks) || 0;
+                  }
+                  const d = Object.values(hourMap).sort((a, b) => {
+                    const ha = parseInt(a.hour); const hb = parseInt(b.hour);
+                    return ha - hb;
+                  });
+                  if (!d.length) return <NoData msg="Sin datos por hora" />;
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <ComposedChart data={d} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
+                        <XAxis dataKey="hour" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} interval={1} />
+                        <YAxis yAxisId="left" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.2)" fontSize={10} tickLine={false} axisLine={false} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : "Impresiones"]} />
+                        <Bar yAxisId="left" dataKey="spend" fill="#00d4ff" radius={[3, 3, 0, 0]} barSize={10} />
+                        <Line yAxisId="right" type="monotone" dataKey="impressions" stroke="#fdab3d" strokeWidth={2} dot={false} />
+                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                      </ComposedChart>
                     </ResponsiveContainer>
                   );
                 })()}
@@ -922,6 +1038,7 @@ export default function ProjectDashboardPage() {
                               <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
                                 <span style={{ fontSize: 10, color: "#fdab3d" }}>{fmtMXN(d.spend)}</span>
                                 <span style={{ fontSize: 10, color: "#00c875" }}>{Math.round(d.results)} result.</span>
+                                <span style={{ fontSize: 10, color: "#00d4ff" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
                                 <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{d.count} anuncios</span>
                               </div>
                             </div>
@@ -932,6 +1049,116 @@ export default function ProjectDashboardPage() {
                 </div>
               );
             })}
+          </div>
+
+          {/* ── Formato y CTR por Creativo ── */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+
+            {/* ── Formato de Creativos (Imagen vs Video) ── */}
+            <div style={panelStyle}>
+              <h3 style={headingStyle}><PieIcon style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Formato de Creativos</h3>
+              <p style={subStyle}>Distribución del gasto por tipo de creativo</p>
+              <div style={{ width: "100%", height: 280 }}>
+                {(() => {
+                  if (!adCreatives.length && creativesLoading) return <NoData msg="Cargando..." />;
+                  const formatMap: Record<string, { name: string; spend: number; results: number; count: number }> = {};
+                  adCreatives.forEach((ad: any) => {
+                    // Detect format: video if ad has video-related fields, image otherwise
+                    const isVideo = ad.thumbnailUrl && (
+                      (ad.actions || []).some((a: any) => a.action_type === "video_view") ||
+                      ad.adName?.toLowerCase().includes("video") ||
+                      ad.adName?.toLowerCase().includes("reel")
+                    );
+                    const fmt = isVideo ? "Video" : "Imagen";
+                    if (!formatMap[fmt]) formatMap[fmt] = { name: fmt, spend: 0, results: 0, count: 0 };
+                    formatMap[fmt].spend += ad.spend || 0;
+                    const ra = findResultAction(ad.actions, ch?.goal);
+                    formatMap[fmt].results += ra ? parseInt(ra.value, 10) : 0;
+                    formatMap[fmt].count++;
+                  });
+                  const d = Object.values(formatMap).filter(f => f.spend > 0);
+                  if (!d.length) return <NoData msg="Sin datos de formato" />;
+                  const formatColors = ["#00d4ff", "#a25ddc", "#fdab3d"];
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={d} dataKey="spend" nameKey="name" cx="50%" cy="50%"
+                          innerRadius={60} outerRadius={100}
+                          label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                          labelLine={{ stroke: "rgba(148,163,184,0.3)" }}
+                        >
+                          {d.map((_, i) => <Cell key={i} fill={formatColors[i % formatColors.length]} />)}
+                        </Pie>
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
+                          if (name === "spend") return [fmtMXN(Number(v)), "Inversión"];
+                          return [Number(v).toLocaleString(), name];
+                        }} />
+                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
+              </div>
+              {/* Format summary cards */}
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 8 }}>
+                {(() => {
+                  const formatStats: Record<string, { spend: number; results: number; count: number }> = {};
+                  adCreatives.forEach((ad: any) => {
+                    const isVideo = (ad.actions || []).some((a: any) => a.action_type === "video_view") || ad.adName?.toLowerCase().includes("video") || ad.adName?.toLowerCase().includes("reel");
+                    const fmt = isVideo ? "Video" : "Imagen";
+                    if (!formatStats[fmt]) formatStats[fmt] = { spend: 0, results: 0, count: 0 };
+                    formatStats[fmt].spend += ad.spend || 0;
+                    const ra = findResultAction(ad.actions, ch?.goal);
+                    formatStats[fmt].results += ra ? parseInt(ra.value, 10) : 0;
+                    formatStats[fmt].count++;
+                  });
+                  return Object.entries(formatStats).map(([fmt, s]) => (
+                    <div key={fmt} style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px 12px" }}>
+                      <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
+                      <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
+                        <span style={{ color: "#fdab3d" }}>{fmtMXN(s.spend)}</span>
+                        <span style={{ color: "#00c875" }}>{Math.round(s.results)} res.</span>
+                        <span style={{ color: "#00d4ff" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
+                      </div>
+                      <p style={{ fontSize: 9, color: "rgba(148,163,184,0.3)", marginTop: 4 }}>{s.count} anuncios</p>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </div>
+
+            {/* ── CTR por Creativo (Top 10) ── */}
+            <div style={panelStyle}>
+              <h3 style={headingStyle}><MousePointer style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />CTR por Creativo</h3>
+              <p style={subStyle}>Top 10 anuncios con mejor tasa de clics</p>
+              <div style={{ width: "100%", height: 380 }}>
+                {(() => {
+                  if (!adCreatives.length && creativesLoading) return <NoData msg="Cargando..." />;
+                  const d = adCreatives
+                    .filter(a => a.spend > 0 && a.impressions > 0)
+                    .map((ad: any) => ({
+                      name: (ad.adName || "Sin nombre").length > 25 ? (ad.adName || "Sin nombre").slice(0, 25) + "..." : ad.adName || "Sin nombre",
+                      ctr: ad.ctr || (ad.clicks > 0 && ad.impressions > 0 ? (ad.clicks / ad.impressions) * 100 : 0),
+                      spend: ad.spend,
+                    }))
+                    .sort((a: any, b: any) => b.ctr - a.ctr)
+                    .slice(0, 10);
+                  if (!d.length) return <NoData msg="Sin datos de CTR" />;
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
+                        <XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
+                        <YAxis type="category" dataKey="name" stroke="rgba(148,163,184,0.4)" fontSize={8} tickLine={false} axisLine={false} width={140} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "Inversión"]} />
+                        <Bar dataKey="ctr" fill="#00c875" radius={[0, 4, 4, 0]} barSize={12} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  );
+                })()}
+              </div>
+            </div>
+
           </div>
 
           {/* Combinación Ganadora */}
