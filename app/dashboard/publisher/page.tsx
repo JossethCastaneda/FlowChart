@@ -6,8 +6,8 @@ export default function PublisherPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Content Publisher"
-        description="Planifica, redacta y programa contenido para todos tus canales: Meta, IG, TikTok, LinkedIn, Email."
+        title="Publisher"
+        description="Centro de control: redacta, programa, analiza y gestiona todas tus redes sociales."
         icon={<Zap className="w-6 h-6" style={{ color: "#ffbe0b" }} />}
       />
 
