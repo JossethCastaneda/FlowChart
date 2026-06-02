@@ -963,7 +963,7 @@ export default function ProjectDashboardPage() {
         const currentActiveAccount = selectedAccountId === "all" ? (projectAccounts[0] || "") : selectedAccountId;
 
         return (
-          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)", margin: "8px 0 0", padding: 0 }}>
+          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 180px)", margin: "8px 0 0", padding: 0 }}>
             {/* Embedded Ads Manager via iframe */}
             <iframe
               src={`/dashboard/ads-manager?embedded=1&account=${currentActiveAccount}&project_accounts=${projectAccounts.join(",")}&datePreset=${datePreset}&dateStart=${dateStart}&dateEnd=${dateEnd}`}

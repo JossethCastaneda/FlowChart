@@ -113,6 +113,15 @@ export function AdsManagerTable({
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>(null);
 
+  const bodyScrollRef = useRef<HTMLDivElement>(null);
+  const footerScrollRef = useRef<HTMLDivElement>(null);
+
+  const handleBodyScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (footerScrollRef.current) {
+      footerScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+    }
+  }, []);
+
   const handleSort = useCallback((col: string) => {
     if (sortCol === col) {
       setSortDir(prev => prev === "asc" ? "desc" : prev === "desc" ? null : "asc");
@@ -354,6 +363,8 @@ export function AdsManagerTable({
       }}
     >
       <div
+        ref={bodyScrollRef}
+        onScroll={handleBodyScroll}
         className="custom-scrollbar"
         style={{ flex: 1, overflowX: "auto", overflowY: "auto", minHeight: 0, minWidth: 0 }}
       >
@@ -950,7 +961,7 @@ export function AdsManagerTable({
 
       {/* ════ TOTALS BAR (always visible, outside scroll) ════ */}
       {sortedData.length > 0 && (
-        <div style={{ flexShrink: 0, borderTop: TF_BORDER_TOP, background: BG_FOOTER, overflowX: "hidden" }}>
+        <div ref={footerScrollRef} style={{ flexShrink: 0, borderTop: TF_BORDER_TOP, background: BG_FOOTER, overflowX: "hidden" }}>
           <table style={{ borderCollapse: "collapse", textAlign: "left", minWidth: FROZEN_TOTAL + 200 }}>
             <tbody>
               <tr>
