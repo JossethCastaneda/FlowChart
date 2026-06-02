@@ -9,16 +9,25 @@ import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
  * Returns { data: [], breakdownKey, breakdownType } always (never crashes).
  */
 
-// ── Field compatibility matrix ───────────────────────────────────────────
-// Meta API throws 400 if you request incompatible (field, breakdown) pairs.
+// ── Field compatibility matrix ───────────────────────────────────
+// SOURCE: https://developers.facebook.com/docs/marketing-api/insights/breakdowns
+//
+// Meta API enforces strict rules on which (field, breakdown) pairs are valid.
+// Violations return: "(#100) Current combination of data breakdown columns is invalid"
+//
+// June 2025 update: `reach` cannot be used with any breakdown for data > 13 months.
+// To guarantee compatibility regardless of user date selection, reach is excluded
+// from ALL breakdown queries. Reach is still available on the no-breakdown (full) endpoint.
 
 /** Safe for ALL breakdown types */
 const BASE_FIELDS = "spend,impressions,clicks,cpc,cpm,ctr";
 
-/** Also safe for demographic/geo breakdowns (age,gender / region / country) */
-const DEMO_EXTRA = ",reach,actions,cost_per_action_type";
+/** Also safe for demographic/geo breakdowns (age,gender / region / country)
+ *  NOTE: reach intentionally excluded per June 2025 Meta API restrictions
+ */
+const DEMO_EXTRA = ",actions,cost_per_action_type";
 
-/** Breakdowns that ONLY support BASE_FIELDS */
+/** Breakdowns that ONLY support BASE_FIELDS (no actions, no reach) */
 const PLATFORM_ONLY_BREAKDOWNS = new Set([
   "platform",    // publisher_platform
   "placement",   // publisher_platform + platform_position

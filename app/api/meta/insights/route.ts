@@ -41,6 +41,8 @@ export async function GET(req: NextRequest) {
 
   // ── Field sets — strictly separated by Meta API compatibility ──────────
   //
+  // SOURCE: https://developers.facebook.com/docs/marketing-api/insights/breakdowns
+  //
   // NO breakdown → all fields available
   const FIELDS_FULL =
     "spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,action_values," +
@@ -49,11 +51,15 @@ export async function GET(req: NextRequest) {
     "video_p75_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions," +
     "cost_per_thruplay";
 
-  // demographic / geo breakdowns → reach is OK, video/unique fields are NOT
+  // demographic / geo breakdowns (age,gender / region / country)
+  // NOTE: As of June 10 2025, Meta restricted `reach` with breakdowns for data > 13 months.
+  // Removing reach entirely from breakdown queries to guarantee universal compatibility
+  // regardless of date range selected by the user.
+  // SOURCE: Meta Business Help Center — Reach metric update June 2025
   const FIELDS_DEMO =
-    "spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type";
+    "spend,impressions,clicks,cpc,cpm,ctr,actions,cost_per_action_type";
 
-  // publisher_platform / device_platform → reach & actions also NOT allowed
+  // publisher_platform and device_platform → reach AND actions NOT allowed
   const FIELDS_PLATFORM = "spend,impressions,clicks,cpc,cpm,ctr";
 
   // ── URL builder ─────────────────────────────────────────────────────────
