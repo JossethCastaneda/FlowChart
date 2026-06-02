@@ -86,7 +86,6 @@ model Workspace {
   tasks        Task[]
   briefs       Brief[]
   posts        ScheduledPost[]
-  leads        Lead[]
   integrations Integration[]
 }
 
@@ -282,31 +281,6 @@ model ScheduledPost {
   workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
-// ------------------------------------------------------
-// CRM / LEADS
-// ------------------------------------------------------
-
-model Lead {
-  id          String   @id @default(cuid())
-  workspaceId String
-  projectId   String?
-  name        String
-  phone       String?
-  email       String?
-  status      String   @default("Nuevo") // Nuevo, En Contacto, Negociación, Ganado, Perdido
-  temperature String   @default("Frío") // Frío, Tibio, Caliente
-  value       Float    @default(0)
-  campaign    String?
-  adset       String?
-  source      String   @default("Meta Ads")
-  messages    Json?    // Array of chat messages
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-
-  @@index([workspaceId])
-}
 
 // ------------------------------------------------------
 // INTEGRATIONS

@@ -11,7 +11,6 @@ import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Users,
-  MessageSquare,
   Settings,
   Menu,
   X,
@@ -27,7 +26,6 @@ import {
 const NAV_ITEMS = [
   { name: "Resumen", short: "KPIs", href: "/dashboard/resumen", icon: LayoutDashboard, color: "#00d4ff" },
   { name: "Proyectos", short: "PROJ", href: "/dashboard/proyectos", icon: FolderKanban, color: "#06d6a0" },
-  { name: "CRM BotMaker", short: "CRM", href: "/dashboard/crm", icon: MessageSquare, color: "#7b61ff" },
   { name: "Publisher", short: "PUB", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b" },
   { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500" },
   { name: "Ads Manager", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB" },
