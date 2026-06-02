@@ -41,7 +41,7 @@ export async function GET(request: NextRequest) {
   if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
-  const token = await getMetaAccessToken(request);
+  const token = await getMetaAccessToken(request, "analytics");
   if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
 
   try {

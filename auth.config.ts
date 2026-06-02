@@ -14,6 +14,7 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
       authorization: {
         params: {
+          // Sodare — User Login (basic login only)
           config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID
             || "2028091691078800",
           auth_type: "rerequest",

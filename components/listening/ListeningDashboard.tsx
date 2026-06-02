@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { ConnectModuleBanner } from "@/components/shared/ConnectModuleBanner";
 import {
   Search,
   TrendingUp,
@@ -121,6 +122,9 @@ export function ListeningDashboard() {
 
   return (
     <div className="space-y-4" style={{ paddingBottom: 40 }}>
+      {/* Module Connection Banner */}
+      <ConnectModuleBanner module="community" />
+
       {/* Demo banner */}
       {isDemo && (
       <div style={{

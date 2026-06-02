@@ -4,17 +4,33 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 
 /**
+ * Module-to-provider mapping for config_id-specific tokens.
+ */
+const MODULE_PROVIDER_MAP: Record<string, string> = {
+  social: "meta_social",
+  ads: "meta_ads",
+  analytics: "meta_analytics",
+  community: "meta_community",
+  // Aliases for convenience
+  publisher: "meta_social",
+  inbox: "meta_community",
+  listening: "meta_community",
+  streams: "meta_community",
+};
+
+/**
  * Get the Meta access token for the current workspace.
  *
  * Priority:
- *   1. Integration table (workspace-level token — shared by all members)
- *   2. JWT accessToken (user-level — fallback for owner who just connected)
+ *   1. Module-specific Integration (e.g. meta_analytics, meta_community)
+ *   2. Generic "meta" Integration (workspace-level token)
+ *   3. JWT accessToken (user-level — fallback for owner who just connected)
  *
- * Auto-sync: If the token is found in JWT but NOT in the Integration table,
- * it is automatically persisted so all workspace members can use it.
+ * @param module - Optional module name to prefer the module-specific token
  */
 export async function getMetaAccessToken(
-  request: Request | NextRequest
+  request: Request | NextRequest,
+  module?: string
 ): Promise<string | null> {
   try {
     const jwtToken = await getToken({ req: request as NextRequest });
@@ -23,25 +39,34 @@ export async function getMetaAccessToken(
     const userId = jwtToken.sub;
     const workspaceId = await getActiveWorkspaceId(userId);
 
-    // 1. Try workspace Integration (shared token)
     if (workspaceId) {
+      // 1. Try module-specific token first
+      if (module) {
+        const provider = MODULE_PROVIDER_MAP[module] || `meta_${module}`;
+        const moduleIntegration = await prisma.integration.findUnique({
+          where: {
+            workspaceId_provider: { workspaceId, provider },
+          },
+        });
+        if (moduleIntegration?.connected && moduleIntegration.credentials) {
+          const creds = moduleIntegration.credentials as any;
+          if (creds.accessToken) return creds.accessToken;
+        }
+      }
+
+      // 2. Try generic "meta" Integration (shared token)
       const integration = await prisma.integration.findUnique({
         where: {
-          workspaceId_provider: {
-            workspaceId,
-            provider: "meta",
-          },
+          workspaceId_provider: { workspaceId, provider: "meta" },
         },
       });
       if (integration?.connected && integration.credentials) {
         const creds = integration.credentials as any;
-        if (creds.accessToken) {
-          return creds.accessToken;
-        }
+        if (creds.accessToken) return creds.accessToken;
       }
     }
 
-    // 2. Fallback: JWT token (owner who logged in with Facebook)
+    // 3. Fallback: JWT token (owner who logged in with Facebook)
     const jwtAccessToken = (jwtToken?.accessToken as string) || null;
 
     // AUTO-SYNC: If the owner has a Meta token in their JWT but it's NOT
@@ -61,6 +86,7 @@ export async function getMetaAccessToken(
     return null;
   }
 }
+
 
 
 /**

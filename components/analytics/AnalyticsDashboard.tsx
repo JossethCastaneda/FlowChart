@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
+import { ConnectModuleBanner } from "@/components/shared/ConnectModuleBanner";
 import {
   TrendingUp,
   TrendingDown,
@@ -261,6 +262,9 @@ export function AnalyticsDashboard() {
 
   return (
     <div className="space-y-4 page-enter">
+      {/* Module Connection Banner */}
+      <ConnectModuleBanner module="analytics" />
+
       {/* Demo Banner */}
       {isDemo && <DemoBanner />}
 
