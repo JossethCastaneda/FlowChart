@@ -112,16 +112,6 @@ export function AdsManagerTable({
   // ── Sorting state ─────────────────────────────────────────────────────────
   const [sortCol, setSortCol] = useState<string | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>(null);
-
-  const bodyScrollRef = useRef<HTMLDivElement>(null);
-  const footerScrollRef = useRef<HTMLDivElement>(null);
-
-  const handleBodyScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    if (footerScrollRef.current) {
-      footerScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
-    }
-  }, []);
-
   const handleSort = useCallback((col: string) => {
     if (sortCol === col) {
       setSortDir(prev => prev === "asc" ? "desc" : prev === "desc" ? null : "asc");
@@ -270,6 +260,14 @@ export function AdsManagerTable({
     fontSize: "11px", whiteSpace: "nowrap", background: "transparent",
   };
 
+  const tdMetric = (col: string): React.CSSProperties => ({
+    ...tdBase,
+    width: colWidths[col] ?? 120,
+    minWidth: colWidths[col] ?? 60,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  });
+
   const tdFrozen = (leftOff: number, width: number, bg: string, isLast = false): React.CSSProperties => ({
     padding: "12px 14px", borderBottom: BORDER,
     fontSize: "11px", whiteSpace: "nowrap",
@@ -286,6 +284,14 @@ export function AdsManagerTable({
     borderTop: TF_BORDER_TOP, whiteSpace: "nowrap",
     letterSpacing: "0.04em",
   };
+
+  const tfMetric = (col: string): React.CSSProperties => ({
+    ...tfBase,
+    width: colWidths[col] ?? 120,
+    minWidth: colWidths[col] ?? 60,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  });
 
   const tfFrozen = (leftOff: number, width: number, isLast = false): React.CSSProperties => ({
     ...tfBase, position: "sticky", left: leftOff, zIndex: 20,
@@ -363,8 +369,6 @@ export function AdsManagerTable({
       }}
     >
       <div
-        ref={bodyScrollRef}
-        onScroll={handleBodyScroll}
         className="custom-scrollbar"
         style={{ flex: 1, overflowX: "auto", overflowY: "auto", minHeight: 0, minWidth: 0 }}
       >
@@ -739,7 +743,7 @@ export function AdsManagerTable({
 
                     {/* Objective */}
                     {visibleColumns.includes("objective") && level === "campaigns" && (
-                      <td style={tdBase}>
+                      <td style={tdMetric("objective")}>
                         {objInfo ? (
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: 4,
@@ -757,7 +761,7 @@ export function AdsManagerTable({
 
                     {/* ROAS */}
                     {visibleColumns.includes("roas") && (
-                      <td style={tdBase}>
+                      <td style={tdMetric("roas")}>
                         <span style={{
                           fontSize: 11, fontWeight: 700,
                           color: roas === 0 ? "rgba(148,163,184,0.4)"
@@ -772,7 +776,7 @@ export function AdsManagerTable({
 
                     {/* Learning Phase (adsets) */}
                     {visibleColumns.includes("learning_phase") && level === "adsets" && (
-                      <td style={tdBase}>
+                      <td style={tdMetric("learning_phase")}>
                         {learningMapped ? (
                           <span style={{
                             fontSize: 8, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
@@ -790,7 +794,7 @@ export function AdsManagerTable({
 
                     {/* Advantage+ (campaigns) */}
                     {visibleColumns.includes("advantage_plus") && level === "campaigns" && (
-                      <td style={tdBase}>
+                      <td style={tdMetric("advantage_plus")}>
                         {isAdvPlus ? (
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: 3,
@@ -807,17 +811,17 @@ export function AdsManagerTable({
                     )}
 
                     {visibleColumns.includes("reach") && (
-                      <td style={{ ...tdBase, color: "#cbd5e1" }}>{fmtNum(reach)}</td>
+                      <td style={{ ...tdMetric("reach"), color: "#cbd5e1" }}>{fmtNum(reach)}</td>
                     )}
                     {visibleColumns.includes("impressions") && (
-                      <td style={{ ...tdBase, color: "#cbd5e1" }}>{fmtNum(impressions)}</td>
+                      <td style={{ ...tdMetric("impressions"), color: "#cbd5e1" }}>{fmtNum(impressions)}</td>
                     )}
                     {visibleColumns.includes("cpm") && (
-                      <td style={{ ...tdBase, color: "#cbd5e1" }}>{fmt$(safeFloat(ins.cpm))}</td>
+                      <td style={{ ...tdMetric("cpm"), color: "#cbd5e1" }}>{fmt$(safeFloat(ins.cpm))}</td>
                     )}
                     {visibleColumns.includes("frequency") && (
                       <td style={{
-                        ...tdBase,
+                        ...tdMetric("frequency"),
                         color: freqAlert === "critical" ? "#ef4444"
                           : freqAlert === "warning" ? "#fbbf24"
                           : "#cbd5e1",
@@ -831,16 +835,16 @@ export function AdsManagerTable({
                       </td>
                     )}
                     {visibleColumns.includes("clicks") && (
-                      <td style={{ ...tdBase, color: "#cbd5e1" }}>{fmtNum(safeInt(ins.clicks))}</td>
+                      <td style={{ ...tdMetric("clicks"), color: "#cbd5e1" }}>{fmtNum(safeInt(ins.clicks))}</td>
                     )}
                     {visibleColumns.includes("ctr") && (
-                      <td style={{ ...tdBase, color: "#cbd5e1" }}>{fmtPct(safeFloat(ins.ctr))}</td>
+                      <td style={{ ...tdMetric("ctr"), color: "#cbd5e1" }}>{fmtPct(safeFloat(ins.ctr))}</td>
                     )}
                     {visibleColumns.includes("cpc") && (
-                      <td style={{ ...tdBase, color: "#cbd5e1" }}>{fmt$(safeFloat(ins.cpc))}</td>
+                      <td style={{ ...tdMetric("cpc"), color: "#cbd5e1" }}>{fmt$(safeFloat(ins.cpc))}</td>
                     )}
                     {visibleColumns.includes("results") && (
-                      <td style={tdBase}>
+                      <td style={tdMetric("results")}>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: "white" }}>{fmtNum(resultsCount)}</span>
                           <span style={{ fontSize: 9, color: "rgba(148,163,184,0.4)" }}>{resultsLabel}</span>
@@ -848,20 +852,20 @@ export function AdsManagerTable({
                       </td>
                     )}
                     {visibleColumns.includes("conversations") && (
-                      <td style={{ ...tdBase, color: "white", fontWeight: 600 }}>{fmtNum(convsCount)}</td>
+                      <td style={{ ...tdMetric("conversations"), color: "white", fontWeight: 600 }}>{fmtNum(convsCount)}</td>
                     )}
                     {visibleColumns.includes("cost_per_message") && (
-                      <td style={{ ...tdBase, color: "var(--cyan)" }}>
+                      <td style={{ ...tdMetric("cost_per_message"), color: "var(--cyan)" }}>
                         {convsCount > 0 ? fmt$(costPerConv) : "$0.00"}
                       </td>
                     )}
                     {visibleColumns.includes("cost_per_conversation") && (
-                      <td style={{ ...tdBase, color: "var(--cyan)" }}>
+                      <td style={{ ...tdMetric("cost_per_conversation"), color: "var(--cyan)" }}>
                         {convsCount > 0 ? fmt$(costPerConv) : "$0.00"}
                       </td>
                     )}
                     {visibleColumns.includes("cpa") && (
-                      <td style={tdBase}>
+                      <td style={tdMetric("cpa")}>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: "var(--cyan)" }}>
                             {cpa.value > 0 ? fmt$(cpa.value) : "—"}
@@ -871,10 +875,10 @@ export function AdsManagerTable({
                       </td>
                     )}
                     {visibleColumns.includes("landing_page_views") && (
-                      <td style={{ ...tdBase, color: "#cbd5e1" }}>{lpv > 0 ? fmtNum(lpv) : "—"}</td>
+                      <td style={{ ...tdMetric("landing_page_views"), color: "#cbd5e1" }}>{lpv > 0 ? fmtNum(lpv) : "—"}</td>
                     )}
                     {visibleColumns.includes("hook_rate") && (
-                      <td style={tdBase}>
+                      <td style={tdMetric("hook_rate")}>
                         {hookRate > 0 ? (
                           <span style={{
                             fontSize: 11, fontWeight: 600,
@@ -888,12 +892,12 @@ export function AdsManagerTable({
                       </td>
                     )}
                     {visibleColumns.includes("spend") && (
-                      <td style={tdBase}>
+                      <td style={tdMetric("spend")}>
                         <span style={{ fontSize: 11, fontWeight: 600, color: "white" }}>{fmt$(spend)}</span>
                       </td>
                     )}
                     {visibleColumns.includes("quality_ranking") && level === "ads" && (
-                      <td style={tdBase}>
+                      <td style={tdMetric("quality_ranking")}>
                         <span
                           style={{
                             fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
@@ -956,14 +960,8 @@ export function AdsManagerTable({
               })
             )}
           </tbody>
-        </table>
-      </div>
-
-      {/* ════ TOTALS BAR (always visible, outside scroll) ════ */}
-      {sortedData.length > 0 && (
-        <div ref={footerScrollRef} style={{ flexShrink: 0, borderTop: TF_BORDER_TOP, background: BG_FOOTER, overflowX: "hidden" }}>
-          <table style={{ borderCollapse: "collapse", textAlign: "left", minWidth: FROZEN_TOTAL + 200 }}>
-            <tbody>
+          {sortedData.length > 0 && (
+            <tfoot style={{ position: "sticky", bottom: 0, zIndex: 30, background: BG_FOOTER, borderTop: TF_BORDER_TOP }}>
               <tr>
                 <td style={{ ...tfFrozen(L_CHECK, CHECKBOX_W, statusIsLast) }} />
                 <td style={{ ...tfFrozen(L_STATUS, STATUS_W, statusIsLast), color: "white" }}>TOTAL</td>
@@ -975,32 +973,32 @@ export function AdsManagerTable({
                 {showDel && <td style={tfFrozen(L_DEL, DELIVERY_W, isLastFrozen("delivery"))} />}
                 {showBudg && <td style={tfFrozen(L_BUDG, BUDGET_W, isLastFrozen("budget"))} />}
                 {showBid  && <td style={tfFrozen(L_BID, BID_W, isLastFrozen("bid"))} />}
-                {visibleColumns.includes("objective") && level === "campaigns" && <td style={tfBase} />}
-                {visibleColumns.includes("roas") && <td style={tfBase}>—</td>}
-                {visibleColumns.includes("learning_phase") && level === "adsets" && <td style={tfBase} />}
-                {visibleColumns.includes("advantage_plus") && level === "campaigns" && <td style={tfBase} />}
-                {visibleColumns.includes("reach") && <td style={tfBase}>{fmtNum(totalReach)}</td>}
-                {visibleColumns.includes("impressions") && <td style={tfBase}>{fmtNum(totalImpressions)}</td>}
-                {visibleColumns.includes("cpm") && <td style={tfBase}>{fmt$(avgCpm)}</td>}
-                {visibleColumns.includes("frequency") && <td style={tfBase}>{fmtDec(avgFreq)}</td>}
-                {visibleColumns.includes("clicks") && <td style={tfBase}>{fmtNum(totalClicks)}</td>}
-                {visibleColumns.includes("ctr") && <td style={tfBase}>{fmtPct(avgCtr)}</td>}
-                {visibleColumns.includes("cpc") && <td style={tfBase}>{fmt$(avgCpc)}</td>}
-                {visibleColumns.includes("results") && <td style={{ ...tfBase, color: "white" }}>{fmtNum(totalResults)}</td>}
-                {visibleColumns.includes("conversations") && <td style={{ ...tfBase, color: "white" }}>{fmtNum(totalConversations)}</td>}
-                {visibleColumns.includes("cost_per_message") && <td style={{ ...tfBase, color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
-                {visibleColumns.includes("cost_per_conversation") && <td style={{ ...tfBase, color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
-                {visibleColumns.includes("cpa") && <td style={{ ...tfBase, color: "var(--cyan)" }}>{fmt$(avgCpa)}</td>}
-                {visibleColumns.includes("landing_page_views") && <td style={tfBase}>{fmtNum(totalLPV)}</td>}
-                {visibleColumns.includes("hook_rate") && <td style={tfBase}>—</td>}
-                {visibleColumns.includes("spend") && <td style={{ ...tfBase, color: "white" }}>{fmt$(totalSpend)}</td>}
-                {visibleColumns.includes("quality_ranking") && level === "ads" && <td style={tfBase} />}
+                {visibleColumns.includes("objective") && level === "campaigns" && <td style={tfMetric("objective")} />}
+                {visibleColumns.includes("roas") && <td style={tfMetric("roas")}>—</td>}
+                {visibleColumns.includes("learning_phase") && level === "adsets" && <td style={tfMetric("learning_phase")} />}
+                {visibleColumns.includes("advantage_plus") && level === "campaigns" && <td style={tfMetric("advantage_plus")} />}
+                {visibleColumns.includes("reach") && <td style={tfMetric("reach")}>{fmtNum(totalReach)}</td>}
+                {visibleColumns.includes("impressions") && <td style={tfMetric("impressions")}>{fmtNum(totalImpressions)}</td>}
+                {visibleColumns.includes("cpm") && <td style={tfMetric("cpm")}>{fmt$(avgCpm)}</td>}
+                {visibleColumns.includes("frequency") && <td style={tfMetric("frequency")}>{fmtDec(avgFreq)}</td>}
+                {visibleColumns.includes("clicks") && <td style={tfMetric("clicks")}>{fmtNum(totalClicks)}</td>}
+                {visibleColumns.includes("ctr") && <td style={tfMetric("ctr")}>{fmtPct(avgCtr)}</td>}
+                {visibleColumns.includes("cpc") && <td style={tfMetric("cpc")}>{fmt$(avgCpc)}</td>}
+                {visibleColumns.includes("results") && <td style={{ ...tfMetric("results"), color: "white" }}>{fmtNum(totalResults)}</td>}
+                {visibleColumns.includes("conversations") && <td style={{ ...tfMetric("conversations"), color: "white" }}>{fmtNum(totalConversations)}</td>}
+                {visibleColumns.includes("cost_per_message") && <td style={{ ...tfMetric("cost_per_message"), color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
+                {visibleColumns.includes("cost_per_conversation") && <td style={{ ...tfMetric("cost_per_conversation"), color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
+                {visibleColumns.includes("cpa") && <td style={{ ...tfMetric("cpa"), color: "var(--cyan)" }}>{fmt$(avgCpa)}</td>}
+                {visibleColumns.includes("landing_page_views") && <td style={tfMetric("landing_page_views")}>{fmtNum(totalLPV)}</td>}
+                {visibleColumns.includes("hook_rate") && <td style={tfMetric("hook_rate")}>—</td>}
+                {visibleColumns.includes("spend") && <td style={{ ...tfMetric("spend"), color: "white" }}>{fmt$(totalSpend)}</td>}
+                {visibleColumns.includes("quality_ranking") && level === "ads" && <td style={tfMetric("quality_ranking")} />}
                 <td style={tfBase} />
               </tr>
-            </tbody>
-          </table>
-        </div>
-      )}
+            </tfoot>
+          )}
+        </table>
+      </div>
     </div>
   );
 }
