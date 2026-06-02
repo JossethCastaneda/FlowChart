@@ -367,6 +367,9 @@ export default function ProjectDashboardPage() {
       loadBreakdown("placement");
       loadBreakdown("time_of_day");
     }
+    if (activeTab === "resumen") {
+      loadBreakdown("hourly_daily");
+    }
     if (activeTab === "creativos") { loadAdCreatives(); }
   }, [activeTab, loadBreakdown, loadAdCreatives]);
 
@@ -524,6 +527,7 @@ export default function ProjectDashboardPage() {
 
       {/* ═══ TAB: RESUMEN ═══ */}
       {activeTab === "resumen" && (
+        <>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-3">
             {/* Proyeccion al Cierre */}
@@ -593,6 +597,116 @@ export default function ProjectDashboardPage() {
             </div>
           </div>
         </div>
+
+        {/* ── Heatmap: Resultados por Hora y Día ── */}
+        {(() => {
+          const hourlyData = breakdownData["hourly_daily"] || [];
+          if (hourlyData.length === 0) return null;
+
+          // Build day-of-week × hour matrix from hourly_daily breakdown
+          const DOW_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+          const HOURS = Array.from({ length: 24 }, (_, i) => i);
+
+          // matrix[dow][hour] = { impressions, spend, clicks }
+          const matrix: Record<number, Record<number, { impressions: number; spend: number; clicks: number }>> = {};
+          for (let d = 0; d < 7; d++) { matrix[d] = {}; for (let h = 0; h < 24; h++) matrix[d][h] = { impressions: 0, spend: 0, clicks: 0 }; }
+
+          hourlyData.forEach((row: any) => {
+            const hour = parseInt(row.hourly_stats_aggregated_by_audience_time_zone || "0", 10);
+            const dateStr = row.date_start;
+            if (!dateStr) return;
+            const dow = new Date(dateStr + "T12:00:00").getDay(); // 0=Sun
+            const mappedDow = dow === 0 ? 6 : dow - 1; // 0=Mon
+            if (matrix[mappedDow] && matrix[mappedDow][hour]) {
+              matrix[mappedDow][hour].impressions += row.impressions || 0;
+              matrix[mappedDow][hour].spend += row.spend || 0;
+              matrix[mappedDow][hour].clicks += row.clicks || 0;
+            }
+          });
+
+          // Find max for color scaling
+          let maxImpressions = 0;
+          for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) {
+            if (matrix[d][h].impressions > maxImpressions) maxImpressions = matrix[d][h].impressions;
+          }
+
+          const getColor = (val: number) => {
+            if (maxImpressions === 0 || val === 0) return "rgba(255,255,255,0.02)";
+            const intensity = val / maxImpressions;
+            if (intensity > 0.75) return "rgba(0,200,117,0.6)";
+            if (intensity > 0.5) return "rgba(0,200,117,0.35)";
+            if (intensity > 0.25) return "rgba(0,212,255,0.25)";
+            if (intensity > 0.1) return "rgba(0,212,255,0.12)";
+            return "rgba(255,255,255,0.04)";
+          };
+
+          return (
+            <div style={{ ...panelStyle, marginTop: 12 }}>
+              <h3 style={headingStyle}>Distribución por Hora y Día</h3>
+              <p style={subStyle}>Impresiones en el periodo filtrado · Hover para ver gasto</p>
+              <div style={{ overflowX: "auto" }}>
+                <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 700 }}>
+                  <thead>
+                    <tr>
+                      <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.5)", textAlign: "left", fontWeight: 600, width: 40 }}></th>
+                      {HOURS.map(h => (
+                        <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.4)", textAlign: "center", fontWeight: 500, minWidth: 26 }}>
+                          {h.toString().padStart(2, "0")}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {DOW_LABELS.map((dayLabel, d) => (
+                      <tr key={d}>
+                        <td style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.6)", fontWeight: 600, whiteSpace: "nowrap" }}>{dayLabel}</td>
+                        {HOURS.map(h => {
+                          const cell = matrix[d][h];
+                          return (
+                            <td
+                              key={h}
+                              title={`${dayLabel} ${h.toString().padStart(2, "0")}:00\nImpresiones: ${fmtNum(cell.impressions)}\nGasto: ${fmtMXN(cell.spend)}\nClics: ${fmtNum(cell.clicks)}`}
+                              style={{
+                                padding: 0,
+                                textAlign: "center",
+                              }}
+                            >
+                              <div style={{
+                                width: "100%", height: 22,
+                                background: getColor(cell.impressions),
+                                borderRadius: 2,
+                                margin: 1,
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                fontSize: 7, color: cell.impressions > 0 ? "rgba(255,255,255,0.6)" : "transparent",
+                                fontWeight: 600,
+                                cursor: "default",
+                                transition: "background 0.15s, transform 0.1s",
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.3)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; }}
+                              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; }}
+                              >
+                                {cell.impressions > 0 ? (cell.impressions > 999 ? `${(cell.impressions / 1000).toFixed(0)}k` : cell.impressions) : ""}
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Legend */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
+                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.3)" }}>Menos</span>
+                {["rgba(255,255,255,0.04)", "rgba(0,212,255,0.12)", "rgba(0,212,255,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
+                  <div key={i} style={{ width: 14, height: 10, borderRadius: 2, background: c }} />
+                ))}
+                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.3)" }}>Más</span>
+              </div>
+            </div>
+          );
+        })()}
+        </>
       )}
 
       {/* ═══ TAB: GASTO & PRESUPUESTO ═══ */}
@@ -1308,6 +1422,11 @@ export default function ProjectDashboardPage() {
               cprTarget={cprTarget}
               cprLabel={"CPR"}
               pageName={project?.fanpage?.[0] || project?.alias || ""}
+              pageImageUrl={(() => {
+                const fpName = project?.fanpage?.[0] || "";
+                const matched = metaPages.find((p: any) => p.name === fpName);
+                return matched?.picture || metaPages[0]?.picture || "";
+              })()}
             />
           )}
         </div>

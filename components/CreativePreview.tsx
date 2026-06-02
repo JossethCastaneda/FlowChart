@@ -265,9 +265,9 @@ export const CreativeCard = ({
 
 /* ═══ LIGHTBOX / PREVIEW MODAL ═══ */
 export const CreativeLightbox = ({
-  ad, onClose, fmtMXN, cprTarget, cprLabel, fmtNum, pageName,
+  ad, onClose, fmtMXN, cprTarget, cprLabel, fmtNum, pageName, pageImageUrl,
 }: {
-  ad: AdCreative; onClose: () => void; fmtMXN: (n: number) => string; cprTarget: number; cprLabel: string; fmtNum: (n: number) => string; pageName?: string;
+  ad: AdCreative; onClose: () => void; fmtMXN: (n: number) => string; cprTarget: number; cprLabel: string; fmtNum: (n: number) => string; pageName?: string; pageImageUrl?: string;
 }) => {
   // Close on ESC
   useEffect(() => {
@@ -295,15 +295,16 @@ export const CreativeLightbox = ({
         onClick={e => e.stopPropagation()}
         style={{
           background: "#0f1219", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12,
-          maxWidth: 960, width: "100%", maxHeight: "92vh", overflow: "hidden",
+          maxWidth: 960, width: "100%", maxHeight: "85vh", overflow: "hidden",
           display: "flex", flexDirection: "row", animation: "slideUp 0.25s ease",
+          margin: "auto",
         }}
       >
         {/* Left: Media */}
         <div style={{
           flex: "0 0 50%", maxWidth: 480, background: "#000", position: "relative",
           display: "flex", alignItems: "center", justifyContent: "center",
-          minHeight: 350, maxHeight: "92vh", overflow: "hidden",
+          minHeight: 300, maxHeight: "85vh", overflow: "hidden",
         }}>
           {ad.format === "video" ? (
             <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} autoPlay={!!ad.videoUrl} />
@@ -320,7 +321,7 @@ export const CreativeLightbox = ({
         </div>
 
         {/* Right: Info + Preview */}
-        <div style={{ flex: 1, padding: "20px 24px", display: "flex", flexDirection: "column", overflow: "auto", maxHeight: "92vh" }}>
+        <div style={{ flex: 1, padding: "16px 20px", display: "flex", flexDirection: "column", overflow: "auto", maxHeight: "85vh" }}>
           {/* Close */}
           <button onClick={onClose} style={{
             position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.05)",
@@ -370,9 +371,13 @@ export const CreativeLightbox = ({
             <div style={{ padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
               <p style={{ fontSize: 9, color: "rgba(148,163,184,0.3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Vista previa del anuncio</p>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #0081FB, #00d4ff)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <span style={{ fontSize: 12, fontWeight: 700, color: "white" }}>{(ad.adName || "A")[0].toUpperCase()}</span>
-                </div>
+                {pageImageUrl ? (
+                  <img src={pageImageUrl} alt={pageName || ""} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)" }} />
+                ) : (
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #0081FB, #00d4ff)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "white" }}>{(pageName || ad.adName || "A")[0].toUpperCase()}</span>
+                  </div>
+                )}
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{pageName || ad.title || ad.adName}</p>
                   <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>Publicidad · 🌐</p>

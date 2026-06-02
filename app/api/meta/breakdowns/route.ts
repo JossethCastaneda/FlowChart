@@ -34,6 +34,7 @@ const PLATFORM_ONLY_BREAKDOWNS = new Set([
   "device",      // device_platform
   "conversion_device", // impression_device
   "time_of_day", // hourly_stats — incompatible with actions/reach
+  "hourly_daily", // hourly_stats + daily — same restrictions
 ]);
 
 // ── Breakdown → Meta API parameter mapping ───────────────────────────────
@@ -52,6 +53,7 @@ const BREAKDOWN_MAP: Record<string, { breakdowns?: string; time_increment?: stri
   placement:          { breakdowns: "publisher_platform,platform_position" },
   device:             { breakdowns: "device_platform" },
   time_of_day:        { breakdowns: "hourly_stats_aggregated_by_audience_time_zone" },
+  hourly_daily:       { breakdowns: "hourly_stats_aggregated_by_audience_time_zone", time_increment: "1" },
   conversion_device:  { breakdowns: "impression_device" },
   destination:        { breakdowns: "place_page_id" },
   // Dynamic creative (ad-level only)
