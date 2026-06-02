@@ -10,7 +10,6 @@ import {
   Upload,
   Hash,
   Plus,
-  Trash2,
   Check,
   AlertCircle,
   Loader2,
@@ -21,6 +20,8 @@ import {
   MoreHorizontal,
   Bookmark,
   ChevronDown,
+  Globe,
+  Trash2,
 } from "lucide-react";
 
 /* ── Social Icons (not in lucide-react) ───────────────── */
@@ -35,7 +36,6 @@ const Instagram = ({ style }: { style?: React.CSSProperties }) => (
   </svg>
 );
 
-
 /* ── Types ─────────────────────────────────────────────── */
 interface MetaPage {
   id: string;
@@ -48,6 +48,18 @@ interface MetaPage {
     picture: string;
     followers: number;
   } | null;
+}
+
+/** A "publishable target" — one FB page or one IG account derived from a page */
+interface PublishTarget {
+  key: string;            // unique: `fb_${pageId}` or `ig_${igId}`
+  platform: "facebook" | "instagram";
+  pageId: string;
+  pageName: string;
+  pagePicture: string;
+  igId?: string;
+  igUsername?: string;
+  igPicture?: string;
 }
 
 interface UploadedMedia {
@@ -67,31 +79,23 @@ const CHAR_LIMITS: Record<string, number> = {
   instagram: 2200,
 };
 
-const panelStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.02)",
-  border: "1px solid rgba(255,255,255,0.06)",
-  borderRadius: 8,
-  padding: 20,
-};
-
 /* ══════════════════════════════════════════════════════════
-   COMPOSER COMPONENT
+   COMPOSER COMPONENT — Hootsuite-style
    ══════════════════════════════════════════════════════════ */
 export function Composer() {
   /* ── State ──────────────────────────────────────────── */
   const [content, setContent] = useState("");
-  const [selectedChannels, setSelectedChannels] = useState<string[]>([]);
+  const [selectedTargets, setSelectedTargets] = useState<PublishTarget[]>([]);
   const [mediaFiles, setMediaFiles] = useState<UploadedMedia[]>([]);
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
-  const [activePreview, setActivePreview] = useState<string>("facebook");
 
   // Pages
   const [pages, setPages] = useState<MetaPage[]>([]);
-  const [selectedPage, setSelectedPage] = useState<MetaPage | null>(null);
+  const [allTargets, setAllTargets] = useState<PublishTarget[]>([]);
   const [pagesLoading, setPagesLoading] = useState(false);
-  const [showPageDropdown, setShowPageDropdown] = useState(false);
+  const [showAccountPicker, setShowAccountPicker] = useState(false);
 
   // Loading
   const [savingDraft, setSavingDraft] = useState(false);
@@ -108,7 +112,34 @@ export function Composer() {
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dropZoneRef = useRef<HTMLDivElement>(null);
-  const pageDropdownRef = useRef<HTMLDivElement>(null);
+  const pickerRef = useRef<HTMLDivElement>(null);
+
+  /* ── Build targets from pages ───────────────────────── */
+  useEffect(() => {
+    const targets: PublishTarget[] = [];
+    for (const page of pages) {
+      targets.push({
+        key: `fb_${page.id}`,
+        platform: "facebook",
+        pageId: page.id,
+        pageName: page.name,
+        pagePicture: page.picture,
+      });
+      if (page.instagram) {
+        targets.push({
+          key: `ig_${page.instagram.id}`,
+          platform: "instagram",
+          pageId: page.id,
+          pageName: page.name,
+          pagePicture: page.picture,
+          igId: page.instagram.id,
+          igUsername: page.instagram.username,
+          igPicture: page.instagram.picture,
+        });
+      }
+    }
+    setAllTargets(targets);
+  }, [pages]);
 
   /* ── Load pages on mount ────────────────────────────── */
   useEffect(() => {
@@ -119,7 +150,6 @@ export function Composer() {
         const data = await res.json();
         const list: MetaPage[] = data.data || [];
         setPages(list);
-        if (list.length > 0) setSelectedPage(list[0]);
       } catch {
         /* silent */
       } finally {
@@ -136,40 +166,40 @@ export function Composer() {
     return () => clearTimeout(t);
   }, [banner]);
 
-  /* ── Close page dropdown on outside click ───────────── */
+  /* ── Close picker on outside click ──────────────────── */
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (
-        pageDropdownRef.current &&
-        !pageDropdownRef.current.contains(e.target as Node)
-      ) {
-        setShowPageDropdown(false);
+      if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
+        setShowAccountPicker(false);
       }
     };
     document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  /* ── Channel toggle ─────────────────────────────────── */
-  const toggleChannel = (channel: string) => {
-    setSelectedChannels((prev) => {
-      const next = prev.includes(channel)
-        ? prev.filter((c) => c !== channel)
-        : [...prev, channel];
-      if (!prev.includes(channel)) setActivePreview(channel);
-      return next;
+  /* ── Target toggle (multi-select) ───────────────────── */
+  const toggleTarget = (target: PublishTarget) => {
+    setSelectedTargets((prev) => {
+      const exists = prev.find((t) => t.key === target.key);
+      if (exists) return prev.filter((t) => t.key !== target.key);
+      return [...prev, target];
     });
   };
+
+  const removeTarget = (key: string) => {
+    setSelectedTargets((prev) => prev.filter((t) => t.key !== key));
+  };
+
+  const clearAllTargets = () => setSelectedTargets([]);
+
+  const selectAllTargets = () => setSelectedTargets([...allTargets]);
 
   /* ── File upload ────────────────────────────────────── */
   const uploadFile = async (file: File): Promise<UploadedMedia | null> => {
     const fd = new FormData();
     fd.append("file", file);
     try {
-      const res = await fetch("/api/publisher/upload", {
-        method: "POST",
-        body: fd,
-      });
+      const res = await fetch("/api/publisher/upload", { method: "POST", body: fd });
       if (!res.ok) {
         const err = await res.json();
         setBanner({ type: "error", message: err.error || "Error al subir archivo" });
@@ -215,31 +245,19 @@ export function Composer() {
     setUploading(false);
   };
 
-  const removeMedia = (index: number) => {
-    setMediaFiles((prev) => prev.filter((_, i) => i !== index));
-  };
+  const removeMedia = (index: number) => setMediaFiles((prev) => prev.filter((_, i) => i !== index));
 
   /* ── Drag & drop handlers ───────────────────────────── */
   const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(true);
+    e.preventDefault(); e.stopPropagation(); setIsDragging(true);
   }, []);
-
   const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setIsDragging(false);
+    e.preventDefault(); e.stopPropagation(); setIsDragging(false);
   }, []);
-
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
-      e.preventDefault();
-      e.stopPropagation();
-      setIsDragging(false);
-      if (e.dataTransfer.files.length > 0) {
-        handleFiles(e.dataTransfer.files);
-      }
+      e.preventDefault(); e.stopPropagation(); setIsDragging(false);
+      if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
     },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [mediaFiles]
@@ -248,21 +266,12 @@ export function Composer() {
   /* ── Hashtag management ─────────────────────────────── */
   const addHashtag = () => {
     const tag = hashtagInput.trim().replace(/^#/, "");
-    if (tag && !hashtags.includes(tag)) {
-      setHashtags((prev) => [...prev, tag]);
-    }
+    if (tag && !hashtags.includes(tag)) setHashtags((prev) => [...prev, tag]);
     setHashtagInput("");
   };
-
-  const removeHashtag = (tag: string) => {
-    setHashtags((prev) => prev.filter((t) => t !== tag));
-  };
-
+  const removeHashtag = (tag: string) => setHashtags((prev) => prev.filter((t) => t !== tag));
   const handleHashtagKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" || e.key === ",") {
-      e.preventDefault();
-      addHashtag();
-    }
+    if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addHashtag(); }
   };
 
   /* ── Build full content with hashtags ───────────────── */
@@ -273,1021 +282,731 @@ export function Composer() {
 
   /* ── Character count helpers ────────────────────────── */
   const charCount = fullContent().length;
-  const getCharLimit = () => {
-    if (selectedChannels.includes("instagram")) return CHAR_LIMITS.instagram;
-    return CHAR_LIMITS.facebook;
-  };
-  const charLimit = getCharLimit();
+  const hasIg = selectedTargets.some((t) => t.platform === "instagram");
+  const charLimit = hasIg ? CHAR_LIMITS.instagram : CHAR_LIMITS.facebook;
   const charPercent = Math.min((charCount / charLimit) * 100, 100);
   const isOverLimit = charCount > charLimit;
   const isNearLimit = charPercent > 90 && !isOverLimit;
 
   /* ── Clear form ─────────────────────────────────────── */
   const clearForm = () => {
-    setContent("");
-    setMediaFiles([]);
-    setHashtags([]);
-    setHashtagInput("");
-    setScheduledAt("");
+    setContent(""); setMediaFiles([]); setHashtags([]); setHashtagInput(""); setScheduledAt("");
   };
 
   /* ── Actions ────────────────────────────────────────── */
+  const selectedChannels = [...new Set(selectedTargets.map((t) => t.platform))];
+  const firstFbTarget = selectedTargets.find((t) => t.platform === "facebook");
+
   const validateForm = (): string | null => {
     if (!content.trim()) return "El contenido es obligatorio";
-    if (selectedChannels.length === 0) return "Selecciona al menos un canal";
+    if (selectedTargets.length === 0) return "Selecciona al menos una cuenta para publicar";
     if (isOverLimit) return `El contenido excede el límite de ${charLimit.toLocaleString()} caracteres`;
     return null;
   };
 
+  const buildPayload = (status: "Draft" | "Scheduled") => ({
+    content: fullContent(),
+    channels: selectedChannels,
+    mediaUrls: mediaFiles.map((m) => m.url),
+    scheduledAt: status === "Scheduled" ? new Date(scheduledAt).toISOString() : undefined,
+    status,
+    type: "post",
+    hashtags,
+    pageName: firstFbTarget?.pageName || null,
+    pageId: firstFbTarget?.pageId || null,
+    targets: selectedTargets.map((t) => ({
+      key: t.key,
+      platform: t.platform,
+      pageId: t.pageId,
+      igId: t.igId,
+    })),
+  });
+
   const saveDraft = async () => {
     const err = validateForm();
     if (err) { setBanner({ type: "error", message: err }); return; }
-
     setSavingDraft(true);
     try {
       const res = await fetch("/api/publisher/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: fullContent(),
-          channels: selectedChannels,
-          mediaUrls: mediaFiles.map((m) => m.url),
-          status: "Draft",
-          type: "post",
-          hashtags,
-          pageName: selectedPage?.name || null,
-          pageId: selectedPage?.id || null,
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload("Draft")),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Error al guardar");
-      }
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error"); }
       setBanner({ type: "success", message: "Borrador guardado exitosamente" });
       clearForm();
-    } catch (e: any) {
-      setBanner({ type: "error", message: e.message });
-    } finally {
-      setSavingDraft(false);
-    }
+    } catch (e: any) { setBanner({ type: "error", message: e.message }); }
+    finally { setSavingDraft(false); }
   };
 
   const schedulePost = async () => {
     const err = validateForm();
     if (err) { setBanner({ type: "error", message: err }); return; }
-    if (!scheduledAt) {
-      setBanner({ type: "error", message: "Selecciona fecha y hora para programar" });
-      return;
-    }
-
+    if (!scheduledAt) { setBanner({ type: "error", message: "Selecciona fecha y hora" }); return; }
     setScheduling(true);
     try {
       const res = await fetch("/api/publisher/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: fullContent(),
-          channels: selectedChannels,
-          mediaUrls: mediaFiles.map((m) => m.url),
-          scheduledAt: new Date(scheduledAt).toISOString(),
-          status: "Scheduled",
-          type: "post",
-          hashtags,
-          pageName: selectedPage?.name || null,
-          pageId: selectedPage?.id || null,
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload("Scheduled")),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || "Error al programar");
-      }
-      const scheduleDate = new Intl.DateTimeFormat("es-MX", {
-        dateStyle: "medium",
-        timeStyle: "short",
-      }).format(new Date(scheduledAt));
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error"); }
+      const scheduleDate = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(new Date(scheduledAt));
       setBanner({ type: "success", message: `Publicación programada para ${scheduleDate}` });
       clearForm();
-    } catch (e: any) {
-      setBanner({ type: "error", message: e.message });
-    } finally {
-      setScheduling(false);
-    }
+    } catch (e: any) { setBanner({ type: "error", message: e.message }); }
+    finally { setScheduling(false); }
   };
 
   const publishNow = async () => {
     const err = validateForm();
     if (err) { setBanner({ type: "error", message: err }); return; }
-
     setPublishing(true);
     try {
-      // Step 1: Create post as Draft
       const createRes = await fetch("/api/publisher/posts", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          content: fullContent(),
-          channels: selectedChannels,
-          mediaUrls: mediaFiles.map((m) => m.url),
-          status: "Draft",
-          type: "post",
-          hashtags,
-          pageName: selectedPage?.name || null,
-          pageId: selectedPage?.id || null,
-        }),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildPayload("Draft")),
       });
-      if (!createRes.ok) {
-        const data = await createRes.json();
-        throw new Error(data.error || "Error al crear post");
-      }
+      if (!createRes.ok) { const d = await createRes.json(); throw new Error(d.error || "Error"); }
       const { post } = await createRes.json();
-
-      // Step 2: Publish
       const pubRes = await fetch("/api/publisher/publish", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
+        method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ postId: post.id }),
       });
       const pubData = await pubRes.json();
-      if (!pubRes.ok) {
-        throw new Error(pubData.error || "Error al publicar");
-      }
+      if (!pubRes.ok) throw new Error(pubData.error || "Error al publicar");
       setBanner({ type: "success", message: "¡Publicación exitosa! Tu post ya está en vivo." });
       clearForm();
-    } catch (e: any) {
-      setBanner({ type: "error", message: e.message });
-    } finally {
-      setPublishing(false);
-    }
+    } catch (e: any) { setBanner({ type: "error", message: e.message }); }
+    finally { setPublishing(false); }
   };
 
   const anyLoading = savingDraft || scheduling || publishing;
 
   /* ── Preview helpers ────────────────────────────────── */
-  const previewPageName = selectedPage?.name || "Tu Página";
-  const previewPagePic = selectedPage?.picture || "";
-  const previewIgUsername = selectedPage?.instagram?.username || "tu.cuenta";
-  const previewIgPic = selectedPage?.instagram?.picture || "";
   const previewText = fullContent() || "Tu increíble contenido aparecerá aquí...";
   const previewMedia = mediaFiles.length > 0 ? mediaFiles[0].url : null;
-
-  /* ── Render Facebook Preview ────────────────────────── */
-  const renderFacebookPreview = () => (
-    <div
-      style={{
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.08)",
-        borderRadius: 12,
-        overflow: "hidden",
-        maxWidth: 380,
-        width: "100%",
-        fontFamily: "Inter, Arial, sans-serif",
-      }}
-    >
-      {/* Header */}
-      <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {previewPagePic ? (
-            <img
-              src={previewPagePic}
-              alt=""
-              style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover" }}
-            />
-          ) : (
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: "50%",
-                background: "linear-gradient(135deg, #1877f2, #00d4ff)",
-              }}
-            />
-          )}
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{previewPageName}</div>
-            <div style={{ fontSize: 11, color: "#94a3b8", display: "flex", alignItems: "center", gap: 4 }}>
-              Justo ahora · 🌎
-            </div>
-          </div>
-        </div>
-        <MoreHorizontal style={{ width: 18, height: 18, color: "#64748b" }} />
-      </div>
-
-      {/* Content */}
-      <div style={{ padding: "0 14px 12px", fontSize: 14, color: "#cbd5e1", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
-        {previewText}
-      </div>
-
-      {/* Media */}
-      {previewMedia && (
-        <div style={{ width: "100%", height: 240, background: "#0f172a" }}>
-          {mediaFiles[0]?.type === "video" ? (
-            <video src={previewMedia} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
-          ) : (
-            <img src={previewMedia} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          )}
-        </div>
-      )}
-
-      {/* Action bar */}
-      <div
-        style={{
-          display: "flex",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          padding: "8px 4px",
-        }}
-      >
-        {[
-          { icon: <Heart style={{ width: 16, height: 16 }} />, label: "Me gusta" },
-          { icon: <MessageCircle style={{ width: 16, height: 16 }} />, label: "Comentar" },
-          { icon: <Share2 style={{ width: 16, height: 16 }} />, label: "Compartir" },
-        ].map((btn) => (
-          <div
-            key={btn.label}
-            style={{
-              flex: 1,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: 6,
-              color: "#64748b",
-              fontSize: 13,
-              fontWeight: 500,
-              padding: "6px 0",
-            }}
-          >
-            {btn.icon}
-            <span>{btn.label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-
-  /* ── Render Instagram Preview ───────────────────────── */
-  const renderInstagramPreview = () => (
-    <div
-      style={{
-        background: "#000",
-        border: "1px solid rgba(255,255,255,0.12)",
-        borderRadius: 12,
-        overflow: "hidden",
-        maxWidth: 380,
-        width: "100%",
-        fontFamily: "Inter, -apple-system, sans-serif",
-        color: "#fff",
-      }}
-    >
-      {/* Header */}
-      <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "50%",
-              background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)",
-              padding: 2,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            {previewIgPic ? (
-              <img
-                src={previewIgPic}
-                alt=""
-                style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }}
-              />
-            ) : (
-              <div style={{ width: 26, height: 26, borderRadius: "50%", background: "#0a0f1e" }} />
-            )}
-          </div>
-          <div style={{ fontSize: 13, fontWeight: 600 }}>{previewIgUsername}</div>
-        </div>
-        <MoreHorizontal style={{ width: 18, height: 18 }} />
-      </div>
-
-      {/* Media */}
-      {previewMedia ? (
-        <div style={{ width: "100%", aspectRatio: "1", background: "#0a0f1e" }}>
-          {mediaFiles[0]?.type === "video" ? (
-            <video src={previewMedia} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
-          ) : (
-            <img src={previewMedia} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-          )}
-        </div>
-      ) : (
-        <div
-          style={{
-            width: "100%",
-            aspectRatio: "1",
-            background: "#0a0f1e",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            color: "#334155",
-          }}
-        >
-          <ImageIcon style={{ width: 48, height: 48 }} />
-        </div>
-      )}
-
-      {/* Actions + Caption */}
-      <div style={{ padding: "12px 14px" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-          <div style={{ display: "flex", gap: 16 }}>
-            <Heart style={{ width: 24, height: 24 }} />
-            <MessageCircle style={{ width: 24, height: 24 }} />
-            <Send style={{ width: 24, height: 24 }} />
-          </div>
-          <Bookmark style={{ width: 24, height: 24 }} />
-        </div>
-        <div style={{ fontSize: 13, lineHeight: 1.5 }}>
-          <span style={{ fontWeight: 600, marginRight: 6 }}>{previewIgUsername}</span>
-          {previewText}
-        </div>
-      </div>
-    </div>
-  );
 
   /* ══════════════════════════════════════════════════════
      RENDER
      ══════════════════════════════════════════════════════ */
   return (
-    <div style={{ display: "flex", gap: 24, minHeight: 600, flexWrap: "wrap" }}>
-      {/* ─── LEFT: COMPOSER ─────────────────────────────── */}
-      <div className="glass-panel" style={{ flex: 1, minWidth: 0, padding: 24, display: "flex", flexDirection: "column", gap: 20, borderRadius: 12 }}>
-        {/* Banner */}
-        {banner && (
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 14px",
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 500,
-              background: banner.type === "success" ? "rgba(0,200,117,0.12)" : "rgba(226,68,92,0.12)",
-              border: `1px solid ${banner.type === "success" ? "rgba(0,200,117,0.3)" : "rgba(226,68,92,0.3)"}`,
-              color: banner.type === "success" ? "#00c875" : "#e2445c",
-            }}
-          >
-            {banner.type === "success" ? (
-              <Check style={{ width: 16, height: 16, flexShrink: 0 }} />
-            ) : (
-              <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />
-            )}
-            {banner.message}
-          </div>
-        )}
-
-        {/* Header */}
-        <div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: "#fff", margin: 0 }}>Editor de Publicaciones</h3>
-          <p style={{ fontSize: 13, color: "#94a3b8", margin: "4px 0 0" }}>
-            Selecciona canales y redacta un post para todas tus redes.
-          </p>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", gap: 0 }}>
+      {/* ─── TOP: BANNER ─────────────────────────────────── */}
+      {banner && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: "10px 16px", marginBottom: 8, borderRadius: 8, fontSize: 13, fontWeight: 500,
+          background: banner.type === "success" ? "rgba(0,200,117,0.12)" : "rgba(226,68,92,0.12)",
+          border: `1px solid ${banner.type === "success" ? "rgba(0,200,117,0.3)" : "rgba(226,68,92,0.3)"}`,
+          color: banner.type === "success" ? "#00c875" : "#e2445c",
+        }}>
+          {banner.type === "success" ? <Check style={{ width: 16, height: 16, flexShrink: 0 }} /> : <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />}
+          {banner.message}
         </div>
+      )}
 
-        {/* Channels */}
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-          <button
-            onClick={() => toggleChannel("facebook")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 16px",
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: "pointer",
-              border: selectedChannels.includes("facebook")
-                ? "1px solid #1877f2"
-                : "1px solid rgba(255,255,255,0.08)",
-              background: selectedChannels.includes("facebook")
-                ? "rgba(24,119,242,0.15)"
-                : "rgba(255,255,255,0.03)",
-              color: selectedChannels.includes("facebook") ? "#60a5fa" : "#64748b",
-              transition: "all 0.2s",
-            }}
-          >
-            <Facebook style={{ width: 16, height: 16 }} /> Facebook
-          </button>
-
-          <button
-            onClick={() => toggleChannel("instagram")}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "8px 16px",
-              borderRadius: 8,
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: "pointer",
-              border: selectedChannels.includes("instagram")
-                ? "1px solid #e1306c"
-                : "1px solid rgba(255,255,255,0.08)",
-              background: selectedChannels.includes("instagram")
-                ? "rgba(225,48,108,0.15)"
-                : "rgba(255,255,255,0.03)",
-              color: selectedChannels.includes("instagram") ? "#f472b6" : "#64748b",
-              transition: "all 0.2s",
-            }}
-          >
-            <Instagram style={{ width: 16, height: 16 }} /> Instagram
-          </button>
-        </div>
-
-        {/* Page Selector */}
-        {selectedChannels.length > 0 && (
-          <div ref={pageDropdownRef} style={{ position: "relative" }}>
-            <label style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500, marginBottom: 6, display: "block" }}>
-              Página / Cuenta
-            </label>
-            <button
-              onClick={() => setShowPageDropdown(!showPageDropdown)}
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 10,
-                width: "100%",
-                padding: "10px 14px",
-                borderRadius: 8,
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                color: "#e2e8f0",
-                fontSize: 13,
-                cursor: "pointer",
-                textAlign: "left",
-              }}
-            >
-              {pagesLoading ? (
-                <>
-                  <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
-                  <span style={{ color: "#94a3b8" }}>Cargando páginas...</span>
-                </>
-              ) : selectedPage ? (
-                <>
-                  <img
-                    src={selectedPage.picture}
-                    alt=""
-                    style={{ width: 24, height: 24, borderRadius: "50%", objectFit: "cover" }}
-                  />
-                  <span style={{ flex: 1 }}>{selectedPage.name}</span>
-                  {selectedPage.instagram && (
-                    <span style={{ fontSize: 11, color: "#94a3b8" }}>
-                      @{selectedPage.instagram.username}
-                    </span>
-                  )}
-                  <ChevronDown style={{ width: 14, height: 14, color: "#64748b" }} />
-                </>
-              ) : (
-                <span style={{ color: "#64748b" }}>No hay páginas disponibles</span>
+      {/* ─── MAIN: TWO-COLUMN LAYOUT ──────────────────────── */}
+      <div style={{ display: "flex", flex: 1, gap: 16, minHeight: 0 }}>
+        {/* ═══ LEFT COLUMN: EDITOR ═══ */}
+        <div className="glass-panel" style={{
+          flex: 1, minWidth: 0, display: "flex", flexDirection: "column",
+          borderRadius: 12, overflow: "hidden",
+        }}>
+          {/* ── Publish To bar ──────────────────────────────── */}
+          <div style={{
+            padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(255,255,255,0.01)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8" }}>Publicar en</span>
+              {selectedTargets.length > 0 && (
+                <button onClick={clearAllTargets} style={{
+                  background: "none", border: "none", color: "#64748b", fontSize: 11,
+                  cursor: "pointer", textDecoration: "underline", padding: 0,
+                }}>
+                  Limpiar cuentas
+                </button>
               )}
-            </button>
+            </div>
 
-            {showPageDropdown && pages.length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  marginTop: 4,
-                  background: "#0f172a",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  borderRadius: 8,
-                  overflow: "hidden",
-                  zIndex: 50,
-                  maxHeight: 240,
-                  overflowY: "auto",
-                }}
-              >
-                {pages.map((page) => (
-                  <button
-                    key={page.id}
-                    onClick={() => {
-                      setSelectedPage(page);
-                      setShowPageDropdown(false);
-                    }}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 10,
-                      width: "100%",
-                      padding: "10px 14px",
-                      background: selectedPage?.id === page.id ? "rgba(0,212,255,0.08)" : "transparent",
-                      border: "none",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
-                      color: "#e2e8f0",
-                      fontSize: 13,
-                      cursor: "pointer",
-                      textAlign: "left",
-                    }}
-                  >
-                    <img
-                      src={page.picture}
-                      alt=""
-                      style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover" }}
-                    />
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontWeight: 500 }}>{page.name}</div>
-                      {page.instagram && (
-                        <div style={{ fontSize: 11, color: "#94a3b8" }}>
-                          @{page.instagram.username}
-                        </div>
-                      )}
+            {/* Selected chips */}
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+              {selectedTargets.map((target) => {
+                const isFb = target.platform === "facebook";
+                const bgColor = isFb ? "rgba(24,119,242,0.12)" : "rgba(225,48,108,0.12)";
+                const borderColor = isFb ? "rgba(24,119,242,0.4)" : "rgba(225,48,108,0.4)";
+                const textColor = isFb ? "#60a5fa" : "#f472b6";
+                const Icon = isFb ? Facebook : Instagram;
+                const label = isFb ? target.pageName : `@${target.igUsername}`;
+                return (
+                  <span key={target.key} style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "5px 10px 5px 8px", borderRadius: 20,
+                    background: bgColor, border: `1px solid ${borderColor}`,
+                    fontSize: 12, fontWeight: 500, color: textColor,
+                    transition: "all 0.15s",
+                  }}>
+                    <Icon style={{ width: 13, height: 13 }} />
+                    {label}
+                    <button onClick={() => removeTarget(target.key)} style={{
+                      background: "none", border: "none", color: textColor,
+                      cursor: "pointer", padding: 0, display: "flex", marginLeft: 2,
+                    }}>
+                      <X style={{ width: 12, height: 12 }} />
+                    </button>
+                  </span>
+                );
+              })}
+
+              {/* Add account button */}
+              <div ref={pickerRef} style={{ position: "relative" }}>
+                <button onClick={() => setShowAccountPicker(!showAccountPicker)} style={{
+                  display: "flex", alignItems: "center", gap: 6,
+                  padding: "6px 12px", borderRadius: 20,
+                  background: "rgba(255,255,255,0.04)", border: "1px dashed rgba(255,255,255,0.15)",
+                  color: "#94a3b8", fontSize: 12, cursor: "pointer",
+                  transition: "all 0.15s",
+                }}>
+                  {pagesLoading ? (
+                    <Loader2 style={{ width: 13, height: 13, animation: "spin 1s linear infinite" }} />
+                  ) : (
+                    <Plus style={{ width: 13, height: 13 }} />
+                  )}
+                  {selectedTargets.length === 0 ? "Seleccionar cuentas" : "Agregar"}
+                  <ChevronDown style={{ width: 12, height: 12 }} />
+                </button>
+
+                {/* Account picker dropdown */}
+                {showAccountPicker && (
+                  <div style={{
+                    position: "absolute", top: "calc(100% + 6px)", left: 0, minWidth: 320,
+                    background: "#0c1222", border: "1px solid rgba(255,255,255,0.1)",
+                    borderRadius: 12, overflow: "hidden", zIndex: 100,
+                    boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                  }}>
+                    {/* Header */}
+                    <div style={{
+                      padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      display: "flex", justifyContent: "space-between", alignItems: "center",
+                    }}>
+                      <span style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Seleccionar cuentas</span>
+                      <button onClick={selectedTargets.length === allTargets.length ? clearAllTargets : selectAllTargets} style={{
+                        background: "none", border: "none", color: "#00d4ff",
+                        fontSize: 11, cursor: "pointer", padding: 0,
+                      }}>
+                        {selectedTargets.length === allTargets.length ? "Deseleccionar todo" : "Seleccionar todo"}
+                      </button>
                     </div>
-                    {selectedPage?.id === page.id && (
-                      <Check style={{ width: 14, height: 14, color: "#00d4ff" }} />
+
+                    {/* Facebook section */}
+                    {allTargets.filter((t) => t.platform === "facebook").length > 0 && (
+                      <>
+                        <div style={{
+                          padding: "8px 16px", fontSize: 10, fontWeight: 700,
+                          color: "#475569", textTransform: "uppercase", letterSpacing: 1,
+                          background: "rgba(255,255,255,0.02)",
+                        }}>
+                          <Facebook style={{ width: 11, height: 11, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#1877f2" }} />
+                          Facebook Pages
+                        </div>
+                        {allTargets.filter((t) => t.platform === "facebook").map((target) => {
+                          const isSelected = selectedTargets.some((t) => t.key === target.key);
+                          return (
+                            <button key={target.key} onClick={() => toggleTarget(target)} style={{
+                              display: "flex", alignItems: "center", gap: 10, width: "100%",
+                              padding: "10px 16px", background: isSelected ? "rgba(24,119,242,0.08)" : "transparent",
+                              border: "none", borderBottom: "1px solid rgba(255,255,255,0.03)",
+                              color: "#e2e8f0", fontSize: 13, cursor: "pointer", textAlign: "left",
+                              transition: "background 0.15s",
+                            }}>
+                              <img src={target.pagePicture} alt="" style={{
+                                width: 32, height: 32, borderRadius: "50%", objectFit: "cover",
+                                border: isSelected ? "2px solid #1877f2" : "2px solid transparent",
+                              }} />
+                              <span style={{ flex: 1, fontWeight: 500 }}>{target.pageName}</span>
+                              <div style={{
+                                width: 20, height: 20, borderRadius: 4,
+                                border: isSelected ? "none" : "1.5px solid rgba(255,255,255,0.2)",
+                                background: isSelected ? "#1877f2" : "transparent",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                transition: "all 0.15s",
+                              }}>
+                                {isSelected && <Check style={{ width: 13, height: 13, color: "#fff" }} />}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </>
                     )}
-                  </button>
+
+                    {/* Instagram section */}
+                    {allTargets.filter((t) => t.platform === "instagram").length > 0 && (
+                      <>
+                        <div style={{
+                          padding: "8px 16px", fontSize: 10, fontWeight: 700,
+                          color: "#475569", textTransform: "uppercase", letterSpacing: 1,
+                          background: "rgba(255,255,255,0.02)",
+                        }}>
+                          <Instagram style={{ width: 11, height: 11, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#E1306C" }} />
+                          Instagram Accounts
+                        </div>
+                        {allTargets.filter((t) => t.platform === "instagram").map((target) => {
+                          const isSelected = selectedTargets.some((t) => t.key === target.key);
+                          return (
+                            <button key={target.key} onClick={() => toggleTarget(target)} style={{
+                              display: "flex", alignItems: "center", gap: 10, width: "100%",
+                              padding: "10px 16px", background: isSelected ? "rgba(225,48,108,0.08)" : "transparent",
+                              border: "none", borderBottom: "1px solid rgba(255,255,255,0.03)",
+                              color: "#e2e8f0", fontSize: 13, cursor: "pointer", textAlign: "left",
+                              transition: "background 0.15s",
+                            }}>
+                              <img src={target.igPicture || target.pagePicture} alt="" style={{
+                                width: 32, height: 32, borderRadius: "50%", objectFit: "cover",
+                                border: isSelected ? "2px solid #E1306C" : "2px solid transparent",
+                              }} />
+                              <div style={{ flex: 1 }}>
+                                <div style={{ fontWeight: 500 }}>@{target.igUsername}</div>
+                                <div style={{ fontSize: 11, color: "#64748b" }}>{target.pageName}</div>
+                              </div>
+                              <div style={{
+                                width: 20, height: 20, borderRadius: 4,
+                                border: isSelected ? "none" : "1.5px solid rgba(255,255,255,0.2)",
+                                background: isSelected ? "#E1306C" : "transparent",
+                                display: "flex", alignItems: "center", justifyContent: "center",
+                                transition: "all 0.15s",
+                              }}>
+                                {isSelected && <Check style={{ width: 13, height: 13, color: "#fff" }} />}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </>
+                    )}
+
+                    {/* No accounts */}
+                    {allTargets.length === 0 && !pagesLoading && (
+                      <div style={{ padding: 24, textAlign: "center", color: "#64748b", fontSize: 12 }}>
+                        No hay cuentas conectadas.
+                        <br />Conecta Meta en <strong style={{ color: "#00d4ff" }}>Integraciones</strong>.
+                      </div>
+                    )}
+
+                    {/* Done button */}
+                    <div style={{ padding: "10px 16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                      <button onClick={() => setShowAccountPicker(false)} style={{
+                        width: "100%", padding: "8px 0", borderRadius: 8,
+                        background: "linear-gradient(135deg, #00b4d8, #0077b6)", border: "none",
+                        color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                      }}>
+                        Listo ({selectedTargets.length} seleccionados)
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* ── Text area with toolbar ──────────────────────── */}
+          <div
+            ref={dropZoneRef}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            style={{
+              flex: 1, display: "flex", flexDirection: "column",
+              background: isDragging ? "rgba(0,212,255,0.04)" : "transparent",
+              transition: "all 0.2s", minHeight: 200,
+            }}
+          >
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder="Escribe tu caption, luego personalízalo para cada red social."
+              style={{
+                flex: 1, width: "100%", background: "transparent",
+                border: "none", outline: "none", resize: "none",
+                padding: "16px 20px", color: "#e2e8f0", fontSize: 14,
+                lineHeight: 1.6, fontFamily: "Inter, sans-serif",
+                minHeight: 160,
+              }}
+            />
+
+            {/* Hashtag pills */}
+            {hashtags.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 20px 10px" }}>
+                {hashtags.map((tag) => (
+                  <span key={tag} style={{
+                    display: "flex", alignItems: "center", gap: 4,
+                    padding: "3px 10px", borderRadius: 20,
+                    background: "rgba(123,97,255,0.15)", border: "1px solid rgba(123,97,255,0.3)",
+                    color: "#a78bfa", fontSize: 12, fontWeight: 500,
+                  }}>
+                    #{tag}
+                    <button onClick={() => removeHashtag(tag)} style={{
+                      background: "none", border: "none", color: "#a78bfa",
+                      cursor: "pointer", padding: 0, display: "flex",
+                    }}>
+                      <X style={{ width: 12, height: 12 }} />
+                    </button>
+                  </span>
                 ))}
               </div>
             )}
-          </div>
-        )}
 
-        {/* Text area */}
-        <div
-          ref={dropZoneRef}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            borderRadius: 10,
-            border: isDragging
-              ? "2px dashed #00d4ff"
-              : "1px solid rgba(255,255,255,0.08)",
-            background: isDragging ? "rgba(0,212,255,0.04)" : "rgba(255,255,255,0.02)",
-            overflow: "hidden",
-            transition: "all 0.2s",
-            minHeight: 200,
-          }}
-        >
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            placeholder="¿Qué quieres compartir con tu audiencia hoy?"
-            style={{
-              flex: 1,
-              width: "100%",
-              background: "transparent",
-              border: "none",
-              outline: "none",
-              resize: "none",
-              padding: 16,
-              color: "#e2e8f0",
-              fontSize: 14,
-              lineHeight: 1.6,
-              fontFamily: "Inter, sans-serif",
-              minHeight: 140,
-            }}
-          />
-
-          {/* Hashtag pills */}
-          {hashtags.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 16px 8px" }}>
-              {hashtags.map((tag) => (
-                <span
-                  key={tag}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    padding: "3px 10px",
-                    borderRadius: 20,
-                    background: "rgba(123,97,255,0.15)",
-                    border: "1px solid rgba(123,97,255,0.3)",
-                    color: "#a78bfa",
-                    fontSize: 12,
-                    fontWeight: 500,
-                  }}
-                >
-                  #{tag}
-                  <button
-                    onClick={() => removeHashtag(tag)}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#a78bfa",
-                      cursor: "pointer",
-                      padding: 0,
-                      display: "flex",
-                    }}
-                  >
-                    <X style={{ width: 12, height: 12 }} />
-                  </button>
-                </span>
-              ))}
-            </div>
-          )}
-
-          {/* Media thumbnails */}
-          {mediaFiles.length > 0 && (
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: "0 16px 12px" }}>
-              {mediaFiles.map((media, i) => (
-                <div
-                  key={i}
-                  style={{
-                    position: "relative",
-                    width: 64,
-                    height: 64,
-                    borderRadius: 8,
-                    overflow: "hidden",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                    flexShrink: 0,
-                  }}
-                >
-                  {media.type === "video" ? (
-                    <video src={media.url} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
-                  ) : (
-                    <img src={media.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  )}
-                  <button
-                    onClick={() => removeMedia(i)}
-                    style={{
-                      position: "absolute",
-                      top: 2,
-                      right: 2,
-                      width: 20,
-                      height: 20,
-                      borderRadius: "50%",
-                      background: "rgba(0,0,0,0.7)",
-                      border: "none",
-                      color: "#fff",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: 0,
-                    }}
-                  >
-                    <X style={{ width: 12, height: 12 }} />
-                  </button>
-                </div>
-              ))}
-              {uploading && (
-                <div
-                  style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 8,
+            {/* Media thumbnails */}
+            {mediaFiles.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, padding: "0 20px 12px" }}>
+                {mediaFiles.map((media, i) => (
+                  <div key={i} style={{
+                    position: "relative", width: 72, height: 72, borderRadius: 10,
+                    overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0,
+                  }}>
+                    {media.type === "video" ? (
+                      <video src={media.url} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
+                    ) : (
+                      <img src={media.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    )}
+                    <button onClick={() => removeMedia(i)} style={{
+                      position: "absolute", top: 3, right: 3, width: 20, height: 20,
+                      borderRadius: "50%", background: "rgba(0,0,0,0.75)", border: "none",
+                      color: "#fff", cursor: "pointer", display: "flex",
+                      alignItems: "center", justifyContent: "center", padding: 0,
+                    }}>
+                      <X style={{ width: 11, height: 11 }} />
+                    </button>
+                  </div>
+                ))}
+                {uploading && (
+                  <div style={{
+                    width: 72, height: 72, borderRadius: 10,
                     border: "1px dashed rgba(255,255,255,0.15)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Loader2 style={{ width: 20, height: 20, color: "#00d4ff", animation: "spin 1s linear infinite" }} />
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Drag overlay */}
-          {isDragging && (
-            <div
-              style={{
-                padding: "24px 16px",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 8,
-                color: "#00d4ff",
-              }}
-            >
-              <Upload style={{ width: 32, height: 32 }} />
-              <span style={{ fontSize: 13, fontWeight: 500 }}>Suelta tus archivos aquí</span>
-            </div>
-          )}
-
-          {/* Bottom toolbar */}
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              padding: "10px 16px",
-              borderTop: "1px solid rgba(255,255,255,0.06)",
-              background: "rgba(255,255,255,0.01)",
-              flexWrap: "wrap",
-              gap: 8,
-            }}
-          >
-            {/* Left: media + hashtag */}
-            <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-              <input
-                ref={fileInputRef}
-                type="file"
-                multiple
-                accept="image/*,video/*"
-                style={{ display: "none" }}
-                onChange={(e) => {
-                  if (e.target.files) handleFiles(e.target.files);
-                  e.target.value = "";
-                }}
-              />
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                title="Subir imagen o video"
-                style={{
-                  padding: "6px 10px",
-                  borderRadius: 6,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  color: "#94a3b8",
-                  cursor: uploading ? "not-allowed" : "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  fontSize: 12,
-                  transition: "all 0.15s",
-                }}
-              >
-                {uploading ? (
-                  <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
-                ) : (
-                  <ImageIcon style={{ width: 16, height: 16 }} />
-                )}
-                <span>Medios</span>
-              </button>
-
-              {/* Hashtag input inline */}
-              <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <Hash style={{ width: 14, height: 14, color: "#64748b" }} />
-                <input
-                  type="text"
-                  value={hashtagInput}
-                  onChange={(e) => setHashtagInput(e.target.value)}
-                  onKeyDown={handleHashtagKeyDown}
-                  placeholder="hashtag"
-                  style={{
-                    width: 100,
-                    background: "transparent",
-                    border: "none",
-                    outline: "none",
-                    color: "#a78bfa",
-                    fontSize: 12,
-                    fontFamily: "Inter, sans-serif",
-                  }}
-                />
-                {hashtagInput.trim() && (
-                  <button
-                    onClick={addHashtag}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#7b61ff",
-                      cursor: "pointer",
-                      padding: 0,
-                      display: "flex",
-                    }}
-                  >
-                    <Plus style={{ width: 14, height: 14 }} />
-                  </button>
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    <Loader2 style={{ width: 20, height: 20, color: "#00d4ff", animation: "spin 1s linear infinite" }} />
+                  </div>
                 )}
               </div>
-            </div>
+            )}
 
-            {/* Right: char count */}
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 500,
-                  color: isOverLimit ? "#e2445c" : isNearLimit ? "#fdab3d" : "#64748b",
-                }}
-              >
-                {charCount.toLocaleString()} / {charLimit.toLocaleString()}
-              </span>
-              <div
-                style={{
-                  width: 40,
-                  height: 4,
-                  borderRadius: 2,
-                  background: "rgba(255,255,255,0.06)",
-                  overflow: "hidden",
-                }}
-              >
-                <div
+            {/* Drag overlay */}
+            {isDragging && (
+              <div style={{
+                padding: "24px 20px", display: "flex", flexDirection: "column",
+                alignItems: "center", gap: 8, color: "#00d4ff",
+              }}>
+                <Upload style={{ width: 32, height: 32 }} />
+                <span style={{ fontSize: 13, fontWeight: 500 }}>Suelta tus archivos aquí</span>
+              </div>
+            )}
+
+            {/* Bottom toolbar */}
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "space-between",
+              padding: "10px 20px", borderTop: "1px solid rgba(255,255,255,0.06)",
+              background: "rgba(255,255,255,0.01)", flexWrap: "wrap", gap: 8,
+            }}>
+              {/* Left: media + hashtag */}
+              <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                <input ref={fileInputRef} type="file" multiple accept="image/*,video/*"
+                  style={{ display: "none" }}
+                  onChange={(e) => { if (e.target.files) handleFiles(e.target.files); e.target.value = ""; }}
+                />
+                <button onClick={() => fileInputRef.current?.click()} disabled={uploading}
+                  title="Subir imagen o video"
                   style={{
-                    width: `${charPercent}%`,
-                    height: "100%",
-                    borderRadius: 2,
+                    padding: "6px 10px", borderRadius: 6,
+                    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                    color: "#94a3b8", cursor: uploading ? "not-allowed" : "pointer",
+                    display: "flex", alignItems: "center", gap: 4, fontSize: 12,
+                    transition: "all 0.15s",
+                  }}>
+                  {uploading ? <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
+                    : <ImageIcon style={{ width: 16, height: 16 }} />}
+                  <span>Medios</span>
+                </button>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                  <Hash style={{ width: 14, height: 14, color: "#64748b" }} />
+                  <input type="text" value={hashtagInput}
+                    onChange={(e) => setHashtagInput(e.target.value)}
+                    onKeyDown={handleHashtagKeyDown}
+                    placeholder="hashtag"
+                    style={{
+                      width: 100, background: "transparent", border: "none", outline: "none",
+                      color: "#a78bfa", fontSize: 12, fontFamily: "Inter, sans-serif",
+                    }}
+                  />
+                  {hashtagInput.trim() && (
+                    <button onClick={addHashtag} style={{
+                      background: "none", border: "none", color: "#7b61ff",
+                      cursor: "pointer", padding: 0, display: "flex",
+                    }}>
+                      <Plus style={{ width: 14, height: 14 }} />
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {/* Right: char count */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span style={{
+                  fontSize: 11, fontWeight: 500,
+                  color: isOverLimit ? "#e2445c" : isNearLimit ? "#fdab3d" : "#64748b",
+                }}>
+                  {charCount.toLocaleString()} / {charLimit.toLocaleString()}
+                </span>
+                <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                  <div style={{
+                    width: `${charPercent}%`, height: "100%", borderRadius: 2,
                     background: isOverLimit ? "#e2445c" : isNearLimit ? "#fdab3d" : "#00d4ff",
                     transition: "all 0.3s",
-                  }}
-                />
+                  }} />
+                </div>
               </div>
+            </div>
+          </div>
+
+          {/* ── Schedule + Action bar ───────────────────────── */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "12px 20px", borderTop: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(255,255,255,0.015)", flexWrap: "wrap", gap: 10,
+          }}>
+            {/* Left: schedule */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Clock style={{ width: 15, height: 15, color: "#64748b" }} />
+              <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>Programar:</span>
+              <input type="datetime-local" value={scheduledAt}
+                onChange={(e) => setScheduledAt(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+                style={{
+                  maxWidth: 200, padding: "6px 10px", borderRadius: 6,
+                  background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+                  color: "#e2e8f0", fontSize: 12, fontFamily: "Inter, sans-serif",
+                  outline: "none", colorScheme: "dark",
+                }}
+              />
+              {scheduledAt && (
+                <button onClick={() => setScheduledAt("")} style={{
+                  background: "none", border: "none", color: "#64748b", cursor: "pointer", padding: 2, display: "flex",
+                }}>
+                  <X style={{ width: 13, height: 13 }} />
+                </button>
+              )}
+            </div>
+
+            {/* Right: actions */}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={saveDraft} disabled={anyLoading} style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
+                borderRadius: 8, background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.1)", color: "#cbd5e1",
+                fontSize: 12, fontWeight: 500,
+                cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? 0.5 : 1,
+                transition: "all 0.2s",
+              }}>
+                {savingDraft ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Save style={{ width: 14, height: 14 }} />}
+                Borrador
+              </button>
+
+              <button onClick={schedulePost} disabled={anyLoading} style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
+                borderRadius: 8,
+                background: scheduledAt ? "rgba(253,171,61,0.12)" : "rgba(255,255,255,0.04)",
+                border: scheduledAt ? "1px solid rgba(253,171,61,0.3)" : "1px solid rgba(255,255,255,0.1)",
+                color: scheduledAt ? "#fdab3d" : "#64748b",
+                fontSize: 12, fontWeight: 500,
+                cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? 0.5 : 1,
+                transition: "all 0.2s",
+              }}>
+                {scheduling ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Clock style={{ width: 14, height: 14 }} />}
+                Programar
+              </button>
+
+              <button onClick={publishNow} disabled={anyLoading} style={{
+                display: "flex", alignItems: "center", gap: 6, padding: "8px 20px",
+                borderRadius: 8, background: "linear-gradient(135deg, #00b4d8, #0077b6)",
+                border: "none", color: "#fff", fontSize: 13, fontWeight: 600,
+                cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? 0.6 : 1,
+                boxShadow: "0 4px 16px rgba(0,180,216,0.2)", transition: "all 0.2s",
+              }}>
+                {publishing ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Send style={{ width: 14, height: 14 }} />}
+                Publicar Ahora
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Schedule date picker */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Clock style={{ width: 16, height: 16, color: "#64748b", flexShrink: 0 }} />
-          <label style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500, flexShrink: 0 }}>
-            Programar para:
-          </label>
-          <input
-            type="datetime-local"
-            value={scheduledAt}
-            onChange={(e) => setScheduledAt(e.target.value)}
-            min={new Date().toISOString().slice(0, 16)}
-            style={{
-              flex: 1,
-              maxWidth: 240,
-              padding: "8px 12px",
-              borderRadius: 8,
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: "#e2e8f0",
-              fontSize: 13,
-              fontFamily: "Inter, sans-serif",
-              outline: "none",
-              colorScheme: "dark",
-            }}
-          />
-          {scheduledAt && (
-            <button
-              onClick={() => setScheduledAt("")}
-              style={{
-                background: "none",
-                border: "none",
-                color: "#64748b",
-                cursor: "pointer",
-                padding: 2,
-                display: "flex",
-              }}
-            >
-              <X style={{ width: 14, height: 14 }} />
-            </button>
-          )}
-        </div>
-
-        {/* Action buttons */}
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {/* Save Draft */}
-          <button
-            onClick={saveDraft}
-            disabled={anyLoading}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 18px",
-              borderRadius: 8,
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              color: "#cbd5e1",
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: anyLoading ? "not-allowed" : "pointer",
-              opacity: anyLoading ? 0.5 : 1,
-              transition: "all 0.2s",
-            }}
-          >
-            {savingDraft ? (
-              <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
-            ) : (
-              <Save style={{ width: 16, height: 16 }} />
-            )}
-            Guardar Borrador
-          </button>
-
-          {/* Schedule */}
-          <button
-            onClick={schedulePost}
-            disabled={anyLoading}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 18px",
-              borderRadius: 8,
-              background: scheduledAt ? "rgba(253,171,61,0.12)" : "rgba(255,255,255,0.04)",
-              border: scheduledAt ? "1px solid rgba(253,171,61,0.3)" : "1px solid rgba(255,255,255,0.1)",
-              color: scheduledAt ? "#fdab3d" : "#64748b",
-              fontSize: 13,
-              fontWeight: 500,
-              cursor: anyLoading ? "not-allowed" : "pointer",
-              opacity: anyLoading ? 0.5 : 1,
-              transition: "all 0.2s",
-            }}
-          >
-            {scheduling ? (
-              <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
-            ) : (
-              <Clock style={{ width: 16, height: 16 }} />
-            )}
-            Programar
-          </button>
-
-          {/* Publish Now */}
-          <button
-            onClick={publishNow}
-            disabled={anyLoading}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "10px 24px",
-              borderRadius: 8,
-              background: "linear-gradient(135deg, #00b4d8, #0077b6)",
-              border: "none",
-              color: "#fff",
-              fontSize: 13,
-              fontWeight: 600,
-              cursor: anyLoading ? "not-allowed" : "pointer",
-              opacity: anyLoading ? 0.6 : 1,
-              boxShadow: "0 4px 16px rgba(0,180,216,0.2)",
-              transition: "all 0.2s",
-            }}
-          >
-            {publishing ? (
-              <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
-            ) : (
-              <Send style={{ width: 16, height: 16 }} />
-            )}
-            Publicar Ahora
-          </button>
-        </div>
-      </div>
-
-      {/* ─── RIGHT: LIVE PREVIEW ────────────────────────── */}
-      <div
-        className="glass-panel"
-        style={{
-          width: 450,
-          minWidth: 320,
-          padding: 24,
-          display: "flex",
-          flexDirection: "column",
-          borderRadius: 12,
-          flexShrink: 0,
-        }}
-      >
-        {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Smartphone style={{ width: 16, height: 16, color: "#64748b" }} />
-            <h3 style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: 1.5, textTransform: "uppercase", margin: 0 }}>
+        {/* ═══ RIGHT COLUMN: LIVE PREVIEW ═══ */}
+        <div className="glass-panel" style={{
+          width: 420, minWidth: 340, display: "flex", flexDirection: "column",
+          borderRadius: 12, overflow: "hidden", flexShrink: 0,
+        }}>
+          {/* Preview header */}
+          <div style={{
+            padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+            display: "flex", alignItems: "center", gap: 8,
+          }}>
+            <Smartphone style={{ width: 15, height: 15, color: "#64748b" }} />
+            <span style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: 1.5, textTransform: "uppercase" }}>
               Vista Previa
-            </h3>
+            </span>
+            <span style={{
+              marginLeft: "auto", fontSize: 11, color: "#475569",
+              background: "rgba(255,255,255,0.04)", padding: "3px 8px", borderRadius: 4,
+            }}>
+              {selectedTargets.length} {selectedTargets.length === 1 ? "cuenta" : "cuentas"}
+            </span>
           </div>
-          <div style={{ display: "flex", gap: 4 }}>
-            {["facebook", "instagram"].map((ch) => (
-              <button
-                key={ch}
-                onClick={() => setActivePreview(ch)}
-                style={{
-                  padding: "5px 10px",
-                  borderRadius: 6,
-                  background: activePreview === ch ? "rgba(255,255,255,0.08)" : "transparent",
-                  border: "none",
-                  color: activePreview === ch ? "#fff" : "#475569",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  fontSize: 12,
-                  fontWeight: 500,
-                  transition: "all 0.15s",
-                }}
-              >
-                {ch === "facebook" && <Facebook style={{ width: 14, height: 14 }} />}
-                {ch === "instagram" && <Instagram style={{ width: 14, height: 14 }} />}
-                {ch === "facebook" ? "FB" : "IG"}
-              </button>
+
+          {/* Preview cards — one per selected target */}
+          <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+            {selectedTargets.length === 0 && (
+              <div style={{
+                display: "flex", flexDirection: "column", alignItems: "center",
+                justifyContent: "center", flex: 1, padding: 40, gap: 12,
+              }}>
+                <div style={{
+                  width: 48, height: 48, borderRadius: 12,
+                  background: "rgba(255,255,255,0.04)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                }}>
+                  <Globe style={{ width: 22, height: 22, color: "#334155" }} />
+                </div>
+                <p style={{ fontSize: 12, color: "#64748b", textAlign: "center" }}>
+                  Selecciona cuentas para ver la vista previa de tu publicación
+                </p>
+              </div>
+            )}
+
+            {/* Facebook preview cards */}
+            {selectedTargets.filter((t) => t.platform === "facebook").map((target) => (
+              <div key={target.key} style={{
+                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: 12, overflow: "hidden", fontFamily: "Inter, Arial, sans-serif",
+              }}>
+                {/* Platform label */}
+                <div style={{
+                  padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)",
+                  display: "flex", alignItems: "center", gap: 6,
+                  background: "rgba(24,119,242,0.06)",
+                }}>
+                  <Facebook style={{ width: 13, height: 13, color: "#1877f2" }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#60a5fa" }}>Facebook Post</span>
+                </div>
+                {/* Header */}
+                <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <img src={target.pagePicture} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{target.pageName}</div>
+                      <div style={{ fontSize: 11, color: "#94a3b8" }}>Justo ahora · 🌎</div>
+                    </div>
+                  </div>
+                  <MoreHorizontal style={{ width: 18, height: 18, color: "#64748b" }} />
+                </div>
+                {/* Content */}
+                <div style={{ padding: "0 14px 12px", fontSize: 14, color: "#cbd5e1", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+                  {previewText}
+                </div>
+                {/* Media */}
+                {previewMedia && (
+                  <div style={{ width: "100%", height: 200, background: "#0f172a" }}>
+                    {mediaFiles[0]?.type === "video" ? (
+                      <video src={previewMedia} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
+                    ) : (
+                      <img src={previewMedia} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    )}
+                  </div>
+                )}
+                {/* Actions */}
+                <div style={{ display: "flex", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "8px 4px" }}>
+                  {[
+                    { icon: <Heart style={{ width: 15, height: 15 }} />, label: "Me gusta" },
+                    { icon: <MessageCircle style={{ width: 15, height: 15 }} />, label: "Comentar" },
+                    { icon: <Share2 style={{ width: 15, height: 15 }} />, label: "Compartir" },
+                  ].map((btn) => (
+                    <div key={btn.label} style={{
+                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
+                      gap: 5, color: "#64748b", fontSize: 12, fontWeight: 500, padding: "6px 0",
+                    }}>
+                      {btn.icon}<span>{btn.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
+
+            {/* Instagram preview cards */}
+            {selectedTargets.filter((t) => t.platform === "instagram").map((target) => (
+              <div key={target.key} style={{
+                background: "#000", border: "1px solid rgba(255,255,255,0.12)",
+                borderRadius: 12, overflow: "hidden", fontFamily: "Inter, -apple-system, sans-serif",
+                color: "#fff",
+              }}>
+                {/* Platform label */}
+                <div style={{
+                  padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)",
+                  display: "flex", alignItems: "center", gap: 6,
+                  background: "rgba(225,48,108,0.06)",
+                }}>
+                  <Instagram style={{ width: 13, height: 13, color: "#E1306C" }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "#f472b6" }}>Instagram Post</span>
+                </div>
+                {/* Header */}
+                <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "50%", padding: 2,
+                      background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <img src={target.igPicture || target.pagePicture} alt=""
+                        style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
+                    </div>
+                    <div style={{ fontSize: 13, fontWeight: 600 }}>@{target.igUsername}</div>
+                  </div>
+                  <MoreHorizontal style={{ width: 18, height: 18 }} />
+                </div>
+                {/* Media */}
+                {previewMedia ? (
+                  <div style={{ width: "100%", aspectRatio: "1", background: "#0a0f1e" }}>
+                    {mediaFiles[0]?.type === "video" ? (
+                      <video src={previewMedia} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
+                    ) : (
+                      <img src={previewMedia} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    )}
+                  </div>
+                ) : (
+                  <div style={{
+                    width: "100%", aspectRatio: "1", background: "#0a0f1e",
+                    display: "flex", alignItems: "center", justifyContent: "center", color: "#334155",
+                  }}>
+                    <ImageIcon style={{ width: 48, height: 48 }} />
+                  </div>
+                )}
+                {/* Actions + Caption */}
+                <div style={{ padding: "12px 14px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <Heart style={{ width: 22, height: 22 }} />
+                      <MessageCircle style={{ width: 22, height: 22 }} />
+                      <Send style={{ width: 22, height: 22 }} />
+                    </div>
+                    <Bookmark style={{ width: 22, height: 22 }} />
+                  </div>
+                  <div style={{ fontSize: 13, lineHeight: 1.5 }}>
+                    <span style={{ fontWeight: 600, marginRight: 6 }}>@{target.igUsername}</span>
+                    {previewText}
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
         </div>
-
-        {/* Preview content */}
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "flex-start",
-            justifyContent: "center",
-            overflowY: "auto",
-            paddingTop: 8,
-          }}
-        >
-          {activePreview === "facebook" && renderFacebookPreview()}
-          {activePreview === "instagram" && renderInstagramPreview()}
-        </div>
       </div>
 
-      {/* Spin keyframes injected once */}
+      {/* Spin keyframes */}
       <style>{`
         @keyframes spin {
           from { transform: rotate(0deg); }
