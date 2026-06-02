@@ -165,6 +165,112 @@ export function toStardate(date: Date = new Date()): string {
   return `Stardate ${year}.${dayOfYear.toString().padStart(3, "0")} — ${hours}:${mins} hrs`;
 }
 
+// ── Video Retention ─────────────────────────────────────────────────────────
+/** Get video retention at 25/50/75/100% as percentages of impressions */
+export function calcVideoRetention(ins: any): { p25: number; p50: number; p75: number; p100: number } {
+  const impressions = parseFloat(ins.impressions || "0");
+  if (impressions === 0) return { p25: 0, p50: 0, p75: 0, p100: 0 };
+  const p25 = findActionValue(ins.video_p25_watched_actions, "video_view");
+  const p50 = findActionValue(ins.video_p50_watched_actions, "video_view");
+  const p75 = findActionValue(ins.video_p75_watched_actions, "video_view");
+  const p100 = findActionValue(ins.video_p100_watched_actions, "video_view");
+  return {
+    p25: (p25 / impressions) * 100,
+    p50: (p50 / impressions) * 100,
+    p75: (p75 / impressions) * 100,
+    p100: (p100 / impressions) * 100,
+  };
+}
+
+// ── ThruPlay Rate ───────────────────────────────────────────────────────────
+export function calcThruPlayRate(ins: any): number {
+  const impressions = parseFloat(ins.impressions || "0");
+  if (impressions === 0) return 0;
+  const thruplays = findActionValue(ins.video_thruplay_watched_actions, "video_view");
+  return (thruplays / impressions) * 100;
+}
+
+// ── Outbound CTR ────────────────────────────────────────────────────────────
+export function calcOutboundCTR(ins: any): number {
+  const impressions = parseFloat(ins.impressions || "0");
+  if (impressions === 0) return 0;
+  if (ins.outbound_clicks_ctr && Array.isArray(ins.outbound_clicks_ctr)) {
+    const entry = ins.outbound_clicks_ctr.find((e: any) => e.action_type === "outbound_click");
+    if (entry) return parseFloat(entry.value || "0");
+  }
+  if (ins.outbound_clicks && Array.isArray(ins.outbound_clicks)) {
+    const entry = ins.outbound_clicks.find((e: any) => e.action_type === "outbound_click");
+    if (entry) return (parseFloat(entry.value || "0") / impressions) * 100;
+  }
+  return 0;
+}
+
+// ── Outbound Clicks ─────────────────────────────────────────────────────────
+export function calcOutboundClicks(ins: any): number {
+  if (ins.outbound_clicks && Array.isArray(ins.outbound_clicks)) {
+    const entry = ins.outbound_clicks.find((e: any) => e.action_type === "outbound_click");
+    if (entry) return parseFloat(entry.value || "0");
+  }
+  return 0;
+}
+
+// ── Unique CTR ──────────────────────────────────────────────────────────────
+export function calcUniqueCTR(ins: any): number {
+  if (ins.unique_ctr) return parseFloat(ins.unique_ctr);
+  const uniqueClicks = parseFloat(ins.unique_clicks || "0");
+  const reach = parseFloat(ins.reach || "0");
+  if (reach === 0) return 0;
+  return (uniqueClicks / reach) * 100;
+}
+
+// ── E-commerce Actions ──────────────────────────────────────────────────────
+export function calcAddToCart(ins: any): number {
+  return findActionValue(ins.actions, "add_to_cart") || findActionValue(ins.actions, "omni_add_to_cart");
+}
+
+export function calcInitiateCheckout(ins: any): number {
+  return findActionValue(ins.actions, "initiate_checkout") || findActionValue(ins.actions, "omni_initiate_checkout");
+}
+
+export function calcCostPerATC(ins: any): number {
+  const atc = calcAddToCart(ins);
+  const spend = parseFloat(ins.spend || "0");
+  if (atc === 0 || spend === 0) return 0;
+  return spend / atc;
+}
+
+export function calcCostPerIC(ins: any): number {
+  const ic = calcInitiateCheckout(ins);
+  const spend = parseFloat(ins.spend || "0");
+  if (ic === 0 || spend === 0) return 0;
+  return spend / ic;
+}
+
+// ── Lead Form Metrics ───────────────────────────────────────────────────────
+export function calcLeadFormOpens(ins: any): number {
+  return findActionValue(ins.actions, "leadgen_grouped") || findActionValue(ins.actions, "lead");
+}
+
+export function calcLeadFormSubmits(ins: any): number {
+  return findActionValue(ins.actions, "lead");
+}
+
+// ── ThruPlay Count ──────────────────────────────────────────────────────────
+export function calcThruPlays(ins: any): number {
+  return findActionValue(ins.video_thruplay_watched_actions, "video_view");
+}
+
+export function calcCostPerThruPlay(ins: any): number {
+  if (ins.cost_per_thruplay && Array.isArray(ins.cost_per_thruplay)) {
+    const entry = ins.cost_per_thruplay.find((e: any) => e.action_type === "video_view");
+    if (entry) return parseFloat(entry.value || "0");
+  }
+  const thruplays = calcThruPlays(ins);
+  const spend = parseFloat(ins.spend || "0");
+  if (thruplays === 0 || spend === 0) return 0;
+  return spend / thruplays;
+}
+
 // ── Number formatters ───────────────────────────────────────────────────────
 export function fmt$(value: number): string {
   return new Intl.NumberFormat("es-MX", {

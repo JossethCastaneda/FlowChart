@@ -13,6 +13,18 @@ export async function GET(req: NextRequest) {
   const dateStart = searchParams.get("dateStart");
   const dateEnd = searchParams.get("dateEnd");
   const preset = searchParams.get("preset");
+  const attribution = searchParams.get("attribution") || "default";
+
+  // Map attribution param to Meta action_attribution_windows
+  const ATTRIBUTION_MAP: Record<string, string[] | null> = {
+    default: null,
+    "1d_click": ["1d_click"],
+    "7d_click": ["7d_click"],
+    "1d_view_1d_click": ["1d_click", "1d_view"],
+    "7d_click_1d_view": ["7d_click", "1d_view"],
+    "28d_click_1d_view": ["28d_click", "1d_view"],
+  };
+  const attributionWindows = ATTRIBUTION_MAP[attribution] ?? null;
 
   if (!adAccountId) {
     return NextResponse.json({ error: "Missing adAccountId" }, { status: 400 });
@@ -36,7 +48,7 @@ export async function GET(req: NextRequest) {
     timeRange = `&date_preset=${preset}`;
   }
 
-  const baseFields = "spend,impressions,reach,clicks,actions,action_values,cpc,cpm,ctr";
+  const baseFields = "spend,impressions,reach,clicks,actions,action_values,cpc,cpm,ctr,frequency,outbound_clicks,outbound_clicks_ctr,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions,cost_per_thruplay,unique_clicks,unique_ctr,cost_per_action_type,purchase_roas";
   
   const fetchInsights = async (level: string, params: string = "") => {
     let fields = baseFields;
@@ -44,7 +56,10 @@ export async function GET(req: NextRequest) {
     if (level === "adset") fields += ",adset_name,adset_id,campaign_name,campaign_id";
     if (level === "ad") fields += ",ad_name,ad_id,adset_name,adset_id,campaign_name,campaign_id";
 
-    const url = `${baseUrl}?${timeRange.replace(/^&/, '')}&level=${level}&fields=${fields}&${params}`;
+    let url = `${baseUrl}?${timeRange.replace(/^\&/, '')}&level=${level}&fields=${fields}&${params}`;
+    if (attributionWindows) {
+      url += `&action_attribution_windows=${encodeURIComponent(JSON.stringify(attributionWindows))}`;
+    }
     const res = await metaFetch(url, token);
 
     if (!res.ok) {

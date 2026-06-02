@@ -12,8 +12,10 @@ const COLUMN_CATEGORIES: Record<string, string[]> = {
   "Configuración": ["name", "delivery", "budget", "objective"],
   "Rendimiento": ["roas", "results", "cpa", "cost_per_message", "cost_per_conversation", "conversations"],
   "Alcance": ["reach", "impressions", "cpm", "frequency"],
-  "Clics": ["clicks", "ctr", "cpc", "landing_page_views"],
-  "Engagement": ["hook_rate", "quality_ranking"],
+  "Clics": ["clicks", "ctr", "cpc", "landing_page_views", "outbound_clicks", "outbound_ctr", "unique_ctr"],
+  "Video": ["hook_rate", "thruplay", "thruplay_rate", "cost_per_thruplay", "video_p25", "video_p50", "video_p75", "video_p100"],
+  "E-commerce": ["add_to_cart", "cost_per_atc", "initiate_checkout", "cost_per_ic"],
+  "Engagement": ["quality_ranking"],
   "Inversión": ["spend"],
 };
 
