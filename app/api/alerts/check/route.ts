@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { sendAlertEmail } from "@/lib/email";
+import { getBaseUrl } from "@/lib/get-base-url";
 
 // Vercel Cron: called at 9:00, 12:00, 16:00, 18:00 CST (15:00, 18:00, 22:00, 00:00 UTC)
 // Authorization via CRON_SECRET
@@ -183,7 +184,7 @@ export async function GET(req: Request) {
       const allEmails = [...new Set([...emails, ...customEmails])].filter(Boolean);
 
       // Send email
-      const baseUrl = process.env.NEXTAUTH_URL || "https://sodare.vercel.app";
+      const baseUrl = getBaseUrl();
       await sendAlertEmail({
         to: allEmails,
         projectName: project.name,

@@ -4,6 +4,7 @@ import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import crypto from "crypto";
+import { getBaseUrl } from "@/lib/get-base-url";
 
 export async function GET(
   _req: NextRequest,
@@ -92,7 +93,7 @@ export async function POST(
       data: { workspaceId, email, token, role, expires },
       include: { workspace: { select: { name: true } } },
     });
-    const baseUrl = process.env.NEXTAUTH_URL || "https://sodare.vercel.app";
+    const baseUrl = getBaseUrl();
     const inviteUrl = `${baseUrl}/invite/${token}`;
 
     // Enviar email de invitación via Resend

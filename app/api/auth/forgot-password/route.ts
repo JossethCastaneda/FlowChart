@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import prisma from "@/lib/prisma";
+import { getBaseUrl } from "@/lib/get-base-url";
 
 export async function POST(req: NextRequest) {
   try {
@@ -45,7 +46,7 @@ export async function POST(req: NextRequest) {
     });
 
     // Construir URL de reset
-    const baseUrl = process.env.NEXTAUTH_URL || "https://sodare.vercel.app";
+    const baseUrl = getBaseUrl();
     const resetUrl = `${baseUrl}/reset-password/${token}`;
 
     // Enviar email si Resend está configurado
