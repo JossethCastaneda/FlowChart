@@ -181,7 +181,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
                 fontSize: "11px",
               }}
               labelStyle={{ color: "rgba(148,163,184,0.6)" }}
-              formatter={(value: number, name: string) => [fmt$(value), name === "ideal" ? "Ideal" : name === "real" ? "Real" : "Proyección"]}
+              formatter={(value: any, name: any) => [fmt$(Number(value || 0)), name === "ideal" ? "Ideal" : name === "real" ? "Real" : "Proyección"]}
             />
             {/* Budget line */}
             <ReferenceLine
