@@ -21,14 +21,22 @@ import {
   FolderKanban,
   Megaphone,
   Plug,
+  MessageSquare,
+  BarChart3,
+  Ear,
+  Columns3,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { name: "Resumen", short: "KPIs", href: "/dashboard/resumen", icon: LayoutDashboard, color: "#00d4ff" },
   { name: "Proyectos", short: "PROJ", href: "/dashboard/proyectos", icon: FolderKanban, color: "#06d6a0" },
   { name: "Publisher", short: "PUB", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b" },
-  { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500" },
+  { name: "Inbox", short: "MSG", href: "/dashboard/inbox", icon: MessageSquare, color: "#a855f7" },
+  { name: "Analytics", short: "DATA", href: "/dashboard/analytics", icon: BarChart3, color: "#f472b6" },
   { name: "Ads Manager", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB" },
+  { name: "Listening", short: "EAR", href: "/dashboard/listening", icon: Ear, color: "#fb923c" },
+  { name: "Streams", short: "LIVE", href: "/dashboard/streams", icon: Columns3, color: "#22d3ee" },
+  { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500" },
   { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55" },
   { name: "Integrations", short: "APIs", href: "/dashboard/integrations", icon: Plug, color: "#00d4ff" },
   { name: "Settings", short: "SET", href: "/dashboard/settings", icon: Settings, color: "#94a3b8" },

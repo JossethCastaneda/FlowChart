@@ -87,6 +87,8 @@ model Workspace {
   briefs       Brief[]
   posts        ScheduledPost[]
   integrations Integration[]
+  conversations InboxConversation[]
+  streamBoards  StreamBoard[]
 }
 
 model WorkspaceMember {
@@ -356,3 +358,124 @@ model ProjectAlert {
   @@index([projectId])
   @@index([createdAt])
 }
+
+// ------------------------------------------------------
+// INBOX 2.0
+// ------------------------------------------------------
+
+model InboxConversation {
+  id            String   @id @default(cuid())
+  workspaceId   String
+  platform      String   // "facebook_messenger", "instagram_dm", "instagram_comment"
+  externalId    String   // Conversation ID from Meta
+  contactName   String?
+  contactAvatar String?
+  lastMessage   String?
+  lastMessageAt DateTime?
+  unread        Boolean  @default(true)
+  assignedTo    String?  // userId
+  status        String   @default("open") // "open", "closed"
+  tags          String[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  messages      InboxMessage[]
+
+  @@unique([workspaceId, externalId])
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+}
+
+model InboxMessage {
+  id              String   @id @default(cuid())
+  conversationId  String
+  externalId      String?
+  content         String   @db.Text
+  sender          String   // "user" | "page"
+  senderName      String?
+  senderAvatar    String?
+  attachments     Json?
+  createdAt       DateTime @default(now())
+
+  conversation    InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+}
+
+model SavedReply {
+  id          String   @id @default(cuid())
+  workspaceId String
+  title       String
+  content     String   @db.Text
+  shortcut    String?  // e.g., "/gracias"
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId])
+}
+
+// ------------------------------------------------------
+// SOCIAL LISTENING
+// ------------------------------------------------------
+
+model ListeningQuery {
+  id          String   @id @default(cuid())
+  workspaceId String
+  query       String   // keyword or hashtag
+  type        String   // "keyword", "hashtag", "competitor"
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  mentions    ListeningMention[]
+
+  @@index([workspaceId])
+}
+
+model ListeningMention {
+  id          String   @id @default(cuid())
+  queryId     String
+  platform    String
+  content     String   @db.Text
+  author      String?
+  authorAvatar String?
+  sentiment   String?  // "positive", "negative", "neutral"
+  url         String?
+  publishedAt DateTime
+  createdAt   DateTime @default(now())
+
+  query       ListeningQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+
+  @@index([queryId])
+  @@index([publishedAt])
+}
+
+// ------------------------------------------------------
+// STREAMS (Real-time monitoring)
+// ------------------------------------------------------
+
+model StreamBoard {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  columns     StreamColumn[]
+
+  @@index([workspaceId])
+}
+
+model StreamColumn {
+  id        String   @id @default(cuid())
+  boardId   String
+  type      String   // "home_feed", "mentions", "keyword", "hashtag", "scheduled", "published"
+  platform  String   // "facebook", "instagram", "tiktok", "linkedin", "x"
+  query     String?  // keyword or hashtag for tracking
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  board     StreamBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+
+  @@index([boardId])
+}
+
