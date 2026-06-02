@@ -479,9 +479,11 @@ export function Composer() {
                 {showAccountPicker && (
                   <div style={{
                     position: "absolute", top: "calc(100% + 6px)", left: 0, minWidth: 320,
+                    maxHeight: 420,
                     background: "#0c1222", border: "1px solid rgba(255,255,255,0.1)",
                     borderRadius: 12, overflow: "hidden", zIndex: 100,
                     boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                    display: "flex", flexDirection: "column",
                   }}>
                     {/* Header */}
                     <div style={{
@@ -497,6 +499,8 @@ export function Composer() {
                       </button>
                     </div>
 
+                    {/* Scrollable account list */}
+                    <div style={{ flex: 1, overflowY: "auto", maxHeight: 300 }}>
                     {/* Facebook section */}
                     {allTargets.filter((t) => t.platform === "facebook").length > 0 && (
                       <>
@@ -504,6 +508,7 @@ export function Composer() {
                           padding: "8px 16px", fontSize: 10, fontWeight: 700,
                           color: "#475569", textTransform: "uppercase", letterSpacing: 1,
                           background: "rgba(255,255,255,0.02)",
+                          position: "sticky", top: 0, zIndex: 1,
                         }}>
                           <Facebook style={{ width: 11, height: 11, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#1877f2" }} />
                           Facebook Pages
@@ -545,6 +550,7 @@ export function Composer() {
                           padding: "8px 16px", fontSize: 10, fontWeight: 700,
                           color: "#475569", textTransform: "uppercase", letterSpacing: 1,
                           background: "rgba(255,255,255,0.02)",
+                          position: "sticky", top: 0, zIndex: 1,
                         }}>
                           <Instagram style={{ width: 11, height: 11, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#E1306C" }} />
                           Instagram Accounts
@@ -589,6 +595,7 @@ export function Composer() {
                         <br />Conecta Meta en <strong style={{ color: "#00d4ff" }}>Integraciones</strong>.
                       </div>
                     )}
+                    </div>
 
                     {/* Done button */}
                     <div style={{ padding: "10px 16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
