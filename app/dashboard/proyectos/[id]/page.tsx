@@ -218,10 +218,13 @@ export default function ProjectDashboardPage() {
     setAdCreatives([]); // Clear creatives cache too
     const accs = selectedAccountId === "all" ? ch.adAccounts : [selectedAccountId];
     let dp = ""; if (dateStart && dateEnd) dp = `&dateStart=${dateStart}&dateEnd=${dateEnd}`; else if (datePreset && datePreset !== "custom") dp = `&preset=${datePreset}`;
-    Promise.all(accs.map(a => fetch(`/api/meta/insights?adAccountId=${a}${dp}`).then(r => r.json()).catch(() => null)))
+    Promise.all(accs.map(a => fetch(`/api/meta/insights?adAccountId=${a}${dp}`).then(r => r.json()).catch((err) => { console.error(`Insights fetch failed for ${a}:`, err); return null; })))
       .then(results => {
         const valid = results.filter(Boolean).filter((r: any) => !r.error);
-        if (valid.length === 0) { setInsights({ _error: "No data" }); }
+        if (valid.length === 0) {
+          console.warn("No valid insights data from any account. Raw results:", results);
+          setInsights({ _error: "No data", timeSeries: [], demographics: [], geo: [], campaigns: [], adsets: [], ads: [] });
+        }
         else if (valid.length === 1) { setInsights(valid[0]); }
         else {
           const m: any = { timeSeries: [], demographics: [], geo: [], campaigns: [], adsets: [], ads: [] };
@@ -229,7 +232,8 @@ export default function ProjectDashboardPage() {
           setInsights(m);
         }
         setIsLoading(false);
-      });
+      })
+      .catch((err) => { console.error("Insights Promise.all failed:", err); setIsLoading(false); setInsights({ _error: "Fetch failed", timeSeries: [], demographics: [], geo: [], campaigns: [], adsets: [], ads: [] }); });
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
 
   // Load breakdowns for audience/creative tabs — uses same date range

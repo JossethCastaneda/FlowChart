@@ -48,15 +48,20 @@ export async function GET(req: NextRequest) {
     timeRange = `&date_preset=${preset}`;
   }
 
-  const baseFields = "spend,impressions,reach,clicks,actions,action_values,cpc,cpm,ctr,frequency,outbound_clicks,outbound_clicks_ctr,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions,cost_per_thruplay,unique_clicks,unique_ctr,cost_per_action_type,purchase_roas";
+  // Core fields — safe with ALL breakdown combinations
+  const coreFields = "spend,impressions,reach,clicks,actions,action_values,cpc,cpm,ctr,frequency,cost_per_action_type,purchase_roas";
+  // Extended fields — only safe WITHOUT demographic/geo breakdowns
+  const extendedFields = ",outbound_clicks,outbound_clicks_ctr,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions,cost_per_thruplay,unique_clicks,unique_ctr";
   
   const fetchInsights = async (level: string, params: string = "") => {
-    let fields = baseFields;
+    // Only include extended fields when there are NO breakdowns (breakdowns cause Meta API errors with these fields)
+    const hasBreakdowns = params.includes("breakdowns=");
+    let fields = coreFields + (hasBreakdowns ? "" : extendedFields);
     if (level === "campaign") fields += ",campaign_name,campaign_id,objective";
     if (level === "adset") fields += ",adset_name,adset_id,campaign_name,campaign_id";
     if (level === "ad") fields += ",ad_name,ad_id,adset_name,adset_id,campaign_name,campaign_id";
 
-    let url = `${baseUrl}?${timeRange.replace(/^\&/, '')}&level=${level}&fields=${fields}&${params}`;
+    let url = `${baseUrl}?${timeRange.replace(/^&/, '')}&level=${level}&fields=${fields}&${params}`;
     if (attributionWindows) {
       url += `&action_attribution_windows=${encodeURIComponent(JSON.stringify(attributionWindows))}`;
     }
