@@ -200,7 +200,10 @@ function AdsManagerContent() {
           
           setAccounts(list);
           
-          if (initialAccount && list.some((a: any) => a.id === initialAccount)) {
+          // When embedded with project accounts, default to 'all' to show combined data
+          if (isEmbedded && projectAccountsParam && list.length > 1) {
+            setSelectedAccountId("all");
+          } else if (initialAccount && list.some((a: any) => a.id === initialAccount)) {
             setSelectedAccountId(initialAccount);
           } else if (list.length > 0) {
             setSelectedAccountId(list[0].id);
@@ -238,7 +241,7 @@ function AdsManagerContent() {
     }
   }, [searchParams, datePreset, dateStart, dateEnd]);
 
-  // Fetch data on changes
+  // Fetch data on changes — supports single account or 'all' (multi-account merge)
   const fetchData = async () => {
     if (!selectedAccountId) return;
     setLoadingData(true);
@@ -253,20 +256,45 @@ function AdsManagerContent() {
 
     try {
       const level = activeLevel;
-      const res = await fetch(`/api/meta/${level}?adAccountId=${selectedAccountId}${dateParams}`);
-      const data = await res.json();
 
-      if (data.error) {
-        throw new Error(data.error);
+      // Multi-account: fetch all accounts in parallel and merge
+      const accountsToFetch = selectedAccountId === "all"
+        ? accounts.map((a: any) => a.id)
+        : [selectedAccountId];
+
+      const results = await Promise.allSettled(
+        accountsToFetch.map(async (accId: string) => {
+          const res = await fetch(`/api/meta/${level}?adAccountId=${accId}${dateParams}`);
+          const data = await res.json();
+          if (data.error) throw new Error(data.error);
+          const accName = accounts.find((a: any) => a.id === accId)?.name || accId;
+          // Tag each item with its account info for filtering
+          return (data.data || []).map((item: any) => ({
+            ...item,
+            _accountId: accId,
+            _accountName: accName.split(" — ")[0],
+          }));
+        })
+      );
+
+      let merged: any[] = [];
+      let errors: string[] = [];
+      for (const r of results) {
+        if (r.status === "fulfilled") merged = merged.concat(r.value);
+        else errors.push(r.reason?.message || "Error desconocido");
       }
 
-      const list = data.data || [];
-      if (level === "campaigns") setCampaigns(list);
-      else if (level === "adsets") setAdsets(list);
-      else if (level === "ads") setAds(list);
+      if (merged.length === 0 && errors.length > 0) {
+        throw new Error(errors[0]);
+      }
+
+      if (level === "campaigns") setCampaigns(merged);
+      else if (level === "adsets") setAdsets(merged);
+      else if (level === "ads") setAds(merged);
 
       // Clear selection on tab/data change
       setSelectedIds([]);
+      setLastSynced(new Date());
     } catch (err: any) {
       setError(err.message || "Error al sincronizar con Meta Ads Graph API");
     } finally {
@@ -454,6 +482,13 @@ function AdsManagerContent() {
     const n = ids.length;
     addToast("info", `Ejecutando ${action} en ${n} ${levelLabel}${n > 1 ? "s" : ""}...`);
     try {
+      // Resolve the actual account ID (in multi-account mode, use the first selected item's _accountId)
+      let resolvedAccountId = selectedAccountId;
+      if (selectedAccountId === "all") {
+        const data = getCurrentData();
+        const firstItem = data.find((d: any) => ids.includes(d.id));
+        resolvedAccountId = firstItem?._accountId || accounts[0]?.id || "";
+      }
       const res = await fetch("/api/meta/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -461,7 +496,7 @@ function AdsManagerContent() {
           action,
           ids,
           level: activeLevel,
-          adAccountId: selectedAccountId,
+          adAccountId: resolvedAccountId,
           updates: opts?.updates,
         }),
       });
@@ -833,8 +868,7 @@ function AdsManagerContent() {
           overflow: "visible",
         }}
       >
-        {!isEmbedded && (
-          loadingAccounts ? (
+        {loadingAccounts ? (
             <div style={{ fontSize: "11px", color: "rgba(148,163,184,0.4)" }}>Cargando cuentas...</div>
           ) : (
             <AccountSelector
@@ -842,8 +876,7 @@ function AdsManagerContent() {
               selectedAccountId={selectedAccountId}
               onSelectAccount={setSelectedAccountId}
             />
-          )
-        )}
+          )}
 
         {/* Search Bar */}
         <div

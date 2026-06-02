@@ -72,7 +72,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
            <Folder className="w-3.5 h-3.5 text-white" />
         </div>
         <span style={{ flex: 1, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
-          {selectedAccount ? selectedAccount.name.split(" — ")[0] : "Seleccionar Cuenta"}
+          {selectedAccountId === "all" ? `Todas las cuentas (${accounts.length})` : selectedAccount ? selectedAccount.name.split(" — ")[0] : "Seleccionar Cuenta"}
         </span>
         <div style={{
            background: "rgba(255,255,255,0.1)", color: "white", padding: "2px 6px", 
@@ -223,70 +223,73 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                 </div>
 
                 <div style={{ overflowY: "auto", flex: 1, padding: "0 24px 24px" }} className="custom-scrollbar">
-                  {displayedAccounts.length === 0 ? (
+                  {displayedAccounts.length === 0 && selectedAccountId !== "all" ? (
                     <div style={{ textAlign: "center", padding: "32px", color: "rgba(148,163,184,0.6)", fontSize: "12px" }}>
                       No se encontraron cuentas para tu búsqueda.
                     </div>
                   ) : (
-                    displayedAccounts.map((acc) => {
-                      const isSelected = selectedAccountId === acc.id;
-                      
-                      return (
+                    <>
+                      {/* ── 'All accounts' option ── */}
+                      {accounts.length > 1 && (
                         <div
-                          key={acc.id}
-                          onClick={() => {
-                            onSelectAccount(acc.id);
-                            setIsOpen(false);
-                          }}
+                          onClick={() => { onSelectAccount("all"); setIsOpen(false); }}
                           style={{
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "16px",
-                            padding: "16px",
+                            display: "flex", alignItems: "center", gap: "16px", padding: "14px 16px",
                             borderRadius: "10px",
-                            background: isSelected ? "rgba(0,129,251,0.08)" : "transparent",
-                            border: isSelected ? "1px solid rgba(0,129,251,0.4)" : "1px solid transparent",
-                            cursor: "pointer",
-                            transition: "all 0.15s",
-                            marginBottom: "8px"
+                            background: selectedAccountId === "all" ? "rgba(0,129,251,0.08)" : "transparent",
+                            border: selectedAccountId === "all" ? "1px solid rgba(0,129,251,0.4)" : "1px solid transparent",
+                            cursor: "pointer", transition: "all 0.15s", marginBottom: "8px",
                           }}
-                          onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.02)" }}
-                          onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = "transparent" }}
+                          onMouseEnter={e => { if (selectedAccountId !== "all") e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
+                          onMouseLeave={e => { if (selectedAccountId !== "all") e.currentTarget.style.background = "transparent"; }}
                         >
-                          <div style={{ 
-                            width: "20px", height: "20px", borderRadius: "50%", 
-                            border: isSelected ? "1px solid var(--cyan)" : "1px solid rgba(148,163,184,0.4)",
-                            background: isSelected ? "var(--cyan)" : "transparent", 
-                            display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
-                          }}>
-                            {isSelected && <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "white" }} />}
+                          <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: selectedAccountId === "all" ? "1px solid var(--cyan)" : "1px solid rgba(148,163,184,0.4)", background: selectedAccountId === "all" ? "var(--cyan)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            {selectedAccountId === "all" && <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "white" }} />}
                           </div>
-                          
-                          <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                            <CreditCard className="w-4 h-4 text-slate-400" />
+                          <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "linear-gradient(135deg, rgba(0,212,255,0.15), rgba(162,93,220,0.15))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <Folder className="w-4 h-4" style={{ color: "var(--cyan)" }} />
                           </div>
-
                           <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "4px" }}>
-                            <div style={{ fontWeight: 600, fontSize: "14px", color: isSelected ? "var(--cyan)" : "white", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
-                              {acc.name.split(" — ")[0]}
-                            </div>
-                            <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.6)", display: "flex", gap: "6px" }}>
-                              ID de la cuenta publicitaria: 
-                              <span style={{ color: "rgba(255,255,255,0.8)" }}>{acc.id.replace("act_", "")}</span>
-                            </div>
-                          </div>
-
-                          <div style={{ 
-                            width: "24px", height: "24px", borderRadius: "50%", 
-                            border: "1px solid var(--cyan)", display: "flex", alignItems: "center", 
-                            justifyContent: "center", fontSize: "9px", fontWeight: 700, color: "var(--cyan)",
-                            background: "rgba(0,129,251,0.1)"
-                          }}>
-                            78
+                            <div style={{ fontWeight: 600, fontSize: "14px", color: selectedAccountId === "all" ? "var(--cyan)" : "white" }}>Todas las cuentas</div>
+                            <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.6)" }}>{accounts.length} cuentas combinadas</div>
                           </div>
                         </div>
-                      );
-                    })
+                      )}
+                      {/* ── Individual accounts ── */}
+                      {displayedAccounts.map((acc) => {
+                        const isSelected = selectedAccountId === acc.id;
+                        return (
+                          <div
+                            key={acc.id}
+                            onClick={() => { onSelectAccount(acc.id); setIsOpen(false); }}
+                            style={{
+                              display: "flex", alignItems: "center", gap: "16px", padding: "16px",
+                              borderRadius: "10px",
+                              background: isSelected ? "rgba(0,129,251,0.08)" : "transparent",
+                              border: isSelected ? "1px solid rgba(0,129,251,0.4)" : "1px solid transparent",
+                              cursor: "pointer", transition: "all 0.15s", marginBottom: "8px",
+                            }}
+                            onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
+                            onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
+                          >
+                            <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: isSelected ? "1px solid var(--cyan)" : "1px solid rgba(148,163,184,0.4)", background: isSelected ? "var(--cyan)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              {isSelected && <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "white" }} />}
+                            </div>
+                            <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                              <CreditCard className="w-4 h-4 text-slate-400" />
+                            </div>
+                            <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "4px" }}>
+                              <div style={{ fontWeight: 600, fontSize: "14px", color: isSelected ? "var(--cyan)" : "white", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                                {acc.name.split(" — ")[0]}
+                              </div>
+                              <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.6)", display: "flex", gap: "6px" }}>
+                                ID: <span style={{ color: "rgba(255,255,255,0.8)" }}>{acc.id.replace("act_", "")}</span>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </>
                   )}
                 </div>
               </div>

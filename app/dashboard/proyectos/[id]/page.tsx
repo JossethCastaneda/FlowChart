@@ -1482,7 +1482,7 @@ export default function ProjectDashboardPage() {
           ?.filter(ch => ch.platformId === "meta")
           ?.flatMap(ch => ch.adAccounts || [])
           ?.filter(Boolean) || [];
-        const currentActiveAccount = selectedAccountId === "all" ? (projectAccounts[0] || "") : selectedAccountId;
+        const currentActiveAccount = selectedAccountId === "all" ? "all" : selectedAccountId;
 
         return (
           <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 180px)", margin: "8px 0 0", padding: 0 }}>

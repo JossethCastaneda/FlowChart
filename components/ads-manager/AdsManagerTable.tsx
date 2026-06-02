@@ -740,6 +740,7 @@ export function AdsManagerTable({
                               )}
                             </div>
                             <span style={{ fontSize: 9, color: "rgba(148,163,184,0.4)", display: "flex", alignItems: "center", gap: 4 }}>
+                              {row._accountName && <span style={{ padding: "1px 4px", fontSize: 8, background: "rgba(0,129,251,0.1)", color: "rgba(0,212,255,0.7)", borderRadius: 2, fontWeight: 600 }}>{row._accountName}</span>}
                               ID: {row.id}{" "}
                               <a
                                 href={`https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${row.campaign_id || row.id}`}
