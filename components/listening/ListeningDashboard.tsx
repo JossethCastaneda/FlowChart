@@ -378,16 +378,21 @@ export function ListeningDashboard() {
               display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 16px",
               padding: 20,
             }}>
-              {["marketing", "digital", "social media", "contenido", "estrategia", "engagement", "redes", "publicidad", "marca", "audiencia", "crecimiento", "analytics", "influencer", "viral", "tendencia", "orgánico"].map((word, i) => (
+              {["marketing", "digital", "social media", "contenido", "estrategia", "engagement", "redes", "publicidad", "marca", "audiencia", "crecimiento", "analytics", "influencer", "viral", "tendencia", "orgánico"].map((word, i) => {
+                const s1 = ((Math.sin(i * 127.1 + 311.7) * 43758.5453) % 1 + 1) % 1;
+                const s2 = ((Math.sin(i * 269.5 + 183.3) * 43758.5453) % 1 + 1) % 1;
+                const s3 = ((Math.sin(i * 419.2 + 71.9) * 43758.5453) % 1 + 1) % 1;
+                return (
                 <span key={word} style={{
-                  fontSize: 12 + Math.random() * 20,
-                  fontWeight: Math.random() > 0.5 ? 700 : 400,
-                  color: `hsl(${25 + i * 8}, 80%, ${55 + Math.random() * 20}%)`,
-                  opacity: 0.6 + Math.random() * 0.4,
+                  fontSize: 12 + s1 * 20,
+                  fontWeight: s2 > 0.5 ? 700 : 400,
+                  color: `hsl(${25 + i * 8}, 80%, ${55 + s3 * 20}%)`,
+                  opacity: 0.6 + s1 * 0.4,
                 }}>
                   {word}
                 </span>
-              ))}
+                );
+              })}
             </div>
           </div>
 

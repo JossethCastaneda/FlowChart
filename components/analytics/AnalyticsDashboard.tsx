@@ -169,19 +169,25 @@ const GROWTH_DATA = [
 const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
+// Deterministic pseudo-random based on seed (no hydration mismatch)
+function seededRand(seed: number): number {
+  return ((Math.sin(seed * 127.1 + 311.7) * 43758.5453) % 1 + 1) % 1;
+}
+
 // Generate realistic heatmap: higher on weekdays 10-14 and 19-21
 function generateHeatmap(): number[][] {
   const data: number[][] = [];
+  let seed = 0;
   for (let d = 0; d < 7; d++) {
     const row: number[] = [];
     for (let h = 0; h < 24; h++) {
-      let base = 10 + Math.random() * 15;
+      let base = 10 + seededRand(seed++) * 15;
       const isWeekday = d < 5;
-      if (isWeekday && h >= 10 && h <= 14) base += 40 + Math.random() * 30;
-      else if (isWeekday && h >= 19 && h <= 21) base += 35 + Math.random() * 25;
-      else if (isWeekday && h >= 8 && h <= 9) base += 15 + Math.random() * 10;
-      else if (!isWeekday && h >= 11 && h <= 15) base += 20 + Math.random() * 15;
-      else if (h >= 0 && h <= 5) base = 2 + Math.random() * 8;
+      if (isWeekday && h >= 10 && h <= 14) base += 40 + seededRand(seed++) * 30;
+      else if (isWeekday && h >= 19 && h <= 21) base += 35 + seededRand(seed++) * 25;
+      else if (isWeekday && h >= 8 && h <= 9) base += 15 + seededRand(seed++) * 10;
+      else if (!isWeekday && h >= 11 && h <= 15) base += 20 + seededRand(seed++) * 15;
+      else if (h >= 0 && h <= 5) base = 2 + seededRand(seed++) * 8;
       row.push(Math.round(base));
     }
     data.push(row);
@@ -381,7 +387,8 @@ function TabResumen({ kpis, posts }: { kpis: typeof KPI_DATA; posts: typeof POST
 
           {/* Bars simulating chart data */}
           {Array.from({ length: 30 }, (_, i) => {
-            const h = 20 + Math.sin(i * 0.3) * 30 + Math.random() * 25 + (i > 20 ? 15 : 0);
+            const pseudo = ((Math.sin(i * 127.1 + 311.7) * 43758.5453) % 1 + 1) % 1; // deterministic 0-1
+            const h = 20 + Math.sin(i * 0.3) * 30 + pseudo * 25 + (i > 20 ? 15 : 0);
             return (
               <div
                 key={i}
