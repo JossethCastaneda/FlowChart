@@ -960,18 +960,18 @@ export default function ProjectDashboardPage() {
           ?.filter(ch => ch.platformName?.toLowerCase().includes("meta"))
           ?.flatMap(ch => ch.adAccounts || [])
           ?.filter(Boolean) || [];
-        const firstAccount = projectAccounts[0] || "";
+        const currentActiveAccount = selectedAccountId === "all" ? (projectAccounts[0] || "") : selectedAccountId;
 
         return (
-          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 160px)", margin: "-14px -18px -14px", padding: 0 }}>
+          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 120px)", margin: "8px 0 0", padding: 0 }}>
             {/* Embedded Ads Manager via iframe */}
             <iframe
-              src={`/dashboard/ads-manager?embedded=1${firstAccount ? `&account=${firstAccount}` : ""}`}
+              src={`/dashboard/ads-manager?embedded=1&account=${currentActiveAccount}&project_accounts=${projectAccounts.join(",")}&datePreset=${datePreset}&dateStart=${dateStart}&dateEnd=${dateEnd}`}
               style={{
                 width: "100%",
                 flex: 1,
-                border: "none",
-                borderRadius: 0,
+                border: "1px solid rgba(255, 255, 255, 0.06)",
+                borderRadius: 8,
                 background: "var(--background)",
               }}
               title="Ads Manager"

@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useSession as useSessionHook } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, ChevronDown } from "lucide-react";
 import DateRangePicker from "@/components/DateRangePicker";
@@ -76,11 +77,22 @@ const ALL_COLUMNS = [
   { key: "last_edited", label: "Última edición" },
 ];
 
-
-
 export default function AdsManagerPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.5)" }}>Cargando Ads Manager...</div>}>
+      <AdsManagerContent />
+    </Suspense>
+  );
+}
+
+function AdsManagerContent() {
   // Auth guard: check if user authenticated with Facebook
   const { data: session } = useSessionHook();
+
+  const searchParams = useSearchParams();
+  const isEmbedded = searchParams.get("embedded") === "1";
+  const initialAccount = searchParams.get("account") || "";
+  const projectAccountsParam = searchParams.get("project_accounts") || "";
 
   // Accounts state
   const [accounts, setAccounts] = useState<any[]>([]);
@@ -173,15 +185,24 @@ export default function AdsManagerPage() {
   const closeEdit = () => setEditModal(null);
   const handleEditSaved = () => { fetchData(); closeEdit(); };
 
-  // Fetch accounts on load
+  // Fetch accounts on load (filtered by project accounts if embedded)
   useEffect(() => {
     fetch("/api/meta/adaccounts")
       .then((res) => res.json())
       .then((data) => {
         if (data.data && Array.isArray(data.data)) {
-          const list = data.data.filter((acc: any) => acc.id !== "error");
+          let list = data.data.filter((acc: any) => acc.id !== "error");
+          
+          if (projectAccountsParam) {
+            const allowed = projectAccountsParam.split(",");
+            list = list.filter((acc: any) => allowed.includes(acc.id));
+          }
+          
           setAccounts(list);
-          if (list.length > 0) {
+          
+          if (initialAccount && list.some((a: any) => a.id === initialAccount)) {
+            setSelectedAccountId(initialAccount);
+          } else if (list.length > 0) {
             setSelectedAccountId(list[0].id);
           }
         }
@@ -191,7 +212,31 @@ export default function AdsManagerPage() {
         console.error("Failed to load ad accounts", err);
         setLoadingAccounts(false);
       });
-  }, []);
+  }, [projectAccountsParam]);
+
+  // Sync selected account when parameter changes
+  useEffect(() => {
+    if (initialAccount && accounts.some((a: any) => a.id === initialAccount)) {
+      setSelectedAccountId(initialAccount);
+    }
+  }, [initialAccount, accounts]);
+
+  // Sync date selection from query parameters if they change
+  useEffect(() => {
+    const paramPreset = searchParams.get("datePreset");
+    const paramStart = searchParams.get("dateStart");
+    const paramEnd = searchParams.get("dateEnd");
+
+    if (paramPreset && paramPreset !== datePreset) {
+      setDatePreset(paramPreset);
+    }
+    if (paramStart && paramStart !== dateStart) {
+      setDateStart(paramStart);
+    }
+    if (paramEnd && paramEnd !== dateEnd) {
+      setDateEnd(paramEnd);
+    }
+  }, [searchParams, datePreset, dateStart, dateEnd]);
 
   // Fetch data on changes
   const fetchData = async () => {
@@ -766,9 +811,13 @@ export default function AdsManagerPage() {
   }
 
   return (
-    <div className="h-full flex flex-col overflow-hidden" style={{ margin: "-24px -28px -40px", padding: 0, height: "calc(100vh - 48px)" }}>
+    <div className="h-full flex flex-col overflow-hidden" style={{
+      margin: isEmbedded ? "0" : "-24px -28px -40px",
+      padding: isEmbedded ? "0 4px" : "0",
+      height: isEmbedded ? "100%" : "calc(100vh - 48px)"
+    }}>
       {/* ── TOOLBAR (fixed top) ── */}
-      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", padding: "6px 12px 0", gap: "4px", position: "relative", zIndex: 50, overflow: "visible" }}>
+      <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", padding: isEmbedded ? "0 0 6px" : "6px 12px 0", gap: "4px", position: "relative", zIndex: 50, overflow: "visible" }}>
       
       {/* ── TOP CONTROLS ── */}
       <div
@@ -784,14 +833,16 @@ export default function AdsManagerPage() {
           overflow: "visible",
         }}
       >
-        {loadingAccounts ? (
-          <div style={{ fontSize: "11px", color: "rgba(148,163,184,0.4)" }}>Cargando cuentas...</div>
-        ) : (
-          <AccountSelector
-            accounts={accounts}
-            selectedAccountId={selectedAccountId}
-            onSelectAccount={setSelectedAccountId}
-          />
+        {!isEmbedded && (
+          loadingAccounts ? (
+            <div style={{ fontSize: "11px", color: "rgba(148,163,184,0.4)" }}>Cargando cuentas...</div>
+          ) : (
+            <AccountSelector
+              accounts={accounts}
+              selectedAccountId={selectedAccountId}
+              onSelectAccount={setSelectedAccountId}
+            />
+          )
         )}
 
         {/* Search Bar */}
@@ -852,15 +903,17 @@ export default function AdsManagerPage() {
               boxShadow: autoSync ? "0 0 6px rgba(52,211,153,0.4)" : "none",
             }}
           />
-          <DateRangePicker
-            datePreset={datePreset}
-            dateStart={dateStart}
-            dateEnd={dateEnd}
-            showDatePicker={showDatePicker}
-            setShowDatePicker={setShowDatePicker}
-            onPresetSelect={(preset) => { setDatePreset(preset); setDateStart(""); setDateEnd(""); }}
-            onCustomRange={(start, end) => { setDatePreset("custom"); setDateStart(start); setDateEnd(end); }}
-          />
+          {!isEmbedded && (
+            <DateRangePicker
+              datePreset={datePreset}
+              dateStart={dateStart}
+              dateEnd={dateEnd}
+              showDatePicker={showDatePicker}
+              setShowDatePicker={setShowDatePicker}
+              onPresetSelect={(preset) => { setDatePreset(preset); setDateStart(""); setDateEnd(""); }}
+              onCustomRange={(start, end) => { setDatePreset("custom"); setDateStart(start); setDateEnd(end); }}
+            />
+          )}
         </div>
       </div>
 
