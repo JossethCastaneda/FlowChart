@@ -83,7 +83,7 @@ const templates = [
 </html>`.trim(),
     variables: [
       { key: "NAME", type: "string", fallbackValue: "usuario" },
-      { key: "RESET_URL", type: "string", fallbackValue: "https://sodare.vercel.app/reset-password/token" },
+      { key: "RESET_URL", type: "string", fallbackValue: "https://sodare.xyz/reset-password/token" },
     ],
   },
   {
@@ -150,7 +150,7 @@ const templates = [
       { key: "INVITER_NAME", type: "string", fallbackValue: "Un administrador" },
       { key: "WORKSPACE_NAME", type: "string", fallbackValue: "Workspace" },
       { key: "ROLE", type: "string", fallbackValue: "MEMBER" },
-      { key: "INVITE_URL", type: "string", fallbackValue: "https://sodare.vercel.app/invite/token" },
+      { key: "INVITE_URL", type: "string", fallbackValue: "https://sodare.xyz/invite/token" },
     ],
   },
 ];

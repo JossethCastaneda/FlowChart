@@ -22,5 +22,5 @@ export function getBaseUrl(): string {
   }
 
   // 4. Last resort fallback
-  return "https://sodare-git-main-josseths-projects-b50cae29.vercel.app";
+  return "https://sodare.xyz";
 }
