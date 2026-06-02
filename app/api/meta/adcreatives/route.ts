@@ -34,8 +34,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Use effective_image_url for full-resolution images (thumbnail_url is always 64x64)
-    const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?fields=id,name,status,creative{id,name,effective_image_url,thumbnail_url,image_url,image_hash,title,body,call_to_action_type,object_story_spec}&limit=50`;
+    // effective_image_url is a TOP-LEVEL Ad field, NOT a creative sub-field
+    const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?fields=id,name,status,effective_image_url,creative{id,name,thumbnail_url,image_url,image_hash,title,body,call_to_action_type,object_story_spec}&limit=50`;
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&fields=ad_id,ad_name,spend,impressions,clicks,actions,action_values,cpc,ctr&${timeParam}&limit=50`;
 
     const [adsRes, insightsRes] = await Promise.all([
@@ -43,6 +43,10 @@ export async function GET(req: NextRequest) {
       metaFetch(insightsUrl, accessToken),
     ]);
 
+    if (!adsRes.ok) {
+      const errBody = await adsRes.json().catch(() => ({}));
+      console.error("[ADCREATIVES] Ads fetch error:", JSON.stringify(errBody?.error || errBody));
+    }
     const adsJson = adsRes.ok ? await adsRes.json() : { data: [] };
     const insightsJson = insightsRes.ok ? await insightsRes.json() : { data: [] };
 
@@ -57,8 +61,8 @@ export async function GET(req: NextRequest) {
       const creative = ad.creative || {};
       const ins = insightsMap[ad.id] || {};
       const storySpec = creative.object_story_spec || {};
-      // Priority: effective_image_url (full-res) > story_spec images > image_url > thumbnail_url (64x64 last resort)
-      let imageUrl = creative.effective_image_url || "";
+      // Priority: ad.effective_image_url (full-res, top-level) > story_spec images > image_url > thumbnail_url (64x64 last resort)
+      let imageUrl = ad.effective_image_url || "";
       
       // Try object_story_spec for full-res images
       if (!imageUrl && storySpec.link_data?.image_url) {
