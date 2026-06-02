@@ -1126,28 +1126,43 @@ export default function ProjectDashboardPage() {
               { arrayKey: null,         fallbackKey: "description",  label: "Mejores Descripciones" },
               { arrayKey: null,         fallbackKey: "cta",          label: "Mejores CTAs" },
             ] as const).map(cfg => {
-              const grouped: Record<string, { text: string; spend: number; results: number; clicks: number; count: number }> = {};
+              // Normalize text to prevent Unicode duplicates (zero-width chars, non-break spaces)
+              const normalize = (t: string) => t.trim().normalize("NFC").replace(/\s+/g, " ");
+
+              const grouped: Record<string, { text: string; spend: number; results: number; clicks: number; count: number; isDCO: boolean }> = {};
               adCreatives.forEach((ad: any) => {
                 const ra = findResultAction(ad.actions, ch?.goal);
                 const adResults = ra ? parseInt(ra.value, 10) : 0;
                 const texts: string[] = [];
-                if (cfg.arrayKey && Array.isArray(ad[cfg.arrayKey])) { texts.push(...(ad[cfg.arrayKey] as string[])); }
+                const hasDCO = cfg.arrayKey && Array.isArray(ad[cfg.arrayKey]) && ad[cfg.arrayKey].length > 0;
+                if (hasDCO) { texts.push(...(ad[cfg.arrayKey] as string[])); }
                 if (!texts.length) { const fb = (ad[cfg.fallbackKey] || "").trim(); if (fb) texts.push(fb); }
+
                 for (const text of texts) {
                   if (!text) continue;
-                  if (!grouped[text]) grouped[text] = { text, spend: 0, results: 0, clicks: 0, count: 0 };
-                  const share = ad.spend / texts.length;
-                  grouped[text].spend += share;
-                  grouped[text].results += adResults / texts.length;
-                  grouped[text].clicks += ad.clicks / texts.length;
-                  grouped[text].count++;
+                  const key = normalize(text);
+                  if (!grouped[key]) grouped[key] = { text: text.trim(), spend: 0, results: 0, clicks: 0, count: 0, isDCO: false };
+                  // Don't split spend across DCO variants — assign 100% to each
+                  // (Meta doesn't report per-variant performance)
+                  grouped[key].spend += ad.spend;
+                  grouped[key].results += adResults;
+                  grouped[key].clicks += ad.clicks || 0;
+                  grouped[key].count++;
+                  if (hasDCO && texts.length > 1) grouped[key].isDCO = true;
                 }
               });
-              const data = Object.values(grouped).sort((a, b) => b.spend - a.spend).slice(0, 5);
+              const data = Object.values(grouped)
+                .sort((a, b) => b.spend - a.spend)
+                .slice(0, 5);
+
+              // Hide panel if all entries have $0 spend
+              const hasAnySpend = data.some(d => d.spend > 0);
+              if (!hasAnySpend && !creativesLoading && adCreatives.length > 0) return null;
+
               return (
                 <div key={cfg.fallbackKey} style={panelStyle}>
                   <h3 style={headingStyle}>{cfg.label}</h3>
-                  <p style={subStyle}>Top 5 por inversión</p>
+                  <p style={subStyle}>Top 5 por inversión{data.some(d => d.isDCO) ? " · En DCO el gasto se comparte entre variantes" : ""}</p>
                   {!adCreatives.length && creativesLoading
                     ? <NoData msg="Cargando..." />
                     : data.length > 0
@@ -1158,7 +1173,7 @@ export default function ProjectDashboardPage() {
                               <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>
                                 {d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text}
                               </p>
-                              <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
+                              <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
                                 <span style={{ fontSize: 10, color: "#fdab3d" }}>{fmtMXN(d.spend)}</span>
                                 <span style={{ fontSize: 10, color: "#00c875" }}>{Math.round(d.results)} result.</span>
                                 <span style={{ fontSize: 10, color: "#00d4ff" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
