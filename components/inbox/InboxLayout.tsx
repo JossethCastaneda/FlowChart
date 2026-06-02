@@ -35,86 +35,7 @@ interface Conversation {
 }
 
 // ═══════════════════════════════════════════════════════════════
-// DEMO DATA
-// ═══════════════════════════════════════════════════════════════
-
-const now = new Date();
-const mins = (m: number) => new Date(now.getTime() - m * 60 * 1000);
-const hours = (h: number) => new Date(now.getTime() - h * 3600 * 1000);
-
-const DEMO_CONVERSATIONS: Conversation[] = [
-  {
-    id: "1",
-    contactName: "María García",
-    platform: "fb_messenger",
-    lastMessage: "¿Cuándo estará disponible el nuevo producto?",
-    lastMessageTime: mins(5),
-    unread: true,
-    closed: false,
-    assignedTo: null,
-    tags: ["Prospecto", "Producto"],
-    messages: [
-      { id: "1a", text: "Hola! Vi su anuncio en Facebook sobre el nuevo producto 👋", incoming: true, timestamp: mins(45) },
-      { id: "1b", text: "¡Hola María! Gracias por tu interés. ¿De cuál producto nos hablas?", incoming: false, timestamp: mins(30) },
-      { id: "1c", text: "El de la línea premium que mencionaron en su último post", incoming: true, timestamp: mins(20) },
-      { id: "1d", text: "Ah sí, ese producto está en pre-venta. Estará disponible la próxima semana. ¿Te gustaría que te avisemos?", incoming: false, timestamp: mins(12) },
-      { id: "1e", text: "¿Cuándo estará disponible el nuevo producto?", incoming: true, timestamp: mins(5) },
-    ],
-  },
-  {
-    id: "2",
-    contactName: "Carlos López",
-    platform: "ig_dm",
-    lastMessage: "Me encantó su último post! 🔥",
-    lastMessageTime: hours(2),
-    unread: true,
-    closed: false,
-    assignedTo: "Ana",
-    tags: ["Fan", "Influencer"],
-    messages: [
-      { id: "2a", text: "Hola! Sigo su cuenta desde hace meses, excelente contenido 🙌", incoming: true, timestamp: hours(3) },
-      { id: "2b", text: "¡Muchas gracias Carlos! Nos alegra que te guste nuestro contenido.", incoming: false, timestamp: hours(2.5) },
-      { id: "2c", text: "Tengo una cuenta con 50k seguidores, ¿les interesaría una collab?", incoming: true, timestamp: hours(2.2) },
-      { id: "2d", text: "Me encantó su último post! 🔥", incoming: true, timestamp: hours(2) },
-    ],
-  },
-  {
-    id: "3",
-    contactName: "Ana Martínez",
-    platform: "ig_comment",
-    lastMessage: "¿Envían a todo México?",
-    lastMessageTime: hours(4),
-    unread: false,
-    closed: false,
-    assignedTo: null,
-    tags: ["Consulta"],
-    messages: [
-      { id: "3a", text: "¿Envían a todo México?", incoming: true, timestamp: hours(4) },
-      { id: "3b", text: "¡Hola Ana! Sí, hacemos envíos a toda la república. El envío es gratis en compras mayores a $500 MXN.", incoming: false, timestamp: hours(3.5) },
-      { id: "3c", text: "Perfecto! ¿Y cuánto tarda en llegar a Monterrey?", incoming: true, timestamp: hours(3) },
-      { id: "3d", text: "A Monterrey generalmente llega en 3-5 días hábiles 📦", incoming: false, timestamp: hours(2.8) },
-      { id: "3e", text: "Gracias! Voy a hacer mi pedido entonces 😊", incoming: true, timestamp: hours(2.5) },
-    ],
-  },
-  {
-    id: "4",
-    contactName: "Roberto Sánchez",
-    platform: "fb_messenger",
-    lastMessage: "Gracias por la info",
-    lastMessageTime: hours(8),
-    unread: false,
-    closed: true,
-    assignedTo: "Luis",
-    tags: ["Soporte", "Resuelto"],
-    messages: [
-      { id: "4a", text: "Buenos días, tengo un problema con mi pedido #4521", incoming: true, timestamp: hours(10) },
-      { id: "4b", text: "Buenos días Roberto. Déjame revisar tu pedido. ¿Podrías decirme cuál es el problema?", incoming: false, timestamp: hours(9.5) },
-      { id: "4c", text: "Me llegó un producto diferente al que ordené", incoming: true, timestamp: hours(9) },
-      { id: "4d", text: "Lamento mucho el inconveniente. Ya generé una guía de reenvío. Te llegará al correo registrado en los próximos minutos.", incoming: false, timestamp: hours(8.5) },
-      { id: "4e", text: "Gracias por la info", incoming: true, timestamp: hours(8) },
-    ],
-  },
-];
+/* No demo data — real conversations loaded from API */
 
 const SAVED_REPLIES = [
   "¡Hola! Gracias por contactarnos. ¿En qué podemos ayudarte?",
@@ -131,7 +52,7 @@ const TEAM_MEMBERS = ["Sin asignar", "Ana", "Luis", "Martha", "Diego"];
 // ═══════════════════════════════════════════════════════════════
 
 function relativeTime(date: Date): string {
-  const diffMs = now.getTime() - date.getTime();
+  const diffMs = Date.now() - date.getTime();
   const diffMin = Math.floor(diffMs / 60000);
   if (diffMin < 1) return "ahora";
   if (diffMin < 60) return `hace ${diffMin}m`;
@@ -164,12 +85,11 @@ function getInitials(name: string): string {
 // ═══════════════════════════════════════════════════════════════
 
 export function InboxLayout() {
-  const [conversations, setConversations] = useState<Conversation[]>(DEMO_CONVERSATIONS);
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string>("1");
   const [showProfile, setShowProfile] = useState(true);
   const [filterTab, setFilterTab] = useState<"todos" | "unread" | "closed">("todos");
   const [searchQuery, setSearchQuery] = useState("");
-  const [isDemo, setIsDemo] = useState(true);
   const [loading, setLoading] = useState(true);
 
   // Fetch real conversations from API
@@ -196,7 +116,7 @@ export function InboxLayout() {
             }));
             setConversations(mapped);
             setSelectedId(mapped[0]?.id || "");
-            setIsDemo(false);
+
           }
         }
       } catch { /* fallback to demo */ }
@@ -212,8 +132,7 @@ export function InboxLayout() {
       prev.map(c => (c.id === id ? { ...c, unread: false } : c))
     );
 
-    // Load real messages if not demo
-    if (!isDemo) {
+    // Load real messages
       const conv = conversations.find(c => c.id === id);
       const pageId = (conv as any)?._pageId;
       fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}`)
@@ -232,7 +151,6 @@ export function InboxLayout() {
           }
         })
         .catch(() => {});
-    }
   };
 
   const selected = conversations.find(c => c.id === selectedId) || conversations[0];
@@ -305,23 +223,7 @@ export function InboxLayout() {
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
 
-      {/* Demo Banner */}
-      {isDemo && (
-      <div style={{
-        padding: "8px 16px",
-        background: "rgba(168,85,247,0.08)",
-        border: "1px solid rgba(168,85,247,0.2)",
-        display: "flex",
-        alignItems: "center",
-        gap: 8,
-        marginBottom: 8,
-      }}>
-        <AlertCircle style={{ width: 14, height: 14, color: "#a855f7", flexShrink: 0 }} />
-        <span style={{ fontSize: 11, color: "rgba(168,85,247,0.8)" }}>
-          Modo Demo — Conecta tu cuenta de Meta para ver mensajes reales
-        </span>
-      </div>
-      )}
+
 
       {/* 3-Panel Layout */}
       <div style={{ display: "flex", flex: 1, minHeight: 0, gap: 1 }}>

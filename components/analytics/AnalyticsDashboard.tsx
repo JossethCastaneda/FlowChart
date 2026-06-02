@@ -31,140 +31,21 @@ const ChannelIcons: Record<string, React.ElementType> = {
   Facebook: ThumbsUp,
 };
 
-/* ══════════════════════════════════════════════════════════
-   DEMO DATA
-   ══════════════════════════════════════════════════════════ */
+/* Empty defaults — real data loaded from API */
 
 const TABS = ["Resumen", "Posts", "Audiencia", "Mejor Horario", "Crecimiento"] as const;
 type Tab = (typeof TABS)[number];
 
-const KPI_DATA = [
-  {
-    label: "Alcance",
-    value: "45,230",
-    change: "+12.3%",
-    positive: true,
-    icon: Eye,
-    color: "#00d4ff",
-    accent: "cyan",
-  },
-  {
-    label: "Engagement",
-    value: "4.8%",
-    change: "+0.5%",
-    positive: true,
-    icon: Heart,
-    color: "#f472b6",
-    accent: "pink",
-  },
-  {
-    label: "Seguidores",
-    value: "12,450",
-    change: "+340",
-    positive: true,
-    icon: Users,
-    color: "#06d6a0",
-    accent: "emerald",
-  },
-  {
-    label: "Impresiones",
-    value: "89,100",
-    change: "+8.7%",
-    positive: true,
-    icon: BarChart2,
-    color: "#7b61ff",
-    accent: "purple",
-  },
+const EMPTY_KPI = [
+  { label: "Alcance", value: "—", change: "—", positive: true, icon: Eye, color: "#00d4ff", accent: "cyan" },
+  { label: "Engagement", value: "—", change: "—", positive: true, icon: Heart, color: "#f472b6", accent: "pink" },
+  { label: "Seguidores", value: "—", change: "—", positive: true, icon: Users, color: "#06d6a0", accent: "emerald" },
+  { label: "Impresiones", value: "—", change: "—", positive: true, icon: BarChart2, color: "#7b61ff", accent: "purple" },
 ];
 
-const TOP_POSTS = [
-  {
-    id: 1,
-    text: "🚀 Lanzamos nuestra nueva colección de verano. ¡Descubre los diseños que están marcando tendencia!",
-    channel: "Instagram",
-    reach: 12_450,
-    likes: 1_230,
-    comments: 89,
-    shares: 156,
-    engagement: "6.2%",
-    date: "28 May 2026",
-  },
-  {
-    id: 2,
-    text: "¿Ya conoces nuestro programa de lealtad? 🎁 Acumula puntos con cada compra y obtén increíbles recompensas.",
-    channel: "Facebook",
-    reach: 9_870,
-    likes: 876,
-    comments: 124,
-    shares: 98,
-    engagement: "5.8%",
-    date: "25 May 2026",
-  },
-  {
-    id: 3,
-    text: "Behind the scenes de nuestra sesión fotográfica 📸 El equipo creativo trabajando en los looks de otoño.",
-    channel: "Instagram",
-    reach: 8_340,
-    likes: 945,
-    comments: 67,
-    shares: 72,
-    engagement: "5.1%",
-    date: "22 May 2026",
-  },
-];
-
-const POSTS_TABLE = [
-  { id: 1, text: "🚀 Lanzamos nuestra nueva colección...", channel: "Instagram", date: "28 May", reach: 12450, likes: 1230, comments: 89, shares: 156, engagement: 6.2 },
-  { id: 2, text: "¿Ya conoces nuestro programa de lealtad?...", channel: "Facebook", date: "25 May", reach: 9870, likes: 876, comments: 124, shares: 98, engagement: 5.8 },
-  { id: 3, text: "Behind the scenes de nuestra sesión...", channel: "Instagram", date: "22 May", reach: 8340, likes: 945, comments: 67, shares: 72, engagement: 5.1 },
-  { id: 4, text: "Tips para cuidar tus prendas favoritas 👗", channel: "Facebook", date: "20 May", reach: 7120, likes: 654, comments: 45, shares: 88, engagement: 4.9 },
-  { id: 5, text: "Nuevo drop: edición limitada disponible 🔥", channel: "Instagram", date: "18 May", reach: 11200, likes: 1102, comments: 156, shares: 201, engagement: 7.1 },
-  { id: 6, text: "Colaboración con @artista_local 🎨", channel: "Instagram", date: "15 May", reach: 6890, likes: 723, comments: 91, shares: 45, engagement: 4.3 },
-  { id: 7, text: "Flash Sale: 48 horas de descuentos 🛒", channel: "Facebook", date: "12 May", reach: 15300, likes: 1890, comments: 234, shares: 312, engagement: 8.2 },
-  { id: 8, text: "Nuestro compromiso con el medio ambiente 🌱", channel: "Facebook", date: "10 May", reach: 5670, likes: 489, comments: 78, shares: 123, engagement: 4.1 },
-];
-
-const AUDIENCE_AGE = [
-  { range: "13-17", pct: 4 },
-  { range: "18-24", pct: 28 },
-  { range: "25-34", pct: 35 },
-  { range: "35-44", pct: 19 },
-  { range: "45-54", pct: 9 },
-  { range: "55-64", pct: 4 },
-  { range: "65+", pct: 1 },
-];
-
-const AUDIENCE_GENDER = [
-  { label: "Mujeres", pct: 62, color: "#f472b6" },
-  { label: "Hombres", pct: 34, color: "#00d4ff" },
-  { label: "Otro", pct: 4, color: "#7b61ff" },
-];
-
-const AUDIENCE_LOCATION = [
-  { city: "Ciudad de México", pct: 24 },
-  { city: "Guadalajara", pct: 15 },
-  { city: "Monterrey", pct: 12 },
-  { city: "Puebla", pct: 8 },
-  { city: "Cancún", pct: 6 },
-  { city: "Mérida", pct: 5 },
-  { city: "Querétaro", pct: 5 },
-  { city: "Tijuana", pct: 4 },
-];
-
-const AUDIENCE_DEVICE = [
-  { label: "Móvil", pct: 72, color: "#f472b6" },
-  { label: "Desktop", pct: 20, color: "#00d4ff" },
-  { label: "Tablet", pct: 8, color: "#ffbe0b" },
-];
-
-const GROWTH_DATA = [
-  { period: "Ene", followers: 10200, gained: 380 },
-  { period: "Feb", followers: 10580, gained: 420 },
-  { period: "Mar", followers: 11000, gained: 510 },
-  { period: "Abr", followers: 11510, gained: 450 },
-  { period: "May", followers: 12110, gained: 340 },
-  { period: "Jun", followers: 12450, gained: 280 },
-];
+/* These are rendered directly — empty arrays = empty charts */
+const AUDIENCE_DEVICE: { label: string; pct: number; color: string }[] = [];
+const GROWTH_DATA: { period: string; followers: number; gained: number }[] = [];
 
 const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -201,12 +82,11 @@ function generateHeatmap(): number[][] {
 
 export function AnalyticsDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("Resumen");
-  const [isDemo, setIsDemo] = useState(true);
-  const [kpis, setKpis] = useState(KPI_DATA);
-  const [posts, setPosts] = useState(POSTS_TABLE);
-  const [audienceAge, setAudienceAge] = useState(AUDIENCE_AGE);
-  const [audienceGender, setAudienceGender] = useState(AUDIENCE_GENDER);
-  const [audienceLocation, setAudienceLocation] = useState(AUDIENCE_LOCATION);
+  const [kpis, setKpis] = useState(EMPTY_KPI);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [audienceAge, setAudienceAge] = useState<any[]>([]);
+  const [audienceGender, setAudienceGender] = useState<any[]>([]);
+  const [audienceLocation, setAudienceLocation] = useState<any[]>([]);
 
   // Fetch real organic KPIs
   useEffect(() => {
@@ -223,7 +103,7 @@ export function AnalyticsDashboard() {
               { label: "Seguidores", value: (kpiData.followers || 0).toLocaleString(), change: `${kpiData.followersTrend > 0 ? "+" : ""}${(kpiData.followersTrend || 0).toFixed(1)}%`, positive: (kpiData.followersTrend || 0) >= 0, icon: Users, color: "#06d6a0", accent: "emerald" },
               { label: "Impresiones", value: (kpiData.impressions || 0).toLocaleString(), change: `${kpiData.impressionsTrend > 0 ? "+" : ""}${(kpiData.impressionsTrend || 0).toFixed(1)}%`, positive: (kpiData.impressionsTrend || 0) >= 0, icon: BarChart2, color: "#7b61ff", accent: "purple" },
             ]);
-            setIsDemo(false);
+            // Data loaded from API
           }
         }
       } catch { /* fallback to demo */ }
@@ -269,8 +149,7 @@ export function AnalyticsDashboard() {
   return (
     <div className="space-y-4 page-enter">
 
-      {/* Demo Banner */}
-      {isDemo && <DemoBanner />}
+
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 glass-panel p-1 w-fit">
@@ -302,32 +181,12 @@ export function AnalyticsDashboard() {
   );
 }
 
-/* ── Demo Banner ──────────────────────────────────────── */
-function DemoBanner() {
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 10,
-        padding: "10px 16px",
-        borderRadius: 8,
-        background: "rgba(244,114,182,0.06)",
-        border: "1px solid rgba(244,114,182,0.15)",
-      }}
-    >
-      <Info style={{ width: 16, height: 16, color: "#f472b6", flexShrink: 0 }} />
-      <span style={{ fontSize: 12, fontWeight: 500, color: "#f472b6" }}>
-        Conecta tu cuenta para ver métricas reales — mostrando datos de demostración
-      </span>
-    </div>
-  );
-}
+
 
 /* ══════════════════════════════════════════════════════════
    TAB: RESUMEN
    ══════════════════════════════════════════════════════════ */
-function TabResumen({ kpis, posts }: { kpis: typeof KPI_DATA; posts: typeof POSTS_TABLE }) {
+function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any[] }) {
   const topPosts = posts.slice(0, 3).map((p, i) => ({
     id: p.id,
     text: p.text,
@@ -471,7 +330,7 @@ function KpiCard({
   icon: Icon,
   color,
   accent,
-}: (typeof KPI_DATA)[number]) {
+}: (typeof EMPTY_KPI)[number]) {
   const kpiClass = `kpi-card ${accent}`;
   return (
     <div className={kpiClass}>
@@ -515,7 +374,7 @@ function KpiCard({
 }
 
 /* ── Top Post Card ────────────────────────────────────── */
-function TopPostCard({ post, rank }: { post: (typeof TOP_POSTS)[number]; rank: number }) {
+function TopPostCard({ post, rank }: { post: any; rank: number }) {
   const ChannelIcon = ChannelIcons[post.channel] || ThumbsUp;
   return (
     <div className="glass-panel" style={{ padding: 20 }}>
@@ -609,7 +468,7 @@ function MiniStat({
    ══════════════════════════════════════════════════════════ */
 type SortKey = "reach" | "likes" | "comments" | "shares" | "engagement" | "date";
 
-function TabPosts({ posts }: { posts: typeof POSTS_TABLE }) {
+function TabPosts({ posts }: { posts: any[] }) {
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [sortKey, setSortKey] = useState<SortKey>("reach");
   const [sortAsc, setSortAsc] = useState(false);
@@ -840,7 +699,7 @@ function TabPosts({ posts }: { posts: typeof POSTS_TABLE }) {
 /* ══════════════════════════════════════════════════════════
    TAB: AUDIENCIA
    ══════════════════════════════════════════════════════════ */
-function TabAudiencia({ age, gender, location }: { age: typeof AUDIENCE_AGE; gender: typeof AUDIENCE_GENDER; location: typeof AUDIENCE_LOCATION }) {
+function TabAudiencia({ age, gender, location }: { age: any[]; gender: any[]; location: any[] }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Edad */}
@@ -1167,6 +1026,21 @@ function TabMejorHorario() {
    TAB: CRECIMIENTO
    ══════════════════════════════════════════════════════════ */
 function TabCrecimiento() {
+  if (GROWTH_DATA.length === 0) {
+    return (
+      <div style={{
+        display: "flex", flexDirection: "column", alignItems: "center",
+        justifyContent: "center", padding: 60, gap: 12,
+        borderRadius: 12, background: "rgba(255,255,255,0.015)",
+        border: "1px solid rgba(255,255,255,0.04)",
+      }}>
+        <BarChart2 style={{ width: 32, height: 32, color: "#334155" }} />
+        <p style={{ fontSize: 13, color: "#64748b", textAlign: "center" }}>
+          Conecta tu cuenta en <strong style={{ color: "#00d4ff" }}>Integraciones</strong> para ver datos de crecimiento
+        </p>
+      </div>
+    );
+  }
   const totalGained = GROWTH_DATA.reduce((s, d) => s + d.gained, 0);
   const growthRate = ((GROWTH_DATA[GROWTH_DATA.length - 1].followers - GROWTH_DATA[0].followers) / GROWTH_DATA[0].followers * 100).toFixed(1);
   const maxFollowers = Math.max(...GROWTH_DATA.map((d) => d.followers));

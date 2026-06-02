@@ -18,7 +18,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 
-/* ── Demo Stream Data ─────────────────────────────────── */
+/* No demo data — columns loaded dynamically */
 const STREAM_TYPES = [
   { type: "home_feed", label: "Home Feed", icon: Home },
   { type: "mentions", label: "Menciones", icon: AtSign },
@@ -49,22 +49,8 @@ interface StreamPost {
 }
 
 const generatePosts = (type: string, platform: string): StreamPost[] => {
-  const basePosts: StreamPost[] = [
-    { id: "1", author: "María García", handle: "@maria_garcia", content: "¡Nuevo lanzamiento de nuestra colección de verano! 🌞 No se lo pierdan.", time: "Hace 3m", likes: 45, comments: 12, shares: 8, platform },
-    { id: "2", author: "Carlos López", handle: "@carlos_mkt", content: "Tips para mejorar tu engagement en Instagram en 2025 🚀 Hilo 🧵", time: "Hace 15m", likes: 128, comments: 34, shares: 56, platform },
-    { id: "3", author: "Digital Agency MX", handle: "@digitalagencymx", content: "Resultados del Q2: +340% en alcance orgánico para nuestros clientes. ¿Cómo lo logramos? 👇", time: "Hace 32m", likes: 89, comments: 23, shares: 41, platform },
-    { id: "4", author: "Ana Morales", handle: "@ana_morales", content: "¿Alguien más siente que el algoritmo de IG cambió esta semana? Mis views bajaron un 40% 😤", time: "Hace 1h", likes: 234, comments: 67, shares: 12, platform },
-    { id: "5", author: "Pedro Hernández", handle: "@pedro_h", content: "Webinar gratuito mañana: \"Estrategias de contenido para TikTok\" Registro en bio ☝️", time: "Hace 2h", likes: 67, comments: 15, shares: 23, platform },
-    { id: "6", author: "Laura Digital", handle: "@laura_digital", content: "Meta acaba de anunciar cambios en la API de Instagram. Les cuento los detalles...", time: "Hace 3h", likes: 156, comments: 45, shares: 78, platform },
-  ];
-
-  if (type === "mentions") {
-    return basePosts.map((p) => ({ ...p, content: `@sodare ${p.content}` })).slice(0, 4);
-  }
-  if (type === "scheduled") {
-    return basePosts.slice(0, 3).map((p) => ({ ...p, content: `[Programado] ${p.content}`, time: "Mañana 10:00 AM" }));
-  }
-  return basePosts;
+  /* Posts are loaded from the API when Meta is connected */
+  return [];
 };
 
 /* ── Board interface ────────────────────────────────────── */
@@ -81,27 +67,7 @@ interface Board {
   columns: BoardColumn[];
 }
 
-const DEFAULT_BOARDS: Board[] = [
-  {
-    id: "1",
-    name: "Monitoreo Principal",
-    columns: [
-      { id: "c1", type: "home_feed", platform: "facebook" },
-      { id: "c2", type: "mentions", platform: "instagram" },
-      { id: "c3", type: "keyword", platform: "instagram", query: "#marketingdigital" },
-      { id: "c4", type: "scheduled", platform: "facebook" },
-    ],
-  },
-  {
-    id: "2",
-    name: "Instagram Focus",
-    columns: [
-      { id: "c5", type: "home_feed", platform: "instagram" },
-      { id: "c6", type: "mentions", platform: "instagram" },
-      { id: "c7", type: "published", platform: "instagram" },
-    ],
-  },
-];
+const DEFAULT_BOARDS: Board[] = [];
 
 /* ═══════════════════════════════════════════════════════
    STREAMS DASHBOARD
@@ -306,9 +272,7 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
         }}>
           {col.platform}
         </span>
-        {!isReal && (
-          <span style={{ fontSize: 8, color: "#64748b", fontWeight: 600 }}>DEMO</span>
-        )}
+
         <button
           onClick={() => onRemove(col.id)}
           style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", padding: 2 }}
@@ -369,7 +333,7 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
         fontSize: 10, color: "#475569",
       }}>
         <RefreshCw style={{ width: 10, height: 10 }} />
-        {isReal ? "Datos en vivo" : "Datos de demostración"}
+        {isReal ? "Datos en vivo" : "Sin datos — conecta Meta"}
       </div>
     </div>
   );

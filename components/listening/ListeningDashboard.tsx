@@ -17,32 +17,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-/* ── Demo data ─────────────────────────────────────────── */
-const DEMO_MENTIONS = [
-  { id: "1", platform: "instagram", author: "lucia_mkt", content: "¡Me encantó el servicio de @sodare! Muy recomendado 🔥", sentiment: "positive", time: "Hace 12m", avatar: null },
-  { id: "2", platform: "facebook", author: "Pedro Hernández", content: "Alguien ha probado la plataforma de sodare? Necesito opiniones", sentiment: "neutral", time: "Hace 45m", avatar: null },
-  { id: "3", platform: "instagram", author: "digital_agency_mx", content: "Comparando herramientas: Hootsuite vs Sodare. Por ahora Sodare gana en precio 💰", sentiment: "positive", time: "Hace 1h", avatar: null },
-  { id: "4", platform: "facebook", author: "Ana Morales", content: "Tuve problemas para conectar mi cuenta de IG con sodare. Alguien más? 😤", sentiment: "negative", time: "Hace 2h", avatar: null },
-  { id: "5", platform: "instagram", author: "carlos_social", content: "El nuevo publisher de Sodare está increíble, ya no necesito Hootsuite", sentiment: "positive", time: "Hace 3h", avatar: null },
-  { id: "6", platform: "facebook", author: "Marketing Tips MX", content: "5 herramientas de social media management en 2025: 1. Sodare 2. Hootsuite...", sentiment: "positive", time: "Hace 5h", avatar: null },
-  { id: "7", platform: "instagram", author: "jorge_ads", content: "No me convence mucho el ads manager de sodare, le faltan features", sentiment: "negative", time: "Hace 6h", avatar: null },
-  { id: "8", platform: "facebook", author: "Laura Digital", content: "Neutral sobre sodare. Tiene potencial pero necesita madurar.", sentiment: "neutral", time: "Hace 8h", avatar: null },
-];
-
-const DEMO_KEYWORDS = [
-  { id: "1", query: "sodare", type: "keyword", mentions: 142, sentiment: 72 },
-  { id: "2", query: "#socialmedia", type: "hashtag", mentions: 3420, sentiment: 65 },
-  { id: "3", query: "#marketingdigital", type: "hashtag", mentions: 8910, sentiment: 68 },
-  { id: "4", query: "hootsuite", type: "competitor", mentions: 5230, sentiment: 58 },
-];
-
-const TRENDING = [
-  { topic: "#ReelsTrend", volume: "+340%", sentiment: "positive" },
-  { topic: "Meta API changes", volume: "+220%", sentiment: "negative" },
-  { topic: "#ContentCreator", volume: "+180%", sentiment: "positive" },
-  { topic: "Social Commerce", volume: "+150%", sentiment: "neutral" },
-  { topic: "#InfluencerMX", volume: "+120%", sentiment: "positive" },
-];
+/* No demo data — real data loaded from API */
 
 /* ── Sentiment helpers ─────────────────────────────────── */
 const sentimentConfig = {
@@ -74,10 +49,9 @@ function relativeTime(dateStr: string): string {
 export function ListeningDashboard() {
   const [activeTab, setActiveTab] = useState<"search" | "mentions" | "sentiment" | "trends">("search");
   const [searchQuery, setSearchQuery] = useState("");
-  const [trackedKeywords, setTrackedKeywords] = useState(DEMO_KEYWORDS);
+  const [trackedKeywords, setTrackedKeywords] = useState<any[]>([]);
   const [newKeyword, setNewKeyword] = useState("");
-  const [mentions, setMentions] = useState(DEMO_MENTIONS);
-  const [isDemo, setIsDemo] = useState(true);
+  const [mentions, setMentions] = useState<any[]>([]);
 
   // Fetch real mentions from API
   useEffect(() => {
@@ -95,7 +69,7 @@ export function ListeningDashboard() {
             avatar: null,
           }));
           setMentions(mapped);
-          setIsDemo(false);
+
         }
       })
       .catch(() => {});
@@ -123,18 +97,7 @@ export function ListeningDashboard() {
   return (
     <div className="space-y-4" style={{ paddingBottom: 40 }}>
 
-      {/* Demo banner */}
-      {isDemo && (
-      <div style={{
-        display: "flex", alignItems: "center", gap: 8, padding: "8px 14px",
-        borderRadius: 8, background: "rgba(251,146,60,0.08)", border: "1px solid rgba(251,146,60,0.2)",
-      }}>
-        <AlertTriangle style={{ width: 14, height: 14, color: "#fb923c", flexShrink: 0 }} />
-        <span style={{ fontSize: 12, color: "#fb923c" }}>
-          Modo Demo — Activa permisos avanzados de Meta para monitoreo real
-        </span>
-      </div>
-      )}
+
 
       {/* Tabs */}
       <div className="flex space-x-1 glass-panel p-1 w-fit">
@@ -335,39 +298,14 @@ export function ListeningDashboard() {
         <div className="space-y-4">
           <div className="glass-panel p-4">
             <h3 style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 16 }}>Tendencias Emergentes</h3>
-            <div className="space-y-3">
-              {TRENDING.map((t, i) => {
-                const config = sentimentConfig[t.sentiment as keyof typeof sentimentConfig];
-                return (
-                  <div key={i} style={{
-                    display: "flex", alignItems: "center", gap: 12, padding: "12px 16px",
-                    borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
-                  }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center",
-                      justifyContent: "center", background: "rgba(251,146,60,0.1)", color: "#fb923c",
-                      fontWeight: 700, fontSize: 14,
-                    }}>
-                      {i + 1}
-                    </div>
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "white" }}>{t.topic}</div>
-                    </div>
-                    <div style={{
-                      padding: "4px 10px", borderRadius: 20, fontSize: 12, fontWeight: 600,
-                      background: "rgba(0,200,117,0.1)", color: "#00c875",
-                    }}>
-                      {t.volume}
-                    </div>
-                    <div style={{
-                      padding: "4px 10px", borderRadius: 20, fontSize: 11,
-                      background: `${config.color}15`, color: config.color,
-                    }}>
-                      {config.label}
-                    </div>
-                  </div>
-                );
-              })}
+            <div style={{
+              display: "flex", flexDirection: "column", alignItems: "center",
+              justifyContent: "center", padding: 40, gap: 10,
+            }}>
+              <TrendingUp style={{ width: 28, height: 28, color: "#334155" }} />
+              <p style={{ fontSize: 12, color: "#64748b", textAlign: "center" }}>
+                Las tendencias aparecerán cuando se conecten datos de monitoreo social
+              </p>
             </div>
           </div>
 
@@ -419,7 +357,7 @@ export function ListeningDashboard() {
 }
 
 /* ── Mention Card ──────────────────────────────────────── */
-function MentionCard({ mention }: { mention: typeof DEMO_MENTIONS[0] }) {
+function MentionCard({ mention }: { mention: any }) {
   const config = sentimentConfig[mention.sentiment as keyof typeof sentimentConfig];
   const SentIcon = config.icon;
   const platformColor = platformColors[mention.platform] || "#64748b";
