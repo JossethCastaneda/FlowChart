@@ -289,8 +289,10 @@ export default function ProjectDashboardPage() {
         : `/api/meta/breakdowns?id=${id}&breakdown=${key}&preset=${dp}`;
       const r = await fetch(url);
       const d = await r.json();
-      if (d.data) setBreakdownData(prev => ({ ...prev, [key]: d.data }));
-    } catch {}
+      if (d.error) { console.error(`Breakdown ${key} error:`, d.error); setBreakdownData(prev => ({ ...prev, [key]: [] })); }
+      else if (d.data) setBreakdownData(prev => ({ ...prev, [key]: d.data }));
+      else setBreakdownData(prev => ({ ...prev, [key]: [] }));
+    } catch (err) { console.error(`Breakdown ${key} fetch failed:`, err); setBreakdownData(prev => ({ ...prev, [key]: [] })); }
   }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, breakdownData]);
 
   // Ad Creatives state
