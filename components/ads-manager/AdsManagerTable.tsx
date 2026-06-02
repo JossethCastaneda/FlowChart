@@ -231,10 +231,58 @@ export function AdsManagerTable({
   };
   const statusIsLast = !showName && !showDel && !showBudg && !showBid;
 
+  // ── Build ordered column definitions for <colgroup> ───────────────────────
+  const SPACER_W = 44;
+  const columnDefs = useMemo(() => {
+    const cols: { key: string; width: number }[] = [
+      { key: "_check", width: CHECKBOX_W },
+      { key: "_status", width: STATUS_W },
+    ];
+    if (showName) cols.push({ key: "name", width: nameW });
+    if (showDel)  cols.push({ key: "delivery", width: DELIVERY_W });
+    if (showBudg) cols.push({ key: "budget", width: BUDGET_W });
+    if (showBid)  cols.push({ key: "bid", width: BID_W });
+
+    // Scrollable metric columns — must match render order exactly
+    const metricOrder: { key: string; condition: boolean }[] = [
+      { key: "objective",            condition: visibleColumns.includes("objective") && level === "campaigns" },
+      { key: "roas",                 condition: visibleColumns.includes("roas") },
+      { key: "learning_phase",       condition: visibleColumns.includes("learning_phase") && level === "adsets" },
+      { key: "advantage_plus",       condition: visibleColumns.includes("advantage_plus") && level === "campaigns" },
+      { key: "reach",                condition: visibleColumns.includes("reach") },
+      { key: "impressions",          condition: visibleColumns.includes("impressions") },
+      { key: "cpm",                  condition: visibleColumns.includes("cpm") },
+      { key: "frequency",            condition: visibleColumns.includes("frequency") },
+      { key: "clicks",               condition: visibleColumns.includes("clicks") },
+      { key: "ctr",                  condition: visibleColumns.includes("ctr") },
+      { key: "cpc",                  condition: visibleColumns.includes("cpc") },
+      { key: "results",              condition: visibleColumns.includes("results") },
+      { key: "conversations",        condition: visibleColumns.includes("conversations") },
+      { key: "cost_per_message",     condition: visibleColumns.includes("cost_per_message") },
+      { key: "cost_per_conversation",condition: visibleColumns.includes("cost_per_conversation") },
+      { key: "cpa",                  condition: visibleColumns.includes("cpa") },
+      { key: "landing_page_views",   condition: visibleColumns.includes("landing_page_views") },
+      { key: "hook_rate",            condition: visibleColumns.includes("hook_rate") },
+      { key: "spend",                condition: visibleColumns.includes("spend") },
+      { key: "quality_ranking",      condition: visibleColumns.includes("quality_ranking") && level === "ads" },
+    ];
+    for (const m of metricOrder) {
+      if (m.condition) cols.push({ key: m.key, width: colWidths[m.key] ?? defaultWidths[m.key] ?? 120 });
+    }
+    cols.push({ key: "_spacer", width: SPACER_W });
+    return cols;
+  }, [showName, showDel, showBudg, showBid, nameW, visibleColumns, level, colWidths, defaultWidths]);
+
+  const totalTableWidth = useMemo(() => columnDefs.reduce((sum, c) => sum + c.width, 0), [columnDefs]);
+
   // ── Style helpers ─────────────────────────────────────────────────────────
+  const CELL_PY = "8px";
+  const CELL_PX = "10px";
+  const CELL_PAD = `${CELL_PY} ${CELL_PX}`;
+
   const thBase: React.CSSProperties = {
     position: "sticky", top: 0, zIndex: 10,
-    background: BG_HEADER, padding: "11px 14px",
+    background: BG_HEADER, padding: CELL_PAD,
     fontSize: "10.5px", fontWeight: 700,
     color: "rgba(180,215,255,0.88)",
     borderBottom: TH_BORDER_BOTTOM,
@@ -245,58 +293,64 @@ export function AdsManagerTable({
   };
 
   const thFrozen = (leftOff: number, width: number, isLast = false): React.CSSProperties => ({
-    ...thBase, left: leftOff, zIndex: 20, width, minWidth: width,
+    ...thBase, left: leftOff, zIndex: 20, width, minWidth: width, maxWidth: width,
     boxShadow: isLast ? frozenShadow : undefined,
   });
 
-  const thMetric = (col: string): React.CSSProperties => ({
-    ...thBase,
-    width: colWidths[col] ?? 120, minWidth: colWidths[col] ?? 60,
-    position: "relative",
-  });
-
-  const tdBase: React.CSSProperties = {
-    padding: "12px 14px", borderBottom: BORDER,
-    fontSize: "11px", whiteSpace: "nowrap", background: "transparent",
+  const thMetric = (col: string): React.CSSProperties => {
+    const w = colWidths[col] ?? 120;
+    return {
+      ...thBase,
+      width: w, minWidth: w, maxWidth: w,
+      position: "relative",
+    };
   };
 
-  const tdMetric = (col: string): React.CSSProperties => ({
-    ...tdBase,
-    width: colWidths[col] ?? 120,
-    minWidth: colWidths[col] ?? 60,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  });
+  const tdBase: React.CSSProperties = {
+    padding: CELL_PAD, borderBottom: BORDER,
+    fontSize: "11px", whiteSpace: "nowrap", background: "transparent",
+    overflow: "hidden", textOverflow: "ellipsis",
+  };
+
+  const tdMetric = (col: string): React.CSSProperties => {
+    const w = colWidths[col] ?? 120;
+    return {
+      ...tdBase,
+      width: w, minWidth: w, maxWidth: w,
+    };
+  };
 
   const tdFrozen = (leftOff: number, width: number, bg: string, isLast = false): React.CSSProperties => ({
-    padding: "12px 14px", borderBottom: BORDER,
+    padding: CELL_PAD, borderBottom: BORDER,
     fontSize: "11px", whiteSpace: "nowrap",
     position: "sticky", left: leftOff, zIndex: 5,
-    width, minWidth: width, background: bg,
+    width, minWidth: width, maxWidth: width, background: bg,
+    overflow: "hidden", textOverflow: "ellipsis",
     boxShadow: isLast ? frozenShadow : undefined,
   });
 
   const tfBase: React.CSSProperties = {
     position: "sticky", bottom: 0,
-    background: BG_FOOTER, padding: "11px 14px",
+    background: BG_FOOTER, padding: CELL_PAD,
     fontSize: "11px", fontWeight: 700,
     color: "rgba(180,215,255,0.85)",
     borderTop: TF_BORDER_TOP, whiteSpace: "nowrap",
     letterSpacing: "0.04em",
     zIndex: 10,
+    overflow: "hidden", textOverflow: "ellipsis",
   };
 
-  const tfMetric = (col: string): React.CSSProperties => ({
-    ...tfBase,
-    width: colWidths[col] ?? 120,
-    minWidth: colWidths[col] ?? 60,
-    overflow: "hidden",
-    textOverflow: "ellipsis",
-  });
+  const tfMetric = (col: string): React.CSSProperties => {
+    const w = colWidths[col] ?? 120;
+    return {
+      ...tfBase,
+      width: w, minWidth: w, maxWidth: w,
+    };
+  };
 
   const tfFrozen = (leftOff: number, width: number, isLast = false): React.CSSProperties => ({
     ...tfBase, left: leftOff, zIndex: 30,
-    width, minWidth: width,
+    width, minWidth: width, maxWidth: width,
     boxShadow: isLast ? frozenShadow : undefined,
   });
 
@@ -393,10 +447,17 @@ export function AdsManagerTable({
         <table
           style={{
             borderCollapse: "collapse",
+            tableLayout: "fixed",
             textAlign: "left",
-            minWidth: FROZEN_TOTAL + 200,
+            width: totalTableWidth,
           }}
         >
+          {/* ════ COLGROUP — guarantees pixel-perfect column alignment ════ */}
+          <colgroup>
+            {columnDefs.map(c => (
+              <col key={c.key} style={{ width: c.width, minWidth: c.width }} />
+            ))}
+          </colgroup>
           {/* ════ THEAD ════ */}
           <thead>
             <tr>
@@ -504,7 +565,7 @@ export function AdsManagerTable({
               )}
 
               {/* Expand filler */}
-              <th style={{ ...thBase, width: 44, minWidth: 44, cursor: "default" }}>
+              <th style={{ ...thBase, width: SPACER_W, minWidth: SPACER_W, maxWidth: SPACER_W, cursor: "default" }}>
                 <div style={{ display: "flex", justifyContent: "center" }}>
                   <Plus className="w-4 h-4" />
                 </div>
@@ -937,7 +998,7 @@ export function AdsManagerTable({
                     )}
 
                     {/* Spacer */}
-                    <td style={tdBase} />
+                    <td style={{ ...tdBase, width: SPACER_W, minWidth: SPACER_W, maxWidth: SPACER_W }} />
                   </tr>
                   {/* ── Breakdown sub-rows ── */}
                   {breakdownData && selectedBreakdown && selectedBreakdown !== "none" && breakdownData[row.id] && breakdownData[row.id].map((bd: any, bdIdx: number) => {
@@ -945,19 +1006,21 @@ export function AdsManagerTable({
                     const bdLabel = bd.age ? `${bd.age}${bd.gender ? ` / ${bd.gender}` : ""}` 
                       : bd.publisher_platform ? `${bd.publisher_platform}${bd.platform_position ? ` - ${bd.platform_position}` : ""}`
                       : bd.device_platform || bd.country || bd.region || bd.dma || bd.date_start || bd.hourly_stats_aggregated_by_audience_time_zone || bd.impression_device || bd.image_asset?.name || bd.body_asset?.text?.substring(0, 40) || bd.title_asset?.text || `Row ${bdIdx + 1}`;
+                    const bdBg = "rgba(4,12,28,1)";
                     return (
                       <tr key={`${row.id}-bd-${bdIdx}`} style={{ background: "rgba(0,212,255,0.02)" }}>
-                        <td style={{ ...thFrozen(L_CHECK, CHECKBOX_W, false), background: "rgba(4,12,28,1)" }} />
-                        <td style={{ ...thFrozen(L_STATUS, STATUS_W, false), background: "rgba(4,12,28,1)" }} />
-                        <td colSpan={2} style={{
-                          position: "sticky", left: L_NAME, zIndex: 4, background: "rgba(4,12,28,1)",
-                          padding: "4px 10px 4px 30px", borderBottom: BORDER, fontSize: 10,
-                          color: "rgba(0,212,255,0.7)", fontWeight: 500, whiteSpace: "nowrap",
-                        }}>
-                          ↳ {bdLabel}
-                        </td>
-                        {visibleColumns.filter(c => !["name", "delivery", "budget"].includes(c)).slice(0, 6).map((col) => (
-                          <td key={col} style={{ ...tdBase, fontSize: 10, color: "rgba(148,163,184,0.6)" }}>
+                        <td style={tdFrozen(L_CHECK, CHECKBOX_W, bdBg, false)} />
+                        <td style={tdFrozen(L_STATUS, STATUS_W, bdBg, false)} />
+                        {showName && (
+                          <td style={{ ...tdFrozen(L_NAME, nameW, bdBg, isLastFrozen("name")), padding: "4px 10px 4px 30px", fontSize: 10, color: "rgba(0,212,255,0.7)", fontWeight: 500 }}>
+                            ↳ {bdLabel}
+                          </td>
+                        )}
+                        {showDel && <td style={tdFrozen(L_DEL, DELIVERY_W, bdBg, isLastFrozen("delivery"))} />}
+                        {showBudg && <td style={tdFrozen(L_BUDG, BUDGET_W, bdBg, isLastFrozen("budget"))} />}
+                        {showBid && <td style={tdFrozen(L_BID, BID_W, bdBg, isLastFrozen("bid"))} />}
+                        {visibleColumns.filter(c => !["name", "delivery", "budget", "bid"].includes(c)).map((col) => (
+                          <td key={col} style={{ ...tdMetric(col), fontSize: 10, color: "rgba(148,163,184,0.6)" }}>
                             {col === "spend" ? fmt$(bd.spend || 0)
                               : col === "impressions" ? fmtNum(bd.impressions || 0)
                               : col === "clicks" ? fmtNum(bd.clicks || 0)
@@ -969,7 +1032,7 @@ export function AdsManagerTable({
                               : "—"}
                           </td>
                         ))}
-                        <td style={tdBase} />
+                        <td style={{ ...tdBase, width: SPACER_W, minWidth: SPACER_W, maxWidth: SPACER_W }} />
                       </tr>
                     );
                   })}
@@ -1019,7 +1082,7 @@ export function AdsManagerTable({
                 )}
                 {visibleColumns.includes("spend") && <td style={{ ...tfMetric("spend"), color: "white" }}>{fmt$(totalSpend)}</td>}
                 {visibleColumns.includes("quality_ranking") && level === "ads" && <td style={tfMetric("quality_ranking")} />}
-                <td style={tfBase} />
+                <td style={{ ...tfBase, width: SPACER_W, minWidth: SPACER_W, maxWidth: SPACER_W }} />
               </tr>
             </tfoot>
           )}
