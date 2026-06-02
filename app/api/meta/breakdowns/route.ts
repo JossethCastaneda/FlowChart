@@ -55,8 +55,8 @@ export async function GET(req: NextRequest) {
 
   const token = accessToken;
   const version = process.env.META_API_VERSION || "v22.0";
-  // Note: purchase_roas, action_values are NOT compatible with demographic/platform breakdowns
-  const insightsFields = "spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type";
+  // Note: purchase_roas, action_values, frequency are NOT compatible with all breakdown types
+  const insightsFields = "spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type";
 
   const mapping = BREAKDOWN_MAP[breakdownKey];
   if (!mapping) {
@@ -85,6 +85,7 @@ export async function GET(req: NextRequest) {
     const res = await metaFetch(url, token);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
+      console.error(`[BREAKDOWNS] Meta API error for ${breakdownKey}:`, JSON.stringify(err?.error || err), `URL: ${url.replace(token, 'TOKEN')}`);
       return NextResponse.json(
         { error: err?.error?.message || "Failed to fetch breakdowns" },
         { status: res.status }
@@ -101,7 +102,6 @@ export async function GET(req: NextRequest) {
       cpc: parseFloat(d.cpc || "0"),
       cpm: parseFloat(d.cpm || "0"),
       ctr: parseFloat(d.ctr || "0"),
-      frequency: parseFloat(d.frequency || "0"),
     }));
 
     return NextResponse.json({

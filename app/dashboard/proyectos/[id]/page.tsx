@@ -271,7 +271,7 @@ export default function ProjectDashboardPage() {
 
   // Load breakdowns for audience/creative tabs — uses same date range
   const loadBreakdown = useCallback(async (key: string) => {
-    if (breakdownData[key] || !project) return;
+    if (breakdownData[key]?.length > 0 || !project) return;
     const ch = project.channels.find(c => c.platformId === activePlatform);
     if (!ch?.adAccounts?.length) return;
     const accId = selectedAccountId === "all" ? ch.adAccounts[0] : selectedAccountId;

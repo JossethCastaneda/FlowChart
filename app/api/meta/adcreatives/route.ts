@@ -34,8 +34,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Request high-res thumbnails (default is 64x64 which looks pixelated)
-    const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?fields=id,name,status,creative{id,name,thumbnail_url,image_url,image_hash,title,body,call_to_action_type,object_story_spec}&thumbnail_width=480&thumbnail_height=480&limit=50`;
+    // Use effective_image_url for full-resolution images (thumbnail_url is always 64x64)
+    const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?fields=id,name,status,creative{id,name,effective_image_url,thumbnail_url,image_url,image_hash,title,body,call_to_action_type,object_story_spec}&limit=50`;
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&fields=ad_id,ad_name,spend,impressions,clicks,actions,action_values,cpc,ctr&${timeParam}&limit=50`;
 
     const [adsRes, insightsRes] = await Promise.all([
@@ -57,11 +57,10 @@ export async function GET(req: NextRequest) {
       const creative = ad.creative || {};
       const ins = insightsMap[ad.id] || {};
       const storySpec = creative.object_story_spec || {};
+      // Priority: effective_image_url (full-res) > story_spec images > image_url > thumbnail_url (64x64 last resort)
+      let imageUrl = creative.effective_image_url || "";
       
-      // Prefer full-res image_url over thumbnail_url (which can be low-res)
-      let imageUrl = creative.image_url || creative.thumbnail_url || "";
-      
-      // Try to get image from object_story_spec
+      // Try object_story_spec for full-res images
       if (!imageUrl && storySpec.link_data?.image_url) {
         imageUrl = storySpec.link_data.image_url;
       }
@@ -71,6 +70,8 @@ export async function GET(req: NextRequest) {
       if (!imageUrl && storySpec.video_data?.image_url) {
         imageUrl = storySpec.video_data.image_url;
       }
+      // Fallback to creative-level fields
+      if (!imageUrl) imageUrl = creative.image_url || creative.thumbnail_url || "";
 
       // Extract texts
       const title = creative.title || storySpec.link_data?.name || "";
