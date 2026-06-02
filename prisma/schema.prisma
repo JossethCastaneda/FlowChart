@@ -271,14 +271,28 @@ model ScheduledPost {
   id           String   @id @default(cuid())
   workspaceId  String
   projectId    String?
-  channels     String[] // ["facebook", "instagram", "tiktok"]
-  content      String
-  mediaUrl     String?
-  scheduledAt  DateTime
-  status       String   @default("Scheduled") // Scheduled, Published, Failed
+  userId       String?  // who created this post
+  channels     String[] // ["facebook", "instagram", "tiktok", "linkedin"]
+  content      String   @db.Text
+  mediaUrls    String[] // multiple media files
+  mediaUrl     String?  // legacy single media (kept for compat)
+  type         String   @default("post") // post, reel, story, carousel
+  hashtags     String[]
+  scheduledAt  DateTime?
+  publishedAt  DateTime?
+  status       String   @default("Draft") // Draft, Scheduled, Published, Failed
+  error        String?  @db.Text // error message if publish failed
+  externalIds  Json?    // { facebook: "post_id", instagram: "media_id" }
+  pageName     String?  // Facebook page name used
+  pageId       String?  // Facebook page ID used
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([workspaceId, status])
+  @@index([scheduledAt])
 }
 
 
