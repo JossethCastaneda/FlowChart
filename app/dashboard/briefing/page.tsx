@@ -29,6 +29,11 @@ const MONTH_OPTIONS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio",
 const POST_COUNT_OPTIONS = [4, 6, 8, 10, 12, 16];
 const FOCUS_OPTIONS = ["Ventas","Branding","Alcance","Reconocimiento de Marca","Posicionamiento de Marca"];
 const FORMAT_OPTIONS = ["Imagen","Video","Ambas"];
+const INBOUND_STAGES = ["Attract", "Convert", "Close", "Delight"];
+const DAYS_IN_MONTH: Record<string, number> = {
+  Enero: 31, Febrero: 28, Marzo: 31, Abril: 30, Mayo: 31, Junio: 30,
+  Julio: 31, Agosto: 31, Septiembre: 30, Octubre: 31, Noviembre: 30, Diciembre: 31,
+};
 
 /* ═══ SHARED STYLES ═══ */
 const S = {
@@ -47,6 +52,43 @@ const LogoIcon = () => (
   </svg>
 );
 
+/* ═══ LOCAL GRID GENERATOR ═══ */
+function generateLocalGrid(formData: GridFormData): ContentGridData {
+  const totalDays = DAYS_IN_MONTH[formData.month] || 30;
+  const count = formData.postCount;
+  const spacing = Math.floor(totalDays / count);
+  const focusList = formData.focus.length > 0 ? formData.focus : ["Ventas"];
+
+  const posts: Post[] = [];
+  for (let i = 0; i < count; i++) {
+    const dia = Math.min(1 + i * spacing + Math.floor(Math.random() * Math.max(1, spacing - 1)), totalDays);
+    const enfoque = INBOUND_STAGES[i % INBOUND_STAGES.length];
+    const focusTag = focusList[i % focusList.length];
+    const isVideo = formData.formats === "Video" || (formData.formats === "Ambas" && i % 3 === 0);
+
+    posts.push({
+      dia,
+      ideaPrincipal: `Post ${i + 1} — ${focusTag} · ${formData.month}`,
+      enfoquePublicacion: enfoque,
+      copyIn: "",
+      copyOut: "",
+      explicacionArte: "",
+      formatoArte: isVideo ? "Video" : "Imagen",
+      masterPromptMidjourney: "",
+      videoDetails: isVideo ? { numEscenas: 3, videoAITool: "Kling 2.1", promptsEscenasMidjourney: [], promptsVideoAI: [] } : undefined,
+      pasoAPaso: "",
+    });
+  }
+
+  const videoCount = posts.filter(p => p.formatoArte === "Video").length;
+  const imgCount = posts.filter(p => p.formatoArte === "Imagen").length;
+
+  return {
+    posts: posts.sort((a, b) => a.dia - b.dia),
+    creditos: { min: imgCount + videoCount * 300, max: imgCount + videoCount * 1400, summary: `${count} posts · ${imgCount} img · ${videoCount} video` },
+  };
+}
+
 /* ═══ SETUP FORM ═══ */
 function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) => void; isLoading: boolean }) {
   const [formData, setFormData] = useState<GridFormData>({
@@ -56,30 +98,22 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
   const [fileNames, setFileNames] = useState<string[]>([]);
 
   const handleFocusChange = (option: string) => {
-    const newFocus = formData.focus.includes(option)
-      ? formData.focus.filter(i => i !== option)
-      : [...formData.focus, option];
-    if (newFocus.length <= 3) setFormData({ ...formData, focus: newFocus });
+    const nf = formData.focus.includes(option) ? formData.focus.filter(i => i !== option) : [...formData.focus, option];
+    if (nf.length <= 3) setFormData({ ...formData, focus: nf });
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
     if (formData.brandFiles.length + files.length > 5) { alert("Máximo 5 archivos."); e.target.value = ""; return; }
-    const filePromises = Array.from(files).map(file =>
+    Promise.all(Array.from(files).map(file =>
       new Promise<FileInputData>((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = (ev) => {
-          const result = ev.target?.result as string;
-          const base64Data = result.split(",")[1];
-          base64Data ? resolve({ mimeType: file.type, data: base64Data }) : reject(new Error(`Error: ${file.name}`));
-        };
-        reader.onerror = () => reject(new Error(`Error: ${file.name}`));
-        reader.readAsDataURL(file);
+        reader.onload = (ev) => { const r = ev.target?.result as string; const b = r.split(",")[1]; b ? resolve({ mimeType: file.type, data: b }) : reject(); };
+        reader.onerror = () => reject(); reader.readAsDataURL(file);
       })
-    );
-    Promise.all(filePromises).then(newFiles => {
-      setFormData(prev => ({ ...prev, brandFiles: [...prev.brandFiles, ...newFiles] }));
+    )).then(nf => {
+      setFormData(prev => ({ ...prev, brandFiles: [...prev.brandFiles, ...nf] }));
       setFileNames(prev => [...prev, ...Array.from(files).map(f => f.name)]);
     }).catch(() => alert("Error al procesar archivos."));
     e.target.value = "";
@@ -90,75 +124,40 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
     setFileNames(prev => prev.filter((_, i) => i !== idx));
   };
 
-  const handleSubmit = (e: React.FormEvent) => { e.preventDefault(); onGenerate(formData); };
-
   return (
-    <form onSubmit={handleSubmit}>
-      {/* Row 1: Cliente | Mes | Posts | Formatos */}
-      <div style={S.sectionTitle}>Proyecto</div>
+    <form onSubmit={e => { e.preventDefault(); onGenerate(formData); }}>
+      <div style={S.sectionTitle as React.CSSProperties}>Proyecto</div>
       <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: 10, marginBottom: 14 }}>
-        <div>
-          <label style={S.label}>Cliente</label>
-          <input type="text" value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} style={S.input} placeholder="Ej. Bait" />
-        </div>
-        <div>
-          <label style={S.label}>Mes</label>
-          <select value={formData.month} onChange={e => setFormData({...formData, month: e.target.value})} style={{ ...S.input, cursor: "pointer" }}>
-            {MONTH_OPTIONS.map(m => <option key={m} value={m}>{m}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={S.label}>Posts</label>
-          <select value={formData.postCount} onChange={e => setFormData({...formData, postCount: parseInt(e.target.value)})} style={{ ...S.input, cursor: "pointer" }}>
-            {POST_COUNT_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
-        <div>
-          <label style={S.label}>Formatos</label>
-          <select value={formData.formats} onChange={e => setFormData({...formData, formats: e.target.value})} style={{ ...S.input, cursor: "pointer" }}>
-            {FORMAT_OPTIONS.map(f => <option key={f} value={f}>{f}</option>)}
-          </select>
-        </div>
+        <div><label style={S.label as React.CSSProperties}>Cliente</label><input type="text" value={formData.client} onChange={e => setFormData({...formData, client: e.target.value})} style={S.input} placeholder="Ej. Bait" /></div>
+        <div><label style={S.label as React.CSSProperties}>Mes</label><select value={formData.month} onChange={e => setFormData({...formData, month: e.target.value})} style={{ ...S.input, cursor: "pointer" }}>{MONTH_OPTIONS.map(m => <option key={m}>{m}</option>)}</select></div>
+        <div><label style={S.label as React.CSSProperties}>Posts</label><select value={formData.postCount} onChange={e => setFormData({...formData, postCount: parseInt(e.target.value)})} style={{ ...S.input, cursor: "pointer" }}>{POST_COUNT_OPTIONS.map(n => <option key={n} value={n}>{n}</option>)}</select></div>
+        <div><label style={S.label as React.CSSProperties}>Formatos</label><select value={formData.formats} onChange={e => setFormData({...formData, formats: e.target.value})} style={{ ...S.input, cursor: "pointer" }}>{FORMAT_OPTIONS.map(f => <option key={f}>{f}</option>)}</select></div>
       </div>
 
-      {/* Row 2: Oferta | Comentarios */}
-      <div style={S.sectionTitle}>Estrategia</div>
+      <div style={S.sectionTitle as React.CSSProperties}>Estrategia</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
-        <div>
-          <label style={S.label}>Oferta Comercial</label>
-          <textarea value={formData.offer} onChange={e => setFormData({...formData, offer: e.target.value})} style={{ ...S.input, resize: "vertical", minHeight: 44 }} placeholder="Ej. 9GB por $100 con RRSS ilimitadas" />
-        </div>
-        <div>
-          <label style={S.label}>Comentarios</label>
-          <textarea value={formData.comments} onChange={e => setFormData({...formData, comments: e.target.value})} style={{ ...S.input, resize: "vertical", minHeight: 44 }} placeholder="Tono, exclusiones, instrucciones..." />
-        </div>
+        <div><label style={S.label as React.CSSProperties}>Oferta Comercial</label><textarea value={formData.offer} onChange={e => setFormData({...formData, offer: e.target.value})} style={{ ...S.input, resize: "vertical", minHeight: 44 } as React.CSSProperties} placeholder="Ej. 9GB por $100 con RRSS ilimitadas" /></div>
+        <div><label style={S.label as React.CSSProperties}>Comentarios</label><textarea value={formData.comments} onChange={e => setFormData({...formData, comments: e.target.value})} style={{ ...S.input, resize: "vertical", minHeight: 44 } as React.CSSProperties} placeholder="Tono, exclusiones..." /></div>
       </div>
 
-      {/* Row 3: Focus tags + Brand files side by side */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 14 }}>
         <div>
-          <label style={S.label}>Enfoque (max 3)</label>
+          <label style={S.label as React.CSSProperties}>Enfoque (max 3)</label>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 2 }}>
             {FOCUS_OPTIONS.map(opt => (
               <button key={opt} type="button" onClick={() => handleFocusChange(opt)} style={{
                 padding: "4px 10px", fontSize: 9, fontWeight: 600, borderRadius: 3, border: "none", cursor: "pointer",
                 background: formData.focus.includes(opt) ? "#00E500" : "rgba(255,255,255,0.03)",
-                color: formData.focus.includes(opt) ? "#000" : "rgba(148,163,184,0.4)",
-                transition: "all 0.15s",
+                color: formData.focus.includes(opt) ? "#000" : "rgba(148,163,184,0.4)", transition: "all 0.15s",
               }}>{opt}</button>
             ))}
           </div>
         </div>
         <div>
-          <label style={S.label}>Documentos de Marca</label>
-          <label htmlFor="brandFiles" style={{
-            ...S.input, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: formData.brandFiles.length >= 5 ? "not-allowed" : "pointer",
-            opacity: formData.brandFiles.length >= 5 ? 0.4 : 1, border: "1px dashed rgba(255,255,255,0.08)", padding: "6px 10px",
-          }}>
+          <label style={S.label as React.CSSProperties}>Documentos de Marca</label>
+          <label htmlFor="brandFiles" style={{ ...S.input, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: formData.brandFiles.length >= 5 ? "not-allowed" : "pointer", opacity: formData.brandFiles.length >= 5 ? 0.4 : 1, border: "1px dashed rgba(255,255,255,0.08)", padding: "6px 10px" }}>
             <svg width="12" height="12" viewBox="0 0 20 20" fill="rgba(148,163,184,0.3)"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd"/></svg>
-            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>
-              {formData.brandFiles.length > 0 ? `${formData.brandFiles.length}/5 archivos` : "Brandbook, voz y tono..."}
-            </span>
+            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{formData.brandFiles.length > 0 ? `${formData.brandFiles.length}/5 archivos` : "Brandbook, voz y tono..."}</span>
           </label>
           <input id="brandFiles" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.md" onChange={handleFileChange} disabled={formData.brandFiles.length >= 5} style={{ display: "none" }} />
           {fileNames.length > 0 && (
@@ -174,7 +173,6 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
         </div>
       </div>
 
-      {/* Submit */}
       <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 4 }}>
         <button type="submit" disabled={isLoading || !formData.client.trim()} style={{
           display: "flex", alignItems: "center", gap: 6, padding: "7px 20px", fontSize: 10, fontWeight: 700,
@@ -192,111 +190,21 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
   );
 }
 
-/* ═══ CONTENT GRID DISPLAY ═══ */
-function ContentGridDisplay({ gridData }: { gridData: ContentGridData }) {
-  const exportToCSV = useCallback(() => {
-    if (!gridData) return;
-    const headers = ["Día","Idea Principal","Enfoque","Copy In","Copy Out","Arte","Formato","Prompt Midjourney","Video Escenas","Video AI Tool","Prompts Imagen","Prompts Video","Paso a Paso"];
-    const rows = gridData.posts.map(p => [
-      p.dia, p.ideaPrincipal, p.enfoquePublicacion, p.copyIn, p.copyOut,
-      p.explicacionArte, p.formatoArte, p.masterPromptMidjourney,
-      p.videoDetails?.numEscenas ?? "", p.videoDetails?.videoAITool ?? "",
-      p.videoDetails?.promptsEscenasMidjourney.join("; ") ?? "",
-      p.videoDetails?.promptsVideoAI.join("; ") ?? "", p.pasoAPaso,
-    ]);
-    const csv = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(","))].join("\n");
-    const link = document.createElement("a");
-    link.setAttribute("href", encodeURI(csv));
-    link.setAttribute("download", `gridia_${gridData.posts.length}_posts.csv`);
-    document.body.appendChild(link); link.click(); document.body.removeChild(link);
-  }, [gridData]);
-
-  const thS: React.CSSProperties = { fontSize: 8, fontWeight: 700, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "5px 8px", textAlign: "left", borderBottom: "1px solid rgba(0,229,0,0.12)", whiteSpace: "nowrap", background: "#0b0f1e", position: "sticky", top: 0, zIndex: 5 };
-  const tdS: React.CSSProperties = { fontSize: 10, padding: "6px 8px", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.02)", color: "#cbd5e1", verticalAlign: "top" };
-
-  return (
-    <div style={{ marginTop: 12 }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: "white", textTransform: "uppercase", letterSpacing: "0.08em" }}>Parrilla</span>
-          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.3)" }}>·</span>
-          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.35)" }}>{gridData.posts.length} posts</span>
-          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.3)" }}>·</span>
-          <span style={{ fontSize: 9, color: "rgba(0,229,0,0.5)" }}>{gridData.creditos.summary}</span>
-        </div>
-        <button onClick={exportToCSV} style={{
-          display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", fontSize: 9, fontWeight: 600,
-          background: "transparent", border: "1px solid rgba(0,229,0,0.3)", color: "#00E500", borderRadius: 3, cursor: "pointer",
-        }}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-          CSV
-        </button>
-      </div>
-
-      <div style={{ background: "#0b0f1e", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 5, overflow: "hidden" }}>
-        <div style={{ overflow: "auto", maxHeight: "calc(100vh - 340px)" }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1200 }}>
-            <thead>
-              <tr>
-                <th style={{ ...thS, width: 36, textAlign: "center" }}>Día</th>
-                <th style={{ ...thS, minWidth: 130 }}>Idea</th>
-                <th style={{ ...thS, width: 70 }}>Enfoque</th>
-                <th style={{ ...thS, minWidth: 90 }}>Copy In</th>
-                <th style={{ ...thS, minWidth: 140 }}>Copy Out</th>
-                <th style={{ ...thS, minWidth: 120 }}>Arte</th>
-                <th style={{ ...thS, width: 52 }}>Fmt</th>
-                <th style={{ ...thS, minWidth: 160 }}>Prompt MJ</th>
-                <th style={{ ...thS, minWidth: 150 }}>Video</th>
-                <th style={{ ...thS, minWidth: 120 }}>Ejecución</th>
-              </tr>
-            </thead>
-            <tbody>
-              {gridData.posts.sort((a, b) => a.dia - b.dia).map((post, i) => (
-                <tr key={i} style={{ transition: "background 0.1s" }}
-                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.012)"}
-                  onMouseLeave={e => e.currentTarget.style.background = ""}>
-                  <td style={{ ...tdS, fontWeight: 700, color: "#00E500", textAlign: "center", fontSize: 11 }}>{post.dia}</td>
-                  <td style={{ ...tdS, fontSize: 9 }}>{post.ideaPrincipal}</td>
-                  <td style={tdS}>
-                    <span style={{ fontSize: 7, fontWeight: 700, padding: "1px 5px", borderRadius: 2, background: "rgba(0,229,0,0.08)", color: "rgba(0,229,0,0.7)", whiteSpace: "nowrap" }}>{post.enfoquePublicacion}</span>
-                  </td>
-                  <td style={{ ...tdS, fontWeight: 600, color: "white", fontSize: 9 }}>{post.copyIn}</td>
-                  <td style={{ ...tdS, fontSize: 9, maxWidth: 180, whiteSpace: "pre-wrap" }}>{post.copyOut}</td>
-                  <td style={{ ...tdS, fontSize: 9, maxWidth: 150, whiteSpace: "pre-wrap" }}>{post.explicacionArte}</td>
-                  <td style={tdS}>
-                    <span style={{ fontSize: 7, fontWeight: 700, padding: "1px 5px", borderRadius: 2, background: post.formatoArte === "Video" ? "rgba(0,229,0,0.1)" : "rgba(148,163,184,0.06)", color: post.formatoArte === "Video" ? "#00E500" : "rgba(148,163,184,0.4)" }}>{post.formatoArte}</span>
-                  </td>
-                  <td style={{ ...tdS, maxWidth: 200 }}>
-                    <code style={{ fontSize: 8, color: "rgba(0,229,0,0.6)", wordBreak: "break-word" }}>{post.masterPromptMidjourney}</code>
-                  </td>
-                  <td style={{ ...tdS, maxWidth: 190 }}>
-                    {post.videoDetails ? (
-                      <div style={{ fontSize: 8 }}>
-                        <div><span style={{ color: "rgba(148,163,184,0.4)" }}>Tool:</span> <span style={{ color: "#00E500" }}>{post.videoDetails.videoAITool}</span></div>
-                        <div><span style={{ color: "rgba(148,163,184,0.4)" }}>Scenes:</span> {post.videoDetails.numEscenas}</div>
-                        {post.videoDetails.promptsEscenasMidjourney.length > 0 && post.videoDetails.promptsEscenasMidjourney.map((p, j) => <div key={j} style={{ color: "rgba(0,229,0,0.5)", marginLeft: 6 }}>• {p}</div>)}
-                      </div>
-                    ) : <span style={{ color: "rgba(148,163,184,0.1)" }}>—</span>}
-                  </td>
-                  <td style={{ ...tdS, fontSize: 9, maxWidth: 150, whiteSpace: "pre-wrap" }}>{post.pasoAPaso}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 /* ═══ MAIN PAGE ═══ */
 export default function BriefingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gridData, setGridData] = useState<ContentGridData | null>(null);
+  const [useAI, setUseAI] = useState(false);
 
   const handleGenerate = async (formData: GridFormData) => {
     setIsLoading(true); setError(null); setGridData(null);
+
+    if (!useAI) {
+      setTimeout(() => { setGridData(generateLocalGrid(formData)); setIsLoading(false); }, 300);
+      return;
+    }
+
     try {
       const res = await fetch("/api/gridia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
       if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `Error ${res.status}`); }
@@ -305,9 +213,19 @@ export default function BriefingPage() {
     finally { setIsLoading(false); }
   };
 
+  const updatePost = (index: number, field: keyof Post, value: string) => {
+    setGridData(prev => {
+      if (!prev) return prev;
+      const posts = [...prev.posts];
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      posts[index] = { ...posts[index], [field]: value } as any;
+      return { ...prev, posts };
+    });
+  };
+
   return (
     <div className="page-enter">
-      {/* Header — compact inline */}
+      {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <LogoIcon />
@@ -318,6 +236,15 @@ export default function BriefingPage() {
             <p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", letterSpacing: "0.05em" }}>Content Grid Generator</p>
           </div>
         </div>
+        <button onClick={() => setUseAI(!useAI)} style={{
+          display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", fontSize: 9, fontWeight: 600,
+          background: useAI ? "rgba(0,229,0,0.1)" : "rgba(255,255,255,0.03)",
+          border: `1px solid ${useAI ? "rgba(0,229,0,0.3)" : "rgba(255,255,255,0.06)"}`,
+          color: useAI ? "#00E500" : "rgba(148,163,184,0.4)", borderRadius: 3, cursor: "pointer",
+        }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: useAI ? "#00E500" : "rgba(148,163,184,0.2)" }} />
+          {useAI ? "Gemini AI" : "Manual"}
+        </button>
       </div>
 
       {/* Form */}
@@ -329,7 +256,7 @@ export default function BriefingPage() {
       {isLoading && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "24px 0" }}>
           <div style={{ width: 20, height: 20, border: "2px solid rgba(0,229,0,0.12)", borderTopColor: "#00E500", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
-          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Generando con Gemini AI...</span>
+          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{useAI ? "Generando con Gemini AI..." : "Creando plantilla..."}</span>
         </div>
       )}
 
@@ -341,14 +268,84 @@ export default function BriefingPage() {
       )}
 
       {/* Results */}
-      {gridData && !isLoading && <ContentGridDisplay gridData={gridData} />}
+      {gridData && !isLoading && <EditableGrid gridData={gridData} updatePost={updatePost} />}
 
       {/* Empty state */}
       {!gridData && !isLoading && !error && (
         <div style={{ textAlign: "center", padding: "30px 0", color: "rgba(148,163,184,0.15)", fontSize: 10, letterSpacing: "0.05em" }}>
-          Configura el proyecto y genera tu parrilla de contenido con IA
+          {useAI ? "Configura y genera con Gemini AI" : "Configura y genera tu plantilla editable"}
         </div>
       )}
+    </div>
+  );
+}
+
+/* ═══ EDITABLE GRID ═══ */
+function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; updatePost: (i: number, field: keyof Post, v: string) => void }) {
+  const exportToCSV = useCallback(() => {
+    const h = ["Día","Idea","Enfoque","Copy In","Copy Out","Arte","Formato","Prompt MJ","Paso a Paso"];
+    const rows = gridData.posts.map(p => [p.dia, p.ideaPrincipal, p.enfoquePublicacion, p.copyIn, p.copyOut, p.explicacionArte, p.formatoArte, p.masterPromptMidjourney, p.pasoAPaso]);
+    const csv = "data:text/csv;charset=utf-8," + [h.join(","), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(","))].join("\n");
+    const link = document.createElement("a"); link.setAttribute("href", encodeURI(csv)); link.setAttribute("download", `gridia_${gridData.posts.length}.csv`);
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+  }, [gridData]);
+
+  const thS: React.CSSProperties = { fontSize: 8, fontWeight: 700, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "5px 6px", textAlign: "left", borderBottom: "1px solid rgba(0,229,0,0.12)", whiteSpace: "nowrap", background: "#0b0f1e", position: "sticky", top: 0, zIndex: 5 };
+  const tdS: React.CSSProperties = { fontSize: 10, padding: "3px 4px", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.02)", color: "#cbd5e1", verticalAlign: "top" };
+  const editInput: React.CSSProperties = { width: "100%", background: "transparent", border: "1px solid transparent", borderRadius: 2, padding: "3px 5px", color: "#e2e8f0", fontSize: 9, outline: "none", resize: "vertical", minHeight: 22, transition: "border-color 0.15s" };
+
+  return (
+    <div style={{ marginTop: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 10, fontWeight: 700, color: "white", textTransform: "uppercase", letterSpacing: "0.08em" }}>Parrilla</span>
+          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.3)" }}>·</span>
+          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.35)" }}>{gridData.posts.length} posts</span>
+          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.3)" }}>·</span>
+          <span style={{ fontSize: 9, color: "rgba(0,229,0,0.5)" }}>{gridData.creditos.summary}</span>
+        </div>
+        <button onClick={exportToCSV} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", fontSize: 9, fontWeight: 600, background: "transparent", border: "1px solid rgba(0,229,0,0.3)", color: "#00E500", borderRadius: 3, cursor: "pointer" }}>
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          CSV
+        </button>
+      </div>
+
+      <div style={{ background: "#0b0f1e", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 5, overflow: "hidden" }}>
+        <div style={{ overflow: "auto", maxHeight: "calc(100vh - 320px)" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1100 }}>
+            <thead>
+              <tr>
+                <th style={{ ...thS, width: 32, textAlign: "center" }}>Día</th>
+                <th style={{ ...thS, minWidth: 120 }}>Idea</th>
+                <th style={{ ...thS, width: 60 }}>Etapa</th>
+                <th style={{ ...thS, minWidth: 80 }}>Copy In</th>
+                <th style={{ ...thS, minWidth: 130 }}>Copy Out</th>
+                <th style={{ ...thS, minWidth: 110 }}>Arte</th>
+                <th style={{ ...thS, width: 44 }}>Fmt</th>
+                <th style={{ ...thS, minWidth: 140 }}>Prompt MJ</th>
+                <th style={{ ...thS, minWidth: 110 }}>Ejecución</th>
+              </tr>
+            </thead>
+            <tbody>
+              {gridData.posts.map((post, i) => (
+                <tr key={i} style={{ transition: "background 0.1s" }}
+                  onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.012)"}
+                  onMouseLeave={e => e.currentTarget.style.background = ""}>
+                  <td style={{ ...tdS, fontWeight: 700, color: "#00E500", textAlign: "center", fontSize: 11 }}>{post.dia}</td>
+                  <td style={tdS}><textarea style={editInput} value={post.ideaPrincipal} onChange={e => updatePost(i, "ideaPrincipal", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Idea..." /></td>
+                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "1px 4px", borderRadius: 2, background: "rgba(0,229,0,0.08)", color: "rgba(0,229,0,0.7)", whiteSpace: "nowrap" }}>{post.enfoquePublicacion}</span></td>
+                  <td style={tdS}><textarea style={{ ...editInput, fontWeight: 600, color: "white" }} value={post.copyIn} onChange={e => updatePost(i, "copyIn", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Headline..." /></td>
+                  <td style={tdS}><textarea style={editInput} value={post.copyOut} onChange={e => updatePost(i, "copyOut", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Body copy..." rows={2} /></td>
+                  <td style={tdS}><textarea style={editInput} value={post.explicacionArte} onChange={e => updatePost(i, "explicacionArte", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Dirección de arte..." /></td>
+                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "1px 4px", borderRadius: 2, background: post.formatoArte === "Video" ? "rgba(0,229,0,0.1)" : "rgba(148,163,184,0.06)", color: post.formatoArte === "Video" ? "#00E500" : "rgba(148,163,184,0.4)" }}>{post.formatoArte}</span></td>
+                  <td style={tdS}><textarea style={{ ...editInput, color: "rgba(0,229,0,0.6)", fontFamily: "monospace", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
+                  <td style={tdS}><textarea style={editInput} value={post.pasoAPaso} onChange={e => updatePost(i, "pasoAPaso", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Pasos..." /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }
