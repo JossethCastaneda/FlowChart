@@ -782,7 +782,7 @@ export function PublisherTabs() {
   const showFilters = activeTab !== "integrations" && activeTab !== "composer";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%", minHeight: 0 }}>
       {/* ── Tab Navigation ───────────────────────────────────── */}
       <div style={{
         display: "flex", gap: 1, overflowX: "auto",
@@ -847,7 +847,7 @@ export function PublisherTabs() {
       {showFilters && <FiltersBar filters={filters} onChange={setFilters} />}
 
       {/* ── Tab Content ──────────────────────────────────────── */}
-      <div>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
         {activeTab === "composer" && <Composer />}
         {activeTab === "calendar" && <ScheduledCalendar />}
         {activeTab === "inbox" && <InboxLayout />}

@@ -90,7 +90,7 @@ export function InboxLayout() {
   const [showProfile, setShowProfile] = useState(true);
   const [filterTab, setFilterTab] = useState<"todos" | "unread" | "closed">("todos");
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   // Fetch real conversations from API
   useEffect(() => {
@@ -221,7 +221,7 @@ export function InboxLayout() {
 
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 240px)" }}>
 
       {/* Empty state — no conversations */}
       {conversations.length === 0 && !loading && (
@@ -246,11 +246,7 @@ export function InboxLayout() {
         </div>
       )}
 
-      {loading && (
-        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1, padding: 60 }}>
-          <div style={{ width: 24, height: 24, border: "2px solid rgba(168,85,247,0.2)", borderTop: "2px solid #a855f7", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-        </div>
-      )}
+
 
       {/* 3-Panel Layout — only render when there are conversations */}
       {conversations.length > 0 && selected && (
