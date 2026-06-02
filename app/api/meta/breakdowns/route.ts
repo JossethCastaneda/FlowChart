@@ -55,8 +55,16 @@ export async function GET(req: NextRequest) {
 
   const token = accessToken;
   const version = process.env.META_API_VERSION || "v22.0";
-  // Note: purchase_roas, action_values, frequency are NOT compatible with all breakdown types
-  const insightsFields = "spend,impressions,reach,clicks,cpc,cpm,ctr,actions,cost_per_action_type";
+
+  // Fields compatible with ALL breakdown types (safe minimum)
+  const safeFields = "spend,impressions,clicks,cpc,cpm,ctr,actions,cost_per_action_type";
+  // Extra fields only compatible with demographic/geo breakdowns (NOT publisher_platform/device_platform)
+  const extraDemoFields = ",reach";
+
+  // publisher_platform and device_platform breakdowns are incompatible with reach, frequency, etc.
+  const platformBreakdowns = ["platform", "placement", "device", "conversion_device"];
+  const useSafeOnly = platformBreakdowns.includes(breakdownKey);
+  const insightsFields = useSafeOnly ? safeFields : safeFields + extraDemoFields;
 
   const mapping = BREAKDOWN_MAP[breakdownKey];
   if (!mapping) {
@@ -82,6 +90,7 @@ export async function GET(req: NextRequest) {
       url += `&time_increment=${mapping.time_increment}`;
     }
 
+    console.log(`[BREAKDOWNS] Fetching ${breakdownKey} with fields: ${insightsFields}`);
     const res = await metaFetch(url, token);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
