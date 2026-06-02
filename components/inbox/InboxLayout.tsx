@@ -223,9 +223,37 @@ export function InboxLayout() {
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
 
+      {/* Empty state — no conversations */}
+      {conversations.length === 0 && !loading && (
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          justifyContent: "center", flex: 1, padding: 60, gap: 14,
+          borderRadius: 12, background: "rgba(255,255,255,0.015)",
+          border: "1px solid rgba(255,255,255,0.04)",
+        }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 14,
+            background: "rgba(168,85,247,0.08)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <MessageSquare style={{ width: 26, height: 26, color: "#a855f7" }} />
+          </div>
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: "white", margin: 0 }}>Sin conversaciones</h3>
+          <p style={{ fontSize: 12, color: "#64748b", textAlign: "center", maxWidth: 320 }}>
+            Conecta tu cuenta de Meta en la pestaña <strong style={{ color: "#00d4ff" }}>Integraciones</strong> para
+            recibir mensajes de Facebook Messenger e Instagram Direct.
+          </p>
+        </div>
+      )}
 
+      {loading && (
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", flex: 1, padding: 60 }}>
+          <div style={{ width: 24, height: 24, border: "2px solid rgba(168,85,247,0.2)", borderTop: "2px solid #a855f7", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+        </div>
+      )}
 
-      {/* 3-Panel Layout */}
+      {/* 3-Panel Layout — only render when there are conversations */}
+      {conversations.length > 0 && selected && (
       <div style={{ display: "flex", flex: 1, minHeight: 0, gap: 1 }}>
         {/* LEFT — Conversation List */}
         <div
@@ -451,6 +479,7 @@ export function InboxLayout() {
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }
