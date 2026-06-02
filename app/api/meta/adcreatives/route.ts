@@ -34,13 +34,17 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // effective_image_url is a TOP-LEVEL Ad field, NOT a creative sub-field
+    // 1) Fetch ads with basic creative info + effective_image_url
     const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?fields=id,name,status,effective_image_url,creative{id,name,thumbnail_url,image_url,image_hash,title,body,call_to_action_type,object_story_spec}&limit=50`;
+    // 2) Fetch insights for performance data
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&fields=ad_id,ad_name,spend,impressions,clicks,actions,action_values,cpc,ctr&${timeParam}&limit=50`;
+    // 3) Fetch adcreatives separately — this endpoint returns full-res image_url and supports thumbnail_width
+    const creativesUrl = `https://graph.facebook.com/${version}/${adAccountId}/adcreatives?fields=id,name,image_url,thumbnail_url,object_story_spec&thumbnail_width=480&thumbnail_height=480&limit=50`;
 
-    const [adsRes, insightsRes] = await Promise.all([
+    const [adsRes, insightsRes, creativesRes] = await Promise.all([
       metaFetch(adsUrl, accessToken),
       metaFetch(insightsUrl, accessToken),
+      metaFetch(creativesUrl, accessToken),
     ]);
 
     if (!adsRes.ok) {
@@ -49,6 +53,7 @@ export async function GET(req: NextRequest) {
     }
     const adsJson = adsRes.ok ? await adsRes.json() : { data: [] };
     const insightsJson = insightsRes.ok ? await insightsRes.json() : { data: [] };
+    const creativesJson = creativesRes.ok ? await creativesRes.json() : { data: [] };
 
     // Build insights lookup by ad_id
     const insightsMap: Record<string, any> = {};
@@ -56,24 +61,33 @@ export async function GET(req: NextRequest) {
       insightsMap[ins.ad_id] = ins;
     });
 
+    // Build creatives lookup by creative ID (full-res images from dedicated endpoint)
+    const creativeImageMap: Record<string, { imageUrl: string; thumbUrl: string }> = {};
+    (creativesJson.data || []).forEach((cr: any) => {
+      const spec = cr.object_story_spec || {};
+      const fullRes = cr.image_url || spec.link_data?.image_url || spec.photo_data?.url || spec.video_data?.image_url || "";
+      creativeImageMap[cr.id] = {
+        imageUrl: fullRes,
+        thumbUrl: cr.thumbnail_url || "", // 480x480 from thumbnail_width param
+      };
+    });
+
     // Merge ads with their insights
     const creatives = (adsJson.data || []).map((ad: any) => {
       const creative = ad.creative || {};
       const ins = insightsMap[ad.id] || {};
       const storySpec = creative.object_story_spec || {};
-      // Priority: ad.effective_image_url (full-res, top-level) > story_spec images > image_url > thumbnail_url (64x64 last resort)
-      let imageUrl = ad.effective_image_url || "";
       
-      // Try object_story_spec for full-res images
-      if (!imageUrl && storySpec.link_data?.image_url) {
-        imageUrl = storySpec.link_data.image_url;
-      }
-      if (!imageUrl && storySpec.photo_data?.url) {
-        imageUrl = storySpec.photo_data.url;
-      }
-      if (!imageUrl && storySpec.video_data?.image_url) {
-        imageUrl = storySpec.video_data.image_url;
-      }
+      // Get full-res image from the dedicated /adcreatives endpoint (supports thumbnail_width=480)
+      const crImg = creativeImageMap[creative.id];
+      
+      // Priority: dedicated endpoint full-res > dedicated endpoint 480px thumb > ad.effective_image_url > story_spec > creative sub-fields > 64px thumb
+      let imageUrl = crImg?.imageUrl || crImg?.thumbUrl || ad.effective_image_url || "";
+      
+      // Fallback to object_story_spec
+      if (!imageUrl && storySpec.link_data?.image_url) imageUrl = storySpec.link_data.image_url;
+      if (!imageUrl && storySpec.photo_data?.url) imageUrl = storySpec.photo_data.url;
+      if (!imageUrl && storySpec.video_data?.image_url) imageUrl = storySpec.video_data.image_url;
       // Fallback to creative-level fields
       if (!imageUrl) imageUrl = creative.image_url || creative.thumbnail_url || "";
 
