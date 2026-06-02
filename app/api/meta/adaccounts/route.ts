@@ -13,7 +13,8 @@ export async function GET(request: Request) {
       });
     }
 
-    const url = `https://graph.facebook.com/v22.0/me/adaccounts?fields=id,name,account_id,business{id,name}&limit=100`;
+    const version = process.env.META_API_VERSION || "v22.0";
+    const url = `https://graph.facebook.com/${version}/me/adaccounts?fields=id,name,account_id,business{id,name}&limit=100`;
     const { data: allData, error } = await metaGetAll(url, accessToken);
 
     if (error && allData.length === 0) {

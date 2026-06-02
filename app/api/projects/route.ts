@@ -106,42 +106,42 @@ export async function POST(request: NextRequest) {
       channels,
     } = body;
 
-    // Create the project
-    const project = await prisma.project.create({
-      data: {
-        name,
-        workspaceId,
-        ...(alias !== undefined && { alias }),
-        ...(client !== undefined && { client }),
-        ...(vertical !== undefined && { vertical }),
-        ...(fanpage !== undefined && { fanpage }),
-        ...(instagram !== undefined && { instagram }),
-        ...(whatsapp !== undefined && { whatsapp }),
-        ...(website !== undefined && { website }),
-        ...(persona !== undefined && { persona }),
-        ...(geo !== undefined && { geo }),
-        ...(status !== undefined && { status }),
-        ...(dateStart !== undefined && { dateStart }),
-        ...(dateEnd !== undefined && { dateEnd }),
-      },
-    });
-
-    // Create channels if provided
-    if (Array.isArray(channels) && channels.length > 0) {
-      await prisma.channel.createMany({
-        data: channels.map((c: { name: string; type: string; config?: any }) => ({
-          name: c.name,
-          type: c.type,
-          config: c.config ?? null,
-          projectId: project.id,
-        })),
+    // FIX: use $transaction — project + channels must succeed or fail together
+    const projectWithChannels = await prisma.$transaction(async (tx) => {
+      const project = await tx.project.create({
+        data: {
+          name,
+          workspaceId,
+          ...(alias !== undefined && { alias }),
+          ...(client !== undefined && { client }),
+          ...(vertical !== undefined && { vertical }),
+          ...(fanpage !== undefined && { fanpage }),
+          ...(instagram !== undefined && { instagram }),
+          ...(whatsapp !== undefined && { whatsapp }),
+          ...(website !== undefined && { website }),
+          ...(persona !== undefined && { persona }),
+          ...(geo !== undefined && { geo }),
+          ...(status !== undefined && { status }),
+          ...(dateStart !== undefined && { dateStart }),
+          ...(dateEnd !== undefined && { dateEnd }),
+        },
       });
-    }
 
-    // Re-fetch with channels included
-    const projectWithChannels = await prisma.project.findUnique({
-      where: { id: project.id },
-      include: { channels: true },
+      if (Array.isArray(channels) && channels.length > 0) {
+        await tx.channel.createMany({
+          data: channels.map((c: { name: string; type: string; config?: any }) => ({
+            name: c.name,
+            type: c.type,
+            config: c.config ?? null,
+            projectId: project.id,
+          })),
+        });
+      }
+
+      return tx.project.findUnique({
+        where: { id: project.id },
+        include: { channels: true },
+      });
     });
 
     return apiSuccess(projectWithChannels, 201);

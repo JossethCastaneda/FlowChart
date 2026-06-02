@@ -124,20 +124,21 @@ export async function PUT(
       data: sanitized,
     });
 
-    // If channels are provided, replace existing ones (delete + recreate)
+    // FIX: use $transaction — delete + recreate channels atomically
     if (Array.isArray(channels)) {
-      await prisma.channel.deleteMany({ where: { projectId: id } });
-
-      if (channels.length > 0) {
-        await prisma.channel.createMany({
-          data: channels.map((c: { name: string; type: string; config?: any }) => ({
-            name: c.name,
-            type: c.type,
-            config: c.config ?? null,
-            projectId: id,
-          })),
-        });
-      }
+      await prisma.$transaction(async (tx) => {
+        await tx.channel.deleteMany({ where: { projectId: id } });
+        if (channels.length > 0) {
+          await tx.channel.createMany({
+            data: channels.map((c: { name: string; type: string; config?: any }) => ({
+              name: c.name,
+              type: c.type,
+              config: c.config ?? null,
+              projectId: id,
+            })),
+          });
+        }
+      });
     }
 
     // Re-fetch with channels

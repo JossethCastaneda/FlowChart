@@ -512,11 +512,13 @@ export default function ProyectosPage() {
   const [menuPos, setMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
+  // FIX: removed fake Google/TikTok/WhatsApp hardcoded accounts.
+  // Only Meta is connected. Other platforms show "(próximamente)" via PLATFORMS.connected=false.
   const [adAccounts, setAdAccounts] = useState<Record<string, { id: string; name: string; portfolio?: string }[]>>({
     meta: [],
-    google: [{ id: "gads_001", name: "Google Ads MX — 123-456", portfolio: "Sodare MCC" }],
-    tiktok: [{ id: "tt_001", name: "TikTok Business — tt_main", portfolio: "Sodare Business Center" }],
-    whatsapp: [{ id: "wa_001", name: "WhatsApp API — +52 55 1234", portfolio: "Sodare Hub" }],
+    google: [],
+    tiktok: [],
+    whatsapp: [],
   });
 
   const [metaPages, setMetaPages] = useState<MetaPage[]>([]);
@@ -586,9 +588,15 @@ export default function ProyectosPage() {
       const json = await res.json();
       if (json.success) {
         await loadProjects();
+        setModalMode("closed"); // FIX: only close on success
+      } else {
+        console.error("Failed to create project:", json.error);
+        // Keep modal open so user doesn't lose their data
       }
-    } catch (err) { console.error("Failed to create project", err); }
-    setModalMode("closed");
+    } catch (err) {
+      console.error("Failed to create project", err);
+      // Keep modal open — don't swallow error silently
+    }
   }
 
   async function handleUpdate(data: Omit<Project, "id" | "createdAt">) {
@@ -610,12 +618,17 @@ export default function ProyectosPage() {
 
   async function handleDelete(id: string) {
     const prev = [...projects];
-    setProjects(projects.filter(p => p.id !== id));
+    setProjects(projects.filter(p => p.id !== id)); // optimistic
     try {
       const res = await fetch(`/api/projects/${id}`, { method: "DELETE" });
       const json = await res.json();
-      if (!json.success) setProjects(prev);
-    } catch { setProjects(prev); }
+      if (!json.success) {
+        setProjects(prev); // rollback
+        console.error("Failed to delete project:", json.error);
+      }
+    } catch {
+      setProjects(prev); // rollback on network error
+    }
     setDeleteConfirm(null);
     setMenuOpen(null);
   }

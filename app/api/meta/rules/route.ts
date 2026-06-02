@@ -16,7 +16,9 @@ export async function GET(req: NextRequest) {
   const version = process.env.META_API_VERSION || "v22.0";
 
   try {
-    const url = `https://graph.facebook.com/${version}/act_${adAccountId}/adrules_library?fields=${RULE_FIELDS}&limit=100`;
+    // FIX: guard against double act_ prefix (act_act_XXXXX)
+  const accountId = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
+  const url = `https://graph.facebook.com/${version}/${accountId}/adrules_library?fields=${RULE_FIELDS}&limit=100`;
     const res = await metaFetch(url, token);
     const json = await res.json();
     if (!res.ok) {
@@ -44,7 +46,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    const url = `https://graph.facebook.com/${version}/act_${adAccountId}/adrules_library`;
+  // FIX: guard against double act_ prefix (act_act_XXXXX)
+  const accountId = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
+  const url = `https://graph.facebook.com/${version}/${accountId}/adrules_library`;
     const res = await metaFetch(url, token, {
       method: "POST",
       body: JSON.stringify({
