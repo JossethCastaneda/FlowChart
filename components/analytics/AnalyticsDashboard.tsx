@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   TrendingUp,
   TrendingDown,
@@ -194,11 +194,75 @@ function generateHeatmap(): number[][] {
 
 export function AnalyticsDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("Resumen");
+  const [isDemo, setIsDemo] = useState(true);
+  const [kpis, setKpis] = useState(KPI_DATA);
+  const [posts, setPosts] = useState(POSTS_TABLE);
+  const [audienceAge, setAudienceAge] = useState(AUDIENCE_AGE);
+  const [audienceGender, setAudienceGender] = useState(AUDIENCE_GENDER);
+  const [audienceLocation, setAudienceLocation] = useState(AUDIENCE_LOCATION);
+
+  // Fetch real organic KPIs
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch KPIs
+        const kpiRes = await fetch("/api/analytics/organic?days=30");
+        if (kpiRes.ok) {
+          const kpiData = await kpiRes.json();
+          if (kpiData && !kpiData.error) {
+            setKpis([
+              { label: "Alcance", value: (kpiData.reach || 0).toLocaleString(), change: `${kpiData.reachTrend > 0 ? "+" : ""}${(kpiData.reachTrend || 0).toFixed(1)}%`, positive: (kpiData.reachTrend || 0) >= 0, icon: Eye, color: "#00d4ff", accent: "cyan" },
+              { label: "Engagement", value: `${(kpiData.engagement || 0).toFixed(1)}%`, change: `${kpiData.engagementTrend > 0 ? "+" : ""}${(kpiData.engagementTrend || 0).toFixed(1)}%`, positive: (kpiData.engagementTrend || 0) >= 0, icon: Heart, color: "#f472b6", accent: "pink" },
+              { label: "Seguidores", value: (kpiData.followers || 0).toLocaleString(), change: `${kpiData.followersTrend > 0 ? "+" : ""}${(kpiData.followersTrend || 0).toFixed(1)}%`, positive: (kpiData.followersTrend || 0) >= 0, icon: Users, color: "#06d6a0", accent: "emerald" },
+              { label: "Impresiones", value: (kpiData.impressions || 0).toLocaleString(), change: `${kpiData.impressionsTrend > 0 ? "+" : ""}${(kpiData.impressionsTrend || 0).toFixed(1)}%`, positive: (kpiData.impressionsTrend || 0) >= 0, icon: BarChart2, color: "#7b61ff", accent: "purple" },
+            ]);
+            setIsDemo(false);
+          }
+        }
+      } catch { /* fallback to demo */ }
+
+      try {
+        // Fetch posts
+        const postRes = await fetch("/api/analytics/posts?limit=25");
+        if (postRes.ok) {
+          const postData = await postRes.json();
+          if (postData.posts?.length) {
+            setPosts(postData.posts.map((p: any, i: number) => ({
+              id: p.id || i + 1,
+              text: p.text || "",
+              channel: p.channel || "Facebook",
+              date: p.date ? new Date(p.date).toLocaleDateString("es-MX", { day: "numeric", month: "short" }) : "",
+              reach: p.reach || 0,
+              likes: p.likes || 0,
+              comments: p.comments || 0,
+              shares: p.shares || 0,
+              engagement: p.engagement || 0,
+            })));
+          }
+        }
+      } catch { /* fallback to demo */ }
+
+      try {
+        // Fetch audience
+        const audRes = await fetch("/api/analytics/audience");
+        if (audRes.ok) {
+          const audData = await audRes.json();
+          if (audData.age?.length) setAudienceAge(audData.age);
+          if (audData.gender?.length) {
+            const colors = ["#f472b6", "#00d4ff", "#7b61ff"];
+            setAudienceGender(audData.gender.map((g: any, i: number) => ({ ...g, color: colors[i] || "#94a3b8" })));
+          }
+          if (audData.location?.length) setAudienceLocation(audData.location);
+        }
+      } catch { /* fallback to demo */ }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="space-y-4 page-enter">
       {/* Demo Banner */}
-      <DemoBanner />
+      {isDemo && <DemoBanner />}
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 glass-panel p-1 w-fit">
@@ -220,9 +284,9 @@ export function AnalyticsDashboard() {
 
       {/* Tab Content */}
       <div style={{ animation: "page-fade-in 0.3s ease-out forwards" }}>
-        {activeTab === "Resumen" && <TabResumen />}
-        {activeTab === "Posts" && <TabPosts />}
-        {activeTab === "Audiencia" && <TabAudiencia />}
+        {activeTab === "Resumen" && <TabResumen kpis={kpis} posts={posts} />}
+        {activeTab === "Posts" && <TabPosts posts={posts} />}
+        {activeTab === "Audiencia" && <TabAudiencia age={audienceAge} gender={audienceGender} location={audienceLocation} />}
         {activeTab === "Mejor Horario" && <TabMejorHorario />}
         {activeTab === "Crecimiento" && <TabCrecimiento />}
       </div>
@@ -255,12 +319,24 @@ function DemoBanner() {
 /* ══════════════════════════════════════════════════════════
    TAB: RESUMEN
    ══════════════════════════════════════════════════════════ */
-function TabResumen() {
+function TabResumen({ kpis, posts }: { kpis: typeof KPI_DATA; posts: typeof POSTS_TABLE }) {
+  const topPosts = posts.slice(0, 3).map((p, i) => ({
+    id: p.id,
+    text: p.text,
+    channel: p.channel,
+    reach: p.reach,
+    likes: p.likes,
+    comments: p.comments,
+    shares: p.shares,
+    engagement: `${p.engagement}%`,
+    date: p.date,
+  }));
+
   return (
     <div className="space-y-6">
       {/* KPI Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {KPI_DATA.map((kpi) => (
+        {kpis.map((kpi) => (
           <KpiCard key={kpi.label} {...kpi} />
         ))}
       </div>
@@ -368,7 +444,7 @@ function TabResumen() {
           Top Posts
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {TOP_POSTS.map((post, i) => (
+          {topPosts.map((post, i) => (
             <TopPostCard key={post.id} post={post} rank={i + 1} />
           ))}
         </div>
@@ -524,13 +600,13 @@ function MiniStat({
    ══════════════════════════════════════════════════════════ */
 type SortKey = "reach" | "likes" | "comments" | "shares" | "engagement" | "date";
 
-function TabPosts() {
+function TabPosts({ posts }: { posts: typeof POSTS_TABLE }) {
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [sortKey, setSortKey] = useState<SortKey>("reach");
   const [sortAsc, setSortAsc] = useState(false);
 
   const sorted = useMemo(() => {
-    const copy = [...POSTS_TABLE];
+    const copy = [...posts];
     copy.sort((a, b) => {
       const va = a[sortKey as keyof typeof a];
       const vb = b[sortKey as keyof typeof b];
@@ -539,7 +615,7 @@ function TabPosts() {
       return 0;
     });
     return copy;
-  }, [sortKey, sortAsc]);
+  }, [sortKey, sortAsc, posts]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) setSortAsc(!sortAsc);
@@ -755,7 +831,7 @@ function TabPosts() {
 /* ══════════════════════════════════════════════════════════
    TAB: AUDIENCIA
    ══════════════════════════════════════════════════════════ */
-function TabAudiencia() {
+function TabAudiencia({ age, gender, location }: { age: typeof AUDIENCE_AGE; gender: typeof AUDIENCE_GENDER; location: typeof AUDIENCE_LOCATION }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Edad */}
@@ -765,7 +841,7 @@ function TabAudiencia() {
         </div>
         <div style={{ padding: 24 }}>
           <div className="space-y-3">
-            {AUDIENCE_AGE.map((a) => (
+            {age.map((a) => (
               <div key={a.range} className="flex items-center gap-3">
                 <span
                   style={{
@@ -804,9 +880,9 @@ function TabAudiencia() {
           <span className="section-title">Género</span>
         </div>
         <div style={{ padding: 24, display: "flex", alignItems: "center", justifyContent: "center", gap: 32 }}>
-          <DonutChart data={AUDIENCE_GENDER} size={140} />
+          <DonutChart data={gender} size={140} />
           <div className="space-y-3">
-            {AUDIENCE_GENDER.map((g) => (
+            {gender.map((g) => (
               <div key={g.label} className="flex items-center gap-3">
                 <div style={{ width: 10, height: 10, borderRadius: "50%", background: g.color, boxShadow: `0 0 6px ${g.color}50` }} />
                 <span style={{ fontSize: 12, color: "#e2e8f0" }}>{g.label}</span>
@@ -823,7 +899,7 @@ function TabAudiencia() {
           <span className="section-title">Ubicación</span>
         </div>
         <div style={{ padding: 0 }}>
-          {AUDIENCE_LOCATION.map((loc, i) => (
+          {location.map((loc, i) => (
             <div
               key={loc.city}
               style={{
@@ -831,7 +907,7 @@ function TabAudiencia() {
                 alignItems: "center",
                 justifyContent: "space-between",
                 padding: "12px 24px",
-                borderBottom: i < AUDIENCE_LOCATION.length - 1 ? "1px solid rgba(0,212,255,0.04)" : "none",
+                borderBottom: i < location.length - 1 ? "1px solid rgba(0,212,255,0.04)" : "none",
               }}
             >
               <div className="flex items-center gap-3">

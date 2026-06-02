@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Search,
   TrendingUp,
@@ -57,6 +57,16 @@ const platformColors: Record<string, string> = {
   twitter: "#1DA1F2",
 };
 
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Ahora";
+  if (mins < 60) return `Hace ${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `Hace ${hrs}h`;
+  return `Hace ${Math.floor(hrs / 24)}d`;
+}
+
 /* ═══════════════════════════════════════════════════════
    LISTENING DASHBOARD
    ═══════════════════════════════════════════════════════ */
@@ -65,6 +75,30 @@ export function ListeningDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [trackedKeywords, setTrackedKeywords] = useState(DEMO_KEYWORDS);
   const [newKeyword, setNewKeyword] = useState("");
+  const [mentions, setMentions] = useState(DEMO_MENTIONS);
+  const [isDemo, setIsDemo] = useState(true);
+
+  // Fetch real mentions from API
+  useEffect(() => {
+    fetch("/api/listening/mentions")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.mentions?.length) {
+          const mapped = data.mentions.map((m: any) => ({
+            id: m.id,
+            platform: m.platform,
+            author: m.author,
+            content: m.content,
+            sentiment: m.sentiment || "neutral",
+            time: relativeTime(m.publishedAt),
+            avatar: null,
+          }));
+          setMentions(mapped);
+          setIsDemo(false);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const tabs = [
     { key: "search", label: "Quick Search", icon: Search },
@@ -74,20 +108,21 @@ export function ListeningDashboard() {
   ] as const;
 
   const filteredMentions = searchQuery
-    ? DEMO_MENTIONS.filter((m) => m.content.toLowerCase().includes(searchQuery.toLowerCase()))
-    : DEMO_MENTIONS;
+    ? mentions.filter((m) => m.content.toLowerCase().includes(searchQuery.toLowerCase()))
+    : mentions;
 
   // Sentiment counts
   const sentimentCounts = {
-    positive: DEMO_MENTIONS.filter((m) => m.sentiment === "positive").length,
-    negative: DEMO_MENTIONS.filter((m) => m.sentiment === "negative").length,
-    neutral: DEMO_MENTIONS.filter((m) => m.sentiment === "neutral").length,
+    positive: mentions.filter((m) => m.sentiment === "positive").length,
+    negative: mentions.filter((m) => m.sentiment === "negative").length,
+    neutral: mentions.filter((m) => m.sentiment === "neutral").length,
   };
-  const totalMentions = DEMO_MENTIONS.length;
+  const totalMentions = mentions.length;
 
   return (
     <div className="space-y-4" style={{ paddingBottom: 40 }}>
       {/* Demo banner */}
+      {isDemo && (
       <div style={{
         display: "flex", alignItems: "center", gap: 8, padding: "8px 14px",
         borderRadius: 8, background: "rgba(251,146,60,0.08)", border: "1px solid rgba(251,146,60,0.2)",
@@ -97,6 +132,7 @@ export function ListeningDashboard() {
           Modo Demo — Activa permisos avanzados de Meta para monitoreo real
         </span>
       </div>
+      )}
 
       {/* Tabs */}
       <div className="flex space-x-1 glass-panel p-1 w-fit">
@@ -236,7 +272,7 @@ export function ListeningDashboard() {
       {/* ── Tab: Mentions ──────────────────────────────── */}
       {activeTab === "mentions" && (
         <div className="space-y-3">
-          {DEMO_MENTIONS.map((m) => (
+          {mentions.map((m) => (
             <MentionCard key={m.id} mention={m} />
           ))}
         </div>
@@ -284,7 +320,7 @@ export function ListeningDashboard() {
           <div className="glass-panel p-4">
             <h3 style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 12 }}>Menciones por Sentimiento</h3>
             <div className="space-y-2">
-              {DEMO_MENTIONS.map((m) => (
+              {mentions.map((m) => (
                 <MentionCard key={m.id} mention={m} />
               ))}
             </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Home,
@@ -235,104 +235,151 @@ export function StreamsDashboard() {
         display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8,
         minHeight: "calc(100vh - 280px)",
       }}>
-        {activeBoard.columns.map((col) => {
-          const streamType = STREAM_TYPES.find((t) => t.type === col.type);
-          const Icon = streamType?.icon || Home;
-          const posts = generatePosts(col.type, col.platform);
-          const platColor = platformColors[col.platform] || "#64748b";
-
-          return (
-            <div
-              key={col.id}
-              style={{
-                minWidth: 320, maxWidth: 360, flex: "0 0 auto",
-                display: "flex", flexDirection: "column",
-                borderRadius: 12, background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
-              }}
-            >
-              {/* Column header */}
-              <div style={{
-                display: "flex", alignItems: "center", gap: 8, padding: "12px 14px",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-                background: `${platColor}08`,
-              }}>
-                <Icon style={{ width: 16, height: 16, color: platColor }} />
-                <span style={{ fontSize: 13, fontWeight: 600, color: "white", flex: 1 }}>
-                  {streamType?.label || col.type}
-                  {col.query && <span style={{ fontWeight: 400, color: "#94a3b8" }}> · {col.query}</span>}
-                </span>
-                <span style={{
-                  fontSize: 10, padding: "2px 6px", borderRadius: 4,
-                  background: `${platColor}20`, color: platColor,
-                }}>
-                  {col.platform}
-                </span>
-                <button
-                  onClick={() => removeColumn(col.id)}
-                  style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", padding: 2 }}
-                >
-                  <X style={{ width: 12, height: 12 }} />
-                </button>
-              </div>
-
-              {/* Posts */}
-              <div style={{ flex: 1, overflowY: "auto", padding: 8 }} className="space-y-2">
-                {posts.map((post) => (
-                  <div
-                    key={post.id}
-                    style={{
-                      padding: 12, borderRadius: 10,
-                      background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)",
-                      transition: "background 0.2s", cursor: "pointer",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
-                  >
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                      <div style={{
-                        width: 28, height: 28, borderRadius: "50%", background: `${platColor}15`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 11, fontWeight: 600, color: platColor,
-                      }}>
-                        {post.author.charAt(0)}
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: "white" }}>{post.author}</div>
-                        <div style={{ fontSize: 10, color: "#64748b" }}>{post.handle}</div>
-                      </div>
-                      <span style={{ fontSize: 10, color: "#64748b" }}>{post.time}</span>
-                    </div>
-                    <p style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5, marginBottom: 8 }}>
-                      {post.content}
-                    </p>
-                    <div style={{ display: "flex", gap: 16 }}>
-                      <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#64748b", fontSize: 11, cursor: "pointer" }}>
-                        <Heart style={{ width: 12, height: 12 }} /> {post.likes}
-                      </button>
-                      <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#64748b", fontSize: 11, cursor: "pointer" }}>
-                        <MessageCircle style={{ width: 12, height: 12 }} /> {post.comments}
-                      </button>
-                      <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#64748b", fontSize: 11, cursor: "pointer" }}>
-                        <Share2 style={{ width: 12, height: 12 }} /> {post.shares}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Refresh indicator */}
-              <div style={{
-                display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-                padding: 8, borderTop: "1px solid rgba(255,255,255,0.04)",
-                fontSize: 10, color: "#475569",
-              }}>
-                <RefreshCw style={{ width: 10, height: 10 }} /> Actualización automática
-              </div>
-            </div>
-          );
-        })}
+        {activeBoard.columns.map((col) => (
+          <StreamColumnView key={col.id} col={col} onRemove={removeColumn} />
+        ))}
       </div>
     </div>
   );
+}
+
+/* ── Stream Column with real data fetching ──────────────── */
+function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: string) => void }) {
+  const streamType = STREAM_TYPES.find((t) => t.type === col.type);
+  const Icon = streamType?.icon || Home;
+  const platColor = platformColors[col.platform] || "#64748b";
+  const [posts, setPosts] = useState<StreamPost[]>(generatePosts(col.type, col.platform));
+  const [isReal, setIsReal] = useState(false);
+
+  useEffect(() => {
+    // Only fetch for feed types (home_feed, mentions, published)
+    if (["home_feed", "mentions", "published"].includes(col.type)) {
+      fetch(`/api/streams/feed?type=${col.type}&platform=${col.platform}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.posts?.length) {
+            const mapped: StreamPost[] = data.posts.map((p: any) => ({
+              id: p.id,
+              author: p.author || "Usuario",
+              handle: p.handle || "",
+              content: p.content || "",
+              time: relativeTime(p.time),
+              likes: p.likes || 0,
+              comments: p.comments || 0,
+              shares: p.shares || 0,
+              platform: p.platform || col.platform,
+              image: p.image,
+            }));
+            setPosts(mapped);
+            setIsReal(true);
+          }
+        })
+        .catch(() => {});
+    }
+  }, [col.type, col.platform]);
+
+  return (
+    <div
+      style={{
+        minWidth: 320, maxWidth: 360, flex: "0 0 auto",
+        display: "flex", flexDirection: "column",
+        borderRadius: 12, background: "rgba(255,255,255,0.02)",
+        border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+      }}
+    >
+      {/* Column header */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 8, padding: "12px 14px",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: `${platColor}08`,
+      }}>
+        <Icon style={{ width: 16, height: 16, color: platColor }} />
+        <span style={{ fontSize: 13, fontWeight: 600, color: "white", flex: 1 }}>
+          {streamType?.label || col.type}
+          {col.query && <span style={{ fontWeight: 400, color: "#94a3b8" }}> · {col.query}</span>}
+        </span>
+        <span style={{
+          fontSize: 10, padding: "2px 6px", borderRadius: 4,
+          background: `${platColor}20`, color: platColor,
+        }}>
+          {col.platform}
+        </span>
+        {!isReal && (
+          <span style={{ fontSize: 8, color: "#64748b", fontWeight: 600 }}>DEMO</span>
+        )}
+        <button
+          onClick={() => onRemove(col.id)}
+          style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", padding: 2 }}
+        >
+          <X style={{ width: 12, height: 12 }} />
+        </button>
+      </div>
+
+      {/* Posts */}
+      <div style={{ flex: 1, overflowY: "auto", padding: 8 }} className="space-y-2">
+        {posts.map((post) => (
+          <div
+            key={post.id}
+            style={{
+              padding: 12, borderRadius: 10,
+              background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)",
+              transition: "background 0.2s", cursor: "pointer",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div style={{
+                width: 28, height: 28, borderRadius: "50%", background: `${platColor}15`,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: 11, fontWeight: 600, color: platColor,
+              }}>
+                {post.author.charAt(0)}
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: "white" }}>{post.author}</div>
+                <div style={{ fontSize: 10, color: "#64748b" }}>{post.handle}</div>
+              </div>
+              <span style={{ fontSize: 10, color: "#64748b" }}>{post.time}</span>
+            </div>
+            <p style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5, marginBottom: 8 }}>
+              {post.content}
+            </p>
+            <div style={{ display: "flex", gap: 16 }}>
+              <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#64748b", fontSize: 11, cursor: "pointer" }}>
+                <Heart style={{ width: 12, height: 12 }} /> {post.likes}
+              </button>
+              <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#64748b", fontSize: 11, cursor: "pointer" }}>
+                <MessageCircle style={{ width: 12, height: 12 }} /> {post.comments}
+              </button>
+              <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#64748b", fontSize: 11, cursor: "pointer" }}>
+                <Share2 style={{ width: 12, height: 12 }} /> {post.shares}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Refresh indicator */}
+      <div style={{
+        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+        padding: 8, borderTop: "1px solid rgba(255,255,255,0.04)",
+        fontSize: 10, color: "#475569",
+      }}>
+        <RefreshCw style={{ width: 10, height: 10 }} />
+        {isReal ? "Datos en vivo" : "Datos de demostración"}
+      </div>
+    </div>
+  );
+}
+
+/* ── Helper ───────────────────────────────────────────── */
+function relativeTime(dateStr: string): string {
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 1) return "Ahora";
+  if (mins < 60) return `Hace ${mins}m`;
+  const hrs = Math.floor(mins / 60);
+  if (hrs < 24) return `Hace ${hrs}h`;
+  return `Hace ${Math.floor(hrs / 24)}d`;
 }

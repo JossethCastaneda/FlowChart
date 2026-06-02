@@ -168,6 +168,71 @@ export function InboxLayout() {
   const [showProfile, setShowProfile] = useState(true);
   const [filterTab, setFilterTab] = useState<"todos" | "unread" | "closed">("todos");
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDemo, setIsDemo] = useState(true);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch real conversations from API
+  useEffect(() => {
+    const fetchReal = async () => {
+      try {
+        const res = await fetch("/api/inbox/conversations");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.conversations && data.conversations.length > 0) {
+            const mapped: Conversation[] = data.conversations.map((c: any) => ({
+              id: c.id,
+              contactName: c.contactName || "Usuario",
+              platform: c.platform === "facebook_messenger" ? "fb_messenger" as Platform :
+                        c.platform === "instagram_dm" ? "ig_dm" as Platform : "ig_comment" as Platform,
+              lastMessage: c.lastMessage || "",
+              lastMessageTime: new Date(c.lastMessageAt || Date.now()),
+              unread: c.unread || false,
+              closed: false,
+              assignedTo: null,
+              tags: [],
+              messages: [], // Messages are loaded on select
+              _pageId: c.pageId, // Internal: for API calls
+            }));
+            setConversations(mapped);
+            setSelectedId(mapped[0]?.id || "");
+            setIsDemo(false);
+          }
+        }
+      } catch { /* fallback to demo */ }
+      setLoading(false);
+    };
+    fetchReal();
+  }, []);
+
+  // When selecting a conversation, fetch its messages from the API
+  const handleSelectConversation = (id: string) => {
+    setSelectedId(id);
+    setConversations(prev =>
+      prev.map(c => (c.id === id ? { ...c, unread: false } : c))
+    );
+
+    // Load real messages if not demo
+    if (!isDemo) {
+      const conv = conversations.find(c => c.id === id);
+      const pageId = (conv as any)?._pageId;
+      fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}`)
+        .then(r => r.ok ? r.json() : null)
+        .then(data => {
+          if (data?.messages?.length) {
+            const mapped: Message[] = data.messages.map((m: any) => ({
+              id: m.id,
+              text: m.text,
+              incoming: m.incoming,
+              timestamp: new Date(m.timestamp),
+            }));
+            setConversations(prev =>
+              prev.map(c => c.id === id ? { ...c, messages: mapped } : c)
+            );
+          }
+        })
+        .catch(() => {});
+    }
+  };
 
   const selected = conversations.find(c => c.id === selectedId) || conversations[0];
 
@@ -235,17 +300,11 @@ export function InboxLayout() {
     );
   };
 
-  const handleSelectConversation = (id: string) => {
-    setSelectedId(id);
-    // Mark as read
-    setConversations(prev =>
-      prev.map(c => (c.id === id ? { ...c, unread: false } : c))
-    );
-  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
       {/* Demo Banner */}
+      {isDemo && (
       <div style={{
         padding: "8px 16px",
         background: "rgba(168,85,247,0.08)",
@@ -260,6 +319,7 @@ export function InboxLayout() {
           Modo Demo — Conecta tu cuenta de Meta para ver mensajes reales
         </span>
       </div>
+      )}
 
       {/* 3-Panel Layout */}
       <div style={{ display: "flex", flex: 1, minHeight: 0, gap: 1 }}>
