@@ -109,23 +109,16 @@ export async function GET(req: NextRequest) {
   };
 
   // ── Parallel fetches ────────────────────────────────────────────────────
-  const [tsR, demoR, geoR, campR, adsetR, adR] = await Promise.allSettled([
+  // Demographics (age+gender) and Geo (region) are NO LONGER fetched here.
+  // They are loaded on-demand by the dedicated /api/meta/breakdowns route
+  // when the user opens the Audiencia tab, reducing initial sync time.
+  const [tsR, campR, adsetR, adR] = await Promise.allSettled([
     // 1. Time series — account level, daily, NO breakdown
     safeGet(
       buildUrl({ fields: FIELDS_FULL, level: "account", time_increment: "1" }),
       "timeSeries"
     ),
-    // 2. Demographics — age + gender breakdown
-    safeGet(
-      buildUrl({ fields: FIELDS_DEMO, level: "account", breakdowns: "age,gender" }),
-      "demographics"
-    ),
-    // 3. Geo — region breakdown
-    safeGet(
-      buildUrl({ fields: FIELDS_DEMO, level: "account", breakdowns: "region" }),
-      "geo"
-    ),
-    // 4. Campaigns — NO breakdown
+    // 2. Campaigns — NO breakdown
     safeGet(
       buildUrl({
         fields: FIELDS_FULL + ",campaign_name,campaign_id,objective",
@@ -133,7 +126,7 @@ export async function GET(req: NextRequest) {
       }),
       "campaigns"
     ),
-    // 5. Adsets — NO breakdown
+    // 3. Adsets — NO breakdown
     safeGet(
       buildUrl({
         fields: FIELDS_FULL + ",adset_name,adset_id,campaign_name,campaign_id",
@@ -141,7 +134,7 @@ export async function GET(req: NextRequest) {
       }),
       "adsets"
     ),
-    // 6. Ads — NO breakdown
+    // 4. Ads — NO breakdown
     safeGet(
       buildUrl({
         fields:
@@ -158,8 +151,6 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     timeSeries: unwrap(tsR),
-    demographics: unwrap(demoR),
-    geo: unwrap(geoR),
     campaigns: unwrap(campR),
     adsets: unwrap(adsetR),
     ads: unwrap(adR),

@@ -33,6 +33,7 @@ const PLATFORM_ONLY_BREAKDOWNS = new Set([
   "placement",   // publisher_platform + platform_position
   "device",      // device_platform
   "conversion_device", // impression_device
+  "time_of_day", // hourly_stats — incompatible with actions/reach
 ]);
 
 // ── Breakdown → Meta API parameter mapping ───────────────────────────────

@@ -256,48 +256,64 @@ export default function ProjectDashboardPage() {
         const valid = results.filter(Boolean).filter((r: any) => !r.error);
         if (valid.length === 0) {
           console.warn("No valid insights data from any account. Raw results:", results);
-          setInsights({ _error: "No data", timeSeries: [], demographics: [], geo: [], campaigns: [], adsets: [], ads: [] });
+          setInsights({ _error: "No data", timeSeries: [], campaigns: [], adsets: [], ads: [] });
         }
         else if (valid.length === 1) { setInsights(valid[0]); }
         else {
-          const m: any = { timeSeries: [], demographics: [], geo: [], campaigns: [], adsets: [], ads: [] };
+          const m: any = { timeSeries: [], campaigns: [], adsets: [], ads: [] };
           valid.forEach((r: any) => { Object.keys(m).forEach(k => { if (r[k]) m[k].push(...r[k]); }); });
           setInsights(m);
         }
         setIsLoading(false);
       })
-      .catch((err) => { console.error("Insights Promise.all failed:", err); setIsLoading(false); setInsights({ _error: "Fetch failed", timeSeries: [], demographics: [], geo: [], campaigns: [], adsets: [], ads: [] }); });
+      .catch((err) => { console.error("Insights Promise.all failed:", err); setIsLoading(false); setInsights({ _error: "Fetch failed", timeSeries: [], campaigns: [], adsets: [], ads: [] }); });
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
 
   // Track which breakdowns have been attempted (prevents re-fetch loops)
   const breakdownFetchedRef = useRef<Record<string, boolean>>({});
 
-  // Reset breakdown cache when filters change (already handled above with setBreakdownData({}))
+  // Reset breakdown cache when filters change
   useEffect(() => {
     breakdownFetchedRef.current = {};
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
 
   // Load breakdowns for audience/creative tabs — uses same date range
+  // KEY FIX: Aggregate across ALL ad accounts when "all" selected (not just first)
   const loadBreakdown = useCallback(async (key: string) => {
-    // Skip if already fetched or currently fetching for this key
+    // Skip if already fetched for this key
     if (breakdownFetchedRef.current[key] || !project) return;
-    breakdownFetchedRef.current[key] = true; // Mark as attempted immediately
+    breakdownFetchedRef.current[key] = true;
 
     const ch = project.channels.find(c => c.platformId === activePlatform);
     if (!ch?.adAccounts?.length) return;
-    const accId = selectedAccountId === "all" ? ch.adAccounts[0] : selectedAccountId;
-    const id = accId.startsWith("act_") ? accId : `act_${accId}`;
-    let dp = datePreset || "this_month";
+
+    // Determine which accounts to query
+    const accs = selectedAccountId === "all" ? ch.adAccounts : [selectedAccountId];
+    const dp = datePreset || "this_month";
+
     try {
-      const url = dateStart && dateEnd
-        ? `/api/meta/breakdowns?id=${id}&breakdown=${key}&dateStart=${dateStart}&dateEnd=${dateEnd}`
-        : `/api/meta/breakdowns?id=${id}&breakdown=${key}&preset=${dp}`;
-      const r = await fetch(url);
-      const d = await r.json();
-      if (d.error) { console.error(`Breakdown ${key} error:`, d.error); setBreakdownData(prev => ({ ...prev, [key]: [] })); }
-      else if (d.data) setBreakdownData(prev => ({ ...prev, [key]: d.data }));
-      else setBreakdownData(prev => ({ ...prev, [key]: [] }));
-    } catch (err) { console.error(`Breakdown ${key} fetch failed:`, err); setBreakdownData(prev => ({ ...prev, [key]: [] })); }
+      // Fetch from ALL accounts in parallel
+      const results = await Promise.all(accs.map(async (accRaw) => {
+        const id = accRaw.startsWith("act_") ? accRaw : `act_${accRaw}`;
+        const url = dateStart && dateEnd
+          ? `/api/meta/breakdowns?id=${id}&breakdown=${key}&dateStart=${dateStart}&dateEnd=${dateEnd}`
+          : `/api/meta/breakdowns?id=${id}&breakdown=${key}&preset=${dp}`;
+        try {
+          const r = await fetch(url);
+          const d = await r.json();
+          if (d.error) { console.error(`Breakdown ${key} error for ${id}:`, d.error); return []; }
+          return d.data || [];
+        } catch (err) { console.error(`Breakdown ${key} fetch failed for ${id}:`, err); return []; }
+      }));
+
+      // Merge all results into one array
+      const merged: any[] = [];
+      results.forEach(arr => merged.push(...arr));
+      setBreakdownData(prev => ({ ...prev, [key]: merged }));
+    } catch (err) {
+      console.error(`Breakdown ${key} fetch all failed:`, err);
+      setBreakdownData(prev => ({ ...prev, [key]: [] }));
+    }
   }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd]);
 
   // Ad Creatives state
@@ -328,8 +344,20 @@ export default function ProjectDashboardPage() {
     setCreativesLoading(false);
   }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd]);
 
+  // KEY FIX: Track a "filter version" so breakdowns re-load when filters change
+  // The loadBreakdown ref is now reset by the effect above, so the effect below
+  // just needs to re-trigger when the tab changes OR when loadBreakdown identity changes
+  // (which it does because it depends on all filter values via useCallback deps)
   useEffect(() => {
-    if (activeTab === "audiencia") { loadBreakdown("age_gender"); loadBreakdown("region"); loadBreakdown("country"); loadBreakdown("platform"); loadBreakdown("device"); loadBreakdown("placement"); loadBreakdown("time_of_day"); }
+    if (activeTab === "audiencia") {
+      loadBreakdown("age_gender");
+      loadBreakdown("region");
+      loadBreakdown("country");
+      loadBreakdown("platform");
+      loadBreakdown("device");
+      loadBreakdown("placement");
+      loadBreakdown("time_of_day");
+    }
     if (activeTab === "creativos") { loadAdCreatives(); }
   }, [activeTab, loadBreakdown, loadAdCreatives]);
 
@@ -675,16 +703,30 @@ export default function ProjectDashboardPage() {
       {/* ═══ TAB: AUDIENCIA ═══ */}
       {activeTab === "audiencia" && (
         <div className="space-y-3">
+          {/* Loading state when no breakdowns loaded yet */}
+          {Object.keys(breakdownData).length === 0 && <LoadingOverlay />}
+
+          {/* Section header */}
+          <div style={{ ...panelStyle, padding: "14px 18px", background: "linear-gradient(135deg, rgba(0,129,251,0.06), rgba(0,212,255,0.04))" }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 4 }}>
+              <Users style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#00d4ff" }} />
+              ¿A quién estás llegando?
+            </h3>
+            <p style={{ fontSize: 11, color: "rgba(148,163,184,0.6)", lineHeight: 1.5 }}>
+              Demografía, ubicación geográfica, plataformas y horarios de tu audiencia. Datos basados en la inversión del periodo seleccionado.
+            </p>
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
             {/* ── Edad y Género ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Users style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Edad y Género</h3>
-              <p style={subStyle}>Distribución del gasto por demografía</p>
+              <p style={subStyle}>¿Quiénes ven tus anuncios? Distribución por rango de edad y género</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   // 3-state: undefined = loading, [] = empty, [...] = data
-                  const raw = breakdownData["age_gender"] ?? insights?.demographics;
+                  const raw = breakdownData["age_gender"];
                   if (raw === undefined) return <NoData msg="Cargando..." />;
                   const buckets: Record<string, { age: string; Hombres: number; Mujeres: number; Otro: number }> = {};
                   for (const r of raw) {
@@ -715,10 +757,10 @@ export default function ProjectDashboardPage() {
             {/* ── Top Regiones ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Top Regiones</h3>
-              <p style={subStyle}>Regiones con mayor inversión</p>
+              <p style={subStyle}>¿De dónde vienen? Estados y ciudades con mayor alcance</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
-                  const raw = breakdownData["region"] ?? insights?.geo;
+                  const raw = breakdownData["region"];
                   if (raw === undefined) return <NoData msg="Cargando..." />;
                   const d = raw
                     .map((r: any) => ({ region: r.region || "?", spend: Number(r.spend) || 0 }))
@@ -743,7 +785,7 @@ export default function ProjectDashboardPage() {
             {/* ── País ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />País</h3>
-              <p style={subStyle}>Distribución del gasto por país</p>
+              <p style={subStyle}>¿Desde qué país te ven? Útil para campañas multi-país</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["country"];
@@ -771,7 +813,7 @@ export default function ProjectDashboardPage() {
             {/* ── Plataforma ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Plataforma</h3>
-              <p style={subStyle}>Facebook vs Instagram vs Audience Network</p>
+              <p style={subStyle}>¿Dónde ven tus anuncios? Facebook, Instagram o Audience Network</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["platform"];
@@ -808,7 +850,7 @@ export default function ProjectDashboardPage() {
             {/* ── Dispositivo ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Monitor style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Dispositivo</h3>
-              <p style={subStyle}>Mobile vs Desktop</p>
+              <p style={subStyle}>¿Desde qué dispositivo? Mobile suele dominar en campañas de Social</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["device"];
@@ -857,7 +899,7 @@ export default function ProjectDashboardPage() {
             {/* ── Placement ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Placement</h3>
-              <p style={subStyle}>Feed, Stories, Reels, Explore y más</p>
+              <p style={subStyle}>¿Dónde rinde mejor? Feed, Stories, Reels, Explore y más</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["placement"];
@@ -890,7 +932,7 @@ export default function ProjectDashboardPage() {
             {/* ── Hora del Día ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Clock style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Rendimiento por Hora</h3>
-              <p style={subStyle}>Distribución de gasto e impresiones por hora del día</p>
+              <p style={subStyle}>¿A qué hora publicar? Identifica los mejores horarios para tu audiencia</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["time_of_day"];
