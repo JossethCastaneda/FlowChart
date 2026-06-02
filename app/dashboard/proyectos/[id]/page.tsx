@@ -40,8 +40,41 @@ const goalLabel = (goal?: string) => {
   if (goal.includes("Registro")) return "Registros";
   return "Resultados";
 };
-const RESULT_TYPES = ['lead','purchase','complete_registration','offsite_conversion','onsite_conversion','messaging_conversation_started_7d','omni_purchase','app_install','landing_page_view','link_click'];
-const findResultAction = (actions: any[] | undefined) => { if (!actions?.length) return null; for (const t of RESULT_TYPES) { const f = actions.find((a: any) => a.action_type.includes(t)); if (f) return f; } return actions[0]; };
+// Goal → Meta action_type priority mapping
+const GOAL_ACTION_MAP: Record<string, string[]> = {
+  "Conversaciones": ["onsite_conversion.messaging_conversation_started_7d", "messaging_conversation_started_7d", "onsite_conversion.messaging_first_reply"],
+  "Leads": ["lead", "leadgen_grouped", "onsite_conversion.lead_grouped"],
+  "Ventas (Purchase)": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase"],
+  "Registros": ["complete_registration", "omni_complete_registration", "offsite_conversion.fb_pixel_complete_registration"],
+  "Clics al sitio": ["link_click", "landing_page_view"],
+  "Descargas app": ["app_install", "omni_app_install"],
+  "Video views": ["video_view"],
+  "Alcance (Reach)": ["reach"],
+  "Seguidores": ["page_engagement", "like"],
+  "Tráfico a tienda": ["store_visit"],
+};
+const RESULT_TYPES_FALLBACK = ['onsite_conversion.messaging_conversation_started_7d','lead','purchase','complete_registration','omni_purchase','offsite_conversion','onsite_conversion','app_install','landing_page_view','link_click'];
+const findResultAction = (actions: any[] | undefined, goal?: string) => {
+  if (!actions?.length) return null;
+  // 1. If we know the goal, try its specific action types FIRST (exact match)
+  if (goal && GOAL_ACTION_MAP[goal]) {
+    for (const t of GOAL_ACTION_MAP[goal]) {
+      const exact = actions.find((a: any) => a.action_type === t);
+      if (exact) return exact;
+    }
+  }
+  // 2. Fallback: try exact match on common types (more specific first)
+  for (const t of RESULT_TYPES_FALLBACK) {
+    const exact = actions.find((a: any) => a.action_type === t);
+    if (exact) return exact;
+  }
+  // 3. Last resort: substring match on fallback types
+  for (const t of RESULT_TYPES_FALLBACK) {
+    const partial = actions.find((a: any) => a.action_type.includes(t));
+    if (partial) return partial;
+  }
+  return actions[0];
+};
 const parseBudget = (s: string) => parseFloat(s.replace(/[^0-9.]/g, "")) || 0;
 const parseGoal = (s: string) => { const m = s.match(/(\d[\d,]*)/); return m ? parseInt(m[1].replace(/,/g, ""), 10) : 0; };
 const fmtMXN = (n: number) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
@@ -325,8 +358,8 @@ export default function ProjectDashboardPage() {
   (insights?.timeSeries || []).forEach((d: any) => {
     totalSpend += parseFloat(d.spend || "0"); totalImpressions += parseInt(d.impressions || "0", 10); totalClicks += parseInt(d.clicks || "0", 10);
     totalReach += parseInt(d.reach || "0", 10);
-    const ra = findResultAction(d.actions); if (ra) totalResults += parseInt(ra.value, 10);
-    const va = findResultAction(d.action_values); if (va) totalActionValue += parseFloat(va.value);
+    const ra = findResultAction(d.actions, ch?.goal); if (ra) totalResults += parseInt(ra.value, 10);
+    const va = findResultAction(d.action_values, ch?.goal); if (va) totalActionValue += parseFloat(va.value);
   });
   const cpr = totalResults > 0 ? totalSpend / totalResults : 0;
   const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
@@ -347,7 +380,7 @@ export default function ProjectDashboardPage() {
 
   // Chart data
   const timeSeriesData = (insights?.timeSeries || []).map((d: any) => {
-    const s = parseFloat(d.spend || "0"); const ra = findResultAction(d.actions); const r = ra ? parseInt(ra.value, 10) : 0;
+    const s = parseFloat(d.spend || "0"); const ra = findResultAction(d.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0;
     const imp = parseInt(d.impressions || "0", 10); const cl = parseInt(d.clicks || "0", 10);
     const parts = d.date_start?.split('-') || []; const dateLabel = parts.length >= 3 ? `${parts[2]}/${parts[1]}` : d.date_start || "";
     return { date: dateLabel, fullDate: d.date_start || "", spend: +s.toFixed(2), results: r, cpr: r > 0 ? +(s / r).toFixed(2) : 0, ctr: imp > 0 ? +((cl / imp) * 100).toFixed(2) : 0, cpc: cl > 0 ? +(s / cl).toFixed(2) : 0, impressions: imp, clicks: cl };
@@ -693,7 +726,7 @@ export default function ProjectDashboardPage() {
             {adCreatives.length > 0 ? (
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16, marginTop: 12 }}>
                 {adCreatives.filter(a => a.spend > 0).slice(0, 20).map((ad: any, i: number) => {
-                  const ra = findResultAction(ad.actions); const results = ra ? parseInt(ra.value, 10) : 0;
+                  const ra = findResultAction(ad.actions, ch?.goal); const results = ra ? parseInt(ra.value, 10) : 0;
                   const cprVal = results > 0 ? ad.spend / results : 0;
                   return (
                     <div key={ad.adId || i} style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 8, overflow: "hidden", transition: "border-color 0.2s" }}
@@ -742,7 +775,7 @@ export default function ProjectDashboardPage() {
               adCreatives.forEach((ad: any) => {
                 const text = (ad[cfg.key] || "").trim();
                 if (!text) return;
-                const ra = findResultAction(ad.actions); const results = ra ? parseInt(ra.value, 10) : 0;
+                const ra = findResultAction(ad.actions, ch?.goal); const results = ra ? parseInt(ra.value, 10) : 0;
                 if (!grouped[text]) grouped[text] = { text, spend: 0, results: 0, clicks: 0, count: 0 };
                 grouped[text].spend += ad.spend; grouped[text].results += results; grouped[text].clicks += ad.clicks; grouped[text].count++;
               });
@@ -775,11 +808,11 @@ export default function ProjectDashboardPage() {
             <p style={subStyle}>Campaña y conjunto con mejor rendimiento</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(() => {
-                const top = (insights?.campaigns || []).map((c: any) => { const s = parseFloat(c.spend || "0"); const ra = findResultAction(c.actions); const r = ra ? parseInt(ra.value, 10) : 0; return { name: c.campaign_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
+                const top = (insights?.campaigns || []).map((c: any) => { const s = parseFloat(c.spend || "0"); const ra = findResultAction(c.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: c.campaign_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
                 return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Campaña Ganadora</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.5)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.5)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.3)", fontSize: 12 }}>Sin datos</div>;
               })()}
               {(() => {
-                const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
+                const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
                 return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Adset Ganador</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.5)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.5)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.3)", fontSize: 12 }}>Sin datos</div>;
               })()}
             </div>
