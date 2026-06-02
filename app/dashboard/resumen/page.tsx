@@ -7,6 +7,7 @@ import {
   DollarSign, TrendingUp, CheckCircle, AlertTriangle, Bell, BellOff
 } from "lucide-react";
 import Link from "next/link";
+import { useInsightsStore, countResultsFromTimeSeries } from "@/stores/insightsStore";
 
 interface ResumenData {
   workspace: { name: string; slug: string; plan: string; createdAt: string } | null;
@@ -25,6 +26,8 @@ const pct = (n: number) => `${n.toFixed(1)}%`;
 export default function ResumenPage() {
   const [data, setData] = useState<ResumenData | null>(null);
   const [loading, setLoading] = useState(true);
+  // Use insights cache store (preloaded on login)
+  const insightsStore = useInsightsStore();
   const [projectInsights, setProjectInsights] = useState<Record<string, any>>({});
   const [insightsLoading, setInsightsLoading] = useState(false);
 
@@ -36,7 +39,7 @@ export default function ResumenPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Fetch Meta insights for each active project with meta channel
+  // Fetch Meta insights — use cache first, then fill any gaps
   useEffect(() => {
     if (!data?.projectsList?.length) return;
     const activeProjects = data.projectsList.filter((p: any) => p.status === "Activo");
@@ -44,7 +47,7 @@ export default function ResumenPage() {
 
     setInsightsLoading(true);
     const fetches = activeProjects.map(async (p: any) => {
-      // Find meta channel: check config.platformId, channel name, or any channel with adAccounts
+      // Find meta channel
       const metaCh = p.channels?.find((c: any) => {
         const cfg = (typeof c.config === "string" ? JSON.parse(c.config) : c.config) || {};
         return cfg?.platformId === "meta" || cfg?.platformId === "facebook" || (c.name || "").toLowerCase().includes("meta") || (c.type || "").toLowerCase().includes("facebook");
@@ -55,12 +58,10 @@ export default function ResumenPage() {
       if (!metaCh) return null;
       const cfg = (typeof metaCh.config === "string" ? JSON.parse(metaCh.config) : metaCh.config) || {};
       if (!cfg.adAccounts?.length) return null;
-      const accId = cfg.adAccounts[0].startsWith("act_") ? cfg.adAccounts[0] : `act_${cfg.adAccounts[0]}`;
-      try {
-        const res = await fetch(`/api/meta/insights?adAccountId=${accId}&preset=this_month`);
-        const json = await res.json();
-        return { projectId: p.id, insights: json, config: cfg };
-      } catch { return null; }
+
+      // Use cache store — fetches ALL accounts, not just first
+      const insights = await insightsStore.fetchProjectInsights(p.id, cfg.adAccounts, "this_month");
+      return { projectId: p.id, insights, config: cfg };
     });
 
     Promise.all(fetches).then(results => {
@@ -69,6 +70,7 @@ export default function ResumenPage() {
       setProjectInsights(map);
       setInsightsLoading(false);
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
   if (loading) {
@@ -88,7 +90,6 @@ export default function ResumenPage() {
 
   // Build project cards data
   const activeProjects = d.projectsList.filter((p: any) => p.status === "Activo");
-  const RESULT_TYPES = ["lead", "purchase", "complete_registration", "offsite_conversion", "onsite_conversion", "messaging_conversation_started_7d"];
 
   const projectCards = activeProjects.map((p: any) => {
     const pi = projectInsights[p.id];
@@ -111,20 +112,16 @@ export default function ResumenPage() {
     const daily = monthly / daysInMonth;
     const budgetToDate = daily * daysElapsed;
 
-    // Parse insights
-    let totalSpend = 0, totalResults = 0, totalClicks = 0, totalImpressions = 0;
+    // Parse insights — use goal-aware result counting (consistent with project detail page)
+    let totalSpend = 0, totalClicks = 0, totalImpressions = 0;
     if (ins?.timeSeries) {
       ins.timeSeries.forEach((d: any) => {
         totalSpend += parseFloat(d.spend || "0");
         totalClicks += parseInt(d.clicks || "0", 10);
         totalImpressions += parseInt(d.impressions || "0", 10);
-        const acts = d.actions || [];
-        for (const t of RESULT_TYPES) {
-          const f = acts.find((a: any) => a.action_type?.includes(t));
-          if (f) { totalResults += parseInt(f.value, 10); break; }
-        }
       });
     }
+    const totalResults = countResultsFromTimeSeries(ins?.timeSeries || [], cfg.goal);
 
     const cpr = totalResults > 0 ? totalSpend / totalResults : 0;
     const goalMonth = cprTarget > 0 ? monthly / cprTarget : 0;

@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import DateRangePicker from "@/components/DateRangePicker";
 import { CreativeCard, CreativeLightbox } from "@/components/CreativePreview";
+import { useInsightsStore } from "@/stores/insightsStore";
 
 /* ═══ TYPES ═══ */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; }
@@ -242,32 +243,38 @@ export default function ProjectDashboardPage() {
     fetch("/api/meta/pages").then(r => r.json()).then(d => { if (d.data) setMetaPages(d.data); }).catch(() => {});
   }, []);
 
-  // Load insights — only core data, lazy-load tab-specific data
+  // Load insights — cache-first with background revalidation
+  const insightsStore = useInsightsStore();
   useEffect(() => {
     if (!project || !activePlatform) return;
     const ch = project.channels.find(c => c.platformId === activePlatform);
     if (activePlatform !== "meta" || !ch?.adAccounts?.length) { setInsights(null); return; }
-    setIsLoading(true);
-    setBreakdownData({}); // Clear breakdown cache on any filter change
-    setAdCreatives([]); // Clear creatives cache too
+
     const accs = selectedAccountId === "all" ? ch.adAccounts : [selectedAccountId];
-    let dp = ""; if (dateStart && dateEnd) dp = `&dateStart=${dateStart}&dateEnd=${dateEnd}`; else if (datePreset && datePreset !== "custom") dp = `&preset=${datePreset}`;
-    Promise.all(accs.map(a => fetch(`/api/meta/insights?adAccountId=${a}${dp}`).then(r => r.json()).catch((err) => { console.error(`Insights fetch failed for ${a}:`, err); return null; })))
-      .then(results => {
-        const valid = results.filter(Boolean).filter((r: any) => !r.error);
-        if (valid.length === 0) {
-          console.warn("No valid insights data from any account. Raw results:", results);
-          setInsights({ _error: "No data", timeSeries: [], campaigns: [], adsets: [], ads: [] });
-        }
-        else if (valid.length === 1) { setInsights(valid[0]); }
-        else {
-          const m: any = { timeSeries: [], campaigns: [], adsets: [], ads: [] };
-          valid.forEach((r: any) => { Object.keys(m).forEach(k => { if (r[k]) m[k].push(...r[k]); }); });
-          setInsights(m);
-        }
+    const effectivePreset = (dateStart && dateEnd) ? undefined : (datePreset || "this_month");
+
+    // 1. Show cached data immediately (no loading spinner)
+    const cached = insightsStore.getCached(project.id, effectivePreset, dateStart, dateEnd);
+    if (cached) {
+      setInsights(cached);
+      // Don't show loading for revalidation — data is already visible
+    } else {
+      setIsLoading(true);
+    }
+
+    // 2. Always revalidate in background
+    setBreakdownData({});
+    setAdCreatives([]);
+    insightsStore.fetchProjectInsights(project.id, accs, effectivePreset, dateStart, dateEnd)
+      .then(data => {
+        if (data) setInsights(data);
         setIsLoading(false);
       })
-      .catch((err) => { console.error("Insights Promise.all failed:", err); setIsLoading(false); setInsights({ _error: "Fetch failed", timeSeries: [], campaigns: [], adsets: [], ads: [] }); });
+      .catch(() => {
+        setIsLoading(false);
+        if (!cached) setInsights({ _error: "Fetch failed", timeSeries: [], campaigns: [], adsets: [], ads: [] });
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
 
   // Track which breakdowns have been attempted (prevents re-fetch loops)
