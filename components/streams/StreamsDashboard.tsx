@@ -203,7 +203,7 @@ export function StreamsDashboard() {
         display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8,
         minHeight: "calc(100vh - 280px)",
       }}>
-        {activeBoard.columns.map((col) => (
+        {activeBoard?.columns?.map((col) => (
           <StreamColumnView key={col.id} col={col} onRemove={removeColumn} />
         ))}
       </div>
