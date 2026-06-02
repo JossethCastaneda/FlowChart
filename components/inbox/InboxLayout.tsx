@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { ConnectModuleBanner } from "@/components/shared/ConnectModuleBanner";
+
 import {
   Search, Send, X, ChevronRight, ChevronLeft, UserPlus, Tag, Clock,
   MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark,
@@ -304,10 +304,6 @@ export function InboxLayout() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-      {/* Module Connection Banner */}
-      <div style={{ padding: "0 8px 0 8px", marginBottom: 4, marginTop: 4 }}>
-        <ConnectModuleBanner module="community" />
-      </div>
 
       {/* Demo Banner */}
       {isDemo && (

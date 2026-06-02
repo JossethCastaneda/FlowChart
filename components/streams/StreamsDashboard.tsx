@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { ConnectModuleBanner } from "@/components/shared/ConnectModuleBanner";
+
 import {
   Plus,
   Home,
@@ -139,8 +139,6 @@ export function StreamsDashboard() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 40 }}>
-      {/* Module Connection Banner */}
-      <ConnectModuleBanner module="community" />
 
       {/* Board tabs */}
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

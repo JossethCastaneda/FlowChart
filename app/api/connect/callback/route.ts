@@ -182,16 +182,8 @@ export async function GET(request: NextRequest) {
 
     console.log(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
 
-    // Redirect to the appropriate dashboard section
-    const redirectMap: Record<string, string> = {
-      social: "/dashboard/publisher",
-      ads: "/dashboard/ads",
-      analytics: "/dashboard/analytics",
-      community: "/dashboard/inbox",
-    };
-
-    const redirectPath = redirectMap[module] || "/dashboard";
-    return NextResponse.redirect(`${baseUrl}${redirectPath}?connected=${module}`);
+    // All connections redirect to Publisher → Integrations tab
+    return NextResponse.redirect(`${baseUrl}/dashboard/publisher?connected=${module}`);
 
   } catch (err: any) {
     console.error("[CONNECT CALLBACK] Error:", err);
