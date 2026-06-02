@@ -2,9 +2,88 @@ import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 /**
- * Fetch ad creatives with thumbnails, texts, and performance data.
- * Combines ads + creative details + insights for a complete creative view.
+ * Meta Ad Creatives API — Robust implementation
+ *
+ * Combines three Meta API calls to build a complete creative record per ad:
+ *   1. /ads         → ad metadata + creative sub-fields + asset_feed_spec
+ *   2. /insights    → performance data (spend, clicks, actions, etc.)
+ *   3. /adcreatives → full-resolution images (thumbnail_width=480)
+ *
+ * Handles Dynamic Creative Optimization (DCO) ads via asset_feed_spec.
+ * All three calls use Promise.allSettled — any failure returns partial data.
  */
+
+// Extracts the best available full-resolution image URL from a creative object
+function extractImageUrl(creative: {
+  image_url?: string;
+  thumbnail_url?: string;
+  object_story_spec?: any;
+  asset_feed_spec?: any;
+}): string {
+  const spec = creative.object_story_spec || {};
+  const feed = creative.asset_feed_spec || {};
+
+  // 1. Direct image from the /adcreatives endpoint (highest quality)
+  if (creative.image_url) return creative.image_url;
+
+  // 2. DCO feed images (Dynamic Creative Optimization)
+  if (Array.isArray(feed.images) && feed.images.length > 0) {
+    const img = feed.images[0];
+    return img.url || img.thumbnail_url || "";
+  }
+
+  // 3. Video thumbnail from DCO feed
+  if (Array.isArray(feed.videos) && feed.videos.length > 0) {
+    const vid = feed.videos[0];
+    return vid.thumbnail_url || vid.image_url || "";
+  }
+
+  // 4. object_story_spec fields
+  if (spec.link_data?.image_url) return spec.link_data.image_url;
+  if (spec.photo_data?.url) return spec.photo_data.url;
+  if (spec.video_data?.image_url) return spec.video_data.image_url;
+
+  // 5. Fallback to 480px thumbnail from /adcreatives endpoint
+  if (creative.thumbnail_url) return creative.thumbnail_url;
+
+  return "";
+}
+
+// Extracts all text variants from a creative (DCO + standard)
+function extractTexts(creative: {
+  title?: string;
+  body?: string;
+  call_to_action_type?: string;
+  object_story_spec?: any;
+  asset_feed_spec?: any;
+}): {
+  title: string;
+  body: string;
+  description: string;
+  cta: string;
+  allTitles: string[];
+  allBodies: string[];
+} {
+  const spec = creative.object_story_spec || {};
+  const feed = creative.asset_feed_spec || {};
+  const link = spec.link_data || {};
+
+  // Collect ALL texts from DCO feed (for text analysis panels)
+  const allTitles: string[] = (feed.titles || []).map((t: any) => t.text || "").filter(Boolean);
+  const allBodies: string[] = (feed.bodies || []).map((b: any) => b.text || "").filter(Boolean);
+  const allDescriptions: string[] = (feed.descriptions || []).map((d: any) => d.text || "").filter(Boolean);
+  const allCtas: string[] = (feed.call_to_action_types || []).filter(Boolean);
+
+  return {
+    title: allTitles[0] || creative.title || link.name || "",
+    body: allBodies[0] || creative.body || link.message || spec.photo_data?.message || spec.video_data?.message || "",
+    description: allDescriptions[0] || link.description || "",
+    cta: (allCtas[0] || creative.call_to_action_type || link.call_to_action?.type || "").replace(/_/g, " "),
+    allTitles,
+    allBodies,
+  };
+}
+
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req);
   if (!accessToken) {
@@ -24,116 +103,126 @@ export async function GET(req: NextRequest) {
 
   const version = process.env.META_API_VERSION || "v22.0";
 
-  // Build time range
-  let timeParam: string;
+  // ── Time param ──────────────────────────────────────────────────────────
+  const timeParams = new URLSearchParams();
   if (dateStart && dateEnd) {
-    const tr = JSON.stringify({ since: dateStart, until: dateEnd });
-    timeParam = `time_range=${encodeURIComponent(tr)}`;
+    timeParams.set("time_range", JSON.stringify({ since: dateStart, until: dateEnd }));
   } else {
-    timeParam = `date_preset=${preset}`;
+    timeParams.set("date_preset", preset);
   }
+  const timeQs = timeParams.toString();
 
-  try {
-    // 1) Fetch ads with basic creative info + effective_image_url
-    const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?fields=id,name,status,effective_image_url,creative{id,name,thumbnail_url,image_url,image_hash,title,body,call_to_action_type,object_story_spec,asset_feed_spec}&limit=50`;
-    // 2) Fetch insights for performance data
-    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&fields=ad_id,ad_name,spend,impressions,clicks,actions,action_values,cpc,ctr&${timeParam}&limit=50`;
-    // 3) Fetch adcreatives separately — this endpoint returns full-res image_url and supports thumbnail_width
-    const creativesUrl = `https://graph.facebook.com/${version}/${adAccountId}/adcreatives?fields=id,name,image_url,thumbnail_url,object_story_spec,asset_feed_spec&thumbnail_width=480&thumbnail_height=480&limit=50`;
+  // ── API URLs ─────────────────────────────────────────────────────────────
+  // Creative fields: everything needed to extract image + text
+  const creativeFields = [
+    "id", "name", "thumbnail_url", "image_url",
+    "title", "body", "call_to_action_type",
+    "object_story_spec", "asset_feed_spec",
+  ].join(",");
 
-    const [adsRes, insightsRes, creativesRes] = await Promise.all([
-      metaFetch(adsUrl, accessToken),
-      metaFetch(insightsUrl, accessToken),
-      metaFetch(creativesUrl, accessToken),
-    ]);
+  // Note: asset_feed_spec is not available as a sub-field of creative{} in /ads
+  // We must fetch it separately via /adcreatives
+  const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?` +
+    `fields=id,name,status,effective_image_url,creative{${creativeFields}}&limit=100`;
 
-    if (!adsRes.ok) {
-      const errBody = await adsRes.json().catch(() => ({}));
-      console.error("[ADCREATIVES] Ads fetch error:", JSON.stringify(errBody?.error || errBody));
+  const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?` +
+    `level=ad&fields=ad_id,spend,impressions,clicks,actions,action_values,cpc,ctr&${timeQs}&limit=200`;
+
+  const creativesUrl = `https://graph.facebook.com/${version}/${adAccountId}/adcreatives?` +
+    `fields=${creativeFields}&thumbnail_width=480&thumbnail_height=480&limit=200`;
+
+  // ── Parallel fetch (allSettled = never crashes) ─────────────────────────
+  const [adsRes, insightsRes, creativesRes] = await Promise.allSettled([
+    metaFetch(adsUrl, accessToken),
+    metaFetch(insightsUrl, accessToken),
+    metaFetch(creativesUrl, accessToken),
+  ]);
+
+  // Helper: safely parse a response
+  const parseRes = async (result: PromiseSettledResult<Response>, tag: string) => {
+    if (result.status === "rejected") {
+      console.error(`[ADCREATIVES:${tag}] Fetch rejected:`, result.reason);
+      return { data: [] };
     }
-    const adsJson = adsRes.ok ? await adsRes.json() : { data: [] };
-    const insightsJson = insightsRes.ok ? await insightsRes.json() : { data: [] };
-    const creativesJson = creativesRes.ok ? await creativesRes.json() : { data: [] };
+    if (!result.value.ok) {
+      const err = await result.value.json().catch(() => ({}));
+      console.error(`[ADCREATIVES:${tag}] HTTP error:`, err?.error?.message || `HTTP ${result.value.status}`);
+      return { data: [] };
+    }
+    return result.value.json().catch(() => ({ data: [] }));
+  };
 
-    // Build insights lookup by ad_id
-    const insightsMap: Record<string, any> = {};
-    (insightsJson.data || []).forEach((ins: any) => {
-      insightsMap[ins.ad_id] = ins;
-    });
+  const [adsJson, insightsJson, creativesJson] = await Promise.all([
+    parseRes(adsRes, "ads"),
+    parseRes(insightsRes, "insights"),
+    parseRes(creativesRes, "creatives"),
+  ]);
 
-    // Build creatives lookup by creative ID (full-res images from dedicated endpoint)
-    const creativeImageMap: Record<string, { imageUrl: string; thumbUrl: string }> = {};
-    (creativesJson.data || []).forEach((cr: any) => {
-      const spec = cr.object_story_spec || {};
-      const feed = cr.asset_feed_spec || {};
-      let feedImg = "";
-      if (feed.images && feed.images.length > 0) feedImg = feed.images[0].url || feed.images[0].thumbnail_url || "";
-      if (!feedImg && feed.video_data && feed.video_data.length > 0) feedImg = feed.video_data[0].thumbnail_url || feed.video_data[0].image_url || "";
-      
-      const fullRes = cr.image_url || feedImg || spec.link_data?.image_url || spec.photo_data?.url || spec.video_data?.image_url || "";
-      creativeImageMap[cr.id] = {
-        imageUrl: fullRes,
-        thumbUrl: cr.thumbnail_url || "", // 480x480 from thumbnail_width param
-      };
-    });
+  // ── Build lookup maps ────────────────────────────────────────────────────
 
-    // Merge ads with their insights
-    const creatives = (adsJson.data || []).map((ad: any) => {
-      const creative = ad.creative || {};
-      const ins = insightsMap[ad.id] || {};
-      const storySpec = creative.object_story_spec || {};
-      const feedSpec = creative.asset_feed_spec || {};
-      
-      // Get full-res image from the dedicated /adcreatives endpoint (supports thumbnail_width=480)
-      const crImg = creativeImageMap[creative.id];
-      
-      // Priority: dedicated endpoint full-res > dedicated endpoint 480px thumb > ad.effective_image_url > story_spec > creative sub-fields > 64px thumb
-      let imageUrl = crImg?.imageUrl || crImg?.thumbUrl || ad.effective_image_url || "";
-      
-      // Fallback to object_story_spec
-      if (!imageUrl && storySpec.link_data?.image_url) imageUrl = storySpec.link_data.image_url;
-      if (!imageUrl && storySpec.photo_data?.url) imageUrl = storySpec.photo_data.url;
-      if (!imageUrl && storySpec.video_data?.image_url) imageUrl = storySpec.video_data.image_url;
-      // Fallback to creative-level fields
-      if (!imageUrl) imageUrl = creative.image_url || creative.thumbnail_url || "";
-
-      // Extract texts (including Dynamic Creatives from asset_feed_spec)
-      const feedTitles = feedSpec.titles || [];
-      const feedBodies = feedSpec.bodies || [];
-      const feedDesc = feedSpec.descriptions || [];
-      const feedCta = feedSpec.call_to_action_types || [];
-
-      const title = feedTitles[0]?.text || creative.title || storySpec.link_data?.name || "";
-      const body = feedBodies[0]?.text || creative.body || storySpec.link_data?.message || storySpec.photo_data?.message || storySpec.video_data?.message || "";
-      const description = feedDesc[0]?.text || storySpec.link_data?.description || "";
-      const cta = feedCta[0] || creative.call_to_action_type || storySpec.link_data?.call_to_action?.type || "";
-
-      return {
-        adId: ad.id,
-        adName: ad.name || "Sin nombre",
-        status: ad.status || "UNKNOWN",
-        creativeId: creative.id || "",
-        thumbnailUrl: imageUrl,
-        title,
-        body,
-        description,
-        cta: cta.replace(/_/g, " "),
-        spend: parseFloat(ins.spend || "0"),
-        impressions: parseInt(ins.impressions || "0", 10),
-        clicks: parseInt(ins.clicks || "0", 10),
-        ctr: parseFloat(ins.ctr || "0"),
-        cpc: parseFloat(ins.cpc || "0"),
-        actions: ins.actions || [],
-      };
-    });
-
-    // Sort by spend descending, filter out zero-spend if we have data
-    const sorted = creatives
-      .sort((a: any, b: any) => b.spend - a.spend);
-
-    return NextResponse.json({ data: sorted });
-  } catch (error: any) {
-    console.error("Error fetching ad creatives:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+  // Performance by ad_id
+  const insightsMap: Record<string, any> = {};
+  for (const ins of (insightsJson.data || [])) {
+    insightsMap[ins.ad_id] = ins;
   }
+
+  // Full-res image + DCO texts by creative_id (from /adcreatives endpoint)
+  const creativeDetailMap: Record<string, { imageUrl: string; thumbUrl: string; feedTitles: string[]; feedBodies: string[] }> = {};
+  for (const cr of (creativesJson.data || [])) {
+    const imageUrl = extractImageUrl(cr);
+    const feed = cr.asset_feed_spec || {};
+    creativeDetailMap[cr.id] = {
+      imageUrl,
+      thumbUrl: cr.thumbnail_url || "",
+      feedTitles: (feed.titles || []).map((t: any) => t.text || "").filter(Boolean),
+      feedBodies: (feed.bodies || []).map((b: any) => b.text || "").filter(Boolean),
+    };
+  }
+
+  // ── Merge ads + creatives + insights ────────────────────────────────────
+  const creatives = (adsJson.data || []).map((ad: any) => {
+    const creative = ad.creative || {};
+    const ins = insightsMap[ad.id] || {};
+    const detail = creativeDetailMap[creative.id] || null;
+
+    // Image priority: full-res from /adcreatives > ad.effective_image_url > creative sub-fields
+    let imageUrl = detail?.imageUrl || ad.effective_image_url || "";
+    if (!imageUrl) imageUrl = detail?.thumbUrl || "";
+    // Further fallback from nested creative fields
+    if (!imageUrl) imageUrl = extractImageUrl(creative);
+
+    const texts = extractTexts(creative);
+
+    // If /adcreatives had more/better texts, prefer them
+    const allTitles = detail?.feedTitles?.length ? detail.feedTitles : texts.allTitles;
+    const allBodies = detail?.feedBodies?.length ? detail.feedBodies : texts.allBodies;
+
+    return {
+      adId:        ad.id,
+      adName:      ad.name || "Sin nombre",
+      status:      ad.status || "UNKNOWN",
+      creativeId:  creative.id || "",
+      thumbnailUrl: imageUrl,
+      title:       allTitles[0] || texts.title,
+      body:        allBodies[0] || texts.body,
+      description: texts.description,
+      cta:         texts.cta,
+      // Arrays for text analysis panels
+      allTitles,
+      allBodies,
+      // Performance metrics (already coerced)
+      spend:       parseFloat(ins.spend || "0"),
+      impressions: parseInt(ins.impressions || "0", 10),
+      clicks:      parseInt(ins.clicks || "0", 10),
+      ctr:         parseFloat(ins.ctr || "0"),
+      cpc:         parseFloat(ins.cpc || "0"),
+      actions:     ins.actions || [],
+      actionValues: ins.action_values || [],
+    };
+  });
+
+  // Sort by spend descending
+  creatives.sort((a: any, b: any) => b.spend - a.spend);
+
+  return NextResponse.json({ data: creatives });
 }

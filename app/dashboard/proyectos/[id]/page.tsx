@@ -663,71 +663,141 @@ export default function ProjectDashboardPage() {
       {activeTab === "audiencia" && (
         <div className="space-y-3">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-            {/* Age & Gender */}
+
+            {/* ── Edad y Género ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Users style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Edad y Género</h3>
               <p style={subStyle}>Distribución del gasto por demografía</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
-                  const bd = breakdownData["age_gender"];
-                  const d = (bd && bd.length > 0) ? bd : (insights?.demographics || []);
-                  const map: Record<string, any> = {};
-                  d.forEach((r: any) => { const age = r.age || "?"; const g = r.gender === "male" ? "Hombres" : r.gender === "female" ? "Mujeres" : "Otro"; if (!map[age]) map[age] = { age, Hombres: 0, Mujeres: 0, Otro: 0 }; map[age][g] += parseFloat(r.spend || "0"); });
-                  const cd = Object.values(map).sort((a: any, b: any) => a.age.localeCompare(b.age));
-                  return cd.length > 0 ? <ResponsiveContainer><BarChart data={cd} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="age" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} /><YAxis stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v)]} /><Legend wrapperStyle={{ fontSize: 10 }} />
-                    <Bar dataKey="Mujeres" stackId="a" fill="#00d4ff" /><Bar dataKey="Hombres" stackId="a" fill="#00c875" radius={[3, 3, 0, 0]} />
-                  </BarChart></ResponsiveContainer> : <NoData />;
+                  // 3-state: undefined = loading, [] = empty, [...] = data
+                  const raw = breakdownData["age_gender"] ?? insights?.demographics;
+                  if (raw === undefined) return <NoData msg="Cargando..." />;
+                  const buckets: Record<string, { age: string; Hombres: number; Mujeres: number; Otro: number }> = {};
+                  for (const r of raw) {
+                    const age = r.age || "?";
+                    const g = r.gender === "male" ? "Hombres" : r.gender === "female" ? "Mujeres" : "Otro";
+                    if (!buckets[age]) buckets[age] = { age, Hombres: 0, Mujeres: 0, Otro: 0 };
+                    buckets[age][g as "Hombres" | "Mujeres" | "Otro"] += Number(r.spend) || 0;
+                  }
+                  const cd = Object.values(buckets).sort((a, b) => a.age.localeCompare(b.age));
+                  if (!cd.length) return <NoData msg="Sin datos de audiencia" />;
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={cd} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
+                        <XAxis dataKey="age" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v))]} />
+                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                        <Bar dataKey="Mujeres" stackId="a" fill="#00d4ff" />
+                        <Bar dataKey="Hombres" stackId="a" fill="#00c875" radius={[3, 3, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  );
                 })()}
               </div>
             </div>
-            {/* Geo */}
+
+            {/* ── Top Regiones ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Top Regiones</h3>
               <p style={subStyle}>Regiones con mayor inversión</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
-                  const bdR = breakdownData["region"];
-                  const d = ((bdR && bdR.length > 0) ? bdR : (insights?.geo || [])).map((r: any) => ({ region: r.region || "?", spend: parseFloat(r.spend || "0") })).sort((a: any, b: any) => b.spend - a.spend).slice(0, 8);
-                  return d.length > 0 ? <ResponsiveContainer><BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} /><XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis type="category" dataKey="region" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} width={80} />
-                    <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), "Inversión"]} /><Bar dataKey="spend" fill="#fdab3d" radius={[0, 4, 4, 0]} barSize={16} />
-                  </BarChart></ResponsiveContainer> : <NoData />;
+                  const raw = breakdownData["region"] ?? insights?.geo;
+                  if (raw === undefined) return <NoData msg="Cargando..." />;
+                  const d = raw
+                    .map((r: any) => ({ region: r.region || "?", spend: Number(r.spend) || 0 }))
+                    .sort((a: any, b: any) => b.spend - a.spend)
+                    .slice(0, 8);
+                  if (!d.length) return <NoData msg="Sin datos de región" />;
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
+                        <XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="region" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} width={90} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
+                        <Bar dataKey="spend" fill="#fdab3d" radius={[0, 4, 4, 0]} barSize={14} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  );
                 })()}
               </div>
             </div>
-            {/* Platform */}
+
+            {/* ── Plataforma ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Plataforma</h3>
               <p style={subStyle}>Facebook vs Instagram vs Audience Network</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
-                  const bdP = breakdownData["platform"];
-                  const d = ((bdP && bdP.length > 0) ? bdP : []).map((r: any) => ({ name: r.publisher_platform || "?", spend: parseFloat(r.spend || "0"), impressions: parseInt(r.impressions || "0", 10) }));
-                  const total = d.reduce((a: number, r: any) => a + r.spend, 0);
-                  return d.length > 0 ? <ResponsiveContainer><PieChart><Pie data={d} dataKey="spend" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={100} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={{ stroke: "rgba(148,163,184,0.3)" }}>
-                    {d.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                  </Pie><Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), "Inversión"]} /></PieChart></ResponsiveContainer> : <NoData msg="Cargando plataformas..." />;
+                  const raw = breakdownData["platform"];
+                  // platform breakdown hasn't been fetched yet → show loading
+                  if (raw === undefined) return <NoData msg="Cargando..." />;
+                  const d = raw.map((r: any) => ({
+                    name: (r.publisher_platform || "otro").charAt(0).toUpperCase() + (r.publisher_platform || "otro").slice(1),
+                    spend: Number(r.spend) || 0,
+                  }));
+                  if (!d.length) return <NoData msg="Sin datos de plataforma" />;
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={d} dataKey="spend" nameKey="name" cx="50%" cy="50%"
+                          innerRadius={60} outerRadius={100}
+                          label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                          labelLine={{ stroke: "rgba(148,163,184,0.3)" }}
+                        >
+                          {d.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
+                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  );
                 })()}
               </div>
             </div>
-            {/* Device */}
+
+            {/* ── Dispositivo ── */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Monitor style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Dispositivo</h3>
               <p style={subStyle}>Mobile vs Desktop</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
-                  const bdD = breakdownData["device"];
-                  const d = ((bdD && bdD.length > 0) ? bdD : []).map((r: any) => ({ name: r.device_platform === "mobile_app" || r.device_platform === "mobile_web" ? "Mobile" : r.device_platform === "desktop" ? "Desktop" : r.device_platform || "Otro", spend: parseFloat(r.spend || "0") }));
-                  const merged: Record<string, number> = {}; d.forEach((r: any) => { merged[r.name] = (merged[r.name] || 0) + r.spend; });
-                  const cd = Object.entries(merged).map(([name, spend]) => ({ name, spend })).sort((a, b) => b.spend - a.spend);
-                  return cd.length > 0 ? <ResponsiveContainer><PieChart><Pie data={cd} dataKey="spend" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={100} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={{ stroke: "rgba(148,163,184,0.3)" }}>
-                    {cd.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
-                  </Pie><Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), "Inversión"]} /></PieChart></ResponsiveContainer> : <NoData msg="Cargando dispositivos..." />;
+                  const raw = breakdownData["device"];
+                  if (raw === undefined) return <NoData msg="Cargando..." />;
+                  const merged: Record<string, number> = {};
+                  for (const r of raw) {
+                    const dp = r.device_platform || "";
+                    const name = dp === "mobile_app" || dp === "mobile_web" ? "Mobile"
+                      : dp === "desktop" ? "Desktop" : dp || "Otro";
+                    merged[name] = (merged[name] || 0) + (Number(r.spend) || 0);
+                  }
+                  const cd = Object.entries(merged)
+                    .map(([name, spend]) => ({ name, spend }))
+                    .sort((a, b) => b.spend - a.spend);
+                  if (!cd.length) return <NoData msg="Sin datos de dispositivo" />;
+                  return (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie data={cd} dataKey="spend" nameKey="name" cx="50%" cy="50%"
+                          innerRadius={60} outerRadius={100}
+                          label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                          labelLine={{ stroke: "rgba(148,163,184,0.3)" }}
+                        >
+                          {cd.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
+                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  );
                 })()}
               </div>
             </div>
+
           </div>
         </div>
       )}
@@ -781,40 +851,71 @@ export default function ProjectDashboardPage() {
             ) : !creativesLoading ? <NoData msg="Sin anuncios con datos en el periodo seleccionado" /> : null}
           </div>
 
-          {/* Text Analysis */}
+          {/* ── Text Analysis Panels (powered by allTitles / allBodies from DCO feed) ── */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {([
-              { key: "title", label: "Mejores Títulos" },
-              { key: "body", label: "Mejores Textos Principales" },
-              { key: "description", label: "Mejores Descripciones" },
-              { key: "cta", label: "Mejores CTAs" },
+              { arrayKey: "allTitles",  fallbackKey: "title",       label: "Mejores Títulos" },
+              { arrayKey: "allBodies",  fallbackKey: "body",        label: "Mejores Textos Principales" },
+              { arrayKey: null,         fallbackKey: "description",  label: "Mejores Descripciones" },
+              { arrayKey: null,         fallbackKey: "cta",          label: "Mejores CTAs" },
             ] as const).map(cfg => {
+              // Aggregate spend + results per unique text string
               const grouped: Record<string, { text: string; spend: number; results: number; clicks: number; count: number }> = {};
+
               adCreatives.forEach((ad: any) => {
-                const text = (ad[cfg.key] || "").trim();
-                if (!text) return;
-                const ra = findResultAction(ad.actions, ch?.goal); const results = ra ? parseInt(ra.value, 10) : 0;
-                if (!grouped[text]) grouped[text] = { text, spend: 0, results: 0, clicks: 0, count: 0 };
-                grouped[text].spend += ad.spend; grouped[text].results += results; grouped[text].clicks += ad.clicks; grouped[text].count++;
+                const ra = findResultAction(ad.actions, ch?.goal);
+                const adResults = ra ? parseInt(ra.value, 10) : 0;
+
+                // Collect all text variants: DCO array first, then single fallback
+                const texts: string[] = [];
+                if (cfg.arrayKey && Array.isArray(ad[cfg.arrayKey])) {
+                  texts.push(...(ad[cfg.arrayKey] as string[]));
+                }
+                if (!texts.length) {
+                  const fb = (ad[cfg.fallbackKey] || "").trim();
+                  if (fb) texts.push(fb);
+                }
+
+                for (const text of texts) {
+                  if (!text) continue;
+                  if (!grouped[text]) grouped[text] = { text, spend: 0, results: 0, clicks: 0, count: 0 };
+                  // Distribute spend evenly across all DCO variants of this ad
+                  const share = ad.spend / texts.length;
+                  grouped[text].spend += share;
+                  grouped[text].results += adResults / texts.length;
+                  grouped[text].clicks += ad.clicks / texts.length;
+                  grouped[text].count++;
+                }
               });
-              const data = Object.values(grouped).sort((a, b) => b.spend - a.spend).slice(0, 5);
+
+              const data = Object.values(grouped)
+                .sort((a, b) => b.spend - a.spend)
+                .slice(0, 5);
+
               return (
-                <div key={cfg.key} style={panelStyle}>
+                <div key={cfg.fallbackKey} style={panelStyle}>
                   <h3 style={headingStyle}>{cfg.label}</h3>
                   <p style={subStyle}>Top 5 por inversión</p>
-                  {data.length > 0 ? data.map((d, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.025)" }}>
-                      <span style={{ width: 22, height: 22, borderRadius: 4, background: `${CHART_COLORS[i]}20`, color: CHART_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>{d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text}</p>
-                        <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
-                          <span style={{ fontSize: 10, color: "#fdab3d" }}>{fmtMXN(d.spend)}</span>
-                          <span style={{ fontSize: 10, color: "#00c875" }}>{d.results} resultados</span>
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{d.count} anuncios</span>
-                        </div>
-                      </div>
-                    </div>
-                  )) : <NoData msg="Sin datos de texto" />}
+                  {!adCreatives.length && creativesLoading
+                    ? <NoData msg="Cargando..." />
+                    : data.length > 0
+                      ? data.map((d, i) => (
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.025)" }}>
+                            <span style={{ width: 22, height: 22, borderRadius: 4, background: `${CHART_COLORS[i]}20`, color: CHART_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>
+                                {d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text}
+                              </p>
+                              <div style={{ display: "flex", gap: 12, marginTop: 4 }}>
+                                <span style={{ fontSize: 10, color: "#fdab3d" }}>{fmtMXN(d.spend)}</span>
+                                <span style={{ fontSize: 10, color: "#00c875" }}>{Math.round(d.results)} result.</span>
+                                <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{d.count} anuncios</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))
+                      : <NoData msg="Sin datos de texto" />
+                  }
                 </div>
               );
             })}

@@ -1,30 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
-// Maps BreakdownSelector keys → Meta API parameters
+/**
+ * Meta Breakdowns API — Robust implementation
+ *
+ * Handles demographic, geo, platform and dynamic-creative breakdowns.
+ * Each breakdown type uses ONLY the fields Meta allows for it — no 400 errors.
+ * Returns { data: [], breakdownKey, breakdownType } always (never crashes).
+ */
+
+// ── Field compatibility matrix ───────────────────────────────────────────
+// Meta API throws 400 if you request incompatible (field, breakdown) pairs.
+
+/** Safe for ALL breakdown types */
+const BASE_FIELDS = "spend,impressions,clicks,cpc,cpm,ctr";
+
+/** Also safe for demographic/geo breakdowns (age,gender / region / country) */
+const DEMO_EXTRA = ",reach,actions,cost_per_action_type";
+
+/** Breakdowns that ONLY support BASE_FIELDS */
+const PLATFORM_ONLY_BREAKDOWNS = new Set([
+  "platform",    // publisher_platform
+  "placement",   // publisher_platform + platform_position
+  "device",      // device_platform
+  "conversion_device", // impression_device
+]);
+
+// ── Breakdown → Meta API parameter mapping ───────────────────────────────
 const BREAKDOWN_MAP: Record<string, { breakdowns?: string; time_increment?: string }> = {
-  none: {},
-  day: { time_increment: "1" },
-  week: { time_increment: "7" },
-  month: { time_increment: "monthly" },
-  age: { breakdowns: "age" },
-  gender: { breakdowns: "gender" },
-  age_gender: { breakdowns: "age,gender" },
-  country: { breakdowns: "country" },
-  region: { breakdowns: "region" },
-  dma: { breakdowns: "dma" },
-  platform: { breakdowns: "publisher_platform" },
-  placement: { breakdowns: "publisher_platform,platform_position" },
-  device: { breakdowns: "device_platform" },
-  time_of_day: { breakdowns: "hourly_stats_aggregated_by_audience_time_zone" },
-  conversion_device: { breakdowns: "impression_device" },
-  destination: { breakdowns: "place_page_id" },
-  // Dynamic creative breakdowns (ad-level only)
-  dynamic_image: { breakdowns: "image_asset" },
-  dynamic_text: { breakdowns: "body_asset" },
-  dynamic_headline: { breakdowns: "title_asset" },
+  none:               {},
+  day:                { time_increment: "1" },
+  week:               { time_increment: "7" },
+  month:              { time_increment: "monthly" },
+  age:                { breakdowns: "age" },
+  gender:             { breakdowns: "gender" },
+  age_gender:         { breakdowns: "age,gender" },
+  country:            { breakdowns: "country" },
+  region:             { breakdowns: "region" },
+  dma:                { breakdowns: "dma" },
+  platform:           { breakdowns: "publisher_platform" },
+  placement:          { breakdowns: "publisher_platform,platform_position" },
+  device:             { breakdowns: "device_platform" },
+  time_of_day:        { breakdowns: "hourly_stats_aggregated_by_audience_time_zone" },
+  conversion_device:  { breakdowns: "impression_device" },
+  destination:        { breakdowns: "place_page_id" },
+  // Dynamic creative (ad-level only)
+  dynamic_image:       { breakdowns: "image_asset" },
+  dynamic_text:        { breakdowns: "body_asset" },
+  dynamic_headline:    { breakdowns: "title_asset" },
   dynamic_description: { breakdowns: "description_asset" },
-  dynamic_cta: { breakdowns: "call_to_action_asset" },
+  dynamic_cta:         { breakdowns: "call_to_action_asset" },
 };
 
 export async function GET(req: NextRequest) {
@@ -34,83 +59,82 @@ export async function GET(req: NextRequest) {
   }
 
   const { searchParams } = new URL(req.url);
-  const id = searchParams.get("id");
-  const breakdownKey = searchParams.get("breakdown") || "age_gender";
-  const preset = searchParams.get("preset") || "this_month";
-  const dateStart = searchParams.get("dateStart");
-  const dateEnd = searchParams.get("dateEnd");
-  const level = searchParams.get("level");
+  const id            = searchParams.get("id");
+  const breakdownKey  = searchParams.get("breakdown") || "age_gender";
+  const preset        = searchParams.get("preset") || "this_month";
+  const dateStart     = searchParams.get("dateStart");
+  const dateEnd       = searchParams.get("dateEnd");
+  const level         = searchParams.get("level"); // "ad" required for dynamic_*
 
   if (!id) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
 
-  // Validate dynamic creative breakdowns (only for ad-level)
+  const mapping = BREAKDOWN_MAP[breakdownKey];
+  if (!mapping) {
+    return NextResponse.json(
+      { error: `Breakdown '${breakdownKey}' not supported`, data: [] },
+      { status: 400 }
+    );
+  }
+
+  // Dynamic creative breakdowns are only valid at ad level
   if (breakdownKey.startsWith("dynamic_") && level && level !== "ad") {
     return NextResponse.json({
-      error: "Los desgloses de Contenido Dinámico solo están disponibles a nivel de Anuncio",
+      error: "Dynamic breakdowns require level=ad",
       data: [],
     });
   }
 
-  const token = accessToken;
+  const token   = accessToken;
   const version = process.env.META_API_VERSION || "v22.0";
 
-  // Fields compatible with ALL breakdown types (safe minimum)
-  const baseFields = "spend,impressions,clicks,cpc,cpm,ctr";
-  const actionFields = ",actions,cost_per_action_type";
-  const extraDemoFields = ",reach";
+  // Select field set
+  const fields = PLATFORM_ONLY_BREAKDOWNS.has(breakdownKey)
+    ? BASE_FIELDS
+    : BASE_FIELDS + DEMO_EXTRA;
 
-  // publisher_platform and device_platform breakdowns are incompatible with reach, actions, cost_per_action_type
-  const platformBreakdowns = ["platform", "placement", "device", "conversion_device"];
-  const useSafeOnly = platformBreakdowns.includes(breakdownKey);
-  const insightsFields = useSafeOnly ? baseFields : baseFields + actionFields + extraDemoFields;
+  // Build query params
+  const params = new URLSearchParams({ fields, limit: "500" });
 
-  const mapping = BREAKDOWN_MAP[breakdownKey];
-  if (!mapping) {
-    return NextResponse.json({ error: `Breakdown key '${breakdownKey}' not supported` }, { status: 400 });
-  }
-
-  // Build time range
-  let timeParam: string;
   if (dateStart && dateEnd) {
-    const tr = JSON.stringify({ since: dateStart, until: dateEnd });
-    timeParam = `time_range=${encodeURIComponent(tr)}`;
+    params.set("time_range", JSON.stringify({ since: dateStart, until: dateEnd }));
   } else {
-    timeParam = `date_preset=${preset}`;
+    params.set("date_preset", preset);
   }
+  if (mapping.breakdowns)    params.set("breakdowns", mapping.breakdowns);
+  if (mapping.time_increment) params.set("time_increment", mapping.time_increment);
+
+  const url = `https://graph.facebook.com/${version}/${id}/insights?${params.toString()}`;
 
   try {
-    let url = `https://graph.facebook.com/${version}/${id}/insights?fields=${insightsFields}&${timeParam}&limit=200`;
-
-    if (mapping.breakdowns) {
-      url += `&breakdowns=${mapping.breakdowns}`;
-    }
-    if (mapping.time_increment) {
-      url += `&time_increment=${mapping.time_increment}`;
-    }
-
-    console.log(`[BREAKDOWNS] Fetching ${breakdownKey} with fields: ${insightsFields}`);
     const res = await metaFetch(url, token);
+
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      console.error(`[BREAKDOWNS] Meta API error for ${breakdownKey}:`, JSON.stringify(err?.error || err), `URL: ${url.replace(token, 'TOKEN')}`);
+      console.error(
+        `[BREAKDOWNS:${breakdownKey}] Error:`,
+        err?.error?.message || `HTTP ${res.status}`,
+        `| fields: ${fields}`
+      );
       return NextResponse.json(
-        { error: err?.error?.message || "Failed to fetch breakdowns" },
+        { error: err?.error?.message || "Meta API error", data: [] },
         { status: res.status }
       );
     }
 
     const json = await res.json();
+
+    // Normalise numerics server-side — frontend gets clean numbers
     const data = (json.data || []).map((d: any) => ({
       ...d,
-      spend: parseFloat(d.spend || "0"),
+      spend:       parseFloat(d.spend || "0"),
       impressions: parseInt(d.impressions || "0", 10),
-      reach: parseInt(d.reach || "0", 10),
-      clicks: parseInt(d.clicks || "0", 10),
-      cpc: parseFloat(d.cpc || "0"),
-      cpm: parseFloat(d.cpm || "0"),
-      ctr: parseFloat(d.ctr || "0"),
+      reach:       parseInt(d.reach || "0", 10),
+      clicks:      parseInt(d.clicks || "0", 10),
+      cpc:         parseFloat(d.cpc || "0"),
+      cpm:         parseFloat(d.cpm || "0"),
+      ctr:         parseFloat(d.ctr || "0"),
     }));
 
     return NextResponse.json({
@@ -119,6 +143,10 @@ export async function GET(req: NextRequest) {
       breakdownType: mapping.time_increment ? "time" : "dimension",
     });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error(`[BREAKDOWNS:${breakdownKey}] Exception:`, error.message);
+    return NextResponse.json(
+      { error: error.message, data: [] },
+      { status: 500 }
+    );
   }
 }
