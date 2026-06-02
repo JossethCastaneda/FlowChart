@@ -277,7 +277,6 @@ export function AdsManagerTable({
   });
 
   const tfBase: React.CSSProperties = {
-    position: "sticky", bottom: 0, zIndex: 10,
     background: BG_FOOTER, padding: "11px 14px",
     fontSize: "11px", fontWeight: 700,
     color: "rgba(180,215,255,0.85)",
@@ -323,6 +322,8 @@ export function AdsManagerTable({
   let totalSpend = 0, totalImpressions = 0, totalClicks = 0;
   let totalResults = 0, totalConversations = 0, totalReach = 0;
   let totalLPV = 0;
+  let totalPurchaseValue = 0;
+  let totalVideo3s = 0;
 
   sortedData.forEach(row => {
     const ins = row.insights || {};
@@ -333,6 +334,19 @@ export function AdsManagerTable({
     totalConversations += findConversationsValue(ins.actions);
     totalReach         += safeInt(ins.reach);
     totalLPV           += calcLandingPageViews(ins);
+
+    // Sum purchase value for ROAS
+    if (ins.purchase_roas && Array.isArray(ins.purchase_roas) && ins.purchase_roas.length > 0) {
+      const roasVal = parseFloat(ins.purchase_roas[0]?.value || "0");
+      totalPurchaseValue += safeFloat(ins.spend) * roasVal;
+    } else if (ins.action_values) {
+      const pv = findActionValue(ins.action_values, "omni_purchase") || findActionValue(ins.action_values, "purchase");
+      totalPurchaseValue += pv;
+    }
+
+    // Sum video 3s views for hook rate
+    const v3s = findActionValue(ins.video_p25_watched_actions || ins.actions, "video_view");
+    totalVideo3s += v3s;
   });
   const avgCtr        = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const avgCpc        = totalClicks > 0 ? totalSpend / totalClicks : 0;
@@ -340,6 +354,8 @@ export function AdsManagerTable({
   const avgCpa        = totalResults > 0 ? totalSpend / totalResults : 0;
   const avgCostPerMsg = totalConversations > 0 ? totalSpend / totalConversations : 0;
   const avgFreq       = totalReach > 0 ? totalImpressions / totalReach : 0;
+  const avgRoas       = totalSpend > 0 ? totalPurchaseValue / totalSpend : 0;
+  const avgHookRate   = totalImpressions > 0 ? (totalVideo3s / totalImpressions) * 100 : 0;
 
   // ── Helper: Sortable header cell for metrics ──────────────────────────────
   const MetricTh = ({ col, label }: { col: string; label: string }) => (
@@ -974,7 +990,11 @@ export function AdsManagerTable({
                 {showBudg && <td style={tfFrozen(L_BUDG, BUDGET_W, isLastFrozen("budget"))} />}
                 {showBid  && <td style={tfFrozen(L_BID, BID_W, isLastFrozen("bid"))} />}
                 {visibleColumns.includes("objective") && level === "campaigns" && <td style={tfMetric("objective")} />}
-                {visibleColumns.includes("roas") && <td style={tfMetric("roas")}>—</td>}
+                {visibleColumns.includes("roas") && (
+                  <td style={{ ...tfMetric("roas"), color: avgRoas === 0 ? "rgba(148,163,184,0.4)" : avgRoas >= 3 ? "#34d399" : avgRoas >= 1.5 ? "#fbbf24" : "#ef4444" }}>
+                    {avgRoas === 0 ? "—" : fmtROAS(avgRoas)}
+                  </td>
+                )}
                 {visibleColumns.includes("learning_phase") && level === "adsets" && <td style={tfMetric("learning_phase")} />}
                 {visibleColumns.includes("advantage_plus") && level === "campaigns" && <td style={tfMetric("advantage_plus")} />}
                 {visibleColumns.includes("reach") && <td style={tfMetric("reach")}>{fmtNum(totalReach)}</td>}
@@ -990,7 +1010,11 @@ export function AdsManagerTable({
                 {visibleColumns.includes("cost_per_conversation") && <td style={{ ...tfMetric("cost_per_conversation"), color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
                 {visibleColumns.includes("cpa") && <td style={{ ...tfMetric("cpa"), color: "var(--cyan)" }}>{fmt$(avgCpa)}</td>}
                 {visibleColumns.includes("landing_page_views") && <td style={tfMetric("landing_page_views")}>{fmtNum(totalLPV)}</td>}
-                {visibleColumns.includes("hook_rate") && <td style={tfMetric("hook_rate")}>—</td>}
+                {visibleColumns.includes("hook_rate") && (
+                  <td style={{ ...tfMetric("hook_rate"), color: avgHookRate >= 35 ? "#34d399" : avgHookRate >= 20 ? "#fbbf24" : "#ef4444" }}>
+                    {avgHookRate > 0 ? fmtPct(avgHookRate) : "—"}
+                  </td>
+                )}
                 {visibleColumns.includes("spend") && <td style={{ ...tfMetric("spend"), color: "white" }}>{fmt$(totalSpend)}</td>}
                 {visibleColumns.includes("quality_ranking") && level === "ads" && <td style={tfMetric("quality_ranking")} />}
                 <td style={tfBase} />
