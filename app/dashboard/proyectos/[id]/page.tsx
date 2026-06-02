@@ -603,32 +603,45 @@ export default function ProjectDashboardPage() {
           const hourlyData = breakdownData["hourly_daily"] || [];
           if (hourlyData.length === 0) return null;
 
-          // Build day-of-week × hour matrix from hourly_daily breakdown
-          const DOW_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
           const HOURS = Array.from({ length: 24 }, (_, i) => i);
+          const DOW_LABELS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
-          // matrix[dow][hour] = { impressions, spend, clicks }
-          const matrix: Record<number, Record<number, { impressions: number; spend: number; clicks: number }>> = {};
-          for (let d = 0; d < 7; d++) { matrix[d] = {}; for (let h = 0; h < 24; h++) matrix[d][h] = { impressions: 0, spend: 0, clicks: 0 }; }
+          // Build date × hour matrix from hourly_daily breakdown
+          // Each row is a specific date (not aggregated by day-of-week)
+          const dateMap: Record<string, Record<number, { impressions: number; spend: number; clicks: number }>> = {};
 
           hourlyData.forEach((row: any) => {
             const hour = parseInt(row.hourly_stats_aggregated_by_audience_time_zone || "0", 10);
             const dateStr = row.date_start;
             if (!dateStr) return;
-            const dow = new Date(dateStr + "T12:00:00").getDay(); // 0=Sun
-            const mappedDow = dow === 0 ? 6 : dow - 1; // 0=Mon
-            if (matrix[mappedDow] && matrix[mappedDow][hour]) {
-              matrix[mappedDow][hour].impressions += row.impressions || 0;
-              matrix[mappedDow][hour].spend += row.spend || 0;
-              matrix[mappedDow][hour].clicks += row.clicks || 0;
+            if (!dateMap[dateStr]) {
+              dateMap[dateStr] = {};
+              for (let h = 0; h < 24; h++) dateMap[dateStr][h] = { impressions: 0, spend: 0, clicks: 0 };
             }
+            dateMap[dateStr][hour].impressions += row.impressions || 0;
+            dateMap[dateStr][hour].spend += row.spend || 0;
+            dateMap[dateStr][hour].clicks += row.clicks || 0;
           });
+
+          // Sort dates chronologically
+          const sortedDates = Object.keys(dateMap).sort();
+
+          // Format date label: "Lun 02/06"
+          const formatDateLabel = (dateStr: string) => {
+            const dt = new Date(dateStr + "T12:00:00");
+            const dow = DOW_LABELS_SHORT[dt.getDay()];
+            const dd = String(dt.getDate()).padStart(2, "0");
+            const mm = String(dt.getMonth() + 1).padStart(2, "0");
+            return `${dow} ${dd}/${mm}`;
+          };
 
           // Find max for color scaling
           let maxImpressions = 0;
-          for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) {
-            if (matrix[d][h].impressions > maxImpressions) maxImpressions = matrix[d][h].impressions;
-          }
+          sortedDates.forEach(date => {
+            for (let h = 0; h < 24; h++) {
+              if (dateMap[date][h].impressions > maxImpressions) maxImpressions = dateMap[date][h].impressions;
+            }
+          });
 
           const getColor = (val: number) => {
             if (maxImpressions === 0 || val === 0) return "rgba(255,255,255,0.02)";
@@ -643,55 +656,64 @@ export default function ProjectDashboardPage() {
           return (
             <div style={{ ...panelStyle, marginTop: 12 }}>
               <h3 style={headingStyle}>Distribución por Hora y Día</h3>
-              <p style={subStyle}>Impresiones en el periodo filtrado · Hover para ver gasto</p>
-              <div style={{ overflowX: "auto" }}>
+              <p style={subStyle}>Impresiones por fecha y hora · Hover para ver gasto y clics</p>
+              <div style={{ overflowX: "auto", maxHeight: 500, overflowY: "auto" }}>
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 700 }}>
-                  <thead>
+                  <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
                     <tr>
-                      <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.5)", textAlign: "left", fontWeight: 600, width: 40 }}></th>
+                      <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.5)", textAlign: "left", fontWeight: 600, width: 70, background: "rgba(5,8,18,0.95)" }}></th>
                       {HOURS.map(h => (
-                        <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.4)", textAlign: "center", fontWeight: 500, minWidth: 26 }}>
+                        <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.4)", textAlign: "center", fontWeight: 500, minWidth: 26, background: "rgba(5,8,18,0.95)" }}>
                           {h.toString().padStart(2, "0")}
                         </th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {DOW_LABELS.map((dayLabel, d) => (
-                      <tr key={d}>
-                        <td style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.6)", fontWeight: 600, whiteSpace: "nowrap" }}>{dayLabel}</td>
-                        {HOURS.map(h => {
-                          const cell = matrix[d][h];
-                          return (
-                            <td
-                              key={h}
-                              title={`${dayLabel} ${h.toString().padStart(2, "0")}:00\nImpresiones: ${fmtNum(cell.impressions)}\nGasto: ${fmtMXN(cell.spend)}\nClics: ${fmtNum(cell.clicks)}`}
-                              style={{
-                                padding: 0,
-                                textAlign: "center",
-                              }}
-                            >
-                              <div style={{
-                                width: "100%", height: 22,
-                                background: getColor(cell.impressions),
-                                borderRadius: 2,
-                                margin: 1,
-                                display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 7, color: cell.impressions > 0 ? "rgba(255,255,255,0.6)" : "transparent",
-                                fontWeight: 600,
-                                cursor: "default",
-                                transition: "background 0.15s, transform 0.1s",
-                              }}
-                              onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.3)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; }}
-                              onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; }}
+                    {sortedDates.map((dateStr) => {
+                      const dateLabel = formatDateLabel(dateStr);
+                      const dt = new Date(dateStr + "T12:00:00");
+                      const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
+                      return (
+                        <tr key={dateStr}>
+                          <td style={{
+                            padding: "4px 8px", fontSize: 9,
+                            color: isWeekend ? "rgba(0,212,255,0.5)" : "rgba(148,163,184,0.6)",
+                            fontWeight: 600, whiteSpace: "nowrap",
+                            background: isWeekend ? "rgba(0,212,255,0.03)" : "transparent",
+                          }}>
+                            {dateLabel}
+                          </td>
+                          {HOURS.map(h => {
+                            const cell = dateMap[dateStr][h];
+                            return (
+                              <td
+                                key={h}
+                                title={`${dateLabel} ${h.toString().padStart(2, "0")}:00\nImpresiones: ${fmtNum(cell.impressions)}\nGasto: ${fmtMXN(cell.spend)}\nClics: ${fmtNum(cell.clicks)}`}
+                                style={{ padding: 0, textAlign: "center" }}
                               >
-                                {cell.impressions > 0 ? (cell.impressions > 999 ? `${(cell.impressions / 1000).toFixed(0)}k` : cell.impressions) : ""}
-                              </div>
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
+                                <div style={{
+                                  width: "100%", height: 22,
+                                  background: getColor(cell.impressions),
+                                  borderRadius: 2,
+                                  margin: 1,
+                                  display: "flex", alignItems: "center", justifyContent: "center",
+                                  fontSize: 7, color: cell.impressions > 0 ? "rgba(255,255,255,0.6)" : "transparent",
+                                  fontWeight: 600,
+                                  cursor: "default",
+                                  transition: "background 0.15s, transform 0.1s",
+                                }}
+                                onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.3)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; }}
+                                onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; }}
+                                >
+                                  {cell.impressions > 0 ? (cell.impressions > 999 ? `${(cell.impressions / 1000).toFixed(0)}k` : cell.impressions) : ""}
+                                </div>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
