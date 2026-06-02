@@ -81,6 +81,9 @@ export async function saveMetaTokenToWorkspace(
       select: { workspaceId: true },
     });
 
+    // Long-lived tokens last ~60 days
+    const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+
     // Save token to ALL workspaces where user is owner/admin
     for (const m of memberships) {
       await prisma.integration.upsert({
@@ -91,7 +94,7 @@ export async function saveMetaTokenToWorkspace(
           },
         },
         update: {
-          credentials: { accessToken },
+          credentials: { accessToken, expiresAt, refreshedAt: new Date().toISOString() },
           connected: true,
           connectedAt: new Date(),
           connectedBy: userId,
@@ -99,7 +102,7 @@ export async function saveMetaTokenToWorkspace(
         create: {
           workspaceId: m.workspaceId,
           provider: "meta",
-          credentials: { accessToken },
+          credentials: { accessToken, expiresAt, refreshedAt: new Date().toISOString() },
           connected: true,
           connectedAt: new Date(),
           connectedBy: userId,

@@ -118,7 +118,28 @@ export const authOptions: NextAuthOptions = {
 
       if (account) {
         if (account.provider === "facebook" && account.access_token) {
-          token.accessToken = account.access_token;
+          // Exchange short-lived token (~1hr) for long-lived token (~60 days)
+          let longLivedToken = account.access_token;
+          try {
+            const exchangeUrl = new URL("https://graph.facebook.com/v22.0/oauth/access_token");
+            exchangeUrl.searchParams.set("grant_type", "fb_exchange_token");
+            exchangeUrl.searchParams.set("client_id", process.env.FACEBOOK_CLIENT_ID || "");
+            exchangeUrl.searchParams.set("client_secret", process.env.FACEBOOK_CLIENT_SECRET || "");
+            exchangeUrl.searchParams.set("fb_exchange_token", account.access_token);
+
+            const exchangeRes = await fetch(exchangeUrl.toString());
+            const exchangeData = await exchangeRes.json();
+            if (exchangeRes.ok && exchangeData.access_token) {
+              longLivedToken = exchangeData.access_token;
+              console.log("[AUTH] Exchanged for long-lived token (60d)");
+            } else {
+              console.warn("[AUTH] Token exchange failed, using short-lived:", exchangeData?.error?.message);
+            }
+          } catch (exchangeErr) {
+            console.error("[AUTH] Token exchange error:", exchangeErr);
+          }
+
+          token.accessToken = longLivedToken;
           // Save token to Integration table so ALL workspace members
           // can use Meta APIs (not just the owner)
           if (token.sub) {
@@ -126,7 +147,7 @@ export const authOptions: NextAuthOptions = {
               const { saveMetaTokenToWorkspace } =
                 await import("@/lib/server-auth");
               await saveMetaTokenToWorkspace(
-                token.sub, account.access_token
+                token.sub, longLivedToken
               );
             } catch (err) {
               console.error("[AUTH] Save Meta token failed:", err);

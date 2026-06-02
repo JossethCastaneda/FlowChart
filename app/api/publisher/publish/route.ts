@@ -139,22 +139,19 @@ export async function POST(req: NextRequest) {
     // ── Publish to Instagram ──
     if (post.channels.includes("instagram") && igUserId) {
       try {
-        const mediaUrl = post.mediaUrls?.[0] || post.mediaUrl;
-        if (!mediaUrl) {
-          errors.push("Instagram: Se requiere una imagen o video para publicar");
-        } else {
-          // Step 1: Create media container
-          const containerBody: any = {
-            image_url: mediaUrl,
-            caption: post.content,
-          };
-
-          // Check if it's a video (basic check)
+        const allMedia = (post.mediaUrls?.length ? post.mediaUrls : (post.mediaUrl ? [post.mediaUrl] : []));
+        if (allMedia.length === 0) {
+          errors.push("Instagram: Se requiere al menos una imagen o video para publicar");
+        } else if (allMedia.length === 1) {
+          // ── Single media post ──
+          const mediaUrl = allMedia[0];
           const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
+          const containerBody: any = { caption: post.content };
           if (isVideo) {
             containerBody.media_type = "VIDEO";
             containerBody.video_url = mediaUrl;
-            delete containerBody.image_url;
+          } else {
+            containerBody.image_url = mediaUrl;
           }
 
           const containerRes = await fetch(
@@ -168,12 +165,10 @@ export async function POST(req: NextRequest) {
           const containerData = await containerRes.json();
 
           if (!containerRes.ok || !containerData.id) {
-            errors.push(`Instagram container: ${containerData?.error?.message || "Error"}`);
+            errors.push(`Instagram: ${containerData?.error?.message || "Error creando container"}`);
           } else {
-            // Step 2: Publish the container
-            // For videos, we may need to wait for processing
+            // Wait for video processing if needed
             if (isVideo) {
-              // Wait up to 30s for video processing
               let ready = false;
               for (let i = 0; i < 6; i++) {
                 await new Promise((r) => setTimeout(r, 5000));
@@ -182,21 +177,15 @@ export async function POST(req: NextRequest) {
                   { headers: { Authorization: `Bearer ${pageToken}` } }
                 );
                 const statusData = await statusRes.json();
-                if (statusData.status_code === "FINISHED") {
-                  ready = true;
-                  break;
-                }
-                if (statusData.status_code === "ERROR") {
-                  errors.push("Instagram: Error procesando video");
-                  break;
-                }
+                if (statusData.status_code === "FINISHED") { ready = true; break; }
+                if (statusData.status_code === "ERROR") { errors.push("Instagram: Error procesando video"); break; }
               }
-              if (!ready && errors.length === 0) {
+              if (!ready && !errors.some((e) => e.includes("video"))) {
                 errors.push("Instagram: Video aún procesándose, intenta de nuevo");
               }
             }
 
-            if (errors.filter((e) => e.startsWith("Instagram")).length === 0) {
+            if (!errors.some((e) => e.startsWith("Instagram"))) {
               const publishRes = await fetch(
                 `https://graph.facebook.com/${META_VERSION}/${igUserId}/media_publish`,
                 {
@@ -209,9 +198,82 @@ export async function POST(req: NextRequest) {
               if (publishRes.ok && publishData.id) {
                 externalIds.instagram = publishData.id;
               } else {
-                errors.push(`Instagram publish: ${publishData?.error?.message || "Error"}`);
+                errors.push(`Instagram: ${publishData?.error?.message || "Error al publicar"}`);
               }
             }
+          }
+        } else {
+          // ── Carousel post (2-10 images) ──
+          const childIds: string[] = [];
+          for (const mediaUrl of allMedia.slice(0, 10)) {
+            const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
+            const childBody: any = { is_carousel_item: true };
+            if (isVideo) {
+              childBody.media_type = "VIDEO";
+              childBody.video_url = mediaUrl;
+            } else {
+              childBody.image_url = mediaUrl;
+            }
+
+            const childRes = await fetch(
+              `https://graph.facebook.com/${META_VERSION}/${igUserId}/media`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${pageToken}` },
+                body: JSON.stringify(childBody),
+              }
+            );
+            const childData = await childRes.json();
+            if (childRes.ok && childData.id) {
+              childIds.push(childData.id);
+            } else {
+              errors.push(`Instagram carousel item: ${childData?.error?.message || "Error"}`);
+            }
+          }
+
+          if (childIds.length >= 2) {
+            // Wait briefly for processing
+            await new Promise((r) => setTimeout(r, 2000));
+
+            // Create parent carousel container
+            const carouselRes = await fetch(
+              `https://graph.facebook.com/${META_VERSION}/${igUserId}/media`,
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${pageToken}` },
+                body: JSON.stringify({
+                  media_type: "CAROUSEL",
+                  children: childIds.join(","),
+                  caption: post.content,
+                }),
+              }
+            );
+            const carouselData = await carouselRes.json();
+
+            if (carouselRes.ok && carouselData.id) {
+              // Publish the carousel
+              await new Promise((r) => setTimeout(r, 1000));
+              const publishRes = await fetch(
+                `https://graph.facebook.com/${META_VERSION}/${igUserId}/media_publish`,
+                {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json", Authorization: `Bearer ${pageToken}` },
+                  body: JSON.stringify({ creation_id: carouselData.id }),
+                }
+              );
+              const publishData = await publishRes.json();
+              if (publishRes.ok && publishData.id) {
+                externalIds.instagram = publishData.id;
+              } else {
+                errors.push(`Instagram carousel publish: ${publishData?.error?.message || "Error"}`);
+              }
+            } else {
+              errors.push(`Instagram carousel: ${carouselData?.error?.message || "Error creando carousel"}`);
+            }
+          } else if (childIds.length === 1) {
+            errors.push("Instagram: Se necesitan al menos 2 imágenes para un carousel");
+          } else {
+            errors.push("Instagram: No se pudieron crear los items del carousel");
           }
         }
       } catch (err: any) {
