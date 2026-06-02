@@ -129,7 +129,7 @@ export async function GET(req: NextRequest) {
     `level=ad&fields=ad_id,spend,impressions,clicks,actions,action_values,cpc,ctr&${timeQs}&limit=200`;
 
   const creativesUrl = `https://graph.facebook.com/${version}/${adAccountId}/adcreatives?` +
-    `fields=${creativeFields}&thumbnail_width=480&thumbnail_height=480&limit=200`;
+    `fields=${creativeFields}&thumbnail_width=720&thumbnail_height=720&limit=200`;
 
   // ── Parallel fetch (allSettled = never crashes) ─────────────────────────
   const [adsRes, insightsRes, creativesRes] = await Promise.allSettled([

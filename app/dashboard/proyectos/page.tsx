@@ -750,6 +750,28 @@ export default function ProyectosPage() {
         document.body
       )}
 
+      {/* Delete Confirmation Dialog */}
+      {deleteConfirm && createPortal(
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+          onClick={() => setDeleteConfirm(null)}
+        >
+          <div onClick={e => e.stopPropagation()} style={{ background: "rgba(5,8,18,0.98)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <AlertTriangle style={{ width: 20, height: 20, color: "#e2445c" }} />
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "white" }}>Eliminar Proyecto</h3>
+            </div>
+            <p style={{ fontSize: 12, color: "rgba(148,163,184,0.6)", marginBottom: 20, lineHeight: 1.6 }}>
+              ¿Estás seguro de que deseas eliminar <strong style={{ color: "white" }}>{projects.find(p => p.id === deleteConfirm)?.alias || "este proyecto"}</strong>? Esta acción no se puede deshacer. Se eliminarán todos los canales, configuraciones y datos asociados.
+            </p>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
+              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(148,163,184,0.15)", color: "rgba(148,163,184,0.6)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
+              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "#e2445c", background: "rgba(226,68,92,0.08)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
       {modalMode !== "closed" && (
         <ProjectModal
           mode={modalMode}

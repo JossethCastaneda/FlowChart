@@ -336,10 +336,23 @@ export default function ProjectDashboardPage() {
   const saveChanges = async () => {
     if (!project) return;
     try {
+      const channelsForApi = (editForm.channels || project.channels).map(c => ({
+        name: c.platformName,
+        type: c.platformId.toUpperCase(),
+        config: {
+          platformId: c.platformId,
+          platformName: c.platformName,
+          adAccounts: c.adAccounts,
+          budget: c.budget,
+          period: c.period,
+          goal: c.goal,
+          cpr: c.cpr,
+        },
+      }));
       const res = await fetch(`/api/projects/${project.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...editForm, name: editForm.alias }),
+        body: JSON.stringify({ ...editForm, name: editForm.alias, channels: channelsForApi }),
       });
       const json = await res.json();
       if (json.success) {
@@ -407,7 +420,7 @@ export default function ProjectDashboardPage() {
     timeSeriesData.forEach((d: any) => {
       let key: string;
       const parts = d.date.split("/");
-      if (timeGranularity === "month") key = parts[0] || d.date;
+      if (timeGranularity === "month") key = parts[1] || d.date;
       else { const dayNum = parseInt(parts[1] || "1", 10); key = `S${Math.ceil(dayNum / 7)}`; }
       if (!grouped[key]) grouped[key] = { date: key, spend: 0, results: 0, impressions: 0, clicks: 0 };
       grouped[key].spend += d.spend; grouped[key].results += d.results; grouped[key].impressions += d.impressions; grouped[key].clicks += d.clicks;
@@ -820,8 +833,8 @@ export default function ProjectDashboardPage() {
                     <div key={ad.adId || i} style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 8, overflow: "hidden", transition: "border-color 0.2s" }}
                       onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(0,212,255,0.2)"} onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.04)"}>
                       {ad.thumbnailUrl ? (
-                        <div style={{ width: "100%", height: 160, background: "rgba(0,0,0,0.4)", overflow: "hidden" }}>
-                          <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        <div style={{ width: "100%", height: 220, background: "rgba(0,0,0,0.4)", overflow: "hidden" }}>
+                          <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "cover", imageRendering: "auto" }} />
                         </div>
                       ) : (
                         <div style={{ width: "100%", height: 80, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -1113,7 +1126,7 @@ export default function ProjectDashboardPage() {
       {activeTab === "ads" && (() => {
         // Get this project's ad account IDs
         const projectAccounts = project?.channels
-          ?.filter(ch => ch.platformName?.toLowerCase().includes("meta"))
+          ?.filter(ch => ch.platformId === "meta")
           ?.flatMap(ch => ch.adAccounts || [])
           ?.filter(Boolean) || [];
         const currentActiveAccount = selectedAccountId === "all" ? (projectAccounts[0] || "") : selectedAccountId;
