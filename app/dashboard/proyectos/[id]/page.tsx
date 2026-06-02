@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import {
   ArrowLeft, Calendar, DollarSign, Target, Eye, TrendingUp, TrendingDown, Filter,
@@ -269,20 +269,25 @@ export default function ProjectDashboardPage() {
       .catch((err) => { console.error("Insights Promise.all failed:", err); setIsLoading(false); setInsights({ _error: "Fetch failed", timeSeries: [], demographics: [], geo: [], campaigns: [], adsets: [], ads: [] }); });
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
 
+  // Track which breakdowns have been attempted (prevents re-fetch loops)
+  const breakdownFetchedRef = useRef<Record<string, boolean>>({});
+
+  // Reset breakdown cache when filters change (already handled above with setBreakdownData({}))
+  useEffect(() => {
+    breakdownFetchedRef.current = {};
+  }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
+
   // Load breakdowns for audience/creative tabs — uses same date range
   const loadBreakdown = useCallback(async (key: string) => {
-    if (breakdownData[key]?.length > 0 || !project) return;
+    // Skip if already fetched or currently fetching for this key
+    if (breakdownFetchedRef.current[key] || !project) return;
+    breakdownFetchedRef.current[key] = true; // Mark as attempted immediately
+
     const ch = project.channels.find(c => c.platformId === activePlatform);
     if (!ch?.adAccounts?.length) return;
     const accId = selectedAccountId === "all" ? ch.adAccounts[0] : selectedAccountId;
     const id = accId.startsWith("act_") ? accId : `act_${accId}`;
-    // Build date params matching the insights query
     let dp = datePreset || "this_month";
-    let extraParams = `&preset=${dp}`;
-    if (dateStart && dateEnd) {
-      extraParams = `&dateStart=${dateStart}&dateEnd=${dateEnd}`;
-      dp = "custom";
-    }
     try {
       const url = dateStart && dateEnd
         ? `/api/meta/breakdowns?id=${id}&breakdown=${key}&dateStart=${dateStart}&dateEnd=${dateEnd}`
@@ -293,15 +298,22 @@ export default function ProjectDashboardPage() {
       else if (d.data) setBreakdownData(prev => ({ ...prev, [key]: d.data }));
       else setBreakdownData(prev => ({ ...prev, [key]: [] }));
     } catch (err) { console.error(`Breakdown ${key} fetch failed:`, err); setBreakdownData(prev => ({ ...prev, [key]: [] })); }
-  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, breakdownData]);
+  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd]);
 
   // Ad Creatives state
   const [adCreatives, setAdCreatives] = useState<any[]>([]);
   const [creativesLoading, setCreativesLoading] = useState(false);
+  const creativeFetchedRef = useRef(false);
+
+  // Reset creative cache when filters change
+  useEffect(() => {
+    creativeFetchedRef.current = false;
+  }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
 
   // Load ad creatives when on creativos tab
   const loadAdCreatives = useCallback(async () => {
-    if (!project || creativesLoading) return;
+    if (!project || creativeFetchedRef.current) return;
+    creativeFetchedRef.current = true; // Mark as attempted immediately
     const ch = project.channels.find(c => c.platformId === activePlatform);
     if (!ch?.adAccounts?.length) return;
     setCreativesLoading(true);
@@ -314,12 +326,12 @@ export default function ProjectDashboardPage() {
       setAdCreatives(all.sort((a, b) => b.spend - a.spend));
     } catch {}
     setCreativesLoading(false);
-  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, creativesLoading]);
+  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd]);
 
   useEffect(() => {
     if (activeTab === "audiencia") { loadBreakdown("age_gender"); loadBreakdown("region"); loadBreakdown("platform"); loadBreakdown("device"); }
-    if (activeTab === "creativos" && adCreatives.length === 0 && !creativesLoading) { loadAdCreatives(); }
-  }, [activeTab, loadBreakdown, loadAdCreatives, adCreatives.length, creativesLoading]);
+    if (activeTab === "creativos") { loadAdCreatives(); }
+  }, [activeTab, loadBreakdown, loadAdCreatives]);
 
   const saveChanges = async () => {
     if (!project) return;
