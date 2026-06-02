@@ -212,6 +212,59 @@ export async function GET(req: NextRequest) {
   }
 
   // ── Merge ads + creatives + insights ────────────────────────────────────
+  // ── Extract carousel items and video IDs ────────────────────────────────
+  // We need these before the merge loop so we can batch-fetch video URLs
+  const videoIdSet = new Set<string>();
+
+  // Pre-scan ads for video_ids
+  for (const ad of (adsJson.data || [])) {
+    const creative = ad.creative || {};
+    const spec = creative.object_story_spec || {};
+    const detail = creativeDetailMap[creative.id] || null;
+    const detailSpec = detail?.objectStorySpec || {};
+
+    const videoId = spec.video_data?.video_id || detailSpec.video_data?.video_id;
+    if (videoId) videoIdSet.add(String(videoId));
+
+    // Also check DCO feed videos
+    const feed = creative.asset_feed_spec || detail?.assetFeedSpec || {};
+    if (Array.isArray(feed.videos)) {
+      for (const v of feed.videos) {
+        if (v.video_id) videoIdSet.add(String(v.video_id));
+      }
+    }
+  }
+
+  // Batch-fetch video source URLs (max 50 at once via /?ids=)
+  const videoSourceMap: Record<string, string> = {};
+  const videoIds = Array.from(videoIdSet);
+  if (videoIds.length > 0) {
+    // Meta supports batch ID lookups: /?ids=id1,id2&fields=source
+    const chunks = [];
+    for (let i = 0; i < videoIds.length; i += 50) {
+      chunks.push(videoIds.slice(i, i + 50));
+    }
+    const videoResults = await Promise.allSettled(
+      chunks.map(chunk =>
+        metaFetch(
+          `https://graph.facebook.com/${version}/?ids=${chunk.join(",")}&fields=source`,
+          accessToken
+        )
+      )
+    );
+    for (const result of videoResults) {
+      if (result.status === "fulfilled" && result.value.ok) {
+        try {
+          const json = await result.value.json();
+          for (const [id, data] of Object.entries(json)) {
+            if ((data as any).source) videoSourceMap[id] = (data as any).source;
+          }
+        } catch { /* ignore parse errors */ }
+      }
+    }
+  }
+
+  // ── Merge ads + creatives + insights ────────────────────────────────────
   const creatives = (adsJson.data || []).map((ad: any) => {
     const creative = ad.creative || {};
     const ins = insightsMap[ad.id] || {};
@@ -235,6 +288,36 @@ export async function GET(req: NextRequest) {
       detail
     );
 
+    // ── Extract video URL ──
+    const spec = creative.object_story_spec || detail?.objectStorySpec || {};
+    const feed = creative.asset_feed_spec || detail?.assetFeedSpec || {};
+    let videoUrl = "";
+    const videoId = spec.video_data?.video_id;
+    if (videoId && videoSourceMap[String(videoId)]) {
+      videoUrl = videoSourceMap[String(videoId)];
+    }
+    // Fallback: DCO feed videos
+    if (!videoUrl && Array.isArray(feed.videos) && feed.videos.length > 0) {
+      const dcoVideoId = feed.videos[0].video_id;
+      if (dcoVideoId && videoSourceMap[String(dcoVideoId)]) {
+        videoUrl = videoSourceMap[String(dcoVideoId)];
+      }
+    }
+
+    // ── Extract carousel items ──
+    const carouselItems: { imageUrl: string; title: string; description: string; link: string }[] = [];
+    const childAttachments = spec.link_data?.child_attachments || [];
+    if (Array.isArray(childAttachments) && childAttachments.length > 1) {
+      for (const child of childAttachments) {
+        carouselItems.push({
+          imageUrl: child.picture || child.image_url || "",
+          title: child.name || "",
+          description: child.description || "",
+          link: child.link || "",
+        });
+      }
+    }
+
     return {
       adId:        ad.id,
       adName:      ad.name || "Sin nombre",
@@ -242,6 +325,8 @@ export async function GET(req: NextRequest) {
       creativeId:  creative.id || "",
       thumbnailUrl: imageUrl,
       format,      // "video" | "image" | "carousel"
+      videoUrl,    // playable MP4 URL (empty if not video or unavailable)
+      carouselItems,  // array of carousel slides (empty if not carousel)
       title:       allTitles[0] || texts.title,
       body:        allBodies[0] || texts.body,
       description: texts.description,

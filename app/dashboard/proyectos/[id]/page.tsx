@@ -14,6 +14,7 @@ import {
   ComposedChart, Line, PieChart, Pie, Cell, Legend, BarChart, Bar, ReferenceLine
 } from "recharts";
 import DateRangePicker from "@/components/DateRangePicker";
+import { CreativeCard, CreativeLightbox } from "@/components/CreativePreview";
 
 /* ═══ TYPES ═══ */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; }
@@ -319,6 +320,7 @@ export default function ProjectDashboardPage() {
   // Ad Creatives state
   const [adCreatives, setAdCreatives] = useState<any[]>([]);
   const [creativesLoading, setCreativesLoading] = useState(false);
+  const [previewAd, setPreviewAd] = useState<any>(null);
   const creativeFetchedRef = useRef(false);
 
   // Reset creative cache when filters change
@@ -1003,59 +1005,32 @@ export default function ProjectDashboardPage() {
             const best = ranked.filter(a => a.results > 0).sort((a, b) => a.cprVal - b.cprVal).slice(0, 3);
             const worst = ranked.filter(a => a.results === 0 && a.spend > 0)
               .sort((a, b) => b.spend - a.spend).slice(0, 3);
-            // If all have results, worst = highest CPR
             const worstByEfficiency = worst.length < 3
               ? ranked.filter(a => a.results > 0).sort((a, b) => b.cprVal - a.cprVal).slice(0, 3)
               : worst;
 
             if (!ranked.length && !creativesLoading) return null;
 
-            const renderRankCard = (ad: any, rank: number, isBest: boolean) => {
-              const borderColor = isBest ? "rgba(0,200,117,0.25)" : "rgba(226,68,92,0.25)";
-              const badgeBg = isBest ? "rgba(0,200,117,0.12)" : "rgba(226,68,92,0.12)";
-              const badgeColor = isBest ? "#00c875" : "#e2445c";
-              const badgeText = isBest ? `#${rank} Mejor` : `#${rank} Peor`;
-              return (
-                <div key={ad.adId || rank} style={{ background: "rgba(255,255,255,0.015)", border: `1px solid ${borderColor}`, borderRadius: 8, overflow: "hidden", display: "flex", flexDirection: "column" }}>
-                  {ad.thumbnailUrl ? (
-                    <div style={{ width: "100%", height: 140, background: "rgba(0,0,0,0.4)", overflow: "hidden", position: "relative" }}>
-                      <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                      <span style={{ position: "absolute", top: 8, left: 8, padding: "3px 8px", fontSize: 9, fontWeight: 700, background: badgeBg, color: badgeColor, borderRadius: 4, letterSpacing: "0.05em" }}>{badgeText}</span>
-                    </div>
-                  ) : (
-                    <div style={{ width: "100%", height: 50, background: "rgba(0,0,0,0.3)", display: "flex", alignItems: "center", justifyContent: "center", position: "relative" }}>
-                      <Palette style={{ width: 16, height: 16, color: "rgba(148,163,184,0.15)" }} />
-                      <span style={{ position: "absolute", top: 6, left: 8, padding: "3px 8px", fontSize: 9, fontWeight: 700, background: badgeBg, color: badgeColor, borderRadius: 4 }}>{badgeText}</span>
-                    </div>
-                  )}
-                  <div style={{ padding: "10px 12px", flex: 1 }}>
-                    <p style={{ fontSize: 11, color: "#e2e8f0", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 6 }}>{ad.adName}</p>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4 }}>
-                      <div><p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", textTransform: "uppercase" }}>Inversión</p><p style={{ fontSize: 11, fontWeight: 600, color: "#fdab3d" }}>{fmtMXN(ad.spend)}</p></div>
-                      <div><p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", textTransform: "uppercase" }}>Result.</p><p style={{ fontSize: 11, fontWeight: 700, color: "#00c875" }}>{ad.results}</p></div>
-                      <div><p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", textTransform: "uppercase" }}>CPR</p><p style={{ fontSize: 11, fontWeight: 600, color: ad.cprVal === Infinity ? "#e2445c" : cprTarget > 0 && ad.cprVal > cprTarget ? "#e2445c" : "#00d4ff" }}>{ad.cprVal === Infinity ? "Sin conv." : fmtMXN(ad.cprVal)}</p></div>
-                    </div>
-                  </div>
-                </div>
-              );
-            };
-
             return (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {/* Best */}
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#00c875" }} />Top 3 Mejores Anuncios</h3>
-                  <p style={subStyle}>Menor costo por resultado — tus creativos estrella</p>
+                  <p style={subStyle}>Menor costo por resultado — clic para ver preview</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 10 }}>
-                    {best.length > 0 ? best.map((ad, i) => renderRankCard(ad, i + 1, true)) : <NoData msg="Sin anuncios con resultados" />}
+                    {best.length > 0 ? best.map((ad) => (
+                      <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
+                    )) : <NoData msg="Sin anuncios con resultados" />}
                   </div>
                 </div>
                 {/* Worst */}
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#e2445c" }} />Top 3 Peores Anuncios</h3>
-                  <p style={subStyle}>Mayor gasto sin resultados o CPR más alto — candidatos a pausar</p>
+                  <p style={subStyle}>Mayor gasto sin resultados o CPR más alto</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 10 }}>
-                    {worstByEfficiency.length > 0 ? worstByEfficiency.map((ad, i) => renderRankCard(ad, i + 1, false)) : <NoData msg="Sin datos" />}
+                    {worstByEfficiency.length > 0 ? worstByEfficiency.map((ad) => (
+                      <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
+                    )) : <NoData msg="Sin datos" />}
                   </div>
                 </div>
               </div>
@@ -1088,13 +1063,21 @@ export default function ProjectDashboardPage() {
                       const cprVal = results > 0 ? ad.spend / results : 0;
                       const ctrVal = ad.ctr || (ad.clicks > 0 && ad.impressions > 0 ? (ad.clicks / ad.impressions) * 100 : 0);
                       return (
-                        <tr key={ad.adId || i} style={{ borderBottom: "1px solid rgba(255,255,255,0.025)", transition: "background 0.15s" }}
+                        <tr key={ad.adId || i} style={{ borderBottom: "1px solid rgba(255,255,255,0.025)", transition: "background 0.15s", cursor: "pointer" }}
                           onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
-                          onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
+                          onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                          onClick={() => { const ra2 = findResultAction(ad.actions, ch?.goal); setPreviewAd({ ...ad, results, cprVal, ctrVal }); }}>
                           <td style={{ padding: "8px 6px", color: "rgba(148,163,184,0.3)", fontSize: 10 }}>{i + 1}</td>
                           <td style={{ padding: "8px 6px", maxWidth: 250 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              {ad.thumbnailUrl && <img src={ad.thumbnailUrl} alt="" style={{ width: 32, height: 32, borderRadius: 4, objectFit: "cover", flexShrink: 0 }} />}
+                              <div style={{ width: 40, height: 40, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "rgba(0,0,0,0.3)", position: "relative" }}>
+                                {ad.thumbnailUrl
+                                  ? <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                                  : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "rgba(148,163,184,0.15)" }} /></div>
+                                }
+                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(162,93,220,0.8)", color: "white", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
+                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(253,171,61,0.8)", color: "white", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>⟡</span>}
+                              </div>
                               <span style={{ color: "#e2e8f0", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
                             </div>
                           </td>
@@ -1307,6 +1290,18 @@ export default function ProjectDashboardPage() {
               })()}
             </div>
           </div>
+
+          {/* ── Lightbox modal ── */}
+          {previewAd && (
+            <CreativeLightbox
+              ad={previewAd}
+              onClose={() => setPreviewAd(null)}
+              fmtMXN={fmtMXN}
+              fmtNum={fmtNum}
+              cprTarget={cprTarget}
+              cprLabel={"CPR"}
+            />
+          )}
         </div>
       )}
 
