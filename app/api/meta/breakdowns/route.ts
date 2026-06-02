@@ -57,14 +57,14 @@ export async function GET(req: NextRequest) {
   const version = process.env.META_API_VERSION || "v22.0";
 
   // Fields compatible with ALL breakdown types (safe minimum)
-  const safeFields = "spend,impressions,clicks,cpc,cpm,ctr,actions,cost_per_action_type";
-  // Extra fields only compatible with demographic/geo breakdowns (NOT publisher_platform/device_platform)
+  const baseFields = "spend,impressions,clicks,cpc,cpm,ctr";
+  const actionFields = ",actions,cost_per_action_type";
   const extraDemoFields = ",reach";
 
-  // publisher_platform and device_platform breakdowns are incompatible with reach, frequency, etc.
+  // publisher_platform and device_platform breakdowns are incompatible with reach, actions, cost_per_action_type
   const platformBreakdowns = ["platform", "placement", "device", "conversion_device"];
   const useSafeOnly = platformBreakdowns.includes(breakdownKey);
-  const insightsFields = useSafeOnly ? safeFields : safeFields + extraDemoFields;
+  const insightsFields = useSafeOnly ? baseFields : baseFields + actionFields + extraDemoFields;
 
   const mapping = BREAKDOWN_MAP[breakdownKey];
   if (!mapping) {
