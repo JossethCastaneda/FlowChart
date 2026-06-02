@@ -277,11 +277,13 @@ export function AdsManagerTable({
   });
 
   const tfBase: React.CSSProperties = {
+    position: "sticky", bottom: 0,
     background: BG_FOOTER, padding: "11px 14px",
     fontSize: "11px", fontWeight: 700,
     color: "rgba(180,215,255,0.85)",
     borderTop: TF_BORDER_TOP, whiteSpace: "nowrap",
     letterSpacing: "0.04em",
+    zIndex: 10,
   };
 
   const tfMetric = (col: string): React.CSSProperties => ({
@@ -293,7 +295,7 @@ export function AdsManagerTable({
   });
 
   const tfFrozen = (leftOff: number, width: number, isLast = false): React.CSSProperties => ({
-    ...tfBase, position: "sticky", left: leftOff, zIndex: 20,
+    ...tfBase, left: leftOff, zIndex: 30,
     width, minWidth: width,
     boxShadow: isLast ? frozenShadow : undefined,
   });
@@ -977,7 +979,7 @@ export function AdsManagerTable({
             )}
           </tbody>
           {sortedData.length > 0 && (
-            <tfoot style={{ position: "sticky", bottom: 0, zIndex: 30, background: BG_FOOTER, borderTop: TF_BORDER_TOP }}>
+            <tfoot>
               <tr>
                 <td style={{ ...tfFrozen(L_CHECK, CHECKBOX_W, statusIsLast) }} />
                 <td style={{ ...tfFrozen(L_STATUS, STATUS_W, statusIsLast), color: "white" }}>TOTAL</td>
