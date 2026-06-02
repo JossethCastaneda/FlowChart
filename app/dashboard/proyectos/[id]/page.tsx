@@ -66,8 +66,8 @@ function getBudgetBreakdown(budget: number, period: string) {
 }
 
 /* ═══ SHARED UI ═══ */
-const panelStyle: React.CSSProperties = { background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 14 };
-const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.5)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 };
+const panelStyle: React.CSSProperties = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 };
+const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 };
 const headingStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#e2e8f0", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 };
 const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.5)", marginBottom: 10 };
 const tooltipStyle = { backgroundColor: "rgba(10,15,30,0.95)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12, color: "white" };
@@ -80,7 +80,7 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
       <div style={{ position: "absolute", top: 0, right: 0, width: 100, height: 100, background: `radial-gradient(circle, ${c}15 0%, transparent 70%)`, transform: "translate(30%, -30%)" }} />
       <div style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(148,163,184,0.6)", marginBottom: 8 }}>
         <div style={{ padding: 4, background: "rgba(0,0,0,0.3)", borderRadius: 4, color: c }}>{icon}</div>
-        <span style={{ fontSize: 9, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>{title}</span>
+        <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>{title}</span>
       </div>
       <div style={{ fontSize: 20, fontWeight: 700, color: "white", marginBottom: 2, fontFamily: "'Orbitron',sans-serif" }}>{value}</div>
       <div style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{sub}</div>
@@ -301,7 +301,7 @@ export default function ProjectDashboardPage() {
     }
   };
 
-  if (!project) return <div style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.5)" }}>Cargando proyecto...</div>;
+  if (!project) return <div style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.5)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: 200 }}><div style={{ width: 40, height: 40, border: "3px solid rgba(148,163,184,0.1)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>Cargando proyecto...</span></div>;
 
   const ch = project.channels.find(c => c.platformId === activePlatform);
   const budgetNum = ch ? parseBudget(ch.budget) : 0;
@@ -366,14 +366,14 @@ export default function ProjectDashboardPage() {
 
 
   return (
-    <div className="space-y-2 page-enter">
+    <div className="space-y-4 page-enter">
       {/* ── HEADER ── */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <button onClick={() => router.push("/dashboard/proyectos")} style={{ width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(10,15,30,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, color: "rgba(148,163,184,0.7)", cursor: "pointer" }}><ArrowLeft style={{ width: 14, height: 14 }} /></button>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-              <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 16, fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>{project.alias}</h1>
+              <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 20, fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>{project.alias}</h1>
               <span className={`badge badge-${STATUS_COLORS[project.status]}`}>{project.status}</span>
             </div>
             <p style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>{project.vertical}{project.client && ` · ${project.client}`}</p>
@@ -386,19 +386,19 @@ export default function ProjectDashboardPage() {
 
       {/* ── KPIs ── (hidden on Ads Manager tab) */}
       {activeTab !== "ads" && (
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-2" style={{ position: "relative" }}>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3" style={{ position: "relative" }}>
         {isLoading && <LoadingOverlay />}
         <KpiBox title="Inversión" value={fmtMXN0(totalSpend)} sub={`de ${fmtMXN0(budgetNum)} (${bk.label})`} icon={<DollarSign style={{ width: 16, height: 16 }} />} color="amber" progress={spendProgress} />
         <KpiBox title="Resultados" value={fmtNum(totalResults)} sub={ch?.goal || "Objetivo"} icon={<Target style={{ width: 16, height: 16 }} />} color="emerald" progress={goalCompletion} />
         <KpiBox title="CPR" value={fmtMXN(cpr)} sub={cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Costo por resultado"} icon={<Activity style={{ width: 16, height: 16 }} />} color="cyan" />
         <KpiBox title="CTR" value={pct(ctr)} sub="Click-through rate" icon={<Eye style={{ width: 16, height: 16 }} />} color="purple" />
-        <KpiBox title="ROAS" value={`${roas.toFixed(1)}x`} sub="Return on ad spend" icon={<TrendingUp style={{ width: 16, height: 16 }} />} color="#7b61ff" />
+        <KpiBox title="ROAS" value={`${roas.toFixed(1)}x`} sub="Return on ad spend" icon={<TrendingUp style={{ width: 16, height: 16 }} />} color="purple" />
       </div>
       )}
 
       {/* ── TABS + PLATFORM SELECTOR ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: 6 }}>
-        <div style={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: 8 }}>
+        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
           <TabButton active={activeTab === "resumen"} label="Resumen" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resumen")} />
           <TabButton active={activeTab === "gasto"} label="Gasto & Presupuesto" icon={<DollarSign style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("gasto")} />
           <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
@@ -433,7 +433,7 @@ export default function ProjectDashboardPage() {
                   {trackStatus === "on-track" ? "EN TRACK" : trackStatus === "at-risk" ? "EN RIESGO" : trackStatus === "off-track" ? "FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
                 </div>
               </div>
-              <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div><p style={labelStyle}>Resultados proyectados</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtNum(projectedResults)}</p>{goalNum > 0 && <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>de {fmtNum(goalNum)} objetivo</p>}</div>
                 <div><p style={labelStyle}>Gasto proyectado</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(projectedSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>de {fmtMXN0(bk.monthly)} mensual</p></div>
                 <div><p style={labelStyle}>Meta diaria ideal</p><p style={{ fontSize: 18, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>resultados/día</p></div>
@@ -537,7 +537,7 @@ export default function ProjectDashboardPage() {
                 const desvioCPL = cprTarget > 0 ? ((totCPL / cprTarget) - 1) * 100 : 0;
 
                 const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "#e2e8f0", borderBottom: "1px solid rgba(255,255,255,0.03)", whiteSpace: "nowrap" };
-                const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 700, fontSize: 10, background: "rgba(0,120,255,0.7)", borderBottom: "none" };
+                const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 700, fontSize: 10, background: "var(--cyan)", borderBottom: "none" };
                 const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 600, fontSize: 9, background: "rgba(0,120,255,0.5)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
                 const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 500, color: "rgba(148,163,184,0.7)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "rgba(5,8,18,0.98)", zIndex: 2 };
                 const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "rgba(255,255,255,0.02)", position: "sticky" as const, left: 0, zIndex: 2 };

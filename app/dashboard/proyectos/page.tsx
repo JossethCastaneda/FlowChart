@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   FolderKanban, Plus, X, Users, Globe, DollarSign, Target,
-  Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown
+  Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown, AlertTriangle
 } from "lucide-react";
 
 /* ═══════════════════════════════════════
@@ -131,9 +131,9 @@ async function fetchProjectsFromAPI(): Promise<Project[]> {
    ═══════════════════════════════════════ */
 
 const inp: React.CSSProperties = {
-  width: "100%", padding: "8px 10px", fontSize: "12px", color: "#e2e8f0",
-  background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.1)",
-  outline: "none", fontFamily: "inherit",
+  width: "100%", padding: "10px 12px", fontSize: "13px", color: "var(--foreground)",
+  background: "var(--surface)", border: "1px solid var(--border)",
+  outline: "none", fontFamily: "inherit", transition: "border-color 0.15s",
 };
 const sel: React.CSSProperties = {
   ...inp, appearance: "none" as const, cursor: "pointer", paddingRight: "28px",
@@ -179,7 +179,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
           {selected?.picture && <img src={selected.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
-          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: selected ? "#e2e8f0" : "rgba(148,163,184,0.5)" }}>
+          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: selected ? "var(--foreground)" : "rgba(148,163,184,0.55)" }}>
             {selected ? selected.label : placeholder}
           </span>
         </div>
@@ -199,12 +199,12 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "8px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => (
                 <div key={o.value} onClick={() => { onChange(o.value); setOpen(false); setSearch(""); }} 
-                     style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "#e2e8f0" }} 
+                     style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--foreground)" }} 
                      onMouseEnter={e => e.currentTarget.style.background = "rgba(0,212,255,0.1)"} 
                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                   {o.picture && <img src={o.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
@@ -213,7 +213,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
               ))}
             </div>
           ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Sin opciones disponibles</div>}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(148,163,184,0.5)", textAlign: "center" }}>Sin opciones disponibles</div>}
         </div>
       )}
     </div>
@@ -255,7 +255,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
             values.map((v: string) => {
               const opt = options.find((o: any) => o.value === v);
               return (
-                <span key={v} style={{ fontSize: "9px", padding: "2px 6px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "#00d4ff", borderRadius: "2px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
                   {opt?.picture && <img src={opt.picture} alt="" style={{ width: 12, height: 12, borderRadius: "50%", objectFit: "cover" }} />}
                   {opt ? opt.label : v}
                   {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
@@ -280,7 +280,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "8px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => {
@@ -289,7 +289,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
                   <div key={o.value} onClick={() => {
                     if (selected) onChange(values.filter((v: string) => v !== o.value));
                     else onChange([...values, o.value]);
-                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "#00d4ff" : "#e2e8f0", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
+                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
                     <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "#00d4ff" : "rgba(255,255,255,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "#00d4ff" : "transparent" }}>
                       {selected && <Check className="w-2 h-2 text-black" />}
                     </div>
@@ -300,7 +300,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
               })}
             </div>
           ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Sin opciones disponibles</div>}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(148,163,184,0.5)", textAlign: "center" }}>Sin opciones disponibles</div>}
         </div>
       )}
     </div>
@@ -326,7 +326,7 @@ function TagsInput({ values, onChange, placeholder, ro }: { values: string[]; on
   return (
     <div style={{ ...inp, display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", minHeight: "34px", height: "auto", cursor: ro ? "not-allowed" : "text" }}>
       {values.map((v, i) => (
-        <span key={i} style={{ fontSize: "9px", padding: "2px 6px", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", borderRadius: "2px", display: "flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
+        <span key={i} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
           {v}
           {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={() => onChange(values.filter((_, j) => j !== i))} />}
         </span>
@@ -345,7 +345,7 @@ function TagsInput({ values, onChange, placeholder, ro }: { values: string[]; on
             setInput("");
           }}
           placeholder={values.length === 0 ? placeholder : "Agregar..."}
-          style={{ flex: 1, minWidth: "80px", background: "transparent", border: "none", outline: "none", color: "#e2e8f0", fontSize: "12px", padding: "0" }}
+          style={{ flex: 1, minWidth: "80px", background: "transparent", border: "none", outline: "none", color: "var(--foreground)", fontSize: "13px", padding: "0" }}
         />
       )}
     </div>
@@ -388,7 +388,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
             values.map((v: string) => {
               const opt = options.find((o: any) => o.id === v);
               return (
-                <span key={v} style={{ fontSize: "9px", padding: "2px 6px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "#00d4ff", borderRadius: "2px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
                   {opt ? opt.name : v} 
                   {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
                 </span>
@@ -412,7 +412,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "8px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => {
@@ -421,7 +421,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
                   <div key={o.id} onClick={() => {
                     if (selected) onChange(values.filter((v: string) => v !== o.id));
                     else onChange([...values, o.id]);
-                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "#00d4ff" : "#e2e8f0", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
+                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.05)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
                     <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "#00d4ff" : "rgba(255,255,255,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "#00d4ff" : "transparent" }}>
                       {selected && <Check className="w-2 h-2 text-black" />}
                     </div>
@@ -431,7 +431,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
               })}
             </div>
           ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>No hay cuentas publicitarias</div>}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(148,163,184,0.5)", textAlign: "center" }}>No hay cuentas publicitarias</div>}
         </div>
       )}
     </div>
@@ -469,7 +469,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
           onChange={e => { setSearch(e.target.value); setOpen(true); onChange(e.target.value); }}
           onFocus={() => { setOpen(true); setSearch(value); }}
           readOnly={ro || disabled}
-          style={{ width: "100%", height: "100%", background: "transparent", border: "none", outline: "none", color: "#e2e8f0", fontSize: "12px", padding: "8px 10px" }}
+          style={{ width: "100%", height: "100%", background: "transparent", border: "none", outline: "none", color: "var(--foreground)", fontSize: "13px", padding: "10px 12px" }}
         />
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, marginRight: "10px", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); setOpen(!open); }} />}
       </div>
@@ -477,7 +477,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
         <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           {filtered.map((o: any) => (
             <div key={o.value} onClick={() => { onChange(o.value); setSearch(o.value); setOpen(false); }} 
-                 style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "#e2e8f0" }} 
+                 style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--foreground)" }} 
                  onMouseEnter={e => e.currentTarget.style.background = "rgba(0,212,255,0.1)"} 
                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
               {o.label}
@@ -491,7 +491,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
               <Plus className="w-3 h-3" /> Crear "{search}"
             </div>
           )}
-          {filtered.length === 0 && !search && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(255,255,255,0.3)", textAlign: "center" }}>Empieza a escribir...</div>}
+          {filtered.length === 0 && !search && <div style={{ padding: "10px", fontSize: "11px", color: "rgba(148,163,184,0.5)", textAlign: "center" }}>Empieza a escribir...</div>}
         </div>
       )}
     </div>
@@ -510,6 +510,7 @@ export default function ProyectosPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
 
   const [adAccounts, setAdAccounts] = useState<Record<string, { id: string; name: string; portfolio?: string }[]>>({
     meta: [],
@@ -608,7 +609,6 @@ export default function ProyectosPage() {
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("¿Eliminar este proyecto?")) return;
     const prev = [...projects];
     setProjects(projects.filter(p => p.id !== id));
     try {
@@ -616,6 +616,7 @@ export default function ProyectosPage() {
       const json = await res.json();
       if (!json.success) setProjects(prev);
     } catch { setProjects(prev); }
+    setDeleteConfirm(null);
     setMenuOpen(null);
   }
 
@@ -667,11 +668,18 @@ export default function ProyectosPage() {
           <span className="badge badge-emerald">{projects.length}</span>
         </div>
 
-        {projects.length === 0 ? (
-          <div style={{ padding: "48px 24px", textAlign: "center" }}>
-            <FolderKanban className="w-10 h-10 mx-auto mb-3" style={{ color: "rgba(148,163,184,0.15)" }} />
-            <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "10px", letterSpacing: "0.2em", color: "rgba(148,163,184,0.3)", textTransform: "uppercase" }}>Sin proyectos</p>
-            <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.2)", marginTop: "4px" }}>Crea tu primer proyecto.</p>
+        {!loading && projects.length === 0 ? (
+          <div style={{ padding: "56px 24px", textAlign: "center" }}>
+            <FolderKanban className="w-12 h-12 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.25)" }} />
+            <p style={{ fontFamily: "var(--font-display)", fontSize: "12px", letterSpacing: "0.2em", color: "rgba(148,163,184,0.45)", textTransform: "uppercase" }}>Sin proyectos</p>
+            <p style={{ fontSize: "12px", color: "rgba(148,163,184,0.35)", marginTop: "6px" }}>Crea tu primer proyecto para empezar a gestionar campañas.</p>
+            <button
+              className="btn-primary"
+              onClick={() => { setEditingId(null); setModalMode("create"); }}
+              style={{ marginTop: "20px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 24px" }}
+            >
+              <Plus className="w-4 h-4" /> Crear primer proyecto
+            </button>
           </div>
         ) : projects.map(p => (
           <div key={p.id} className="data-row" style={{ position: "relative" }}>
@@ -682,16 +690,16 @@ export default function ProyectosPage() {
                 boxShadow: p.status === "Activo" ? "0 0 8px var(--emerald)" : "none",
               }} />
               <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: "13px", fontWeight: 600, color: "#e2e8f0" }}>{p.alias || "Sin nombre"}</p>
+                <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>{p.alias || "Sin nombre"}</p>
                 <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.4)", marginTop: "1px" }}>
                   {p.vertical}{p.channels.length ? ` · ${p.channels.map(c => c.platformName).join(", ")}` : ""}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
               {p.channels.slice(0, 3).map(c => {
                 const pl = PLATFORMS.find(x => x.id === c.platformId);
-                return <span key={c.platformId} style={{ fontSize: "9px", padding: "2px 6px", border: `1px solid ${pl?.color || "var(--border)"}`, color: pl?.color || "#94a3b8", fontWeight: 600, letterSpacing: "0.05em" }}>{c.platformName}</span>;
+                return <span key={c.platformId} style={{ fontSize: "10px", padding: "3px 8px", border: `1px solid ${pl?.color || "var(--border)"}`, color: pl?.color || "#94a3b8", fontWeight: 600, letterSpacing: "0.05em" }}>{c.platformName}</span>;
               })}
               {p.channels.length > 3 && <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.3)" }}>+{p.channels.length - 3}</span>}
               <span className={`badge badge-${STATUS_COLORS[p.status]}`}>{p.status}</span>
@@ -723,7 +731,7 @@ export default function ProyectosPage() {
                 text={`Cambiar a ${s}`} onClick={() => handleStatusChange(menuOpen, s)} />
             ))}
             <div style={{ height: "1px", background: "rgba(255,255,255,0.04)", margin: "4px 0" }} />
-            <MenuBtn icon={<Trash2 className="w-3.5 h-3.5" />} text="Eliminar" onClick={() => handleDelete(menuOpen)} danger />
+            <MenuBtn icon={<Trash2 className="w-3.5 h-3.5" />} text="Eliminar" onClick={() => { setDeleteConfirm(menuOpen); setMenuOpen(null); }} danger />
           </div>
         </>,
         document.body
@@ -805,7 +813,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
   if (!mounted) return null;
 
   const title = mode === "create" ? "Nuevo Proyecto" : mode === "edit" ? "Editar Proyecto" : "Detalle";
-  const accent = mode === "create" ? "#06d6a0" : mode === "edit" ? "#ffbe0b" : "#00d4ff";
+  const accent = mode === "create" ? "var(--emerald)" : mode === "edit" ? "var(--amber)" : "var(--cyan)";
   
   const fanpageOptions = metaPages.map(p => ({
     value: p.name,
@@ -834,18 +842,18 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
     }}>
       <div onClick={e => e.stopPropagation()} className="page-enter" style={{
         width: "640px", maxWidth: "100%",
-        background: "rgba(5,8,18,0.97)", border: "1px solid rgba(0,212,255,0.12)",
+        background: "var(--surface)", border: "1px solid var(--border-strong)",
         flexShrink: 0, marginBottom: "3vh",
       }}>
         <div style={{ height: "2px", background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
 
         {/* Header */}
         <div style={{ padding: "16px 24px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)" }}>
-          <h2 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "13px", fontWeight: 700, color: "white", letterSpacing: "0.1em" }}>{title}</h2>
-          <button onClick={onClose} style={{ color: "rgba(148,163,184,0.4)", cursor: "pointer", background: "none", border: "none" }}><X className="w-5 h-5" /></button>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "white", letterSpacing: "0.1em" }}>{title}</h2>
+          <button onClick={onClose} style={{ color: "rgba(148,163,184,0.4)", cursor: "pointer", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "rgba(148,163,184,0.8)"} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.4)"}><X className="w-5 h-5" /></button>
         </div>
 
-        <div style={{ padding: "14px 24px 24px" }}>
+        <div style={{ padding: "20px 24px 24px" }}>
 
           {/* ── Identidad ── */}
           <Sec icon={<Users className="w-3 h-3" />} text="Identidad del Proyecto" />
@@ -913,7 +921,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
           <Sec icon={<DollarSign className="w-3 h-3" />} text={`Canales Publicitarios${errors.includes("channels") ? " — Selecciona al menos 1" : ""}`} />
 
           {/* Platform checkboxes */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "14px" }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
             {PLATFORMS.map(pl => {
               const selected = form.channels.some(c => c.platformId === pl.id);
               const disabled = !pl.connected && !selected;
@@ -926,15 +934,15 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
                     padding: "6px 12px", fontSize: "11px", fontWeight: 600,
                     border: `1px solid ${selected ? pl.color : disabled ? "rgba(148,163,184,0.08)" : "rgba(148,163,184,0.15)"}`,
                     background: selected ? `${pl.color}12` : "transparent",
-                    color: selected ? pl.color : disabled ? "rgba(148,163,184,0.2)" : "rgba(148,163,184,0.5)",
+                    color: selected ? pl.color : disabled ? "rgba(148,163,184,0.3)" : "rgba(148,163,184,0.55)",
                     cursor: disabled ? "not-allowed" : "pointer",
-                    opacity: disabled ? 0.4 : 1,
+                    opacity: disabled ? 0.5 : 1,
                     transition: "all 0.15s",
                   }}
                 >
                   {selected && <Check className="w-3 h-3" />}
                   {pl.name}
-                  {!pl.connected && !selected && <span style={{ fontSize: "8px", opacity: 0.5 }}>(offline)</span>}
+                  {!pl.connected && !selected && <span style={{ fontSize: "9px", opacity: 0.6 }}>(offline)</span>}
                 </button>
               );
             })}
@@ -966,7 +974,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
                 </div>
 
                 {/* Ad accounts multi-select dropdown */}
-                <label style={{ display: "block", fontSize: "9px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(148,163,184,0.4)", marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(148,163,184,0.5)", marginBottom: "6px" }}>
                   Cuentas Publicitarias
                 </label>
                 <div style={{ marginBottom: "12px" }}>
@@ -980,29 +988,29 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
                 </div>
 
                 {/* Metrics row */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: "8px" }}>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "8px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)", marginBottom: "3px" }}>Budget</label>
+                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.45)", marginBottom: "4px" }}>Budget</label>
                     <input type="text" value={ch.budget} readOnly={ro} placeholder="$0.00"
                       style={{ ...inp, fontSize: "11px", padding: "6px 8px" }}
                       onChange={e => setChannel(ch.platformId, "budget", e.target.value)} />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "8px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)", marginBottom: "3px" }}>Período</label>
+                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.45)", marginBottom: "4px" }}>Período</label>
                     <select style={{ ...sel, fontSize: "11px", padding: "6px 8px" }} value={ch.period} disabled={ro}
                       onChange={e => setChannel(ch.platformId, "period", e.target.value)}>
                       {["Diario","Semanal","Mensual","Anual"].map(b => <option key={b}>{b}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "8px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)", marginBottom: "3px" }}>Meta</label>
+                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.45)", marginBottom: "4px" }}>Meta</label>
                     <select style={{ ...sel, fontSize: "11px", padding: "6px 8px" }} value={ch.goal} disabled={ro}
                       onChange={e => setChannel(ch.platformId, "goal", e.target.value)}>
                       <option value="">—</option>{GOALS.map(g => <option key={g}>{g}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "8px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)", marginBottom: "3px" }}>{CPR_MAP[ch.goal] || "CPR"}</label>
+                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(148,163,184,0.45)", marginBottom: "4px" }}>{CPR_MAP[ch.goal] || "CPR"}</label>
                     <input type="text" value={ch.cpr} readOnly={ro} placeholder="$0.00"
                       style={{ ...inp, fontSize: "11px", padding: "6px 8px" }}
                       onChange={e => setChannel(ch.platformId, "cpr", e.target.value)} />
@@ -1028,9 +1036,12 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
               <button onClick={onClose} style={{
                 fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase",
-                padding: "8px 20px", border: "1px solid rgba(148,163,184,0.12)", color: "rgba(148,163,184,0.4)",
-                background: "transparent", cursor: "pointer",
-              }}>Cancelar</button>
+                padding: "8px 20px", border: "1px solid rgba(148,163,184,0.12)", color: "rgba(148,163,184,0.5)",
+                background: "transparent", cursor: "pointer", transition: "all 0.15s", borderRadius: "4px",
+              }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.3)"; e.currentTarget.style.color = "rgba(148,163,184,0.8)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.12)"; e.currentTarget.style.color = "rgba(148,163,184,0.5)"; }}
+              >Cancelar</button>
               <button onClick={handleSubmit} className="btn-primary" style={{
                 padding: "8px 24px", background: "rgba(6,214,160,0.08)",
                 borderColor: "rgba(6,214,160,0.35)", color: "var(--emerald)",
@@ -1082,20 +1093,20 @@ function MenuBtn({ icon, text, onClick, danger }: { icon: React.ReactNode; text:
 
 function Sec({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "10px", marginTop: "14px" }}>
+    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px", marginTop: "16px" }}>
       <span style={{ color: "var(--cyan)", opacity: 0.4 }}>{icon}</span>
-      <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "8px", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(148,163,184,0.35)" }}>{text}</span>
+      <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(148,163,184,0.45)" }}>{text}</span>
       <span style={{ flex: 1, height: "1px", background: "var(--border)" }} />
     </div>
   );
 }
 function Row({ children }: { children: React.ReactNode }) {
-  return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "10px" }}>{children}</div>;
+  return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "12px" }}>{children}</div>;
 }
 function Field({ l, el, error }: { l: string; el: React.ReactNode; error?: boolean }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: "9px", fontFamily: "'Orbitron', sans-serif", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: error ? "var(--red)" : "rgba(148,163,184,0.4)", marginBottom: "4px" }}>{l}{error ? " *" : ""}</label>
+      <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: error ? "var(--red)" : "rgba(148,163,184,0.5)", marginBottom: "5px" }}>{l}{error ? " *" : ""}</label>
       {el}
     </div>
   );
