@@ -669,7 +669,8 @@ export default function ProjectDashboardPage() {
               <p style={subStyle}>Distribución del gasto por demografía</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
-                  const d = breakdownData["age_gender"] || insights?.demographics || [];
+                  const bd = breakdownData["age_gender"];
+                  const d = (bd && bd.length > 0) ? bd : (insights?.demographics || []);
                   const map: Record<string, any> = {};
                   d.forEach((r: any) => { const age = r.age || "?"; const g = r.gender === "male" ? "Hombres" : r.gender === "female" ? "Mujeres" : "Otro"; if (!map[age]) map[age] = { age, Hombres: 0, Mujeres: 0, Otro: 0 }; map[age][g] += parseFloat(r.spend || "0"); });
                   const cd = Object.values(map).sort((a: any, b: any) => a.age.localeCompare(b.age));
@@ -687,7 +688,8 @@ export default function ProjectDashboardPage() {
               <p style={subStyle}>Regiones con mayor inversión</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
-                  const d = (breakdownData["region"] || insights?.geo || []).map((r: any) => ({ region: r.region || "?", spend: parseFloat(r.spend || "0") })).sort((a: any, b: any) => b.spend - a.spend).slice(0, 8);
+                  const bdR = breakdownData["region"];
+                  const d = ((bdR && bdR.length > 0) ? bdR : (insights?.geo || [])).map((r: any) => ({ region: r.region || "?", spend: parseFloat(r.spend || "0") })).sort((a: any, b: any) => b.spend - a.spend).slice(0, 8);
                   return d.length > 0 ? <ResponsiveContainer><BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} /><XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis type="category" dataKey="region" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} width={80} />
                     <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), "Inversión"]} /><Bar dataKey="spend" fill="#fdab3d" radius={[0, 4, 4, 0]} barSize={16} />
@@ -701,7 +703,8 @@ export default function ProjectDashboardPage() {
               <p style={subStyle}>Facebook vs Instagram vs Audience Network</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
-                  const d = (breakdownData["platform"] || []).map((r: any) => ({ name: r.publisher_platform || "?", spend: parseFloat(r.spend || "0"), impressions: parseInt(r.impressions || "0", 10) }));
+                  const bdP = breakdownData["platform"];
+                  const d = ((bdP && bdP.length > 0) ? bdP : []).map((r: any) => ({ name: r.publisher_platform || "?", spend: parseFloat(r.spend || "0"), impressions: parseInt(r.impressions || "0", 10) }));
                   const total = d.reduce((a: number, r: any) => a + r.spend, 0);
                   return d.length > 0 ? <ResponsiveContainer><PieChart><Pie data={d} dataKey="spend" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={100} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={{ stroke: "rgba(148,163,184,0.3)" }}>
                     {d.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
@@ -715,7 +718,8 @@ export default function ProjectDashboardPage() {
               <p style={subStyle}>Mobile vs Desktop</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
-                  const d = (breakdownData["device"] || []).map((r: any) => ({ name: r.device_platform === "mobile_app" || r.device_platform === "mobile_web" ? "Mobile" : r.device_platform === "desktop" ? "Desktop" : r.device_platform || "Otro", spend: parseFloat(r.spend || "0") }));
+                  const bdD = breakdownData["device"];
+                  const d = ((bdD && bdD.length > 0) ? bdD : []).map((r: any) => ({ name: r.device_platform === "mobile_app" || r.device_platform === "mobile_web" ? "Mobile" : r.device_platform === "desktop" ? "Desktop" : r.device_platform || "Otro", spend: parseFloat(r.spend || "0") }));
                   const merged: Record<string, number> = {}; d.forEach((r: any) => { merged[r.name] = (merged[r.name] || 0) + r.spend; });
                   const cd = Object.entries(merged).map(([name, spend]) => ({ name, spend })).sort((a, b) => b.spend - a.spend);
                   return cd.length > 0 ? <ResponsiveContainer><PieChart><Pie data={cd} dataKey="spend" nameKey="name" cx="50%" cy="50%" innerRadius={60} outerRadius={100} label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`} labelLine={{ stroke: "rgba(148,163,184,0.3)" }}>
