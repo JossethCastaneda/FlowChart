@@ -52,43 +52,6 @@ const LogoIcon = () => (
   </svg>
 );
 
-/* ═══ LOCAL GRID GENERATOR ═══ */
-function generateLocalGrid(formData: GridFormData): ContentGridData {
-  const totalDays = DAYS_IN_MONTH[formData.month] || 30;
-  const count = formData.postCount;
-  const spacing = Math.floor(totalDays / count);
-  const focusList = formData.focus.length > 0 ? formData.focus : ["Ventas"];
-
-  const posts: Post[] = [];
-  for (let i = 0; i < count; i++) {
-    const dia = Math.min(1 + i * spacing + Math.floor(Math.random() * Math.max(1, spacing - 1)), totalDays);
-    const enfoque = INBOUND_STAGES[i % INBOUND_STAGES.length];
-    const focusTag = focusList[i % focusList.length];
-    const isVideo = formData.formats === "Video" || (formData.formats === "Ambas" && i % 3 === 0);
-
-    posts.push({
-      dia,
-      ideaPrincipal: `Post ${i + 1} — ${focusTag} · ${formData.month}`,
-      enfoquePublicacion: enfoque,
-      copyIn: "",
-      copyOut: "",
-      explicacionArte: "",
-      formatoArte: isVideo ? "Video" : "Imagen",
-      masterPromptMidjourney: "",
-      videoDetails: isVideo ? { numEscenas: 3, videoAITool: "Kling 2.1", promptsEscenasMidjourney: [], promptsVideoAI: [] } : undefined,
-      pasoAPaso: "",
-    });
-  }
-
-  const videoCount = posts.filter(p => p.formatoArte === "Video").length;
-  const imgCount = posts.filter(p => p.formatoArte === "Imagen").length;
-
-  return {
-    posts: posts.sort((a, b) => a.dia - b.dia),
-    creditos: { min: imgCount + videoCount * 300, max: imgCount + videoCount * 1400, summary: `${count} posts · ${imgCount} img · ${videoCount} video` },
-  };
-}
-
 /* ═══ SETUP FORM ═══ */
 function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) => void; isLoading: boolean }) {
   const [formData, setFormData] = useState<GridFormData>({
@@ -195,15 +158,9 @@ export default function BriefingPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [gridData, setGridData] = useState<ContentGridData | null>(null);
-  const [useAI, setUseAI] = useState(false);
 
   const handleGenerate = async (formData: GridFormData) => {
     setIsLoading(true); setError(null); setGridData(null);
-
-    if (!useAI) {
-      setTimeout(() => { setGridData(generateLocalGrid(formData)); setIsLoading(false); }, 300);
-      return;
-    }
 
     try {
       const res = await fetch("/api/gridia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
@@ -233,18 +190,9 @@ export default function BriefingPage() {
             <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 14, fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>
               Grid<span style={{ color: "#00E500" }}>IA</span>
             </h1>
-            <p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", letterSpacing: "0.05em" }}>Content Grid Generator</p>
+            <p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", letterSpacing: "0.05em" }}>Powered by Gemini 2.5 Flash</p>
           </div>
         </div>
-        <button onClick={() => setUseAI(!useAI)} style={{
-          display: "flex", alignItems: "center", gap: 5, padding: "4px 10px", fontSize: 9, fontWeight: 600,
-          background: useAI ? "rgba(0,229,0,0.1)" : "rgba(255,255,255,0.03)",
-          border: `1px solid ${useAI ? "rgba(0,229,0,0.3)" : "rgba(255,255,255,0.06)"}`,
-          color: useAI ? "#00E500" : "rgba(148,163,184,0.4)", borderRadius: 3, cursor: "pointer",
-        }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: useAI ? "#00E500" : "rgba(148,163,184,0.2)" }} />
-          {useAI ? "Gemini AI" : "Manual"}
-        </button>
       </div>
 
       {/* Form */}
@@ -256,7 +204,7 @@ export default function BriefingPage() {
       {isLoading && (
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "24px 0" }}>
           <div style={{ width: 20, height: 20, border: "2px solid rgba(0,229,0,0.12)", borderTopColor: "#00E500", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
-          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.08em" }}>{useAI ? "Generando con Gemini AI..." : "Creando plantilla..."}</span>
+          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Generando con Gemini AI...</span>
         </div>
       )}
 
@@ -273,7 +221,7 @@ export default function BriefingPage() {
       {/* Empty state */}
       {!gridData && !isLoading && !error && (
         <div style={{ textAlign: "center", padding: "30px 0", color: "rgba(148,163,184,0.15)", fontSize: 10, letterSpacing: "0.05em" }}>
-          {useAI ? "Configura y genera con Gemini AI" : "Configura y genera tu plantilla editable"}
+          Configura y genera la parrilla con Gemini AI
         </div>
       )}
     </div>
