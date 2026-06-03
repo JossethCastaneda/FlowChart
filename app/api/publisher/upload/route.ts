@@ -2,21 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { writeFile, mkdir } from "fs/promises";
-import path from "path";
 import { randomUUID } from "crypto";
-import os from "os";
 
 /**
  * POST /api/publisher/upload
  * 
  * Accepts multipart form data with a "file" field.
- * Saves to /tmp/uploads/ (Vercel compatible) and returns
- * a base64 data URL for preview + the temp path for publishing.
- * 
- * On Vercel, the filesystem is read-only except for /tmp.
- * Files in /tmp are ephemeral (cleared between invocations)
- * but persist during the same request lifecycle.
+ * Returns a base64 data URL for browser preview.
+ * The data URL is stored in the post's mediaUrls and
+ * the publish route handles converting it to a multipart upload.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -50,36 +44,23 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Max 50MB
-    const MAX_SIZE = 50 * 1024 * 1024;
+    // Max 10MB
+    const MAX_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_SIZE) {
       return NextResponse.json(
-        { error: "El archivo excede 50MB" },
+        { error: "El archivo excede 10MB" },
         { status: 400 }
       );
     }
 
-    // Read file buffer
+    // Read file buffer and convert to base64 data URL
     const buffer = Buffer.from(await file.arrayBuffer());
-
-    // Generate unique filename
-    const ext = path.extname(file.name) || (file.type.startsWith("image/") ? ".jpg" : ".mp4");
-    const filename = `${randomUUID()}${ext}`;
-
-    // Save to /tmp (works on Vercel, local dev, and Docker)
-    const uploadsDir = path.join(os.tmpdir(), "sodare-uploads");
-    await mkdir(uploadsDir, { recursive: true });
-    const filePath = path.join(uploadsDir, filename);
-    await writeFile(filePath, buffer);
-
-    // Generate base64 data URL for preview in browser
     const base64 = buffer.toString("base64");
     const dataUrl = `data:${file.type};base64,${base64}`;
 
     return NextResponse.json({
-      url: dataUrl,                // For browser preview
-      tmpPath: filePath,           // For server-side publishing
-      filename: file.name,         // Original filename
+      url: dataUrl,
+      filename: file.name,
       size: file.size,
       type: file.type,
     });
@@ -89,6 +70,4 @@ export async function POST(req: NextRequest) {
   }
 }
 
-// App Router handles formData() natively — no bodyParser config needed.
-// Set max duration for large file uploads on serverless.
 export const maxDuration = 30;
