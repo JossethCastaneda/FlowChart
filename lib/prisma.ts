@@ -10,12 +10,15 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 function createPrismaClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
+  let connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
     console.warn("[Prisma] DATABASE_URL not set — queries will fail");
     return new PrismaClient({ adapter: undefined as any });
   }
+
+  // Suppress the node-postgres warning about sslmode=require
+  connectionString = connectionString.replace("sslmode=require", "sslmode=verify-full");
 
   const pool = new Pool({
     connectionString,
