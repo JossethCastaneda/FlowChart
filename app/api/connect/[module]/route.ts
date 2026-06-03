@@ -6,13 +6,25 @@ import { getToken } from "next-auth/jwt";
  * Initiates Facebook OAuth with the module-specific config_id.
  * 
  * Modules and their config_ids:
- *   - social    → FACEBOOK_SOCIAL_CONFIG_ID    (Publisher: publish, manage posts)
- *   - ads       → FACEBOOK_ADS_CONFIG_ID       (Ads Manager)
- *   - analytics → FACEBOOK_ANALYTICS_CONFIG_ID (Insights, read engagement)
- *   - community → FACEBOOK_COMMUNITY_CONFIG_ID (Inbox, Listening, Streams)
+ *   - publisher_facebook → FACEBOOK_PUBLISHER_FB_CONFIG_ID  (Publish posts to FB pages)
+ *   - publisher_instagram → FACEBOOK_PUBLISHER_IG_CONFIG_ID (Publish to Instagram)
+ *   - social             → FACEBOOK_SOCIAL_CONFIG_ID        (Read engagement/insights)
+ *   - ads                → FACEBOOK_ADS_CONFIG_ID           (Ads Manager)
+ *   - analytics          → FACEBOOK_ANALYTICS_CONFIG_ID     (Insights)
+ *   - community          → FACEBOOK_COMMUNITY_CONFIG_ID     (Inbox, Listening, Streams)
  */
 
 const CONFIG_MAP: Record<string, { envKey: string; fallback: string; label: string }> = {
+  publisher_facebook: {
+    envKey: "FACEBOOK_PUBLISHER_FB_CONFIG_ID",
+    fallback: "1333238198690065",
+    label: "Publisher Facebook",
+  },
+  publisher_instagram: {
+    envKey: "FACEBOOK_PUBLISHER_IG_CONFIG_ID",
+    fallback: "1035599188809500",
+    label: "Publisher Instagram",
+  },
   social: {
     envKey: "FACEBOOK_SOCIAL_CONFIG_ID",
     fallback: "1442288174597662",
@@ -34,6 +46,7 @@ const CONFIG_MAP: Record<string, { envKey: string; fallback: string; label: stri
     label: "Community Management",
   },
 };
+
 
 export async function GET(
   request: NextRequest,

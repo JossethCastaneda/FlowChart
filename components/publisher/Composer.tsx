@@ -176,9 +176,10 @@ export function Composer() {
         const res = await fetch("/api/connect/status");
         if (res.ok) {
           const data = await res.json();
-          const social = data.modules?.social;
-          setSocialConnected(social?.connected ?? false);
-          const pagesArr: any[] = social?.pages || [];
+          // Check publisher_facebook first, fall back to social
+          const pub = data.modules?.publisher_facebook || data.modules?.social;
+          setSocialConnected(pub?.connected ?? false);
+          const pagesArr: any[] = pub?.pages || [];
           setSocialPages(pagesArr);
           setSocialInstagramAccounts(pagesArr.filter((p: any) => p.instagramId));
         } else {
@@ -191,7 +192,7 @@ export function Composer() {
     loadSocialStatus();
     // Also refresh if we just connected (URL param)
     const params = new URLSearchParams(window.location.search);
-    if (params.get("connected") === "social") {
+    if (params.get("connected") === "publisher_facebook" || params.get("connected") === "publisher_instagram" || params.get("connected") === "social") {
       window.history.replaceState({}, "", window.location.pathname);
       loadSocialStatus();
     }
@@ -936,7 +937,7 @@ export function Composer() {
                   </span>
                 )}
                 <button
-                  onClick={() => { window.location.href = "/api/connect/social"; }}
+                  onClick={() => { window.location.href = "/api/connect/publisher_facebook"; }}
                   style={{
                     background: "none", border: "1px solid rgba(148,163,184,0.15)", borderRadius: 4,
                     color: "#64748b", fontSize: 9, padding: "2px 7px", cursor: "pointer",
@@ -986,7 +987,7 @@ export function Composer() {
                 </p>
               </div>
               <button
-                onClick={() => { window.location.href = "/api/connect/social"; }}
+                onClick={() => { window.location.href = "/api/connect/publisher_facebook"; }}
                 style={{
                   display: "flex", alignItems: "center", gap: 5,
                   padding: "6px 12px", borderRadius: 7, flexShrink: 0,

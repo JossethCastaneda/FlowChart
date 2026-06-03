@@ -130,18 +130,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Este post ya fue publicado" }, { status: 400 });
     }
 
-    const accessToken = await getMetaAccessToken(req, "social");
+    // Try publisher_facebook token first, fallback to meta, then social
+    let accessToken = await getMetaAccessToken(req, "publisher_facebook");
+    if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher");
+    if (!accessToken) accessToken = await getMetaAccessToken(req, "social");
+    if (!accessToken) accessToken = await getMetaAccessToken(req);
+
     if (!accessToken) {
       return NextResponse.json(
-        { error: "No se encontró token de Meta. Reconecta tu cuenta en Integraciones." },
+        { error: "No hay cuenta de Facebook conectada. Ve al Publisher y conecta tu cuenta de Facebook." },
         { status: 401 }
       );
     }
 
-    const pagesUrl = `https://graph.facebook.com/${META_VERSION}/me/accounts?fields=id,name,access_token,instagram_business_account{id}&limit=100`;
-    const pagesRes = await metaFetch(pagesUrl, accessToken);
-    const pagesJson = await pagesRes.json();
-    const pages = pagesJson.data || [];
+    // Fetch ALL pages with pagination (user may have 100+)
+    let pages: any[] = [];
+    let nextPagesUrl: string | null = `https://graph.facebook.com/${META_VERSION}/me/accounts?fields=id,name,access_token,instagram_business_account{id,username}&limit=100`;
+    while (nextPagesUrl) {
+      const pagesRes = await metaFetch(nextPagesUrl, accessToken);
+      const pagesJson = await pagesRes.json();
+      if (pagesJson.error) {
+        console.error("[PUBLISHER] Error fetching pages:", JSON.stringify(pagesJson.error));
+        break;
+      }
+      pages = [...pages, ...(pagesJson.data || [])];
+      nextPagesUrl = pagesJson.paging?.next || null;
+    }
 
     if (pages.length === 0) {
       return NextResponse.json(

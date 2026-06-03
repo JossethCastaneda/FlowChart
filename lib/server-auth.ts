@@ -7,12 +7,16 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
  * Module-to-provider mapping for config_id-specific tokens.
  */
 const MODULE_PROVIDER_MAP: Record<string, string> = {
+  // Publisher — dedicated configs with publish permissions
+  publisher_facebook: "meta_publisher_facebook",
+  publisher_instagram: "meta_publisher_instagram",
+  // Other modules
   social: "meta_social",
   ads: "meta_ads",
   analytics: "meta_analytics",
   community: "meta_community",
-  // Aliases for convenience
-  publisher: "meta_social",
+  // Aliases
+  publisher: "meta_publisher_facebook",  // publisher defaults to FB publisher token
   inbox: "meta_community",
   listening: "meta_community",
   streams: "meta_community",

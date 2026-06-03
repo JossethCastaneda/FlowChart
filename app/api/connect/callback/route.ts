@@ -182,11 +182,13 @@ export async function GET(request: NextRequest) {
 
     console.log(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
 
-    // Social connections go to Publisher; all others go to Integrations
-    if (module === "social") {
+    // Publisher connections go back to Publisher; all others go to Integrations
+    const publisherModules = ["social", "publisher_facebook", "publisher_instagram"];
+    if (publisherModules.includes(module)) {
       return NextResponse.redirect(`${baseUrl}/dashboard/publisher?connected=${module}`);
     }
     return NextResponse.redirect(`${baseUrl}/dashboard/integrations?connected=${module}`);
+
 
   } catch (err: any) {
     console.error("[CONNECT CALLBACK] Error:", err);
