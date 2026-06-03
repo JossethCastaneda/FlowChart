@@ -5,15 +5,18 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
 import { randomUUID } from "crypto";
+import os from "os";
 
 /**
  * POST /api/publisher/upload
  * 
  * Accepts multipart form data with a "file" field.
- * Saves to public/uploads/ and returns the public URL.
+ * Saves to /tmp/uploads/ (Vercel compatible) and returns
+ * a base64 data URL for preview + the temp path for publishing.
  * 
- * NOTE: For production, replace with cloud storage (S3/Cloudinary/Firebase Storage).
- * This local storage approach works for development and small-scale deployments.
+ * On Vercel, the filesystem is read-only except for /tmp.
+ * Files in /tmp are ephemeral (cleared between invocations)
+ * but persist during the same request lifecycle.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -56,25 +59,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Read file buffer
+    const buffer = Buffer.from(await file.arrayBuffer());
+
     // Generate unique filename
     const ext = path.extname(file.name) || (file.type.startsWith("image/") ? ".jpg" : ".mp4");
     const filename = `${randomUUID()}${ext}`;
 
-    // Ensure uploads directory exists
-    const uploadsDir = path.join(process.cwd(), "public", "uploads");
+    // Save to /tmp (works on Vercel, local dev, and Docker)
+    const uploadsDir = path.join(os.tmpdir(), "sodare-uploads");
     await mkdir(uploadsDir, { recursive: true });
-
-    // Write file
-    const buffer = Buffer.from(await file.arrayBuffer());
     const filePath = path.join(uploadsDir, filename);
     await writeFile(filePath, buffer);
 
-    // Return public URL
-    const url = `/uploads/${filename}`;
+    // Generate base64 data URL for preview in browser
+    const base64 = buffer.toString("base64");
+    const dataUrl = `data:${file.type};base64,${base64}`;
 
     return NextResponse.json({
-      url,
-      filename,
+      url: dataUrl,                // For browser preview
+      tmpPath: filePath,           // For server-side publishing
+      filename: file.name,         // Original filename
       size: file.size,
       type: file.type,
     });

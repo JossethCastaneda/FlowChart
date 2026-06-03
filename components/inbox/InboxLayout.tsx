@@ -709,8 +709,6 @@ export function InboxLayout() {
       }).catch(() => {});
   };
 
-  const selected = conversations.find(c => c.id === selectedId) || conversations[0];
-
   // Apply search + page + channel filter
   const filtered = conversations.filter(c => {
     if (searchQuery) {
@@ -729,6 +727,17 @@ export function InboxLayout() {
     }
     return true;
   });
+
+  // Selected must be from filtered list — fallback to first filtered if not found
+  const selected = filtered.find(c => c.id === selectedId) || filtered[0] || null;
+
+  // Auto-select first filtered conversation when channelFilter changes
+  useEffect(() => {
+    if (filtered.length > 0 && !filtered.find(c => c.id === selectedId)) {
+      setSelectedId(filtered[0].id);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [channelFilter]);
 
   const handleSendMessage = (text: string) => {
     if (!text.trim()) return;
@@ -901,7 +910,10 @@ export function InboxLayout() {
           flexShrink: 0,
         }}>
           {CHANNEL_TABS.map(tab => {
-            const count = tab.key === "all"
+            const total = tab.key === "all"
+              ? conversations.length
+              : conversations.filter(c => tab.platforms.includes(c.platform)).length;
+            const unreadCount = tab.key === "all"
               ? conversations.filter(c => c.unread).length
               : conversations.filter(c => tab.platforms.includes(c.platform) && c.unread).length;
             const isActive = channelFilter === tab.key;
@@ -927,16 +939,18 @@ export function InboxLayout() {
                 onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "rgba(148,163,184,0.5)"; }}
               >
                 {tab.label}
-                {count > 0 && (
+                {total > 0 && (
                   <span style={{
                     minWidth: 18, height: 18, borderRadius: 9,
-                    background: tab.key === "all" ? "#ef4444" : tab.color,
-                    color: "white",
+                    background: unreadCount > 0
+                      ? (tab.key === "all" ? "#ef4444" : tab.color)
+                      : "rgba(148,163,184,0.15)",
+                    color: unreadCount > 0 ? "white" : "rgba(148,163,184,0.6)",
                     fontSize: 10, fontWeight: 700,
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     padding: "0 5px",
                   }}>
-                    {count}
+                    {unreadCount > 0 ? unreadCount : total}
                   </span>
                 )}
               </button>
