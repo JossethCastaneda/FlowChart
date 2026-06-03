@@ -53,13 +53,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Read file buffer and convert to base64 data URL
-    const buffer = Buffer.from(await file.arrayBuffer());
-    const base64 = buffer.toString("base64");
-    const dataUrl = `data:${file.type};base64,${base64}`;
+    // Upload to Vercel Blob if configured, otherwise fallback to base64
+    let fileUrl = "";
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      const { put } = await import("@vercel/blob");
+      const blob = await put(file.name, file, { access: 'public' });
+      fileUrl = blob.url;
+    } else {
+      // Read file buffer and convert to base64 data URL
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const base64 = buffer.toString("base64");
+      fileUrl = `data:${file.type};base64,${base64}`;
+    }
 
     return NextResponse.json({
-      url: dataUrl,
+      url: fileUrl,
       filename: file.name,
       size: file.size,
       type: file.type,

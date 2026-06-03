@@ -151,12 +151,25 @@ export async function POST(req: NextRequest) {
             }
           } else {
             // ── URL-based upload (for https:// URLs) ──
+            const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
+            const endpoint = isVideo ? "videos" : "photos";
+            const domain = isVideo ? "graph-video.facebook.com" : "graph.facebook.com";
+            
+            const payload: any = {};
+            if (isVideo) {
+              payload.file_url = mediaUrl;
+              payload.description = post.content;
+            } else {
+              payload.url = mediaUrl;
+              payload.message = post.content;
+            }
+
             const fbRes = await fetch(
-              `https://graph.facebook.com/${META_VERSION}/${pageId}/photos`,
+              `https://${domain}/${META_VERSION}/${pageId}/${endpoint}`,
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${pageToken}` },
-                body: JSON.stringify({ url: mediaUrl, message: post.content }),
+                body: JSON.stringify(payload),
               }
             );
             const fbData = await fbRes.json();
