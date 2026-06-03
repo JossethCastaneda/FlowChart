@@ -26,6 +26,7 @@ import {
   X,
   Search,
   Globe,
+  Bell,
 } from "lucide-react";
 
 /* ══════════════════════════════════════════════════════════
@@ -744,10 +745,229 @@ function IntegrationsPanel() {
           );
         })}
       </div>
+
+      {/* ─── Webhook Configuration ─── */}
+      <WebhookConfig connectedCount={connectedCount} />
     </div>
   );
 }
 
+/* ── Webhook Configuration Component ── */
+function WebhookConfig({ connectedCount }: { connectedCount: number }) {
+  const [status, setStatus] = useState<any>(null);
+  const [subscribing, setSubscribing] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch("/api/webhooks/subscribe");
+      if (res.ok) setStatus(await res.json());
+    } catch { /* silent */ }
+  };
+
+  useEffect(() => { if (connectedCount > 0) fetchStatus(); }, [connectedCount]);
+
+  const handleSubscribe = async () => {
+    setSubscribing(true);
+    setResult(null);
+    try {
+      const res = await fetch("/api/webhooks/subscribe", { method: "POST" });
+      const data = await res.json();
+      setResult(data);
+      fetchStatus();
+    } catch (err: any) {
+      setResult({ error: err.message });
+    }
+    setSubscribing(false);
+  };
+
+  const allFieldsSubscribed = status?.subscriptions?.every((s: any) =>
+    s.subscribedFields?.length >= 5
+  );
+
+  return (
+    <div style={{
+      borderRadius: 12, overflow: "hidden",
+      background: "rgba(255,255,255,0.015)",
+      border: `1px solid ${allFieldsSubscribed ? "rgba(0,200,117,0.15)" : "rgba(255,165,0,0.15)"}`,
+    }}>
+      {/* Header */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 10,
+          padding: "12px 16px", background: "transparent", border: "none",
+          cursor: "pointer", fontFamily: "inherit",
+          borderBottom: expanded ? "1px solid rgba(255,255,255,0.04)" : "none",
+        }}
+      >
+        <div style={{
+          width: 32, height: 32, borderRadius: 8,
+          background: "rgba(255,165,0,0.1)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <Bell style={{ width: 16, height: 16, color: "#ffa500" }} />
+        </div>
+        <div style={{ flex: 1, textAlign: "left" }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "white" }}>Webhooks & Alertas en Tiempo Real</div>
+          <div style={{ fontSize: 10, color: "#64748b" }}>
+            {allFieldsSubscribed
+              ? "✅ Todas las alertas configuradas"
+              : connectedCount === 0
+              ? "Conecta al menos un módulo primero"
+              : "⚠️ Webhooks pendientes de configurar"
+            }
+          </div>
+        </div>
+        <div style={{
+          width: 8, height: 8, borderRadius: "50%",
+          background: allFieldsSubscribed ? "#00c875" : "#ffa500",
+          boxShadow: `0 0 6px ${allFieldsSubscribed ? "#00c87560" : "#ffa50060"}`,
+        }} />
+        <ChevronDown style={{
+          width: 14, height: 14, color: "rgba(148,163,184,0.3)",
+          transform: expanded ? "rotate(180deg)" : "none",
+          transition: "transform 0.2s",
+        }} />
+      </button>
+
+      {expanded && (
+        <div style={{ padding: "12px 16px" }}>
+          {/* Webhook URL info */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", marginBottom: 4 }}>
+              CALLBACK URL
+            </div>
+            <div style={{
+              padding: "6px 10px", borderRadius: 6,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontSize: 11, fontFamily: "monospace", color: "#00d4ff",
+              wordBreak: "break-all",
+            }}>
+              {status?.callbackUrl || "https://sodare.xyz/api/webhooks/meta"}
+            </div>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", marginBottom: 4 }}>
+              VERIFY TOKEN
+            </div>
+            <div style={{
+              padding: "6px 10px", borderRadius: 6,
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.06)",
+              fontSize: 11, fontFamily: "monospace", color: "#a855f7",
+            }}>
+              {status?.verifyToken || "sodare_webhook_verify_2026"}
+            </div>
+          </div>
+
+          {/* Subscription status per page */}
+          {status?.subscriptions?.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", marginBottom: 6 }}>
+                SUSCRIPCIONES POR PÁGINA
+              </div>
+              {status.subscriptions.map((sub: any, i: number) => (
+                <div key={i} style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "6px 10px", marginBottom: 4, borderRadius: 6,
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.04)",
+                }}>
+                  <div style={{
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: sub.subscribedFields?.length > 0 ? "#00c875" : "#ef4444",
+                  }} />
+                  <span style={{ fontSize: 11, color: "white", flex: 1 }}>{sub.pageName}</span>
+                  <span style={{ fontSize: 9, color: "#64748b" }}>
+                    {sub.subscribedFields?.length || 0} campos
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Eventos configurados */}
+          <div style={{ marginBottom: 12 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", marginBottom: 6 }}>
+              EVENTOS CONFIGURADOS
+            </div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
+              {[
+                { label: "Mensajes Messenger", color: "#0084ff" },
+                { label: "Instagram DMs", color: "#E1306C" },
+                { label: "Comentarios FB", color: "#1877F2" },
+                { label: "Comentarios IG", color: "#F77737" },
+                { label: "Menciones", color: "#06d6a0" },
+                { label: "Reacciones", color: "#fbbf24" },
+                { label: "Leads", color: "#a855f7" },
+                { label: "Story Replies", color: "#E1306C" },
+                { label: "Campañas Ads", color: "#7b61ff" },
+                { label: "Anuncios rechazados", color: "#ef4444" },
+                { label: "Presupuesto", color: "#f97316" },
+                { label: "WhatsApp", color: "#25D366" },
+                { label: "Reseñas", color: "#fbbf24" },
+                { label: "Postbacks", color: "#00d4ff" },
+              ].map(e => (
+                <span key={e.label} style={{
+                  fontSize: 8, padding: "2px 6px", borderRadius: 3,
+                  background: `${e.color}08`, color: e.color,
+                  border: `1px solid ${e.color}15`,
+                }}>
+                  {e.label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Subscribe button */}
+          <button
+            onClick={handleSubscribe}
+            disabled={subscribing || connectedCount === 0}
+            style={{
+              width: "100%", padding: "10px", borderRadius: 8,
+              background: subscribing ? "rgba(255,255,255,0.03)" : "linear-gradient(135deg, #ffa500dd, #ff8c00cc)",
+              border: "none",
+              color: subscribing ? "#94a3b8" : "#0a0a1a",
+              fontWeight: 600, fontSize: 12, cursor: subscribing ? "wait" : "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              transition: "all 0.2s",
+              opacity: connectedCount === 0 ? 0.3 : 1,
+              fontFamily: "inherit",
+            }}
+          >
+            {subscribing ? (
+              <><Loader2 style={{ width: 12, height: 12, animation: "spin 1s linear infinite" }} /> Configurando...</>
+            ) : (
+              <><Bell style={{ width: 13, height: 13 }} /> Activar Todas las Alertas</>
+            )}
+          </button>
+
+          {/* Result feedback */}
+          {result && (
+            <div style={{
+              marginTop: 8, padding: "8px 12px", borderRadius: 6, fontSize: 10,
+              background: result.success ? "rgba(0,200,117,0.06)" : "rgba(239,68,68,0.06)",
+              border: `1px solid ${result.success ? "rgba(0,200,117,0.15)" : "rgba(239,68,68,0.15)"}`,
+              color: result.success ? "#00c875" : "#ef4444",
+            }}>
+              {result.success ? (
+                <>
+                  ✅ Webhooks configurados — {result.subscriptions?.filter((s: any) => s.success).length || 0} suscripciones activas
+                </>
+              ) : (
+                <>❌ Error: {result.error || "No se pudieron configurar los webhooks"}</>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 /* ══════════════════════════════════════════════════════════
    TAB CONFIGURATION
    ══════════════════════════════════════════════════════════ */
