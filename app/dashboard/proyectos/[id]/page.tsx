@@ -16,6 +16,7 @@ import {
 import DateRangePicker from "@/components/DateRangePicker";
 import { CreativeCard, CreativeLightbox } from "@/components/CreativePreview";
 import { useInsightsStore } from "@/stores/insightsStore";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 /* ═══ TYPES ═══ */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; }
@@ -527,7 +528,7 @@ export default function ProjectDashboardPage() {
 
       {/* ═══ TAB: RESUMEN ═══ */}
       {activeTab === "resumen" && (
-        <>
+        <ErrorBoundary name="Tab Resumen">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 space-y-3">
             {/* Proyeccion al Cierre */}
@@ -728,11 +729,12 @@ export default function ProjectDashboardPage() {
             </div>
           );
         })()}
-        </>
+        </ErrorBoundary>
       )}
 
       {/* ═══ TAB: GASTO & PRESUPUESTO ═══ */}
       {activeTab === "gasto" && (
+        <ErrorBoundary name="Tab Gasto">
         <div className="space-y-3">
           {/* Budget Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -843,10 +845,12 @@ export default function ProjectDashboardPage() {
             </div>
           </div>
         </div>
+        </ErrorBoundary>
       )}
 
       {/* ═══ TAB: AUDIENCIA ═══ */}
       {activeTab === "audiencia" && (
+        <ErrorBoundary name="Tab Audiencia">
         <div className="space-y-3">
           {/* Loading state when no breakdowns loaded yet */}
           {Object.keys(breakdownData).length === 0 && <LoadingOverlay />}
@@ -891,7 +895,7 @@ export default function ProjectDashboardPage() {
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v))]} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                         <Bar dataKey="Mujeres" stackId="a" fill="#00d4ff" />
-                        <Bar dataKey="Hombres" stackId="a" fill="#00c875" radius={[3, 3, 0, 0]} />
+                        <Bar dataKey="Hombres" stackId="a" fill="#00c875" radius={[3, 3, 0, 0]} barSize={6} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -1115,10 +1119,12 @@ export default function ProjectDashboardPage() {
 
           </div>
         </div>
+        </ErrorBoundary>
       )}
 
       {/* ═══ TAB: CREATIVOS ═══ */}
       {activeTab === "creativos" && (
+        <ErrorBoundary name="Tab Creativos">
         <div className="space-y-3">
           {creativesLoading && <LoadingOverlay />}
 
@@ -1452,189 +1458,196 @@ export default function ProjectDashboardPage() {
             />
           )}
         </div>
+        </ErrorBoundary>
       )}
 
 
       {/* ═══ TAB: SALUD DEL RESULTADO ═══ */}
-      {activeTab === "salud" && (() => {
-        // Health calculations
-        const frequency = totalImpressions > 0 && totalReach > 0 ? totalImpressions / totalReach : 0;
-        const conversionRate = totalClicks > 0 ? (totalResults / totalClicks) * 100 : 0;
-        const idealSpend = bk.daily * daysElapsed;
-        const spendPaceRatio = idealSpend > 0 ? totalSpend / idealSpend : 1;
+      {activeTab === "salud" && (
+        <ErrorBoundary name="Tab Salud">
+          {(() => {
+            // Health calculations
+            const frequency = totalImpressions > 0 && totalReach > 0 ? totalImpressions / totalReach : 0;
+            const conversionRate = totalClicks > 0 ? (totalResults / totalClicks) * 100 : 0;
+            const idealSpend = bk.daily * daysElapsed;
+            const spendPaceRatio = idealSpend > 0 ? totalSpend / idealSpend : 1;
 
-        // Score calculations (each 0-100)
-        const cprScore = cprTarget > 0 ? Math.max(0, Math.min(100, cpr <= cprTarget ? 100 : Math.round(100 - ((cpr / cprTarget - 1) * 333)))) : 50;
-        const freqScore = Math.max(0, Math.min(100, Math.round(frequency <= 2 ? 100 : frequency <= 4 ? 100 - ((frequency - 2) * 25) : Math.max(0, 50 - ((frequency - 4) * 25)))));
-        const ctrScore = Math.max(0, Math.min(100, Math.round(ctr >= 2 ? 100 : ctr >= 1 ? 60 + (ctr - 1) * 40 : ctr >= 0.5 ? 20 + (ctr - 0.5) * 80 : ctr * 40)));
-        const convScore = Math.max(0, Math.min(100, Math.round(conversionRate >= 8 ? 100 : conversionRate >= 4 ? 60 + (conversionRate - 4) * 10 : conversionRate >= 1 ? 20 + (conversionRate - 1) * 13.33 : conversionRate * 20)));
-        const paceScore = Math.max(0, Math.min(100, Math.round(Math.abs(spendPaceRatio - 1) <= 0.1 ? 100 : Math.abs(spendPaceRatio - 1) <= 0.25 ? 50 + (0.25 - Math.abs(spendPaceRatio - 1)) / 0.15 * 50 : Math.max(0, 100 - Math.abs(spendPaceRatio - 1) * 200))));
+            // Score calculations (each 0-100)
+            const cprScore = cprTarget > 0 ? Math.max(0, Math.min(100, cpr <= cprTarget ? 100 : Math.round(100 - ((cpr / cprTarget - 1) * 333)))) : 50;
+            const freqScore = Math.max(0, Math.min(100, Math.round(frequency <= 2 ? 100 : frequency <= 4 ? 100 - ((frequency - 2) * 25) : Math.max(0, 50 - ((frequency - 4) * 25)))));
+            const ctrScore = Math.max(0, Math.min(100, Math.round(ctr >= 2 ? 100 : ctr >= 1 ? 60 + (ctr - 1) * 40 : ctr >= 0.5 ? 20 + (ctr - 0.5) * 80 : ctr * 40)));
+            const convScore = Math.max(0, Math.min(100, Math.round(conversionRate >= 8 ? 100 : conversionRate >= 4 ? 60 + (conversionRate - 4) * 10 : conversionRate >= 1 ? 20 + (conversionRate - 1) * 13.33 : conversionRate * 20)));
+            const paceScore = Math.max(0, Math.min(100, Math.round(Math.abs(spendPaceRatio - 1) <= 0.1 ? 100 : Math.abs(spendPaceRatio - 1) <= 0.25 ? 50 + (0.25 - Math.abs(spendPaceRatio - 1)) / 0.15 * 50 : Math.max(0, 100 - Math.abs(spendPaceRatio - 1) * 200))));
 
-        const tsd = timeSeriesData || [];
-        const half = Math.floor(tsd.length / 2);
-        const firstHalfCPR = half > 0 ? tsd.slice(0, half).reduce((a: number, d: any) => a + (d.cpr || 0), 0) / half : 0;
-        const secondHalfCPR = tsd.length - half > 0 ? tsd.slice(half).reduce((a: number, d: any) => a + (d.cpr || 0), 0) / (tsd.length - half) : 0;
-        const trendScore = firstHalfCPR > 0 ? Math.max(0, Math.min(100, Math.round(secondHalfCPR <= firstHalfCPR ? 100 : 100 - ((secondHalfCPR / firstHalfCPR - 1) * 200)))) : 50;
+            const tsd = timeSeriesData || [];
+            const half = Math.floor(tsd.length / 2);
+            const firstHalfCPR = half > 0 ? tsd.slice(0, half).reduce((a: number, d: any) => a + (d.cpr || 0), 0) / half : 0;
+            const secondHalfCPR = tsd.length - half > 0 ? tsd.slice(half).reduce((a: number, d: any) => a + (d.cpr || 0), 0) / (tsd.length - half) : 0;
+            const trendScore = firstHalfCPR > 0 ? Math.max(0, Math.min(100, Math.round(secondHalfCPR <= firstHalfCPR ? 100 : 100 - ((secondHalfCPR / firstHalfCPR - 1) * 200)))) : 50;
 
-        const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
-        const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
-        const healthColor = healthScore >= 80 ? "#00c875" : healthScore >= 60 ? "#fdab3d" : "#e2445c";
+            const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
+            const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
+            const healthColor = healthScore >= 80 ? "#00c875" : healthScore >= 60 ? "#fdab3d" : "#e2445c";
 
-        // SVG gauge params
-        const radius = 80; const circumference = 2 * Math.PI * radius;
-        const dashOffset = circumference - (healthScore / 100) * circumference;
+            // SVG gauge params
+            const radius = 80; const circumference = 2 * Math.PI * radius;
+            const dashOffset = circumference - (healthScore / 100) * circumference;
 
-        // Indicators
-        const indicators = [
-          { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "#00c875" : cprScore >= 40 ? "#fdab3d" : "#e2445c" },
-          { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "#00c875" : freqScore >= 40 ? "#fdab3d" : "#e2445c" },
-          { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "#00c875" : ctrScore >= 40 ? "#fdab3d" : "#e2445c" },
-          { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "#00c875" : convScore >= 40 ? "#fdab3d" : "#e2445c" },
-          { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "#00c875" : paceScore >= 40 ? "#fdab3d" : "#e2445c" },
-          { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "#00c875" : trendScore >= 40 ? "#fdab3d" : "#e2445c" },
-        ];
+            // Indicators
+            const indicators = [
+              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "#00c875" : cprScore >= 40 ? "#fdab3d" : "#e2445c" },
+              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "#00c875" : freqScore >= 40 ? "#fdab3d" : "#e2445c" },
+              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "#00c875" : ctrScore >= 40 ? "#fdab3d" : "#e2445c" },
+              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "#00c875" : convScore >= 40 ? "#fdab3d" : "#e2445c" },
+              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "#00c875" : paceScore >= 40 ? "#fdab3d" : "#e2445c" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "#00c875" : trendScore >= 40 ? "#fdab3d" : "#e2445c" },
+            ];
 
-        // Recommendations
-        const recs: { severity: string; text: string }[] = [];
-        if (freqScore < 60) recs.push({ severity: "warning", text: `Frecuencia elevada (${frequency.toFixed(1)}). Amplía audiencias o rota creativos para evitar fatiga publicitaria.` });
-        if (ctrScore < 50) recs.push({ severity: "critical", text: `CTR bajo (${pct(ctr)}). Renueva creativos con nuevos ángulos. Prueba formatos de video o carrusel.` });
-        if (cprScore < 50 && cprTarget > 0) recs.push({ severity: "critical", text: `CPR por encima de meta (${fmtMXN(cpr)} vs ${fmtMXN(cprTarget)}). Pausa adsets de bajo rendimiento y redistribuye presupuesto.` });
-        if (convScore < 50) recs.push({ severity: "warning", text: `Tasa de conversión baja (${pct(conversionRate)}). Revisa landing page, formulario o experiencia post-clic.` });
-        if (paceScore < 50) recs.push({ severity: "warning", text: `Ritmo de gasto desviado (${pct(spendPaceRatio * 100)} del ideal). Ajusta presupuesto diario o estrategia de puja.` });
-        if (trendScore < 50) recs.push({ severity: "critical", text: "CPR en tendencia alcista. Considera optimizar por conversiones, no por tráfico." });
-        if (frequency > 3 && ctrScore < 60) recs.push({ severity: "warning", text: "Fatiga creativa detectada: alta frecuencia + CTR en descenso. Rota creativos cada 5-7 días." });
-        if (recs.length === 0) recs.push({ severity: "success", text: "Todas las métricas están dentro de rangos saludables. Mantén la estrategia actual y monitorea diariamente." });
+            // Recommendations
+            const recs: { severity: string; text: string }[] = [];
+            if (freqScore < 60) recs.push({ severity: "warning", text: `Frecuencia elevada (${frequency.toFixed(1)}). Amplía audiencias o rota creativos para evitar fatiga publicitaria.` });
+            if (ctrScore < 50) recs.push({ severity: "critical", text: `CTR bajo (${pct(ctr)}). Renueva creativos con nuevos ángulos. Prueba formatos de video o carrusel.` });
+            if (cprScore < 50 && cprTarget > 0) recs.push({ severity: "critical", text: `CPR por encima de meta (${fmtMXN(cpr)} vs ${fmtMXN(cprTarget)}). Pausa adsets de bajo rendimiento y redistribuye presupuesto.` });
+            if (convScore < 50) recs.push({ severity: "warning", text: `Tasa de conversión baja (${pct(conversionRate)}). Revisa landing page, formulario o experiencia post-clic.` });
+            if (paceScore < 50) recs.push({ severity: "warning", text: `Ritmo de gasto desviado (${pct(spendPaceRatio * 100)} del ideal). Ajusta presupuesto diario o estrategia de puja.` });
+            if (trendScore < 50) recs.push({ severity: "critical", text: "CPR en tendencia alcista. Considera optimizar por conversiones, no por tráfico." });
+            if (frequency > 3 && ctrScore < 60) recs.push({ severity: "warning", text: "Fatiga creativa detectada: alta frecuencia + CTR en descenso. Rota creativos cada 5-7 días." });
+            if (recs.length === 0) recs.push({ severity: "success", text: "Todas las métricas están dentro de rangos saludables. Mantén la estrategia actual y monitorea diariamente." });
 
-        return (
-          <div className="space-y-3">
-            {/* Top row: Gauge + Indicators */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-              {/* Health Score Gauge */}
-              <div style={{ ...panelStyle, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 280 }}>
-                <h3 style={{ ...headingStyle, marginBottom: 16 }}>Health Score</h3>
-                <div style={{ position: "relative", width: 200, height: 200 }}>
-                  <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: "rotate(-90deg)" }}>
-                    <circle cx="100" cy="100" r={radius} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="12" />
-                    <circle cx="100" cy="100" r={radius} fill="none" stroke={healthColor} strokeWidth="12" strokeLinecap="round"
-                      strokeDasharray={circumference} strokeDashoffset={dashOffset}
-                      style={{ transition: "stroke-dashoffset 1s ease-out, stroke 0.5s" }} />
-                    <circle cx="100" cy="100" r={radius} fill="none" stroke={`${healthColor}30`} strokeWidth="20" strokeLinecap="round"
-                      strokeDasharray={circumference} strokeDashoffset={dashOffset}
-                      style={{ transition: "stroke-dashoffset 1s ease-out", filter: "blur(8px)" }} />
-                  </svg>
-                  <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 42, fontWeight: 800, color: healthColor, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{healthScore}</span>
-                    <span style={{ fontSize: 10, color: healthColor, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.15em", marginTop: 4 }}>{healthLabel}</span>
-                  </div>
-                </div>
-                <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", marginTop: 12, textAlign: "center" }}>Ponderación: CPR 25% · Frecuencia 20% · CTR 15% · Conv 15% · Gasto 15% · Tendencia 10%</p>
-              </div>
-
-              {/* 6 Indicator Cards */}
-              <div className="lg:col-span-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
-                {indicators.map((ind, i) => (
-                  <div key={i} style={{ ...panelStyle, padding: 14, position: "relative", overflow: "hidden" }}>
-                    <div style={{ position: "absolute", top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle, ${ind.color}15 0%, transparent 70%)`, transform: "translate(20%, -20%)" }} />
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, color: ind.color }}>{ind.icon}<span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{ind.name}</span></div>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
-                      <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{ind.value}</span>
-                      <span style={{ fontSize: 20, fontWeight: 800, color: ind.color, fontFamily: "'Orbitron',sans-serif" }}>{ind.score}</span>
-                    </div>
-                    <p style={{ fontSize: 9, color: "rgba(148,163,184,0.4)", marginBottom: 6 }}>{ind.bench}</p>
-                    <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${ind.score}%`, background: ind.color, borderRadius: 2, transition: "width 0.8s ease-out" }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* CPR Trend Chart */}
-            <div style={panelStyle}>
-              <h3 style={headingStyle}>Tendencia de CPR vs Meta</h3>
-              <p style={subStyle}>Evolución del costo por resultado a lo largo del periodo</p>
-              <div style={{ width: "100%", height: 280 }}>
-                {tsd.length > 0 ? (
-                  <ResponsiveContainer>
-                    <ComposedChart data={tsd} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                      <defs>
-                        <linearGradient id="gcpr" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
-                          <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                      <XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} />
-                      <YAxis stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
-                      <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
-                      <Area type="monotone" dataKey="cpr" name="CPR" stroke="#00d4ff" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
-                      {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="#e2445c" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "#e2445c", fontSize: 10 }} />}
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                ) : <NoData />}
-              </div>
-            </div>
-
-            {/* Diagnostic + Recommendations */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-              <div style={panelStyle}>
-                <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Diagnóstico</h3>
-                <p style={subStyle}>Evaluación automática basada en benchmarks de industria</p>
-                <div className="space-y-3">
-                  {recs.map((r, i) => (
-                    <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 6 }}>
-                      <div style={{ flexShrink: 0, marginTop: 2 }}>
-                        {r.severity === "critical" ? <AlertTriangle style={{ width: 14, height: 14, color: "#e2445c" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 14, height: 14, color: "#fdab3d" }} /> : <CheckCircle style={{ width: 14, height: 14, color: "#00c875" }} />}
+            return (
+              <div className="space-y-3">
+                {/* Top row: Gauge + Indicators */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                  {/* Health Score Gauge */}
+                  <div style={{ ...panelStyle, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 280 }}>
+                    <h3 style={{ ...headingStyle, marginBottom: 16 }}>Health Score</h3>
+                    <div style={{ position: "relative", width: 200, height: 200 }}>
+                      <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: "rotate(-90deg)" }}>
+                        <circle cx="100" cy="100" r={radius} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="12" />
+                        <circle cx="100" cy="100" r={radius} fill="none" stroke={healthColor} strokeWidth="12" strokeLinecap="round"
+                          strokeDasharray={circumference} strokeDashoffset={dashOffset}
+                          style={{ transition: "stroke-dashoffset 1s ease-out, stroke 0.5s" }} />
+                        <circle cx="100" cy="100" r={radius} fill="none" stroke={`${healthColor}30`} strokeWidth="20" strokeLinecap="round"
+                          strokeDasharray={circumference} strokeDashoffset={dashOffset}
+                          style={{ transition: "stroke-dashoffset 1s ease-out", filter: "blur(8px)" }} />
+                      </svg>
+                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: 42, fontWeight: 800, color: healthColor, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{healthScore}</span>
+                        <span style={{ fontSize: 10, color: healthColor, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.15em", marginTop: 4 }}>{healthLabel}</span>
                       </div>
-                      <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.5 }}>{r.text}</p>
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", marginTop: 12, textAlign: "center" }}>Ponderación: CPR 25% · Frecuencia 20% · CTR 15% · Conv 15% · Gasto 15% · Tendencia 10%</p>
+                  </div>
 
-              <div style={panelStyle}>
-                <h3 style={headingStyle}>Configuración Recomendada</h3>
-                <p style={subStyle}>Sugerencias para las próximas campañas</p>
-                <div className="space-y-3">
-                  {/* Budget recommendation */}
-                  <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.1)", borderRadius: 6 }}>
-                    <p style={{ fontSize: 10, color: "#00d4ff", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Presupuesto Diario Óptimo</p>
-                    <p style={{ fontSize: 16, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p>
-                    <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>Basado en {fmtMXN0(bk.monthly)} {bk.label.toLowerCase()}</p>
+                  {/* 6 Indicator Cards */}
+                  <div className="lg:col-span-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
+                    {indicators.map((ind, i) => (
+                      <div key={i} style={{ ...panelStyle, padding: 14, position: "relative", overflow: "hidden" }}>
+                        <div style={{ position: "absolute", top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle, ${ind.color}15 0%, transparent 70%)`, transform: "translate(20%, -20%)" }} />
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, color: ind.color }}>{ind.icon}<span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{ind.name}</span></div>
+                        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
+                          <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{ind.value}</span>
+                          <span style={{ fontSize: 20, fontWeight: 800, color: ind.color, fontFamily: "'Orbitron',sans-serif" }}>{ind.score}</span>
+                        </div>
+                        <p style={{ fontSize: 9, color: "rgba(148,163,184,0.4)", marginBottom: 6 }}>{ind.bench}</p>
+                        <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${ind.score}%`, background: ind.color, borderRadius: 2, transition: "width 0.8s ease-out" }} />
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  {/* Optimization target */}
-                  <div style={{ padding: "10px 12px", background: "rgba(0,200,117,0.04)", border: "1px solid rgba(0,200,117,0.1)", borderRadius: 6 }}>
-                    <p style={{ fontSize: 10, color: "#00c875", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Objetivo de Optimización</p>
-                    <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{convScore < 50 ? "Optimizar por conversiones (no tráfico). Usa CBO con bid cap." : ctrScore < 50 ? "Mejorar engagement. Prueba Advantage+ Creative." : "Mantener optimización actual. Escalar presupuesto gradualmente (+20% cada 3 días)."}</p>
+                </div>
+
+                {/* CPR Trend Chart */}
+                <div style={panelStyle}>
+                  <h3 style={headingStyle}>Tendencia de CPR vs Meta</h3>
+                  <p style={subStyle}>Evolución del costo por resultado a lo largo del periodo</p>
+                  <div style={{ width: "100%", height: 280 }}>
+                    {tsd.length > 0 ? (
+                      <ResponsiveContainer>
+                        <ComposedChart data={tsd} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                          <defs>
+                            <linearGradient id="gcpr" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
+                          <XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} />
+                          <YAxis stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
+                          <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
+                          <Area type="monotone" dataKey="cpr" name="CPR" stroke="#00d4ff" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
+                          {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="#e2445c" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "#e2445c", fontSize: 10 }} />}
+                        </ComposedChart>
+                      </ResponsiveContainer>
+                    ) : <NoData />}
                   </div>
-                  {/* Audience suggestion */}
-                  <div style={{ padding: "10px 12px", background: "rgba(123,97,255,0.04)", border: "1px solid rgba(123,97,255,0.1)", borderRadius: 6 }}>
-                    <p style={{ fontSize: 10, color: "#7b61ff", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Audiencia</p>
-                    <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{freqScore < 50 ? "Frecuencia alta. Amplía audiencia: agrega intereses, prueba Lookalike 3-5%, o usa Advantage+ Audience." : "Audiencia saludable. Considera escalar con Broad targeting."}</p>
+                </div>
+
+                {/* Diagnostic + Recommendations */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                  <div style={panelStyle}>
+                    <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Diagnóstico</h3>
+                    <p style={subStyle}>Evaluación automática basada en benchmarks de industria</p>
+                    <div className="space-y-3">
+                      {recs.map((r, i) => (
+                        <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 6 }}>
+                          <div style={{ flexShrink: 0, marginTop: 2 }}>
+                            {r.severity === "critical" ? <AlertTriangle style={{ width: 14, height: 14, color: "#e2445c" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 14, height: 14, color: "#fdab3d" }} /> : <CheckCircle style={{ width: 14, height: 14, color: "#00c875" }} />}
+                          </div>
+                          <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.5 }}>{r.text}</p>
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                  {/* Creative suggestion */}
-                  <div style={{ padding: "10px 12px", background: "rgba(253,171,61,0.04)", border: "1px solid rgba(253,171,61,0.1)", borderRadius: 6 }}>
-                    <p style={{ fontSize: 10, color: "#fdab3d", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Creativos</p>
-                    <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{ctrScore < 50 || freqScore < 50 ? "Urgente: Rota creativos. Prueba UGC, testimoniales, o ángulos de dolor/beneficio diferentes." : "Creativos funcionando bien. Itera sobre los ganadores con variaciones A/B."}</p>
+
+                  <div style={panelStyle}>
+                    <h3 style={headingStyle}>Configuración Recomendada</h3>
+                    <p style={subStyle}>Sugerencias para las próximas campañas</p>
+                    <div className="space-y-3">
+                      {/* Budget recommendation */}
+                      <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.1)", borderRadius: 6 }}>
+                        <p style={{ fontSize: 10, color: "#00d4ff", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Presupuesto Diario Óptimo</p>
+                        <p style={{ fontSize: 16, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p>
+                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>Basado en {fmtMXN0(bk.monthly)} {bk.label.toLowerCase()}</p>
+                      </div>
+                      {/* Optimization target */}
+                      <div style={{ padding: "10px 12px", background: "rgba(0,200,117,0.04)", border: "1px solid rgba(0,200,117,0.1)", borderRadius: 6 }}>
+                        <p style={{ fontSize: 10, color: "#00c875", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Objetivo de Optimización</p>
+                        <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{convScore < 50 ? "Optimizar por conversiones (no tráfico). Usa CBO con bid cap." : ctrScore < 50 ? "Mejorar engagement. Prueba Advantage+ Creative." : "Mantener optimización actual. Escalar presupuesto gradualmente (+20% cada 3 días)."}</p>
+                      </div>
+                      {/* Audience suggestion */}
+                      <div style={{ padding: "10px 12px", background: "rgba(123,97,255,0.04)", border: "1px solid rgba(123,97,255,0.1)", borderRadius: 6 }}>
+                        <p style={{ fontSize: 10, color: "#7b61ff", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Audiencia</p>
+                        <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{freqScore < 50 ? "Frecuencia alta. Amplía audiencia: agrega intereses, prueba Lookalike 3-5%, o usa Advantage+ Audience." : "Audiencia saludable. Considera escalar con Broad targeting."}</p>
+                      </div>
+                      {/* Creative suggestion */}
+                      <div style={{ padding: "10px 12px", background: "rgba(253,171,61,0.04)", border: "1px solid rgba(253,171,61,0.1)", borderRadius: 6 }}>
+                        <p style={{ fontSize: 10, color: "#fdab3d", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Creativos</p>
+                        <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{ctrScore < 50 || freqScore < 50 ? "Urgente: Rota creativos. Prueba UGC, testimoniales, o ángulos de dolor/beneficio diferentes." : "Creativos funcionando bien. Itera sobre los ganadores con variaciones A/B."}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          </div>
-        );
-      })()}
+            );
+          })()}
+        </ErrorBoundary>
+      )}
 
       {/* ═══ TAB: ADS MANAGER ═══ */}
-      {activeTab === "ads" && (() => {
-        // Get this project's ad account IDs
-        const projectAccounts = project?.channels
-          ?.filter(ch => ch.platformId === "meta")
-          ?.flatMap(ch => ch.adAccounts || [])
-          ?.filter(Boolean) || [];
-        const currentActiveAccount = selectedAccountId === "all" ? "all" : selectedAccountId;
+      {activeTab === "ads" && (
+        <ErrorBoundary name="Tab Ads Manager">
+          {(() => {
+            // Get this project's ad account IDs
+            const projectAccounts = project?.channels
+              ?.filter((ch: any) => ch.platformId === "meta")
+              ?.flatMap((ch: any) => ch.adAccounts || [])
+              ?.filter(Boolean) || [];
+            const currentActiveAccount = selectedAccountId === "all" ? "all" : selectedAccountId;
 
-        return (
-          <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 180px)", margin: "8px 0 0", padding: 0 }}>
+            return (
+              <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 180px)", margin: "8px 0 0", padding: 0 }}>
             {/* Embedded Ads Manager via iframe */}
             <iframe
               src={`/dashboard/ads-manager?embedded=1&account=${currentActiveAccount}&project_accounts=${projectAccounts.join(",")}&datePreset=${datePreset}&dateStart=${dateStart}&dateEnd=${dateEnd}`}
@@ -1648,12 +1661,15 @@ export default function ProjectDashboardPage() {
               title="Ads Manager"
             />
           </div>
-        );
-      })()}
+            );
+          })()}
+        </ErrorBoundary>
+      )}
 
 
       {/* ═══ TAB: CONFIGURACIÓN ═══ */}
       {activeTab === "config" && (
+        <ErrorBoundary name="Tab Configuracion">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div style={panelStyle}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
@@ -1721,6 +1737,7 @@ export default function ProjectDashboardPage() {
             })}
           </div>
         </div>
+        </ErrorBoundary>
       )}
     </div>
   );

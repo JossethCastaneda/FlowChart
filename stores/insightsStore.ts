@@ -147,16 +147,16 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
 
       const valid = results.filter(Boolean).filter((r: any) => !r.error);
 
-      let merged: any;
+      let merged: any = { timeSeries: [], campaigns: [], adsets: [], ads: [] };
       if (valid.length === 0) {
-        merged = { _error: "No data", timeSeries: [], campaigns: [], adsets: [], ads: [] };
-      } else if (valid.length === 1) {
-        merged = valid[0];
+        merged._error = "No data";
       } else {
-        merged = { timeSeries: [], campaigns: [], adsets: [], ads: [] };
         valid.forEach((r: any) => {
+          const payload = r.data && Array.isArray(r.data.timeSeries) ? r.data : r;
           Object.keys(merged).forEach(k => {
-            if (r[k] && Array.isArray(r[k])) merged[k].push(...r[k]);
+            if (payload[k] && Array.isArray(payload[k])) {
+              merged[k].push(...payload[k]);
+            }
           });
         });
       }
@@ -181,7 +181,7 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
     if (get().preloading) return;
     set({ preloading: true });
 
-    const activeProjects = projects.filter((p: any) => p.status === "Activo");
+    const activeProjects = projects.filter((p: any) => p.status === "EN VUELO" || p.status === "EN ÓRBITA" || p.status === "Activo");
     if (activeProjects.length === 0) {
       set({ preloading: false, preloaded: true });
       return;
