@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { publishInstagramVideo } from "@/app/workflows/instagram";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
@@ -30,6 +31,23 @@ function resolveMediaToBuffer(
   }
 
   return null;
+}
+
+/**
+ * Checks if a URL points to a video by examining the extension,
+ * and falls back to a HEAD request if the extension is missing.
+ */
+async function checkIfVideo(url: string): Promise<boolean> {
+  if (/\.(mp4|mov|avi|wmv|webm)(?:[?#].*)?$/i.test(url)) return true;
+  if (/\.(jpe?g|png|gif|webp|heic)(?:[?#].*)?$/i.test(url)) return false;
+  
+  try {
+    const res = await fetch(url, { method: "HEAD" });
+    const contentType = res.headers.get("content-type") || "";
+    return contentType.startsWith("video/");
+  } catch (err) {
+    return false; // Fallback
+  }
 }
 
 /**
@@ -102,6 +120,9 @@ export async function POST(req: NextRequest) {
     const pageId = targetPage.id;
     const igUserId = targetPage.instagram_business_account?.id;
 
+    // ── Log key state for debugging ──
+    console.log("[PUBLISHER] postId:", postId, "channels:", post.channels, "pageId:", pageId, "pageToken present:", !!pageToken, "igUserId:", igUserId || "none");
+
     const externalIds: Record<string, string> = {};
     const errors: string[] = [];
 
@@ -151,7 +172,7 @@ export async function POST(req: NextRequest) {
             }
           } else {
             // ── URL-based upload (for https:// URLs) ──
-            const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mediaUrl);
+            const isVideo = await checkIfVideo(mediaUrl);
             const endpoint = isVideo ? "videos" : "photos";
             const domain = isVideo ? "graph-video.facebook.com" : "graph.facebook.com";
             
@@ -173,10 +194,13 @@ export async function POST(req: NextRequest) {
               }
             );
             const fbData = await fbRes.json();
+            console.log("[PUBLISHER] FB URL-based upload response:", JSON.stringify(fbData));
             if (fbRes.ok && fbData.id) {
               externalIds.facebook = fbData.id;
             } else {
-              errors.push(`Facebook: ${fbData?.error?.message || "Error desconocido"}`);
+              const fbErr = `Facebook: ${fbData?.error?.message || JSON.stringify(fbData) || "Error desconocido"}`;
+              console.error("[PUBLISHER] FB error:", fbErr);
+              errors.push(fbErr);
             }
           }
         } else {
@@ -190,10 +214,13 @@ export async function POST(req: NextRequest) {
             }
           );
           const fbData = await fbRes.json();
+          console.log("[PUBLISHER] FB text-only feed response:", JSON.stringify(fbData));
           if (fbRes.ok && fbData.id) {
             externalIds.facebook = fbData.id;
           } else {
-            errors.push(`Facebook: ${fbData?.error?.message || "Error desconocido"}`);
+            const fbErr = `Facebook: ${fbData?.error?.message || JSON.stringify(fbData) || "Error desconocido"}`;
+            console.error("[PUBLISHER] FB feed error:", fbErr, "pageToken present:", !!pageToken, "pageId:", pageId);
+            errors.push(fbErr);
           }
         }
       } catch (err: any) {
@@ -281,7 +308,7 @@ export async function POST(req: NextRequest) {
           if (!errors.some(e => e.startsWith("Instagram"))) {
             if (allMedia.length === 1) {
               // ── Single media post ──
-              const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(igMediaUrl);
+              const isVideo = await checkIfVideo(igMediaUrl);
               const containerBody: any = { caption: post.content };
               if (isVideo) {
                 containerBody.media_type = "VIDEO";
@@ -304,23 +331,46 @@ export async function POST(req: NextRequest) {
                 errors.push(`Instagram: ${containerData?.error?.message || "Error creando container"}`);
               } else {
                 if (isVideo) {
-                  let ready = false;
-                  for (let i = 0; i < 6; i++) {
-                    await new Promise((r) => setTimeout(r, 5000));
-                    const statusRes = await fetch(
-                      `https://graph.facebook.com/${META_VERSION}/${containerData.id}?fields=status_code`,
-                      { headers: { Authorization: `Bearer ${pageToken}` } }
-                    );
-                    const statusData = await statusRes.json();
-                    if (statusData.status_code === "FINISHED") { ready = true; break; }
-                    if (statusData.status_code === "ERROR") { errors.push("Instagram: Error procesando video"); break; }
-                  }
-                  if (!ready && !errors.some((e) => e.includes("video"))) {
-                    errors.push("Instagram: Video aún procesándose, intenta de nuevo");
-                  }
-                }
+                  // El container ya está creado, pasarlo al workflow para el polling durable
+                  // El workflow espera hasta que Meta lo procese y lo publica.
+                  // Retornamos INMEDIATAMENTE — el workflow se ejecuta en background.
+                  try {
+                    await publishInstagramVideo({
+                      postId,
+                      containerId: containerData.id,   // ← Container YA creado
+                      igUserId,
+                      pageToken,
+                      pageName: targetPage.name,
+                      pageId: targetPage.id,
+                    });
 
-                if (!errors.some((e) => e.startsWith("Instagram"))) {
+                    // Actualizar FB si se publicó también ahí
+                    if (Object.keys(externalIds).length > 0) {
+                      await prisma.scheduledPost.update({
+                        where: { id: postId },
+                        data: {
+                          externalIds,
+                          publishedAt: new Date(),
+                          status: "Published",
+                          pageName: targetPage.name,
+                          pageId: targetPage.id,
+                          error: errors.length > 0 ? errors.join(" | ") : null,
+                        },
+                      });
+                    }
+
+                    return NextResponse.json({
+                      success: true,
+                      status: "Processing",
+                      message: "El video de Instagram se está procesando y publicando en segundo plano.",
+                      warnings: errors.length > 0 ? errors : undefined,
+                    });
+                  } catch (err: any) {
+                    errors.push(`Instagram Workflow trigger error: ${err.message}`);
+                  }
+
+                } else {
+                  // Es imagen, publicar directo:
                   const publishRes = await fetch(
                     `https://graph.facebook.com/${META_VERSION}/${igUserId}/media_publish`,
                     {
@@ -341,7 +391,7 @@ export async function POST(req: NextRequest) {
               // ── Carousel post (2-10 images) ──
               const childIds: string[] = [];
               for (const mUrl of allMedia.slice(0, 10)) {
-                const isVideo = /\.(mp4|mov|avi|wmv|webm)$/i.test(mUrl);
+                const isVideo = await checkIfVideo(mUrl);
                 const childBody: any = { is_carousel_item: true };
                 if (isVideo) {
                   childBody.media_type = "VIDEO";

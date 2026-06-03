@@ -57,7 +57,20 @@ export async function POST(req: NextRequest) {
     let fileUrl = "";
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       const { put } = await import("@vercel/blob");
-      const blob = await put(file.name, file, { access: 'public' });
+      
+      // Ensure the file name has the correct extension so Vercel Blob saves it properly
+      let finalName = file.name || "upload";
+      if (!finalName.includes(".")) {
+        const extMatch = file.type.split("/")[1];
+        let ext = extMatch || "bin";
+        // Handle specific mime types
+        if (ext === "quicktime") ext = "mov";
+        if (ext === "x-msvideo") ext = "avi";
+        if (ext === "jpeg") ext = "jpg";
+        finalName = `${finalName}.${ext}`;
+      }
+
+      const blob = await put(finalName, file, { access: 'public' });
       fileUrl = blob.url;
     } else {
       // Read file buffer and convert to base64 data URL

@@ -382,15 +382,24 @@ export function Composer() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildPayload("Draft")),
       });
-      if (!createRes.ok) { const d = await createRes.json(); throw new Error(d.error || "Error"); }
-      const { post } = await createRes.json();
+      const createData = await createRes.json();
+      if (!createRes.ok) throw new Error(createData.error || "Error creando post");
+      const { post } = createData;
       const pubRes = await fetch("/api/publisher/publish", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ postId: post.id }),
       });
       const pubData = await pubRes.json();
-      if (!pubRes.ok) throw new Error(pubData.error || "Error al desplegar mensaje en redes.");
-      setBanner({ type: "success", message: "¡Transmisión Ejecutada! La señal está en vivo." });
+      if (!pubRes.ok) {
+        // Show detailed error from the API
+        const detail = pubData.error || "Error al desplegar mensaje en redes.";
+        throw new Error(detail);
+      }
+      if (pubData.status === "Processing") {
+        setBanner({ type: "success", message: "Video en procesamiento — se publicará en segundos en background." });
+      } else {
+        setBanner({ type: "success", message: "¡Transmisión Ejecutada! La señal está en vivo." });
+      }
       clearForm();
     } catch (e: any) { 
       console.error("publishNow error:", e);
@@ -907,6 +916,17 @@ export function Composer() {
                   title="SIN HOLOGRAMA"
                   description="Enlaza una frecuencia objetivo para visualizar la proyección antes de ordenar el lanzamiento."
                 />
+                <a
+                  href="/api/publisher/diagnose"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    marginTop: 8, fontSize: 11, color: "#475569",
+                    textDecoration: "underline", cursor: "pointer",
+                  }}
+                >
+                  Diagnóstico de conexión →
+                </a>
               </div>
             )}
 

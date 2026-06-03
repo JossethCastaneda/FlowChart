@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { publishScheduledPost } from "@/app/workflows/scheduled-posts";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
@@ -106,6 +107,20 @@ export async function POST(req: NextRequest) {
         pageId: pageId || null,
       },
     });
+
+    if (validStatus === "Scheduled" && scheduledAt) {
+      // INICIO INTEGRACION WORKFLOW:
+      // Programamos el post de manera durable
+      try {
+        await publishScheduledPost({
+          postId: post.id,
+          workspaceId,
+          scheduledAt: new Date(scheduledAt)
+        });
+      } catch (err) {
+        console.error("Error triggering scheduled post workflow:", err);
+      }
+    }
 
     return NextResponse.json({ post }, { status: 201 });
   } catch (err: any) {
