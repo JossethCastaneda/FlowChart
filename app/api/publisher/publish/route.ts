@@ -118,7 +118,7 @@ export async function POST(req: NextRequest) {
           if (resolved) {
             // ── Multipart binary upload (for data: URLs, /tmp files) ──
             const formData = new FormData();
-            const blob = new Blob([resolved.buffer], { type: resolved.contentType });
+            const blob = new Blob([new Uint8Array(resolved.buffer)], { type: resolved.contentType });
             formData.append("source", blob, resolved.filename);
             formData.append("caption", post.content);
             formData.append("access_token", pageToken);
@@ -187,7 +187,7 @@ export async function POST(req: NextRequest) {
           if (resolved) {
             // Upload to Facebook as unpublished photo to get a public URL
             const formData = new FormData();
-            const blob = new Blob([resolved.buffer], { type: resolved.contentType });
+            const blob = new Blob([new Uint8Array(resolved.buffer)], { type: resolved.contentType });
             formData.append("source", blob, resolved.filename);
             formData.append("published", "false");
             formData.append("access_token", pageToken);
