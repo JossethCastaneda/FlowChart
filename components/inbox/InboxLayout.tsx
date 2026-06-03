@@ -15,7 +15,6 @@ import {
 // ═══════════════════════════════════════════════════════════════
 
 type Platform = "fb_messenger" | "ig_dm" | "ig_comment";
-type ChannelFilter = "all" | "messenger" | "instagram" | "ig_comment";
 
 interface Message {
   id: string;
@@ -92,12 +91,7 @@ function getInitials(name: string): string {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
-const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; count?: number }[] = [
-  { key: "all", label: "Todos los mensajes", color: "#a855f7" },
-  { key: "messenger", label: "Messenger", color: "#0084ff" },
-  { key: "instagram", label: "Instagram", color: "#E1306C" },
-  { key: "ig_comment", label: "Comentarios IG", color: "#F77737" },
-];
+
 
 // ═══════════════════════════════════════════════════════════════
 // MAIN LAYOUT
@@ -107,8 +101,6 @@ export function InboxLayout() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [showProfile, setShowProfile] = useState(true);
-  const [filterTab, setFilterTab] = useState<"todos" | "unread" | "closed">("todos");
-  const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [initialFetchDone, setInitialFetchDone] = useState(false);
 
@@ -187,29 +179,14 @@ export function InboxLayout() {
 
   const selected = conversations.find(c => c.id === selectedId) || conversations[0];
 
-  // Apply channel filter + search + tab filter
+  // Apply search filter only
   const filtered = conversations.filter(c => {
-    // Channel filter
-    if (channelFilter === "messenger" && c.platform !== "fb_messenger") return false;
-    if (channelFilter === "instagram" && c.platform !== "ig_dm") return false;
-    if (channelFilter === "ig_comment" && c.platform !== "ig_comment") return false;
-    // Search
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       if (!c.contactName.toLowerCase().includes(q) && !c.lastMessage.toLowerCase().includes(q)) return false;
     }
-    if (filterTab === "unread") return c.unread;
-    if (filterTab === "closed") return c.closed;
     return true;
   });
-
-  // Count per channel
-  const channelCounts = {
-    all: conversations.length,
-    messenger: conversations.filter(c => c.platform === "fb_messenger").length,
-    instagram: conversations.filter(c => c.platform === "ig_dm").length,
-    ig_comment: conversations.filter(c => c.platform === "ig_comment").length,
-  };
 
   const handleSendMessage = (text: string) => {
     if (!text.trim()) return;
@@ -266,54 +243,7 @@ export function InboxLayout() {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 240px)" }}>
-
-      {/* ─── Top Channel Tabs ─── */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 0,
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        background: "rgba(255,255,255,0.015)",
-        flexShrink: 0,
-        overflowX: "auto",
-      }}>
-        {CHANNEL_TABS.map(tab => {
-          const isActive = channelFilter === tab.key;
-          const count = channelCounts[tab.key];
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setChannelFilter(tab.key)}
-              style={{
-                padding: "10px 16px",
-                fontSize: 12,
-                fontWeight: isActive ? 600 : 400,
-                color: isActive ? tab.color : "rgba(148,163,184,0.5)",
-                background: "transparent",
-                border: "none",
-                borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
-                cursor: "pointer",
-                transition: "all 0.15s",
-                whiteSpace: "nowrap",
-                display: "flex", alignItems: "center", gap: 6,
-                fontFamily: "inherit",
-              }}
-            >
-              {tab.label}
-              {count > 0 && (
-                <span style={{
-                  fontSize: 10, fontWeight: 700,
-                  padding: "1px 6px", borderRadius: 10,
-                  background: isActive ? `${tab.color}20` : "rgba(255,255,255,0.04)",
-                  color: isActive ? tab.color : "rgba(148,163,184,0.4)",
-                  minWidth: 18, textAlign: "center",
-                }}>
-                  {count}
-                </span>
-              )}
-            </button>
-          );
-        })}
-      </div>
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 200px)" }}>
 
       {/* Empty state */}
       {conversations.length === 0 && initialFetchDone && (
@@ -372,40 +302,7 @@ export function InboxLayout() {
             </div>
           </div>
 
-          {/* Filter Tabs */}
-          <div style={{
-            display: "flex", gap: 0, padding: "0",
-            borderBottom: "1px solid rgba(255,255,255,0.04)",
-          }}>
-            {([
-              { key: "todos", label: "Todos" },
-              { key: "unread", label: "No leídos" },
-              { key: "closed", label: "Cerrados" },
-            ] as const).map(tab => {
-              const isActive = filterTab === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setFilterTab(tab.key)}
-                  style={{
-                    flex: 1,
-                    padding: "8px 0",
-                    fontSize: 11,
-                    fontWeight: isActive ? 600 : 400,
-                    color: isActive ? "white" : "rgba(148,163,184,0.4)",
-                    background: "transparent",
-                    border: "none",
-                    borderBottom: isActive ? "2px solid #a855f7" : "2px solid transparent",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    fontFamily: "inherit",
-                  }}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </div>
+
 
           {/* Conversation List */}
           <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>

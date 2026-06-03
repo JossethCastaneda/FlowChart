@@ -999,7 +999,7 @@ export function PublisherTabs() {
     if (params.get("connected")) setActiveTab("integrations");
   }, []);
 
-  const showFilters = activeTab !== "integrations" && activeTab !== "composer";
+  const showFilters = activeTab !== "integrations" && activeTab !== "composer" && activeTab !== "inbox";
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%", minHeight: 0 }}>
