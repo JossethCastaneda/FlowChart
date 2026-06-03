@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Settings, CheckCircle, XCircle, Loader2, Shield, ChevronRight, Zap, BarChart2, Users, Megaphone } from "lucide-react";
+import { Settings, CheckCircle, XCircle, Loader2, ChevronRight, Zap, BarChart2, Users, Megaphone } from "lucide-react";
+import { openConnectPopup } from "@/lib/connect-popup";
 
 /* ─── Icons ─── */
 const MetaIcon = () => (
@@ -96,7 +97,8 @@ export default function IntegrationsPage() {
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
 
-  useEffect(() => {
+  const loadIntegrations = useCallback(() => {
+    setLoading(true);
     fetch("/api/workspace/integrations")
       .then(r => r.json())
       .then(res => {
@@ -105,6 +107,8 @@ export default function IntegrationsPage() {
       })
       .catch(() => setLoading(false));
   }, []);
+
+  useEffect(() => { loadIntegrations(); }, [loadIntegrations]);
 
   const getState = (provider: string) =>
     integrations.find(i => i.provider === provider) || null;
@@ -300,7 +304,7 @@ export default function IntegrationsPage() {
                     <button
                       onClick={() => {
                         if ((platform as any).moduleUrl) {
-                          window.location.href = `/api/connect/${(platform as any).moduleUrl}`;
+                          openConnectPopup((platform as any).moduleUrl, () => loadIntegrations());
                         } else {
                           alert("Próximamente");
                         }

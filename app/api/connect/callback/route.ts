@@ -182,19 +182,12 @@ export async function GET(request: NextRequest) {
 
     console.log(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
 
-    // Publisher connections go back to Publisher; ads go to ads-manager; all others go to Integrations
-    const publisherModules = ["social", "publisher_facebook", "publisher_instagram"];
-    if (publisherModules.includes(module)) {
-      return NextResponse.redirect(`${baseUrl}/dashboard/publisher?connected=${module}`);
-    }
-    if (module === "ads") {
-      return NextResponse.redirect(`${baseUrl}/dashboard/ads-manager?connected=ads`);
-    }
-    return NextResponse.redirect(`${baseUrl}/dashboard/integrations?connected=${module}`);
-
+    // Always redirect to /connect/done — it handles popup close OR fallback navigation
+    return NextResponse.redirect(`${baseUrl}/connect/done?module=${module}`);
 
   } catch (err: any) {
     console.error("[CONNECT CALLBACK] Error:", err);
-    return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=server_error`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?module=&error=server_error`);
   }
+
 }

@@ -24,7 +24,15 @@ import {
   Trash2,
   Terminal,
   AlertTriangle,
+  CheckCircle,
+  XCircle,
+  ChevronUp,
+  Video,
+  FileText,
+  Calendar,
+  Tag,
 } from "lucide-react";
+import { openConnectPopup } from "@/lib/connect-popup";
 
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -170,25 +178,26 @@ export function Composer() {
   }, []);
 
   /* ── Load social connection status ──────────────────── */
-  useEffect(() => {
-    const loadSocialStatus = async () => {
-      try {
-        const res = await fetch("/api/connect/status");
-        if (res.ok) {
-          const data = await res.json();
-          // Check publisher_facebook first, fall back to social
-          const pub = data.modules?.publisher_facebook || data.modules?.social;
-          setSocialConnected(pub?.connected ?? false);
-          const pagesArr: any[] = pub?.pages || [];
-          setSocialPages(pagesArr);
-          setSocialInstagramAccounts(pagesArr.filter((p: any) => p.instagramId));
-        } else {
-          setSocialConnected(false);
-        }
-      } catch {
+  const loadSocialStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/connect/status");
+      if (res.ok) {
+        const data = await res.json();
+        // Check publisher_facebook first, fall back to social
+        const pub = data.modules?.publisher_facebook || data.modules?.social;
+        setSocialConnected(pub?.connected ?? false);
+        const pagesArr: any[] = pub?.pages || [];
+        setSocialPages(pagesArr);
+        setSocialInstagramAccounts(pagesArr.filter((p: any) => p.instagramId));
+      } else {
         setSocialConnected(false);
       }
-    };
+    } catch {
+      setSocialConnected(false);
+    }
+  }, []);
+
+  useEffect(() => {
     loadSocialStatus();
     // Also refresh if we just connected (URL param)
     const params = new URLSearchParams(window.location.search);
@@ -937,7 +946,7 @@ export function Composer() {
                   </span>
                 )}
                 <button
-                  onClick={() => { window.location.href = "/api/connect/publisher_facebook"; }}
+                  onClick={() => openConnectPopup("publisher_facebook", loadSocialStatus)}
                   style={{
                     background: "none", border: "1px solid rgba(148,163,184,0.15)", borderRadius: 4,
                     color: "#64748b", fontSize: 9, padding: "2px 7px", cursor: "pointer",
@@ -987,7 +996,7 @@ export function Composer() {
                 </p>
               </div>
               <button
-                onClick={() => { window.location.href = "/api/connect/publisher_facebook"; }}
+                onClick={() => openConnectPopup("publisher_facebook", loadSocialStatus)}
                 style={{
                   display: "flex", alignItems: "center", gap: 5,
                   padding: "6px 12px", borderRadius: 7, flexShrink: 0,
