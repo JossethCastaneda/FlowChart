@@ -426,24 +426,30 @@ export function InboxLayout() {
             setConversations(mapped);
             setSelectedId(mapped[0]?.id || "");
 
-            // Auto-load messages for the first conversation
-            const first = mapped[0];
-            if (first) {
-              const pageId = (first as any)?._pageId;
-              fetch(`/api/inbox/messages?conversationId=${first.id}&pageId=${pageId || ""}`)
+            // Prefetch messages for first 3 conversations in parallel
+            const prefetchCount = Math.min(3, mapped.length);
+            const prefetchers = mapped.slice(0, prefetchCount).map(conv => {
+              const pageId = (conv as any)?._pageId;
+              return fetch(`/api/inbox/messages?conversationId=${conv.id}&pageId=${pageId || ""}`)
                 .then(r => r.ok ? r.json() : null)
-                .then(data => {
-                  if (data?.messages?.length) {
-                    const msgs: Message[] = data.messages.map((m: any) => ({
-                      id: m.id, text: m.text, incoming: m.incoming,
-                      timestamp: new Date(m.timestamp),
-                    }));
-                    setConversations(prev =>
-                      prev.map(c => c.id === first.id ? { ...c, messages: msgs } : c)
-                    );
-                  }
-                }).catch(() => {});
-            }
+                .then(data => ({
+                  id: conv.id,
+                  messages: data?.messages?.length ? data.messages.map((m: any) => ({
+                    id: m.id, text: m.text, incoming: m.incoming,
+                    timestamp: new Date(m.timestamp),
+                  })) : null,
+                }))
+                .catch(() => ({ id: conv.id, messages: null }));
+            });
+
+            Promise.all(prefetchers).then(results => {
+              setConversations(prev =>
+                prev.map(c => {
+                  const result = results.find(r => r.id === c.id);
+                  return result?.messages ? { ...c, messages: result.messages } : c;
+                })
+              );
+            });
           }
         }
       } catch { /* fallback */ }
@@ -546,6 +552,89 @@ export function InboxLayout() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 200px)" }}>
+
+      {/* Skeleton loading state */}
+      {!initialFetchDone && (
+        <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+          {/* Left skeleton — conversation list */}
+          <div style={{
+            width: 300, minWidth: 300, borderRight: "1px solid rgba(255,255,255,0.06)",
+            display: "flex", flexDirection: "column", padding: "12px",
+          }}>
+            {/* Page selector skeleton */}
+            <div style={{
+              height: 44, borderRadius: 10, marginBottom: 8,
+              background: "rgba(255,255,255,0.03)",
+              animation: "pulse 1.5s ease-in-out infinite",
+            }} />
+            {/* Search skeleton */}
+            <div style={{
+              height: 36, borderRadius: 8, marginBottom: 12,
+              background: "rgba(255,255,255,0.03)",
+              animation: "pulse 1.5s ease-in-out infinite",
+              animationDelay: "0.1s",
+            }} />
+            {/* Conversation skeletons */}
+            {[...Array(8)].map((_, i) => (
+              <div key={i} style={{
+                display: "flex", gap: 10, padding: "10px 8px",
+                borderBottom: "1px solid rgba(255,255,255,0.03)",
+                animation: "pulse 1.5s ease-in-out infinite",
+                animationDelay: `${i * 0.08}s`,
+              }}>
+                <div style={{
+                  width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
+                  background: "rgba(255,255,255,0.04)",
+                }} />
+                <div style={{ flex: 1 }}>
+                  <div style={{ height: 12, width: `${60 + (i % 3) * 15}%`, borderRadius: 4, marginBottom: 6, background: "rgba(255,255,255,0.04)" }} />
+                  <div style={{ height: 10, width: `${40 + (i % 4) * 12}%`, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
+                </div>
+                <div style={{ height: 10, width: 24, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
+              </div>
+            ))}
+          </div>
+
+          {/* Center skeleton — chat area */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+            {/* Chat header skeleton */}
+            <div style={{
+              display: "flex", gap: 10, padding: "14px 16px",
+              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              animation: "pulse 1.5s ease-in-out infinite",
+            }}>
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+              <div>
+                <div style={{ height: 13, width: 120, borderRadius: 4, marginBottom: 4, background: "rgba(255,255,255,0.04)" }} />
+                <div style={{ height: 10, width: 80, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
+              </div>
+            </div>
+            {/* Messages skeleton */}
+            <div style={{ flex: 1, padding: "20px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
+              {[true, true, false, true, false, true].map((incoming, i) => (
+                <div key={i} style={{
+                  alignSelf: incoming ? "flex-start" : "flex-end",
+                  animation: "pulse 1.5s ease-in-out infinite",
+                  animationDelay: `${i * 0.12}s`,
+                }}>
+                  <div style={{
+                    height: 32 + (i % 3) * 10, width: 140 + (i % 4) * 40,
+                    borderRadius: 14,
+                    background: incoming ? "rgba(255,255,255,0.03)" : "rgba(168,85,247,0.06)",
+                  }} />
+                </div>
+              ))}
+            </div>
+            {/* Input skeleton */}
+            <div style={{
+              padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)",
+              animation: "pulse 1.5s ease-in-out infinite",
+            }}>
+              <div style={{ height: 40, borderRadius: 20, background: "rgba(255,255,255,0.03)" }} />
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Empty state */}
       {conversations.length === 0 && initialFetchDone && (

@@ -3,9 +3,31 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 
+// In-memory page token cache (per-process, resets on cold start)
+// Avoids refetching me/accounts on every message load
+let _pageTokenCache: { tokens: Record<string, string>; ts: number } | null = null;
+const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+
+async function getPageTokens(userToken: string): Promise<Record<string, string>> {
+  if (_pageTokenCache && Date.now() - _pageTokenCache.ts < CACHE_TTL) {
+    return _pageTokenCache.tokens;
+  }
+  const pagesRes = await metaFetch(
+    metaUrl("me/accounts", { fields: "id,access_token", limit: "50" }),
+    userToken
+  );
+  const pagesData = await pagesRes.json();
+  const tokens: Record<string, string> = {};
+  for (const p of pagesData.data || []) {
+    if (p.access_token) tokens[p.id] = p.access_token;
+  }
+  _pageTokenCache = { tokens, ts: Date.now() };
+  return tokens;
+}
+
 /**
  * GET /api/inbox/messages?conversationId=xxx&pageId=yyy
- * Fetches messages for a specific conversation
+ * Fetches messages for a specific conversation — FAST (cached page tokens)
  */
 export async function GET(request: NextRequest) {
   const jwt = await getToken({ req: request });
@@ -20,22 +42,14 @@ export async function GET(request: NextRequest) {
   if (!conversationId) return NextResponse.json({ error: "conversationId required" }, { status: 400 });
 
   try {
-    // Get page token for this page
-    let pageToken = token;
-    if (pageId) {
-      const pagesRes = await metaFetch(
-        metaUrl("me/accounts", { fields: "id,access_token" }),
-        token
-      );
-      const pagesData = await pagesRes.json();
-      const page = (pagesData.data || []).find((p: any) => p.id === pageId);
-      if (page?.access_token) pageToken = page.access_token;
-    }
+    // Get page token (from cache or single API call)
+    const tokens = await getPageTokens(token);
+    const pageToken = (pageId && tokens[pageId]) ? tokens[pageId] : token;
 
-    // Fetch messages for this conversation
+    // Fetch messages — single API call
     const msgRes = await metaFetch(
       metaUrl(`${conversationId}`, {
-        fields: "messages{id,message,from,created_time,attachments}",
+        fields: "messages{id,message,from,created_time}",
       }),
       pageToken
     );
@@ -48,18 +62,17 @@ export async function GET(request: NextRequest) {
     const msgData = await msgRes.json();
     const rawMessages = msgData.messages?.data || [];
 
-    // Normalize messages
+    // Normalize — single pass
     const messages = rawMessages.map((msg: any) => ({
       id: msg.id,
       text: msg.message || "",
-      incoming: msg.from?.id !== pageId, // If sender is not the page, it's incoming
+      incoming: msg.from?.id !== pageId,
       timestamp: msg.created_time,
       senderName: msg.from?.name || "Usuario",
       senderId: msg.from?.id,
-      attachments: msg.attachments?.data || null,
     }));
 
-    // Messages come newest-first from Meta, reverse for chat view
+    // Reverse for chat order (Meta returns newest first)
     messages.reverse();
 
     return NextResponse.json({ messages });
@@ -72,7 +85,6 @@ export async function GET(request: NextRequest) {
 /**
  * POST /api/inbox/messages
  * Send a reply to a conversation
- * Body: { pageId, recipientId, message }
  */
 export async function POST(request: NextRequest) {
   const jwt = await getToken({ req: request });
@@ -90,21 +102,15 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    // Get page token
-    const pagesRes = await metaFetch(
-      metaUrl("me/accounts", { fields: "id,access_token" }),
-      token
-    );
-    const pagesData = await pagesRes.json();
-    const page = (pagesData.data || []).find((p: any) => p.id === pageId);
-    if (!page?.access_token) {
+    const tokens = await getPageTokens(token);
+    const pageToken = tokens[pageId];
+    if (!pageToken) {
       return NextResponse.json({ error: "Page not found or no token" }, { status: 400 });
     }
 
-    // Send message via Messenger
     const sendRes = await metaFetch(
       metaUrl(`${pageId}/messages`),
-      page.access_token,
+      pageToken,
       {
         method: "POST",
         body: JSON.stringify({

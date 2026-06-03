@@ -6,6 +6,7 @@ import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 /**
  * GET /api/inbox/conversations
  * Fetches conversations from Facebook Messenger and Instagram DMs
+ * OPTIMIZED: All pages + IG fetched in parallel for speed
  */
 export async function GET(request: NextRequest) {
   const jwt = await getToken({ req: request });
@@ -16,95 +17,95 @@ export async function GET(request: NextRequest) {
   if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
 
   try {
-    // Get pages with their page-level tokens
+    // Get pages — single API call
     const pagesRes = await metaFetch(
-      metaUrl("me/accounts", { fields: "id,name,access_token,instagram_business_account,picture" }),
+      metaUrl("me/accounts", { fields: "id,name,access_token,instagram_business_account{id}", limit: "50" }),
       token
     );
     const pagesData = await pagesRes.json();
     const pages = pagesData.data || [];
 
-    const conversations: any[] = [];
+    if (pages.length === 0) {
+      return NextResponse.json({ conversations: [] });
+    }
+
+    // Fire ALL conversation fetches in parallel (Messenger + IG for each page)
+    const fetchers: Promise<any[]>[] = [];
 
     for (const page of pages) {
       const pageToken = page.access_token;
       if (!pageToken) continue;
 
-      // 1. Facebook Messenger conversations (uses PAGE token)
-      try {
-        const convRes = await metaFetch(
+      // Messenger conversations
+      fetchers.push(
+        metaFetch(
           metaUrl(`${page.id}/conversations`, {
-            fields: "id,participants,updated_time,message_count,unread_count,messages.limit(1){message,from,created_time}",
+            fields: "id,participants,updated_time,unread_count,messages.limit(1){message,from,created_time}",
             limit: "25",
           }),
           pageToken
-        );
-        if (convRes.ok) {
-          const convData = await convRes.json();
-          for (const conv of (convData.data || [])) {
-            // Find the participant who is NOT the page
-            const otherParticipant = conv.participants?.data?.find(
-              (p: any) => p.id !== page.id
-            );
-            const lastMsg = conv.messages?.data?.[0];
-
-            conversations.push({
-              id: conv.id,
-              platform: "facebook_messenger",
-              pageId: page.id,
-              pageName: page.name,
-              contactName: otherParticipant?.name || "Usuario",
-              contactId: otherParticipant?.id || null,
-              lastMessage: lastMsg?.message || "",
-              lastMessageAt: conv.updated_time || lastMsg?.created_time,
-              unread: (conv.unread_count || 0) > 0,
-              messageCount: conv.message_count || 0,
+        )
+          .then(r => r.ok ? r.json() : null)
+          .then(data => {
+            if (!data?.data) return [];
+            return data.data.map((conv: any) => {
+              const other = conv.participants?.data?.find((p: any) => p.id !== page.id);
+              const lastMsg = conv.messages?.data?.[0];
+              return {
+                id: conv.id,
+                platform: "facebook_messenger",
+                pageId: page.id,
+                pageName: page.name,
+                contactName: other?.name || "Usuario",
+                contactId: other?.id || null,
+                lastMessage: lastMsg?.message || "",
+                lastMessageAt: conv.updated_time || lastMsg?.created_time,
+                unread: (conv.unread_count || 0) > 0,
+              };
             });
-          }
-        }
-      } catch (e) {
-        console.error("[INBOX] Messenger error:", e);
-      }
+          })
+          .catch(() => [])
+      );
 
-      // 2. Instagram DMs (needs instagram_business_manage_messages)
+      // Instagram DMs
       const igId = page.instagram_business_account?.id;
       if (igId) {
-        try {
-          const igConvRes = await metaFetch(
+        fetchers.push(
+          metaFetch(
             metaUrl(`${igId}/conversations`, {
               fields: "id,participants,updated_time,messages.limit(1){message,from,created_time}",
               platform: "instagram",
               limit: "25",
             }),
             pageToken
-          );
-          if (igConvRes.ok) {
-            const igConvData = await igConvRes.json();
-            for (const conv of (igConvData.data || [])) {
-              const otherParticipant = conv.participants?.data?.find(
-                (p: any) => p.id !== igId
-              );
-              const lastMsg = conv.messages?.data?.[0];
-
-              conversations.push({
-                id: conv.id,
-                platform: "instagram_dm",
-                pageId: page.id,
-                pageName: page.name,
-                contactName: otherParticipant?.name || otherParticipant?.username || "Usuario IG",
-                contactId: otherParticipant?.id || null,
-                lastMessage: lastMsg?.message || "",
-                lastMessageAt: conv.updated_time || lastMsg?.created_time,
-                unread: false,
-                messageCount: 0,
+          )
+            .then(r => r.ok ? r.json() : null)
+            .then(data => {
+              if (!data?.data) return [];
+              return data.data.map((conv: any) => {
+                const other = conv.participants?.data?.find((p: any) => p.id !== igId);
+                const lastMsg = conv.messages?.data?.[0];
+                return {
+                  id: conv.id,
+                  platform: "instagram_dm",
+                  pageId: page.id,
+                  pageName: page.name,
+                  contactName: other?.name || other?.username || "Usuario IG",
+                  contactId: other?.id || null,
+                  lastMessage: lastMsg?.message || "",
+                  lastMessageAt: conv.updated_time || lastMsg?.created_time,
+                  unread: false,
+                };
               });
-            }
-          }
-        } catch (e) {
-          console.error("[INBOX] IG DMs error:", e);
-        }
+            })
+            .catch(() => [])
+        );
       }
     }
+
+    // Wait for ALL in parallel
+    const results = await Promise.all(fetchers);
+    const conversations = results.flat();
 
     // Sort by most recent
     conversations.sort((a, b) =>
