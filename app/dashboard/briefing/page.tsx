@@ -283,8 +283,19 @@ export default function BriefingPage() {
 /* ═══ EDITABLE GRID ═══ */
 function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; updatePost: (i: number, field: keyof Post, v: string) => void }) {
   const exportToCSV = useCallback(() => {
-    const h = ["Día","Idea","Enfoque","Copy In","Copy Out","Arte","Formato","Prompt MJ","Paso a Paso"];
-    const rows = gridData.posts.map(p => [p.dia, p.ideaPrincipal, p.enfoquePublicacion, p.copyIn, p.copyOut, p.explicacionArte, p.formatoArte, p.masterPromptMidjourney, p.pasoAPaso]);
+    const h = [
+      "Día","Idea","Enfoque","Copy In","Copy Out","Arte","Formato","Prompt MJ",
+      "Video - No. Escenas", "Video - AI Tool", "Video - Prompts Imagenes Escenas", "Video - Prompts Video AI Escenas",
+      "Paso a Paso"
+    ];
+    const rows = gridData.posts.map(p => [
+      p.dia, p.ideaPrincipal, p.enfoquePublicacion, p.copyIn, p.copyOut, p.explicacionArte, p.formatoArte, p.masterPromptMidjourney,
+      p.videoDetails?.numEscenas ?? 'N/A',
+      p.videoDetails?.videoAITool ?? 'N/A',
+      p.videoDetails?.promptsEscenasMidjourney?.join('; ') ?? 'N/A',
+      p.videoDetails?.promptsVideoAI?.join('; ') ?? 'N/A',
+      p.pasoAPaso
+    ]);
     const csv = "data:text/csv;charset=utf-8," + [h.join(","), ...rows.map(r => r.map(f => `"${String(f).replace(/"/g, '""')}"`).join(","))].join("\n");
     const link = document.createElement("a"); link.setAttribute("href", encodeURI(csv)); link.setAttribute("download", `gridia_${gridData.posts.length}.csv`);
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
@@ -323,6 +334,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                 <th style={{ ...thS, minWidth: 110 }}>Arte</th>
                 <th style={{ ...thS, width: 44 }}>Fmt</th>
                 <th style={{ ...thS, minWidth: 140 }}>Prompt MJ</th>
+                <th style={{ ...thS, minWidth: 150 }}>Video Details</th>
                 <th style={{ ...thS, minWidth: 110 }}>Ejecución</th>
               </tr>
             </thead>
@@ -339,6 +351,30 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                   <td style={tdS}><textarea style={editInput} value={post.explicacionArte} onChange={e => updatePost(i, "explicacionArte", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Dirección de arte..." /></td>
                   <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "1px 4px", borderRadius: 2, background: post.formatoArte === "Video" ? "rgba(0,229,0,0.1)" : "rgba(148,163,184,0.06)", color: post.formatoArte === "Video" ? "#00E500" : "rgba(148,163,184,0.4)" }}>{post.formatoArte}</span></td>
                   <td style={tdS}><textarea style={{ ...editInput, color: "rgba(0,229,0,0.6)", fontFamily: "monospace", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
+                  <td style={tdS}>
+                    {post.videoDetails ? (
+                      <div style={{ fontSize: 9, color: "rgba(148,163,184,0.8)" }}>
+                        <div style={{ marginBottom: 4 }}><strong style={{ color: "#fff" }}>Herramienta:</strong> {post.videoDetails.videoAITool}</div>
+                        <div style={{ marginBottom: 4 }}><strong style={{ color: "#fff" }}>Escenas:</strong> {post.videoDetails.numEscenas}</div>
+                        {post.videoDetails.promptsEscenasMidjourney?.length > 0 && (
+                          <div style={{ marginBottom: 4 }}>
+                            <strong style={{ color: "#fff" }}>Prompts Imagen:</strong>
+                            <ul style={{ paddingLeft: 12, margin: "2px 0 0" }}>
+                              {post.videoDetails.promptsEscenasMidjourney.map((p, idx) => <li key={idx}><code style={{ color: "#00E500", fontSize: 8 }}>{p}</code></li>)}
+                            </ul>
+                          </div>
+                        )}
+                        {post.videoDetails.promptsVideoAI?.length > 0 && (
+                          <div>
+                            <strong style={{ color: "#fff" }}>Prompts Video:</strong>
+                            <ul style={{ paddingLeft: 12, margin: "2px 0 0" }}>
+                              {post.videoDetails.promptsVideoAI.map((p, idx) => <li key={idx}><code style={{ color: "#00E500", fontSize: 8 }}>{p}</code></li>)}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    ) : <span style={{ color: "rgba(148,163,184,0.3)", fontSize: 9 }}>N/A</span>}
+                  </td>
                   <td style={tdS}><textarea style={editInput} value={post.pasoAPaso} onChange={e => updatePost(i, "pasoAPaso", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Pasos..." /></td>
                 </tr>
               ))}
