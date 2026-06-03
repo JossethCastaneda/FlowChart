@@ -1,28 +1,9 @@
 "use client";
 
 import React, { useState, useCallback } from "react";
+import { GridFormData, FileInputData, ContentGridData, Post, VideoDetails } from "./types";
+import { generateContentGridClient } from "./geminiClient";
 
-/* ═══ TYPES ═══ */
-interface FileInputData { mimeType: string; data: string; }
-interface GridFormData {
-  client: string; brandFiles: FileInputData[]; offer: string;
-  month: string; postCount: number; focus: string[];
-  formats: string; comments?: string;
-}
-interface VideoDetails {
-  numEscenas: number; promptsEscenasMidjourney: string[];
-  promptsVideoAI: string[]; videoAITool: string;
-}
-interface Post {
-  dia: number; ideaPrincipal: string; enfoquePublicacion: string;
-  copyIn: string; copyOut: string; explicacionArte: string;
-  formatoArte: "Imagen" | "Video"; masterPromptMidjourney: string;
-  videoDetails?: VideoDetails; pasoAPaso: string;
-}
-interface ContentGridData {
-  posts: Post[];
-  creditos: { min: number; max: number; summary: string };
-}
 
 /* ═══ CONSTANTS ═══ */
 const MONTH_OPTIONS = ["Enero","Febrero","Marzo","Abril","Mayo","Junio","Julio","Agosto","Septiembre","Octubre","Noviembre","Diciembre"];
@@ -163,9 +144,14 @@ export default function BriefingPage() {
     setIsLoading(true); setError(null); setGridData(null);
 
     try {
-      const res = await fetch("/api/gridia", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(formData) });
-      if (!res.ok) { const e = await res.json().catch(() => ({})); throw new Error(e.error || `Error ${res.status}`); }
-      setGridData(await res.json());
+      // 1. Fetch the secure Gemini API Key from our own token endpoint
+      const tokenRes = await fetch("/api/gridia/token");
+      if (!tokenRes.ok) throw new Error("No se pudo obtener el token de API");
+      const { token } = await tokenRes.json();
+
+      // 2. Fetch directly from Google Gemini API (bypassing Vercel's 4.5MB payload limit)
+      const data = await generateContentGridClient(formData, token);
+      setGridData(data);
     } catch (err: unknown) { setError(err instanceof Error ? err.message : "Error desconocido"); }
     finally { setIsLoading(false); }
   };
