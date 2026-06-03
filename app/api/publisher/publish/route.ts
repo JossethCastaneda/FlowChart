@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
-const META_VERSION = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+const META_VERSION = process.env.META_API_VERSION || "v22.0";
 
 /**
  * Converts a base64 data URL into a Buffer for multipart upload.
@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Este post ya fue publicado" }, { status: 400 });
     }
 
-    const accessToken = await getMetaAccessToken(req);
+    const accessToken = await getMetaAccessToken(req, "publisher");
     if (!accessToken) {
       return NextResponse.json(
         { error: "No se encontró token de Meta. Reconecta tu cuenta en Integraciones." },
@@ -120,7 +120,7 @@ export async function POST(req: NextRequest) {
             const formData = new FormData();
             const blob = new Blob([new Uint8Array(resolved.buffer)], { type: resolved.contentType });
             formData.append("source", blob, resolved.filename);
-            formData.append("caption", post.content);
+            formData.append("message", post.content);
             formData.append("access_token", pageToken);
 
             const fbRes = await fetch(
@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
               {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${pageToken}` },
-                body: JSON.stringify({ url: mediaUrl, caption: post.content }),
+                body: JSON.stringify({ url: mediaUrl, message: post.content }),
               }
             );
             const fbData = await fbRes.json();
