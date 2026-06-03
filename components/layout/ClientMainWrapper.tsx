@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -25,12 +25,14 @@ import {
   BarChart3,
   Ear,
   Columns3,
+  Activity,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { name: "Resumen", short: "KPIs", href: "/dashboard/resumen", icon: LayoutDashboard, color: "#00d4ff" },
   { name: "Proyectos", short: "PROJ", href: "/dashboard/proyectos", icon: FolderKanban, color: "#06d6a0" },
   { name: "Publisher", short: "PUB", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b" },
+  { name: "Historial", short: "LOG", href: "/dashboard/historial", icon: Activity, color: "#06d6a0" },
   { name: "Ads Manager", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB" },
   { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500" },
   { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55" },
