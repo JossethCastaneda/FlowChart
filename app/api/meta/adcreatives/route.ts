@@ -108,7 +108,7 @@ function detectFormat(creative: any, detail: any): "video" | "image" | "carousel
 }
 
 export async function GET(req: NextRequest) {
-  const accessToken = await getMetaAccessToken(req);
+  const accessToken = await getMetaAccessToken(req, "ads");
   if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

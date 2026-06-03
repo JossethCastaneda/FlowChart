@@ -3,7 +3,7 @@ import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
 // POST — Update a rule
 export async function POST(req: NextRequest, { params }: { params: Promise<{ ruleId: string }> }) {
-  const accessToken = await getMetaAccessToken(req);
+  const accessToken = await getMetaAccessToken(req, "ads");
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { ruleId } = await params;
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ rul
 
 // DELETE — Delete a rule
 export async function DELETE(req: NextRequest, { params }: { params: Promise<{ ruleId: string }> }) {
-  const accessToken = await getMetaAccessToken(req);
+  const accessToken = await getMetaAccessToken(req, "ads");
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { ruleId } = await params;

@@ -79,16 +79,6 @@ export async function GET(request: NextRequest) {
             picture: page.picture || null,
           });
         }
-        // Also add linked IG account
-        if (page.instagramId && !seenIds.has(page.instagramId)) {
-          seenIds.add(page.instagramId);
-          channels.push({
-            id: page.instagramId,
-            name: `${page.name} (IG)`,
-            type: "instagram",
-            picture: page.picture || null,
-          });
-        }
       }
     }
   } catch (e) {

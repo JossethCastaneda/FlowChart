@@ -182,8 +182,8 @@ export async function GET(request: NextRequest) {
 
     console.log(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
 
-    // All connections redirect to Publisher → Integrations tab
-    return NextResponse.redirect(`${baseUrl}/dashboard/publisher?connected=${module}`);
+    // All connections redirect to Integrations tab
+    return NextResponse.redirect(`${baseUrl}/dashboard/integrations?connected=${module}`);
 
   } catch (err: any) {
     console.error("[CONNECT CALLBACK] Error:", err);

@@ -48,8 +48,6 @@ interface FilterOption {
 
 export interface PublisherFilters {
   channels: string[];   // selected channel IDs (multi-select)
-  cliente: string;      // selected client name
-  vertical: string;     // selected vertical name
 }
 
 /* ══════════════════════════════════════════════════════════
@@ -432,8 +430,6 @@ function FiltersBar({
   onChange: (f: PublisherFilters) => void;
 }) {
   const [channels, setChannels] = useState<ChannelOption[]>([]);
-  const [clients, setClients] = useState<FilterOption[]>([]);
-  const [verticals, setVerticals] = useState<FilterOption[]>([]);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
@@ -442,8 +438,6 @@ function FiltersBar({
       .then(data => {
         if (data) {
           setChannels(data.channels || []);
-          setClients(data.clients || []);
-          setVerticals(data.verticals || []);
         }
         setLoaded(true);
       })
@@ -451,11 +445,9 @@ function FiltersBar({
   }, []);
 
   const activeCount =
-    (filters.channels.length > 0 && filters.channels.length < channels.length ? 1 : 0) +
-    (filters.cliente ? 1 : 0) +
-    (filters.vertical ? 1 : 0);
+    (filters.channels.length > 0 && filters.channels.length < channels.length ? 1 : 0);
 
-  const resetAll = () => onChange({ channels: [], cliente: "", vertical: "" });
+  const resetAll = () => onChange({ channels: [] });
 
   if (!loaded) return null;
 
@@ -494,29 +486,6 @@ function FiltersBar({
         selected={filters.channels}
         onChange={ids => onChange({ ...filters, channels: ids })}
       />
-
-      {/* Client select */}
-      {clients.length > 0 && (
-        <SelectFilter
-          label="Cliente"
-          value={filters.cliente}
-          options={clients}
-          onChange={v => onChange({ ...filters, cliente: v })}
-          color="#06d6a0"
-          searchable
-        />
-      )}
-
-      {/* Vertical select */}
-      {verticals.length > 0 && (
-        <SelectFilter
-          label="Vertical"
-          value={filters.vertical}
-          options={verticals}
-          onChange={v => onChange({ ...filters, vertical: v })}
-          color="#f472b6"
-        />
-      )}
 
       {/* Reset */}
       {activeCount > 0 && (
@@ -991,8 +960,6 @@ export function PublisherTabs() {
   const [activeTab, setActiveTab] = useState("composer");
   const [filters, setFilters] = useState<PublisherFilters>({
     channels: [],
-    cliente: "",
-    vertical: "",
   });
 
   useEffect(() => {
@@ -1075,7 +1042,7 @@ export function PublisherTabs() {
       ) : (
         <div>
           {activeTab === "composer" && <Composer />}
-          {activeTab === "calendar" && <ScheduledCalendar />}
+          {activeTab === "calendar" && <ScheduledCalendar filters={filters} />}
           {activeTab === "analytics" && <AnalyticsDashboard />}
           {activeTab === "listening" && <ListeningDashboard />}
           {activeTab === "streams" && <StreamsDashboard />}

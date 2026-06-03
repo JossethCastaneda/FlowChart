@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Este post ya fue publicado" }, { status: 400 });
     }
 
-    const accessToken = await getMetaAccessToken(req, "publisher");
+    const accessToken = await getMetaAccessToken(req, "social");
     if (!accessToken) {
       return NextResponse.json(
         { error: "No se encontró token de Meta. Reconecta tu cuenta en Integraciones." },
@@ -119,8 +119,15 @@ export async function POST(req: NextRequest) {
 
           if (resolved) {
             // ── Multipart binary upload via axios + form-data ──
+            const isVideo = resolved.contentType.startsWith("video/");
+            const endpoint = isVideo ? "videos" : "photos";
+            
             const form = new FormData();
-            form.append("message", post.content);
+            if (isVideo) {
+              form.append("description", post.content);
+            } else {
+              form.append("message", post.content);
+            }
             form.append("source", resolved.buffer, {
               filename: resolved.filename,
               contentType: resolved.contentType,
@@ -128,7 +135,7 @@ export async function POST(req: NextRequest) {
 
             try {
               const fbRes = await axios.post(
-                `https://graph.facebook.com/${META_VERSION}/${pageId}/photos?access_token=${pageToken}`,
+                `https://graph.facebook.com/${META_VERSION}/${pageId}/${endpoint}?access_token=${pageToken}`,
                 form,
                 { headers: form.getHeaders() }
               );
@@ -189,9 +196,13 @@ export async function POST(req: NextRequest) {
           const resolved = resolveMediaToBuffer(igMediaUrl);
 
           if (resolved) {
-            // Upload to Facebook as unpublished photo to get a public URL
+            // Upload to Facebook as unpublished photo/video to get a public URL
+            const isVideo = resolved.contentType.startsWith("video/");
+            const endpoint = isVideo ? "videos" : "photos";
+            
             const form = new FormData();
             form.append("published", "false");
+            if (isVideo) form.append("description", "instagram_video_temp");
             form.append("source", resolved.buffer, {
               filename: resolved.filename,
               contentType: resolved.contentType,
@@ -199,28 +210,36 @@ export async function POST(req: NextRequest) {
 
             try {
               const uploadRes = await axios.post(
-                `https://graph.facebook.com/${META_VERSION}/${pageId}/photos?access_token=${pageToken}`,
+                `https://graph.facebook.com/${META_VERSION}/${pageId}/${endpoint}?access_token=${pageToken}`,
                 form,
                 { headers: form.getHeaders() }
               );
               
               if (uploadRes.data.id) {
-                // Get the image URL from the uploaded photo
+                // Get the media URL from the uploaded photo/video
+                const fields = isVideo ? "source" : "images";
                 const photoRes = await fetch(
-                  `https://graph.facebook.com/${META_VERSION}/${uploadRes.data.id}?fields=images`,
+                  `https://graph.facebook.com/${META_VERSION}/${uploadRes.data.id}?fields=${fields}`,
                   { headers: { Authorization: `Bearer ${pageToken}` } }
                 );
                 const photoData = await photoRes.json();
-                const bestImage = photoData?.images?.[0]?.source;
-                if (bestImage) {
-                  igMediaUrl = bestImage;
+                
+                let bestMedia = null;
+                if (isVideo) {
+                  bestMedia = photoData?.source;
                 } else {
-                  errors.push("Instagram: No se pudo obtener URL de imagen subida");
+                  bestMedia = photoData?.images?.[0]?.source;
+                }
+                
+                if (bestMedia) {
+                  igMediaUrl = bestMedia;
+                } else {
+                  errors.push("Instagram: No se pudo obtener URL pública del contenido subido");
                 }
               }
             } catch (err: any) {
               const fbErr = err.response?.data?.error?.message || err.message || "Error";
-              errors.push(`Instagram: Error subiendo imagen (pre-upload): ${fbErr}`);
+              errors.push(`Instagram: Error subiendo archivo (pre-upload): ${fbErr}`);
             }
           }
 

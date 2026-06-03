@@ -326,13 +326,13 @@ export const CreativeLightbox = ({
           <button onClick={onClose} style={{
             position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.05)",
             border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, width: 32, height: 32,
-            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+            cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10
           }}>
             <X style={{ width: 16, height: 16, color: "rgba(148,163,184,0.6)" }} />
           </button>
 
           {/* Ad name + status */}
-          <div style={{ marginBottom: 16 }}>
+          <div style={{ marginBottom: 16, paddingRight: 40 }}>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 6, lineHeight: 1.3 }}>{ad.adName}</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor }} />
@@ -341,32 +341,10 @@ export const CreativeLightbox = ({
             </div>
           </div>
 
-          {/* Metrics */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 20 }}>
-            {[
-              { label: "Inversión", value: fmtMXN(ad.spend), color: "#fdab3d" },
-              { label: "Resultados", value: String(ad.results), color: "#00c875" },
-              { label: cprLabel, value: ad.cprVal === Infinity ? "—" : fmtMXN(ad.cprVal), color: ad.cprVal === Infinity ? "#e2445c" : cprTarget > 0 && ad.cprVal > cprTarget ? "#e2445c" : "#00d4ff" },
-              { label: "CTR", value: `${ad.ctr.toFixed(2)}%`, color: "rgba(148,163,184,0.7)" },
-            ].map(m => (
-              <div key={m.label} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: "8px 10px" }}>
-                <p style={{ fontSize: 8, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{m.label}</p>
-                <p style={{ fontSize: 14, fontWeight: 700, color: m.color }}>{m.value}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Additional metrics row */}
-          <div style={{ display: "flex", gap: 16, marginBottom: 20, fontSize: 11, color: "rgba(148,163,184,0.5)" }}>
-            <span>Impresiones: <strong style={{ color: "#e2e8f0" }}>{fmtNum(ad.impressions)}</strong></span>
-            <span>Clics: <strong style={{ color: "#e2e8f0" }}>{fmtNum(ad.clicks)}</strong></span>
-            <span>CPC: <strong style={{ color: "#e2e8f0" }}>{fmtMXN(ad.spend / (ad.clicks || 1))}</strong></span>
-          </div>
-
-          {/* ── Ad Preview (Feed simulation) ── */}
+          {/* ── Ad Preview (Feed simulation) moved to the top ── */}
           <div style={{
             background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
-            borderRadius: 8, overflow: "hidden", marginBottom: 16,
+            borderRadius: 8, overflow: "hidden", marginBottom: 20, flexShrink: 0
           }}>
             <div style={{ padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
               <p style={{ fontSize: 9, color: "rgba(148,163,184,0.3)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Vista previa del anuncio</p>
@@ -389,19 +367,19 @@ export const CreativeLightbox = ({
             {ad.body && (
               <div style={{ padding: "10px 12px" }}>
                 <p style={{ fontSize: 12, color: "rgba(148,163,184,0.8)", lineHeight: 1.5 }}>
-                  {ad.body.length > 200 ? ad.body.slice(0, 200) + "..." : ad.body}
+                  {ad.body}
                 </p>
               </div>
             )}
 
-            {/* Preview image/video */}
-            <div style={{ width: "100%", aspectRatio: "1 / 1", maxHeight: 250, background: "#000", overflow: "hidden" }}>
+            {/* Preview image/video — No fixed aspect ratio to prevent cropping */}
+            <div style={{ width: "100%", background: "#000", overflow: "hidden" }}>
               {ad.format === "video" ? (
                 <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} compact />
               ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
-                <CarouselViewer items={ad.carouselItems} compact />
+                <div style={{ aspectRatio: "1/1" }}><CarouselViewer items={ad.carouselItems} compact /></div>
               ) : ad.thumbnailUrl ? (
-                <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "auto", display: "block" }} />
               ) : null}
             </div>
 
@@ -429,6 +407,28 @@ export const CreativeLightbox = ({
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><MessageCircle style={{ width: 12, height: 12 }} /> Comentar</span>
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Share2 style={{ width: 12, height: 12 }} /> Compartir</span>
             </div>
+          </div>
+
+          {/* Metrics */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 12, flexShrink: 0 }}>
+            {[
+              { label: "Inversión", value: fmtMXN(ad.spend), color: "#fdab3d" },
+              { label: "Resultados", value: String(ad.results), color: "#00c875" },
+              { label: cprLabel, value: ad.cprVal === Infinity ? "—" : fmtMXN(ad.cprVal), color: ad.cprVal === Infinity ? "#e2445c" : cprTarget > 0 && ad.cprVal > cprTarget ? "#e2445c" : "#00d4ff" },
+              { label: "CTR", value: `${ad.ctr.toFixed(2)}%`, color: "rgba(148,163,184,0.7)" },
+            ].map(m => (
+              <div key={m.label} style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: "8px 10px" }}>
+                <p style={{ fontSize: 8, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{m.label}</p>
+                <p style={{ fontSize: 14, fontWeight: 700, color: m.color }}>{m.value}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Additional metrics row */}
+          <div style={{ display: "flex", gap: 16, fontSize: 11, color: "rgba(148,163,184,0.5)", flexShrink: 0 }}>
+            <span>Impresiones: <strong style={{ color: "#e2e8f0" }}>{fmtNum(ad.impressions)}</strong></span>
+            <span>Clics: <strong style={{ color: "#e2e8f0" }}>{fmtNum(ad.clicks)}</strong></span>
+            <span>CPC: <strong style={{ color: "#e2e8f0" }}>{fmtMXN(ad.spend / (ad.clicks || 1))}</strong></span>
           </div>
         </div>
       </div>

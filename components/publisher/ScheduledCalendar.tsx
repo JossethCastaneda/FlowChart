@@ -46,7 +46,14 @@ interface Post {
   publishedAt: string | null;
   createdAt: string;
   pageName: string | null;
+  pageId: string | null;
   error: string | null;
+}
+
+export interface CalendarProps {
+  filters?: {
+    channels: string[];
+  };
 }
 
 /* ── Status config ────────────────────────────────────── */
@@ -77,14 +84,13 @@ const toDateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).pa
 /* ══════════════════════════════════════════════════════════
    SCHEDULED CALENDAR COMPONENT
    ══════════════════════════════════════════════════════════ */
-export function ScheduledCalendar() {
+export function ScheduledCalendar({ filters }: CalendarProps) {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"month" | "list">("month");
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDay, setSelectedDay] = useState<string | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filterChannel, setFilterChannel] = useState<string>("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -112,7 +118,9 @@ export function ScheduledCalendar() {
   /* ── Filter posts ─────────────────────────────────────── */
   const filtered = posts.filter((p) => {
     if (filterStatus !== "all" && p.status !== filterStatus) return false;
-    if (filterChannel !== "all" && !p.channels.includes(filterChannel)) return false;
+    if (filters && filters.channels && filters.channels.length > 0) {
+      if (!p.pageId || !filters.channels.includes(p.pageId)) return false;
+    }
     return true;
   });
 
@@ -336,10 +344,6 @@ export function ScheduledCalendar() {
         <FilterPill label="Programado" active={filterStatus === "Scheduled"} onClick={() => setFilterStatus("Scheduled")} />
         <FilterPill label="Publicado" active={filterStatus === "Published"} onClick={() => setFilterStatus("Published")} />
         <FilterPill label="Fallido" active={filterStatus === "Failed"} onClick={() => setFilterStatus("Failed")} />
-        <span style={{ fontSize: 11, color: "#64748b", fontWeight: 500, marginLeft: 12 }}>Canal:</span>
-        <FilterPill label="Todos" active={filterChannel === "all"} onClick={() => setFilterChannel("all")} />
-        <FilterPill label="Facebook" active={filterChannel === "facebook"} onClick={() => setFilterChannel("facebook")} />
-        <FilterPill label="Instagram" active={filterChannel === "instagram"} onClick={() => setFilterChannel("instagram")} />
       </div>
 
       {/* Loading */}

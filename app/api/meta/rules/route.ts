@@ -5,7 +5,7 @@ const RULE_FIELDS = "name,status,evaluation_spec,execution_spec,schedule_spec,en
 
 // GET — List all rules for an ad account
 export async function GET(req: NextRequest) {
-  const accessToken = await getMetaAccessToken(req);
+  const accessToken = await getMetaAccessToken(req, "ads");
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { searchParams } = new URL(req.url);
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
 
 // POST — Create a new rule
 export async function POST(req: NextRequest) {
-  const accessToken = await getMetaAccessToken(req);
+  const accessToken = await getMetaAccessToken(req, "ads");
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const token = accessToken;

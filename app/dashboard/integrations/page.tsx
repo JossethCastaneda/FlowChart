@@ -62,7 +62,10 @@ const AIEngineIcon = () => (
 
 // Platform config with metadata
 const PLATFORMS = [
-  { provider: "meta", name: "Meta Ads", description: "Campaigns, Ad Sets, Pixel CAPI, Audiences", Icon: MetaIcon, gradient: "linear-gradient(135deg, #0064E0, #0081FB)" },
+  { provider: "meta_ads", moduleUrl: "ads", name: "Meta Ads Manager", description: "Campaigns, Ad Sets, Pixel CAPI, Audiences", Icon: MetaIcon, gradient: "linear-gradient(135deg, #0064E0, #0081FB)" },
+  { provider: "meta_social", moduleUrl: "social", name: "Meta Social Channels", description: "Publishing, Feed, Page Management", Icon: MetaIcon, gradient: "linear-gradient(135deg, #0064E0, #0081FB)" },
+  { provider: "meta_analytics", moduleUrl: "analytics", name: "Meta Analytics Engine", description: "Insights, Organic & Paid Performance", Icon: MetaIcon, gradient: "linear-gradient(135deg, #0064E0, #0081FB)" },
+  { provider: "meta_community", moduleUrl: "community", name: "Meta Community Management", description: "Inbox, Listening, Streams", Icon: MetaIcon, gradient: "linear-gradient(135deg, #0064E0, #0081FB)" },
   { provider: "instagram", name: "Instagram", description: "Feed, Stories, Reels, Insights API", Icon: InstagramIcon, gradient: "linear-gradient(135deg, #833AB4, #E1306C, #F77737)" },
   { provider: "whatsapp", name: "WhatsApp Business", description: "API Cloud, Templates, Webhooks", Icon: WhatsAppIcon, gradient: "linear-gradient(135deg, #075E54, #25D366)" },
   { provider: "google_ads", name: "Google Ads", description: "Search, Display, YouTube, PMax", Icon: GoogleAdsIcon, gradient: "linear-gradient(135deg, #185ABC, #4285F4)" },
@@ -240,6 +243,13 @@ export default function IntegrationsPage() {
                     <button
                       className="btn-primary"
                       style={{ fontSize: "9px", padding: "4px 12px" }}
+                      onClick={() => {
+                        if ((platform as any).moduleUrl) {
+                          window.location.href = `/api/connect/${(platform as any).moduleUrl}`;
+                        } else {
+                          alert("Integración no disponible aún");
+                        }
+                      }}
                     >
                       Connect
                     </button>

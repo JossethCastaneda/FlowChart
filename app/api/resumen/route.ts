@@ -18,6 +18,7 @@ export async function GET() {
         data: {
           workspace: null,
           projects: { total: 0, active: 0 },
+          projectsList: [],
           members: { total: 0 },
           tasks: { total: 0, backlog: 0, wip: 0, done: 0 },
           briefs: { total: 0, draft: 0, review: 0, approved: 0 },

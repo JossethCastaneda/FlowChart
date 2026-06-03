@@ -10,7 +10,7 @@ import { calculateDataQuality } from "@/lib/meta-errors";
  * • Normalises all numeric values server-side so the frontend never parses strings
  */
 export async function GET(req: NextRequest) {
-  const accessToken = await getMetaAccessToken(req);
+  const accessToken = await getMetaAccessToken(req, "analytics");
   if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
