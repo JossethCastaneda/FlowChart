@@ -54,7 +54,7 @@ export async function GET() {
         workspace,
         projects: {
           total: projects.length,
-          active: projects.filter((p) => p.status === "Activo").length,
+          active: projects.filter((p) => p.status === "EN VUELO").length,
         },
         projectsList: projects,
         members: { total: members },

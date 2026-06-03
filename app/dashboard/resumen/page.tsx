@@ -42,7 +42,7 @@ export default function ResumenPage() {
   // Fetch Meta insights — use cache first, then fill any gaps
   useEffect(() => {
     if (!data?.projectsList?.length) return;
-    const activeProjects = data.projectsList.filter((p: any) => p.status === "Activo");
+    const activeProjects = data.projectsList.filter((p: any) => p.status === "EN VUELO");
     if (activeProjects.length === 0) return;
 
     setInsightsLoading(true);
@@ -89,7 +89,7 @@ export default function ResumenPage() {
   const taskDoneRate = d.tasks.total > 0 ? Math.round((d.tasks.done / d.tasks.total) * 100) : 0;
 
   // Build project cards data
-  const activeProjects = d.projectsList.filter((p: any) => p.status === "Activo");
+  const activeProjects = d.projectsList.filter((p: any) => p.status === "EN VUELO");
 
   const projectCards = activeProjects.map((p: any) => {
     const pi = projectInsights[p.id];

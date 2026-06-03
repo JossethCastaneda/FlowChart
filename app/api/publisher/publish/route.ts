@@ -4,6 +4,8 @@ import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import FormData from "form-data";
+import axios from "axios";
 
 const META_VERSION = process.env.META_API_VERSION || "v22.0";
 
@@ -33,36 +35,10 @@ function resolveMediaToBuffer(
 }
 
 /**
- * Manually builds a multipart/form-data payload.
- * Prevents Next.js / undici FormData boundary chunking issues with Facebook Graph API.
- */
-function buildMultipartFormData(fields: Record<string, string>, fileBuffer: Buffer, filename: string, contentType: string) {
-  const boundary = "----WebKitFormBoundarySodare" + Math.random().toString(16).slice(2);
-  let head = "";
-  for (const [key, value] of Object.entries(fields)) {
-    head += `--${boundary}\r\n`;
-    head += `Content-Disposition: form-data; name="${key}"\r\n\r\n`;
-    head += `${value}\r\n`;
-  }
-  head += `--${boundary}\r\n`;
-  head += `Content-Disposition: form-data; name="source"; filename="${filename}"\r\n`;
-  head += `Content-Type: ${contentType}\r\n\r\n`;
-  
-  const tail = `\r\n--${boundary}--\r\n`;
-  const bodyBuffer = Buffer.concat([
-    Buffer.from(head, "utf-8"),
-    fileBuffer,
-    Buffer.from(tail, "utf-8")
-  ]);
-  
-  return { bodyBuffer, boundary };
-}
-
-/**
  * POST /api/publisher/publish
  *
  * Publishes a post to Facebook Page and/or Instagram.
- * Handles both URL-based and binary multipart uploads.
+ * Handles both URL-based and binary multipart uploads using axios & form-data.
  */
 export async function POST(req: NextRequest) {
   try {
@@ -142,27 +118,24 @@ export async function POST(req: NextRequest) {
           const resolved = resolveMediaToBuffer(mediaUrl);
 
           if (resolved) {
-            // ── Multipart binary upload (for data: URLs, /tmp files) ──
-            const multipart = buildMultipartFormData(
-              { message: post.content },
-              resolved.buffer,
-              resolved.filename,
-              resolved.contentType
-            );
+            // ── Multipart binary upload via axios + form-data ──
+            const form = new FormData();
+            form.append("message", post.content);
+            form.append("source", resolved.buffer, {
+              filename: resolved.filename,
+              contentType: resolved.contentType,
+            });
 
-            const fbRes = await fetch(
-              `https://graph.facebook.com/${META_VERSION}/${pageId}/photos?access_token=${pageToken}`,
-              { 
-                method: "POST", 
-                headers: { "Content-Type": `multipart/form-data; boundary=${multipart.boundary}` },
-                body: multipart.bodyBuffer 
-              }
-            );
-            const fbData = await fbRes.json();
-            if (fbRes.ok && fbData.id) {
-              externalIds.facebook = fbData.id;
-            } else {
-              errors.push(`Facebook: ${fbData?.error?.message || "Error desconocido"}`);
+            try {
+              const fbRes = await axios.post(
+                `https://graph.facebook.com/${META_VERSION}/${pageId}/photos?access_token=${pageToken}`,
+                form,
+                { headers: form.getHeaders() }
+              );
+              externalIds.facebook = fbRes.data.id;
+            } catch (err: any) {
+              const fbErr = err.response?.data?.error?.message || err.message || "Error desconocido";
+              errors.push(`Facebook: ${fbErr}`);
             }
           } else {
             // ── URL-based upload (for https:// URLs) ──
@@ -217,38 +190,37 @@ export async function POST(req: NextRequest) {
 
           if (resolved) {
             // Upload to Facebook as unpublished photo to get a public URL
-            const multipart = buildMultipartFormData(
-              { published: "false" },
-              resolved.buffer,
-              resolved.filename,
-              resolved.contentType
-            );
+            const form = new FormData();
+            form.append("published", "false");
+            form.append("source", resolved.buffer, {
+              filename: resolved.filename,
+              contentType: resolved.contentType,
+            });
 
-            const uploadRes = await fetch(
-              `https://graph.facebook.com/${META_VERSION}/${pageId}/photos?access_token=${pageToken}`,
-              { 
-                method: "POST", 
-                headers: { "Content-Type": `multipart/form-data; boundary=${multipart.boundary}` },
-                body: multipart.bodyBuffer 
-              }
-            );
-            const uploadData = await uploadRes.json();
-
-            if (uploadRes.ok && uploadData.id) {
-              // Get the image URL from the uploaded photo
-              const photoRes = await fetch(
-                `https://graph.facebook.com/${META_VERSION}/${uploadData.id}?fields=images`,
-                { headers: { Authorization: `Bearer ${pageToken}` } }
+            try {
+              const uploadRes = await axios.post(
+                `https://graph.facebook.com/${META_VERSION}/${pageId}/photos?access_token=${pageToken}`,
+                form,
+                { headers: form.getHeaders() }
               );
-              const photoData = await photoRes.json();
-              const bestImage = photoData?.images?.[0]?.source;
-              if (bestImage) {
-                igMediaUrl = bestImage;
-              } else {
-                errors.push("Instagram: No se pudo obtener URL de imagen subida");
+              
+              if (uploadRes.data.id) {
+                // Get the image URL from the uploaded photo
+                const photoRes = await fetch(
+                  `https://graph.facebook.com/${META_VERSION}/${uploadRes.data.id}?fields=images`,
+                  { headers: { Authorization: `Bearer ${pageToken}` } }
+                );
+                const photoData = await photoRes.json();
+                const bestImage = photoData?.images?.[0]?.source;
+                if (bestImage) {
+                  igMediaUrl = bestImage;
+                } else {
+                  errors.push("Instagram: No se pudo obtener URL de imagen subida");
+                }
               }
-            } else {
-              errors.push(`Instagram: Error subiendo imagen: ${uploadData?.error?.message || "Error"}`);
+            } catch (err: any) {
+              const fbErr = err.response?.data?.error?.message || err.message || "Error";
+              errors.push(`Instagram: Error subiendo imagen (pre-upload): ${fbErr}`);
             }
           }
 
