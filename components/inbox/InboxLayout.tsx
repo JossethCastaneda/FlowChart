@@ -1682,7 +1682,7 @@ function ContactProfile({
         {/* Información de contacto */}
         <ProfileSection title="Información de contacto">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.75)" }}>
               <User style={{ width: 12, height: 12, color: "rgba(148,163,184,0.65)" }} />
               {conversation.contactName}
             </div>
@@ -1703,7 +1703,7 @@ function ContactProfile({
 
         {/* Perfil de plataforma */}
         <ProfileSection title={`Perfil de ${pc.label}`}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.75)" }}>
             <pc.icon style={{ width: 14, height: 14, color: pc.color }} />
             <span>{conversation.contactName}</span>
             <ExternalLink style={{ width: 10, height: 10, color: "rgba(148,163,184,0.65)", cursor: "pointer" }} />

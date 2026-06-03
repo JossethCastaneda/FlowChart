@@ -208,7 +208,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             onClick={() => removeFilter(idx)}
             style={{
               background: "none", border: "none",
-              color: "rgba(255,255,255,0.5)", cursor: "pointer",
+              color: "rgba(255,255,255,0.75)", cursor: "pointer",
               display: "flex", alignItems: "center", padding: 0,
               transition: "color 0.15s",
             }}
