@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { Filter, X, Plus, ChevronDown, Search } from "lucide-react";
@@ -112,12 +112,12 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
           style={{
             display: "flex", alignItems: "center", gap: "6px",
             padding: "6px 12px", background: "transparent",
-            border: "1px dashed rgba(148,163,184,0.4)", borderRadius: "20px",
-            color: "rgba(148,163,184,0.8)", fontSize: "12px", cursor: "pointer",
+            border: "1px dashed #64748b", borderRadius: "20px",
+            color: "#94a3b8", fontSize: "12px", cursor: "pointer",
             transition: "all 0.2s",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--cyan)")}
-          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(148,163,184,0.4)")}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#64748b")}
         >
           <Filter className="w-3.5 h-3.5" /> Filtrar por... <Plus className="w-3.5 h-3.5" />
         </button>
@@ -139,9 +139,9 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
               display: "flex", alignItems: "center", gap: "6px",
               padding: "6px 8px", marginBottom: "6px",
               background: "rgba(0,0,0,0.3)", borderRadius: "6px",
-              border: "1px solid rgba(148,163,184,0.1)",
+              border: "1px solid rgba(148,163,184,0.18)",
             }}>
-              <Search className="w-3 h-3" style={{ color: "rgba(148,163,184,0.4)" }} />
+              <Search className="w-3 h-3" style={{ color: "#64748b" }} />
               <input
                 type="text"
                 value={searchTerm}
@@ -158,7 +158,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             {filteredGroups.map((group) => (
               <div key={group.group}>
                 <div style={{
-                  fontSize: "9px", color: "rgba(148,163,184,0.5)",
+                  fontSize: "9px", color: "#64748b",
                   textTransform: "uppercase", padding: "6px 8px 3px",
                   letterSpacing: "0.08em", fontWeight: 700,
                 }}>
@@ -184,7 +184,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             ))}
 
             {filteredGroups.length === 0 && (
-              <div style={{ padding: "12px", textAlign: "center", color: "rgba(148,163,184,0.3)", fontSize: "11px" }}>
+              <div style={{ padding: "12px", textAlign: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
                 No se encontraron filtros
               </div>
             )}
@@ -224,12 +224,12 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
         <button
           onClick={clearAll}
           style={{
-            fontSize: "11px", color: "rgba(148,163,184,0.5)",
+            fontSize: "11px", color: "#64748b",
             background: "none", border: "none", cursor: "pointer",
             transition: "color 0.15s",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(148,163,184,0.5)")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
         >
           Borrar todo
         </button>

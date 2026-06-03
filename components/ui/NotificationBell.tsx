@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Bell, Check, Clock, AlertTriangle, UserPlus, ExternalLink } from "lucide-react";
@@ -109,11 +109,11 @@ export function NotificationBell() {
         onClick={() => { setOpen(!open); if (!open) fetchNotifications(); }}
         style={{
           position: "relative", background: "none", border: "none", cursor: "pointer",
-          padding: 6, color: unreadCount > 0 ? "#00d4ff" : "rgba(148,163,184,0.4)",
+          padding: 6, color: unreadCount > 0 ? "#00d4ff" : "rgba(148,163,184,0.65)",
           transition: "color 0.2s",
         }}
         onMouseEnter={e => e.currentTarget.style.color = "#00d4ff"}
-        onMouseLeave={e => { if (unreadCount === 0) e.currentTarget.style.color = "rgba(148,163,184,0.4)"; }}
+        onMouseLeave={e => { if (unreadCount === 0) e.currentTarget.style.color = "rgba(148,163,184,0.65)"; }}
       >
         <Bell style={{ width: 18, height: 18 }} />
         {unreadCount > 0 && (
@@ -162,8 +162,8 @@ export function NotificationBell() {
           <div style={{ maxHeight: 360, overflowY: "auto" }}>
             {notifications.length === 0 ? (
               <div style={{ padding: "32px 16px", textAlign: "center" }}>
-                <Bell style={{ width: 24, height: 24, color: "rgba(148,163,184,0.15)", margin: "0 auto 8px" }} />
-                <p style={{ fontSize: 12, color: "rgba(148,163,184,0.3)" }}>Sin notificaciones</p>
+                <Bell style={{ width: 24, height: 24, color: "#64748b", margin: "0 auto 8px" }} />
+                <p style={{ fontSize: 12, color: "rgba(148,163,184,0.65)" }}>Sin notificaciones</p>
               </div>
             ) : (
               notifications.slice(0, 20).map(n => {
@@ -172,7 +172,7 @@ export function NotificationBell() {
                 return (
                   <div key={n.id} onClick={() => handleClick(n)} style={{
                     display: "flex", gap: 10, padding: "12px 16px", cursor: n.link ? "pointer" : "default",
-                    borderBottom: "1px solid rgba(255,255,255,0.02)",
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
                     background: n.read ? "transparent" : "rgba(0,212,255,0.02)",
                     transition: "background 0.15s",
                   }}
@@ -183,10 +183,10 @@ export function NotificationBell() {
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: n.read ? "rgba(148,163,184,0.5)" : "#e2e8f0" }}>{n.title}</span>
-                        <span style={{ fontSize: 9, color: "rgba(148,163,184,0.3)", flexShrink: 0 }}>{timeAgo(n.createdAt)}</span>
+                        <span style={{ fontSize: 12, fontWeight: 600, color: n.read ? "#94a3b8" : "#e2e8f0" }}>{n.title}</span>
+                        <span style={{ fontSize: 9, color: "#94a3b8", flexShrink: 0 }}>{timeAgo(n.createdAt)}</span>
                       </div>
-                      <p style={{ fontSize: 11, color: "rgba(148,163,184,0.4)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{n.message}</p>
+                      <p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{n.message}</p>
                     </div>
                     {!n.read && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#00d4ff", flexShrink: 0, alignSelf: "center", boxShadow: "0 0 6px rgba(0,212,255,0.5)" }} />}
                   </div>

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+﻿import React, { useState, useMemo } from "react";
 import { Clock, ChevronDown } from "lucide-react";
 import { fmt$, fmtPct, fmtNum } from "@/lib/ads-metrics";
 
@@ -28,7 +28,7 @@ const METRIC_OPTIONS: { key: MetricKey; label: string; format: (v: number) => st
 ];
 
 function getCellColor(value: number, min: number, max: number, invert: boolean): string {
-  if (max === min || value === 0) return "rgba(255,255,255,0.02)";
+  if (max === min || value === 0) return "rgba(255,255,255,0.04)";
   
   // Normalize to 0-1 range
   let normalized = (value - min) / (max - min);
@@ -41,7 +41,7 @@ function getCellColor(value: number, min: number, max: number, invert: boolean):
 }
 
 function getCellTextColor(value: number, min: number, max: number, invert: boolean): string {
-  if (max === min || value === 0) return "rgba(148,163,184,0.3)";
+  if (max === min || value === 0) return "rgba(148,163,184,0.65)";
   let normalized = (value - min) / (max - min);
   if (invert) normalized = 1 - normalized;
   if (normalized >= 0.75) return "var(--emerald)";
@@ -153,8 +153,8 @@ export function DaypartingHeatmap({ data }: DaypartingHeatmapProps) {
         padding: "24px", textAlign: "center",
         background: "rgba(255,255,255,0.015)", border: "1px solid var(--border)", borderRadius: "8px",
       }}>
-        <Clock className="w-8 h-8 mx-auto mb-2" style={{ color: "rgba(148,163,184,0.2)" }} />
-        <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.4)" }}>
+        <Clock className="w-8 h-8 mx-auto mb-2" style={{ color: "rgba(148,163,184,0.65)" }} />
+        <p style={{ fontSize: "11px", color: "#64748b" }}>
           Selecciona breakdown "Hora del día" para ver el heatmap
         </p>
       </div>
@@ -170,7 +170,7 @@ export function DaypartingHeatmap({ data }: DaypartingHeatmapProps) {
     }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(148,163,184,0.5)" }}>
+        <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#64748b" }}>
           Rendimiento por Horario
         </span>
 
@@ -222,7 +222,7 @@ export function DaypartingHeatmap({ data }: DaypartingHeatmapProps) {
         <div /> {/* Empty corner */}
         {DAYS.map(day => (
           <div key={day} style={{
-            textAlign: "center", fontSize: "9px", fontWeight: 700, color: "rgba(148,163,184,0.5)",
+            textAlign: "center", fontSize: "9px", fontWeight: 700, color: "#64748b",
             padding: "4px 0", textTransform: "uppercase", letterSpacing: "0.08em",
           }}>
             {day}
@@ -234,7 +234,7 @@ export function DaypartingHeatmap({ data }: DaypartingHeatmapProps) {
           <React.Fragment key={slot.label}>
             {/* Row label */}
             <div style={{
-              display: "flex", alignItems: "center", fontSize: "9px", color: "rgba(148,163,184,0.4)",
+              display: "flex", alignItems: "center", fontSize: "9px", color: "#64748b",
               fontWeight: 600, paddingRight: "8px", justifyContent: "flex-end",
             }}>
               {slot.label}
@@ -245,10 +245,10 @@ export function DaypartingHeatmap({ data }: DaypartingHeatmapProps) {
               if (!cell || !cell.hasData) {
                 return (
                   <div key={dayIdx} style={{
-                    background: "rgba(255,255,255,0.02)", borderRadius: "3px",
+                    background: "rgba(255,255,255,0.04)", borderRadius: "3px",
                     padding: "8px 4px", textAlign: "center",
                   }}>
-                    <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.15)" }}>—</span>
+                    <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.22)" }}>—</span>
                   </div>
                 );
               }
@@ -280,13 +280,13 @@ export function DaypartingHeatmap({ data }: DaypartingHeatmapProps) {
       <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "12px", justifyContent: "center" }}>
         {[
           { label: "Mejor", color: "rgba(52,211,153,0.25)", text: "var(--emerald)" },
-          { label: "Bueno", color: "rgba(52,211,153,0.12)", text: "rgba(148,163,184,0.5)" },
+          { label: "Bueno", color: "rgba(52,211,153,0.12)", text: "#64748b" },
           { label: "Regular", color: "rgba(251,191,36,0.12)", text: "var(--amber)" },
           { label: "Peor", color: "rgba(239,68,68,0.15)", text: "var(--red)" },
         ].map(item => (
           <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             <div style={{ width: 12, height: 12, borderRadius: "2px", background: item.color }} />
-            <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)" }}>{item.label}</span>
+            <span style={{ fontSize: "9px", color: "#64748b" }}>{item.label}</span>
           </div>
         ))}
       </div>
@@ -301,7 +301,7 @@ export function DaypartingHeatmap({ data }: DaypartingHeatmapProps) {
           <span style={{ fontSize: "14px" }}>💡</span>
           <div>
             <span style={{ fontSize: "11px", color: "var(--amber)" }}>{recommendation.text}</span>
-            <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.4)", marginLeft: "8px" }}>
+            <span style={{ fontSize: "10px", color: "#64748b", marginLeft: "8px" }}>
               Potencial ahorro: {fmt$(recommendation.spend)}
             </span>
           </div>

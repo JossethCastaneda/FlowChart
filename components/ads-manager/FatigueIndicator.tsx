@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { quickFatigueCheck, getFatigueDisplay } from "@/lib/creative-fatigue";
 
 interface FatigueIndicatorProps {
@@ -58,13 +58,13 @@ export function FatigueIndicator({ insights }: FatigueIndicatorProps) {
           
           <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px" }}>
-              <span style={{ color: "rgba(148,163,184,0.5)" }}>Frecuencia</span>
+              <span style={{ color: "#64748b" }}>Frecuencia</span>
               <span style={{ color: frequency >= 3 ? "var(--amber)" : "var(--foreground)", fontWeight: 600 }}>
                 {frequency.toFixed(1)}x
               </span>
             </div>
             <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px" }}>
-              <span style={{ color: "rgba(148,163,184,0.5)" }}>CTR</span>
+              <span style={{ color: "#64748b" }}>CTR</span>
               <span style={{ color: ctr < 1.0 ? "var(--red)" : "var(--foreground)", fontWeight: 600 }}>
                 {ctr.toFixed(2)}%
               </span>

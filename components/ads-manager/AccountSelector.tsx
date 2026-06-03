@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { ChevronDown, Search, Folder, CreditCard, ChevronRight, Settings } from "lucide-react";
 
 interface AdAccount {
@@ -144,7 +144,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
               
               {/* Left Sidebar: Portfolios */}
               <div style={{ width: "280px", borderRight: "1px solid var(--border-strong)", display: "flex", flexDirection: "column", background: "rgba(5,8,18,0.7)" }}>
-                <div style={{ padding: "16px 20px", fontSize: "12px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", color: "rgba(148,163,184,0.8)" }}>
+                <div style={{ padding: "16px 20px", fontSize: "12px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", color: "#94a3b8" }}>
                   Portfolios comerciales
                   <div style={{ background: "rgba(255,255,255,0.1)", color: "white", borderRadius: "50%", width: "12px", height: "12px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "9px" }}>i</div>
                 </div>
@@ -176,7 +176,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                           textAlign: "left",
                           transition: "all 0.15s"
                         }}
-                        onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.05)" }}
+                        onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.1)" }}
                         onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = "transparent" }}
                       >
                         <div style={{ width: "36px", height: "36px", borderRadius: "6px", background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: "18px", flexShrink: 0 }}>
@@ -184,7 +184,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                         </div>
                         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", justifyContent: "center", gap: "2px" }}>
                           <div style={{ fontWeight: 600, fontSize: "13px", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>{portName}</div>
-                          <div style={{ fontSize: "11px", color: isSelected ? "rgba(255,255,255,0.7)" : "rgba(148,163,184,0.5)" }}>{items.length} cuentas publicitarias</div>
+                          <div style={{ fontSize: "11px", color: isSelected ? "rgba(255,255,255,0.7)" : "#64748b" }}>{items.length} cuentas publicitarias</div>
                         </div>
                         {isSelected && <ChevronRight className="w-4 h-4 text-slate-300" />}
                       </button>
@@ -207,7 +207,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                 <div style={{ padding: "24px 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
                     <h3 style={{ fontSize: "18px", fontWeight: 700, margin: 0, color: "white" }}>{selectedPortfolio}</h3>
-                    <p style={{ fontSize: "12px", color: "rgba(148,163,184,0.6)", margin: 0 }}>Portfolio comercial</p>
+                    <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>Portfolio comercial</p>
                   </div>
                   <Settings className="w-5 h-5 text-slate-500 hover:text-white" style={{ cursor: "pointer", transition: "all 0.2s" }} />
                 </div>
@@ -215,7 +215,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                 <div style={{ padding: "0 24px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <span style={{ fontSize: "13px", fontWeight: 700, color: "rgba(255,255,255,0.9)" }}>{portfolios[selectedPortfolio]?.length || 0} cuentas publicitarias</span>
                   <button style={{ display: "flex", alignItems: "center", gap: "6px", padding: "8px 12px", border: "1px solid var(--border-strong)", borderRadius: "6px", background: "transparent", fontSize: "12px", fontWeight: 600, color: "white", cursor: "pointer", transition: "all 0.2s" }}
-                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                   >
                     + Agregar <ChevronDown className="w-3.5 h-3.5" />
@@ -224,7 +224,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
 
                 <div style={{ overflowY: "auto", flex: 1, padding: "0 24px 24px" }} className="custom-scrollbar">
                   {displayedAccounts.length === 0 && selectedAccountId !== "all" ? (
-                    <div style={{ textAlign: "center", padding: "32px", color: "rgba(148,163,184,0.6)", fontSize: "12px" }}>
+                    <div style={{ textAlign: "center", padding: "32px", color: "#94a3b8", fontSize: "12px" }}>
                       No se encontraron cuentas para tu búsqueda.
                     </div>
                   ) : (
@@ -240,10 +240,10 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                             border: selectedAccountId === "all" ? "1px solid rgba(0,129,251,0.4)" : "1px solid transparent",
                             cursor: "pointer", transition: "all 0.15s", marginBottom: "8px",
                           }}
-                          onMouseEnter={e => { if (selectedAccountId !== "all") e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
+                          onMouseEnter={e => { if (selectedAccountId !== "all") e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
                           onMouseLeave={e => { if (selectedAccountId !== "all") e.currentTarget.style.background = "transparent"; }}
                         >
-                          <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: selectedAccountId === "all" ? "1px solid var(--cyan)" : "1px solid rgba(148,163,184,0.4)", background: selectedAccountId === "all" ? "var(--cyan)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                          <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: selectedAccountId === "all" ? "1px solid var(--cyan)" : "1px solid #64748b", background: selectedAccountId === "all" ? "var(--cyan)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                             {selectedAccountId === "all" && <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "white" }} />}
                           </div>
                           <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "linear-gradient(135deg, rgba(0,212,255,0.15), rgba(162,93,220,0.15))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -251,7 +251,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                           </div>
                           <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "4px" }}>
                             <div style={{ fontWeight: 600, fontSize: "14px", color: selectedAccountId === "all" ? "var(--cyan)" : "white" }}>Todas las cuentas</div>
-                            <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.6)" }}>{accounts.length} cuentas combinadas</div>
+                            <div style={{ fontSize: "12px", color: "#94a3b8" }}>{accounts.length} cuentas combinadas</div>
                           </div>
                         </div>
                       )}
@@ -269,20 +269,20 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                               border: isSelected ? "1px solid rgba(0,129,251,0.4)" : "1px solid transparent",
                               cursor: "pointer", transition: "all 0.15s", marginBottom: "8px",
                             }}
-                            onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
+                            onMouseEnter={e => { if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
                             onMouseLeave={e => { if (!isSelected) e.currentTarget.style.background = "transparent"; }}
                           >
-                            <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: isSelected ? "1px solid var(--cyan)" : "1px solid rgba(148,163,184,0.4)", background: isSelected ? "var(--cyan)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <div style={{ width: "20px", height: "20px", borderRadius: "50%", border: isSelected ? "1px solid var(--cyan)" : "1px solid #64748b", background: isSelected ? "var(--cyan)" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                               {isSelected && <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "white" }} />}
                             </div>
-                            <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                            <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                               <CreditCard className="w-4 h-4 text-slate-400" />
                             </div>
                             <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "4px" }}>
                               <div style={{ fontWeight: 600, fontSize: "14px", color: isSelected ? "var(--cyan)" : "white", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
                                 {acc.name.split(" — ")[0]}
                               </div>
-                              <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.6)", display: "flex", gap: "6px" }}>
+                              <div style={{ fontSize: "12px", color: "#94a3b8", display: "flex", gap: "6px" }}>
                                 ID: <span style={{ color: "rgba(255,255,255,0.8)" }}>{acc.id.replace("act_", "")}</span>
                               </div>
                             </div>

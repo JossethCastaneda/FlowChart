@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Composer } from "./Composer";
@@ -90,8 +90,8 @@ function ChannelPicker({
       <div style={{
         display: "flex", alignItems: "center", gap: 6,
         padding: "7px 12px", borderRadius: 8,
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.05)",
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.1)",
         color: "#475569", fontSize: 11,
       }}>
         <Globe style={{ width: 12, height: 12 }} />
@@ -109,7 +109,7 @@ function ChannelPicker({
           padding: "7px 12px", borderRadius: 8,
           background: selected.length > 0 && selected.length < channels.length
             ? "rgba(0,212,255,0.06)"
-            : "rgba(255,255,255,0.02)",
+            : "rgba(255,255,255,0.04)",
           border: `1px solid ${
             selected.length > 0 && selected.length < channels.length
               ? "rgba(0,212,255,0.2)"
@@ -147,7 +147,7 @@ function ChannelPicker({
               style={{
                 display: "flex", alignItems: "center", gap: 8,
                 width: "100%", padding: "10px 14px",
-                borderBottom: "1px solid rgba(255,255,255,0.05)",
+                borderBottom: "1px solid rgba(255,255,255,0.1)",
                 background: "none", border: "none", cursor: "pointer",
                 color: "#94a3b8", fontSize: 11,
               }}
@@ -220,7 +220,7 @@ function ChannelPicker({
               <div style={{
                 padding: "8px 14px 4px", fontSize: 9, fontWeight: 700,
                 color: "#475569", textTransform: "uppercase", letterSpacing: 1.2,
-                borderTop: "1px solid rgba(255,255,255,0.04)",
+                borderTop: "1px solid rgba(255,255,255,0.09)",
               }}>
                 Instagram
               </div>
@@ -308,7 +308,7 @@ function SelectFilter({
         style={{
           display: "flex", alignItems: "center", gap: 6,
           padding: "7px 12px", borderRadius: 8,
-          background: isActive ? `${color}08` : "rgba(255,255,255,0.02)",
+          background: isActive ? `${color}08` : "rgba(255,255,255,0.04)",
           border: `1px solid ${isActive ? `${color}22` : "rgba(255,255,255,0.06)"}`,
           color: isActive ? color : "#94a3b8",
           fontSize: 11, cursor: "pointer",
@@ -342,11 +342,11 @@ function SelectFilter({
             zIndex: 99,
           }}>
             {searchable && (
-              <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
                 <div style={{
                   display: "flex", alignItems: "center", gap: 6,
                   padding: "5px 8px", borderRadius: 6,
-                  background: "rgba(255,255,255,0.04)",
+                  background: "rgba(255,255,255,0.09)",
                   border: "1px solid rgba(255,255,255,0.06)",
                 }}>
                   <Search style={{ width: 11, height: 11, color: "#475569" }} />
@@ -373,7 +373,7 @@ function SelectFilter({
                 background: value === "" ? `${color}06` : "transparent",
                 border: "none", cursor: "pointer",
                 fontSize: 11, color: value === "" ? color : "#e2e8f0",
-                borderBottom: "1px solid rgba(255,255,255,0.04)",
+                borderBottom: "1px solid rgba(255,255,255,0.09)",
               }}
             >
               <span>Todos</span>
@@ -399,7 +399,7 @@ function SelectFilter({
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <span style={{
                     fontSize: 9, padding: "1px 5px", borderRadius: 8,
-                    background: "rgba(255,255,255,0.05)", color: "#64748b",
+                    background: "rgba(255,255,255,0.1)", color: "#64748b",
                   }}>{opt.count}</span>
                   {value === opt.value && <Check style={{ width: 10, height: 10, color }} />}
                 </div>
@@ -478,7 +478,7 @@ function FiltersBar({
         )}
       </div>
 
-      <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.04)" }} />
+      <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.09)" }} />
 
       {/* Channel multi-select */}
       <ChannelPicker
@@ -578,8 +578,8 @@ function IntegrationsPanel() {
       <div style={{
         display: "flex", alignItems: "center", gap: 14,
         padding: "16px 20px", borderRadius: 12,
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.04)",
+        background: "rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.09)",
       }}>
         <div style={{
           width: 40, height: 40, borderRadius: 10,
@@ -620,7 +620,7 @@ function IntegrationsPanel() {
             <div key={mod.key} style={{
               borderRadius: 12, overflow: "hidden",
               background: "rgba(255,255,255,0.015)",
-              border: `1px solid ${connected ? `${mod.color}18` : "rgba(255,255,255,0.04)"}`,
+              border: `1px solid ${connected ? `${mod.color}18` : "rgba(255,255,255,0.09)"}`,
               transition: "border-color 0.3s",
             }}>
               {/* Card header */}
@@ -654,9 +654,9 @@ function IntegrationsPanel() {
                   {mod.permissions.map(p => (
                     <span key={p} style={{
                       fontSize: 8, padding: "2px 5px", borderRadius: 3, fontFamily: "monospace",
-                      background: connected ? `${mod.color}06` : "rgba(255,255,255,0.02)",
+                      background: connected ? `${mod.color}06` : "rgba(255,255,255,0.04)",
                       color: connected ? `${mod.color}` : "#475569",
-                      border: `1px solid ${connected ? `${mod.color}12` : "rgba(255,255,255,0.04)"}`,
+                      border: `1px solid ${connected ? `${mod.color}12` : "rgba(255,255,255,0.09)"}`,
                     }}>
                       {connected ? "✓ " : ""}{p}
                     </span>
@@ -671,7 +671,7 @@ function IntegrationsPanel() {
                         display: "flex", alignItems: "center", gap: 4,
                         padding: "3px 8px", borderRadius: 5,
                         background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.04)",
+                        border: "1px solid rgba(255,255,255,0.09)",
                       }}>
                         {page.picture ? (
                           <img src={page.picture} alt="" style={{ width: 14, height: 14, borderRadius: "50%", objectFit: "cover" }} />
@@ -769,7 +769,7 @@ function WebhookConfig({ connectedCount }: { connectedCount: number }) {
           width: "100%", display: "flex", alignItems: "center", gap: 10,
           padding: "12px 16px", background: "transparent", border: "none",
           cursor: "pointer", fontFamily: "inherit",
-          borderBottom: expanded ? "1px solid rgba(255,255,255,0.04)" : "none",
+          borderBottom: expanded ? "1px solid rgba(255,255,255,0.09)" : "none",
         }}
       >
         <div style={{
@@ -796,7 +796,7 @@ function WebhookConfig({ connectedCount }: { connectedCount: number }) {
           boxShadow: `0 0 6px ${allFieldsSubscribed ? "#00c87560" : "#ffa50060"}`,
         }} />
         <ChevronDown style={{
-          width: 14, height: 14, color: "rgba(148,163,184,0.3)",
+          width: 14, height: 14, color: "rgba(148,163,184,0.65)",
           transform: expanded ? "rotate(180deg)" : "none",
           transition: "transform 0.2s",
         }} />
@@ -806,7 +806,7 @@ function WebhookConfig({ connectedCount }: { connectedCount: number }) {
         <div style={{ padding: "12px 16px" }}>
           {/* Webhook URL info */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", marginBottom: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>
               CALLBACK URL
             </div>
             <div style={{
@@ -821,7 +821,7 @@ function WebhookConfig({ connectedCount }: { connectedCount: number }) {
           </div>
 
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", marginBottom: 4 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>
               VERIFY TOKEN
             </div>
             <div style={{
@@ -837,15 +837,15 @@ function WebhookConfig({ connectedCount }: { connectedCount: number }) {
           {/* Subscription status per page */}
           {status?.subscriptions?.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", marginBottom: 6 }}>
+              <div style={{ fontSize: 10, fontWeight: 600, color: "#64748b", marginBottom: 6 }}>
                 SUSCRIPCIONES POR PÁGINA
               </div>
               {status.subscriptions.map((sub: any, i: number) => (
                 <div key={i} style={{
                   display: "flex", alignItems: "center", gap: 8,
                   padding: "6px 10px", marginBottom: 4, borderRadius: 6,
-                  background: "rgba(255,255,255,0.02)",
-                  border: "1px solid rgba(255,255,255,0.04)",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.09)",
                 }}>
                   <div style={{
                     width: 6, height: 6, borderRadius: "50%",
@@ -862,7 +862,7 @@ function WebhookConfig({ connectedCount }: { connectedCount: number }) {
 
           {/* Eventos configurados */}
           <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.4)", marginBottom: 6 }}>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "#64748b", marginBottom: 6 }}>
               EVENTOS CONFIGURADOS
             </div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
@@ -989,7 +989,7 @@ export function PublisherTabs() {
                 position: "relative",
                 display: "flex", alignItems: "center", gap: 6,
                 padding: "9px 16px", borderRadius: 8,
-                background: isActive ? "rgba(255,255,255,0.05)" : "transparent",
+                background: isActive ? "rgba(255,255,255,0.1)" : "transparent",
                 border: "none",
                 color: isActive ? "white" : "#4a5568",
                 fontSize: 12, fontWeight: isActive ? 600 : 400,

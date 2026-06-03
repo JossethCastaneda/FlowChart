@@ -20,7 +20,7 @@ export function PageHeader({ title, description, icon, action }: PageHeaderProps
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
-            background: "rgba(0,212,255,0.04)",
+            background: "rgba(0,212,255,0.07)",
             border: "1px solid var(--border)",
             position: "relative",
           }}>
@@ -54,7 +54,7 @@ export function PageHeader({ title, description, icon, action }: PageHeaderProps
           {description && (
             <p style={{
               fontSize: "12px",
-              color: "rgba(148,163,184,0.5)",
+              color: "#94a3b8",
               marginTop: "4px",
               letterSpacing: "0.03em",
             }}>

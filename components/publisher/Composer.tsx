@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -485,8 +485,8 @@ export function Composer() {
         }}>
           {/* ── Publish To bar ──────────────────────────────── */}
           <div style={{
-            padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(255,255,255,0.01)",
+            padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.08)",
+            background: "rgba(255,255,255,0.03)",
           }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8", fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>SECTOR DE TRANSMISIÓN</span>
@@ -534,7 +534,7 @@ export function Composer() {
                 <button onClick={() => setShowAccountPicker(!showAccountPicker)} style={{
                   display: "flex", alignItems: "center", gap: 6,
                   padding: "6px 12px", borderRadius: 20,
-                  background: "rgba(255,255,255,0.04)", border: "1px dashed rgba(255,255,255,0.15)",
+                  background: "rgba(255,255,255,0.09)", border: "1px dashed rgba(255,255,255,0.15)",
                   color: "#94a3b8", fontSize: 12, cursor: "pointer",
                   transition: "all 0.15s",
                 }}>
@@ -579,7 +579,7 @@ export function Composer() {
                         <div style={{
                           padding: "8px 16px", fontSize: 10, fontWeight: 700,
                           color: "#475569", textTransform: "uppercase", letterSpacing: 1,
-                          background: "rgba(255,255,255,0.02)",
+                          background: "rgba(255,255,255,0.04)",
                           position: "sticky", top: 0, zIndex: 1,
                         }}>
                           <Facebook style={{ width: 11, height: 11, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#1877f2" }} />
@@ -602,7 +602,7 @@ export function Composer() {
                               <span style={{ flex: 1, fontWeight: 500 }}>{target.pageName}</span>
                               <div style={{
                                 width: 20, height: 20, borderRadius: 4,
-                                border: isSelected ? "none" : "1.5px solid rgba(255,255,255,0.2)",
+                                border: isSelected ? "none" : "1.5px solid rgba(255,255,255,0.65)",
                                 background: isSelected ? "#1877f2" : "transparent",
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 transition: "all 0.15s",
@@ -621,7 +621,7 @@ export function Composer() {
                         <div style={{
                           padding: "8px 16px", fontSize: 10, fontWeight: 700,
                           color: "#475569", textTransform: "uppercase", letterSpacing: 1,
-                          background: "rgba(255,255,255,0.02)",
+                          background: "rgba(255,255,255,0.04)",
                           position: "sticky", top: 0, zIndex: 1,
                         }}>
                           <Instagram style={{ width: 11, height: 11, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#E1306C" }} />
@@ -647,7 +647,7 @@ export function Composer() {
                               </div>
                               <div style={{
                                 width: 20, height: 20, borderRadius: 4,
-                                border: isSelected ? "none" : "1.5px solid rgba(255,255,255,0.2)",
+                                border: isSelected ? "none" : "1.5px solid rgba(255,255,255,0.65)",
                                 background: isSelected ? "#E1306C" : "transparent",
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 transition: "all 0.15s",
@@ -783,8 +783,8 @@ export function Composer() {
             {/* Bottom toolbar */}
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "space-between",
-              padding: "10px 20px", borderTop: "1px solid rgba(255,255,255,0.06)",
-              background: "rgba(255,255,255,0.01)", flexWrap: "wrap", gap: 8,
+              padding: "10px 20px", borderTop: "1px solid rgba(255,255,255,0.08)",
+              background: "rgba(255,255,255,0.03)", flexWrap: "wrap", gap: 8,
             }}>
               {/* Left: media + hashtag */}
               <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -796,7 +796,7 @@ export function Composer() {
                   title="Subir imagen o video"
                   style={{
                     padding: "6px 10px", borderRadius: 6,
-                    background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.09)", border: "1px solid rgba(255,255,255,0.08)",
                     color: "#94a3b8", cursor: uploading ? "not-allowed" : "pointer",
                     display: "flex", alignItems: "center", gap: 4, fontSize: 12,
                     transition: "all 0.15s",
@@ -851,7 +851,7 @@ export function Composer() {
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "12px 20px", borderTop: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(255,255,255,0.015)", flexWrap: "wrap", gap: 10,
+            background: "rgba(255,255,255,0.025)", flexWrap: "wrap", gap: 10,
           }}>
             {/* Left: schedule */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -880,7 +880,7 @@ export function Composer() {
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={saveDraft} disabled={anyLoading} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
-                borderRadius: 8, background: "rgba(255,255,255,0.04)",
+                borderRadius: 8, background: "rgba(255,255,255,0.09)",
                 border: "1px solid rgba(255,255,255,0.1)", color: "#cbd5e1",
                 fontSize: 12, fontWeight: 500,
                 cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? 0.5 : 1,
@@ -893,7 +893,7 @@ export function Composer() {
               <button onClick={schedulePost} disabled={anyLoading} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
                 borderRadius: 8,
-                background: scheduledAt ? "rgba(253,171,61,0.12)" : "rgba(255,255,255,0.04)",
+                background: scheduledAt ? "rgba(253,171,61,0.12)" : "rgba(255,255,255,0.09)",
                 border: scheduledAt ? "1px solid rgba(253,171,61,0.3)" : "1px solid rgba(255,255,255,0.1)",
                 color: scheduledAt ? "#fdab3d" : "#64748b",
                 fontSize: 12, fontWeight: 500,
@@ -948,7 +948,7 @@ export function Composer() {
                 <button
                   onClick={() => openConnectPopup("publisher_facebook", loadSocialStatus)}
                   style={{
-                    background: "none", border: "1px solid rgba(148,163,184,0.15)", borderRadius: 4,
+                    background: "none", border: "1px solid rgba(148,163,184,0.22)", borderRadius: 4,
                     color: "#64748b", fontSize: 9, padding: "2px 7px", cursor: "pointer",
                   }}
                 >
@@ -1021,7 +1021,7 @@ export function Composer() {
             </span>
             <span style={{
               marginLeft: "auto", fontSize: 11, color: "#475569",
-              background: "rgba(255,255,255,0.04)", padding: "3px 8px", borderRadius: 4,
+              background: "rgba(255,255,255,0.09)", padding: "3px 8px", borderRadius: 4,
             }}>
               {selectedTargets.length} {selectedTargets.length === 1 ? "cuenta" : "cuentas"}
             </span>
@@ -1036,13 +1036,13 @@ export function Composer() {
               }}>
                 <div style={{
                   width: 48, height: 48, borderRadius: 12,
-                  background: "rgba(255,255,255,0.04)",
+                  background: "rgba(255,255,255,0.09)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <Globe style={{ width: 22, height: 22, color: "#334155" }} />
                 </div>
                 <EmptyState 
-                  icon={<Globe style={{ width: 48, height: 48, color: "rgba(148,163,184,0.3)" }} />}
+                  icon={<Globe style={{ width: 48, height: 48, color: "#64748b" }} />}
                   title="SIN HOLOGRAMA"
                   description="Enlaza una frecuencia objetivo para visualizar la proyección antes de ordenar el lanzamiento."
                 />
@@ -1063,12 +1063,12 @@ export function Composer() {
             {/* Facebook preview cards */}
             {selectedTargets.filter((t) => t.platform === "facebook").map((target) => (
               <div key={target.key} style={{
-                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                background: "rgba(255,255,255,0.09)", border: "1px solid rgba(255,255,255,0.08)",
                 borderRadius: 12, overflow: "hidden", fontFamily: "Inter, Arial, sans-serif",
               }}>
                 {/* Platform label */}
                 <div style={{
-                  padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)",
+                  padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)",
                   display: "flex", alignItems: "center", gap: 6,
                   background: "rgba(24,119,242,0.06)",
                 }}>

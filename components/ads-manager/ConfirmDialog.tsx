@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { AlertTriangle, X } from "lucide-react";
@@ -98,7 +98,7 @@ export function ConfirmDialog({
             disabled={loading}
             style={{
               padding: "8px 16px", fontSize: "11px", fontWeight: 600,
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)",
               borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
               transition: "all 0.15s",
             }}

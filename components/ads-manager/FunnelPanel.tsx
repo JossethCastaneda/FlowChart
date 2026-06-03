@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+﻿import React, { useMemo } from "react";
 import { TrendingDown, TrendingUp, Minus } from "lucide-react";
 import { findActionValue, fmtNum, fmt$, fmtPct } from "@/lib/ads-metrics";
 
@@ -157,16 +157,16 @@ export function FunnelPanel({ data, showEcommerce = false }: FunnelPanelProps) {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(148,163,184,0.5)" }}>
+          <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#64748b" }}>
             Embudo de Conversión
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.4)" }}>
+          <span style={{ fontSize: "10px", color: "#64748b" }}>
             Gasto total: <strong style={{ color: "var(--foreground)" }}>{fmt$(funnel.spend)}</strong>
           </span>
           {funnel.purchaseValue > 0 && (
-            <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.4)" }}>
+            <span style={{ fontSize: "10px", color: "#64748b" }}>
               Revenue: <strong style={{ color: "var(--emerald)" }}>{fmt$(funnel.purchaseValue)}</strong>
             </span>
           )}
@@ -207,7 +207,7 @@ export function FunnelPanel({ data, showEcommerce = false }: FunnelPanelProps) {
                       borderLeft: `6px solid ${step.color}`,
                     }} />
                   </div>
-                  <div style={{ fontSize: "8px", color: "rgba(148,163,184,0.35)", marginTop: "3px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                  <div style={{ fontSize: "8px", color: "rgba(148,163,184,0.65)", marginTop: "3px", letterSpacing: "0.05em", textTransform: "uppercase" }}>
                     {step.rateLabel}
                   </div>
                 </div>
@@ -217,13 +217,13 @@ export function FunnelPanel({ data, showEcommerce = false }: FunnelPanelProps) {
               <div style={{
                 flex: 1, display: "flex", flexDirection: "column", alignItems: "center",
                 padding: "10px 8px", borderRadius: "6px",
-                background: "rgba(255,255,255,0.02)",
+                background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.03)",
                 minWidth: "90px",
                 transition: "all 0.2s",
               }}
-                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = `${step.color}30`; }}
-                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.02)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.03)"; }}
+                onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; e.currentTarget.style.borderColor = `${step.color}30`; }}
+                onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.04)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.03)"; }}
               >
                 {/* Icon */}
                 <span style={{ fontSize: "18px", marginBottom: "6px" }}>{step.icon}</span>
@@ -231,7 +231,7 @@ export function FunnelPanel({ data, showEcommerce = false }: FunnelPanelProps) {
                 {/* Bar */}
                 <div style={{
                   width: "100%", height: "6px", borderRadius: "3px",
-                  background: "rgba(255,255,255,0.05)", marginBottom: "8px", overflow: "hidden",
+                  background: "rgba(255,255,255,0.1)", marginBottom: "8px", overflow: "hidden",
                 }}>
                   <div style={{
                     width: `${barHeight}%`, height: "100%", borderRadius: "3px",
@@ -250,7 +250,7 @@ export function FunnelPanel({ data, showEcommerce = false }: FunnelPanelProps) {
 
                 {/* Label */}
                 <span style={{
-                  fontSize: "9px", color: "rgba(148,163,184,0.5)", marginTop: "3px",
+                  fontSize: "9px", color: "#64748b", marginTop: "3px",
                   textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600,
                   textAlign: "center",
                 }}>
@@ -260,7 +260,7 @@ export function FunnelPanel({ data, showEcommerce = false }: FunnelPanelProps) {
                 {/* Cost per */}
                 {step.cost > 0 && (
                   <span style={{
-                    fontSize: "10px", color: "rgba(148,163,184,0.4)", marginTop: "4px",
+                    fontSize: "10px", color: "#64748b", marginTop: "4px",
                     fontWeight: 500,
                   }}>
                     {isFirst ? `CPM: ${fmt$(step.cost)}` : `${fmt$(step.cost)} c/u`}

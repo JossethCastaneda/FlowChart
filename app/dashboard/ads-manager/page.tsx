@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useSession as useSessionHook } from "next-auth/react";
@@ -81,7 +81,7 @@ const ALL_COLUMNS = [
 
 export default function AdsManagerPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.5)" }}>Cargando Ads Manager...</div>}>
+    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>Cargando Ads Manager...</div>}>
       <AdsManagerContent />
     </Suspense>
   );
@@ -896,11 +896,11 @@ function AdsManagerContent() {
         )}
 
         <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
-          <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.2)" }} />
-          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "rgba(148,163,184,0.4)", textTransform: "uppercase", marginBottom: "8px" }}>
+          <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.65)" }} />
+          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "#64748b", textTransform: "uppercase", marginBottom: "8px" }}>
             Conexión Meta Ads requerida
           </p>
-          <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.3)", marginBottom: "20px" }}>
+          <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.65)", marginBottom: "20px" }}>
             Conecta tu cuenta de Meta Ads Manager para acceder a campañas, conjuntos de anuncios y métricas en tiempo real.
           </p>
         </div>
@@ -932,7 +932,7 @@ function AdsManagerContent() {
         }}
       >
         {loadingAccounts ? (
-            <div style={{ fontSize: "11px", color: "rgba(148,163,184,0.4)" }}>Cargando cuentas...</div>
+            <div style={{ fontSize: "11px", color: "#64748b" }}>Cargando cuentas...</div>
           ) : (
             <AccountSelector
               accounts={accounts}
@@ -994,7 +994,7 @@ function AdsManagerContent() {
             title={autoSync ? "Auto-sync cada 30 min (activo)" : "Auto-sync desactivado"}
             style={{
               width: "7px", height: "7px", borderRadius: "50%",
-              background: autoSync ? "#34d399" : "rgba(148,163,184,0.3)",
+              background: autoSync ? "#34d399" : "rgba(148,163,184,0.65)",
               border: "none", cursor: "pointer",
               boxShadow: autoSync ? "0 0 6px rgba(52,211,153,0.4)" : "none",
             }}
@@ -1045,14 +1045,14 @@ function AdsManagerContent() {
                 padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "4px",
                 background: active ? "rgba(0,129,251,0.15)" : "transparent",
                 border: `1px solid ${active ? "var(--cyan)" : "transparent"}`,
-                color: active ? "var(--cyan)" : "rgba(148,163,184,0.6)",
+                color: active ? "var(--cyan)" : "#94a3b8",
                 cursor: "pointer", transition: "all 0.15s",
                 display: "flex", alignItems: "center", gap: "5px",
               }}
             >
               {label}
               {count > 0 && (
-                <span style={{ fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "8px", background: active ? "rgba(0,212,255,0.2)" : "rgba(148,163,184,0.1)", color: active ? "var(--cyan)" : "rgba(148,163,184,0.5)" }}>
+                <span style={{ fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "8px", background: active ? "rgba(0,212,255,0.2)" : "rgba(148,163,184,0.18)", color: active ? "var(--cyan)" : "#64748b" }}>
                   {count}
                 </span>
               )}

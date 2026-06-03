@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -105,7 +105,7 @@ function getBudgetBreakdown(budget: number, period: string) {
 const panelStyle: React.CSSProperties = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 };
 const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 };
 const headingStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#e2e8f0", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 };
-const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.5)", marginBottom: 10 };
+const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.75)", marginBottom: 10 };
 const tooltipStyle = { backgroundColor: "rgba(10,15,30,0.95)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12, color: "white" };
 const CHART_COLORS = ["#00d4ff", "#00c875", "#fdab3d", "#e2445c", "#7b61ff", "#579bfc", "#ff007f", "#25F4EE"];
 
@@ -119,18 +119,18 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
         <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>{title}</span>
       </div>
       <div style={{ fontSize: 20, fontWeight: 700, color: "white", marginBottom: 2, fontFamily: "'Orbitron',sans-serif" }}>{value}</div>
-      <div style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{sub}</div>
+      <div style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{sub}</div>
       {progress !== undefined && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "rgba(148,163,184,0.1)" }}><div style={{ height: "100%", width: `${Math.min(progress, 100)}%`, background: c, transition: "width 1s" }} /></div>}
     </div>
   );
 }
 
 function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
-  return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", gap: 12, padding: 20 }}><BarChart2 style={{ width: 32, height: 32, color: "rgba(148,163,184,0.1)" }} /><p style={{ fontSize: 11, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p></div>;
+  return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", gap: 12, padding: 20 }}><BarChart2 style={{ width: 32, height: 32, color: "rgba(148,163,184,0.1)" }} /><p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p></div>;
 }
 
 function LoadingOverlay() {
-  return <div style={{ position: "absolute", inset: 0, background: "rgba(10,15,30,0.6)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid rgba(148,163,184,0.2)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "white", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
+  return <div style={{ position: "absolute", inset: 0, background: "rgba(10,15,30,0.6)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid rgba(148,163,184,0.65)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "white", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
 }
 
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
@@ -139,7 +139,7 @@ function TabButton({ active, label, icon, onClick }: { active: boolean; label: s
       display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", fontSize: 10, fontWeight: 600,
       background: active ? "rgba(0,212,255,0.08)" : "transparent",
       border: `1px solid ${active ? "rgba(0,212,255,0.2)" : "transparent"}`,
-      color: active ? "#00d4ff" : "rgba(148,163,184,0.5)",
+      color: active ? "#00d4ff" : "rgba(148,163,184,0.75)",
       borderRadius: 4, cursor: "pointer", transition: "all 0.2s", letterSpacing: "0.03em",
     }}>{icon}{label}</button>
   );
@@ -152,7 +152,7 @@ function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) 
         <button key={t.k} onClick={() => onChange(t.k)} style={{
           padding: "4px 12px", fontSize: 10, fontWeight: 600, borderRadius: 4, border: "none", cursor: "pointer",
           background: value === t.k ? "rgba(0,212,255,0.12)" : "transparent",
-          color: value === t.k ? "#00d4ff" : "rgba(148,163,184,0.4)",
+          color: value === t.k ? "#00d4ff" : "rgba(148,163,184,0.7)",
         }}>{t.l}</button>
       ))}
     </div>
@@ -406,7 +406,7 @@ export default function ProjectDashboardPage() {
     }
   };
 
-  if (!project) return <div style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.5)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: 200 }}><div style={{ width: 40, height: 40, border: "3px solid rgba(148,163,184,0.1)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>Cargando proyecto...</span></div>;
+  if (!project) return <div style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.75)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: 200 }}><div style={{ width: 40, height: 40, border: "3px solid rgba(148,163,184,0.1)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>Cargando proyecto...</span></div>;
 
   const ch = project.channels.find(c => c.platformId === activePlatform);
   const budgetNum = ch ? parseBudget(ch.budget) : 0;
@@ -515,7 +515,7 @@ export default function ProjectDashboardPage() {
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {project.channels.map(c => {
             const pl = PLATFORMS.find(p => p.id === c.platformId) || PLATFORMS[0];
-            return <button key={c.platformId} onClick={() => { setActivePlatform(c.platformId); setBreakdownData({}); }} style={{ padding: "5px 12px", fontSize: 11, fontWeight: 600, background: activePlatform === c.platformId ? `${pl.color}15` : "transparent", border: `1px solid ${activePlatform === c.platformId ? pl.color : "transparent"}`, color: activePlatform === c.platformId ? pl.color : "rgba(148,163,184,0.5)", borderRadius: 4, cursor: "pointer" }}>{pl.name}</button>;
+            return <button key={c.platformId} onClick={() => { setActivePlatform(c.platformId); setBreakdownData({}); }} style={{ padding: "5px 12px", fontSize: 11, fontWeight: 600, background: activePlatform === c.platformId ? `${pl.color}15` : "transparent", border: `1px solid ${activePlatform === c.platformId ? pl.color : "transparent"}`, color: activePlatform === c.platformId ? pl.color : "rgba(148,163,184,0.75)", borderRadius: 4, cursor: "pointer" }}>{pl.name}</button>;
           })}
           {ch?.adAccounts && ch.adAccounts.length > 1 && (
             <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{ background: "rgba(10,15,30,0.6)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "5px 24px 5px 8px", borderRadius: 4, cursor: "pointer", appearance: "none" }}>
@@ -540,11 +540,11 @@ export default function ProjectDashboardPage() {
                 </div>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <div><p style={labelStyle}>Resultados proyectados</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtNum(projectedResults)}</p>{goalNum > 0 && <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>de {fmtNum(goalNum)} objetivo</p>}</div>
-                <div><p style={labelStyle}>Gasto proyectado</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(projectedSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>de {fmtMXN0(bk.monthly)} mensual</p></div>
-                <div><p style={labelStyle}>Meta diaria ideal</p><p style={{ fontSize: 18, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>resultados/día</p></div>
-                <div><p style={labelStyle}>Ritmo diario necesario</p><p style={{ fontSize: 18, fontWeight: 700, color: dailyNeeded > 0 ? "#fdab3d" : "white", fontFamily: "'Orbitron',sans-serif" }}>{dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>resultados/día restantes</p></div>
-                <div><p style={labelStyle}>Cumplimiento</p><p style={{ fontSize: 18, fontWeight: 700, color: goalCompletion >= 100 ? "#00c875" : "white", fontFamily: "'Orbitron',sans-serif" }}>{goalNum > 0 ? pct(goalCompletion) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{daysRemaining} días restantes</p></div>
+                <div><p style={labelStyle}>Resultados proyectados</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtNum(projectedResults)}</p>{goalNum > 0 && <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtNum(goalNum)} objetivo</p>}</div>
+                <div><p style={labelStyle}>Gasto proyectado</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(projectedSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtMXN0(bk.monthly)} mensual</p></div>
+                <div><p style={labelStyle}>Meta diaria ideal</p><p style={{ fontSize: 18, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día</p></div>
+                <div><p style={labelStyle}>Ritmo diario necesario</p><p style={{ fontSize: 18, fontWeight: 700, color: dailyNeeded > 0 ? "#fdab3d" : "white", fontFamily: "'Orbitron',sans-serif" }}>{dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día restantes</p></div>
+                <div><p style={labelStyle}>Cumplimiento</p><p style={{ fontSize: 18, fontWeight: 700, color: goalCompletion >= 100 ? "#00c875" : "white", fontFamily: "'Orbitron',sans-serif" }}>{goalNum > 0 ? pct(goalCompletion) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{daysRemaining} días restantes</p></div>
               </div>
               {goalNum > 0 && <div style={{ marginTop: 16, height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: `${Math.min(goalCompletion, 100)}%`, background: trackStatus === "on-track" ? "#00c875" : trackStatus === "at-risk" ? "#fdab3d" : "#e2445c", borderRadius: 3, transition: "width 0.5s" }} /></div>}
             </div>
@@ -555,14 +555,14 @@ export default function ProjectDashboardPage() {
               <div style={panelStyle}><h3 style={headingStyle}>Inversión vs Resultados</h3><p style={subStyle}>Gasto diario y volumen de conversiones</p>
                 <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                   <defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fdab3d" stopOpacity={0.3} /><stop offset="95%" stopColor="#fdab3d" stopOpacity={0} /></linearGradient></defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="left" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="left" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} />
                   <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="#fdab3d" strokeWidth={2} fillOpacity={1} fill="url(#gs)" /><Bar yAxisId="right" dataKey="results" name="Resultados" fill="#00c875" radius={[3, 3, 0, 0]} barSize={6} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
               <div style={panelStyle}><h3 style={headingStyle}>CTR vs CPC</h3><p style={subStyle}>Calidad de tráfico y costo por clic</p>
                 <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                   <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7b61ff" stopOpacity={0.3} /><stop offset="95%" stopColor="#7b61ff" stopOpacity={0} /></linearGradient></defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="l" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} /><YAxis yAxisId="r" orientation="right" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="l" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} /><YAxis yAxisId="r" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                   <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="#7b61ff" strokeWidth={2} fillOpacity={1} fill="url(#gc)" /><Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="#fdab3d" strokeWidth={2} dot={{ r: 3, fill: "rgba(10,15,30,1)" }} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
@@ -577,7 +577,7 @@ export default function ProjectDashboardPage() {
               {ch?.adAccounts?.map(acc => (
                 <div key={acc} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 4, marginBottom: 6 }}>
                   <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#00c875" }} />
-                  <div style={{ flex: 1 }}><p style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 500 }}>{accountNames[acc] || acc}</p><p style={{ fontSize: 9, color: "rgba(148,163,184,0.3)" }}>{acc}</p></div>
+                  <div style={{ flex: 1 }}><p style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 500 }}>{accountNames[acc] || acc}</p><p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>{acc}</p></div>
                 </div>
               ))}
             </div>
@@ -588,11 +588,11 @@ export default function ProjectDashboardPage() {
                 <div><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 16, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
                 <div><p style={labelStyle}>Semanal ideal</p><p style={{ fontSize: 14, fontWeight: 600, color: "#e2e8f0" }}>{fmtMXN(bk.weekly)}</p></div>
                 <div style={{ marginTop: 12, padding: "10px 12px", background: spendPace > 10 ? "rgba(226,68,92,0.08)" : spendPace < -10 ? "rgba(253,171,61,0.08)" : "rgba(0,200,117,0.08)", borderRadius: 4, border: `1px solid ${spendPace > 10 ? "rgba(226,68,92,0.15)" : spendPace < -10 ? "rgba(253,171,61,0.15)" : "rgba(0,200,117,0.15)"}` }}>
-                  <p style={{ fontSize: 10, color: "rgba(148,163,184,0.5)", marginBottom: 4 }}>Ritmo de gasto</p>
+                  <p style={{ fontSize: 10, color: "rgba(148,163,184,0.75)", marginBottom: 4 }}>Ritmo de gasto</p>
                   <p style={{ fontSize: 13, fontWeight: 600, color: spendPace > 10 ? "#e2445c" : spendPace < -10 ? "#fdab3d" : "#00c875" }}>
                     {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo"}
                   </p>
-                  <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", marginTop: 2 }}>Ideal hoy: {fmtMXN(idealSpendToday)} | Real: {fmtMXN(totalSpend)}</p>
+                  <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", marginTop: 2 }}>Ideal hoy: {fmtMXN(idealSpendToday)} | Real: {fmtMXN(totalSpend)}</p>
                 </div>
               </div>
             </div>
@@ -662,9 +662,9 @@ export default function ProjectDashboardPage() {
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 700 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
                     <tr>
-                      <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.5)", textAlign: "left", fontWeight: 600, width: 70, background: "rgba(5,8,18,0.95)" }}></th>
+                      <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.75)", textAlign: "left", fontWeight: 600, width: 70, background: "rgba(5,8,18,0.95)" }}></th>
                       {HOURS.map(h => (
-                        <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.4)", textAlign: "center", fontWeight: 500, minWidth: 26, background: "rgba(5,8,18,0.95)" }}>
+                        <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.7)", textAlign: "center", fontWeight: 500, minWidth: 26, background: "rgba(5,8,18,0.95)" }}>
                           {h.toString().padStart(2, "0")}
                         </th>
                       ))}
@@ -720,11 +720,11 @@ export default function ProjectDashboardPage() {
               </div>
               {/* Legend */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
-                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.3)" }}>Menos</span>
+                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>Menos</span>
                 {["rgba(255,255,255,0.04)", "rgba(0,212,255,0.12)", "rgba(0,212,255,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
                   <div key={i} style={{ width: 14, height: 10, borderRadius: 2, background: c }} />
                 ))}
-                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.3)" }}>Más</span>
+                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>Más</span>
               </div>
             </div>
           );
@@ -740,7 +740,7 @@ export default function ProjectDashboardPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div style={panelStyle}><p style={labelStyle}>Presupuesto {bk.label}</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(budgetNum)}</p></div>
             <div style={panelStyle}><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 20, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
-            <div style={panelStyle}><p style={labelStyle}>Gastado hoy</p><p style={{ fontSize: 20, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "#e2445c" : "#00c875", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(totalSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>de {fmtMXN0(idealSpendToday)} ideal</p></div>
+            <div style={panelStyle}><p style={labelStyle}>Gastado hoy</p><p style={{ fontSize: 20, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "#e2445c" : "#00c875", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(totalSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtMXN0(idealSpendToday)} ideal</p></div>
             <div style={panelStyle}><p style={labelStyle}>Restante</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p></div>
           </div>
 
@@ -788,8 +788,8 @@ export default function ProjectDashboardPage() {
                   { label: goalLabel(ch?.goal), total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "#00c875" },
                   { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map(() => "—"), color: "#7b61ff" },
                   { label: CPR_MAP[ch?.goal || ""] || "CPR", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "#00d4ff" },
-                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Proyección`, total: fmtMXN(projCPL), values: cols.map(() => "—"), color: "rgba(148,163,184,0.5)" },
-                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(0)}%`; }), color: "rgba(148,163,184,0.5)" },
+                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Proyección`, total: fmtMXN(projCPL), values: cols.map(() => "—"), color: "rgba(148,163,184,0.75)" },
+                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(0)}%`; }), color: "rgba(148,163,184,0.75)" },
                 ];
 
                 return (
@@ -797,8 +797,8 @@ export default function ProjectDashboardPage() {
                     {/* Day names header */}
                     <thead>
                       <tr>
-                        <th style={{ ...totalCellStyle, background: "rgba(5,8,18,0.98)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 9, color: "rgba(148,163,184,0.3)" }}>AL DÍA</th>
-                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 9, color: "rgba(148,163,184,0.3)" }}>FECHA</th>
+                        <th style={{ ...totalCellStyle, background: "rgba(5,8,18,0.98)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 9, color: "rgba(148,163,184,0.65)" }}>AL DÍA</th>
+                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 9, color: "rgba(148,163,184,0.65)" }}>FECHA</th>
                         {cols.map((c: any, i: number) => <th key={i} style={headerCellStyle}>{c.dayName}</th>)}
                       </tr>
                       {/* Date numbers row */}
@@ -836,11 +836,11 @@ export default function ProjectDashboardPage() {
             <h3 style={headingStyle}>Curva de Gasto vs Presupuesto Ideal</h3>
             <div style={{ width: "100%", height: 280 }}>
               {timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData.map((d: any, i: number) => ({ ...d, idealAccum: bk.daily * (i + 1), spendAccum: timeSeriesData.slice(0, i + 1).reduce((a: number, b: any) => a + b.spend, 0) }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
-                <YAxis stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
+                <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: any, n: any) => [fmtMXN(v as number), n]} /><Legend wrapperStyle={{ fontSize: 10 }} />
                 <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="#fdab3d" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="idealAccum" name="Presupuesto ideal" stroke="rgba(148,163,184,0.3)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
+                <Line type="monotone" dataKey="idealAccum" name="Presupuesto ideal" stroke="rgba(148,163,184,0.65)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
               </ComposedChart></ResponsiveContainer> : <NoData />}
             </div>
           </div>
@@ -890,8 +890,8 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={cd} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                        <XAxis dataKey="age" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <XAxis dataKey="age" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v))]} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                         <Bar dataKey="Mujeres" stackId="a" fill="#00d4ff" />
@@ -920,8 +920,8 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
-                        <XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                        <YAxis type="category" dataKey="region" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} width={90} />
+                        <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="region" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} width={90} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
                         <Bar dataKey="spend" fill="#fdab3d" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
@@ -948,8 +948,8 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
-                        <XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                        <YAxis type="category" dataKey="country" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} width={40} />
+                        <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="country" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} width={40} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
                         <Bar dataKey="spend" fill="#00d4ff" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
@@ -980,7 +980,7 @@ export default function ProjectDashboardPage() {
                         <Pie data={d} dataKey="spend" nameKey="name" cx="50%" cy="50%"
                           innerRadius={60} outerRadius={100}
                           label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                          labelLine={{ stroke: "rgba(148,163,184,0.3)" }}
+                          labelLine={{ stroke: "rgba(148,163,184,0.65)" }}
                         >
                           {d.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
@@ -1024,7 +1024,7 @@ export default function ProjectDashboardPage() {
                         <Pie data={cd} dataKey="spend" nameKey="name" cx="50%" cy="50%"
                           innerRadius={60} outerRadius={100}
                           label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                          labelLine={{ stroke: "rgba(148,163,184,0.3)" }}
+                          labelLine={{ stroke: "rgba(148,163,184,0.65)" }}
                         >
                           {cd.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
@@ -1067,8 +1067,8 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
-                        <XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                        <YAxis type="category" dataKey="placement" stroke="rgba(148,163,184,0.4)" fontSize={8} tickLine={false} axisLine={false} width={120} />
+                        <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="placement" stroke="rgba(148,163,184,0.7)" fontSize={8} tickLine={false} axisLine={false} width={120} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
                         <Bar dataKey="spend" fill="#a25ddc" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
@@ -1103,9 +1103,9 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={d} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                        <XAxis dataKey="hour" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} interval={1} />
-                        <YAxis yAxisId="left" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
-                        <YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.2)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
+                        <XAxis dataKey="hour" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval={1} />
+                        <YAxis yAxisId="left" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                        <YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.65)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "Inversión" ? fmtMXN(Number(v)) : fmtNum(Number(v)), name]} />
                         <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="#00d4ff" radius={[3, 3, 0, 0]} barSize={10} />
                         <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impresiones" stroke="#fdab3d" strokeWidth={2} dot={false} />
@@ -1195,14 +1195,14 @@ export default function ProjectDashboardPage() {
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                   <thead>
                     <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                      <th style={{ padding: "8px 6px", textAlign: "left", color: "rgba(148,163,184,0.5)", fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>#</th>
-                      <th style={{ padding: "8px 6px", textAlign: "left", color: "rgba(148,163,184,0.5)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Anuncio</th>
-                      <th style={{ padding: "8px 6px", textAlign: "left", color: "rgba(148,163,184,0.5)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Estado</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.5)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Inversión</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.5)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Result.</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.5)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CPR</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.5)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CTR</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.5)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Impr.</th>
+                      <th style={{ padding: "8px 6px", textAlign: "left", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>#</th>
+                      <th style={{ padding: "8px 6px", textAlign: "left", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Anuncio</th>
+                      <th style={{ padding: "8px 6px", textAlign: "left", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Estado</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Inversión</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Result.</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CPR</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CTR</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Impr.</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1216,7 +1216,7 @@ export default function ProjectDashboardPage() {
                           onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
                           onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                           onClick={() => { const ra2 = findResultAction(ad.actions, ch?.goal); setPreviewAd({ ...ad, results, cprVal, ctrVal }); }}>
-                          <td style={{ padding: "8px 6px", color: "rgba(148,163,184,0.3)", fontSize: 10 }}>{i + 1}</td>
+                          <td style={{ padding: "8px 6px", color: "rgba(148,163,184,0.65)", fontSize: 10 }}>{i + 1}</td>
                           <td style={{ padding: "8px 6px", maxWidth: 250 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                               <div style={{ width: 40, height: 40, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "rgba(0,0,0,0.3)", position: "relative" }}>
@@ -1232,15 +1232,15 @@ export default function ProjectDashboardPage() {
                           </td>
                           <td style={{ padding: "8px 6px" }}>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                              <span style={{ width: 5, height: 5, borderRadius: "50%", background: ad.status === "ACTIVE" ? "#00c875" : ad.status === "PAUSED" ? "#fdab3d" : "rgba(148,163,184,0.3)" }} />
-                              <span style={{ fontSize: 9, color: "rgba(148,163,184,0.5)" }}>{ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status}</span>
+                              <span style={{ width: 5, height: 5, borderRadius: "50%", background: ad.status === "ACTIVE" ? "#00c875" : ad.status === "PAUSED" ? "#fdab3d" : "rgba(148,163,184,0.65)" }} />
+                              <span style={{ fontSize: 9, color: "rgba(148,163,184,0.75)" }}>{ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status}</span>
                             </span>
                           </td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "#fdab3d", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "#00c875", fontWeight: 700 }}>{results}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "#e2445c" : cprTarget > 0 && cprVal > cprTarget ? "#e2445c" : "#00d4ff", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.7)" }}>{ctrVal.toFixed(2)}%</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.5)" }}>{fmtNum(ad.impressions || 0)}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)" }}>{fmtNum(ad.impressions || 0)}</td>
                         </tr>
                       );
                     })}
@@ -1309,7 +1309,7 @@ export default function ProjectDashboardPage() {
                                 <span style={{ fontSize: 10, color: "#fdab3d" }}>{fmtMXN(d.spend)}</span>
                                 <span style={{ fontSize: 10, color: "#00c875" }}>{Math.round(d.results)} result.</span>
                                 <span style={{ fontSize: 10, color: "#00d4ff" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
-                                <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{d.count} anuncios</span>
+                                <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{d.count} anuncios</span>
                               </div>
                             </div>
                           </div>
@@ -1349,7 +1349,7 @@ export default function ProjectDashboardPage() {
                         <Pie data={d} dataKey="spend" nameKey="name" cx="50%" cy="50%"
                           innerRadius={55} outerRadius={90}
                           label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
-                          labelLine={{ stroke: "rgba(148,163,184,0.3)" }}
+                          labelLine={{ stroke: "rgba(148,163,184,0.65)" }}
                         >
                           {d.map((_, i) => <Cell key={i} fill={formatColors[i % formatColors.length]} />)}
                         </Pie>
@@ -1377,13 +1377,13 @@ export default function ProjectDashboardPage() {
                   });
                   return Object.entries(formatStats).map(([fmt, s]) => (
                     <div key={fmt} style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px 12px" }}>
-                      <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
+                      <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
                       <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
                         <span style={{ color: "#fdab3d" }}>{fmtMXN(s.spend)}</span>
                         <span style={{ color: "#00c875" }}>{Math.round(s.results)} res.</span>
                         <span style={{ color: "#00d4ff" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
                       </div>
-                      <p style={{ fontSize: 9, color: "rgba(148,163,184,0.3)", marginTop: 4 }}>{s.count} anuncios</p>
+                      <p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", marginTop: 4 }}>{s.count} anuncios</p>
                     </div>
                   ));
                 })()}
@@ -1411,8 +1411,8 @@ export default function ProjectDashboardPage() {
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
-                        <XAxis type="number" stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
-                        <YAxis type="category" dataKey="name" stroke="rgba(148,163,184,0.4)" fontSize={8} tickLine={false} axisLine={false} width={140} />
+                        <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
+                        <YAxis type="category" dataKey="name" stroke="rgba(148,163,184,0.7)" fontSize={8} tickLine={false} axisLine={false} width={140} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "Inversión"]} />
                         <Bar dataKey="ctr" fill="#00c875" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
@@ -1431,11 +1431,11 @@ export default function ProjectDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(() => {
                 const top = (insights?.campaigns || []).map((c: any) => { const s = parseFloat(c.spend || "0"); const ra = findResultAction(c.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: c.campaign_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
-                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Campaña Ganadora</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.5)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.5)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.3)", fontSize: 12 }}>Sin datos</div>;
+                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Campaña Ganadora</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.65)", fontSize: 12 }}>Sin datos</div>;
               })()}
               {(() => {
                 const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
-                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Adset Ganador</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.5)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.5)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.3)", fontSize: 12 }}>Sin datos</div>;
+                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Adset Ganador</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.65)", fontSize: 12 }}>Sin datos</div>;
               })()}
             </div>
           </div>
@@ -1536,7 +1536,7 @@ export default function ProjectDashboardPage() {
                         <span style={{ fontSize: 10, color: healthColor, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.15em", marginTop: 4 }}>{healthLabel}</span>
                       </div>
                     </div>
-                    <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", marginTop: 12, textAlign: "center" }}>Ponderación: CPR 25% · Frecuencia 20% · CTR 15% · Conv 15% · Gasto 15% · Tendencia 10%</p>
+                    <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", marginTop: 12, textAlign: "center" }}>Ponderación: CPR 25% · Frecuencia 20% · CTR 15% · Conv 15% · Gasto 15% · Tendencia 10%</p>
                   </div>
 
                   {/* 6 Indicator Cards */}
@@ -1549,7 +1549,7 @@ export default function ProjectDashboardPage() {
                           <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{ind.value}</span>
                           <span style={{ fontSize: 20, fontWeight: 800, color: ind.color, fontFamily: "'Orbitron',sans-serif" }}>{ind.score}</span>
                         </div>
-                        <p style={{ fontSize: 9, color: "rgba(148,163,184,0.4)", marginBottom: 6 }}>{ind.bench}</p>
+                        <p style={{ fontSize: 9, color: "rgba(148,163,184,0.7)", marginBottom: 6 }}>{ind.bench}</p>
                         <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
                           <div style={{ height: "100%", width: `${ind.score}%`, background: ind.color, borderRadius: 2, transition: "width 0.8s ease-out" }} />
                         </div>
@@ -1573,8 +1573,8 @@ export default function ProjectDashboardPage() {
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                          <XAxis dataKey="date" stroke="rgba(148,163,184,0.4)" fontSize={9} tickLine={false} axisLine={false} />
-                          <YAxis stroke="rgba(148,163,184,0.4)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
+                          <XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} />
+                          <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
                           <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
                           <Area type="monotone" dataKey="cpr" name="CPR" stroke="#00d4ff" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
                           {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="#e2445c" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "#e2445c", fontSize: 10 }} />}
@@ -1609,7 +1609,7 @@ export default function ProjectDashboardPage() {
                       <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.1)", borderRadius: 6 }}>
                         <p style={{ fontSize: 10, color: "#00d4ff", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Presupuesto Diario Óptimo</p>
                         <p style={{ fontSize: 16, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p>
-                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>Basado en {fmtMXN0(bk.monthly)} {bk.label.toLowerCase()}</p>
+                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>Basado en {fmtMXN0(bk.monthly)} {bk.label.toLowerCase()}</p>
                       </div>
                       {/* Optimization target */}
                       <div style={{ padding: "10px 12px", background: "rgba(0,200,117,0.04)", border: "1px solid rgba(0,200,117,0.1)", borderRadius: 6 }}>
@@ -1724,12 +1724,12 @@ export default function ProjectDashboardPage() {
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
-                      <div><span style={{ color: "rgba(148,163,184,0.5)" }}>Presupuesto:</span> <span style={{ color: "white", fontWeight: 600 }}>{c.budget || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.5)" }}>Período:</span> <span style={{ color: "white" }}>{c.period || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.5)" }}>Objetivo:</span> <span style={{ color: "#00c875", fontWeight: 600 }}>{c.goal || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.5)" }}>CPR Meta:</span> <span style={{ color: "#00d4ff", fontWeight: 600 }}>{c.cpr || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.5)" }}>Diario ideal:</span> <span style={{ color: "white" }}>{fmtMXN(bk2.daily)}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.5)" }}>Cuentas:</span> <span style={{ color: "white" }}>{c.adAccounts?.length || 0}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Presupuesto:</span> <span style={{ color: "white", fontWeight: 600 }}>{c.budget || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Período:</span> <span style={{ color: "white" }}>{c.period || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Objetivo:</span> <span style={{ color: "#00c875", fontWeight: 600 }}>{c.goal || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>CPR Meta:</span> <span style={{ color: "#00d4ff", fontWeight: 600 }}>{c.cpr || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Diario ideal:</span> <span style={{ color: "white" }}>{fmtMXN(bk2.daily)}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Cuentas:</span> <span style={{ color: "white" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>
                   )}
                 </div>

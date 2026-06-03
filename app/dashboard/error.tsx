@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect } from "react";
 import { AlertTriangle, RefreshCcw, Home } from "lucide-react";
@@ -18,7 +18,7 @@ export default function DashboardError({
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[70vh] p-6 text-center">
-      <div className="w-full max-w-md bg-[var(--surface)] border border-[rgba(255,255,255,0.05)] rounded-2xl p-8 shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-md bg-[var(--surface)] border border-[rgba(255,255,255,0.1)] rounded-2xl p-8 shadow-2xl relative overflow-hidden">
         {/* Glow effect */}
         <div className="absolute -top-20 -left-20 w-40 h-40 bg-red-500/20 blur-3xl rounded-full pointer-events-none" />
         <div className="absolute -bottom-20 -right-20 w-40 h-40 bg-orange-500/10 blur-3xl rounded-full pointer-events-none" />

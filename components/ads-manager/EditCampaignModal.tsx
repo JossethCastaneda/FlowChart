@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Save, Loader2, AlertCircle, TrendingUp } from "lucide-react";
 import { useMetaUpdate } from "@/hooks/useMetaUpdate";
@@ -114,14 +114,14 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
             </div>
             <div>
               <div style={{ fontSize: 15, fontWeight: 700, color: "white" }}>Editar Campaña</div>
-              <div style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>ID: {campaign.id}</div>
+              <div style={{ fontSize: 11, color: "#94a3b8" }}>ID: {campaign.id}</div>
             </div>
           </div>
           <button
             onClick={onClose}
             style={{
               background: "none", border: "none", cursor: "pointer",
-              color: "rgba(148,163,184,0.6)", padding: 4, borderRadius: 6,
+              color: "#94a3b8", padding: 4, borderRadius: 6,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
@@ -155,13 +155,13 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                     ...toggleStyle,
                     background: status === s
                       ? s === "ACTIVE" ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.1)"
-                      : "rgba(255,255,255,0.04)",
+                      : "rgba(255,255,255,0.09)",
                     borderColor: status === s
                       ? s === "ACTIVE" ? "var(--emerald)" : "var(--amber)"
                       : "var(--border)",
                     color: status === s
                       ? s === "ACTIVE" ? "var(--emerald)" : "var(--amber)"
-                      : "rgba(148,163,184,0.6)",
+                      : "#94a3b8",
                   }}
                 >
                   {s === "ACTIVE" ? "● Activa" : "◌ Pausada"}
@@ -180,9 +180,9 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                     onClick={() => setBudgetType(t)}
                     style={{
                       ...toggleStyle,
-                      background: budgetType === t ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.04)",
+                      background: budgetType === t ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)",
                       borderColor: budgetType === t ? "var(--cyan)" : "var(--border)",
-                      color: budgetType === t ? "var(--cyan)" : "rgba(148,163,184,0.6)",
+                      color: budgetType === t ? "var(--cyan)" : "#94a3b8",
                     }}
                   >
                     {t === "daily" ? "Diario" : "Total"}
@@ -190,7 +190,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                 ))}
               </div>
               <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "rgba(148,163,184,0.6)", fontSize: 13 }}>$</span>
+                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontSize: 13 }}>$</span>
                 <input
                   type="number"
                   value={budget}
@@ -223,9 +223,9 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
 
           {/* Objective (read-only) */}
           <FormGroup label="Objetivo">
-            <div style={{ ...inputStyle, color: "rgba(148,163,184,0.5)", display: "flex", alignItems: "center" }}>
+            <div style={{ ...inputStyle, color: "#64748b", display: "flex", alignItems: "center" }}>
               {campaign.objective || "—"}
-              <span style={{ marginLeft: "auto", fontSize: 10, color: "rgba(148,163,184,0.4)", fontStyle: "italic" }}>
+              <span style={{ marginLeft: "auto", fontSize: 10, color: "#64748b", fontStyle: "italic" }}>
                 No editable
               </span>
             </div>
@@ -281,7 +281,7 @@ export const selectStyle: React.CSSProperties = {
   ...inputStyle as any,
   cursor: "pointer",
   appearance: "none",
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='rgba(148,163,184,0.6)' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#94a3b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
   backgroundRepeat: "no-repeat",
   backgroundPosition: "right 10px center",
   backgroundSize: 16,

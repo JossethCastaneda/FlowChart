@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
@@ -303,7 +303,7 @@ export default function DateRangePicker({
       {showDatePicker && (
         <div style={{
           position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 9999,
-          background: "#1a1f2e", border: "1px solid rgba(148,163,184,0.15)", borderRadius: "12px",
+          background: "#1a1f2e", border: "1px solid rgba(148,163,184,0.22)", borderRadius: "12px",
           boxShadow: "0 25px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(148,163,184,0.05)",
           display: "flex", flexDirection: "column", overflow: "hidden"
         }}>
@@ -312,7 +312,7 @@ export default function DateRangePicker({
 
             {/* ── LEFT: Presets ── */}
             <div style={{
-              width: "170px", borderRight: "1px solid rgba(148,163,184,0.1)",
+              width: "170px", borderRight: "1px solid rgba(148,163,184,0.18)",
               overflowY: "auto", maxHeight: "400px",
               padding: "8px 0"
             }}>
@@ -335,7 +335,7 @@ export default function DateRangePicker({
                     {/* Radio button */}
                     <div style={{
                       width: "14px", height: "14px", borderRadius: "50%",
-                      border: active ? "2px solid var(--cyan)" : "2px solid rgba(148,163,184,0.3)",
+                      border: active ? "2px solid var(--cyan)" : "2px solid rgba(148,163,184,0.65)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       flexShrink: 0, transition: "all 0.15s"
                     }}>
@@ -359,7 +359,7 @@ export default function DateRangePicker({
                 <button
                   onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))}
                   style={{
-                    background: "none", border: "1px solid rgba(148,163,184,0.15)", borderRadius: "6px",
+                    background: "none", border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px",
                     padding: "4px", cursor: "pointer", color: "rgba(255,255,255,0.7)", display: "flex",
                     transition: "all 0.15s"
                   }}
@@ -379,7 +379,7 @@ export default function DateRangePicker({
                 <button
                   onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))}
                   style={{
-                    background: "none", border: "1px solid rgba(148,163,184,0.15)", borderRadius: "6px",
+                    background: "none", border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px",
                     padding: "4px", cursor: "pointer", color: "rgba(255,255,255,0.7)", display: "flex",
                     transition: "all 0.15s"
                   }}
@@ -420,21 +420,21 @@ export default function DateRangePicker({
               <div style={{
                 display: "flex", alignItems: "center", gap: "12px",
                 marginTop: "16px", paddingTop: "12px",
-                borderTop: "1px solid rgba(148,163,184,0.1)"
+                borderTop: "1px solid rgba(148,163,184,0.18)"
               }}>
                 <div style={{
                   display: "flex", alignItems: "center", gap: "8px",
-                  background: "rgba(10,15,30,0.5)", border: "1px solid rgba(148,163,184,0.1)",
-                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "rgba(148,163,184,0.6)",
+                  background: "rgba(10,15,30,0.5)", border: "1px solid rgba(148,163,184,0.18)",
+                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "#94a3b8",
                   flex: 1
                 }}>
                   {selStart ? fmtDisplay(selStart) : "Fecha inicio"}
                 </div>
-                <span style={{ color: "rgba(148,163,184,0.3)", fontSize: "11px" }}>–</span>
+                <span style={{ color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>–</span>
                 <div style={{
                   display: "flex", alignItems: "center", gap: "8px",
-                  background: "rgba(10,15,30,0.5)", border: "1px solid rgba(148,163,184,0.1)",
-                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "rgba(148,163,184,0.6)",
+                  background: "rgba(10,15,30,0.5)", border: "1px solid rgba(148,163,184,0.18)",
+                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "#94a3b8",
                   flex: 1
                 }}>
                   {selEnd ? fmtDisplay(selEnd) : "Fecha fin"}
@@ -447,10 +447,10 @@ export default function DateRangePicker({
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
             padding: "12px 20px",
-            borderTop: "1px solid rgba(148,163,184,0.1)",
+            borderTop: "1px solid rgba(148,163,184,0.18)",
             background: "rgba(10,15,30,0.3)"
           }}>
-            <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.35)" }}>
+            <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.65)" }}>
               Las fechas se muestran en la Hora de Ciudad de México (Centro)
             </span>
             <div style={{ display: "flex", gap: "8px" }}>
@@ -458,7 +458,7 @@ export default function DateRangePicker({
                 onClick={handleCancel}
                 style={{
                   padding: "7px 20px", fontSize: "12px", fontWeight: 500, borderRadius: "6px",
-                  background: "transparent", border: "1px solid rgba(148,163,184,0.2)",
+                  background: "transparent", border: "1px solid rgba(148,163,184,0.65)",
                   color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.15s"
                 }}
               >
@@ -469,8 +469,8 @@ export default function DateRangePicker({
                 disabled={pendingPreset === "custom" && (!selStart || !selEnd)}
                 style={{
                   padding: "7px 20px", fontSize: "12px", fontWeight: 600, borderRadius: "6px",
-                  background: (pendingPreset !== "custom" || (selStart && selEnd)) ? "var(--cyan)" : "rgba(148,163,184,0.15)",
-                  color: (pendingPreset !== "custom" || (selStart && selEnd)) ? "#0a0f1e" : "rgba(148,163,184,0.3)",
+                  background: (pendingPreset !== "custom" || (selStart && selEnd)) ? "var(--cyan)" : "rgba(148,163,184,0.22)",
+                  color: (pendingPreset !== "custom" || (selStart && selEnd)) ? "#0a0f1e" : "rgba(148,163,184,0.65)",
                   border: "none", cursor: (pendingPreset !== "custom" || (selStart && selEnd)) ? "pointer" : "default",
                   transition: "all 0.15s", letterSpacing: "0.02em"
                 }}
@@ -520,7 +520,7 @@ function MonthGrid({
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0" }}>
         {DAY_LABELS.map(d => (
           <div key={d} style={{
-            textAlign: "center", fontSize: "10px", color: "rgba(148,163,184,0.4)",
+            textAlign: "center", fontSize: "10px", color: "#64748b",
             padding: "0 0 8px 0", fontWeight: 600
           }}>
             {d}
@@ -559,7 +559,7 @@ function MonthGrid({
                   borderRadius: "6px", cursor: isFuture ? "default" : "pointer",
                   border: isToday && !isEdge ? "1px solid var(--cyan)" : "1px solid transparent",
                   background: isEdge ? "var(--cyan)" : "transparent",
-                  color: isFuture ? "rgba(148,163,184,0.15)" : isEdge ? "#0a0f1e" : isToday ? "var(--cyan)" : inRange ? "var(--cyan)" : "rgba(255,255,255,0.8)",
+                  color: isFuture ? "rgba(148,163,184,0.22)" : isEdge ? "#0a0f1e" : isToday ? "var(--cyan)" : inRange ? "var(--cyan)" : "rgba(255,255,255,0.8)",
                   fontWeight: isEdge || isToday ? 700 : 400,
                   transition: "all 0.1s", display: "flex", alignItems: "center", justifyContent: "center",
                   padding: 0

@@ -85,7 +85,7 @@ export function TableActionBar({
   };
 
   const disabledButtonStyle: React.CSSProperties = {
-    ...buttonStyle, color: "rgba(148,163,184,0.3)", cursor: "not-allowed", borderColor: "rgba(148,163,184,0.08)",
+    ...buttonStyle, color: "rgba(148,163,184,0.55)", cursor: "not-allowed", borderColor: "rgba(148,163,184,0.12)",
   };
 
   const iconButtonStyle: React.CSSProperties = { ...buttonStyle, padding: "4px 6px" };
@@ -101,7 +101,7 @@ export function TableActionBar({
   const menuItemStyle = (disabled = false): React.CSSProperties => ({
     display: "flex", alignItems: "center", justifyContent: "space-between",
     padding: "8px 16px", fontSize: "13px",
-    color: disabled ? "rgba(148,163,184,0.3)" : "white",
+    color: disabled ? "rgba(148,163,184,0.55)" : "white",
     background: "transparent", border: "none", width: "100%", textAlign: "left",
     cursor: disabled ? "not-allowed" : "pointer",
   });
@@ -147,16 +147,16 @@ export function TableActionBar({
             <div style={menuStyle}>
               <button style={menuItemStyle(!hasSelection)} onClick={() => handleMenuItem(onDuplicateQuick)}>
                 <span>Duplicar rápidamente</span>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px" }}>Ctrl + D</span>
+                <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px" }}>Ctrl + D</span>
               </button>
               <div style={menuDividerStyle} />
               <button style={menuItemStyle(!hasSelection)} onClick={() => handleMenuItem(onCopy)}>
                 <span>Copiar</span>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px" }}>Ctrl + C</span>
+                <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px" }}>Ctrl + C</span>
               </button>
               <button style={menuItemStyle(clipboardCount === 0)} onClick={() => handleMenuItem(onPaste, false)}>
                 <span>Pegar {clipboardCount > 0 ? `(${clipboardCount})` : ""}</span>
-                <span style={{ color: "rgba(255,255,255,0.4)", fontSize: "11px" }}>Ctrl + V</span>
+                <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px" }}>Ctrl + V</span>
               </button>
               <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onShowClipboard, false)}>
                 Ver elementos copiados {clipboardCount > 0 && <span style={{ background: "rgba(0,212,255,0.15)", color: "var(--cyan)", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 700 }}>{clipboardCount}</span>}

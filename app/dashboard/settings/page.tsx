@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -135,7 +135,7 @@ export default function SettingsPage() {
   const roleBadgeColor: Record<string, string> = {
     OWNER: "var(--cyan)",
     ADMIN: "var(--amber)",
-    MEMBER: "rgba(148,163,184,0.5)",
+    MEMBER: "#64748b",
   };
 
   async function handleRoleChange(userId: string, newRole: string) {
@@ -190,7 +190,7 @@ export default function SettingsPage() {
         <PageHeader title="Settings" description="Gestión del workspace y equipo."
           icon={<Settings className="w-6 h-6" style={{ color: "#00d4ff" }} />} />
         <div style={{ textAlign: "center", padding: "48px",
-          color: "rgba(148,163,184,0.3)", fontSize: "12px" }}>
+          color: "rgba(148,163,184,0.65)", fontSize: "12px" }}>
           Cargando...
         </div>
       </div>
@@ -266,7 +266,7 @@ export default function SettingsPage() {
             background: "rgba(6,214,160,0.05)",
             border: "1px solid rgba(6,214,160,0.2)" }}>
             <p style={{ fontSize: "11px",
-              color: "rgba(148,163,184,0.5)", marginBottom: "6px",
+              color: "#64748b", marginBottom: "6px",
               fontFamily: "'Orbitron', sans-serif",
               letterSpacing: "0.1em" }}>
               ENLACE DE INVITACIÓN GENERADO
@@ -292,7 +292,7 @@ export default function SettingsPage() {
               </button>
             </div>
             <p style={{ fontSize: "11px",
-              color: "rgba(148,163,184,0.3)", marginTop: "6px" }}>
+              color: "rgba(148,163,184,0.65)", marginTop: "6px" }}>
               Comparte este enlace por WhatsApp, email o Slack. Expira en 7 días.
             </p>
           </div>
@@ -319,7 +319,7 @@ export default function SettingsPage() {
                   {inv.email}
                 </p>
                 <p style={{ fontSize: "11px",
-                  color: "rgba(148,163,184,0.4)" }}>
+                  color: "#64748b" }}>
                   Rol: {inv.role} · Expira:{" "}
                   {new Date(inv.expires).toLocaleDateString("es-MX")}
                 </p>
@@ -391,7 +391,7 @@ export default function SettingsPage() {
                   {m.user.name || "Sin nombre"}
                 </p>
                 <p style={{ fontSize: "11px",
-                  color: "rgba(148,163,184,0.4)" }}>
+                  color: "#64748b" }}>
                   {m.user.email}
                 </p>
               </div>
@@ -486,7 +486,7 @@ export default function SettingsPage() {
             </span>
           </div>
           <p style={{ fontSize: "12px",
-            color: "rgba(148,163,184,0.5)", marginBottom: "12px" }}>
+            color: "#64748b", marginBottom: "12px" }}>
             Eliminar este workspace borrará todos los proyectos,
             miembros e invitaciones. Esta acción no se puede deshacer.
           </p>

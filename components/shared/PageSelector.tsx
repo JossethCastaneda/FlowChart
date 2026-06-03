@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { Check, ChevronDown, Globe } from "lucide-react";
@@ -86,7 +86,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
         style={{
           display: "flex", alignItems: "center", gap: 6,
           padding: "6px 12px", borderRadius: 8,
-          background: "rgba(255,255,255,0.04)",
+          background: "rgba(255,255,255,0.09)",
           border: "1px solid rgba(255,255,255,0.08)",
           color: "#e2e8f0", fontSize: 12, cursor: "pointer",
           transition: "all 0.2s",

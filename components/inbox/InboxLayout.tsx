@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 
@@ -179,7 +179,7 @@ function PageSelector({
         style={{
           width: "100%", display: "flex", alignItems: "center", gap: 10,
           padding: "8px 12px",
-          background: open ? "rgba(168,85,247,0.06)" : "rgba(255,255,255,0.02)",
+          background: open ? "rgba(168,85,247,0.06)" : "rgba(255,255,255,0.04)",
           border: `1px solid ${open ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.06)"}`,
           borderRadius: 10, cursor: "pointer",
           transition: "all 0.15s", fontFamily: "inherit",
@@ -221,13 +221,13 @@ function PageSelector({
             {selectedPage?.name || "Todas las páginas"}
           </div>
           {selectedPage && (
-            <div style={{ fontSize: 9, color: "rgba(148,163,184,0.4)", textTransform: "capitalize" }}>
+            <div style={{ fontSize: 9, color: "#64748b", textTransform: "capitalize" }}>
               {selectedPage.platform}
             </div>
           )}
         </div>
         <ChevronDown style={{
-          width: 14, height: 14, color: "rgba(148,163,184,0.35)",
+          width: 14, height: 14, color: "rgba(148,163,184,0.65)",
           transform: open ? "rotate(180deg)" : "none",
           transition: "transform 0.2s", flexShrink: 0,
         }} />
@@ -249,10 +249,10 @@ function PageSelector({
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "5px 8px",
-              background: "rgba(255,255,255,0.04)",
+              background: "rgba(255,255,255,0.09)",
               borderRadius: 6, border: "1px solid rgba(255,255,255,0.06)",
             }}>
-              <Search style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)", flexShrink: 0 }} />
+              <Search style={{ width: 12, height: 12, color: "rgba(148,163,184,0.65)", flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Buscar página..."
@@ -291,7 +291,7 @@ function PageSelector({
               </div>
               <div style={{ textAlign: "left" }}>
                 <div style={{ fontSize: 12, fontWeight: 600, color: !selectedPage ? "#a855f7" : "white" }}>Todas las páginas</div>
-                <div style={{ fontSize: 9, color: "rgba(148,163,184,0.35)" }}>{pages.length} cuentas conectadas</div>
+                <div style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>{pages.length} cuentas conectadas</div>
               </div>
             </button>
 
@@ -357,7 +357,7 @@ function PageSelector({
                     }}>
                       {page.name}
                     </div>
-                    <div style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "capitalize" }}>
+                    <div style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", textTransform: "capitalize" }}>
                       {page.platform}
                     </div>
                   </div>
@@ -374,7 +374,7 @@ function PageSelector({
             })}
 
             {filteredPages.length === 0 && (
-              <div style={{ padding: 16, textAlign: "center", fontSize: 11, color: "rgba(148,163,184,0.3)" }}>
+              <div style={{ padding: 16, textAlign: "center", fontSize: 11, color: "rgba(148,163,184,0.65)" }}>
                 Sin resultados
               </div>
             )}
@@ -396,8 +396,8 @@ function PostView({ conversation }: { conversation: Conversation }) {
   if (!postData) {
     return (
       <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
-        <MessageSquare style={{ width: 32, height: 32, color: "rgba(148,163,184,0.2)" }} />
-        <p style={{ fontSize: 13, color: "rgba(148,163,184,0.4)" }}>Sin datos de publicación</p>
+        <MessageSquare style={{ width: 32, height: 32, color: "rgba(148,163,184,0.65)" }} />
+        <p style={{ fontSize: 13, color: "#64748b" }}>Sin datos de publicación</p>
       </div>
     );
   }
@@ -418,13 +418,13 @@ function PostView({ conversation }: { conversation: Conversation }) {
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{(conversation as any)?._pageName || conversation.contactName}</div>
-          <div style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{pc.label} · {formatDate(conversation.lastMessageTime)}</div>
+          <div style={{ fontSize: 10, color: "#64748b" }}>{pc.label} · {formatDate(conversation.lastMessageTime)}</div>
         </div>
         {postData.permalink && (
           <a href={postData.permalink} target="_blank" rel="noopener noreferrer"
             style={{
               padding: "5px 10px", borderRadius: 6,
-              background: "rgba(255,255,255,0.04)",
+              background: "rgba(255,255,255,0.09)",
               border: "1px solid rgba(255,255,255,0.08)",
               color: "#00d4ff", fontSize: 10, fontWeight: 600,
               textDecoration: "none", display: "flex", alignItems: "center", gap: 4,
@@ -462,30 +462,30 @@ function PostView({ conversation }: { conversation: Conversation }) {
         {/* Engagement metrics */}
         <div style={{
           display: "flex", gap: 20, padding: "12px 16px",
-          borderBottom: "1px solid rgba(255,255,255,0.04)",
+          borderBottom: "1px solid rgba(255,255,255,0.09)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <Heart style={{ width: 14, height: 14, color: "#ef4444" }} />
             <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{postData.likeCount.toLocaleString()}</span>
-            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.35)" }}>likes</span>
+            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>likes</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <MessageCircle style={{ width: 14, height: 14, color: "#00d4ff" }} />
             <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{postData.commentsCount.toLocaleString()}</span>
-            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.35)" }}>comentarios</span>
+            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>comentarios</span>
           </div>
           {(postData.shareCount || 0) > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
               <Share2 style={{ width: 14, height: 14, color: "#a855f7" }} />
               <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{(postData.shareCount || 0).toLocaleString()}</span>
-              <span style={{ fontSize: 10, color: "rgba(148,163,184,0.35)" }}>shares</span>
+              <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>shares</span>
             </div>
           )}
         </div>
 
         {/* Caption */}
         {postData.caption && (
-          <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.09)" }}>
             <p style={{
               fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.6,
               margin: 0, whiteSpace: "pre-wrap",
@@ -498,14 +498,14 @@ function PostView({ conversation }: { conversation: Conversation }) {
         {/* Comments section */}
         <div style={{ padding: "12px 16px 6px" }}>
           <div style={{
-            fontSize: 11, fontWeight: 700, color: "rgba(148,163,184,0.5)",
+            fontSize: 11, fontWeight: 700, color: "#64748b",
             letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12,
           }}>
             Comentarios ({postData.commentsCount})
           </div>
 
           {postData.comments.length === 0 ? (
-            <p style={{ fontSize: 12, color: "rgba(148,163,184,0.3)", textAlign: "center", padding: 20 }}>
+            <p style={{ fontSize: 12, color: "rgba(148,163,184,0.65)", textAlign: "center", padding: 20 }}>
               Sin comentarios recientes
             </p>
           ) : (
@@ -549,7 +549,7 @@ function PostView({ conversation }: { conversation: Conversation }) {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
                     <span style={{ fontSize: 12, fontWeight: 600, color: "white" }}>{comment.username}</span>
-                    <span style={{ fontSize: 9, color: "rgba(148,163,184,0.3)" }}>
+                    <span style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>
                       {new Date(comment.timestamp).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
@@ -559,7 +559,7 @@ function PostView({ conversation }: { conversation: Conversation }) {
                   {comment.likes > 0 && (
                     <div style={{ display: "flex", alignItems: "center", gap: 3, marginTop: 4 }}>
                       <Heart style={{ width: 10, height: 10, color: "#ef4444" }} />
-                      <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{comment.likes}</span>
+                      <span style={{ fontSize: 10, color: "#64748b" }}>{comment.likes}</span>
                     </div>
                   )}
                 </div>
@@ -832,10 +832,10 @@ export function InboxLayout() {
               }}>
                 <div style={{
                   width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
-                  background: "rgba(255,255,255,0.04)",
+                  background: "rgba(255,255,255,0.09)",
                 }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ height: 12, width: `${60 + (i % 3) * 15}%`, borderRadius: 4, marginBottom: 6, background: "rgba(255,255,255,0.04)" }} />
+                  <div style={{ height: 12, width: `${60 + (i % 3) * 15}%`, borderRadius: 4, marginBottom: 6, background: "rgba(255,255,255,0.09)" }} />
                   <div style={{ height: 10, width: `${40 + (i % 4) * 12}%`, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
                 </div>
                 <div style={{ height: 10, width: 24, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
@@ -851,9 +851,9 @@ export function InboxLayout() {
               borderBottom: "1px solid rgba(255,255,255,0.06)",
               animation: "pulse 1.5s ease-in-out infinite",
             }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.04)" }} />
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.09)" }} />
               <div>
-                <div style={{ height: 13, width: 120, borderRadius: 4, marginBottom: 4, background: "rgba(255,255,255,0.04)" }} />
+                <div style={{ height: 13, width: 120, borderRadius: 4, marginBottom: 4, background: "rgba(255,255,255,0.09)" }} />
                 <div style={{ height: 10, width: 80, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
               </div>
             </div>
@@ -929,7 +929,7 @@ export function InboxLayout() {
                 style={{
                   padding: "10px 14px",
                   fontSize: 12, fontWeight: isActive ? 600 : 400,
-                  color: isActive ? tab.color : "rgba(148,163,184,0.5)",
+                  color: isActive ? tab.color : "#64748b",
                   background: "transparent",
                   border: "none",
                   borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
@@ -941,7 +941,7 @@ export function InboxLayout() {
                   position: "relative",
                 }}
                 onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "rgba(148,163,184,0.5)"; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "#64748b"; }}
               >
                 {tab.label}
                 {total > 0 && (
@@ -949,8 +949,8 @@ export function InboxLayout() {
                     minWidth: 18, height: 18, borderRadius: 9,
                     background: unreadCount > 0
                       ? (tab.key === "all" ? "#ef4444" : tab.color)
-                      : "rgba(148,163,184,0.15)",
-                    color: unreadCount > 0 ? "white" : "rgba(148,163,184,0.6)",
+                      : "rgba(148,163,184,0.22)",
+                    color: unreadCount > 0 ? "white" : "#94a3b8",
                     fontSize: 10, fontWeight: 700,
                     display: "inline-flex", alignItems: "center", justifyContent: "center",
                     padding: "0 5px",
@@ -973,11 +973,11 @@ export function InboxLayout() {
           width: 300, minWidth: 300,
           display: "flex", flexDirection: "column",
           borderRight: "1px solid rgba(255,255,255,0.06)",
-          background: "rgba(255,255,255,0.01)",
+          background: "rgba(255,255,255,0.03)",
         }}>
           {/* Page Selector */}
           {connectedPages.length > 0 && (
-            <div style={{ padding: "10px 12px 6px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+            <div style={{ padding: "10px 12px 6px", borderBottom: "1px solid rgba(255,255,255,0.09)" }}>
               <PageSelector
                 pages={connectedPages}
                 selectedPage={selectedPage}
@@ -991,11 +991,11 @@ export function InboxLayout() {
             <div style={{
               display: "flex", alignItems: "center", gap: 8,
               padding: "7px 10px",
-              background: "rgba(255,255,255,0.04)",
+              background: "rgba(255,255,255,0.09)",
               borderRadius: 8,
               border: "1px solid rgba(255,255,255,0.06)",
             }}>
-              <Search style={{ width: 14, height: 14, color: "rgba(148,163,184,0.3)", flexShrink: 0 }} />
+              <Search style={{ width: 14, height: 14, color: "rgba(148,163,184,0.55)", flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Buscar conversación..."
@@ -1014,7 +1014,7 @@ export function InboxLayout() {
           {/* Conversation List */}
           <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
             {filtered.length === 0 ? (
-              <div style={{ padding: 24, textAlign: "center", color: "rgba(148,163,184,0.3)", fontSize: 11 }}>
+              <div style={{ padding: 24, textAlign: "center", color: "rgba(148,163,184,0.65)", fontSize: 11 }}>
                 No hay conversaciones
               </div>
             ) : (
@@ -1102,7 +1102,7 @@ export function InboxLayout() {
                           {conv.contactName}
                         </span>
                         <span style={{
-                          fontSize: 10, color: conv.unread ? "#a855f7" : "rgba(148,163,184,0.35)",
+                          fontSize: 10, color: conv.unread ? "#a855f7" : "rgba(148,163,184,0.65)",
                           whiteSpace: "nowrap", marginLeft: 8, fontWeight: conv.unread ? 600 : 400,
                         }}>
                           {relativeTime(conv.lastMessageTime)}
@@ -1110,7 +1110,7 @@ export function InboxLayout() {
                       </div>
                       <p style={{
                         fontSize: 11,
-                        color: conv.unread ? "rgba(255,255,255,0.5)" : "rgba(148,163,184,0.35)",
+                        color: conv.unread ? "rgba(255,255,255,0.75)" : "rgba(148,163,184,0.65)",
                         margin: 0,
                         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                         fontWeight: conv.unread ? 500 : 400,
@@ -1125,9 +1125,9 @@ export function InboxLayout() {
                         <span style={{
                           display: "inline-block", fontSize: 8, fontWeight: 600,
                           padding: "1px 6px", marginTop: 4,
-                          color: "rgba(148,163,184,0.4)",
-                          background: "rgba(148,163,184,0.06)",
-                          border: "1px solid rgba(148,163,184,0.1)",
+                          color: "rgba(148,163,184,0.65)",
+                          background: "rgba(148,163,184,0.16)",
+                          border: "1px solid rgba(148,163,184,0.22)",
                           borderRadius: 3,
                         }}>
                           CERRADO
@@ -1165,7 +1165,7 @@ export function InboxLayout() {
             width: 280, minWidth: 280,
             display: "flex", flexDirection: "column",
             borderLeft: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(255,255,255,0.01)",
+            background: "rgba(255,255,255,0.03)",
             overflow: "hidden",
           }}>
             <ContactProfile
@@ -1253,9 +1253,9 @@ function ChatView({
               </span>
               {conversation.assignedTo && (
                 <span style={{
-                  fontSize: 9, color: "rgba(148,163,184,0.4)",
-                  padding: "1px 6px", background: "rgba(255,255,255,0.03)",
-                  borderRadius: 4, border: "1px solid rgba(255,255,255,0.06)",
+                  fontSize: 9, color: "rgba(148,163,184,0.65)",
+                  padding: "1px 6px", background: "rgba(255,255,255,0.09)",
+                  borderRadius: 4, border: "1px solid rgba(255,255,255,0.08)",
                 }}>
                   → {conversation.assignedTo}
                 </span>
@@ -1291,10 +1291,10 @@ function ChatView({
                 background: "transparent", border: "1px solid rgba(255,255,255,0.06)",
                 borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
               }}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.09)"}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
-              <btn.icon style={{ width: 14, height: 14, color: "rgba(148,163,184,0.4)" }} />
+              <btn.icon style={{ width: 14, height: 14, color: "#94a3b8" }} />
             </button>
           ))}
 
@@ -1304,7 +1304,7 @@ function ChatView({
             onClick={onClose}
             style={{
               padding: "6px 12px", fontSize: 10, fontWeight: 600,
-              color: conversation.closed ? "#00c875" : "rgba(148,163,184,0.5)",
+              color: conversation.closed ? "#00c875" : "#94a3b8",
               background: conversation.closed ? "rgba(0,200,117,0.08)" : "rgba(255,255,255,0.03)",
               border: `1px solid ${conversation.closed ? "rgba(0,200,117,0.2)" : "rgba(255,255,255,0.06)"}`,
               borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
@@ -1325,7 +1325,7 @@ function ChatView({
           >
             <ChevronRight style={{
               width: 14, height: 14,
-              color: showProfile ? "#a855f7" : "rgba(148,163,184,0.4)",
+              color: showProfile ? "#a855f7" : "#94a3b8",
             }} />
           </button>
         </div>
@@ -1345,7 +1345,7 @@ function ChatView({
             }}>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
               <span style={{
-                fontSize: 10, color: "rgba(148,163,184,0.35)",
+                fontSize: 10, color: "rgba(148,163,184,0.65)",
                 fontWeight: 500, whiteSpace: "nowrap",
               }}>
                 {group.date}
@@ -1379,7 +1379,7 @@ function ChatView({
                   <div style={{
                     padding: "10px 14px",
                     background: msg.incoming
-                      ? "rgba(255,255,255,0.05)"
+                      ? "rgba(255,255,255,0.1)"
                       : "linear-gradient(135deg, #a855f7, #7c3aed)",
                     border: msg.incoming ? "1px solid rgba(255,255,255,0.08)" : "none",
                     borderRadius: msg.incoming ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
@@ -1394,7 +1394,7 @@ function ChatView({
                   </div>
                   <p style={{
                     fontSize: 9, margin: "3px 4px 0",
-                    color: "rgba(148,163,184,0.3)",
+                    color: "rgba(148,163,184,0.55)",
                     textAlign: msg.incoming ? "left" : "right",
                   }}>
                     {formatTime(msg.timestamp)}
@@ -1419,14 +1419,14 @@ function ChatView({
             display: "flex", alignItems: "center", justifyContent: "space-between",
             marginBottom: 6,
           }}>
-            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", fontWeight: 600 }}>
+            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", fontWeight: 600 }}>
               Respuestas sugeridas
             </span>
             <button
               onClick={() => setShowReplies(false)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
             >
-              <X style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+              <X style={{ width: 12, height: 12, color: "rgba(148,163,184,0.55)" }} />
             </button>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -1437,7 +1437,7 @@ function ChatView({
                 style={{
                   padding: "5px 10px", fontSize: 11,
                   color: "rgba(255,255,255,0.6)",
-                  background: "rgba(255,255,255,0.04)",
+                  background: "rgba(255,255,255,0.09)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   borderRadius: 16, cursor: "pointer",
                   transition: "all 0.15s",
@@ -1449,7 +1449,7 @@ function ChatView({
                   e.currentTarget.style.color = "#a855f7";
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.09)";
                   e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
                   e.currentTarget.style.color = "rgba(255,255,255,0.6)";
                 }}
@@ -1471,7 +1471,7 @@ function ChatView({
         {/* Responding indicator */}
         <div style={{
           display: "flex", alignItems: "center", gap: 6,
-          marginBottom: 8, fontSize: 10, color: "rgba(148,163,184,0.35)",
+          marginBottom: 8, fontSize: 10, color: "rgba(148,163,184,0.65)",
         }}>
           <div style={{
             width: 14, height: 14, borderRadius: "50%",
@@ -1502,12 +1502,12 @@ function ChatView({
                   border: "none", borderRadius: 6, cursor: "pointer",
                   transition: "all 0.15s",
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
                 onMouseLeave={e => e.currentTarget.style.background = btn.active ? "rgba(168,85,247,0.08)" : "transparent"}
               >
                 <btn.icon style={{
                   width: 16, height: 16,
-                  color: btn.active ? "#a855f7" : "rgba(148,163,184,0.35)",
+                  color: btn.active ? "#a855f7" : "#94a3b8",
                 }} />
               </button>
             ))}
@@ -1516,7 +1516,7 @@ function ChatView({
           {/* Text input */}
           <div style={{
             flex: 1, display: "flex", alignItems: "flex-end", gap: 8,
-            background: "rgba(255,255,255,0.04)",
+            background: "rgba(255,255,255,0.09)",
             border: "1px solid rgba(255,255,255,0.08)",
             borderRadius: 10, padding: "4px 4px 4px 14px",
           }}>
@@ -1552,7 +1552,7 @@ function ChatView({
             >
               <Send style={{
                 width: 14, height: 14,
-                color: input.trim() ? "white" : "rgba(148,163,184,0.2)",
+                color: input.trim() ? "white" : "rgba(148,163,184,0.65)",
               }} />
             </button>
           </div>
@@ -1567,10 +1567,10 @@ function ChatView({
               borderRadius: 6, cursor: "pointer", flexShrink: 0,
               transition: "all 0.15s",
             }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
           >
-            <ThumbsUp style={{ width: 18, height: 18, color: "rgba(148,163,184,0.35)" }} />
+            <ThumbsUp style={{ width: 18, height: 18, color: "rgba(148,163,184,0.65)" }} />
           </button>
         </div>
       </div>
@@ -1587,7 +1587,7 @@ function ProfileSection({ title, defaultOpen = true, children }: {
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+    <div style={{ borderBottom: "1px solid rgba(255,255,255,0.09)" }}>
       <button
         onClick={() => setOpen(!open)}
         style={{
@@ -1595,7 +1595,7 @@ function ProfileSection({ title, defaultOpen = true, children }: {
           padding: "12px 16px", background: "transparent", border: "none",
           cursor: "pointer", transition: "all 0.15s",
         }}
-        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
+        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
       >
         <span style={{
@@ -1605,9 +1605,9 @@ function ProfileSection({ title, defaultOpen = true, children }: {
           {title}
         </span>
         {open ? (
-          <ChevronUp style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+          <ChevronUp style={{ width: 12, height: 12, color: "rgba(148,163,184,0.65)" }} />
         ) : (
-          <ChevronDown style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+          <ChevronDown style={{ width: 12, height: 12, color: "rgba(148,163,184,0.65)" }} />
         )}
       </button>
       {open && (
@@ -1639,7 +1639,7 @@ function ContactProfile({
       {/* Profile Header — Avatar + Name */}
       <div style={{
         padding: "20px 16px 16px", textAlign: "center",
-        borderBottom: "1px solid rgba(255,255,255,0.04)",
+        borderBottom: "1px solid rgba(255,255,255,0.09)",
         flexShrink: 0,
       }}>
         <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
@@ -1649,7 +1649,7 @@ function ContactProfile({
               display: "flex", alignItems: "center", gap: 4,
               padding: "4px 8px", fontSize: 10,
               background: "transparent", border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: 6, color: "rgba(148,163,184,0.4)", cursor: "pointer",
+              borderRadius: 6, color: "#64748b", cursor: "pointer",
             }}
           >
             <MoreHorizontal style={{ width: 12, height: 12 }} />
@@ -1683,11 +1683,11 @@ function ContactProfile({
         <ProfileSection title="Información de contacto">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
-              <User style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+              <User style={{ width: 12, height: 12, color: "rgba(148,163,184,0.65)" }} />
               {conversation.contactName}
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(148,163,184,0.4)" }}>
-              <Globe style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "#64748b" }}>
+              <Globe style={{ width: 12, height: 12, color: "rgba(148,163,184,0.65)" }} />
               {pc.label}
             </div>
             <button style={{
@@ -1706,7 +1706,7 @@ function ContactProfile({
           <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
             <pc.icon style={{ width: 14, height: 14, color: pc.color }} />
             <span>{conversation.contactName}</span>
-            <ExternalLink style={{ width: 10, height: 10, color: "rgba(148,163,184,0.3)", cursor: "pointer" }} />
+            <ExternalLink style={{ width: 10, height: 10, color: "rgba(148,163,184,0.65)", cursor: "pointer" }} />
           </div>
         </ProfileSection>
 
@@ -1758,39 +1758,39 @@ function ContactProfile({
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div style={{
               padding: 10, textAlign: "center",
-              background: "rgba(255,255,255,0.02)", borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.04)",
+              background: "rgba(255,255,255,0.04)", borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.09)",
             }}>
               <p style={{ fontSize: 20, fontWeight: 700, color: "#a855f7", margin: 0 }}>
                 {conversation.messages.length}
               </p>
-              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", margin: "4px 0 0" }}>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", margin: "4px 0 0" }}>
                 Mensajes
               </p>
             </div>
             <div style={{
               padding: 10, textAlign: "center",
-              background: "rgba(255,255,255,0.02)", borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.04)",
+              background: "rgba(255,255,255,0.04)", borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.09)",
             }}>
               <p style={{ fontSize: 20, fontWeight: 700, color: "#00d4ff", margin: 0 }}>
                 {relativeTime(conversation.messages[0]?.timestamp || new Date())}
               </p>
-              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", margin: "4px 0 0" }}>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", margin: "4px 0 0" }}>
                 Primer msg
               </p>
             </div>
           </div>
           <div style={{
             marginTop: 8, padding: "8px 10px",
-            background: "rgba(255,255,255,0.02)", borderRadius: 8,
-            border: "1px solid rgba(255,255,255,0.04)",
+            background: "rgba(255,255,255,0.04)", borderRadius: 8,
+            border: "1px solid rgba(255,255,255,0.09)",
             display: "flex", justifyContent: "space-between",
           }}>
-            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>
+            <span style={{ fontSize: 10, color: "#64748b" }}>
               📩 Recibidos: {incomingCount}
             </span>
-            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>
+            <span style={{ fontSize: 10, color: "#64748b" }}>
               📤 Enviados: {outgoingCount}
             </span>
           </div>
@@ -1807,16 +1807,16 @@ function ContactProfile({
                 background: "rgba(255,255,255,0.03)",
                 border: "1px solid rgba(255,255,255,0.06)",
                 borderRadius: 6, cursor: "pointer",
-                color: conversation.assignedTo ? "white" : "rgba(148,163,184,0.4)",
+                color: conversation.assignedTo ? "white" : "#64748b",
                 fontSize: 11, fontFamily: "inherit",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <UserPlus style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+                <UserPlus style={{ width: 12, height: 12, color: "rgba(148,163,184,0.65)" }} />
                 {conversation.assignedTo || "Sin asignar"}
               </div>
               <ChevronDown style={{
-                width: 10, height: 10, color: "rgba(148,163,184,0.2)",
+                width: 10, height: 10, color: "rgba(148,163,184,0.65)",
                 transform: showAssign ? "rotate(180deg)" : "none",
                 transition: "transform 0.15s",
               }} />
@@ -1857,16 +1857,16 @@ function ContactProfile({
             display: "flex", alignItems: "center", gap: 8,
             padding: "8px 10px", borderRadius: 6,
             background: conversation.closed ? "rgba(148,163,184,0.04)" : "rgba(0,200,117,0.04)",
-            border: `1px solid ${conversation.closed ? "rgba(148,163,184,0.08)" : "rgba(0,200,117,0.12)"}`,
+            border: `1px solid ${conversation.closed ? "rgba(148,163,184,0.16)" : "rgba(0,200,117,0.12)"}`,
           }}>
             {conversation.closed ? (
-              <CheckCircle2 style={{ width: 14, height: 14, color: "rgba(148,163,184,0.4)" }} />
+              <CheckCircle2 style={{ width: 14, height: 14, color: "#64748b" }} />
             ) : (
               <Circle style={{ width: 14, height: 14, color: "#00c875" }} />
             )}
             <span style={{
               fontSize: 12, fontWeight: 500,
-              color: conversation.closed ? "rgba(148,163,184,0.4)" : "#00c875",
+              color: conversation.closed ? "#64748b" : "#00c875",
             }}>
               {conversation.closed ? "Cerrado" : "Abierto"}
             </span>

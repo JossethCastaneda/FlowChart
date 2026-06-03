@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Eye, ChevronDown } from "lucide-react";
 
 const ATTRIBUTION_OPTIONS = [
@@ -26,11 +26,11 @@ export function AttributionSelector({ value, onChange }: Props) {
         style={{
           display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px",
           background: "rgba(10, 15, 30, 0.6)", border: "1px solid var(--border)", borderRadius: "6px",
-          color: "rgba(148,163,184,0.8)", fontSize: "11px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
+          color: "#94a3b8", fontSize: "11px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
           whiteSpace: "nowrap",
         }}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.color = "white"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "rgba(148,163,184,0.8)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.color = "#94a3b8"; }}
       >
         <Eye className="w-3.5 h-3.5" />
         <span>Atribución: {current.short}</span>
@@ -47,7 +47,7 @@ export function AttributionSelector({ value, onChange }: Props) {
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)", zIndex: 50,
             width: "260px", padding: "4px 0",
           }}>
-            <div style={{ padding: "6px 12px 4px", fontSize: "9px", fontWeight: 700, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+            <div style={{ padding: "6px 12px 4px", fontSize: "9px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em" }}>
               Ventana de Atribución
             </div>
             {ATTRIBUTION_OPTIONS.map(opt => (
@@ -65,7 +65,7 @@ export function AttributionSelector({ value, onChange }: Props) {
               >
                 <div style={{
                   width: 6, height: 6, borderRadius: "50%",
-                  background: opt.value === value ? "var(--cyan)" : "rgba(148,163,184,0.2)",
+                  background: opt.value === value ? "var(--cyan)" : "rgba(148,163,184,0.65)",
                   boxShadow: opt.value === value ? "0 0 6px var(--cyan)" : "none",
                 }} />
                 {opt.label}

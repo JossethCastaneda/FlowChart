@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown, Plus, Check } from "lucide-react";
@@ -114,7 +114,7 @@ export function WorkspaceSwitcher() {
           </p>
           <p style={{
             fontSize: "9px",
-            color: "rgba(148,163,184,0.4)",
+            color: "#64748b",
             marginTop: "1px",
           }}>
             {active.role} · {active.memberCount} miembro
@@ -123,7 +123,7 @@ export function WorkspaceSwitcher() {
         </div>
         <ChevronDown className="sidebar-hide-compact" style={{
           width: 14, height: 14,
-          color: "rgba(148,163,184,0.4)",
+          color: "#64748b",
           flexShrink: 0,
           transform: open ? "rotate(180deg)" : "none",
           transition: "transform 0.2s",
@@ -196,7 +196,7 @@ export function WorkspaceSwitcher() {
                 </p>
                 <p style={{
                   fontSize: "10px",
-                  color: "rgba(148,163,184,0.4)",
+                  color: "#64748b",
                 }}>
                   {ws.role}
                 </p>
@@ -225,7 +225,7 @@ export function WorkspaceSwitcher() {
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "rgba(148,163,184,0.6)",
+              color: "#94a3b8",
               textAlign: "left",
               transition: "background 0.15s",
             }}

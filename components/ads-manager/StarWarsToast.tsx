@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
 import { X, CheckCircle, AlertTriangle, AlertCircle, Info } from "lucide-react";
@@ -86,12 +86,12 @@ function Toast({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: stri
           {toast.title || SW_TITLES[toast.type]}
         </div>
         {toast.message && (
-          <div style={{ fontSize: "10.5px", color: "rgba(148,163,184,0.75)", lineHeight: "1.4" }}>
+          <div style={{ fontSize: "10.5px", color: "#94a3b8", lineHeight: "1.4" }}>
             {toast.message}
           </div>
         )}
         <div style={{
-          fontSize: "8.5px", color: "rgba(148,163,184,0.35)",
+          fontSize: "8.5px", color: "rgba(148,163,184,0.65)",
           marginTop: "4px", letterSpacing: "0.04em",
         }}>
           {toStardate()}
@@ -103,12 +103,12 @@ function Toast({ toast, onDismiss }: { toast: ToastMessage; onDismiss: (id: stri
           setTimeout(() => onDismiss(toast.id), 300);
         }}
         style={{
-          background: "none", border: "none", color: "rgba(148,163,184,0.4)",
+          background: "none", border: "none", color: "#64748b",
           cursor: "pointer", padding: 0, display: "flex", flexShrink: 0,
           transition: "color 0.15s",
         }}
         onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-        onMouseLeave={(e) => (e.currentTarget.style.color = "rgba(148,163,184,0.4)")}
+        onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
       >
         <X className="w-3.5 h-3.5" />
       </button>

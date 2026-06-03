@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -19,7 +19,7 @@ function DeletionContent() {
       <div style={{
         maxWidth: 480,
         width: "100%",
-        background: "rgba(255,255,255,0.02)",
+        background: "rgba(255,255,255,0.04)",
         border: "1px solid rgba(255,255,255,0.06)",
         borderRadius: 12,
         padding: "40px 32px",
@@ -57,7 +57,7 @@ function DeletionContent() {
             padding: "16px",
             marginBottom: 24,
           }}>
-            <p style={{ fontSize: 11, color: "rgba(148,163,184,0.4)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            <p style={{ fontSize: 11, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.1em" }}>
               Código de confirmación
             </p>
             <p style={{ fontSize: 14, color: "#00d4ff", fontFamily: "monospace", fontWeight: 600, wordBreak: "break-all" }}>
@@ -65,9 +65,9 @@ function DeletionContent() {
             </p>
           </div>
         )}
-        <div style={{ fontSize: 12, color: "rgba(148,163,184,0.4)", lineHeight: 1.8 }}>
-          <p><strong style={{ color: "rgba(148,163,184,0.6)" }}>Estado:</strong> En proceso</p>
-          <p><strong style={{ color: "rgba(148,163,184,0.6)" }}>Tiempo estimado:</strong> Hasta 90 días</p>
+        <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.8 }}>
+          <p><strong style={{ color: "#94a3b8" }}>Estado:</strong> En proceso</p>
+          <p><strong style={{ color: "#94a3b8" }}>Tiempo estimado:</strong> Hasta 90 días</p>
           <p style={{ marginTop: 12 }}>
             Si tienes preguntas, contacta a{" "}
             <a href="mailto:soporte@sodare.xyz" style={{ color: "#00d4ff", textDecoration: "none" }}>

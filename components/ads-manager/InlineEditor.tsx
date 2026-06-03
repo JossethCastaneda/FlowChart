@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+﻿import React, { useState, useEffect, useRef } from "react";
 import { Edit3, Check, X } from "lucide-react";
 
 interface InlineEditorProps {
@@ -56,7 +56,7 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
                 position: "absolute",
                 left: "6px",
                 fontSize: "11px",
-                color: "rgba(148,163,184,0.5)",
+                color: "#64748b",
               }}
             >
               {prefix}

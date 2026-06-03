@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface ErrorStateProps {
@@ -30,9 +30,9 @@ export function ErrorState({ title = "PERTURBACIÓN EN LA FUERZA", message, onRe
             letterSpacing: "0.2em",
             textTransform: "uppercase",
             padding: "8px 20px",
-            border: "1px solid rgba(148,163,184,0.3)",
+            border: "1px solid rgba(148,163,184,0.65)",
             color: "var(--foreground)",
-            background: "rgba(255,255,255,0.05)",
+            background: "rgba(255,255,255,0.1)",
             display: "inline-flex",
             alignItems: "center",
             gap: "8px",
@@ -41,11 +41,11 @@ export function ErrorState({ title = "PERTURBACIÓN EN LA FUERZA", message, onRe
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.background = "rgba(255,255,255,0.1)";
-            e.currentTarget.style.borderColor = "rgba(148,163,184,0.5)";
+            e.currentTarget.style.borderColor = "#64748b";
           }}
           onMouseLeave={(e) => {
-            e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-            e.currentTarget.style.borderColor = "rgba(148,163,184,0.3)";
+            e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+            e.currentTarget.style.borderColor = "rgba(148,163,184,0.65)";
           }}
         >
           <RefreshCw className="w-3 h-3" /> {retryLabel}

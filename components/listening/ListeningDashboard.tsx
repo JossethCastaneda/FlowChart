@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 
@@ -134,7 +134,7 @@ export function ListeningDashboard() {
                   placeholder="Buscar menciones, hashtags o keywords..."
                   style={{
                     width: "100%", padding: "10px 12px 10px 38px", borderRadius: 8,
-                    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.08)",
                     color: "white", fontSize: 14, outline: "none",
                   }}
                 />
@@ -158,7 +158,7 @@ export function ListeningDashboard() {
                   onChange={(e) => setNewKeyword(e.target.value)}
                   placeholder="Agregar keyword..."
                   style={{
-                    padding: "6px 10px", borderRadius: 6, background: "rgba(255,255,255,0.05)",
+                    padding: "6px 10px", borderRadius: 6, background: "rgba(255,255,255,0.1)",
                     border: "1px solid rgba(255,255,255,0.08)", color: "white", fontSize: 12, outline: "none",
                   }}
                 />
@@ -228,11 +228,11 @@ export function ListeningDashboard() {
             <div className="space-y-2">
               {filteredMentions.length === 0 ? (
                 <div style={{ padding: "32px 16px", textAlign: "center" }}>
-                  <MessageCircle style={{ width: 32, height: 32, color: "rgba(148,163,184,0.2)", margin: "0 auto 12px" }} />
-                  <p style={{ fontSize: 13, color: "rgba(148,163,184,0.5)", margin: 0 }}>
+                  <MessageCircle style={{ width: 32, height: 32, color: "rgba(148,163,184,0.65)", margin: "0 auto 12px" }} />
+                  <p style={{ fontSize: 13, color: "#64748b", margin: 0 }}>
                     No se encontraron menciones.
                   </p>
-                  <p style={{ fontSize: 11, color: "rgba(148,163,184,0.3)", marginTop: 4 }}>
+                  <p style={{ fontSize: 11, color: "rgba(148,163,184,0.65)", marginTop: 4 }}>
                     Las menciones de Facebook e Instagram aparecerán aquí automáticamente.
                   </p>
                 </div>
@@ -251,9 +251,9 @@ export function ListeningDashboard() {
         <div className="space-y-3">
           {mentions.length === 0 ? (
             <div className="glass-panel" style={{ padding: "48px 16px", textAlign: "center" }}>
-              <MessageCircle style={{ width: 36, height: 36, color: "rgba(148,163,184,0.15)", margin: "0 auto 12px" }} />
+              <MessageCircle style={{ width: 36, height: 36, color: "rgba(148,163,184,0.22)", margin: "0 auto 12px" }} />
               <p style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.6)", margin: 0 }}>Sin menciones aún</p>
-              <p style={{ fontSize: 12, color: "rgba(148,163,184,0.4)", marginTop: 6 }}>
+              <p style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
                 Cuando alguien te mencione o te etiquete en Facebook o Instagram, aparecerá aquí.
               </p>
             </div>
@@ -387,7 +387,7 @@ function MentionCard({ mention }: { mention: any }) {
   return (
     <div style={{
       display: "flex", gap: 12, padding: "12px 14px", borderRadius: 10,
-      background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)",
+      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
       transition: "background 0.2s",
     }}>
       {/* Avatar with initials */}

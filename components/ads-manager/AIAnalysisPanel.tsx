@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { Brain, Zap, AlertTriangle, TrendingUp, TrendingDown, Lightbulb, RefreshCw } from "lucide-react";
@@ -143,7 +143,7 @@ function ScoreGauge({ score, status }: { score: number; status: string }) {
     <div style={{ position: "relative", width: 90, height: 90 }}>
       <svg width="90" height="90" viewBox="0 0 90 90">
         {/* Background ring */}
-        <circle cx="45" cy="45" r={radius} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="5" />
+        <circle cx="45" cy="45" r={radius} fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="5" />
         {/* Progress ring */}
         <circle
           cx="45" cy="45" r={radius} fill="none"
@@ -161,7 +161,7 @@ function ScoreGauge({ score, status }: { score: number; status: string }) {
         <div style={{ fontSize: "22px", fontWeight: 800, color, letterSpacing: "-0.02em" }}>
           {score}
         </div>
-        <div style={{ fontSize: "7px", color: "rgba(148,163,184,0.5)", fontWeight: 600, letterSpacing: "0.08em" }}>
+        <div style={{ fontSize: "7px", color: "#64748b", fontWeight: 600, letterSpacing: "0.08em" }}>
           SCORE IA
         </div>
       </div>
@@ -187,7 +187,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
   return (
     <div style={{
       padding: "16px", borderRadius: "8px",
-      background: "rgba(255,255,255,0.02)", border: "1px solid rgba(0,212,255,0.08)",
+      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(0,212,255,0.08)",
     }}>
       <div style={{
         display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px",
@@ -204,7 +204,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
           padding: "30px", gap: "10px",
         }}>
           <RefreshCw className="w-5 h-5 animate-spin" style={{ color: "var(--cyan)" }} />
-          <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.5)", letterSpacing: "0.08em" }}>
+          <span style={{ fontSize: "10px", color: "#64748b", letterSpacing: "0.08em" }}>
             El Consejo Jedi está analizando tus campañas...
           </span>
         </div>

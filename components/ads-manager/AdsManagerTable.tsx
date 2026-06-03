@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+﻿import React, { useCallback, useMemo, useRef, useState } from "react";
 import { StatusToggle } from "./StatusToggle";
 import { InlineEditor } from "./InlineEditor";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -670,7 +670,7 @@ export function AdsManagerTable({
                                 background: "rgba(30,40,60,0.8)",
                                 border: "1px solid rgba(100,120,150,0.15)",
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 8, color: "rgba(148,163,184,0.3)",
+                                fontSize: 8, color: "rgba(148,163,184,0.65)",
                                 fontWeight: 600, letterSpacing: "0.05em",
                               }}>
                                 AD
@@ -741,7 +741,7 @@ export function AdsManagerTable({
                                 </button>
                               )}
                             </div>
-                            <span style={{ fontSize: 9, color: "rgba(148,163,184,0.4)", display: "flex", alignItems: "center", gap: 4 }}>
+                            <span style={{ fontSize: 9, color: "#64748b", display: "flex", alignItems: "center", gap: 4 }}>
                               {row._accountName && <span style={{ padding: "1px 4px", fontSize: 8, background: "rgba(0,129,251,0.1)", color: "rgba(0,212,255,0.7)", borderRadius: 2, fontWeight: 600 }}>{row._accountName}</span>}
                               ID: {row.id}{" "}
                               <a
@@ -795,12 +795,12 @@ export function AdsManagerTable({
                             ) : (
                               <span style={{ fontSize: 11, fontWeight: 500 }}>{fmt$(rawBudget)}</span>
                             )}
-                            <span style={{ fontSize: 8, color: "rgba(148,163,184,0.4)", textTransform: "uppercase" }}>
+                            <span style={{ fontSize: 8, color: "#64748b", textTransform: "uppercase" }}>
                               {hasDaily ? "Diario" : "Total"}
                             </span>
                           </div>
                         ) : (
-                          <span style={{ fontSize: 11, color: "rgba(148,163,184,0.4)" }}>Usando CBO</span>
+                          <span style={{ fontSize: 11, color: "#64748b" }}>Usando CBO</span>
                         )}
                       </td>
                     )}
@@ -816,7 +816,7 @@ export function AdsManagerTable({
                             onSave={val => onUpdateBidAmount ? onUpdateBidAmount(row.id, val as number) : Promise.resolve(false)}
                           />
                         ) : (
-                          <span style={{ fontSize: 11, color: "rgba(148,163,184,0.4)" }}>Automático</span>
+                          <span style={{ fontSize: 11, color: "#64748b" }}>Automático</span>
                         )}
                       </td>
                     )}
@@ -836,7 +836,7 @@ export function AdsManagerTable({
                             {objInfo.icon} {objInfo.label}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{row.objective || "—"}</span>
+                          <span style={{ fontSize: 10, color: "#64748b" }}>{row.objective || "—"}</span>
                         )}
                       </td>
                     )}
@@ -846,7 +846,7 @@ export function AdsManagerTable({
                       <td style={tdMetric("roas")}>
                         <span style={{
                           fontSize: 11, fontWeight: 700,
-                          color: roas === 0 ? "rgba(148,163,184,0.4)"
+                          color: roas === 0 ? "#64748b"
                             : roas >= 3 ? "#34d399"
                             : roas >= 1.5 ? "#fbbf24"
                             : "#ef4444",
@@ -869,7 +869,7 @@ export function AdsManagerTable({
                             {learningMapped.swLabel}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.3)" }}>—</span>
+                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>—</span>
                         )}
                       </td>
                     )}
@@ -887,7 +887,7 @@ export function AdsManagerTable({
                             <Zap className="w-3 h-3" /> ADV+
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.3)" }}>—</span>
+                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>—</span>
                         )}
                       </td>
                     )}
@@ -929,7 +929,7 @@ export function AdsManagerTable({
                       <td style={tdMetric("results")}>
                         <div style={{ display: "flex", flexDirection: "column" }}>
                           <span style={{ fontSize: 11, fontWeight: 600, color: "white" }}>{fmtNum(resultsCount)}</span>
-                          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.4)" }}>{resultsLabel}</span>
+                          <span style={{ fontSize: 9, color: "#64748b" }}>{resultsLabel}</span>
                         </div>
                       </td>
                     )}
@@ -952,7 +952,7 @@ export function AdsManagerTable({
                           <span style={{ fontSize: 11, fontWeight: 600, color: "var(--cyan)" }}>
                             {cpa.value > 0 ? fmt$(cpa.value) : "—"}
                           </span>
-                          <span style={{ fontSize: 8, color: "rgba(148,163,184,0.4)" }}>{cpa.label}</span>
+                          <span style={{ fontSize: 8, color: "#64748b" }}>{cpa.label}</span>
                         </div>
                       </td>
                     )}
@@ -969,7 +969,7 @@ export function AdsManagerTable({
                             {fmtPct(hookRate)}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.3)" }}>—</span>
+                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>—</span>
                         )}
                       </td>
                     )}
@@ -1023,7 +1023,7 @@ export function AdsManagerTable({
                         {showBudg && <td style={tdFrozen(L_BUDG, BUDGET_W, bdBg, isLastFrozen("budget"))} />}
                         {showBid && <td style={tdFrozen(L_BID, BID_W, bdBg, isLastFrozen("bid"))} />}
                         {visibleColumns.filter(c => !["name", "delivery", "budget", "bid"].includes(c)).map((col) => (
-                          <td key={col} style={{ ...tdMetric(col), fontSize: 10, color: "rgba(148,163,184,0.6)" }}>
+                          <td key={col} style={{ ...tdMetric(col), fontSize: 10, color: "#94a3b8" }}>
                             {col === "spend" ? fmt$(bd.spend || 0)
                               : col === "impressions" ? fmtNum(bd.impressions || 0)
                               : col === "clicks" ? fmtNum(bd.clicks || 0)
@@ -1050,7 +1050,7 @@ export function AdsManagerTable({
                 <td style={{ ...tfFrozen(L_CHECK, CHECKBOX_W, statusIsLast) }} />
                 <td style={{ ...tfFrozen(L_STATUS, STATUS_W, statusIsLast), color: "white" }}>TOTAL</td>
                 {showName && (
-                  <td style={{ ...tfFrozen(L_NAME, nameW, isLastFrozen("name")), color: "rgba(148,163,184,0.5)", fontWeight: 400 }}>
+                  <td style={{ ...tfFrozen(L_NAME, nameW, isLastFrozen("name")), color: "#64748b", fontWeight: 400 }}>
                     {sortedData.length} elemento{sortedData.length !== 1 ? "s" : ""}
                   </td>
                 )}
@@ -1059,7 +1059,7 @@ export function AdsManagerTable({
                 {showBid  && <td style={tfFrozen(L_BID, BID_W, isLastFrozen("bid"))} />}
                 {visibleColumns.includes("objective") && level === "campaigns" && <td style={tfMetric("objective")} />}
                 {visibleColumns.includes("roas") && (
-                  <td style={{ ...tfMetric("roas"), color: avgRoas === 0 ? "rgba(148,163,184,0.4)" : avgRoas >= 3 ? "#34d399" : avgRoas >= 1.5 ? "#fbbf24" : "#ef4444" }}>
+                  <td style={{ ...tfMetric("roas"), color: avgRoas === 0 ? "#64748b" : avgRoas >= 3 ? "#34d399" : avgRoas >= 1.5 ? "#fbbf24" : "#ef4444" }}>
                     {avgRoas === 0 ? "—" : fmtROAS(avgRoas)}
                   </td>
                 )}

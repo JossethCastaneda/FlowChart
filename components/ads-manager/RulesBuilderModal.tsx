@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState } from "react";
 import { X, Plus, Trash2, ChevronRight, ChevronLeft, Zap, AlertCircle } from "lucide-react";
 
@@ -158,7 +158,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "8px 12px", fontSize: "12px", background: "rgba(0,0,0,0.3)",
-    border: "1px solid rgba(148,163,184,0.15)", borderRadius: "6px", color: "white", outline: "none",
+    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "white", outline: "none",
   };
 
   const selectStyle: React.CSSProperties = { ...inputStyle, appearance: "none" as const, paddingRight: "28px" };
@@ -180,7 +180,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
             <Zap className="w-4 h-4" style={{ color: "var(--cyan)" }} />
             Nueva regla automática — {stepTitles[step - 1]}
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(148,163,184,0.5)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -188,7 +188,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
         {/* Step indicator */}
         <div style={{ display: "flex", padding: "12px 20px", gap: "4px" }}>
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} style={{ flex: 1, height: "3px", borderRadius: "2px", background: s <= step ? "var(--cyan)" : "rgba(148,163,184,0.1)" }} />
+            <div key={s} style={{ flex: 1, height: "3px", borderRadius: "2px", background: s <= step ? "var(--cyan)" : "rgba(148,163,184,0.18)" }} />
           ))}
         </div>
 
@@ -197,11 +197,11 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
           {step === 1 && (
             <>
               <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "10px", color: "rgba(148,163,184,0.5)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Nombre de la regla</label>
+                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Nombre de la regla</label>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Pausar CPC alto" style={inputStyle} autoFocus />
               </div>
               <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "10px", color: "rgba(148,163,184,0.5)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Aplicar a</label>
+                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Aplicar a</label>
                 <select value={entityType} onChange={(e) => setEntityType(e.target.value as any)} style={selectStyle}>
                   <option value="CAMPAIGN">Campañas</option>
                   <option value="ADSET">Conjuntos de anuncios</option>
@@ -209,7 +209,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
                 </select>
               </div>
               <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "10px", color: "rgba(148,163,184,0.5)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Frecuencia de evaluación</label>
+                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Frecuencia de evaluación</label>
                 <select value={frequency} onChange={(e) => setFrequency(e.target.value)} style={selectStyle}>
                   {FREQUENCIES.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                 </select>
@@ -222,28 +222,28 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
               {conditions.map((cond, idx) => (
                 <div key={idx} style={{ display: "flex", gap: "6px", marginBottom: "10px", alignItems: "flex-end" }}>
                   <div style={{ flex: 2 }}>
-                    <label style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)", display: "block", marginBottom: "2px" }}>Métrica</label>
+                    <label style={{ fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" }}>Métrica</label>
                     <select value={cond.field} onChange={(e) => updateCondition(idx, "field", e.target.value)} style={{ ...selectStyle, fontSize: "11px" }}>
                       {METRICS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
                     </select>
                   </div>
                   <div style={{ flex: 1.5 }}>
-                    <label style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)", display: "block", marginBottom: "2px" }}>Operador</label>
+                    <label style={{ fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" }}>Operador</label>
                     <select value={cond.operator} onChange={(e) => updateCondition(idx, "operator", e.target.value)} style={{ ...selectStyle, fontSize: "11px" }}>
                       {OPERATORS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)", display: "block", marginBottom: "2px" }}>Valor</label>
+                    <label style={{ fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" }}>Valor</label>
                     <input type="number" value={cond.value} onChange={(e) => updateCondition(idx, "value", e.target.value)} style={{ ...inputStyle, fontSize: "11px" }} placeholder="0" />
                   </div>
                   <div style={{ flex: 1.5 }}>
-                    <label style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)", display: "block", marginBottom: "2px" }}>Ventana</label>
+                    <label style={{ fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" }}>Ventana</label>
                     <select value={cond.window} onChange={(e) => updateCondition(idx, "window", e.target.value)} style={{ ...selectStyle, fontSize: "11px" }}>
                       {TIME_WINDOWS.map((w) => <option key={w.value} value={w.value}>{w.label}</option>)}
                     </select>
                   </div>
-                  <button onClick={() => removeCondition(idx)} disabled={conditions.length <= 1} style={{ background: "none", border: "none", color: conditions.length > 1 ? "#ef4444" : "rgba(148,163,184,0.2)", cursor: "pointer", padding: "8px", flexShrink: 0 }}>
+                  <button onClick={() => removeCondition(idx)} disabled={conditions.length <= 1} style={{ background: "none", border: "none", color: conditions.length > 1 ? "#ef4444" : "rgba(148,163,184,0.65)", cursor: "pointer", padding: "8px", flexShrink: 0 }}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -257,16 +257,16 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
           {step === 3 && (
             <>
               <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "10px", color: "rgba(148,163,184,0.5)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Acción a ejecutar</label>
+                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Acción a ejecutar</label>
                 <select value={action} onChange={(e) => setAction(e.target.value)} style={selectStyle}>
                   {ACTIONS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                 </select>
               </div>
               {action === "CHANGE_BUDGET" && (
                 <div style={{ marginBottom: "14px" }}>
-                  <label style={{ fontSize: "10px", color: "rgba(148,163,184,0.5)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Ajuste de presupuesto (%)</label>
+                  <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Ajuste de presupuesto (%)</label>
                   <input value={budgetAdjustment} onChange={(e) => setBudgetAdjustment(e.target.value)} placeholder="+10 o -20" style={inputStyle} />
-                  <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.3)", marginTop: "4px", display: "block" }}>
+                  <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.65)", marginTop: "4px", display: "block" }}>
                     Usa + para aumentar, - para reducir. Ejemplo: +15 = +15%
                   </span>
                 </div>
@@ -309,7 +309,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
         <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "space-between" }}>
           <button
             onClick={() => step > 1 ? setStep(step - 1) : onClose()}
-            style={{ display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}
+            style={{ display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}
           >
             <ChevronLeft className="w-3 h-3" /> {step > 1 ? "Atrás" : "Cancelar"}
           </button>

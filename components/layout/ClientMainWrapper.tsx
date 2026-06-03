@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -112,7 +112,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             fontWeight: 600,
             letterSpacing: "0.3em",
             textTransform: "uppercase" as const,
-            color: "rgba(148,163,184,0.25)",
+            color: "rgba(148,163,184,0.65)",
           }}>
             COMMAND CENTER
           </span>
@@ -169,13 +169,13 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             }}>
               {session?.user?.name || "Comandante"}
             </p>
-            <p style={{ fontSize: "10px", color: "rgba(148,163,184,0.4)", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+            <p style={{ fontSize: "10px", color: "#64748b", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
               {session?.user?.email || "vader@imperio.com"}
             </p>
           </div>
           <button
             className="p-1.5 hover:bg-white/5 transition-colors sidebar-hide-compact"
-            style={{ color: "rgba(148,163,184,0.3)" }}
+            style={{ color: "rgba(148,163,184,0.65)" }}
             title="Cerrar sesión"
             onClick={() => signOut({ callbackUrl: "/login" })}
           >

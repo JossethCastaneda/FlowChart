@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useCallback } from "react";
 import { GridFormData, FileInputData, ContentGridData, Post, VideoDetails } from "./types";
@@ -22,7 +22,7 @@ const DAYS_IN_MONTH: Record<string, number> = {
 /* ═══ SHARED STYLES ═══ */
 const S = {
   input: { width: "100%", background: "rgba(10,15,30,0.6)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 4, padding: "6px 10px", color: "#e2e8f0", fontSize: 11, outline: "none", transition: "border-color 0.15s" } as React.CSSProperties,
-  label: { fontSize: 9, fontWeight: 600, color: "rgba(148,163,184,0.45)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4, display: "block" } as React.CSSProperties,
+  label: { fontSize: 9, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4, display: "block" } as React.CSSProperties,
   sectionTitle: { fontSize: 9, fontWeight: 700, color: "rgba(0,229,0,0.6)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 } as React.CSSProperties,
 };
 
@@ -95,7 +95,7 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
               <button key={opt} type="button" onClick={() => handleFocusChange(opt)} style={{
                 padding: "4px 10px", fontSize: 9, fontWeight: 600, borderRadius: 3, border: "none", cursor: "pointer",
                 background: formData.focus.includes(opt) ? "#00E500" : "rgba(255,255,255,0.03)",
-                color: formData.focus.includes(opt) ? "#000" : "rgba(148,163,184,0.4)", transition: "all 0.15s",
+                color: formData.focus.includes(opt) ? "#000" : "#64748b", transition: "all 0.15s",
               }}>{opt}</button>
             ))}
           </div>
@@ -103,8 +103,8 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
         <div>
           <label style={S.label as React.CSSProperties}>Documentos de Marca</label>
           <label htmlFor="brandFiles" style={{ ...S.input, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: formData.brandFiles.length >= 5 ? "not-allowed" : "pointer", opacity: formData.brandFiles.length >= 5 ? 0.4 : 1, border: "1px dashed rgba(255,255,255,0.08)", padding: "6px 10px" }}>
-            <svg width="12" height="12" viewBox="0 0 20 20" fill="rgba(148,163,184,0.3)"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd"/></svg>
-            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{formData.brandFiles.length > 0 ? `${formData.brandFiles.length}/5 archivos` : "Brandbook, voz y tono..."}</span>
+            <svg width="12" height="12" viewBox="0 0 20 20" fill="rgba(148,163,184,0.65)"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd"/></svg>
+            <span style={{ fontSize: 10, color: "#64748b" }}>{formData.brandFiles.length > 0 ? `${formData.brandFiles.length}/5 archivos` : "Brandbook, voz y tono..."}</span>
           </label>
           <input id="brandFiles" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.md" onChange={handleFileChange} disabled={formData.brandFiles.length >= 5} style={{ display: "none" }} />
           {fileNames.length > 0 && (
@@ -112,7 +112,7 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
               {fileNames.map((name, i) => (
                 <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(0,229,0,0.06)", padding: "2px 8px", borderRadius: 3, fontSize: 9, color: "#00E500" }}>
                   <span style={{ maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-                  <button type="button" onClick={() => handleRemoveFile(i)} style={{ background: "none", border: "none", color: "rgba(148,163,184,0.4)", cursor: "pointer", fontSize: 11, padding: 0, lineHeight: 1 }}>×</button>
+                  <button type="button" onClick={() => handleRemoveFile(i)} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: 11, padding: 0, lineHeight: 1 }}>×</button>
                 </div>
               ))}
             </div>
@@ -179,7 +179,7 @@ export default function BriefingPage() {
             <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 14, fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>
               Grid<span style={{ color: "#00E500" }}>IA</span>
             </h1>
-            <p style={{ fontSize: 8, color: "rgba(148,163,184,0.3)", letterSpacing: "0.05em" }}>Powered by Gemini 2.5 Flash</p>
+            <p style={{ fontSize: 8, color: "rgba(148,163,184,0.65)", letterSpacing: "0.05em" }}>Powered by Gemini 2.5 Flash</p>
           </div>
         </div>
       </div>
@@ -246,8 +246,8 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
   }, [gridData]);
 
-  const thS: React.CSSProperties = { fontSize: 8, fontWeight: 700, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "5px 6px", textAlign: "left", borderBottom: "1px solid rgba(0,229,0,0.12)", whiteSpace: "nowrap", background: "#0b0f1e", position: "sticky", top: 0, zIndex: 5 };
-  const tdS: React.CSSProperties = { fontSize: 10, padding: "3px 4px", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.02)", color: "#cbd5e1", verticalAlign: "top" };
+  const thS: React.CSSProperties = { fontSize: 8, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", padding: "5px 6px", textAlign: "left", borderBottom: "1px solid rgba(0,229,0,0.12)", whiteSpace: "nowrap", background: "#0b0f1e", position: "sticky", top: 0, zIndex: 5 };
+  const tdS: React.CSSProperties = { fontSize: 10, padding: "3px 4px", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.04)", color: "#cbd5e1", verticalAlign: "top" };
   const editInput: React.CSSProperties = { width: "100%", background: "transparent", border: "1px solid transparent", borderRadius: 2, padding: "3px 5px", color: "#e2e8f0", fontSize: 9, outline: "none", resize: "vertical", minHeight: 22, transition: "border-color 0.15s" };
 
   return (
@@ -255,9 +255,9 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: "white", textTransform: "uppercase", letterSpacing: "0.08em" }}>Parrilla</span>
-          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.3)" }}>·</span>
-          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.35)" }}>{gridData.posts.length} posts</span>
-          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.3)" }}>·</span>
+          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>·</span>
+          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>{gridData.posts.length} posts</span>
+          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>·</span>
           <span style={{ fontSize: 9, color: "rgba(0,229,0,0.5)" }}>{gridData.creditos.summary}</span>
         </div>
         <button onClick={exportToCSV} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", fontSize: 9, fontWeight: 600, background: "transparent", border: "1px solid rgba(0,229,0,0.3)", color: "#00E500", borderRadius: 3, cursor: "pointer" }}>
@@ -266,7 +266,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
         </button>
       </div>
 
-      <div style={{ background: "#0b0f1e", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 5, overflow: "hidden" }}>
+      <div style={{ background: "#0b0f1e", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 5, overflow: "hidden" }}>
         <div style={{ overflow: "auto", maxHeight: "calc(100vh - 320px)" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1100 }}>
             <thead>
@@ -294,11 +294,11 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                   <td style={tdS}><textarea style={{ ...editInput, fontWeight: 600, color: "white" }} value={post.copyIn} onChange={e => updatePost(i, "copyIn", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Headline..." /></td>
                   <td style={tdS}><textarea style={editInput} value={post.copyOut} onChange={e => updatePost(i, "copyOut", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Body copy..." rows={2} /></td>
                   <td style={tdS}><textarea style={editInput} value={post.explicacionArte} onChange={e => updatePost(i, "explicacionArte", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Dirección de arte..." /></td>
-                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "1px 4px", borderRadius: 2, background: post.formatoArte === "Video" ? "rgba(0,229,0,0.1)" : "rgba(148,163,184,0.06)", color: post.formatoArte === "Video" ? "#00E500" : "rgba(148,163,184,0.4)" }}>{post.formatoArte}</span></td>
+                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "1px 4px", borderRadius: 2, background: post.formatoArte === "Video" ? "rgba(0,229,0,0.1)" : "rgba(148,163,184,0.06)", color: post.formatoArte === "Video" ? "#00E500" : "#64748b" }}>{post.formatoArte}</span></td>
                   <td style={tdS}><textarea style={{ ...editInput, color: "rgba(0,229,0,0.6)", fontFamily: "monospace", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
                   <td style={tdS}>
                     {post.videoDetails ? (
-                      <div style={{ fontSize: 9, color: "rgba(148,163,184,0.8)" }}>
+                      <div style={{ fontSize: 9, color: "#94a3b8" }}>
                         <div style={{ marginBottom: 4 }}><strong style={{ color: "#fff" }}>Herramienta:</strong> {post.videoDetails.videoAITool}</div>
                         <div style={{ marginBottom: 4 }}><strong style={{ color: "#fff" }}>Escenas:</strong> {post.videoDetails.numEscenas}</div>
                         {post.videoDetails.promptsEscenasMidjourney?.length > 0 && (
@@ -318,7 +318,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                           </div>
                         )}
                       </div>
-                    ) : <span style={{ color: "rgba(148,163,184,0.3)", fontSize: 9 }}>N/A</span>}
+                    ) : <span style={{ color: "rgba(148,163,184,0.65)", fontSize: 9 }}>N/A</span>}
                   </td>
                   <td style={tdS}><textarea style={editInput} value={post.pasoAPaso} onChange={e => updatePost(i, "pasoAPaso", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Pasos..." /></td>
                 </tr>

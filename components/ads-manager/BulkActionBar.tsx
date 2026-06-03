@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Copy, Play, Pause, Archive, Trash2, X } from "lucide-react";
 
 interface BulkActionBarProps {
@@ -45,7 +45,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
           style={{
             background: "none",
             border: "none",
-            color: "rgba(148,163,184,0.6)",
+            color: "#94a3b8",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
@@ -53,7 +53,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
             borderRadius: "50%",
             transition: "background-color 0.2s",
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.05)")}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = "rgba(255,255,255,0.1)")}
           onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
         >
           <X className="w-4 h-4" />
@@ -133,7 +133,7 @@ function ActionButton({
         background: "rgba(255, 255, 255, 0.03)",
         border: "1px solid var(--border)",
         borderRadius: "999px",
-        color: loading ? "rgba(148,163,184,0.4)" : color || "rgba(148,163,184,0.8)",
+        color: loading ? "#64748b" : color || "#94a3b8",
         fontSize: "10px",
         fontWeight: 600,
         textTransform: "uppercase",
@@ -152,7 +152,7 @@ function ActionButton({
         if (!loading) {
           e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)";
           e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.color = color || "rgba(148,163,184,0.8)";
+          e.currentTarget.style.color = color || "#94a3b8";
         }
       }}
     >
@@ -161,7 +161,7 @@ function ActionButton({
           style={{
             width: "12px",
             height: "12px",
-            border: "2px solid rgba(255,255,255,0.2)",
+            border: "2px solid rgba(255,255,255,0.65)",
             borderTopColor: "var(--cyan)",
             borderRadius: "50%",
             animation: "spin 1s linear infinite",

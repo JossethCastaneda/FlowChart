@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { SodareLogo } from "@/components/ui/SodareLogo";
@@ -262,7 +262,7 @@ export default function LoginPage() {
                     fontFamily: "'Orbitron', monospace", letterSpacing: "0.1em",
                     background: !isRegister ? "rgba(0,212,255,0.1)" : "transparent",
                     border: `1px solid ${!isRegister ? "rgba(0,212,255,0.4)" : "rgba(0,212,255,0.1)"}`,
-                    color: !isRegister ? "#00d4ff" : "rgba(148,163,184,0.5)",
+                    color: !isRegister ? "#00d4ff" : "#64748b",
                     cursor: "pointer",
                   }}
                 >
@@ -275,7 +275,7 @@ export default function LoginPage() {
                     fontFamily: "'Orbitron', monospace", letterSpacing: "0.1em",
                     background: isRegister ? "rgba(0,212,255,0.1)" : "transparent",
                     border: `1px solid ${isRegister ? "rgba(0,212,255,0.4)" : "rgba(0,212,255,0.1)"}`,
-                    color: isRegister ? "#00d4ff" : "rgba(148,163,184,0.5)",
+                    color: isRegister ? "#00d4ff" : "#64748b",
                     cursor: "pointer",
                   }}
                 >

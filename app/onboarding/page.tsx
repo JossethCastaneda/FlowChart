@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -146,7 +146,7 @@ function OnboardingContent() {
         >
           {isNewWorkspace ? "Nuevo Workspace" : "Inicializar Command Center"}
         </h1>
-        <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.6)", marginBottom: "28px" }}>
+        <p style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "28px" }}>
           {isNewWorkspace
             ? "Crea un workspace adicional para otro cliente o equipo."
             : "Dale un nombre a tu workspace. Podrás invitar a tu equipo después."}
@@ -158,7 +158,7 @@ function OnboardingContent() {
               display: "block",
               fontSize: "11px",
               fontWeight: 600,
-              color: "rgba(148,163,184,0.5)",
+              color: "#64748b",
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               marginBottom: "8px",
@@ -210,7 +210,7 @@ function OnboardingContent() {
               padding: "8px",
               background: "transparent",
               border: "1px solid rgba(0,212,255,0.08)",
-              color: "rgba(148,163,184,0.4)",
+              color: "#64748b",
               cursor: "pointer",
               fontSize: "12px",
             }}

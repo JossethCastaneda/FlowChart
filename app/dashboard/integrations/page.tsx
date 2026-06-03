@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -167,7 +167,7 @@ export default function IntegrationsPage() {
       <div style={{
         display: "flex", alignItems: "center", gap: 16,
         padding: "10px 20px", borderRadius: 8,
-        background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)",
+        background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
       }}>
         {loading ? (
           <Loader2 size={14} style={{ color: "#64748b", animation: "spin 1s linear infinite" }} />
@@ -203,8 +203,8 @@ export default function IntegrationsPage() {
             {/* Group header */}
             <div style={{
               display: "flex", alignItems: "center", gap: 8,
-              padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.04)",
-              background: "rgba(255,255,255,0.01)",
+              padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.09)",
+              background: "rgba(255,255,255,0.03)",
             }}>
               <span style={{ color: group.color }}>{group.icon}</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: "#64748b", letterSpacing: "0.1em", textTransform: "uppercase" }}>
@@ -231,10 +231,10 @@ export default function IntegrationsPage() {
                   style={{
                     display: "flex", alignItems: "center", gap: 16,
                     padding: "14px 20px",
-                    borderBottom: idx < group.platforms.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                    borderBottom: idx < group.platforms.length - 1 ? "1px solid rgba(255,255,255,0.09)" : "none",
                     transition: "background 0.15s",
                   }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.02)")}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
                   {/* Platform icon */}

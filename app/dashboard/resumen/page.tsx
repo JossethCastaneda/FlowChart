@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -179,7 +179,7 @@ export default function ResumenPage() {
                     {/* Single row: Name + all metrics */}
                     <div style={{ display: "flex", alignItems: "stretch" }}>
                       {/* Left: Project name + badge */}
-                      <div style={{ minWidth: 160, maxWidth: 200, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.04)", flexShrink: 0 }}>
+                      <div style={{ minWidth: 160, maxWidth: 200, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.09)", flexShrink: 0 }}>
                         <h3 style={{ fontSize: 12, fontWeight: 700, color: "white", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pc.alias}</h3>
                         <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
                           <span style={{
@@ -190,7 +190,7 @@ export default function ResumenPage() {
                       </div>
 
                       {!pc.hasData ? (
-                        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", color: "rgba(148,163,184,0.25)", fontSize: 10 }}>
+                        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", color: "rgba(148,163,184,0.65)", fontSize: 10 }}>
                           Sin datos de Meta
                         </div>
                       ) : (
@@ -210,7 +210,7 @@ export default function ResumenPage() {
                             ["Cumpl.", pct(pc.cumplimiento), cColor],
                           ] as [string, string, string][]).map(([label, value, color], i) => (
                             <div key={i} style={{ textAlign: "center", padding: "0 4px" }}>
-                              <p style={{ fontSize: 7, color: "rgba(148,163,184,0.35)", textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 2px", whiteSpace: "nowrap" }}>{label}</p>
+                              <p style={{ fontSize: 7, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 2px", whiteSpace: "nowrap" }}>{label}</p>
                               <p style={{ fontSize: i >= 10 ? 12 : 10.5, fontWeight: i >= 10 ? 800 : 600, color, margin: 0, fontFamily: i >= 10 ? "'Orbitron',sans-serif" : "inherit", whiteSpace: "nowrap" }}>{value}</p>
                             </div>
                           ))}
@@ -247,7 +247,7 @@ export default function ResumenPage() {
           </div>
 
           {d.tasks.total === 0 ? (
-            <p style={{ fontSize: "12px", color: "rgba(148,163,184,0.3)", textAlign: "center", padding: "20px 0" }}>
+            <p style={{ fontSize: "12px", color: "rgba(148,163,184,0.65)", textAlign: "center", padding: "20px 0" }}>
               No hay tasks. Crea tu primera en Ops.
             </p>
           ) : (
@@ -255,7 +255,7 @@ export default function ResumenPage() {
               {/* Progress bar */}
               <div style={{ marginBottom: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                  <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.4)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>
+                  <span style={{ fontSize: "10px", color: "#64748b", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>
                     COMPLETION RATE
                   </span>
                   <span style={{ fontSize: "14px", fontWeight: 700, color: "#06d6a0", fontFamily: "'Orbitron', sans-serif" }}>
@@ -272,7 +272,7 @@ export default function ResumenPage() {
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
-                <StatusBlock label="Backlog" value={d.tasks.backlog} color="rgba(148,163,184,0.5)" />
+                <StatusBlock label="Backlog" value={d.tasks.backlog} color="#64748b" />
                 <StatusBlock label="WIP" value={d.tasks.wip} color="#00d4ff" />
                 <StatusBlock label="Done" value={d.tasks.done} color="#06d6a0" />
               </div>
@@ -295,15 +295,15 @@ export default function ResumenPage() {
               { label: "Health Score < 50", desc: "Salud general del proyecto en riesgo", color: "#e2445c", active: true },
               { label: "Reporte diario 9:00 AM", desc: "Resumen matutino por correo", color: "#00d4ff", active: true },
             ].map((notif, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6 }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 6 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: notif.color, flexShrink: 0 }} />
                   <div>
                     <p style={{ fontSize: 11, color: "white", fontWeight: 500, margin: 0 }}>{notif.label}</p>
-                    <p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", margin: 0 }}>{notif.desc}</p>
+                    <p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", margin: 0 }}>{notif.desc}</p>
                   </div>
                 </div>
-                <div style={{ fontSize: 8, fontWeight: 700, color: notif.active ? "#00c875" : "rgba(148,163,184,0.3)", padding: "2px 6px", background: notif.active ? "rgba(0,200,117,0.1)" : "rgba(148,163,184,0.05)", borderRadius: 3, letterSpacing: "0.05em" }}>
+                <div style={{ fontSize: 8, fontWeight: 700, color: notif.active ? "#00c875" : "rgba(148,163,184,0.65)", padding: "2px 6px", background: notif.active ? "rgba(0,200,117,0.1)" : "rgba(148,163,184,0.05)", borderRadius: 3, letterSpacing: "0.05em" }}>
                   {notif.active ? "ON" : "OFF"}
                 </div>
               </div>
@@ -329,8 +329,8 @@ export default function ResumenPage() {
                 transition: "all 0.2s", cursor: "pointer", textDecoration: "none",
               }}>
               <action.icon style={{ width: 16, height: 16, color: action.color, flexShrink: 0 }} />
-              <span style={{ fontSize: "12px", color: "rgba(148,163,184,0.6)" }}>{action.label}</span>
-              <ArrowRight style={{ width: 10, height: 10, color: "rgba(148,163,184,0.2)", marginLeft: "auto" }} />
+              <span style={{ fontSize: "12px", color: "#94a3b8" }}>{action.label}</span>
+              <ArrowRight style={{ width: 10, height: 10, color: "rgba(148,163,184,0.65)", marginLeft: "auto" }} />
             </Link>
           ))}
         </div>
@@ -339,8 +339,8 @@ export default function ResumenPage() {
       {/* Integrations status */}
       <div className="glass-panel" style={{ padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <Plug style={{ width: 16, height: 16, color: d.integrations.connected > 0 ? "#06d6a0" : "rgba(148,163,184,0.3)" }} />
-          <span style={{ fontSize: "12px", color: "rgba(148,163,184,0.5)" }}>
+          <Plug style={{ width: 16, height: 16, color: d.integrations.connected > 0 ? "#06d6a0" : "rgba(148,163,184,0.65)" }} />
+          <span style={{ fontSize: "12px", color: "#64748b" }}>
             {d.integrations.connected > 0
               ? `${d.integrations.connected} integración${d.integrations.connected > 1 ? "es" : ""} activa${d.integrations.connected > 1 ? "s" : ""}`
               : "Sin integraciones conectadas"}
@@ -358,7 +358,7 @@ export default function ResumenPage() {
 function MetricCell({ label, value, color, highlight }: { label: string; value: string; color: string; highlight?: boolean }) {
   return (
     <div style={{ textAlign: "center" }}>
-      <p style={{ fontSize: 8, color: "rgba(148,163,184,0.35)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 3px" }}>{label}</p>
+      <p style={{ fontSize: 8, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 3px" }}>{label}</p>
       <p style={{
         fontSize: highlight ? 15 : 13, fontWeight: 700, color, margin: 0,
         fontFamily: highlight ? "'Orbitron',sans-serif" : "inherit",
@@ -384,12 +384,12 @@ function KpiCard({ icon: Icon, label, value, sub, color, href }: {
             <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "24px", fontWeight: 700, color, lineHeight: 1 }}>
               {value}
             </p>
-            <p style={{ fontSize: "10px", color: "rgba(148,163,184,0.4)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", marginTop: "2px" }}>
+            <p style={{ fontSize: "10px", color: "#64748b", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", marginTop: "2px" }}>
               {label}
             </p>
           </div>
         </div>
-        <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.3)", marginTop: "8px" }}>{sub}</p>
+        <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.65)", marginTop: "8px" }}>{sub}</p>
       </div>
     </Link>
   );

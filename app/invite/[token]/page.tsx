@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -223,7 +223,7 @@ export default function InvitePage() {
             ¡BIENVENIDO AL EQUIPO!
           </p>
           <p style={{ fontSize: "12px",
-            color: "rgba(148,163,184,0.5)", marginTop: "8px" }}>
+            color: "rgba(148,163,184,0.75)", marginTop: "8px" }}>
             Redirigiendo al Command Center...
           </p>
         </div>
@@ -267,7 +267,7 @@ export default function InvitePage() {
               {invite?.workspace?.name}
             </p>
             <p style={{ fontSize: "11px",
-              color: "rgba(148,163,184,0.5)", marginTop: "2px" }}>
+              color: "rgba(148,163,184,0.75)", marginTop: "2px" }}>
               Rol asignado: {invite?.role}
             </p>
           </div>
@@ -278,7 +278,7 @@ export default function InvitePage() {
           Fuiste invitado a unirte a este workspace.
         </p>
         <p style={{ fontSize: "12px",
-          color: "rgba(148,163,184,0.35)", marginBottom: "24px" }}>
+          color: "rgba(148,163,184,0.65)", marginBottom: "24px" }}>
           Enviado a: {invite?.email}
         </p>
 
@@ -324,7 +324,7 @@ export default function InvitePage() {
               <span style={{ flex: 1, height: "1px",
                 background: "rgba(0,212,255,0.1)" }} />
               <span style={{ fontSize: "10px",
-                color: "rgba(148,163,184,0.3)",
+                color: "rgba(148,163,184,0.65)",
                 ...orbitron, letterSpacing: "0.1em" }}>O</span>
               <span style={{ flex: 1, height: "1px",
                 background: "rgba(0,212,255,0.1)" }} />
@@ -350,7 +350,7 @@ export default function InvitePage() {
                 <input type="email" value={invite?.email || ""}
                   disabled
                   style={{ ...inputStyle,
-                    color: "rgba(148,163,184,0.5)",
+                    color: "rgba(148,163,184,0.75)",
                     borderColor: "rgba(0,212,255,0.1)" }} />
                 <input type="password"
                   placeholder="Contraseña (mín. 8 caracteres)"
@@ -377,7 +377,7 @@ export default function InvitePage() {
                     background: "rgba(0,212,255,0.1)",
                     border: "1px solid rgba(0,212,255,0.3)",
                     color: regLoading
-                      ? "rgba(148,163,184,0.4)" : "white",
+                      ? "rgba(148,163,184,0.7)" : "white",
                     cursor: regLoading
                       ? "not-allowed" : "pointer",
                     ...orbitron, fontSize: "11px",
@@ -398,7 +398,7 @@ export default function InvitePage() {
               background: "rgba(0,212,255,0.08)",
               border: "1px solid rgba(0,212,255,0.3)",
               color: accepting
-                ? "rgba(148,163,184,0.4)" : "white",
+                ? "rgba(148,163,184,0.7)" : "white",
               cursor: accepting ? "not-allowed" : "pointer",
               ...orbitron, fontSize: "11px",
               letterSpacing: "0.15em" }}>

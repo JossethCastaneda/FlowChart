@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { X, ExternalLink, Pause, Play, Copy, Pencil, TrendingUp, TrendingDown, Zap, BarChart3, Users, Smartphone, ChevronRight } from "lucide-react";
@@ -183,20 +183,20 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)", marginTop: "6px" }}>
+              <div style={{ fontSize: "9px", color: "#64748b", marginTop: "6px" }}>
                 ID: {item.id}
               </div>
             </div>
             <button
               onClick={onClose}
               style={{
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "6px", color: "rgba(148,163,184,0.6)", cursor: "pointer",
+                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "6px", color: "#94a3b8", cursor: "pointer",
                 width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.15s",
               }}
               onMouseEnter={e => { e.currentTarget.style.color = "white"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "rgba(148,163,184,0.6)"; e.currentTarget.style.background = "rgba(255,255,255,0.05)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
             >
               <X className="w-4 h-4" />
             </button>
@@ -257,10 +257,10 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
             ].map((kpi, i) => (
               <div key={i} style={{
                 padding: "14px", borderRadius: "8px",
-                background: "rgba(255,255,255,0.02)",
+                background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}>
-                <div style={{ fontSize: "9px", color: "rgba(148,163,184,0.5)", marginBottom: "6px", letterSpacing: "0.05em", fontWeight: 600 }}>
+                <div style={{ fontSize: "9px", color: "#64748b", marginBottom: "6px", letterSpacing: "0.05em", fontWeight: 600 }}>
                   {kpi.icon} {kpi.label}
                 </div>
                 <div style={{ fontSize: "20px", fontWeight: 800, color: kpi.color, letterSpacing: "-0.02em" }}>
@@ -285,10 +285,10 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
               <div key={i} style={{
                 padding: "10px", borderRadius: "6px",
                 background: "rgba(255,255,255,0.015)",
-                border: "1px solid rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.09)",
                 textAlign: "center",
               }}>
-                <div style={{ fontSize: "8px", color: "rgba(148,163,184,0.4)", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.04em" }}>
+                <div style={{ fontSize: "8px", color: "#64748b", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.04em" }}>
                   {m.label}
                 </div>
                 <div style={{ fontSize: "13px", fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
@@ -301,7 +301,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
           {/* ── Chart section ── */}
           <div style={{
             marginBottom: "20px", padding: "16px", borderRadius: "8px",
-            background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)",
           }}>
             {/* Breakdown tabs */}
             <div style={{ display: "flex", gap: "4px", marginBottom: "12px" }}>
@@ -320,7 +320,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     borderRadius: "4px", cursor: "pointer",
                     background: breakdownTab === tab.key ? "rgba(0,212,255,0.1)" : "transparent",
                     border: `1px solid ${breakdownTab === tab.key ? "rgba(0,212,255,0.2)" : "transparent"}`,
-                    color: breakdownTab === tab.key ? "var(--cyan)" : "rgba(148,163,184,0.5)",
+                    color: breakdownTab === tab.key ? "var(--cyan)" : "#64748b",
                     transition: "all 0.15s",
                   }}
                 >
@@ -341,8 +341,8 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                         padding: "3px 8px", fontSize: "9px", fontWeight: 600,
                         borderRadius: "10px", cursor: "pointer",
                         background: chartMetric === mb.key ? `${chartColors[mb.key]}20` : "transparent",
-                        border: `1px solid ${chartMetric === mb.key ? `${chartColors[mb.key]}40` : "rgba(148,163,184,0.1)"}`,
-                        color: chartMetric === mb.key ? chartColors[mb.key] : "rgba(148,163,184,0.4)",
+                        border: `1px solid ${chartMetric === mb.key ? `${chartColors[mb.key]}40` : "rgba(148,163,184,0.18)"}`,
+                        color: chartMetric === mb.key ? chartColors[mb.key] : "#64748b",
                         transition: "all 0.15s",
                       }}
                     >
@@ -352,22 +352,22 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 </div>
 
                 {loadingDaily ? (
-                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.3)", fontSize: "11px" }}>
+                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
                     Cargando datos de tendencia...
                   </div>
                 ) : dailyData.length > 0 ? (
                   <ResponsiveContainer width="100%" height={160}>
                     <LineChart data={dailyData}>
-                      <CartesianGrid stroke="rgba(255,255,255,0.04)" strokeDasharray="3 3" />
+                      <CartesianGrid stroke="rgba(255,255,255,0.09)" strokeDasharray="3 3" />
                       <XAxis
                         dataKey="date"
-                        tick={{ fontSize: 8, fill: "rgba(148,163,184,0.4)" }}
+                        tick={{ fontSize: 8, fill: "#64748b" }}
                         axisLine={false}
                         tickLine={false}
                         interval="preserveStartEnd"
                       />
                       <YAxis
-                        tick={{ fontSize: 8, fill: "rgba(148,163,184,0.4)" }}
+                        tick={{ fontSize: 8, fill: "#64748b" }}
                         axisLine={false}
                         tickLine={false}
                         width={40}
@@ -389,7 +389,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.3)", fontSize: "11px" }}>
+                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
                     Sin datos de tendencia para este período
                   </div>
                 )}
@@ -399,7 +399,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
             {breakdownTab !== "time" && (
               <>
                 {loadingBreakdown ? (
-                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.3)", fontSize: "11px" }}>
+                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
                     Cargando breakdown...
                   </div>
                 ) : breakdownData.length > 0 ? (
@@ -407,10 +407,10 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
                       <thead>
                         <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                          <th style={{ padding: "6px 8px", textAlign: "left", color: "rgba(148,163,184,0.5)", fontWeight: 700 }}>Segmento</th>
-                          <th style={{ padding: "6px 8px", textAlign: "right", color: "rgba(148,163,184,0.5)", fontWeight: 700 }}>Gasto</th>
-                          <th style={{ padding: "6px 8px", textAlign: "right", color: "rgba(148,163,184,0.5)", fontWeight: 700 }}>Clics</th>
-                          <th style={{ padding: "6px 8px", textAlign: "right", color: "rgba(148,163,184,0.5)", fontWeight: 700 }}>CTR</th>
+                          <th style={{ padding: "6px 8px", textAlign: "left", color: "#64748b", fontWeight: 700 }}>Segmento</th>
+                          <th style={{ padding: "6px 8px", textAlign: "right", color: "#64748b", fontWeight: 700 }}>Gasto</th>
+                          <th style={{ padding: "6px 8px", textAlign: "right", color: "#64748b", fontWeight: 700 }}>Clics</th>
+                          <th style={{ padding: "6px 8px", textAlign: "right", color: "#64748b", fontWeight: 700 }}>CTR</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -433,7 +433,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     </table>
                   </div>
                 ) : (
-                  <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.3)", fontSize: "11px" }}>
+                  <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
                     Sin datos de breakdown disponibles
                   </div>
                 )}

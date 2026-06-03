@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState } from "react";
 import { Monitor, Smartphone } from "lucide-react";
 
@@ -66,8 +66,8 @@ function FallbackImage({ url, alt, style }: { url?: string; alt: string; style?:
           gap: 8,
         }}
       >
-        <Monitor style={{ width: 32, height: 32, color: "rgba(148,163,184,0.3)" }} />
-        <span style={{ fontSize: 11, color: "rgba(148,163,184,0.4)" }}>Vista previa no disponible</span>
+        <Monitor style={{ width: 32, height: 32, color: "rgba(148,163,184,0.65)" }} />
+        <span style={{ fontSize: 11, color: "#64748b" }}>Vista previa no disponible</span>
       </div>
     );
   }
@@ -422,7 +422,7 @@ export function AdPreview({ creative }: AdPreviewProps) {
             style={{
               display: "flex", alignItems: "center", gap: 5,
               padding: "5px 10px",
-              background: format === f.key ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.04)",
+              background: format === f.key ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)",
               border: `1px solid ${format === f.key ? "var(--cyan)" : "var(--border)"}`,
               borderRadius: 6,
               color: format === f.key ? "var(--cyan)" : "rgba(148,163,184,0.7)",

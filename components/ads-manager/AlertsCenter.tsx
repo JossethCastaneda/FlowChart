@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { AlertTriangle, AlertCircle, TrendingUp, ChevronDown, ChevronUp, X } from "lucide-react";
@@ -61,7 +61,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
         : warningCount > 0
         ? "1px solid rgba(251,191,36,0.12)"
         : "1px solid rgba(52,211,153,0.12)",
-      background: "rgba(255,255,255,0.01)",
+      background: "rgba(255,255,255,0.03)",
       overflow: "hidden",
     }}>
       {/* Summary header */}
@@ -90,7 +90,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
             </span>
           )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "rgba(148,163,184,0.4)", fontSize: "9px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "#64748b", fontSize: "9px" }}>
           {expanded ? "Colapsar" : `Ver ${visible.length} alertas`}
           {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </div>
@@ -127,7 +127,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
                   setDismissed(prev => new Set(prev).add(alert.id));
                 }}
                 style={{
-                  background: "none", border: "none", color: "rgba(148,163,184,0.3)",
+                  background: "none", border: "none", color: "rgba(148,163,184,0.65)",
                   cursor: "pointer", padding: 0, flexShrink: 0,
                 }}
               >
@@ -144,7 +144,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
           onClick={() => setExpanded(true)}
           style={{
             padding: "6px 14px", textAlign: "center",
-            fontSize: "9px", color: "rgba(148,163,184,0.4)", cursor: "pointer",
+            fontSize: "9px", color: "#64748b", cursor: "pointer",
             borderTop: "1px solid rgba(255,255,255,0.03)",
           }}
         >

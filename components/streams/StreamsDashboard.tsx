@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 
@@ -147,7 +147,7 @@ export function StreamsDashboard() {
               value={newColType}
               onChange={(e) => setNewColType(e.target.value)}
               style={{
-                padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.05)",
+                padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.1)",
                 border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 13,
               }}
             >
@@ -162,7 +162,7 @@ export function StreamsDashboard() {
               value={newColPlatform}
               onChange={(e) => setNewColPlatform(e.target.value)}
               style={{
-                padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.05)",
+                padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.1)",
                 border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 13,
               }}
             >
@@ -179,7 +179,7 @@ export function StreamsDashboard() {
                 onChange={(e) => setNewColQuery(e.target.value)}
                 placeholder="#hashtag o keyword"
                 style={{
-                  padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.05)",
+                  padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.1)",
                   border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 13, outline: "none",
                 }}
               />
@@ -261,7 +261,7 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
       style={{
         minWidth: 320, maxWidth: 360, flex: "0 0 auto",
         display: "flex", flexDirection: "column",
-        borderRadius: 12, background: "rgba(255,255,255,0.02)",
+        borderRadius: 12, background: "rgba(255,255,255,0.04)",
         border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
       }}
     >
@@ -310,7 +310,7 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
                   padding: "6px 14px",
                   transition: "background 0.15s", cursor: "pointer",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
                 {/* Avatar */}
@@ -370,7 +370,7 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
               onClick={() => setShowAll((s) => !s)}
               style={{
                 width: "100%", padding: "6px 0", background: "none", border: "none",
-                borderTop: "1px solid rgba(255,255,255,0.04)",
+                borderTop: "1px solid rgba(255,255,255,0.09)",
                 color: "#22d3ee", fontSize: 11, cursor: "pointer", fontWeight: 500,
               }}
             >
@@ -381,7 +381,7 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
           {/* Refresh indicator */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            padding: 8, borderTop: "1px solid rgba(255,255,255,0.04)",
+            padding: 8, borderTop: "1px solid rgba(255,255,255,0.09)",
             fontSize: 10, color: "#475569",
           }}>
             <RefreshCw style={{ width: 10, height: 10 }} />

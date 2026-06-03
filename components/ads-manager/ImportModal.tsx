@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useRef } from "react";
 import { X, Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Loader2, Download } from "lucide-react";
 
@@ -177,7 +177,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "8px 12px", fontSize: "12px", background: "rgba(0,0,0,0.3)",
-    border: "1px solid rgba(148,163,184,0.15)", borderRadius: "6px", color: "white", outline: "none",
+    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "white", outline: "none",
   };
 
   return (
@@ -195,7 +195,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
             <Upload className="w-4 h-4" style={{ color: "var(--cyan)" }} />
             Importar {levelLabel}
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "rgba(148,163,184,0.5)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -203,7 +203,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
         {/* Step indicator */}
         <div style={{ display: "flex", padding: "12px 20px", gap: "4px" }}>
           {[1, 2, 3, 4].map((s) => (
-            <div key={s} style={{ flex: 1, height: "3px", borderRadius: "2px", background: s <= step ? "var(--cyan)" : "rgba(148,163,184,0.1)" }} />
+            <div key={s} style={{ flex: 1, height: "3px", borderRadius: "2px", background: s <= step ? "var(--cyan)" : "rgba(148,163,184,0.18)" }} />
           ))}
         </div>
 
@@ -226,7 +226,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
                 <div style={{ fontSize: "12px", color: "white", fontWeight: 600, marginBottom: "4px" }}>
                   {file ? file.name : "Arrastra un archivo o haz clic"}
                 </div>
-                <div style={{ fontSize: "10px", color: "rgba(148,163,184,0.4)" }}>
+                <div style={{ fontSize: "10px", color: "#64748b" }}>
                   Formatos: .csv, .xlsx — Máximo 500 filas
                 </div>
                 <input ref={fileRef} type="file" accept=".csv,.xlsx,.xls" onChange={handleFileSelect} style={{ display: "none" }} />
@@ -272,16 +272,16 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
                   <tbody>
                     {parsedRows.slice(0, 20).map((row, i) => (
                       <tr key={i} style={{ borderTop: "1px solid rgba(255,255,255,0.03)" }}>
-                        <td style={{ padding: "4px 8px", color: "rgba(148,163,184,0.4)" }}>{i + 1}</td>
+                        <td style={{ padding: "4px 8px", color: "#64748b" }}>{i + 1}</td>
                         <td style={{ padding: "4px 8px", color: "white" }}>{row.name}</td>
-                        <td style={{ padding: "4px 8px", color: row.status === "ACTIVE" ? "#34d399" : "rgba(148,163,184,0.5)" }}>{row.status || "PAUSED"}</td>
-                        <td style={{ padding: "4px 8px", color: "rgba(148,163,184,0.6)" }}>{row.daily_budget ? `$${row.daily_budget}/día` : row.lifetime_budget ? `$${row.lifetime_budget} total` : "—"}</td>
+                        <td style={{ padding: "4px 8px", color: row.status === "ACTIVE" ? "#34d399" : "#64748b" }}>{row.status || "PAUSED"}</td>
+                        <td style={{ padding: "4px 8px", color: "#94a3b8" }}>{row.daily_budget ? `$${row.daily_budget}/día` : row.lifetime_budget ? `$${row.lifetime_budget} total` : "—"}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
                 {parsedRows.length > 20 && (
-                  <div style={{ padding: "6px", fontSize: "9px", color: "rgba(148,163,184,0.3)", textAlign: "center" }}>
+                  <div style={{ padding: "6px", fontSize: "9px", color: "rgba(148,163,184,0.65)", textAlign: "center" }}>
                     +{parsedRows.length - 20} filas más...
                   </div>
                 )}
@@ -293,7 +293,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
             <div style={{ textAlign: "center", padding: "40px 0" }}>
               <Loader2 className="w-8 h-8 animate-spin" style={{ color: "var(--cyan)", margin: "0 auto 12px" }} />
               <div style={{ fontSize: "12px", color: "white", fontWeight: 600 }}>Importando {parsedRows.length} {levelLabel}...</div>
-              <div style={{ fontSize: "10px", color: "rgba(148,163,184,0.4)", marginTop: "4px" }}>No cierres esta ventana</div>
+              <div style={{ fontSize: "10px", color: "#64748b", marginTop: "4px" }}>No cierres esta ventana</div>
             </div>
           )}
 
@@ -318,13 +318,13 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
         {/* Footer */}
         <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "flex-end" }}>
           {step === 1 && (
-            <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+            <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
               Cancelar
             </button>
           )}
           {step === 2 && (
             <>
-              <button onClick={() => { setStep(1); setFile(null); setParsedRows([]); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+              <button onClick={() => { setStep(1); setFile(null); setParsedRows([]); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
                 Atrás
               </button>
               <button onClick={handleImport} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer" }}>

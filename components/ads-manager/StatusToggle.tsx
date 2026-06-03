@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 interface StatusToggleProps {
   status: "ACTIVE" | "PAUSED" | "ARCHIVED" | string;
@@ -30,10 +30,10 @@ export function StatusToggle({ status, onToggle }: StatusToggleProps) {
         height: "15px",
         borderRadius: "999px",
         background: loading
-          ? "rgba(148,163,184,0.15)"
+          ? "rgba(148,163,184,0.22)"
           : isActive
           ? "var(--cyan)"
-          : "rgba(148,163,184,0.2)",
+          : "rgba(148,163,184,0.65)",
         border: "none",
         padding: "2px",
         cursor: loading ? "not-allowed" : "pointer",

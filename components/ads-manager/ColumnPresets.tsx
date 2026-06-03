@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef } from "react";
 import { Bookmark, Plus, X, Check, ChevronDown } from "lucide-react";
@@ -118,7 +118,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
           padding: "6px", zIndex: 100, minWidth: "220px",
           boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7)",
         }}>
-          <div style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)", padding: "6px 8px 3px", letterSpacing: "0.06em", fontWeight: 700 }}>
+          <div style={{ fontSize: "9px", color: "#64748b", padding: "6px 8px 3px", letterSpacing: "0.06em", fontWeight: 700 }}>
             PRESETS DE COLUMNAS
           </div>
 
@@ -136,14 +136,14 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               >
                 {preset.name}
-                <span style={{ display: "block", fontSize: "8px", color: "rgba(148,163,184,0.35)", marginTop: "1px" }}>
+                <span style={{ display: "block", fontSize: "8px", color: "rgba(148,163,184,0.65)", marginTop: "1px" }}>
                   {preset.columns.length} columnas
                 </span>
               </button>
               {preset.id.startsWith("custom-") && (
                 <button
                   onClick={() => deletePreset(preset.id)}
-                  style={{ background: "none", border: "none", color: "rgba(148,163,184,0.3)", cursor: "pointer", padding: "4px" }}
+                  style={{ background: "none", border: "none", color: "rgba(148,163,184,0.65)", cursor: "pointer", padding: "4px" }}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -151,7 +151,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
             </div>
           ))}
 
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", marginTop: "4px", paddingTop: "4px" }}>
+          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
             {saving ? (
               <div style={{ display: "flex", gap: "4px", padding: "4px 6px" }}>
                 <input
@@ -162,7 +162,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                   placeholder="Nombre del preset..."
                   autoFocus
                   style={{
-                    flex: 1, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(148,163,184,0.1)",
+                    flex: 1, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(148,163,184,0.18)",
                     borderRadius: "4px", padding: "4px 8px", fontSize: "10px", color: "white", outline: "none",
                   }}
                 />

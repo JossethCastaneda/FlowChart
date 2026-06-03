@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { BarChart3, ChevronDown } from "lucide-react";
 
 interface BreakdownSelectorProps {
@@ -47,7 +47,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
           background: "rgba(10, 15, 30, 0.6)",
           border: "1px solid var(--border)",
           borderRadius: "6px",
-          color: "rgba(148,163,184,0.8)",
+          color: "#94a3b8",
           fontSize: "11px",
           fontWeight: 600,
           cursor: "pointer",
@@ -59,7 +59,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.color = "rgba(148,163,184,0.8)";
+          e.currentTarget.style.color = "#94a3b8";
         }}
       >
         <BarChart3 className="w-3.5 h-3.5" />
@@ -105,7 +105,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
                     borderRadius: "4px",
                     background: isSelected ? "rgba(0,129,251,0.15)" : "transparent",
                     border: "none",
-                    color: isSelected ? "var(--cyan)" : "rgba(148,163,184,0.6)",
+                    color: isSelected ? "var(--cyan)" : "#94a3b8",
                     fontSize: "11px",
                     fontWeight: isSelected ? 600 : 500,
                     textAlign: "left",

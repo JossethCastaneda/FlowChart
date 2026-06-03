@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
@@ -119,7 +119,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
     }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-        <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(148,163,184,0.5)" }}>
+        <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "#64748b" }}>
           Budget Pacing
         </span>
         <div style={{
@@ -162,13 +162,13 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
             </defs>
             <XAxis
               dataKey="label"
-              tick={{ fontSize: 9, fill: "rgba(148,163,184,0.4)" }}
-              axisLine={{ stroke: "rgba(255,255,255,0.04)" }}
+              tick={{ fontSize: 9, fill: "#64748b" }}
+              axisLine={{ stroke: "rgba(255,255,255,0.09)" }}
               tickLine={false}
               interval="preserveStartEnd"
             />
             <YAxis
-              tick={{ fontSize: 9, fill: "rgba(148,163,184,0.3)" }}
+              tick={{ fontSize: 9, fill: "rgba(148,163,184,0.65)" }}
               axisLine={false}
               tickLine={false}
               tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
@@ -180,7 +180,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
                 borderRadius: "6px",
                 fontSize: "11px",
               }}
-              labelStyle={{ color: "rgba(148,163,184,0.6)" }}
+              labelStyle={{ color: "#94a3b8" }}
               formatter={(value: any, name: any) => [fmt$(Number(value || 0)), name === "ideal" ? "Ideal" : name === "real" ? "Real" : "Proyección"]}
             />
             {/* Budget line */}
@@ -194,7 +194,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
             <Area
               type="monotone"
               dataKey="ideal"
-              stroke="rgba(148,163,184,0.2)"
+              stroke="rgba(148,163,184,0.65)"
               strokeDasharray="4 4"
               fill="none"
               strokeWidth={1.5}
@@ -226,7 +226,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
       {/* Legend */}
       <div style={{ display: "flex", gap: "16px", marginTop: "8px", justifyContent: "center" }}>
         {[
-          { label: "Ritmo ideal", color: "rgba(148,163,184,0.3)", dashed: true },
+          { label: "Ritmo ideal", color: "rgba(148,163,184,0.65)", dashed: true },
           { label: "Gasto real", color: "var(--cyan)", dashed: false },
           { label: "Proyección", color: "var(--cyan)", dashed: true },
         ].map(item => (
@@ -235,7 +235,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
               width: 20, height: 2, background: item.color,
               borderTop: item.dashed ? `2px dashed ${item.color}` : "none",
             }} />
-            <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)" }}>{item.label}</span>
+            <span style={{ fontSize: "9px", color: "#64748b" }}>{item.label}</span>
           </div>
         ))}
       </div>
@@ -265,17 +265,17 @@ function PacingKPI({ label, value, subtext, color }: { label: string; value: str
   return (
     <div style={{
       padding: "8px 14px", borderRadius: "6px",
-      background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)",
+      background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)",
       flex: "1 1 120px", minWidth: "120px",
     }}>
-      <div style={{ fontSize: "9px", color: "rgba(148,163,184,0.4)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
+      <div style={{ fontSize: "9px", color: "#64748b", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>
         {label}
       </div>
       <div style={{ fontSize: "18px", fontWeight: 700, color: color || "var(--foreground)", fontFamily: "var(--font-display)", marginTop: "2px" }}>
         {value}
       </div>
       {subtext && (
-        <div style={{ fontSize: "9px", color: "rgba(148,163,184,0.35)", marginTop: "2px" }}>
+        <div style={{ fontSize: "9px", color: "rgba(148,163,184,0.65)", marginTop: "2px" }}>
           {subtext}
         </div>
       )}

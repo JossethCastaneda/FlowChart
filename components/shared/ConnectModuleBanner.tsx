@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { Plug, Check, Loader2, ExternalLink } from "lucide-react";
@@ -102,7 +102,7 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
           {config.label} conectado
         </span>
         {pages.length > 0 && (
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginLeft: 4 }}>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", marginLeft: 4 }}>
             · {pages.length} {pages.length === 1 ? "página" : "páginas"}
           </span>
         )}
@@ -110,7 +110,7 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
           onClick={() => window.location.href = `/api/connect/${module}`}
           style={{
             marginLeft: "auto", padding: "4px 10px", borderRadius: 6,
-            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+            background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)",
             color: "#94a3b8", fontSize: 11, cursor: "pointer",
           }}
         >
@@ -131,14 +131,14 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
         <div style={{ fontSize: 13, fontWeight: 600, color: "white", marginBottom: 2 }}>
           Conectar {config.label}
         </div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)" }}>
           {config.description}
         </div>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
           {config.permissions.map(p => (
             <span key={p} style={{
               fontSize: 9, padding: "2px 6px", borderRadius: 4,
-              background: "rgba(255,255,255,0.05)", color: "#94a3b8",
+              background: "rgba(255,255,255,0.1)", color: "#94a3b8",
               fontFamily: "monospace",
             }}>
               {p}

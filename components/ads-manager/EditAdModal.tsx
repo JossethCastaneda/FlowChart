@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React, { useState, useEffect, useRef } from "react";
 import { X, Save, Loader2, AlertCircle, Image, Eye } from "lucide-react";
 import { useMetaUpdate } from "@/hooks/useMetaUpdate";
@@ -10,7 +10,7 @@ function FormGroup({ label, children, hint }: { label: string; children: React.R
     <div>
       <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(148,163,184,0.7)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {label}
-        {hint && <span style={{ marginLeft: 6, fontSize: 9, color: "rgba(148,163,184,0.4)", fontWeight: 400, textTransform: "none", fontStyle: "italic" }}>{hint}</span>}
+        {hint && <span style={{ marginLeft: 6, fontSize: 9, color: "#64748b", fontWeight: 400, textTransform: "none", fontStyle: "italic" }}>{hint}</span>}
       </label>
       {children}
     </div>
@@ -174,7 +174,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
             </div>
             <div>
               <div style={{ fontSize: 15, fontWeight: 700, color: "white" }}>Editar Anuncio</div>
-              <div style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>ID: {ad.id}</div>
+              <div style={{ fontSize: 11, color: "#94a3b8" }}>ID: {ad.id}</div>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -183,7 +183,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
                 Creativo modificado
               </div>
             )}
-            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.6)", padding: 4, display: "flex", alignItems: "center", borderRadius: 6 }}>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 4, display: "flex", alignItems: "center", borderRadius: 6 }}>
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -200,7 +200,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
                 padding: "10px 12px",
                 background: "none", border: "none",
                 borderBottom: `2px solid ${activeTab === tab.key ? "var(--cyan)" : "transparent"}`,
-                color: activeTab === tab.key ? "var(--cyan)" : "rgba(148,163,184,0.6)",
+                color: activeTab === tab.key ? "var(--cyan)" : "#94a3b8",
                 fontSize: 12, fontWeight: 600, cursor: "pointer", marginBottom: -1, transition: "color 0.15s",
               }}
             >
@@ -225,7 +225,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               <FormGroup label="Estado">
                 <div style={{ display: "flex", gap: 8 }}>
                   {(["ACTIVE", "PAUSED"] as const).map((s) => (
-                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.1)") : "rgba(255,255,255,0.04)", borderColor: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--border)", color: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "rgba(148,163,184,0.6)" }}>
+                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.1)") : "rgba(255,255,255,0.09)", borderColor: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--border)", color: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "#94a3b8" }}>
                       {s === "ACTIVE" ? "● Activo" : "◌ Pausado"}
                     </button>
                   ))}
@@ -234,10 +234,10 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               {/* Ad info read-only */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <FormGroup label="ID del creativo">
-                  <div style={{ ...inputStyle as any, color: "rgba(148,163,184,0.5)", fontSize: 12, fontFamily: "monospace" }}>{existingCreative.id || "—"}</div>
+                  <div style={{ ...inputStyle as any, color: "#64748b", fontSize: 12, fontFamily: "monospace" }}>{existingCreative.id || "—"}</div>
                 </FormGroup>
                 <FormGroup label="Conjunto">
-                  <div style={{ ...inputStyle as any, color: "rgba(148,163,184,0.5)", fontSize: 12, fontFamily: "monospace" }}>{ad.adset_id || "—"}</div>
+                  <div style={{ ...inputStyle as any, color: "#64748b", fontSize: 12, fontFamily: "monospace" }}>{ad.adset_id || "—"}</div>
                 </FormGroup>
               </div>
             </>
@@ -306,7 +306,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
 
         {/* Footer */}
         <div style={{ padding: "14px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 11, color: "rgba(148,163,184,0.4)" }}>
+          <div style={{ fontSize: 11, color: "#64748b" }}>
             {activeTab === "creative" && creativeChanged
               ? "⚠️ Se creará un nuevo creativo al guardar"
               : activeTab === "preview" ? "Vista previa en tiempo real"

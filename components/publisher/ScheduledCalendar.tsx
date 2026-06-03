@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -58,7 +58,7 @@ export interface CalendarProps {
 
 /* ── Status config ────────────────────────────────────── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
-  Draft: { label: "EN HANGAR", color: "#94a3b8", bg: "rgba(148,163,184,0.08)", border: "rgba(148,163,184,0.2)", icon: <FileText style={{ width: 12, height: 12 }} /> },
+  Draft: { label: "EN HANGAR", color: "#94a3b8", bg: "rgba(148,163,184,0.16)", border: "rgba(148,163,184,0.65)", icon: <FileText style={{ width: 12, height: 12 }} /> },
   Scheduled: { label: "SECUENCIA INICIADA", color: "#fdab3d", bg: "rgba(253,171,61,0.08)", border: "rgba(253,171,61,0.2)", icon: <Clock style={{ width: 12, height: 12 }} /> },
   Published: { label: "TRANSMISIÓN ENVIADA", color: "#00c875", bg: "rgba(0,200,117,0.08)", border: "rgba(0,200,117,0.2)", icon: <Check style={{ width: 12, height: 12 }} /> },
   Failed: { label: "SEÑAL PERDIDA", color: "#e2445c", bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.2)", icon: <AlertCircle style={{ width: 12, height: 12 }} /> },
@@ -231,11 +231,11 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
     return (
       <div style={{
         display: "flex", gap: 12, padding: "12px 14px",
-        background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)",
+        background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
         borderRadius: 8, marginBottom: 8, transition: "border-color 0.2s",
       }}
       onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.05)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
       >
         {/* Media thumb */}
         {media && (
@@ -309,7 +309,7 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
     <button onClick={onClick} style={{
       padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: 500, cursor: "pointer",
       border: active ? "1px solid rgba(0,212,255,0.4)" : "1px solid rgba(255,255,255,0.06)",
-      background: active ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.02)",
+      background: active ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.04)",
       color: active ? "#00d4ff" : "#64748b", transition: "all 0.15s",
     }}>{label}</button>
   );
@@ -380,7 +380,7 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
 
       {/* ── MONTH VIEW ────────────────────────────────────── */}
       {!loading && view === "month" && (
-        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, overflow: "hidden" }}>
+        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, overflow: "hidden" }}>
           {/* Month nav */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
             <button onClick={() => setCurrentMonth(new Date(year, month - 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", display: "flex", padding: 4 }}>
@@ -395,7 +395,7 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
           {/* DOW header */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
             {DOW.map((d) => (
-              <div key={d} style={{ padding: "8px 4px", textAlign: "center", fontSize: 10, fontWeight: 600, color: "#64748b", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>{d}</div>
+              <div key={d} style={{ padding: "8px 4px", textAlign: "center", fontSize: 10, fontWeight: 600, color: "#64748b", borderBottom: "1px solid rgba(255,255,255,0.09)" }}>{d}</div>
             ))}
           </div>
 

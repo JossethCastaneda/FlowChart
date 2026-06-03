@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 interface KpiCardProps {
@@ -59,7 +59,7 @@ export function KpiCard({
                     fontSize: "9px",
                     fontWeight: 600,
                     letterSpacing: "0.05em",
-                    background: trend === "up" ? "rgba(6,214,160,0.1)" : trend === "down" ? "rgba(255,45,85,0.1)" : "rgba(148,163,184,0.1)",
+                    background: trend === "up" ? "rgba(6,214,160,0.1)" : trend === "down" ? "rgba(255,45,85,0.1)" : "rgba(148,163,184,0.18)",
                     color: trend === "up" ? "var(--emerald)" : trend === "down" ? "var(--red)" : "var(--foreground)",
                   }}
                 >
@@ -68,7 +68,7 @@ export function KpiCard({
                 </div>
               )}
               {context && (
-                <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.5)" }}>
+                <span style={{ fontSize: "10px", color: "#94a3b8" }}>
                   {context}
                 </span>
               )}

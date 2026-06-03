@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 
@@ -238,7 +238,7 @@ function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any[] }) {
             }}
           >
             {["50k", "40k", "30k", "20k", "10k", "0"].map((l) => (
-              <span key={l} style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", fontFamily: "'Orbitron', sans-serif" }}>
+              <span key={l} style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", fontFamily: "'Orbitron', sans-serif" }}>
                 {l}
               </span>
             ))}
@@ -399,7 +399,7 @@ function TopPostCard({ post, rank }: { post: any; rank: number }) {
             }}
           />
         </div>
-        <span style={{ fontSize: 10, color: "rgba(148,163,184,0.45)" }}>{post.date}</span>
+        <span style={{ fontSize: 10, color: "#64748b" }}>{post.date}</span>
       </div>
       <p
         style={{
@@ -454,10 +454,10 @@ function MiniStat({
 }) {
   return (
     <div className="flex items-center gap-2">
-      <Icon style={{ width: 12, height: 12, color: "rgba(148,163,184,0.4)" }} />
+      <Icon style={{ width: 12, height: 12, color: "#64748b" }} />
       <div>
         <div style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{value}</div>
-        <div style={{ fontSize: 9, color: "rgba(148,163,184,0.4)" }}>{label}</div>
+        <div style={{ fontSize: 9, color: "#64748b" }}>{label}</div>
       </div>
     </div>
   );
@@ -564,7 +564,7 @@ function TabPosts({ posts }: { posts: any[] }) {
                       fontWeight: 600,
                       letterSpacing: "0.2em",
                       textTransform: "uppercase",
-                      color: "rgba(148,163,184,0.5)",
+                      color: "#64748b",
                       borderBottom: "1px solid rgba(0,212,255,0.08)",
                       background: "rgba(0,212,255,0.02)",
                       cursor: col.key ? "pointer" : "default",
@@ -653,7 +653,7 @@ function TabPosts({ posts }: { posts: any[] }) {
                     />
                     <span style={{ fontSize: 10, color: "#94a3b8" }}>{p.channel}</span>
                   </div>
-                  <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{p.date}</span>
+                  <span style={{ fontSize: 10, color: "#64748b" }}>{p.date}</span>
                 </div>
                 <p
                   style={{
@@ -671,19 +671,19 @@ function TabPosts({ posts }: { posts: any[] }) {
                 </p>
                 <div className="grid grid-cols-2 gap-2" style={{ fontSize: 11 }}>
                   <div>
-                    <span style={{ color: "rgba(148,163,184,0.4)" }}>Alcance</span>
+                    <span style={{ color: "#64748b" }}>Alcance</span>
                     <div style={{ fontWeight: 600, color: "#e2e8f0" }}>{p.reach.toLocaleString()}</div>
                   </div>
                   <div>
-                    <span style={{ color: "rgba(148,163,184,0.4)" }}>Likes</span>
+                    <span style={{ color: "#64748b" }}>Likes</span>
                     <div style={{ fontWeight: 600, color: "#e2e8f0" }}>{p.likes.toLocaleString()}</div>
                   </div>
                   <div>
-                    <span style={{ color: "rgba(148,163,184,0.4)" }}>Comentarios</span>
+                    <span style={{ color: "#64748b" }}>Comentarios</span>
                     <div style={{ fontWeight: 600, color: "#e2e8f0" }}>{p.comments}</div>
                   </div>
                   <div>
-                    <span style={{ color: "rgba(148,163,184,0.4)" }}>Engagement</span>
+                    <span style={{ color: "#64748b" }}>Engagement</span>
                     <div style={{ fontWeight: 600, color: "#f472b6" }}>{p.engagement}%</div>
                   </div>
                 </div>
@@ -784,7 +784,7 @@ function TabAudiencia({ age, gender, location }: { age: any[]; gender: any[]; lo
                     fontFamily: "'Orbitron', sans-serif",
                     fontSize: 10,
                     fontWeight: 700,
-                    color: "rgba(148,163,184,0.3)",
+                    color: "rgba(148,163,184,0.65)",
                     width: 20,
                   }}
                 >
@@ -882,7 +882,7 @@ function DonutChart({
         x={size / 2}
         y={size / 2 + 14}
         textAnchor="middle"
-        style={{ fontSize: 9, fill: "rgba(148,163,184,0.5)", textTransform: "uppercase", letterSpacing: "0.15em" }}
+        style={{ fontSize: 9, fill: "#64748b", textTransform: "uppercase", letterSpacing: "0.15em" }}
       >
         {data[0].label}
       </text>
@@ -919,7 +919,7 @@ function TabMejorHorario() {
                   fontSize: 9,
                   fontFamily: "'Orbitron', sans-serif",
                   fontWeight: 600,
-                  color: "rgba(148,163,184,0.35)",
+                  color: "rgba(148,163,184,0.65)",
                 }}
               >
                 {h.toString().padStart(2, "0")}
@@ -936,7 +936,7 @@ function TabMejorHorario() {
                   fontSize: 10,
                   fontFamily: "'Orbitron', sans-serif",
                   fontWeight: 600,
-                  color: "rgba(148,163,184,0.5)",
+                  color: "#64748b",
                   textAlign: "right",
                   paddingRight: 4,
                 }}
@@ -999,7 +999,7 @@ function TabMejorHorario() {
 
           {/* Legend */}
           <div className="flex items-center justify-center gap-4" style={{ marginTop: 20, paddingLeft: 44 }}>
-            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>Bajo engagement</span>
+            <span style={{ fontSize: 10, color: "#64748b" }}>Bajo engagement</span>
             <div className="flex" style={{ gap: 2 }}>
               {[0.05, 0.12, 0.22, 0.35, 0.5, 0.65, 0.8].map((int, i) => (
                 <div
@@ -1032,7 +1032,7 @@ function TabCrecimiento() {
         display: "flex", flexDirection: "column", alignItems: "center",
         justifyContent: "center", padding: 60, gap: 12,
         borderRadius: 12, background: "rgba(255,255,255,0.015)",
-        border: "1px solid rgba(255,255,255,0.04)",
+        border: "1px solid rgba(255,255,255,0.09)",
       }}>
         <BarChart2 style={{ width: 32, height: 32, color: "#334155" }} />
         <p style={{ fontSize: 13, color: "#64748b", textAlign: "center" }}>
@@ -1054,7 +1054,7 @@ function TabCrecimiento() {
         <div className="kpi-card cyan">
           <div className="flex items-center gap-2 mb-2">
             <Users style={{ width: 16, height: 16, color: "#00d4ff" }} />
-            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(148,163,184,0.5)" }}>
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#64748b" }}>
               Seguidores Actuales
             </span>
           </div>
@@ -1065,7 +1065,7 @@ function TabCrecimiento() {
         <div className="kpi-card emerald">
           <div className="flex items-center gap-2 mb-2">
             <UserPlus style={{ width: 16, height: 16, color: "#06d6a0" }} />
-            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(148,163,184,0.5)" }}>
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#64748b" }}>
               Ganados (6 meses)
             </span>
           </div>
@@ -1076,7 +1076,7 @@ function TabCrecimiento() {
         <div className="kpi-card purple">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp style={{ width: 16, height: 16, color: "#7b61ff" }} />
-            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(148,163,184,0.5)" }}>
+            <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#64748b" }}>
               Tasa de Crecimiento
             </span>
           </div>
@@ -1170,7 +1170,7 @@ function TabCrecimiento() {
                   fontSize: 10,
                   fontFamily: "'Orbitron', sans-serif",
                   fontWeight: 600,
-                  color: "rgba(148,163,184,0.4)",
+                  color: "#64748b",
                 }}
               >
                 {d.period}
@@ -1226,7 +1226,7 @@ function TabCrecimiento() {
                       fontSize: 10,
                       fontFamily: "'Orbitron', sans-serif",
                       fontWeight: 600,
-                      color: "rgba(148,163,184,0.4)",
+                      color: "#64748b",
                     }}
                   >
                     {d.period}
