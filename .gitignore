@@ -52,3 +52,4 @@ token.txt
 meta-api.log
 proxy.ts.bak
 *.bak
+.vercel

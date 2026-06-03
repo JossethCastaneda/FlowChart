@@ -1,14 +1,31 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+// The Neon integration in Vercel uses a custom "STORAGE" prefix,
+// so variables are STORAGE_DATABASE_URL instead of DATABASE_URL.
+// We fall back automatically so it works regardless of the prefix.
+const databaseUrl =
+  process.env["DATABASE_URL"] ||
+  process.env["STORAGE_POSTGRES_PRISMA_URL"] ||
+  process.env["STORAGE_DATABASE_URL"] ||
+  process.env["POSTGRES_PRISMA_URL"] ||
+  "";
+
+const directUrl =
+  process.env["DIRECT_URL"] ||
+  process.env["STORAGE_DATABASE_URL_UNPOOLED"] ||
+  process.env["DATABASE_URL_UNPOOLED"] ||
+  process.env["POSTGRES_URL_NON_POOLING"] ||
+  databaseUrl;
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
     path: "prisma/migrations",
   },
   datasource: {
-    url: process.env["DATABASE_URL"]!,
+    url: databaseUrl,
     // @ts-expect-error — directUrl is supported at runtime but Prisma 7 types lag behind
-    directUrl: process.env["DIRECT_URL"],
+    directUrl: directUrl,
   },
 });
