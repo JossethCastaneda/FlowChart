@@ -7,7 +7,7 @@ import {
   MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark,
   CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp,
   Star, Bell, User, Phone, Mail, Globe, ExternalLink, Plus, Filter,
-  Archive, Inbox,
+  Archive, Inbox, Heart, Share2, Eye,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════
@@ -23,6 +23,27 @@ interface Message {
   timestamp: Date;
 }
 
+interface PostComment {
+  id: string;
+  text: string;
+  username: string;
+  userId?: string | null;
+  avatar?: string | null;
+  timestamp: string;
+  likes: number;
+}
+
+interface PostData {
+  caption: string;
+  mediaUrl: string | null;
+  mediaType: string;
+  permalink: string | null;
+  likeCount: number;
+  shareCount?: number;
+  commentsCount: number;
+  comments: PostComment[];
+}
+
 interface Conversation {
   id: string;
   contactName: string;
@@ -35,6 +56,7 @@ interface Conversation {
   assignedTo: string | null;
   tags: string[];
   messages: Message[];
+  _postData?: PostData | null;
 }
 
 // ═══════════════════════════════════════════════════════════════
@@ -364,6 +386,188 @@ function PageSelector({
 }
 
 // ═══════════════════════════════════════════════════════════════
+// POST VIEW — For comment-type conversations
+// ═══════════════════════════════════════════════════════════════
+
+function PostView({ conversation }: { conversation: Conversation }) {
+  const postData = (conversation as any)?._postData as PostData | null;
+  const pc = getPlatformConfig(conversation.platform);
+
+  if (!postData) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
+        <MessageSquare style={{ width: 32, height: 32, color: "rgba(148,163,184,0.2)" }} />
+        <p style={{ fontSize: 13, color: "rgba(148,163,184,0.4)" }}>Sin datos de publicación</p>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
+      {/* Header */}
+      <div style={{
+        padding: "12px 16px",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        display: "flex", alignItems: "center", gap: 10,
+      }}>
+        <div style={{
+          width: 32, height: 32, borderRadius: "50%",
+          background: pc.color, display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <pc.icon style={{ width: 16, height: 16, color: "white" }} />
+        </div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{(conversation as any)?._pageName || conversation.contactName}</div>
+          <div style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{pc.label} · {formatDate(conversation.lastMessageTime)}</div>
+        </div>
+        {postData.permalink && (
+          <a href={postData.permalink} target="_blank" rel="noopener noreferrer"
+            style={{
+              padding: "5px 10px", borderRadius: 6,
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              color: "#00d4ff", fontSize: 10, fontWeight: 600,
+              textDecoration: "none", display: "flex", alignItems: "center", gap: 4,
+            }}
+          >
+            <ExternalLink style={{ width: 10, height: 10 }} />
+            Ver publicación
+          </a>
+        )}
+      </div>
+
+      {/* Post content */}
+      <div style={{ flex: 1, overflowY: "auto", padding: "0" }}>
+        {/* Post image */}
+        {postData.mediaUrl && (
+          <div style={{
+            width: "100%", maxHeight: 340, overflow: "hidden",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(0,0,0,0.3)",
+          }}>
+            <img
+              src={postData.mediaUrl}
+              alt=""
+              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+          </div>
+        )}
+
+        {/* Engagement metrics */}
+        <div style={{
+          display: "flex", gap: 20, padding: "12px 16px",
+          borderBottom: "1px solid rgba(255,255,255,0.04)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <Heart style={{ width: 14, height: 14, color: "#ef4444" }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{postData.likeCount.toLocaleString()}</span>
+            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.35)" }}>likes</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <MessageCircle style={{ width: 14, height: 14, color: "#00d4ff" }} />
+            <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{postData.commentsCount.toLocaleString()}</span>
+            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.35)" }}>comentarios</span>
+          </div>
+          {(postData.shareCount || 0) > 0 && (
+            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+              <Share2 style={{ width: 14, height: 14, color: "#a855f7" }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{(postData.shareCount || 0).toLocaleString()}</span>
+              <span style={{ fontSize: 10, color: "rgba(148,163,184,0.35)" }}>shares</span>
+            </div>
+          )}
+        </div>
+
+        {/* Caption */}
+        {postData.caption && (
+          <div style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+            <p style={{
+              fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.6,
+              margin: 0, whiteSpace: "pre-wrap",
+            }}>
+              {postData.caption.length > 300 ? postData.caption.slice(0, 300) + "..." : postData.caption}
+            </p>
+          </div>
+        )}
+
+        {/* Comments section */}
+        <div style={{ padding: "12px 16px 6px" }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700, color: "rgba(148,163,184,0.5)",
+            letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12,
+          }}>
+            Comentarios ({postData.commentsCount})
+          </div>
+
+          {postData.comments.length === 0 ? (
+            <p style={{ fontSize: 12, color: "rgba(148,163,184,0.3)", textAlign: "center", padding: 20 }}>
+              Sin comentarios recientes
+            </p>
+          ) : (
+            postData.comments.map((comment, i) => (
+              <div key={comment.id || i} style={{
+                display: "flex", gap: 10, padding: "10px 0",
+                borderBottom: i < postData.comments.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none",
+              }}>
+                {/* Commenter avatar */}
+                <div style={{ flexShrink: 0 }}>
+                  {comment.avatar ? (
+                    <img
+                      src={comment.avatar}
+                      alt=""
+                      style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = "none";
+                        const parent = (e.target as HTMLImageElement).parentElement;
+                        if (parent && !parent.querySelector(".fb-avatar")) {
+                          const d = document.createElement("div");
+                          d.className = "fb-avatar";
+                          d.style.cssText = "width:32px;height:32px;border-radius:50%;background:rgba(168,85,247,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#a855f7;";
+                          d.textContent = comment.username.charAt(0).toUpperCase();
+                          parent.insertBefore(d, e.target as Node);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div style={{
+                      width: 32, height: 32, borderRadius: "50%",
+                      background: "rgba(168,85,247,0.1)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 11, fontWeight: 700, color: "#a855f7",
+                    }}>
+                      {comment.username.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+
+                {/* Comment content */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "white" }}>{comment.username}</span>
+                    <span style={{ fontSize: 9, color: "rgba(148,163,184,0.3)" }}>
+                      {new Date(comment.timestamp).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                  </div>
+                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", margin: 0, lineHeight: 1.5 }}>
+                    {comment.text}
+                  </p>
+                  {comment.likes > 0 && (
+                    <div style={{ display: "flex", alignItems: "center", gap: 3, marginTop: 4 }}>
+                      <Heart style={{ width: 10, height: 10, color: "#ef4444" }} />
+                      <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>{comment.likes}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
 // MAIN LAYOUT
 // ═══════════════════════════════════════════════════════════════
 
@@ -445,6 +649,7 @@ export function InboxLayout() {
                 messages: [],
                 _pageId: c.pageId,
                 _pageName: c.pageName,
+                _postData: c._postData || null,
               };
             });
             setConversations(mapped);
@@ -892,7 +1097,10 @@ export function InboxLayout() {
                         fontWeight: conv.unread ? 500 : 400,
                         lineHeight: 1.4,
                       }}>
-                        {conv.lastMessage.startsWith("Tú:") ? conv.lastMessage : `Tú: ${conv.lastMessage}`}
+                        {(conv.platform === "fb_comment" || conv.platform === "ig_comment" || conv.platform === "instagram_comment")
+                          ? conv.lastMessage
+                          : (conv.lastMessage.startsWith("Tú:") ? conv.lastMessage : `Tú: ${conv.lastMessage}`)
+                        }
                       </p>
                       {conv.closed && (
                         <span style={{
@@ -914,18 +1122,22 @@ export function InboxLayout() {
           </div>
         </div>
 
-        {/* ═══ CENTER — Chat View ═══ */}
+        {/* ═══ CENTER — Chat View / Post View ═══ */}
         <div style={{
           flex: 1, display: "flex", flexDirection: "column",
           minWidth: 0, background: "rgba(5,8,18,0.5)",
         }}>
-          <ChatView
-            conversation={selected}
-            onSend={handleSendMessage}
-            onClose={handleCloseConversation}
-            onToggleProfile={() => setShowProfile(!showProfile)}
-            showProfile={showProfile}
-          />
+          {selected.platform === "fb_comment" || selected.platform === "ig_comment" || selected.platform === "instagram_comment" ? (
+            <PostView conversation={selected} />
+          ) : (
+            <ChatView
+              conversation={selected}
+              onSend={handleSendMessage}
+              onClose={handleCloseConversation}
+              onToggleProfile={() => setShowProfile(!showProfile)}
+              showProfile={showProfile}
+            />
+          )}
         </div>
 
         {/* ═══ RIGHT — Contact Profile ═══ */}
