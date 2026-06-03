@@ -441,15 +441,20 @@ function PostView({ conversation }: { conversation: Conversation }) {
         {/* Post image */}
         {postData.mediaUrl && (
           <div style={{
-            width: "100%", maxHeight: 340, overflow: "hidden",
+            width: "100%",
             borderBottom: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(0,0,0,0.3)",
+            background: "rgba(0,0,0,0.4)",
+            display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <img
               src={postData.mediaUrl}
               alt=""
-              style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+              style={{
+                width: "100%", maxHeight: 500,
+                objectFit: "contain",
+                display: "block",
+              }}
+              onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
             />
           </div>
         )}
