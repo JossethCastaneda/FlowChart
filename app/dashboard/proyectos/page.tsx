@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
@@ -507,6 +507,14 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
    ═══════════════════════════════════════ */
 
 export default function ProyectosPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.5)" }}>Cargando Proyectos...</div>}>
+      <ProyectosContent />
+    </Suspense>
+  );
+}
+
+function ProyectosContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
