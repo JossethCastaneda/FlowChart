@@ -14,7 +14,7 @@ import {
 // TYPES
 // ═══════════════════════════════════════════════════════════════
 
-type Platform = "fb_messenger" | "ig_dm" | "ig_comment";
+type Platform = "fb_messenger" | "ig_dm" | "ig_comment" | "fb_comment" | "instagram_comment";
 
 interface Message {
   id: string;
@@ -26,6 +26,7 @@ interface Message {
 interface Conversation {
   id: string;
   contactName: string;
+  contactAvatar?: string | null;
   platform: Platform;
   lastMessage: string;
   lastMessageTime: Date;
@@ -83,9 +84,22 @@ function getPlatformConfig(platform: Platform) {
     case "ig_dm":
       return { label: "Instagram", color: "#E1306C", icon: MessageCircle, bgAlpha: "rgba(225,48,108,0.12)" };
     case "ig_comment":
+    case "instagram_comment":
       return { label: "Comentario IG", color: "#F77737", icon: AtSign, bgAlpha: "rgba(247,119,55,0.12)" };
+    case "fb_comment":
+      return { label: "Comentario FB", color: "#1877F2", icon: MessageSquare, bgAlpha: "rgba(24,119,242,0.12)" };
   }
 }
+
+type ChannelFilter = "all" | "messenger" | "instagram" | "fb_comment" | "ig_comment";
+
+const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; platforms: Platform[] }[] = [
+  { key: "all", label: "Todos los mensajes", color: "#00d4ff", platforms: [] },
+  { key: "messenger", label: "Messenger", color: "#0084ff", platforms: ["fb_messenger"] },
+  { key: "instagram", label: "Instagram", color: "#E1306C", platforms: ["ig_dm"] },
+  { key: "fb_comment", label: "Comentarios de Facebook", color: "#1877F2", platforms: ["fb_comment"] },
+  { key: "ig_comment", label: "Comentarios de Instagram", color: "#F77737", platforms: ["ig_comment", "instagram_comment"] },
+];
 
 function getInitials(name: string): string {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
@@ -361,6 +375,7 @@ export function InboxLayout() {
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [connectedPages, setConnectedPages] = useState<ConnectedPage[]>([]);
   const [selectedPage, setSelectedPage] = useState<ConnectedPage | null>(null);
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
 
   // Fetch connected pages
   useEffect(() => {
@@ -408,21 +423,30 @@ export function InboxLayout() {
         if (res.ok) {
           const data = await res.json();
           if (data.conversations && data.conversations.length > 0) {
-            const mapped: Conversation[] = data.conversations.map((c: any) => ({
-              id: c.id,
-              contactName: c.contactName || "Usuario",
-              platform: c.platform === "facebook_messenger" ? "fb_messenger" as Platform :
-                        c.platform === "instagram_dm" ? "ig_dm" as Platform : "ig_comment" as Platform,
-              lastMessage: c.lastMessage || "",
-              lastMessageTime: new Date(c.lastMessageAt || Date.now()),
-              unread: c.unread || false,
-              closed: false,
-              assignedTo: null,
-              tags: [],
-              messages: [],
-              _pageId: c.pageId,
-              _pageName: c.pageName,
-            }));
+            const mapped: Conversation[] = data.conversations.map((c: any) => {
+              const platformMap: Record<string, Platform> = {
+                facebook_messenger: "fb_messenger",
+                instagram_dm: "ig_dm",
+                ig_comment: "ig_comment",
+                instagram_comment: "instagram_comment",
+                facebook_comment: "fb_comment",
+              };
+              return {
+                id: c.id,
+                contactName: c.contactName || "Usuario",
+                contactAvatar: c.contactAvatar || null,
+                platform: (platformMap[c.platform] || "fb_messenger") as Platform,
+                lastMessage: c.lastMessage || "",
+                lastMessageTime: new Date(c.lastMessageAt || Date.now()),
+                unread: c.unread || false,
+                closed: false,
+                assignedTo: null,
+                tags: [],
+                messages: [],
+                _pageId: c.pageId,
+                _pageName: c.pageName,
+              };
+            });
             setConversations(mapped);
             setSelectedId(mapped[0]?.id || "");
 
@@ -482,7 +506,7 @@ export function InboxLayout() {
 
   const selected = conversations.find(c => c.id === selectedId) || conversations[0];
 
-  // Apply search + page filter
+  // Apply search + page + channel filter
   const filtered = conversations.filter(c => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -492,6 +516,11 @@ export function InboxLayout() {
     if (selectedPage) {
       const convPageId = (c as any)?._pageId;
       if (convPageId && convPageId !== selectedPage.id) return false;
+    }
+    // Filter by channel
+    if (channelFilter !== "all") {
+      const tab = CHANNEL_TABS.find(t => t.key === channelFilter);
+      if (tab && tab.platforms.length > 0 && !tab.platforms.includes(c.platform)) return false;
     }
     return true;
   });
@@ -657,6 +686,60 @@ export function InboxLayout() {
         </div>
       )}
 
+      {/* ─── Channel Tabs ─── */}
+      {conversations.length > 0 && initialFetchDone && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 0,
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          padding: "0 12px",
+          overflowX: "auto",
+          flexShrink: 0,
+        }}>
+          {CHANNEL_TABS.map(tab => {
+            const count = tab.key === "all"
+              ? conversations.filter(c => c.unread).length
+              : conversations.filter(c => tab.platforms.includes(c.platform) && c.unread).length;
+            const isActive = channelFilter === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setChannelFilter(tab.key)}
+                style={{
+                  padding: "10px 14px",
+                  fontSize: 12, fontWeight: isActive ? 600 : 400,
+                  color: isActive ? tab.color : "rgba(148,163,184,0.5)",
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
+                  cursor: "pointer",
+                  transition: "all 0.15s",
+                  whiteSpace: "nowrap",
+                  fontFamily: "inherit",
+                  display: "flex", alignItems: "center", gap: 6,
+                  position: "relative",
+                }}
+                onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
+                onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "rgba(148,163,184,0.5)"; }}
+              >
+                {tab.label}
+                {count > 0 && (
+                  <span style={{
+                    minWidth: 18, height: 18, borderRadius: 9,
+                    background: tab.key === "all" ? "#ef4444" : tab.color,
+                    color: "white",
+                    fontSize: 10, fontWeight: 700,
+                    display: "inline-flex", alignItems: "center", justifyContent: "center",
+                    padding: "0 5px",
+                  }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* ─── 3-Panel Layout ─── */}
       {conversations.length > 0 && selected && (
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
@@ -730,15 +813,40 @@ export function InboxLayout() {
                   >
                     {/* Avatar */}
                     <div style={{ position: "relative", flexShrink: 0 }}>
-                      <div style={{
-                        width: 42, height: 42, borderRadius: "50%",
-                        background: `linear-gradient(135deg, ${pc.color}20, ${pc.color}08)`,
-                        border: `1.5px solid ${pc.color}30`,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 14, fontWeight: 700, color: pc.color,
-                      }}>
-                        {getInitials(conv.contactName)}
-                      </div>
+                      {conv.contactAvatar ? (
+                        <img
+                          src={conv.contactAvatar}
+                          alt=""
+                          style={{
+                            width: 42, height: 42, borderRadius: "50%",
+                            objectFit: "cover",
+                            border: `1.5px solid ${pc.color}30`,
+                          }}
+                          onError={(e) => {
+                            // Fallback to initials on load error
+                            const target = e.target as HTMLImageElement;
+                            target.style.display = "none";
+                            const parent = target.parentElement;
+                            if (parent && !parent.querySelector(".fallback-avatar")) {
+                              const fallback = document.createElement("div");
+                              fallback.className = "fallback-avatar";
+                              fallback.style.cssText = `width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,${pc.color}20,${pc.color}08);border:1.5px solid ${pc.color}30;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:${pc.color};`;
+                              fallback.textContent = getInitials(conv.contactName);
+                              parent.insertBefore(fallback, target);
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div style={{
+                          width: 42, height: 42, borderRadius: "50%",
+                          background: `linear-gradient(135deg, ${pc.color}20, ${pc.color}08)`,
+                          border: `1.5px solid ${pc.color}30`,
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: 14, fontWeight: 700, color: pc.color,
+                        }}>
+                          {getInitials(conv.contactName)}
+                        </div>
+                      )}
                       {conv.unread && (
                         <div style={{
                           position: "absolute", top: -1, right: -1,
