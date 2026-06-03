@@ -154,7 +154,19 @@ export async function POST(req: NextRequest) {
         break;
       }
       pages = [...pages, ...(pagesJson.data || [])];
-      nextPagesUrl = pagesJson.paging?.next || null;
+      // Strip access_token from paging.next — metaFetch adds Bearer header
+      const rawNext = pagesJson.paging?.next || null;
+      if (rawNext) {
+        try {
+          const u = new URL(rawNext);
+          u.searchParams.delete("access_token");
+          nextPagesUrl = u.toString();
+        } catch {
+          nextPagesUrl = null;
+        }
+      } else {
+        nextPagesUrl = null;
+      }
     }
 
     if (pages.length === 0) {

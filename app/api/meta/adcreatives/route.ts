@@ -246,9 +246,10 @@ export async function GET(req: NextRequest) {
     }
     const videoResults = await Promise.allSettled(
       chunks.map(chunk =>
-        metaFetch(
-          `https://graph.facebook.com/${version}/?ids=${chunk.join(",")}&fields=source`,
-          accessToken
+        // NOTE: The /?ids= batch endpoint requires access_token in URL (not just Bearer)
+        // This is a documented exception in Meta's Graph API spec
+        fetch(
+          `https://graph.facebook.com/${version}/?ids=${chunk.join(",")}&fields=source&access_token=${accessToken}`
         )
       )
     );

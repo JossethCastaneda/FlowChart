@@ -46,8 +46,26 @@ export async function GET(req: NextRequest) {
  */
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    // ── HMAC-SHA256 Signature Validation (Meta Security Requirement) ──────
+    const rawBody = await req.text();
+    const signature = req.headers.get("x-hub-signature-256");
+    const appSecret = process.env.FACEBOOK_CLIENT_SECRET || "";
+
+    if (appSecret && signature) {
+      const { createHmac } = await import("crypto");
+      const expected = "sha256=" + createHmac("sha256", appSecret).update(rawBody).digest("hex");
+      if (signature !== expected) {
+        console.warn("[WEBHOOK] ❌ HMAC signature mismatch — possible spoofed request");
+        return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
+      }
+    } else if (!signature) {
+      // Log warning but don't reject — during initial setup Meta may skip it
+      console.warn("[WEBHOOK] ⚠️ No X-Hub-Signature-256 header — verify Meta app webhook config");
+    }
+
+    const body = JSON.parse(rawBody);
     const object = body.object; // "page", "instagram", "ad_account", "whatsapp_business_account"
+
 
     console.log(`[WEBHOOK] 📨 Event received — object: ${object}, entries: ${body.entry?.length || 0}`);
 

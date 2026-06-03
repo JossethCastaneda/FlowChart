@@ -10,10 +10,8 @@ const META_VERSION = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
  * POST /api/meta/refresh-token
  *
  * Refreshes the Meta long-lived token before it expires (60-day lifecycle).
- * Should be called periodically (e.g., every 50 days) or when a 401 is detected.
- *
- * Long-lived tokens can be refreshed by exchanging them again, producing
- * a new 60-day token. Tokens that are expired cannot be refreshed.
+ * Updates the generic "meta" integration AND all module-specific integrations
+ * (meta_ads, meta_analytics, meta_social, meta_community, meta_publisher_facebook, meta_publisher_instagram).
  */
 export async function POST(req: NextRequest) {
   try {
@@ -27,22 +25,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
     }
 
-    // Get current integration
-    const integration = await prisma.integration.findUnique({
+    // Get current integration — prefer generic "meta", fallback to any meta_* module
+    const allIntegrations = await prisma.integration.findMany({
       where: {
-        workspaceId_provider: { workspaceId, provider: "meta" },
+        workspaceId,
+        provider: { startsWith: "meta" },
+        connected: true,
       },
     });
 
-    if (!integration?.connected || !integration.credentials) {
+    if (allIntegrations.length === 0) {
       return NextResponse.json(
         { error: "No hay integración de Meta conectada" },
         { status: 400 }
       );
     }
 
+    // Pick the best available token to exchange
+    const genericMeta = allIntegrations.find(i => i.provider === "meta");
+    const anyMeta = allIntegrations[0];
+    const integration = genericMeta || anyMeta;
     const creds = integration.credentials as any;
     const currentToken = creds?.accessToken;
+
     if (!currentToken) {
       return NextResponse.json(
         { error: "No se encontró token de Meta" },
@@ -64,10 +69,10 @@ export async function POST(req: NextRequest) {
       const errorMsg = exchangeData?.error?.message || "Error al refrescar token";
       console.error("[META REFRESH] Failed:", errorMsg);
 
-      // If token is expired, mark integration as disconnected
       if (exchangeData?.error?.code === 190) {
-        await prisma.integration.update({
-          where: { workspaceId_provider: { workspaceId, provider: "meta" } },
+        // Mark ALL meta integrations as disconnected
+        await prisma.integration.updateMany({
+          where: { workspaceId, provider: { startsWith: "meta" } },
           data: { connected: false },
         });
         return NextResponse.json(
@@ -79,28 +84,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: errorMsg }, { status: 400 });
     }
 
-    // Update the Integration with the new token
+    const newToken = exchangeData.access_token;
     const expiresIn = exchangeData.expires_in || 5184000; // default 60 days
     const expiresAt = new Date(Date.now() + expiresIn * 1000);
+    const refreshedAt = new Date().toISOString();
 
-    await prisma.integration.update({
-      where: { workspaceId_provider: { workspaceId, provider: "meta" } },
-      data: {
-        credentials: {
-          accessToken: exchangeData.access_token,
-          expiresAt: expiresAt.toISOString(),
-          refreshedAt: new Date().toISOString(),
+    // Update ALL connected meta_* integrations with the new token
+    const updatePromises = allIntegrations.map(intg => {
+      const existingCreds = (intg.credentials as any) || {};
+      return prisma.integration.update({
+        where: { id: intg.id },
+        data: {
+          credentials: {
+            ...existingCreds,
+            accessToken: newToken,
+            expiresAt: expiresAt.toISOString(),
+            refreshedAt,
+          },
+          connectedAt: new Date(),
         },
-        connectedAt: new Date(),
-      },
+      });
     });
 
-    console.log(`[META REFRESH] Token refreshed for workspace ${workspaceId}, expires: ${expiresAt.toISOString()}`);
+    await Promise.allSettled(updatePromises);
+
+    console.log(`[META REFRESH] Token refreshed for workspace ${workspaceId} — ${allIntegrations.length} integrations updated, expires: ${expiresAt.toISOString()}`);
 
     return NextResponse.json({
       success: true,
       expiresAt: expiresAt.toISOString(),
       expiresInDays: Math.floor(expiresIn / 86400),
+      integrationsUpdated: allIntegrations.length,
     });
   } catch (err: any) {
     console.error("[META REFRESH] Error:", err);

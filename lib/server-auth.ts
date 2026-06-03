@@ -201,10 +201,23 @@ export async function metaGetAll(
     }
     const json = await res.json();
     if (json.data) allData.push(...json.data);
-    // Pagination cursors from Meta — strip access_token, use Bearer instead
-    nextUrl = json.paging?.next || null;
+    // Strip access_token from paging.next before re-using — metaFetch adds Bearer instead
+    const rawNext = json.paging?.next || null;
+    if (rawNext) {
+      try {
+        const nextUrlObj = new URL(rawNext);
+        nextUrlObj.searchParams.delete("access_token");
+        nextUrl = nextUrlObj.toString();
+      } catch {
+        nextUrl = null;
+      }
+    } else {
+      nextUrl = null;
+    }
   }
 
   return { data: allData };
 }
+
+
 

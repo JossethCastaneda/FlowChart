@@ -92,6 +92,8 @@ export async function GET(
   fbUrl.searchParams.set("response_type", "code");
   // override_default_response_type is needed when using config_id
   fbUrl.searchParams.set("override_default_response_type", "true");
+  // display=popup tells Facebook to render the OAuth dialog in popup mode (no nav bar)
+  fbUrl.searchParams.set("display", "popup");
 
   return NextResponse.redirect(fbUrl.toString());
 }

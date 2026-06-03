@@ -23,6 +23,8 @@ export function mapMetaError(metaError: any): MetaErrorParsed {
   const transientCodes = [1, 2, 4, 17, 613, 80000, 80001, 80002, 80003, 80004];
   const policyCodes = [368, 1404078, 1404163, 2859015];
   const permissionCodes = [10, 200, 294, 1815694];
+  // Code 2424009: token generated in Development mode — must go live or reconnect
+  const devModeCodes = [2424009];
 
   if (transientCodes.includes(code)) {
     return {
@@ -30,6 +32,17 @@ export function mapMetaError(metaError: any): MetaErrorParsed {
       action: "retry_backoff",
       retryable: true,
       user_message: "Perturbación en la fuerza (Error temporal de Meta). Intenta nuevamente más tarde.",
+      original_code: code,
+      original_subcode: subcode
+    };
+  }
+
+  if (devModeCodes.includes(subcode) || subcode === 2424009) {
+    return {
+      category: "policy",
+      action: "human_intervention",
+      retryable: false,
+      user_message: "Token generado en modo Desarrollo. Ve a Integraciones, desconecta y vuelve a conectar tu cuenta para obtener un token de producción válido.",
       original_code: code,
       original_subcode: subcode
     };
