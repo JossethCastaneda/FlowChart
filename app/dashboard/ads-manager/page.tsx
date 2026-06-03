@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useSession as useSessionHook } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, ChevronDown } from "lucide-react";
+import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, ChevronDown, CheckCircle, AlertTriangle } from "lucide-react";
 import DateRangePicker from "@/components/DateRangePicker";
 import { AccountSelector } from "@/components/ads-manager/AccountSelector";
 import { BreakdownSelector } from "@/components/ads-manager/BreakdownSelector";
@@ -95,6 +95,25 @@ function AdsManagerContent() {
   const isEmbedded = searchParams.get("embedded") === "1";
   const initialAccount = searchParams.get("account") || "";
   const projectAccountsParam = searchParams.get("project_accounts") || "";
+
+  // Meta Ads connection status
+  const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
+  const [justConnected, setJustConnected] = useState(false);
+
+  useEffect(() => {
+    // Detect redirect back from OAuth callback
+    if (searchParams.get("connected") === "ads") {
+      setJustConnected(true);
+    }
+    // Check integration status
+    fetch("/api/connect/status")
+      .then((r) => r.json())
+      .then((data) => {
+        const adsMod = data?.modules?.ads;
+        setAdsConnected(adsMod?.connected ?? false);
+      })
+      .catch(() => setAdsConnected(false));
+  }, []);
 
   // Accounts state
   const [accounts, setAccounts] = useState<any[]>([]);
@@ -826,30 +845,64 @@ function AdsManagerContent() {
     }
   };
 
-  // Guard: si no hay cuentas de Meta conectadas en el workspace
+  // Guard: si no hay cuentas de Meta Ads conectadas en el workspace
   if (!loadingAccounts && accounts.length === 0) {
     return (
       <div className="space-y-6">
         <PageHeader title="Ads Manager" icon={<Megaphone className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
+
+        {/* ── META ADS CONNECTION PANEL ── */}
+        {justConnected ? (
+          <div style={{
+            display: "flex", alignItems: "center", gap: "10px",
+            padding: "12px 16px",
+            background: "rgba(6,214,160,0.08)",
+            border: "1px solid rgba(6,214,160,0.3)",
+            borderRadius: "6px",
+          }}>
+            <CheckCircle className="w-4 h-4" style={{ color: "#06d6a0", flexShrink: 0 }} />
+            <span style={{ fontSize: "12px", color: "#06d6a0", fontWeight: 600 }}>
+              ✅ Meta Ads conectado — sincronizando cuentas publicitarias...
+            </span>
+          </div>
+        ) : (
+          <div style={{
+            display: "flex", alignItems: "center", gap: "12px",
+            padding: "12px 16px",
+            background: "rgba(251,191,36,0.07)",
+            border: "1px solid rgba(251,191,36,0.25)",
+            borderRadius: "6px",
+          }}>
+            <AlertTriangle className="w-4 h-4" style={{ color: "#fbbf24", flexShrink: 0 }} />
+            <span style={{ fontSize: "12px", color: "rgba(251,191,36,0.9)", flex: 1 }}>
+              Ads Manager no está conectado. Conecta tu cuenta de Meta Ads para ver campañas, conjuntos y anuncios.
+            </span>
+            <a
+              href="/api/connect/ads"
+              style={{
+                display: "inline-flex", alignItems: "center", gap: "6px",
+                padding: "7px 16px",
+                background: "rgba(251,191,36,0.15)",
+                border: "1px solid rgba(251,191,36,0.4)",
+                color: "#fbbf24",
+                fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em",
+                borderRadius: "4px", cursor: "pointer", textDecoration: "none",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Conectar Ads Manager
+            </a>
+          </div>
+        )}
+
         <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
           <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.2)" }} />
           <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "rgba(148,163,184,0.4)", textTransform: "uppercase", marginBottom: "8px" }}>
-            Conexión Meta requerida
+            Conexión Meta Ads requerida
           </p>
           <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.3)", marginBottom: "20px" }}>
-            Este workspace necesita que un OWNER o ADMIN conecte su cuenta de Facebook para acceder a la API de Meta Ads.
+            Conecta tu cuenta de Meta Ads Manager para acceder a campañas, conjuntos de anuncios y métricas en tiempo real.
           </p>
-          {session?.provider !== "facebook" && (
-            <button
-              className="btn-primary"
-              onClick={async () => {
-                const { signIn } = await import("next-auth/react");
-                signIn("facebook", { callbackUrl: window.location.href });
-              }}
-            >
-              Conectar con Facebook
-            </button>
-          )}
         </div>
       </div>
     );

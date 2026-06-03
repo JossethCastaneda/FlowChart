@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
 
   const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[] }> = {};
 
-  for (const mod of ["social", "ads", "analytics", "community"]) {
+  for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community"]) {
     const integration = integrations.find((i) => i.provider === `meta_${mod}`);
     const creds = integration?.credentials as any;
 

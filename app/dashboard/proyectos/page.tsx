@@ -3,13 +3,14 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { KpiCard } from "@/components/ui/KpiCard";
 import {
   FolderKanban, Plus, X, Users, Globe, DollarSign, Target, Rocket,
-  Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown, AlertTriangle
+  Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown, AlertTriangle, CheckCircle
 } from "lucide-react";
 
 /* ═══════════════════════════════════════
@@ -507,6 +508,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
 
 export default function ProyectosPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalMode, setModalMode] = useState<"closed" | "create" | "edit" | "view">("closed");
@@ -514,6 +516,23 @@ export default function ProyectosPage() {
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+
+  // Meta Ads connection status
+  const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
+  const [justConnected, setJustConnected] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("connected") === "ads") {
+      setJustConnected(true);
+    }
+    fetch("/api/connect/status")
+      .then((r) => r.json())
+      .then((data) => {
+        const adsMod = data?.modules?.ads;
+        setAdsConnected(adsMod?.connected ?? false);
+      })
+      .catch(() => setAdsConnected(false));
+  }, []);
 
   // FIX: removed fake Google/TikTok/WhatsApp hardcoded accounts.
   // Only Meta is connected. Other platforms show "(próximamente)" via PLATFORMS.connected=false.
@@ -676,6 +695,50 @@ export default function ProyectosPage() {
         <KpiCard color="cyan" icon={<Target className="w-4 h-4" />} value={activeCount} label="En Vuelo" trend="up" trendValue={`${((activeCount / Math.max(projects.length, 1)) * 100).toFixed(0)}% activos`} />
         <KpiCard color="amber" icon={<DollarSign className="w-4 h-4" />} value={`$${totalBudget.toLocaleString()}`} label="Budget Total" />
       </div>
+
+      {/* ── META ADS CONNECTION PANEL ── */}
+      {adsConnected === true || justConnected ? (
+        <div style={{
+          display: "flex", alignItems: "center", gap: "10px",
+          padding: "12px 16px",
+          background: "rgba(6,214,160,0.08)",
+          border: "1px solid rgba(6,214,160,0.3)",
+          borderRadius: "6px",
+        }}>
+          <CheckCircle className="w-4 h-4" style={{ color: "#06d6a0", flexShrink: 0 }} />
+          <span style={{ fontSize: "12px", color: "#06d6a0", fontWeight: 600 }}>
+            ✅ Meta Ads conectado
+          </span>
+        </div>
+      ) : adsConnected === false ? (
+        <div style={{
+          display: "flex", alignItems: "center", gap: "12px",
+          padding: "12px 16px",
+          background: "rgba(251,191,36,0.07)",
+          border: "1px solid rgba(251,191,36,0.25)",
+          borderRadius: "6px",
+        }}>
+          <AlertTriangle className="w-4 h-4" style={{ color: "#fbbf24", flexShrink: 0 }} />
+          <span style={{ fontSize: "12px", color: "rgba(251,191,36,0.9)", flex: 1 }}>
+            Ads Manager no está conectado. Conecta Meta Ads para vincular cuentas publicitarias a tus proyectos.
+          </span>
+          <a
+            href="/api/connect/ads"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              padding: "7px 16px",
+              background: "rgba(251,191,36,0.15)",
+              border: "1px solid rgba(251,191,36,0.4)",
+              color: "#fbbf24",
+              fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em",
+              borderRadius: "4px", cursor: "pointer", textDecoration: "none",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Conectar Ads Manager
+          </a>
+        </div>
+      ) : null}
 
       {/* List */}
       <div className="glass-panel" style={{ overflow: "visible" }}>
