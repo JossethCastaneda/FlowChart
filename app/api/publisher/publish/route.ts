@@ -121,6 +121,7 @@ export async function POST(req: NextRequest) {
             // ── Multipart binary upload via axios + form-data ──
             const isVideo = resolved.contentType.startsWith("video/");
             const endpoint = isVideo ? "videos" : "photos";
+            const domain = isVideo ? "graph-video.facebook.com" : "graph.facebook.com";
             
             const form = new FormData();
             if (isVideo) {
@@ -135,7 +136,7 @@ export async function POST(req: NextRequest) {
 
             try {
               const fbRes = await axios.post(
-                `https://graph.facebook.com/${META_VERSION}/${pageId}/${endpoint}?access_token=${pageToken}`,
+                `https://${domain}/${META_VERSION}/${pageId}/${endpoint}?access_token=${pageToken}`,
                 form,
                 { headers: form.getHeaders() }
               );
@@ -199,6 +200,7 @@ export async function POST(req: NextRequest) {
             // Upload to Facebook as unpublished photo/video to get a public URL
             const isVideo = resolved.contentType.startsWith("video/");
             const endpoint = isVideo ? "videos" : "photos";
+            const domain = isVideo ? "graph-video.facebook.com" : "graph.facebook.com";
             
             const form = new FormData();
             form.append("published", "false");
@@ -210,25 +212,36 @@ export async function POST(req: NextRequest) {
 
             try {
               const uploadRes = await axios.post(
-                `https://graph.facebook.com/${META_VERSION}/${pageId}/${endpoint}?access_token=${pageToken}`,
+                `https://${domain}/${META_VERSION}/${pageId}/${endpoint}?access_token=${pageToken}`,
                 form,
                 { headers: form.getHeaders() }
               );
               
               if (uploadRes.data.id) {
-                // Get the media URL from the uploaded photo/video
-                const fields = isVideo ? "source" : "images";
-                const photoRes = await fetch(
-                  `https://graph.facebook.com/${META_VERSION}/${uploadRes.data.id}?fields=${fields}`,
-                  { headers: { Authorization: `Bearer ${pageToken}` } }
-                );
-                const photoData = await photoRes.json();
-                
+                // If it's a video, we might need to wait for processing to get the source URL
                 let bestMedia = null;
-                if (isVideo) {
-                  bestMedia = photoData?.source;
-                } else {
-                  bestMedia = photoData?.images?.[0]?.source;
+                const maxRetries = isVideo ? 6 : 1;
+                
+                for (let i = 0; i < maxRetries; i++) {
+                  const fields = isVideo ? "source" : "images";
+                  const photoRes = await fetch(
+                    `https://graph.facebook.com/${META_VERSION}/${uploadRes.data.id}?fields=${fields}`,
+                    { headers: { Authorization: `Bearer ${pageToken}` } }
+                  );
+                  const photoData = await photoRes.json();
+                  
+                  if (isVideo && photoData?.source) {
+                    bestMedia = photoData.source;
+                    break;
+                  } else if (!isVideo && photoData?.images?.[0]?.source) {
+                    bestMedia = photoData.images[0].source;
+                    break;
+                  }
+                  
+                  if (isVideo && i < maxRetries - 1) {
+                    // Wait 5 seconds before retrying
+                    await new Promise(r => setTimeout(r, 5000));
+                  }
                 }
                 
                 if (bestMedia) {

@@ -1,6 +1,12 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
-prisma.project.findMany().then(p => {
-  console.log(p.map(x => ({ id: x.id, alias: x.alias, status: x.status })));
-  prisma.$disconnect();
-});
+
+async function main() {
+  const post = await prisma.scheduledPost.findFirst({
+    where: { status: 'Failed' },
+    orderBy: { updatedAt: 'desc' }
+  });
+  console.log(post ? post.error : "No failed posts found");
+}
+
+main().catch(console.error).finally(() => prisma.$disconnect());
