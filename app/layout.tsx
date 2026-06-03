@@ -12,6 +12,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from "@/components/layout/AuthProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function RootLayout({
   children,
@@ -24,6 +25,7 @@ export default function RootLayout({
         <AuthProvider>
           <ClientMainWrapper>{children}</ClientMainWrapper>
         </AuthProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
