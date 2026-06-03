@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 
 import {
-  Search, Send, X, ChevronRight, ChevronLeft, UserPlus, Tag, Clock,
+  Search, Send, X, ChevronRight, ChevronDown, ChevronUp, UserPlus, Tag, Clock,
   MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark,
-  CheckCircle2, Circle, AlertCircle,
+  CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp,
+  Star, Bell, User, Phone, Mail, Globe, ExternalLink, Plus, Filter,
+  Archive, Inbox,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════
@@ -13,6 +15,7 @@ import {
 // ═══════════════════════════════════════════════════════════════
 
 type Platform = "fb_messenger" | "ig_dm" | "ig_comment";
+type ChannelFilter = "all" | "messenger" | "instagram" | "ig_comment";
 
 interface Message {
   id: string;
@@ -35,12 +38,11 @@ interface Conversation {
 }
 
 // ═══════════════════════════════════════════════════════════════
-/* No demo data — real conversations loaded from API */
 
 const SAVED_REPLIES = [
   "¡Hola! Gracias por contactarnos. ¿En qué podemos ayudarte?",
   "Nuestro horario de atención es de Lunes a Viernes, 9:00 AM a 6:00 PM.",
-  "Hacemos envíos a toda la República Mexicana. El envío es gratis en compras mayores a $500.",
+  "Hacemos envíos a toda la República Mexicana. Envío gratis en compras mayores a $500.",
   "Te comparto el enlace de nuestro catálogo: [enlace]",
   "Gracias por tu compra. ¡Esperamos verte pronto!",
 ];
@@ -55,24 +57,34 @@ function relativeTime(date: Date): string {
   const diffMs = Date.now() - date.getTime();
   const diffMin = Math.floor(diffMs / 60000);
   if (diffMin < 1) return "ahora";
-  if (diffMin < 60) return `hace ${diffMin}m`;
+  if (diffMin < 60) return `${diffMin}m`;
   const diffH = Math.floor(diffMin / 60);
-  if (diffH < 24) return `hace ${diffH}h`;
-  return `hace ${Math.floor(diffH / 24)}d`;
+  if (diffH < 24) return `${diffH}h`;
+  return `${Math.floor(diffH / 24)}d`;
 }
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString("es-MX", { hour: "2-digit", minute: "2-digit" });
 }
 
+function formatDate(date: Date): string {
+  const today = new Date();
+  const d = new Date(date);
+  if (d.toDateString() === today.toDateString()) return "Hoy";
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  if (d.toDateString() === yesterday.toDateString()) return "Ayer";
+  return d.toLocaleDateString("es-MX", { day: "2-digit", month: "short" });
+}
+
 function getPlatformConfig(platform: Platform) {
   switch (platform) {
     case "fb_messenger":
-      return { label: "Messenger", color: "#0084ff", icon: MessageSquare, bgAlpha: "rgba(0,132,255,0.1)" };
+      return { label: "Messenger", color: "#0084ff", icon: MessageSquare, bgAlpha: "rgba(0,132,255,0.12)" };
     case "ig_dm":
-      return { label: "IG Direct", color: "#E1306C", icon: MessageCircle, bgAlpha: "rgba(225,48,108,0.1)" };
+      return { label: "Instagram", color: "#E1306C", icon: MessageCircle, bgAlpha: "rgba(225,48,108,0.12)" };
     case "ig_comment":
-      return { label: "IG Comentario", color: "#F77737", icon: AtSign, bgAlpha: "rgba(247,119,55,0.1)" };
+      return { label: "Comentario IG", color: "#F77737", icon: AtSign, bgAlpha: "rgba(247,119,55,0.12)" };
   }
 }
 
@@ -80,15 +92,23 @@ function getInitials(name: string): string {
   return name.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
 }
 
+const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; count?: number }[] = [
+  { key: "all", label: "Todos los mensajes", color: "#a855f7" },
+  { key: "messenger", label: "Messenger", color: "#0084ff" },
+  { key: "instagram", label: "Instagram", color: "#E1306C" },
+  { key: "ig_comment", label: "Comentarios IG", color: "#F77737" },
+];
+
 // ═══════════════════════════════════════════════════════════════
 // MAIN LAYOUT
 // ═══════════════════════════════════════════════════════════════
 
 export function InboxLayout() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
-  const [selectedId, setSelectedId] = useState<string>("1");
+  const [selectedId, setSelectedId] = useState<string>("");
   const [showProfile, setShowProfile] = useState(true);
   const [filterTab, setFilterTab] = useState<"todos" | "unread" | "closed">("todos");
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
   const [searchQuery, setSearchQuery] = useState("");
   const [initialFetchDone, setInitialFetchDone] = useState(false);
 
@@ -111,8 +131,8 @@ export function InboxLayout() {
               closed: false,
               assignedTo: null,
               tags: [],
-              messages: [], // Messages are loaded on select
-              _pageId: c.pageId, // Internal: for API calls
+              messages: [],
+              _pageId: c.pageId,
             }));
             setConversations(mapped);
             setSelectedId(mapped[0]?.id || "");
@@ -126,17 +146,14 @@ export function InboxLayout() {
                 .then(data => {
                   if (data?.messages?.length) {
                     const msgs: Message[] = data.messages.map((m: any) => ({
-                      id: m.id,
-                      text: m.text,
-                      incoming: m.incoming,
+                      id: m.id, text: m.text, incoming: m.incoming,
                       timestamp: new Date(m.timestamp),
                     }));
                     setConversations(prev =>
                       prev.map(c => c.id === first.id ? { ...c, messages: msgs } : c)
                     );
                   }
-                })
-                .catch(() => {});
+                }).catch(() => {});
             }
           }
         }
@@ -146,37 +163,37 @@ export function InboxLayout() {
     fetchReal();
   }, []);
 
-  // When selecting a conversation, fetch its messages from the API
   const handleSelectConversation = (id: string) => {
     setSelectedId(id);
     setConversations(prev =>
       prev.map(c => (c.id === id ? { ...c, unread: false } : c))
     );
-
-    // Load real messages
-      const conv = conversations.find(c => c.id === id);
-      const pageId = (conv as any)?._pageId;
-      fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}`)
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data?.messages?.length) {
-            const mapped: Message[] = data.messages.map((m: any) => ({
-              id: m.id,
-              text: m.text,
-              incoming: m.incoming,
-              timestamp: new Date(m.timestamp),
-            }));
-            setConversations(prev =>
-              prev.map(c => c.id === id ? { ...c, messages: mapped } : c)
-            );
-          }
-        })
-        .catch(() => {});
+    const conv = conversations.find(c => c.id === id);
+    const pageId = (conv as any)?._pageId;
+    fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.messages?.length) {
+          const mapped: Message[] = data.messages.map((m: any) => ({
+            id: m.id, text: m.text, incoming: m.incoming,
+            timestamp: new Date(m.timestamp),
+          }));
+          setConversations(prev =>
+            prev.map(c => c.id === id ? { ...c, messages: mapped } : c)
+          );
+        }
+      }).catch(() => {});
   };
 
   const selected = conversations.find(c => c.id === selectedId) || conversations[0];
 
+  // Apply channel filter + search + tab filter
   const filtered = conversations.filter(c => {
+    // Channel filter
+    if (channelFilter === "messenger" && c.platform !== "fb_messenger") return false;
+    if (channelFilter === "instagram" && c.platform !== "ig_dm") return false;
+    if (channelFilter === "ig_comment" && c.platform !== "ig_comment") return false;
+    // Search
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       if (!c.contactName.toLowerCase().includes(q) && !c.lastMessage.toLowerCase().includes(q)) return false;
@@ -185,6 +202,14 @@ export function InboxLayout() {
     if (filterTab === "closed") return c.closed;
     return true;
   });
+
+  // Count per channel
+  const channelCounts = {
+    all: conversations.length,
+    messenger: conversations.filter(c => c.platform === "fb_messenger").length,
+    instagram: conversations.filter(c => c.platform === "ig_dm").length,
+    ig_comment: conversations.filter(c => c.platform === "ig_comment").length,
+  };
 
   const handleSendMessage = (text: string) => {
     if (!text.trim()) return;
@@ -240,17 +265,61 @@ export function InboxLayout() {
     );
   };
 
-
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 240px)" }}>
 
-      {/* Empty state — only show AFTER initial fetch completes with 0 results */}
+      {/* ─── Top Channel Tabs ─── */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 0,
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        background: "rgba(255,255,255,0.015)",
+        flexShrink: 0,
+        overflowX: "auto",
+      }}>
+        {CHANNEL_TABS.map(tab => {
+          const isActive = channelFilter === tab.key;
+          const count = channelCounts[tab.key];
+          return (
+            <button
+              key={tab.key}
+              onClick={() => setChannelFilter(tab.key)}
+              style={{
+                padding: "10px 16px",
+                fontSize: 12,
+                fontWeight: isActive ? 600 : 400,
+                color: isActive ? tab.color : "rgba(148,163,184,0.5)",
+                background: "transparent",
+                border: "none",
+                borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
+                cursor: "pointer",
+                transition: "all 0.15s",
+                whiteSpace: "nowrap",
+                display: "flex", alignItems: "center", gap: 6,
+                fontFamily: "inherit",
+              }}
+            >
+              {tab.label}
+              {count > 0 && (
+                <span style={{
+                  fontSize: 10, fontWeight: 700,
+                  padding: "1px 6px", borderRadius: 10,
+                  background: isActive ? `${tab.color}20` : "rgba(255,255,255,0.04)",
+                  color: isActive ? tab.color : "rgba(148,163,184,0.4)",
+                  minWidth: 18, textAlign: "center",
+                }}>
+                  {count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Empty state */}
       {conversations.length === 0 && initialFetchDone && (
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
           justifyContent: "center", flex: 1, padding: 60, gap: 14,
-          borderRadius: 12, background: "rgba(255,255,255,0.015)",
-          border: "1px solid rgba(255,255,255,0.04)",
         }}>
           <div style={{
             width: 56, height: 56, borderRadius: 14,
@@ -261,85 +330,81 @@ export function InboxLayout() {
           </div>
           <h3 style={{ fontSize: 16, fontWeight: 600, color: "white", margin: 0 }}>Sin conversaciones</h3>
           <p style={{ fontSize: 12, color: "#64748b", textAlign: "center", maxWidth: 320 }}>
-            Conecta tu cuenta de Meta en la pestaña <strong style={{ color: "#00d4ff" }}>Integraciones</strong> para
+            Conecta tu cuenta de Meta en <strong style={{ color: "#00d4ff" }}>Integraciones</strong> para
             recibir mensajes de Facebook Messenger e Instagram Direct.
           </p>
         </div>
       )}
 
-
-      {/* 3-Panel Layout — render when there are conversations */}
+      {/* ─── 3-Panel Layout ─── */}
       {conversations.length > 0 && selected && (
-      <div style={{ display: "flex", flex: 1, minHeight: 0, gap: 1 }}>
-        {/* LEFT — Conversation List */}
-        <div
-          className="glass-panel"
-          style={{
-            width: 280,
-            minWidth: 280,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            borderRadius: 0,
-          }}
-        >
-          {/* Search */}
-          <div style={{ padding: "12px 12px 8px" }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: "6px 10px",
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
-            }}>
-              <Search style={{ width: 14, height: 14, color: "rgba(148,163,184,0.3)", flexShrink: 0 }} />
-              <input
-                type="text"
-                placeholder="Buscar conversación..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  outline: "none",
-                  color: "white",
-                  fontSize: 12,
-                  width: "100%",
-                  fontFamily: "inherit",
-                }}
-              />
+      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+
+        {/* ═══ LEFT — Conversation List ═══ */}
+        <div style={{
+          width: 300, minWidth: 300,
+          display: "flex", flexDirection: "column",
+          borderRight: "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(255,255,255,0.01)",
+        }}>
+          {/* Search + Actions */}
+          <div style={{ padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+            <div style={{ display: "flex", gap: 6 }}>
+              <div style={{
+                flex: 1, display: "flex", alignItems: "center", gap: 8,
+                padding: "7px 10px",
+                background: "rgba(255,255,255,0.04)",
+                borderRadius: 8,
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}>
+                <Search style={{ width: 14, height: 14, color: "rgba(148,163,184,0.3)", flexShrink: 0 }} />
+                <input
+                  type="text"
+                  placeholder="Buscar..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                  style={{
+                    background: "transparent", border: "none", outline: "none",
+                    color: "white", fontSize: 12, width: "100%", fontFamily: "inherit",
+                  }}
+                />
+              </div>
             </div>
           </div>
 
           {/* Filter Tabs */}
-          <div style={{ display: "flex", padding: "0 12px 8px", gap: 0 }}>
+          <div style={{
+            display: "flex", gap: 0, padding: "0",
+            borderBottom: "1px solid rgba(255,255,255,0.04)",
+          }}>
             {([
               { key: "todos", label: "Todos" },
-              { key: "unread", label: "Sin leer" },
+              { key: "unread", label: "No leídos" },
               { key: "closed", label: "Cerrados" },
-            ] as const).map(tab => (
-              <button
-                key={tab.key}
-                onClick={() => setFilterTab(tab.key)}
-                style={{
-                  flex: 1,
-                  padding: "6px 0",
-                  fontSize: 10,
-                  fontWeight: 600,
-                  letterSpacing: "0.05em",
-                  color: filterTab === tab.key ? "#a855f7" : "rgba(148,163,184,0.4)",
-                  background: filterTab === tab.key ? "rgba(168,85,247,0.08)" : "transparent",
-                  border: "1px solid",
-                  borderColor: filterTab === tab.key ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.04)",
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                  fontFamily: "'Orbitron', sans-serif",
-                }}
-              >
-                {tab.label}
-              </button>
-            ))}
+            ] as const).map(tab => {
+              const isActive = filterTab === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setFilterTab(tab.key)}
+                  style={{
+                    flex: 1,
+                    padding: "8px 0",
+                    fontSize: 11,
+                    fontWeight: isActive ? 600 : 400,
+                    color: isActive ? "white" : "rgba(148,163,184,0.4)",
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: isActive ? "2px solid #a855f7" : "2px solid transparent",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    fontFamily: "inherit",
+                  }}
+                >
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Conversation List */}
@@ -357,92 +422,85 @@ export function InboxLayout() {
                     key={conv.id}
                     onClick={() => handleSelectConversation(conv.id)}
                     style={{
-                      padding: "12px",
+                      padding: "12px 14px",
                       cursor: "pointer",
                       background: isActive ? "rgba(168,85,247,0.06)" : "transparent",
-                      borderLeft: isActive ? "2px solid #a855f7" : "2px solid transparent",
+                      borderLeft: isActive ? "3px solid #a855f7" : "3px solid transparent",
                       borderBottom: "1px solid rgba(255,255,255,0.03)",
-                      transition: "all 0.15s",
+                      transition: "all 0.12s",
+                      display: "flex", gap: 10, alignItems: "flex-start",
                     }}
                   >
-                    <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
-                      {/* Platform icon */}
+                    {/* Avatar */}
+                    <div style={{ position: "relative", flexShrink: 0 }}>
                       <div style={{
-                        width: 36,
-                        height: 36,
-                        borderRadius: "50%",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        background: pc.bgAlpha,
-                        flexShrink: 0,
-                        position: "relative",
+                        width: 42, height: 42, borderRadius: "50%",
+                        background: `linear-gradient(135deg, ${pc.color}20, ${pc.color}08)`,
+                        border: `1.5px solid ${pc.color}30`,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 14, fontWeight: 700, color: pc.color,
                       }}>
-                        <pc.icon style={{ width: 16, height: 16, color: pc.color }} />
-                        {conv.unread && (
-                          <div style={{
-                            position: "absolute",
-                            top: 0,
-                            right: 0,
-                            width: 8,
-                            height: 8,
-                            borderRadius: "50%",
-                            background: "#a855f7",
-                            border: "2px solid rgba(10,10,20,1)",
-                          }} />
-                        )}
+                        {getInitials(conv.contactName)}
                       </div>
+                      {conv.unread && (
+                        <div style={{
+                          position: "absolute", top: -1, right: -1,
+                          width: 10, height: 10, borderRadius: "50%",
+                          background: "#a855f7",
+                          border: "2px solid rgba(10,10,20,1)",
+                        }} />
+                      )}
+                      {/* Platform indicator */}
+                      <div style={{
+                        position: "absolute", bottom: -2, right: -2,
+                        width: 16, height: 16, borderRadius: "50%",
+                        background: pc.color,
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        border: "2px solid rgba(10,10,20,1)",
+                      }}>
+                        <pc.icon style={{ width: 8, height: 8, color: "white" }} />
+                      </div>
+                    </div>
 
-                      {/* Content */}
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                          <span style={{
-                            fontSize: 12,
-                            fontWeight: conv.unread ? 700 : 500,
-                            color: conv.unread ? "white" : "rgba(255,255,255,0.7)",
-                            whiteSpace: "nowrap",
-                            overflow: "hidden",
-                            textOverflow: "ellipsis",
-                          }}>
-                            {conv.contactName}
-                          </span>
-                          <span style={{
-                            fontSize: 9,
-                            color: "rgba(148,163,184,0.35)",
-                            whiteSpace: "nowrap",
-                            marginLeft: 4,
-                          }}>
-                            {relativeTime(conv.lastMessageTime)}
-                          </span>
-                        </div>
-                        <p style={{
-                          fontSize: 11,
-                          color: conv.unread ? "rgba(255,255,255,0.5)" : "rgba(148,163,184,0.35)",
-                          margin: "3px 0 0",
-                          whiteSpace: "nowrap",
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          fontWeight: conv.unread ? 500 : 400,
+                    {/* Content */}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
+                        <span style={{
+                          fontSize: 13, fontWeight: conv.unread ? 700 : 500,
+                          color: conv.unread ? "white" : "rgba(255,255,255,0.75)",
+                          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                         }}>
-                          {conv.lastMessage}
-                        </p>
-                        {conv.closed && (
-                          <span style={{
-                            display: "inline-block",
-                            fontSize: 8,
-                            fontWeight: 600,
-                            padding: "1px 6px",
-                            marginTop: 4,
-                            color: "rgba(148,163,184,0.4)",
-                            background: "rgba(148,163,184,0.06)",
-                            border: "1px solid rgba(148,163,184,0.1)",
-                            borderRadius: 3,
-                            letterSpacing: "0.05em",
-                          }}>
-                            CERRADO
-                          </span>
-                        )}
+                          {conv.contactName}
+                        </span>
+                        <span style={{
+                          fontSize: 10, color: conv.unread ? "#a855f7" : "rgba(148,163,184,0.35)",
+                          whiteSpace: "nowrap", marginLeft: 8, fontWeight: conv.unread ? 600 : 400,
+                        }}>
+                          {relativeTime(conv.lastMessageTime)}
+                        </span>
                       </div>
+                      <p style={{
+                        fontSize: 11,
+                        color: conv.unread ? "rgba(255,255,255,0.5)" : "rgba(148,163,184,0.35)",
+                        margin: 0,
+                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                        fontWeight: conv.unread ? 500 : 400,
+                        lineHeight: 1.4,
+                      }}>
+                        {conv.lastMessage.startsWith("Tú:") ? conv.lastMessage : `Tú: ${conv.lastMessage}`}
+                      </p>
+                      {conv.closed && (
+                        <span style={{
+                          display: "inline-block", fontSize: 8, fontWeight: 600,
+                          padding: "1px 6px", marginTop: 4,
+                          color: "rgba(148,163,184,0.4)",
+                          background: "rgba(148,163,184,0.06)",
+                          border: "1px solid rgba(148,163,184,0.1)",
+                          borderRadius: 3,
+                        }}>
+                          CERRADO
+                        </span>
+                      )}
                     </div>
                   </div>
                 );
@@ -451,18 +509,11 @@ export function InboxLayout() {
           </div>
         </div>
 
-        {/* CENTER — Chat View */}
-        <div
-          className="glass-panel"
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            overflow: "hidden",
-            borderRadius: 0,
-            minWidth: 0,
-          }}
-        >
+        {/* ═══ CENTER — Chat View ═══ */}
+        <div style={{
+          flex: 1, display: "flex", flexDirection: "column",
+          minWidth: 0, background: "rgba(5,8,18,0.5)",
+        }}>
           <ChatView
             conversation={selected}
             onSend={handleSendMessage}
@@ -472,19 +523,15 @@ export function InboxLayout() {
           />
         </div>
 
-        {/* RIGHT — Contact Profile */}
+        {/* ═══ RIGHT — Contact Profile ═══ */}
         {showProfile && (
-          <div
-            className="glass-panel"
-            style={{
-              width: 260,
-              minWidth: 260,
-              display: "flex",
-              flexDirection: "column",
-              overflow: "hidden",
-              borderRadius: 0,
-            }}
-          >
+          <div style={{
+            width: 280, minWidth: 280,
+            display: "flex", flexDirection: "column",
+            borderLeft: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(255,255,255,0.01)",
+            overflow: "hidden",
+          }}>
             <ContactProfile
               conversation={selected}
               onAssign={handleAssign}
@@ -531,76 +578,101 @@ function ChatView({
     setInput("");
   };
 
+  // Group messages by date
+  const messagesByDate: { date: string; msgs: Message[] }[] = [];
+  conversation.messages.forEach(msg => {
+    const dateStr = formatDate(msg.timestamp);
+    const last = messagesByDate[messagesByDate.length - 1];
+    if (last && last.date === dateStr) {
+      last.msgs.push(msg);
+    } else {
+      messagesByDate.push({ date: dateStr, msgs: [msg] });
+    }
+  });
+
   return (
     <>
-      {/* Chat Header */}
+      {/* ─── Chat Header ─── */}
       <div style={{
-        padding: "12px 16px",
-        borderBottom: "1px solid rgba(255,255,255,0.04)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        flexShrink: 0,
+        padding: "10px 16px",
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        display: "flex", alignItems: "center", justifyContent: "space-between",
+        flexShrink: 0, background: "rgba(255,255,255,0.015)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {/* Avatar */}
           <div style={{
-            width: 32,
-            height: 32,
-            borderRadius: "50%",
-            background: "rgba(168,85,247,0.12)",
-            border: "1px solid rgba(168,85,247,0.25)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            fontSize: 11,
-            fontWeight: 700,
-            color: "#a855f7",
-            fontFamily: "'Orbitron', sans-serif",
+            width: 36, height: 36, borderRadius: "50%",
+            background: `linear-gradient(135deg, ${pc.color}20, ${pc.color}08)`,
+            border: `1.5px solid ${pc.color}30`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 12, fontWeight: 700, color: pc.color,
           }}>
             {getInitials(conversation.contactName)}
           </div>
           <div>
-            <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>
-              {conversation.contactName}
-            </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 2 }}>
-              <span style={{
-                fontSize: 9,
-                fontWeight: 600,
-                padding: "1px 6px",
-                color: pc.color,
-                background: pc.bgAlpha,
-                border: `1px solid ${pc.color}30`,
-                borderRadius: 3,
-                letterSpacing: "0.03em",
-              }}>
-                {pc.label}
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <span style={{ fontSize: 14, fontWeight: 600, color: "white" }}>
+                {conversation.contactName}
               </span>
               {conversation.assignedTo && (
-                <span style={{ fontSize: 9, color: "rgba(148,163,184,0.4)" }}>
+                <span style={{
+                  fontSize: 9, color: "rgba(148,163,184,0.4)",
+                  padding: "1px 6px", background: "rgba(255,255,255,0.03)",
+                  borderRadius: 4, border: "1px solid rgba(255,255,255,0.06)",
+                }}>
                   → {conversation.assignedTo}
                 </span>
               )}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 1 }}>
+              <span style={{
+                fontSize: 10, fontWeight: 500,
+                padding: "1px 6px", color: pc.color,
+                background: pc.bgAlpha, borderRadius: 4,
+                display: "inline-flex", alignItems: "center", gap: 3,
+              }}>
+                <pc.icon style={{ width: 9, height: 9 }} />
+                {pc.label}
+              </span>
             </div>
           </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          {/* Action buttons */}
+          {[
+            { icon: Bell, tip: "Notificaciones" },
+            { icon: Star, tip: "Marcar" },
+            { icon: Archive, tip: "Archivar" },
+          ].map((btn, i) => (
+            <button
+              key={i}
+              title={btn.tip}
+              style={{
+                width: 32, height: 32,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: "transparent", border: "1px solid rgba(255,255,255,0.06)",
+                borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
+              }}
+              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              <btn.icon style={{ width: 14, height: 14, color: "rgba(148,163,184,0.4)" }} />
+            </button>
+          ))}
+
+          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)", margin: "0 4px" }} />
+
           <button
             onClick={onClose}
-            title={conversation.closed ? "Reabrir" : "Cerrar conversación"}
             style={{
-              padding: "6px 10px",
-              fontSize: 9,
-              fontWeight: 600,
+              padding: "6px 12px", fontSize: 10, fontWeight: 600,
               color: conversation.closed ? "#00c875" : "rgba(148,163,184,0.5)",
               background: conversation.closed ? "rgba(0,200,117,0.08)" : "rgba(255,255,255,0.03)",
               border: `1px solid ${conversation.closed ? "rgba(0,200,117,0.2)" : "rgba(255,255,255,0.06)"}`,
-              cursor: "pointer",
-              letterSpacing: "0.04em",
-              fontFamily: "'Orbitron', sans-serif",
-              transition: "all 0.15s",
+              borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
+              fontFamily: "inherit",
             }}
           >
             {conversation.closed ? "REABRIR" : "CERRAR"}
@@ -608,139 +680,209 @@ function ChatView({
           <button
             onClick={onToggleProfile}
             style={{
-              width: 30,
-              height: 30,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
+              width: 32, height: 32,
+              display: "flex", alignItems: "center", justifyContent: "center",
               background: showProfile ? "rgba(168,85,247,0.08)" : "rgba(255,255,255,0.03)",
               border: `1px solid ${showProfile ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.06)"}`,
-              cursor: "pointer",
-              transition: "all 0.15s",
+              borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
             }}
           >
-            {showProfile ? (
-              <ChevronRight style={{ width: 14, height: 14, color: "#a855f7" }} />
-            ) : (
-              <ChevronLeft style={{ width: 14, height: 14, color: "rgba(148,163,184,0.4)" }} />
-            )}
+            <ChevronRight style={{
+              width: 14, height: 14,
+              color: showProfile ? "#a855f7" : "rgba(148,163,184,0.4)",
+            }} />
           </button>
         </div>
       </div>
 
-      {/* Messages Area */}
+      {/* ─── Messages Area ─── */}
       <div style={{
-        flex: 1,
-        overflowY: "auto",
-        padding: "16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
+        flex: 1, overflowY: "auto", padding: "12px 20px",
+        display: "flex", flexDirection: "column", gap: 4,
       }}>
-        {conversation.messages.map(msg => (
-          <div
-            key={msg.id}
-            style={{
-              display: "flex",
-              justifyContent: msg.incoming ? "flex-start" : "flex-end",
-            }}
-          >
+        {messagesByDate.map((group, gi) => (
+          <div key={gi}>
+            {/* Date separator */}
             <div style={{
-              maxWidth: "70%",
-              padding: "10px 14px",
-              background: msg.incoming ? "rgba(255,255,255,0.03)" : "rgba(168,85,247,0.85)",
-              border: msg.incoming ? "1px solid rgba(255,255,255,0.06)" : "1px solid rgba(168,85,247,0.4)",
-              borderRadius: msg.incoming ? "2px 12px 12px 12px" : "12px 2px 12px 12px",
+              display: "flex", alignItems: "center", gap: 12,
+              margin: "12px 0", padding: "0 20px",
             }}>
-              <p style={{
-                fontSize: 12,
-                color: msg.incoming ? "rgba(255,255,255,0.8)" : "white",
-                margin: 0,
-                lineHeight: 1.5,
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+              <span style={{
+                fontSize: 10, color: "rgba(148,163,184,0.35)",
+                fontWeight: 500, whiteSpace: "nowrap",
               }}>
-                {msg.text}
-              </p>
-              <p style={{
-                fontSize: 9,
-                color: msg.incoming ? "rgba(148,163,184,0.3)" : "rgba(255,255,255,0.5)",
-                margin: "4px 0 0",
-                textAlign: msg.incoming ? "left" : "right",
-              }}>
-                {formatTime(msg.timestamp)}
-              </p>
+                {group.date}
+              </span>
+              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
             </div>
+
+            {group.msgs.map(msg => (
+              <div
+                key={msg.id}
+                style={{
+                  display: "flex",
+                  justifyContent: msg.incoming ? "flex-start" : "flex-end",
+                  marginBottom: 4,
+                }}
+              >
+                {/* Incoming avatar */}
+                {msg.incoming && (
+                  <div style={{
+                    width: 28, height: 28, borderRadius: "50%",
+                    background: `${pc.color}15`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 9, fontWeight: 700, color: pc.color,
+                    marginRight: 8, marginTop: 4, flexShrink: 0,
+                  }}>
+                    {getInitials(conversation.contactName)}
+                  </div>
+                )}
+
+                <div style={{ maxWidth: "65%" }}>
+                  <div style={{
+                    padding: "10px 14px",
+                    background: msg.incoming
+                      ? "rgba(255,255,255,0.05)"
+                      : "linear-gradient(135deg, #a855f7, #7c3aed)",
+                    border: msg.incoming ? "1px solid rgba(255,255,255,0.08)" : "none",
+                    borderRadius: msg.incoming ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
+                    boxShadow: msg.incoming ? "none" : "0 2px 8px rgba(168,85,247,0.3)",
+                  }}>
+                    <p style={{
+                      fontSize: 13, color: "white",
+                      margin: 0, lineHeight: 1.5, wordBreak: "break-word",
+                    }}>
+                      {msg.text}
+                    </p>
+                  </div>
+                  <p style={{
+                    fontSize: 9, margin: "3px 4px 0",
+                    color: "rgba(148,163,184,0.3)",
+                    textAlign: msg.incoming ? "left" : "right",
+                  }}>
+                    {formatTime(msg.timestamp)}
+                  </p>
+                </div>
+              </div>
+            ))}
           </div>
         ))}
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
-      <div style={{
-        padding: "12px 16px",
-        borderTop: "1px solid rgba(255,255,255,0.04)",
-        flexShrink: 0,
-      }}>
-        {/* Saved Replies Dropdown */}
-        {showReplies && (
+      {/* ─── Suggested Replies ─── */}
+      {showReplies && (
+        <div style={{
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          padding: "8px 16px",
+          background: "rgba(255,255,255,0.015)",
+          flexShrink: 0,
+        }}>
           <div style={{
-            marginBottom: 8,
-            background: "rgba(10,10,20,0.95)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            maxHeight: 160,
-            overflowY: "auto",
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginBottom: 6,
           }}>
+            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", fontWeight: 600 }}>
+              Respuestas sugeridas
+            </span>
+            <button
+              onClick={() => setShowReplies(false)}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
+            >
+              <X style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+            </button>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
             {SAVED_REPLIES.map((reply, i) => (
-              <div
+              <button
                 key={i}
-                onClick={() => {
-                  setInput(reply);
-                  setShowReplies(false);
-                }}
+                onClick={() => { setInput(reply); setShowReplies(false); }}
                 style={{
-                  padding: "8px 12px",
-                  fontSize: 11,
+                  padding: "5px 10px", fontSize: 11,
                   color: "rgba(255,255,255,0.6)",
-                  cursor: "pointer",
-                  borderBottom: "1px solid rgba(255,255,255,0.03)",
-                  transition: "background 0.1s",
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.08)",
+                  borderRadius: 16, cursor: "pointer",
+                  transition: "all 0.15s",
+                  whiteSpace: "nowrap", fontFamily: "inherit",
                 }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(168,85,247,0.06)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                onMouseEnter={e => {
+                  e.currentTarget.style.background = "rgba(168,85,247,0.08)";
+                  e.currentTarget.style.borderColor = "rgba(168,85,247,0.2)";
+                  e.currentTarget.style.color = "#a855f7";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.04)";
+                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                  e.currentTarget.style.color = "rgba(255,255,255,0.6)";
+                }}
               >
-                {reply}
-              </div>
+                {reply.length > 50 ? reply.slice(0, 50) + "..." : reply}
+              </button>
             ))}
           </div>
-        )}
+        </div>
+      )}
+
+      {/* ─── Input Bar (always visible at bottom) ─── */}
+      <div style={{
+        padding: "10px 16px",
+        borderTop: "1px solid rgba(255,255,255,0.06)",
+        flexShrink: 0,
+        background: "rgba(255,255,255,0.015)",
+      }}>
+        {/* Responding indicator */}
+        <div style={{
+          display: "flex", alignItems: "center", gap: 6,
+          marginBottom: 8, fontSize: 10, color: "rgba(148,163,184,0.35)",
+        }}>
+          <div style={{
+            width: 14, height: 14, borderRadius: "50%",
+            background: `${pc.color}15`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <pc.icon style={{ width: 8, height: 8, color: pc.color }} />
+          </div>
+          <span>Respondiendo en {pc.label}...</span>
+        </div>
 
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-          <button
-            onClick={() => setShowReplies(!showReplies)}
-            title="Respuestas guardadas"
-            style={{
-              width: 34,
-              height: 34,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              background: showReplies ? "rgba(168,85,247,0.08)" : "rgba(255,255,255,0.03)",
-              border: `1px solid ${showReplies ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.06)"}`,
-              cursor: "pointer",
-              flexShrink: 0,
-              transition: "all 0.15s",
-            }}
-          >
-            <Bookmark style={{ width: 14, height: 14, color: showReplies ? "#a855f7" : "rgba(148,163,184,0.35)" }} />
-          </button>
+          {/* Toolbar icons */}
+          <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
+            {[
+              { icon: Bookmark, action: () => setShowReplies(!showReplies), active: showReplies },
+              { icon: Paperclip, action: () => {}, active: false },
+              { icon: Image, action: () => {}, active: false },
+              { icon: Smile, action: () => {}, active: false },
+            ].map((btn, i) => (
+              <button
+                key={i}
+                onClick={btn.action}
+                style={{
+                  width: 32, height: 32,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  background: btn.active ? "rgba(168,85,247,0.08)" : "transparent",
+                  border: "none", borderRadius: 6, cursor: "pointer",
+                  transition: "all 0.15s",
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+                onMouseLeave={e => e.currentTarget.style.background = btn.active ? "rgba(168,85,247,0.08)" : "transparent"}
+              >
+                <btn.icon style={{
+                  width: 16, height: 16,
+                  color: btn.active ? "#a855f7" : "rgba(148,163,184,0.35)",
+                }} />
+              </button>
+            ))}
+          </div>
 
+          {/* Text input */}
           <div style={{
-            flex: 1,
-            display: "flex",
-            alignItems: "flex-end",
-            gap: 8,
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.06)",
-            padding: "4px 4px 4px 12px",
+            flex: 1, display: "flex", alignItems: "flex-end", gap: 8,
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 10, padding: "4px 4px 4px 14px",
           }}>
             <textarea
               value={input}
@@ -754,38 +896,46 @@ function ChatView({
               placeholder="Escribe un mensaje..."
               rows={1}
               style={{
-                flex: 1,
-                background: "transparent",
-                border: "none",
-                outline: "none",
-                color: "white",
-                fontSize: 12,
-                resize: "none",
-                fontFamily: "inherit",
-                lineHeight: 1.5,
-                minHeight: 26,
-                maxHeight: 80,
+                flex: 1, background: "transparent", border: "none", outline: "none",
+                color: "white", fontSize: 13, resize: "none", fontFamily: "inherit",
+                lineHeight: 1.5, minHeight: 28, maxHeight: 80,
               }}
             />
             <button
               onClick={handleSubmit}
               disabled={!input.trim()}
               style={{
-                width: 30,
-                height: 30,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                background: input.trim() ? "#a855f7" : "rgba(255,255,255,0.03)",
-                border: "none",
+                width: 32, height: 32,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                background: input.trim() ? "linear-gradient(135deg, #a855f7, #7c3aed)" : "rgba(255,255,255,0.03)",
+                border: "none", borderRadius: 8,
                 cursor: input.trim() ? "pointer" : "default",
-                transition: "all 0.15s",
-                flexShrink: 0,
+                transition: "all 0.2s", flexShrink: 0,
+                boxShadow: input.trim() ? "0 2px 8px rgba(168,85,247,0.3)" : "none",
               }}
             >
-              <Send style={{ width: 14, height: 14, color: input.trim() ? "white" : "rgba(148,163,184,0.2)" }} />
+              <Send style={{
+                width: 14, height: 14,
+                color: input.trim() ? "white" : "rgba(148,163,184,0.2)",
+              }} />
             </button>
           </div>
+
+          {/* Quick like */}
+          <button
+            onClick={() => onSend("👍")}
+            style={{
+              width: 32, height: 32,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: "transparent", border: "none",
+              borderRadius: 6, cursor: "pointer", flexShrink: 0,
+              transition: "all 0.15s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.05)"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          >
+            <ThumbsUp style={{ width: 18, height: 18, color: "rgba(148,163,184,0.35)" }} />
+          </button>
         </div>
       </div>
     </>
@@ -793,15 +943,48 @@ function ChatView({
 }
 
 // ═══════════════════════════════════════════════════════════════
-// CONTACT PROFILE SIDEBAR
+// CONTACT PROFILE SIDEBAR (Collapsible Sections)
 // ═══════════════════════════════════════════════════════════════
 
+function ProfileSection({ title, defaultOpen = true, children }: {
+  title: string; defaultOpen?: boolean; children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "12px 16px", background: "transparent", border: "none",
+          cursor: "pointer", transition: "all 0.15s",
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
+        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+      >
+        <span style={{
+          fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)",
+          letterSpacing: "0.03em",
+        }}>
+          {title}
+        </span>
+        {open ? (
+          <ChevronUp style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+        ) : (
+          <ChevronDown style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+        )}
+      </button>
+      {open && (
+        <div style={{ padding: "0 16px 14px" }}>
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function ContactProfile({
-  conversation,
-  onAssign,
-  onAddTag,
-  onRemoveTag,
-  onClose,
+  conversation, onAssign, onAddTag, onRemoveTag, onClose,
 }: {
   conversation: Conversation;
   onAssign: (member: string) => void;
@@ -812,215 +995,161 @@ function ContactProfile({
   const [newTag, setNewTag] = useState("");
   const [showAssign, setShowAssign] = useState(false);
   const pc = getPlatformConfig(conversation.platform);
-
   const incomingCount = conversation.messages.filter(m => m.incoming).length;
   const outgoingCount = conversation.messages.filter(m => !m.incoming).length;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Header */}
+      {/* Profile Header — Avatar + Name */}
       <div style={{
-        padding: "12px",
+        padding: "20px 16px 16px", textAlign: "center",
         borderBottom: "1px solid rgba(255,255,255,0.04)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
         flexShrink: 0,
       }}>
-        <span style={{
-          fontSize: 10,
-          fontWeight: 700,
-          color: "rgba(148,163,184,0.4)",
-          fontFamily: "'Orbitron', sans-serif",
-          letterSpacing: "0.1em",
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+          <button
+            onClick={onClose}
+            style={{
+              display: "flex", alignItems: "center", gap: 4,
+              padding: "4px 8px", fontSize: 10,
+              background: "transparent", border: "1px solid rgba(255,255,255,0.06)",
+              borderRadius: 6, color: "rgba(148,163,184,0.4)", cursor: "pointer",
+            }}
+          >
+            <MoreHorizontal style={{ width: 12, height: 12 }} />
+          </button>
+        </div>
+        <div style={{
+          width: 60, height: 60, borderRadius: "50%",
+          background: `linear-gradient(135deg, ${pc.color}25, ${pc.color}08)`,
+          border: `2px solid ${pc.color}35`,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          margin: "0 auto 10px", fontSize: 20, fontWeight: 700, color: pc.color,
         }}>
-          CONTACTO
-        </span>
-        <button
-          onClick={onClose}
-          style={{
-            width: 24,
-            height: 24,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "transparent",
-            border: "none",
-            cursor: "pointer",
-          }}
-        >
-          <X style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
-        </button>
+          {getInitials(conversation.contactName)}
+        </div>
+        <h3 style={{ fontSize: 15, fontWeight: 600, color: "white", margin: "0 0 4px" }}>
+          {conversation.contactName}
+        </h3>
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          fontSize: 10, color: pc.color, padding: "2px 8px",
+          background: pc.bgAlpha, borderRadius: 4,
+        }}>
+          <pc.icon style={{ width: 10, height: 10 }} />
+          {pc.label}
+        </div>
       </div>
 
-      {/* Profile Content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px" }}>
-        {/* Avatar & Name */}
-        <div style={{ textAlign: "center", marginBottom: 24 }}>
-          <div style={{
-            width: 64,
-            height: 64,
-            borderRadius: "50%",
-            background: "rgba(168,85,247,0.1)",
-            border: "2px solid rgba(168,85,247,0.25)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 12px",
-            fontSize: 20,
-            fontWeight: 700,
-            color: "#a855f7",
-            fontFamily: "'Orbitron', sans-serif",
-          }}>
-            {getInitials(conversation.contactName)}
+      {/* Scrollable Sections */}
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        {/* Información de contacto */}
+        <ProfileSection title="Información de contacto">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+              <User style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+              {conversation.contactName}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(148,163,184,0.4)" }}>
+              <Globe style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
+              {pc.label}
+            </div>
+            <button style={{
+              display: "flex", alignItems: "center", gap: 4,
+              fontSize: 10, color: "#00d4ff", background: "transparent",
+              border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit",
+            }}>
+              <Plus style={{ width: 10, height: 10 }} />
+              Agregar detalles
+            </button>
           </div>
-          <h3 style={{ fontSize: 14, fontWeight: 600, color: "white", margin: "0 0 4px" }}>
-            {conversation.contactName}
-          </h3>
-          <div style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: 4,
-            fontSize: 10,
-            color: pc.color,
-            padding: "2px 8px",
-            background: pc.bgAlpha,
-            border: `1px solid ${pc.color}25`,
-            borderRadius: 3,
-          }}>
-            <pc.icon style={{ width: 10, height: 10 }} />
-            {pc.label}
-          </div>
-        </div>
+        </ProfileSection>
 
-        {/* Tags */}
-        <div style={{ marginBottom: 20 }}>
-          <span style={{
-            fontSize: 9,
-            fontWeight: 700,
-            color: "rgba(148,163,184,0.35)",
-            fontFamily: "'Orbitron', sans-serif",
-            letterSpacing: "0.1em",
-            display: "block",
-            marginBottom: 8,
-          }}>
-            ETIQUETAS
-          </span>
+        {/* Perfil de plataforma */}
+        <ProfileSection title={`Perfil de ${pc.label}`}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.5)" }}>
+            <pc.icon style={{ width: 14, height: 14, color: pc.color }} />
+            <span>{conversation.contactName}</span>
+            <ExternalLink style={{ width: 10, height: 10, color: "rgba(148,163,184,0.3)", cursor: "pointer" }} />
+          </div>
+        </ProfileSection>
+
+        {/* Etiquetas */}
+        <ProfileSection title="Etiquetas">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
             {conversation.tags.map(tag => (
-              <span
-                key={tag}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 4,
-                  fontSize: 10,
-                  color: "#a855f7",
-                  padding: "3px 8px",
-                  background: "rgba(168,85,247,0.08)",
-                  border: "1px solid rgba(168,85,247,0.15)",
-                  borderRadius: 3,
-                }}
-              >
+              <span key={tag} style={{
+                display: "inline-flex", alignItems: "center", gap: 4,
+                fontSize: 10, color: "#a855f7", padding: "3px 8px",
+                background: "rgba(168,85,247,0.08)",
+                border: "1px solid rgba(168,85,247,0.15)", borderRadius: 12,
+              }}>
                 {tag}
-                <X
-                  style={{ width: 10, height: 10, cursor: "pointer", opacity: 0.5 }}
-                  onClick={() => onRemoveTag(tag)}
-                />
+                <X style={{ width: 10, height: 10, cursor: "pointer", opacity: 0.5 }}
+                  onClick={() => onRemoveTag(tag)} />
               </span>
             ))}
           </div>
           <div style={{ display: "flex", gap: 4 }}>
             <input
-              type="text"
-              value={newTag}
+              type="text" value={newTag}
               onChange={e => setNewTag(e.target.value)}
-              onKeyDown={e => {
-                if (e.key === "Enter") {
-                  onAddTag(newTag);
-                  setNewTag("");
-                }
-              }}
+              onKeyDown={e => { if (e.key === "Enter") { onAddTag(newTag); setNewTag(""); } }}
               placeholder="Agregar etiqueta..."
               style={{
-                flex: 1,
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.06)",
-                padding: "4px 8px",
-                fontSize: 10,
-                color: "white",
-                outline: "none",
+                flex: 1, background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6,
+                padding: "4px 8px", fontSize: 10, color: "white", outline: "none",
                 fontFamily: "inherit",
               }}
             />
             <button
               onClick={() => { onAddTag(newTag); setNewTag(""); }}
               style={{
-                padding: "4px 8px",
-                fontSize: 10,
-                color: "#a855f7",
+                padding: "4px 8px", fontSize: 10, color: "#a855f7",
                 background: "rgba(168,85,247,0.08)",
                 border: "1px solid rgba(168,85,247,0.15)",
-                cursor: "pointer",
+                borderRadius: 6, cursor: "pointer",
               }}
             >
               <Tag style={{ width: 10, height: 10 }} />
             </button>
           </div>
-        </div>
+        </ProfileSection>
 
-        {/* Conversation Summary */}
-        <div style={{ marginBottom: 20 }}>
-          <span style={{
-            fontSize: 9,
-            fontWeight: 700,
-            color: "rgba(148,163,184,0.35)",
-            fontFamily: "'Orbitron', sans-serif",
-            letterSpacing: "0.1em",
-            display: "block",
-            marginBottom: 8,
-          }}>
-            RESUMEN
-          </span>
-          <div style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 8,
-          }}>
+        {/* Actividad / Resumen */}
+        <ProfileSection title="Actividad">
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             <div style={{
-              padding: "10px",
-              background: "rgba(255,255,255,0.02)",
+              padding: 10, textAlign: "center",
+              background: "rgba(255,255,255,0.02)", borderRadius: 8,
               border: "1px solid rgba(255,255,255,0.04)",
-              textAlign: "center",
             }}>
-              <p style={{ fontSize: 18, fontWeight: 700, color: "#a855f7", margin: 0, fontFamily: "'Orbitron', sans-serif" }}>
+              <p style={{ fontSize: 20, fontWeight: 700, color: "#a855f7", margin: 0 }}>
                 {conversation.messages.length}
               </p>
-              <p style={{ fontSize: 8, color: "rgba(148,163,184,0.35)", margin: "4px 0 0", letterSpacing: "0.05em" }}>
-                MENSAJES
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", margin: "4px 0 0" }}>
+                Mensajes
               </p>
             </div>
             <div style={{
-              padding: "10px",
-              background: "rgba(255,255,255,0.02)",
+              padding: 10, textAlign: "center",
+              background: "rgba(255,255,255,0.02)", borderRadius: 8,
               border: "1px solid rgba(255,255,255,0.04)",
-              textAlign: "center",
             }}>
-              <p style={{ fontSize: 18, fontWeight: 700, color: "#00d4ff", margin: 0, fontFamily: "'Orbitron', sans-serif" }}>
+              <p style={{ fontSize: 20, fontWeight: 700, color: "#00d4ff", margin: 0 }}>
                 {relativeTime(conversation.messages[0]?.timestamp || new Date())}
               </p>
-              <p style={{ fontSize: 8, color: "rgba(148,163,184,0.35)", margin: "4px 0 0", letterSpacing: "0.05em" }}>
-                PRIMER MSG
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", margin: "4px 0 0" }}>
+                Primer msg
               </p>
             </div>
           </div>
           <div style={{
-            marginTop: 8,
-            padding: "8px 10px",
-            background: "rgba(255,255,255,0.02)",
+            marginTop: 8, padding: "8px 10px",
+            background: "rgba(255,255,255,0.02)", borderRadius: 8,
             border: "1px solid rgba(255,255,255,0.04)",
-            display: "flex",
-            justifyContent: "space-between",
+            display: "flex", justifyContent: "space-between",
           }}>
             <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)" }}>
               📩 Recibidos: {incomingCount}
@@ -1029,81 +1158,54 @@ function ContactProfile({
               📤 Enviados: {outgoingCount}
             </span>
           </div>
-        </div>
+        </ProfileSection>
 
-        {/* Assigned To */}
-        <div style={{ marginBottom: 20 }}>
-          <span style={{
-            fontSize: 9,
-            fontWeight: 700,
-            color: "rgba(148,163,184,0.35)",
-            fontFamily: "'Orbitron', sans-serif",
-            letterSpacing: "0.1em",
-            display: "block",
-            marginBottom: 8,
-          }}>
-            ASIGNADO A
-          </span>
+        {/* Asignado a */}
+        <ProfileSection title="Asignado a">
           <div style={{ position: "relative" }}>
             <button
               onClick={() => setShowAssign(!showAssign)}
               style={{
-                width: "100%",
-                padding: "8px 10px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
+                width: "100%", padding: "8px 10px",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
                 background: "rgba(255,255,255,0.03)",
                 border: "1px solid rgba(255,255,255,0.06)",
-                cursor: "pointer",
+                borderRadius: 6, cursor: "pointer",
                 color: conversation.assignedTo ? "white" : "rgba(148,163,184,0.4)",
-                fontSize: 11,
-                fontFamily: "inherit",
+                fontSize: 11, fontFamily: "inherit",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <UserPlus style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)" }} />
                 {conversation.assignedTo || "Sin asignar"}
               </div>
-              <ChevronRight style={{
-                width: 10,
-                height: 10,
-                color: "rgba(148,163,184,0.2)",
-                transform: showAssign ? "rotate(90deg)" : "none",
+              <ChevronDown style={{
+                width: 10, height: 10, color: "rgba(148,163,184,0.2)",
+                transform: showAssign ? "rotate(180deg)" : "none",
                 transition: "transform 0.15s",
               }} />
             </button>
-
             {showAssign && (
               <div style={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                right: 0,
+                position: "absolute", top: "100%", left: 0, right: 0,
                 background: "rgba(10,10,20,0.97)",
                 border: "1px solid rgba(255,255,255,0.08)",
-                zIndex: 10,
+                borderRadius: "0 0 6px 6px", zIndex: 10,
               }}>
                 {TEAM_MEMBERS.map(member => (
                   <div
                     key={member}
-                    onClick={() => {
-                      onAssign(member);
-                      setShowAssign(false);
-                    }}
+                    onClick={() => { onAssign(member); setShowAssign(false); }}
                     style={{
-                      padding: "8px 10px",
-                      fontSize: 11,
+                      padding: "8px 10px", fontSize: 11,
                       color: (member === "Sin asignar" && !conversation.assignedTo) ||
-                             member === conversation.assignedTo
-                        ? "#a855f7"
-                        : "rgba(255,255,255,0.5)",
+                             member === conversation.assignedTo ? "#a855f7" : "rgba(255,255,255,0.5)",
                       cursor: "pointer",
                       borderBottom: "1px solid rgba(255,255,255,0.03)",
                       transition: "background 0.1s",
                     }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(168,85,247,0.06)")}
-                    onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(168,85,247,0.06)"}
+                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                   >
                     {member}
                   </div>
@@ -1111,42 +1213,41 @@ function ContactProfile({
               </div>
             )}
           </div>
-        </div>
+        </ProfileSection>
 
-        {/* Status */}
-        <div>
-          <span style={{
-            fontSize: 9,
-            fontWeight: 700,
-            color: "rgba(148,163,184,0.35)",
-            fontFamily: "'Orbitron', sans-serif",
-            letterSpacing: "0.1em",
-            display: "block",
-            marginBottom: 8,
-          }}>
-            ESTADO
-          </span>
+        {/* Estado */}
+        <ProfileSection title="Estado">
           <div style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            padding: "8px 10px",
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "8px 10px", borderRadius: 6,
             background: conversation.closed ? "rgba(148,163,184,0.04)" : "rgba(0,200,117,0.04)",
             border: `1px solid ${conversation.closed ? "rgba(148,163,184,0.08)" : "rgba(0,200,117,0.12)"}`,
           }}>
             {conversation.closed ? (
-              <CheckCircle2 style={{ width: 12, height: 12, color: "rgba(148,163,184,0.4)" }} />
+              <CheckCircle2 style={{ width: 14, height: 14, color: "rgba(148,163,184,0.4)" }} />
             ) : (
-              <Circle style={{ width: 12, height: 12, color: "#00c875" }} />
+              <Circle style={{ width: 14, height: 14, color: "#00c875" }} />
             )}
             <span style={{
-              fontSize: 11,
+              fontSize: 12, fontWeight: 500,
               color: conversation.closed ? "rgba(148,163,184,0.4)" : "#00c875",
             }}>
               {conversation.closed ? "Cerrado" : "Abierto"}
             </span>
           </div>
-        </div>
+        </ProfileSection>
+
+        {/* Etapa de cliente */}
+        <ProfileSection title="Etapa de cliente potencial" defaultOpen={false}>
+          <button style={{
+            display: "flex", alignItems: "center", gap: 4,
+            fontSize: 10, color: "#00d4ff", background: "transparent",
+            border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit",
+          }}>
+            <Plus style={{ width: 10, height: 10 }} />
+            Marcar como cliente potencial
+          </button>
+        </ProfileSection>
       </div>
     </div>
   );
