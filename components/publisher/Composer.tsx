@@ -22,7 +22,12 @@ import {
   ChevronDown,
   Globe,
   Trash2,
+  Terminal,
+  AlertTriangle,
 } from "lucide-react";
+
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 /* ── Social Icons (not in lucide-react) ───────────────── */
 const Facebook = ({ style }: { style?: React.CSSProperties }) => (
@@ -298,29 +303,32 @@ export function Composer() {
   const firstFbTarget = selectedTargets.find((t) => t.platform === "facebook");
 
   const validateForm = (): string | null => {
-    if (!content.trim()) return "El contenido es obligatorio";
-    if (selectedTargets.length === 0) return "Selecciona al menos una cuenta para publicar";
-    if (isOverLimit) return `El contenido excede el límite de ${charLimit.toLocaleString()} caracteres`;
+    if (!content.trim()) return "Misión vacía. El contenido es obligatorio para transmitir.";
+    if (selectedTargets.length === 0) return "Destinos no definidos. Asigna canales de transmisión.";
+    if (isOverLimit) return `Desbordamiento de datos: la transmisión excede el límite de ${charLimit.toLocaleString()} caracteres.`;
     return null;
   };
 
-  const buildPayload = (status: "Draft" | "Scheduled") => ({
-    content: fullContent(),
-    channels: selectedChannels,
-    mediaUrls: mediaFiles.map((m) => m.url),
-    scheduledAt: status === "Scheduled" ? new Date(scheduledAt).toISOString() : undefined,
-    status,
-    type: "post",
-    hashtags,
-    pageName: firstFbTarget?.pageName || null,
-    pageId: firstFbTarget?.pageId || null,
-    targets: selectedTargets.map((t) => ({
-      key: t.key,
-      platform: t.platform,
-      pageId: t.pageId,
-      igId: t.igId,
-    })),
-  });
+  const buildPayload = (status: "Draft" | "Scheduled") => {
+    const fallbackTarget = selectedTargets[0];
+    return {
+      content: fullContent(),
+      channels: selectedChannels,
+      mediaUrls: mediaFiles.map((m) => m.url),
+      scheduledAt: status === "Scheduled" ? new Date(scheduledAt).toISOString() : undefined,
+      status,
+      type: "post",
+      hashtags,
+      pageName: firstFbTarget?.pageName || fallbackTarget?.pageName || null,
+      pageId: firstFbTarget?.pageId || fallbackTarget?.pageId || null,
+      targets: selectedTargets.map((t) => ({
+        key: t.key,
+        platform: t.platform,
+        pageId: t.pageId,
+        igId: t.igId,
+      })),
+    };
+  };
 
   const saveDraft = async () => {
     const err = validateForm();
@@ -331,8 +339,8 @@ export function Composer() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildPayload("Draft")),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error"); }
-      setBanner({ type: "success", message: "Borrador guardado exitosamente" });
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error de transmisión"); }
+      setBanner({ type: "success", message: "Datos cifrados y almacenados en caché" });
       clearForm();
     } catch (e: any) { setBanner({ type: "error", message: e.message }); }
     finally { setSavingDraft(false); }
@@ -350,7 +358,7 @@ export function Composer() {
       });
       if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error"); }
       const scheduleDate = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(new Date(scheduledAt));
-      setBanner({ type: "success", message: `Publicación programada para ${scheduleDate}` });
+      setBanner({ type: "success", message: `Salto orbital programado para el marco: ${scheduleDate}` });
       clearForm();
     } catch (e: any) { setBanner({ type: "error", message: e.message }); }
     finally { setScheduling(false); }
@@ -372,8 +380,8 @@ export function Composer() {
         body: JSON.stringify({ postId: post.id }),
       });
       const pubData = await pubRes.json();
-      if (!pubRes.ok) throw new Error(pubData.error || "Error al publicar");
-      setBanner({ type: "success", message: "¡Publicación exitosa! Tu post ya está en vivo." });
+      if (!pubRes.ok) throw new Error(pubData.error || "Error al desplegar mensaje");
+      setBanner({ type: "success", message: "¡Transmisión Ejecutada! La señal está en vivo." });
       clearForm();
     } catch (e: any) { setBanner({ type: "error", message: e.message }); }
     finally { setPublishing(false); }
@@ -382,7 +390,7 @@ export function Composer() {
   const anyLoading = savingDraft || scheduling || publishing;
 
   /* ── Preview helpers ────────────────────────────────── */
-  const previewText = fullContent() || "Tu increíble contenido aparecerá aquí...";
+  const previewText = fullContent() || "Iniciando enlace de subespacio... El holomensaje proyectado aparecerá aquí.";
   const previewMedia = mediaFiles.length > 0 ? mediaFiles[0].url : null;
 
   /* ══════════════════════════════════════════════════════
@@ -399,7 +407,7 @@ export function Composer() {
           border: `1px solid ${banner.type === "success" ? "rgba(0,200,117,0.3)" : "rgba(226,68,92,0.3)"}`,
           color: banner.type === "success" ? "#00c875" : "#e2445c",
         }}>
-          {banner.type === "success" ? <Check style={{ width: 16, height: 16, flexShrink: 0 }} /> : <AlertCircle style={{ width: 16, height: 16, flexShrink: 0 }} />}
+          {banner.type === "success" ? <Terminal style={{ width: 16, height: 16, flexShrink: 0 }} /> : <AlertTriangle style={{ width: 16, height: 16, flexShrink: 0 }} />}
           {banner.message}
         </div>
       )}
@@ -417,13 +425,13 @@ export function Composer() {
             background: "rgba(255,255,255,0.01)",
           }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-              <span style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8" }}>Publicar en</span>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#94a3b8", fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>SECTOR DE TRANSMISIÓN</span>
               {selectedTargets.length > 0 && (
                 <button onClick={clearAllTargets} style={{
                   background: "none", border: "none", color: "#64748b", fontSize: 11,
                   cursor: "pointer", textDecoration: "underline", padding: 0,
                 }}>
-                  Limpiar cuentas
+                  Limpiar cuadrante
                 </button>
               )}
             </div>
@@ -471,7 +479,7 @@ export function Composer() {
                   ) : (
                     <Plus style={{ width: 13, height: 13 }} />
                   )}
-                  {selectedTargets.length === 0 ? "Seleccionar cuentas" : "Agregar"}
+                  {selectedTargets.length === 0 ? "Asignar canales" : "Agregar"}
                   <ChevronDown style={{ width: 12, height: 12 }} />
                 </button>
 
@@ -495,7 +503,7 @@ export function Composer() {
                         background: "none", border: "none", color: "#00d4ff",
                         fontSize: 11, cursor: "pointer", padding: 0,
                       }}>
-                        {selectedTargets.length === allTargets.length ? "Deseleccionar todo" : "Seleccionar todo"}
+                        {selectedTargets.length === allTargets.length ? "Despejar canales" : "Elegir todo el cuadrante"}
                       </button>
                     </div>
 
@@ -588,11 +596,13 @@ export function Composer() {
                       </>
                     )}
 
-                    {/* No accounts */}
                     {allTargets.length === 0 && !pagesLoading && (
-                      <div style={{ padding: 24, textAlign: "center", color: "#64748b", fontSize: 12 }}>
-                        No hay cuentas conectadas.
-                        <br />Conecta Meta en <strong style={{ color: "#00d4ff" }}>Integraciones</strong>.
+                      <div style={{ padding: "32px 16px" }}>
+                        <EmptyState 
+                          icon={<AlertTriangle style={{ width: 32, height: 32, color: "#e2445c" }} />}
+                          title="SIN CONEXIÓN DE COMUNICACIONES"
+                          description="No hay satélites enlazados al servidor maestro. Dirígete a la sección de Integraciones para restaurar el flujo."
+                        />
                       </div>
                     )}
                     </div>
@@ -604,7 +614,7 @@ export function Composer() {
                         background: "linear-gradient(135deg, #00b4d8, #0077b6)", border: "none",
                         color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
                       }}>
-                        Listo ({selectedTargets.length} seleccionados)
+                        Aprobar Selección ({selectedTargets.length})
                       </button>
                     </div>
                   </div>
@@ -628,7 +638,7 @@ export function Composer() {
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
-              placeholder="Escribe tu caption, luego personalízalo para cada red social."
+              placeholder="Introduce la orden imperial aquí. Será desplegada a los sectores seleccionados."
               style={{
                 flex: 1, width: "100%", background: "transparent",
                 border: "none", outline: "none", resize: "none",
@@ -702,7 +712,7 @@ export function Composer() {
                 alignItems: "center", gap: 8, color: "#00d4ff",
               }}>
                 <Upload style={{ width: 32, height: 32 }} />
-                <span style={{ fontSize: 13, fontWeight: 500 }}>Suelta tus archivos aquí</span>
+                <span style={{ fontSize: 13, fontWeight: 500 }}>Sube evidencia clasificada</span>
               </div>
             )}
 
@@ -729,7 +739,7 @@ export function Composer() {
                   }}>
                   {uploading ? <Loader2 style={{ width: 16, height: 16, animation: "spin 1s linear infinite" }} />
                     : <ImageIcon style={{ width: 16, height: 16 }} />}
-                  <span>Medios</span>
+                  <span>Carga visual</span>
                 </button>
 
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -782,7 +792,7 @@ export function Composer() {
             {/* Left: schedule */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Clock style={{ width: 15, height: 15, color: "#64748b" }} />
-              <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500 }}>Programar:</span>
+              <span style={{ fontSize: 12, color: "#94a3b8", fontWeight: 500, fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>RETRASO ORBITAL:</span>
               <input type="datetime-local" value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}
                 min={new Date().toISOString().slice(0, 16)}
@@ -813,7 +823,7 @@ export function Composer() {
                 transition: "all 0.2s",
               }}>
                 {savingDraft ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Save style={{ width: 14, height: 14 }} />}
-                Borrador
+                Cifrar Borrador
               </button>
 
               <button onClick={schedulePost} disabled={anyLoading} style={{
@@ -827,7 +837,7 @@ export function Composer() {
                 transition: "all 0.2s",
               }}>
                 {scheduling ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Clock style={{ width: 14, height: 14 }} />}
-                Programar
+                Agendar Salto
               </button>
 
               <button onClick={publishNow} disabled={anyLoading} style={{
@@ -838,7 +848,7 @@ export function Composer() {
                 boxShadow: "0 4px 16px rgba(0,180,216,0.2)", transition: "all 0.2s",
               }}>
                 {publishing ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <Send style={{ width: 14, height: 14 }} />}
-                Publicar Ahora
+                EJECUTAR TRANSMISIÓN
               </button>
             </div>
           </div>
@@ -856,7 +866,7 @@ export function Composer() {
           }}>
             <Smartphone style={{ width: 15, height: 15, color: "#64748b" }} />
             <span style={{ fontSize: 11, fontWeight: 700, color: "#94a3b8", letterSpacing: 1.5, textTransform: "uppercase" }}>
-              Vista Previa
+              HOLOGRAMA DE SIMULACIÓN
             </span>
             <span style={{
               marginLeft: "auto", fontSize: 11, color: "#475569",
@@ -880,9 +890,11 @@ export function Composer() {
                 }}>
                   <Globe style={{ width: 22, height: 22, color: "#334155" }} />
                 </div>
-                <p style={{ fontSize: 12, color: "#64748b", textAlign: "center" }}>
-                  Selecciona cuentas para ver la vista previa de tu publicación
-                </p>
+                <EmptyState 
+                  icon={<Globe style={{ width: 48, height: 48, color: "rgba(148,163,184,0.3)" }} />}
+                  title="SIN HOLOGRAMA"
+                  description="Enlaza una frecuencia objetivo para visualizar la proyección antes de ordenar el lanzamiento."
+                />
               </div>
             )}
 
