@@ -102,6 +102,11 @@ export function Composer() {
   const [pagesLoading, setPagesLoading] = useState(false);
   const [showAccountPicker, setShowAccountPicker] = useState(false);
 
+  // Social connection status
+  const [socialConnected, setSocialConnected] = useState<boolean | null>(null);
+  const [socialPages, setSocialPages] = useState<any[]>([]);
+  const [socialInstagramAccounts, setSocialInstagramAccounts] = useState<any[]>([]);
+
   // Loading
   const [savingDraft, setSavingDraft] = useState(false);
   const [scheduling, setScheduling] = useState(false);
@@ -162,6 +167,34 @@ export function Composer() {
       }
     };
     loadPages();
+  }, []);
+
+  /* ── Load social connection status ──────────────────── */
+  useEffect(() => {
+    const loadSocialStatus = async () => {
+      try {
+        const res = await fetch("/api/connect/status");
+        if (res.ok) {
+          const data = await res.json();
+          const social = data.modules?.social;
+          setSocialConnected(social?.connected ?? false);
+          const pagesArr: any[] = social?.pages || [];
+          setSocialPages(pagesArr);
+          setSocialInstagramAccounts(pagesArr.filter((p: any) => p.instagramId));
+        } else {
+          setSocialConnected(false);
+        }
+      } catch {
+        setSocialConnected(false);
+      }
+    };
+    loadSocialStatus();
+    // Also refresh if we just connected (URL param)
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("connected") === "social") {
+      window.history.replaceState({}, "", window.location.pathname);
+      loadSocialStatus();
+    }
   }, []);
 
   /* ── Auto-dismiss banner ────────────────────────────── */
@@ -880,6 +913,93 @@ export function Composer() {
           width: 420, minWidth: 340, display: "flex", flexDirection: "column",
           borderRadius: 12, overflow: "hidden", flexShrink: 0,
         }}>
+          {/* ── Connection Status Panel ─────────────────────────── */}
+          {socialConnected === true ? (
+            <div style={{
+              padding: "12px 16px",
+              borderBottom: "1px solid rgba(0,200,117,0.15)",
+              background: "rgba(0,200,117,0.04)",
+            }}>
+              {/* Facebook connected */}
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: socialInstagramAccounts.length > 0 ? 6 : 0 }}>
+                <div style={{
+                  width: 7, height: 7, borderRadius: "50%",
+                  background: "#00c875", boxShadow: "0 0 6px #00c87560", flexShrink: 0,
+                }} />
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="#1877f2"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#00c875", flex: 1 }}>
+                  Facebook conectado
+                </span>
+                {socialPages.length > 0 && (
+                  <span style={{ fontSize: 10, color: "#64748b" }}>
+                    {socialPages[0].name}{socialPages.length > 1 ? ` +${socialPages.length - 1}` : ""}
+                  </span>
+                )}
+                <button
+                  onClick={() => { window.location.href = "/api/connect/social"; }}
+                  style={{
+                    background: "none", border: "1px solid rgba(148,163,184,0.15)", borderRadius: 4,
+                    color: "#64748b", fontSize: 9, padding: "2px 7px", cursor: "pointer",
+                  }}
+                >
+                  Reconectar
+                </button>
+              </div>
+              {/* Instagram status */}
+              {socialInstagramAccounts.length > 0 ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 15 }}>
+                  <div style={{
+                    width: 7, height: 7, borderRadius: "50%",
+                    background: "#00c875", boxShadow: "0 0 6px #00c87560", flexShrink: 0,
+                  }} />
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="#E1306C"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: "#94a3b8", flex: 1 }}>
+                    Instagram conectado
+                  </span>
+                  <span style={{ fontSize: 10, color: "#64748b" }}>
+                    {socialInstagramAccounts.length} cuenta{socialInstagramAccounts.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+              ) : (
+                <div style={{ display: "flex", alignItems: "center", gap: 8, paddingLeft: 15 }}>
+                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#64748b", flexShrink: 0 }} />
+                  <svg viewBox="0 0 24 24" width="12" height="12" fill="#64748b"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+                  <span style={{ fontSize: 11, color: "#475569", flex: 1 }}>Sin Instagram Business</span>
+                </div>
+              )}
+            </div>
+          ) : socialConnected === false ? (
+            /* Not connected banner */
+            <div style={{
+              padding: "12px 16px",
+              borderBottom: "1px solid rgba(251,191,36,0.2)",
+              background: "rgba(251,191,36,0.05)",
+              display: "flex", alignItems: "center", gap: 10,
+            }}>
+              <AlertCircle style={{ width: 16, height: 16, color: "#fbbf24", flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <p style={{ fontSize: 11, fontWeight: 600, color: "#fbbf24", margin: 0 }}>
+                  Facebook no conectado
+                </p>
+                <p style={{ fontSize: 10, color: "#64748b", margin: 0 }}>
+                  Conecta para publicar en Facebook e Instagram
+                </p>
+              </div>
+              <button
+                onClick={() => { window.location.href = "/api/connect/social"; }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 5,
+                  padding: "6px 12px", borderRadius: 7, flexShrink: 0,
+                  background: "linear-gradient(135deg, #1877f2, #0d5bbc)",
+                  border: "none", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(24,119,242,0.3)",
+                }}
+              >
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                Conectar Facebook
+              </button>
+            </div>
+          ) : null /* null = loading, show nothing */}
           {/* Preview header */}
           <div style={{
             padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)",
