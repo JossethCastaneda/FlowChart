@@ -7,16 +7,14 @@ import { InboxLayout } from "@/components/inbox/InboxLayout";
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
 import { ListeningDashboard } from "@/components/listening/ListeningDashboard";
 import { StreamsDashboard } from "@/components/streams/StreamsDashboard";
+import { IntegrationsPanel } from "./IntegrationsPanel";
 import {
   Loader2,
   Plug,
-  ExternalLink,
   Check,
   RefreshCw,
   MessageSquare,
   BarChart3,
-  Megaphone,
-  Share2,
   Zap,
   Calendar,
   Ear,
@@ -26,13 +24,13 @@ import {
   X,
   Search,
   Globe,
-  Bell,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
 
-/* ══════════════════════════════════════════════════════════
+
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    TYPES
-   ══════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 interface ChannelOption {
   id: string;
@@ -50,9 +48,9 @@ export interface PublisherFilters {
   channels: string[];   // selected channel IDs (multi-select)
 }
 
-/* ══════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    MULTI-SELECT CHANNEL PICKER
-   ══════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function ChannelPicker({
   channels,
@@ -274,9 +272,9 @@ function ChannelPicker({
   );
 }
 
-/* ══════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    SINGLE-SELECT FILTER DROPDOWN
-   ══════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function SelectFilter({
   label,
@@ -418,9 +416,9 @@ function SelectFilter({
   );
 }
 
-/* ══════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    FILTERS BAR (REAL DATA)
-   ══════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 function FiltersBar({
   filters,
@@ -507,441 +505,6 @@ function FiltersBar({
     </div>
   );
 }
-
-/* ══════════════════════════════════════════════════════════
-   INTEGRATIONS PANEL
-   ══════════════════════════════════════════════════════════ */
-
-const META_MODULES = [
-  {
-    key: "social", label: "Social Channels", icon: Share2, color: "#06d6a0",
-    description: "Publicar y gestionar contenido en Facebook e Instagram",
-    permissions: ["instagram_content_publish", "pages_manage_posts", "pages_manage_engagement"],
-    usedBy: ["Redactor", "Calendario"],
-  },
-  {
-    key: "ads", label: "Meta Ads Manager", icon: Megaphone, color: "#7b61ff",
-    description: "Campañas publicitarias, presupuestos y audiencias",
-    permissions: ["ads_management", "ads_read", "leads_retrieval"],
-    usedBy: ["Ads — Campañas"],
-  },
-  {
-    key: "analytics", label: "Analytics Engine", icon: BarChart3, color: "#f472b6",
-    description: "Métricas de rendimiento, insights y audiencia",
-    permissions: ["read_insights", "instagram_manage_insights", "pages_read_engagement"],
-    usedBy: ["Analytics"],
-  },
-  {
-    key: "community", label: "Community Management", icon: MessageSquare, color: "#a855f7",
-    description: "Inbox, mensajes, menciones y monitoreo social",
-    permissions: ["pages_messaging", "instagram_manage_messages", "read_page_mailboxes"],
-    usedBy: ["Inbox", "Listening", "Streams"],
-  },
-];
-
-function IntegrationsPanel() {
-  const [statuses, setStatuses] = useState<Record<string, { connected: boolean; connectedAt: string | null; pages: any[] }>>({});
-  const [loading, setLoading] = useState(true);
-  const [connecting, setConnecting] = useState<string | null>(null);
-
-  const fetchStatus = async () => {
-    try {
-      const res = await fetch("/api/connect/status");
-      if (res.ok) { setStatuses((await res.json()).modules || {}); }
-    } catch { /* silent */ }
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    fetchStatus();
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("connected")) { window.history.replaceState({}, "", window.location.pathname); fetchStatus(); }
-  }, []);
-
-  const handleConnect = (moduleKey: string) => { setConnecting(moduleKey); window.location.href = `/api/connect/${moduleKey}`; };
-
-  if (loading) {
-    return (
-      <div style={{ padding: 20 }}>
-        <Skeleton style={{ height: 200 }} />
-      </div>
-    );
-  }
-
-  const connectedCount = Object.values(statuses).filter(s => s.connected).length;
-  const allPages = new Map<string, any>();
-  Object.values(statuses).forEach(s => (s.pages || []).forEach((p: any) => allPages.set(p.id, p)));
-
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      {/* Summary header */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 14,
-        padding: "16px 20px", borderRadius: 12,
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.09)",
-      }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: 10,
-          background: "rgba(0,212,255,0.08)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <Plug style={{ width: 20, height: 20, color: "#00d4ff" }} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <h3 style={{ fontSize: 14, fontWeight: 700, color: "white", margin: 0, fontFamily: "'Orbitron', sans-serif" }}>
-            Integraciones Meta
-          </h3>
-          <p style={{ fontSize: 11, color: "#64748b", margin: 0 }}>
-            {connectedCount}/{META_MODULES.length} módulos · {allPages.size} páginas
-          </p>
-        </div>
-        {/* Status dots */}
-        <div style={{ display: "flex", gap: 6 }}>
-          {META_MODULES.map(mod => (
-            <div key={mod.key} title={mod.label} style={{
-              width: 8, height: 8, borderRadius: "50%",
-              background: statuses[mod.key]?.connected ? mod.color : "#1e293b",
-              boxShadow: statuses[mod.key]?.connected ? `0 0 8px ${mod.color}40` : "none",
-              transition: "all 0.3s",
-            }} />
-          ))}
-        </div>
-      </div>
-
-      {/* Module cards — 2 columns */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 12 }}>
-        {META_MODULES.map(mod => {
-          const st = statuses[mod.key];
-          const connected = st?.connected;
-          const Icon = mod.icon;
-          const pages = st?.pages || [];
-          return (
-            <div key={mod.key} style={{
-              borderRadius: 12, overflow: "hidden",
-              background: "rgba(255,255,255,0.015)",
-              border: `1px solid ${connected ? `${mod.color}18` : "rgba(255,255,255,0.09)"}`,
-              transition: "border-color 0.3s",
-            }}>
-              {/* Card header */}
-              <div style={{
-                display: "flex", alignItems: "center", gap: 10, padding: "12px 16px",
-                background: connected ? `${mod.color}04` : "transparent",
-                borderBottom: "1px solid rgba(255,255,255,0.03)",
-              }}>
-                <div style={{
-                  width: 32, height: 32, borderRadius: 8,
-                  background: `${mod.color}10`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}>
-                  <Icon style={{ width: 16, height: 16, color: mod.color }} />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, color: "white" }}>{mod.label}</div>
-                  <div style={{ fontSize: 10, color: "#64748b" }}>{mod.description}</div>
-                </div>
-                <div style={{
-                  width: 8, height: 8, borderRadius: "50%",
-                  background: connected ? mod.color : "#334155",
-                  boxShadow: connected ? `0 0 6px ${mod.color}60` : "none",
-                }} />
-              </div>
-
-              {/* Card body */}
-              <div style={{ padding: "12px 16px" }}>
-                {/* Permissions */}
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginBottom: 10 }}>
-                  {mod.permissions.map(p => (
-                    <span key={p} style={{
-                      fontSize: 8, padding: "2px 5px", borderRadius: 3, fontFamily: "monospace",
-                      background: connected ? `${mod.color}06` : "rgba(255,255,255,0.04)",
-                      color: connected ? `${mod.color}` : "#475569",
-                      border: `1px solid ${connected ? `${mod.color}12` : "rgba(255,255,255,0.09)"}`,
-                    }}>
-                      {connected ? "✓ " : ""}{p}
-                    </span>
-                  ))}
-                </div>
-
-                {/* Pages */}
-                {connected && pages.length > 0 && (
-                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 10 }}>
-                    {pages.map((page: any) => (
-                      <div key={page.id} style={{
-                        display: "flex", alignItems: "center", gap: 4,
-                        padding: "3px 8px", borderRadius: 5,
-                        background: "rgba(255,255,255,0.03)",
-                        border: "1px solid rgba(255,255,255,0.09)",
-                      }}>
-                        {page.picture ? (
-                          <img src={page.picture} alt="" style={{ width: 14, height: 14, borderRadius: "50%", objectFit: "cover" }} />
-                        ) : (
-                          <div style={{
-                            width: 14, height: 14, borderRadius: "50%",
-                            background: `${mod.color}12`, fontSize: 7, fontWeight: 700,
-                            display: "flex", alignItems: "center", justifyContent: "center", color: mod.color,
-                          }}>{page.name?.charAt(0)}</div>
-                        )}
-                        <span style={{ fontSize: 10, color: "#cbd5e1" }}>{page.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-
-                {/* Connect button */}
-                <button
-                  onClick={() => handleConnect(mod.key)}
-                  disabled={connecting === mod.key}
-                  style={{
-                    width: "100%", padding: "8px", borderRadius: 8,
-                    background: connected ? "rgba(255,255,255,0.03)" : `linear-gradient(135deg, ${mod.color}dd, ${mod.color}99)`,
-                    border: connected ? "1px solid rgba(255,255,255,0.06)" : "none",
-                    color: connected ? "#94a3b8" : "#0a0a1a",
-                    fontWeight: 600, fontSize: 11, cursor: connecting === mod.key ? "wait" : "pointer",
-                    display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-                    transition: "all 0.2s", opacity: connecting === mod.key ? 0.5 : 1,
-                  }}
-                >
-                  {connecting === mod.key ? (
-                    <><Loader2 style={{ width: 12, height: 12, animation: "spin 1s linear infinite" }} /> Conectando...</>
-                  ) : connected ? (
-                    <><RefreshCw style={{ width: 11, height: 11 }} /> Reconectar</>
-                  ) : (
-                    <><ExternalLink style={{ width: 12, height: 12 }} /> Conectar con Meta</>
-                  )}
-                </button>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* ─── Webhook Configuration ─── */}
-      <WebhookConfig connectedCount={connectedCount} />
-    </div>
-  );
-}
-
-/* ── Webhook Configuration Component ── */
-function WebhookConfig({ connectedCount }: { connectedCount: number }) {
-  const [status, setStatus] = useState<any>(null);
-  const [subscribing, setSubscribing] = useState(false);
-  const [result, setResult] = useState<any>(null);
-  const [expanded, setExpanded] = useState(false);
-
-  const fetchStatus = async () => {
-    try {
-      const res = await fetch("/api/webhooks/subscribe");
-      if (res.ok) setStatus(await res.json());
-    } catch { /* silent */ }
-  };
-
-  useEffect(() => { if (connectedCount > 0) fetchStatus(); }, [connectedCount]);
-
-  const handleSubscribe = async () => {
-    setSubscribing(true);
-    setResult(null);
-    try {
-      const res = await fetch("/api/webhooks/subscribe", { method: "POST" });
-      const data = await res.json();
-      setResult(data);
-      fetchStatus();
-    } catch (err: any) {
-      setResult({ error: err.message });
-    }
-    setSubscribing(false);
-  };
-
-  const allFieldsSubscribed = status?.subscriptions?.every((s: any) =>
-    s.subscribedFields?.length >= 5
-  );
-
-  return (
-    <div style={{
-      borderRadius: 12, overflow: "hidden",
-      background: "rgba(255,255,255,0.015)",
-      border: `1px solid ${allFieldsSubscribed ? "rgba(0,200,117,0.15)" : "rgba(255,165,0,0.15)"}`,
-    }}>
-      {/* Header */}
-      <button
-        onClick={() => setExpanded(!expanded)}
-        style={{
-          width: "100%", display: "flex", alignItems: "center", gap: 10,
-          padding: "12px 16px", background: "transparent", border: "none",
-          cursor: "pointer", fontFamily: "inherit",
-          borderBottom: expanded ? "1px solid rgba(255,255,255,0.09)" : "none",
-        }}
-      >
-        <div style={{
-          width: 32, height: 32, borderRadius: 8,
-          background: "rgba(255,165,0,0.1)",
-          display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <Bell style={{ width: 16, height: 16, color: "#ffa500" }} />
-        </div>
-        <div style={{ flex: 1, textAlign: "left" }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "white" }}>Webhooks & Alertas en Tiempo Real</div>
-          <div style={{ fontSize: 10, color: "#64748b" }}>
-            {allFieldsSubscribed
-              ? "✅ Todas las alertas configuradas"
-              : connectedCount === 0
-              ? "Conecta al menos un módulo primero"
-              : "⚠️ Webhooks pendientes de configurar"
-            }
-          </div>
-        </div>
-        <div style={{
-          width: 8, height: 8, borderRadius: "50%",
-          background: allFieldsSubscribed ? "#00c875" : "#ffa500",
-          boxShadow: `0 0 6px ${allFieldsSubscribed ? "#00c87560" : "#ffa50060"}`,
-        }} />
-        <ChevronDown style={{
-          width: 14, height: 14, color: "rgba(148,163,184,0.65)",
-          transform: expanded ? "rotate(180deg)" : "none",
-          transition: "transform 0.2s",
-        }} />
-      </button>
-
-      {expanded && (
-        <div style={{ padding: "12px 16px" }}>
-          {/* Webhook URL info */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>
-              CALLBACK URL
-            </div>
-            <div style={{
-              padding: "6px 10px", borderRadius: 6,
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              fontSize: 11, fontFamily: "monospace", color: "#00d4ff",
-              wordBreak: "break-all",
-            }}>
-              {status?.callbackUrl || "https://sodare.xyz/api/webhooks/meta"}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: "#64748b", marginBottom: 4 }}>
-              VERIFY TOKEN
-            </div>
-            <div style={{
-              padding: "6px 10px", borderRadius: 6,
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              fontSize: 11, fontFamily: "monospace", color: "#a855f7",
-            }}>
-              {status?.verifyToken || "sodare_webhook_verify_2026"}
-            </div>
-          </div>
-
-          {/* Subscription status per page */}
-          {status?.subscriptions?.length > 0 && (
-            <div style={{ marginBottom: 12 }}>
-              <div style={{ fontSize: 10, fontWeight: 600, color: "#64748b", marginBottom: 6 }}>
-                SUSCRIPCIONES POR PÁGINA
-              </div>
-              {status.subscriptions.map((sub: any, i: number) => (
-                <div key={i} style={{
-                  display: "flex", alignItems: "center", gap: 8,
-                  padding: "6px 10px", marginBottom: 4, borderRadius: 6,
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.09)",
-                }}>
-                  <div style={{
-                    width: 6, height: 6, borderRadius: "50%",
-                    background: sub.subscribedFields?.length > 0 ? "#00c875" : "#ef4444",
-                  }} />
-                  <span style={{ fontSize: 11, color: "white", flex: 1 }}>{sub.pageName}</span>
-                  <span style={{ fontSize: 9, color: "#64748b" }}>
-                    {sub.subscribedFields?.length || 0} campos
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Eventos configurados */}
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 10, fontWeight: 600, color: "#64748b", marginBottom: 6 }}>
-              EVENTOS CONFIGURADOS
-            </div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 3 }}>
-              {[
-                { label: "Mensajes Messenger", color: "#0084ff" },
-                { label: "Instagram DMs", color: "#E1306C" },
-                { label: "Comentarios FB", color: "#1877F2" },
-                { label: "Comentarios IG", color: "#F77737" },
-                { label: "Menciones", color: "#06d6a0" },
-                { label: "Reacciones", color: "#fbbf24" },
-                { label: "Leads", color: "#a855f7" },
-                { label: "Story Replies", color: "#E1306C" },
-                { label: "Campañas Ads", color: "#7b61ff" },
-                { label: "Anuncios rechazados", color: "#ef4444" },
-                { label: "Presupuesto", color: "#f97316" },
-                { label: "WhatsApp", color: "#25D366" },
-                { label: "Reseñas", color: "#fbbf24" },
-                { label: "Postbacks", color: "#00d4ff" },
-              ].map(e => (
-                <span key={e.label} style={{
-                  fontSize: 8, padding: "2px 6px", borderRadius: 3,
-                  background: `${e.color}08`, color: e.color,
-                  border: `1px solid ${e.color}15`,
-                }}>
-                  {e.label}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Subscribe button */}
-          <button
-            onClick={handleSubscribe}
-            disabled={subscribing || connectedCount === 0}
-            style={{
-              width: "100%", padding: "10px", borderRadius: 8,
-              background: subscribing ? "rgba(255,255,255,0.03)" : "linear-gradient(135deg, #ffa500dd, #ff8c00cc)",
-              border: "none",
-              color: subscribing ? "#94a3b8" : "#0a0a1a",
-              fontWeight: 600, fontSize: 12, cursor: subscribing ? "wait" : "pointer",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-              transition: "all 0.2s",
-              opacity: connectedCount === 0 ? 0.3 : 1,
-              fontFamily: "inherit",
-            }}
-          >
-            {subscribing ? (
-              <><Loader2 style={{ width: 12, height: 12, animation: "spin 1s linear infinite" }} /> Configurando...</>
-            ) : (
-              <><Bell style={{ width: 13, height: 13 }} /> Activar Todas las Alertas</>
-            )}
-          </button>
-
-          {/* Result feedback */}
-          {result && (
-            <div style={{
-              marginTop: 8, padding: "8px 12px", borderRadius: 6, fontSize: 10,
-              background: result.success ? "rgba(0,200,117,0.06)" : "rgba(239,68,68,0.06)",
-              border: `1px solid ${result.success ? "rgba(0,200,117,0.15)" : "rgba(239,68,68,0.15)"}`,
-              color: result.success ? "#00c875" : "#ef4444",
-            }}>
-              {result.success ? (
-                <>
-                  ✅ Webhooks configurados — {result.subscriptions?.filter((s: any) => s.success).length || 0} suscripciones activas
-                </>
-              ) : (
-                <>❌ Error: {result.error || "No se pudieron configurar los webhooks"}</>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-}
-/* ══════════════════════════════════════════════════════════
-   TAB CONFIGURATION
-   ══════════════════════════════════════════════════════════ */
-
 const TABS = [
   { key: "composer",     label: "Redactor",      icon: Zap,           color: "#ffbe0b" },
   { key: "calendar",     label: "Calendario",    icon: Calendar,      color: "#06d6a0" },
@@ -952,9 +515,9 @@ const TABS = [
   { key: "integrations", label: "Integraciones", icon: Plug,          color: "#00d4ff" },
 ];
 
-/* ══════════════════════════════════════════════════════════
+/* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    PUBLISHER TABS (MAIN EXPORT)
-   ══════════════════════════════════════════════════════════ */
+   â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
 
 export function PublisherTabs() {
   const [activeTab, setActiveTab] = useState("composer");
@@ -971,7 +534,7 @@ export function PublisherTabs() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%", minHeight: 0 }}>
-      {/* ── Tab Navigation ───────────────────────────────────── */}
+      {/* â”€â”€ Tab Navigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div style={{
         display: "flex", gap: 1, overflowX: "auto",
         padding: 3, borderRadius: 10,
@@ -1031,10 +594,10 @@ export function PublisherTabs() {
         })}
       </div>
 
-      {/* ── Filters Bar ──────────────────────────────────────── */}
+      {/* â”€â”€ Filters Bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {showFilters && <FiltersBar filters={filters} onChange={setFilters} />}
 
-      {/* ── Tab Content ──────────────────────────────────────── */}
+      {/* â”€â”€ Tab Content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       {activeTab === "inbox" ? (
         <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
           <InboxLayout />
