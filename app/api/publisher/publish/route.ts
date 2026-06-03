@@ -4,8 +4,6 @@ import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
-import FormData from "form-data";
-import axios from "axios";
 
 const META_VERSION = process.env.META_API_VERSION || "v22.0";
 
@@ -118,7 +116,7 @@ export async function POST(req: NextRequest) {
           const resolved = resolveMediaToBuffer(mediaUrl);
 
           if (resolved) {
-            // ── Multipart binary upload via axios + form-data ──
+            // ── Multipart binary upload via native fetch + FormData ──
             const isVideo = resolved.contentType.startsWith("video/");
             const endpoint = isVideo ? "videos" : "photos";
             const domain = isVideo ? "graph-video.facebook.com" : "graph.facebook.com";
@@ -129,21 +127,27 @@ export async function POST(req: NextRequest) {
             } else {
               form.append("message", post.content);
             }
-            form.append("source", resolved.buffer, {
-              filename: resolved.filename,
-              contentType: resolved.contentType,
-            });
+            form.append("access_token", pageToken);
+            
+            const blob = new Blob([resolved.buffer as any], { type: resolved.contentType });
+            form.append("source", blob, resolved.filename);
 
             try {
-              const fbRes = await axios.post(
-                `https://${domain}/${META_VERSION}/${pageId}/${endpoint}?access_token=${pageToken}`,
-                form,
-                { headers: form.getHeaders() }
+              const fbRes = await fetch(
+                `https://${domain}/${META_VERSION}/${pageId}/${endpoint}`,
+                {
+                  method: "POST",
+                  body: form,
+                }
               );
-              externalIds.facebook = fbRes.data.id;
+              const fbData = await fbRes.json();
+              if (fbRes.ok && fbData.id) {
+                externalIds.facebook = fbData.id;
+              } else {
+                errors.push(`Facebook: ${fbData?.error?.message || "Error desconocido"}`);
+              }
             } catch (err: any) {
-              const fbErr = err.response?.data?.error?.message || err.message || "Error desconocido";
-              errors.push(`Facebook: ${fbErr}`);
+              errors.push(`Facebook: ${err.message}`);
             }
           } else {
             // ── URL-based upload (for https:// URLs) ──
@@ -205,19 +209,22 @@ export async function POST(req: NextRequest) {
             const form = new FormData();
             form.append("published", "false");
             if (isVideo) form.append("description", "instagram_video_temp");
-            form.append("source", resolved.buffer, {
-              filename: resolved.filename,
-              contentType: resolved.contentType,
-            });
+            form.append("access_token", pageToken);
+            
+            const blob = new Blob([resolved.buffer as any], { type: resolved.contentType });
+            form.append("source", blob, resolved.filename);
 
             try {
-              const uploadRes = await axios.post(
-                `https://${domain}/${META_VERSION}/${pageId}/${endpoint}?access_token=${pageToken}`,
-                form,
-                { headers: form.getHeaders() }
+              const uploadRes = await fetch(
+                `https://${domain}/${META_VERSION}/${pageId}/${endpoint}`,
+                {
+                  method: "POST",
+                  body: form,
+                }
               );
+              const uploadData = await uploadRes.json();
               
-              if (uploadRes.data.id) {
+              if (uploadRes.ok && uploadData.id) {
                 // If it's a video, we might need to wait for processing to get the source URL
                 let bestMedia = null;
                 const maxRetries = isVideo ? 6 : 1;
@@ -225,7 +232,7 @@ export async function POST(req: NextRequest) {
                 for (let i = 0; i < maxRetries; i++) {
                   const fields = isVideo ? "source" : "images";
                   const photoRes = await fetch(
-                    `https://graph.facebook.com/${META_VERSION}/${uploadRes.data.id}?fields=${fields}`,
+                    `https://graph.facebook.com/${META_VERSION}/${uploadData.id}?fields=${fields}`,
                     { headers: { Authorization: `Bearer ${pageToken}` } }
                   );
                   const photoData = await photoRes.json();
@@ -249,10 +256,11 @@ export async function POST(req: NextRequest) {
                 } else {
                   errors.push("Instagram: No se pudo obtener URL pública del contenido subido");
                 }
+              } else {
+                errors.push(`Instagram pre-upload: ${uploadData?.error?.message || "Error"}`);
               }
             } catch (err: any) {
-              const fbErr = err.response?.data?.error?.message || err.message || "Error";
-              errors.push(`Instagram: Error subiendo archivo (pre-upload): ${fbErr}`);
+              errors.push(`Instagram: Error subiendo archivo (pre-upload): ${err.message}`);
             }
           }
 
