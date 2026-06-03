@@ -723,7 +723,12 @@ export default function ProyectosPage() {
                 e.stopPropagation();
                 if (menuOpen === p.id) { setMenuOpen(null); return; }
                 const rect = e.currentTarget.getBoundingClientRect();
-                setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+                const menuHeight = 220;
+                let topPos = rect.bottom + 4;
+                if (topPos + menuHeight > window.innerHeight) {
+                  topPos = Math.max(8, rect.top - menuHeight - 4);
+                }
+                setMenuPos({ top: topPos, right: window.innerWidth - rect.right });
                 setMenuOpen(p.id);
               }}
                 style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.3)", padding: "4px" }}>
