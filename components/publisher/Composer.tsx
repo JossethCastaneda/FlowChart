@@ -330,7 +330,8 @@ export function Composer() {
     };
   };
 
-  const saveDraft = async () => {
+  const saveDraft = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     const err = validateForm();
     if (err) { setBanner({ type: "error", message: err }); return; }
     setSavingDraft(true);
@@ -339,14 +340,18 @@ export function Composer() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildPayload("Draft")),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error de transmisión"); }
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error al guardar el borrador en la base de datos."); }
       setBanner({ type: "success", message: "Datos cifrados y almacenados en caché" });
       clearForm();
-    } catch (e: any) { setBanner({ type: "error", message: e.message }); }
+    } catch (e: any) { 
+      console.error("saveDraft error:", e);
+      setBanner({ type: "error", message: e.message || "Error desconocido" }); 
+    }
     finally { setSavingDraft(false); }
   };
 
-  const schedulePost = async () => {
+  const schedulePost = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     const err = validateForm();
     if (err) { setBanner({ type: "error", message: err }); return; }
     if (!scheduledAt) { setBanner({ type: "error", message: "Selecciona fecha y hora" }); return; }
@@ -356,15 +361,19 @@ export function Composer() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildPayload("Scheduled")),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error"); }
+      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error al registrar la programación."); }
       const scheduleDate = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(new Date(scheduledAt));
       setBanner({ type: "success", message: `Salto orbital programado para el marco: ${scheduleDate}` });
       clearForm();
-    } catch (e: any) { setBanner({ type: "error", message: e.message }); }
+    } catch (e: any) { 
+      console.error("schedulePost error:", e);
+      setBanner({ type: "error", message: e.message || "Error desconocido" }); 
+    }
     finally { setScheduling(false); }
   };
 
-  const publishNow = async () => {
+  const publishNow = async (e?: React.MouseEvent) => {
+    if (e) e.preventDefault();
     const err = validateForm();
     if (err) { setBanner({ type: "error", message: err }); return; }
     setPublishing(true);
@@ -380,10 +389,13 @@ export function Composer() {
         body: JSON.stringify({ postId: post.id }),
       });
       const pubData = await pubRes.json();
-      if (!pubRes.ok) throw new Error(pubData.error || "Error al desplegar mensaje");
+      if (!pubRes.ok) throw new Error(pubData.error || "Error al desplegar mensaje en redes.");
       setBanner({ type: "success", message: "¡Transmisión Ejecutada! La señal está en vivo." });
       clearForm();
-    } catch (e: any) { setBanner({ type: "error", message: e.message }); }
+    } catch (e: any) { 
+      console.error("publishNow error:", e);
+      setBanner({ type: "error", message: e.message || "Error desconocido" }); 
+    }
     finally { setPublishing(false); }
   };
 
