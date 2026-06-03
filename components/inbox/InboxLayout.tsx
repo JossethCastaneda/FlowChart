@@ -90,7 +90,7 @@ export function InboxLayout() {
   const [showProfile, setShowProfile] = useState(true);
   const [filterTab, setFilterTab] = useState<"todos" | "unread" | "closed">("todos");
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [initialFetchDone, setInitialFetchDone] = useState(false);
 
   // Fetch real conversations from API
   useEffect(() => {
@@ -117,10 +117,31 @@ export function InboxLayout() {
             setConversations(mapped);
             setSelectedId(mapped[0]?.id || "");
 
+            // Auto-load messages for the first conversation
+            const first = mapped[0];
+            if (first) {
+              const pageId = (first as any)?._pageId;
+              fetch(`/api/inbox/messages?conversationId=${first.id}&pageId=${pageId || ""}`)
+                .then(r => r.ok ? r.json() : null)
+                .then(data => {
+                  if (data?.messages?.length) {
+                    const msgs: Message[] = data.messages.map((m: any) => ({
+                      id: m.id,
+                      text: m.text,
+                      incoming: m.incoming,
+                      timestamp: new Date(m.timestamp),
+                    }));
+                    setConversations(prev =>
+                      prev.map(c => c.id === first.id ? { ...c, messages: msgs } : c)
+                    );
+                  }
+                })
+                .catch(() => {});
+            }
           }
         }
-      } catch { /* fallback to demo */ }
-      setLoading(false);
+      } catch { /* fallback */ }
+      setInitialFetchDone(true);
     };
     fetchReal();
   }, []);
@@ -223,8 +244,8 @@ export function InboxLayout() {
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 240px)" }}>
 
-      {/* Empty state — no conversations */}
-      {conversations.length === 0 && !loading && (
+      {/* Empty state — only show AFTER initial fetch completes with 0 results */}
+      {conversations.length === 0 && initialFetchDone && (
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
           justifyContent: "center", flex: 1, padding: 60, gap: 14,
@@ -247,8 +268,7 @@ export function InboxLayout() {
       )}
 
 
-
-      {/* 3-Panel Layout — only render when there are conversations */}
+      {/* 3-Panel Layout — render when there are conversations */}
       {conversations.length > 0 && selected && (
       <div style={{ display: "flex", flex: 1, minHeight: 0, gap: 1 }}>
         {/* LEFT — Conversation List */}

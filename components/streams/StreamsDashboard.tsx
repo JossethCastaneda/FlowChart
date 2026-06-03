@@ -16,6 +16,8 @@ import {
   X,
   Settings,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 
 /* No demo data — columns loaded dynamically */
@@ -212,12 +214,16 @@ export function StreamsDashboard() {
 }
 
 /* ── Stream Column with real data fetching ──────────────── */
+const INITIAL_VISIBLE = 10;
+
 function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: string) => void }) {
   const streamType = STREAM_TYPES.find((t) => t.type === col.type);
   const Icon = streamType?.icon || Home;
   const platColor = platformColors[col.platform] || "#64748b";
   const [posts, setPosts] = useState<StreamPost[]>(generatePosts(col.type, col.platform));
   const [isReal, setIsReal] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     // Only fetch for feed types (home_feed, mentions, published)
@@ -246,6 +252,10 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
     }
   }, [col.type, col.platform]);
 
+  const visiblePosts = showAll ? posts : posts.slice(0, INITIAL_VISIBLE);
+  const hasMore = posts.length > INITIAL_VISIBLE;
+  const CollapseIcon = collapsed ? ChevronDown : ChevronUp;
+
   return (
     <div
       style={{
@@ -256,15 +266,20 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
       }}
     >
       {/* Column header */}
-      <div style={{
-        display: "flex", alignItems: "center", gap: 8, padding: "12px 14px",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
-        background: `${platColor}08`,
-      }}>
+      <div
+        style={{
+          display: "flex", alignItems: "center", gap: 8, padding: "12px 14px",
+          borderBottom: collapsed ? "none" : "1px solid rgba(255,255,255,0.06)",
+          background: `${platColor}08`,
+          cursor: "pointer", userSelect: "none",
+        }}
+        onClick={() => setCollapsed((c) => !c)}
+      >
         <Icon style={{ width: 16, height: 16, color: platColor }} />
         <span style={{ fontSize: 13, fontWeight: 600, color: "white", flex: 1 }}>
           {streamType?.label || col.type}
           {col.query && <span style={{ fontWeight: 400, color: "#94a3b8" }}> · {col.query}</span>}
+          <span style={{ fontWeight: 400, color: "#64748b", marginLeft: 6, fontSize: 11 }}>({posts.length})</span>
         </span>
         <span style={{
           fontSize: 10, padding: "2px 6px", borderRadius: 4,
@@ -273,68 +288,107 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
           {col.platform}
         </span>
 
+        <CollapseIcon style={{ width: 14, height: 14, color: "#64748b", flexShrink: 0 }} />
+
         <button
-          onClick={() => onRemove(col.id)}
+          onClick={(e) => { e.stopPropagation(); onRemove(col.id); }}
           style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", padding: 2 }}
         >
           <X style={{ width: 12, height: 12 }} />
         </button>
       </div>
 
-      {/* Posts */}
-      <div style={{ flex: 1, overflowY: "auto", padding: 8 }} className="space-y-2">
-        {posts.map((post) => (
-          <div
-            key={post.id}
-            style={{
-              padding: 12, borderRadius: 10,
-              background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)",
-              transition: "background 0.2s", cursor: "pointer",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.06)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: "50%", background: `${platColor}15`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontSize: 11, fontWeight: 600, color: platColor,
-              }}>
-                {post.author.charAt(0)}
-              </div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: "white" }}>{post.author}</div>
-                <div style={{ fontSize: 10, color: "#64748b" }}>{post.handle}</div>
-              </div>
-              <span style={{ fontSize: 10, color: "#64748b" }}>{post.time}</span>
-            </div>
-            <p style={{ fontSize: 12, color: "#cbd5e1", lineHeight: 1.5, marginBottom: 8 }}>
-              {post.content}
-            </p>
-            <div style={{ display: "flex", gap: 16 }}>
-              <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#64748b", fontSize: 11, cursor: "pointer" }}>
-                <Heart style={{ width: 12, height: 12 }} /> {post.likes}
-              </button>
-              <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#64748b", fontSize: 11, cursor: "pointer" }}>
-                <MessageCircle style={{ width: 12, height: 12 }} /> {post.comments}
-              </button>
-              <button style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", color: "#64748b", fontSize: 11, cursor: "pointer" }}>
-                <Share2 style={{ width: 12, height: 12 }} /> {post.shares}
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Posts – compact list */}
+      {!collapsed && (
+        <>
+          <div style={{ flex: 1, overflowY: "auto", padding: "4px 0" }}>
+            {visiblePosts.map((post) => (
+              <div
+                key={post.id}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8,
+                  padding: "6px 14px",
+                  transition: "background 0.15s", cursor: "pointer",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+              >
+                {/* Avatar */}
+                <div style={{
+                  width: 24, height: 24, borderRadius: "50%", background: `${platColor}15`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 10, fontWeight: 600, color: platColor, flexShrink: 0,
+                }}>
+                  {post.author.charAt(0)}
+                </div>
 
-      {/* Refresh indicator */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-        padding: 8, borderTop: "1px solid rgba(255,255,255,0.04)",
-        fontSize: 10, color: "#475569",
-      }}>
-        <RefreshCw style={{ width: 10, height: 10 }} />
-        {isReal ? "Datos en vivo" : "Sin datos — conecta Meta"}
-      </div>
+                {/* Name + handle */}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 12, fontWeight: 500, color: "white",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>
+                    {post.author}
+                    {post.handle && (
+                      <span style={{ fontWeight: 400, color: "#64748b", marginLeft: 4, fontSize: 10 }}>{post.handle}</span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Platform badge */}
+                <span style={{
+                  fontSize: 9, padding: "1px 5px", borderRadius: 3,
+                  background: `${platformColors[post.platform] || platColor}18`,
+                  color: platformColors[post.platform] || platColor,
+                  flexShrink: 0, textTransform: "capitalize",
+                }}>
+                  {post.platform}
+                </span>
+
+                {/* Inline metrics */}
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 2, color: "#64748b", fontSize: 10 }}>
+                    <Heart style={{ width: 10, height: 10 }} /> {post.likes}
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 2, color: "#64748b", fontSize: 10 }}>
+                    <MessageCircle style={{ width: 10, height: 10 }} /> {post.comments}
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: 2, color: "#64748b", fontSize: 10 }}>
+                    <Share2 style={{ width: 10, height: 10 }} /> {post.shares}
+                  </span>
+                </div>
+
+                {/* Time */}
+                <span style={{ fontSize: 10, color: "#475569", flexShrink: 0 }}>{post.time}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Ver más / Ver menos */}
+          {hasMore && (
+            <button
+              onClick={() => setShowAll((s) => !s)}
+              style={{
+                width: "100%", padding: "6px 0", background: "none", border: "none",
+                borderTop: "1px solid rgba(255,255,255,0.04)",
+                color: "#22d3ee", fontSize: 11, cursor: "pointer", fontWeight: 500,
+              }}
+            >
+              {showAll ? "Ver menos" : `Ver más (${posts.length - INITIAL_VISIBLE})`}
+            </button>
+          )}
+
+          {/* Refresh indicator */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+            padding: 8, borderTop: "1px solid rgba(255,255,255,0.04)",
+            fontSize: 10, color: "#475569",
+          }}>
+            <RefreshCw style={{ width: 10, height: 10 }} />
+            {isReal ? "Datos en vivo" : "Sin datos — conecta Meta"}
+          </div>
+        </>
+      )}
     </div>
   );
 }

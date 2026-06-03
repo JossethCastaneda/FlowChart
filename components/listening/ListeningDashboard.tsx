@@ -226,9 +226,21 @@ export function ListeningDashboard() {
           <div className="glass-panel p-4">
             <h3 style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 16 }}>Menciones Recientes</h3>
             <div className="space-y-2">
-              {filteredMentions.slice(0, 5).map((m) => (
-                <MentionCard key={m.id} mention={m} />
-              ))}
+              {filteredMentions.length === 0 ? (
+                <div style={{ padding: "32px 16px", textAlign: "center" }}>
+                  <MessageCircle style={{ width: 32, height: 32, color: "rgba(148,163,184,0.2)", margin: "0 auto 12px" }} />
+                  <p style={{ fontSize: 13, color: "rgba(148,163,184,0.5)", margin: 0 }}>
+                    No se encontraron menciones.
+                  </p>
+                  <p style={{ fontSize: 11, color: "rgba(148,163,184,0.3)", marginTop: 4 }}>
+                    Las menciones de Facebook e Instagram aparecerán aquí automáticamente.
+                  </p>
+                </div>
+              ) : (
+                filteredMentions.slice(0, 5).map((m) => (
+                  <MentionCard key={m.id} mention={m} />
+                ))
+              )}
             </div>
           </div>
         </div>
@@ -237,9 +249,19 @@ export function ListeningDashboard() {
       {/* ── Tab: Mentions ──────────────────────────────── */}
       {activeTab === "mentions" && (
         <div className="space-y-3">
-          {mentions.map((m) => (
-            <MentionCard key={m.id} mention={m} />
-          ))}
+          {mentions.length === 0 ? (
+            <div className="glass-panel" style={{ padding: "48px 16px", textAlign: "center" }}>
+              <MessageCircle style={{ width: 36, height: 36, color: "rgba(148,163,184,0.15)", margin: "0 auto 12px" }} />
+              <p style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.6)", margin: 0 }}>Sin menciones aún</p>
+              <p style={{ fontSize: 12, color: "rgba(148,163,184,0.4)", marginTop: 6 }}>
+                Cuando alguien te mencione o te etiquete en Facebook o Instagram, aparecerá aquí.
+              </p>
+            </div>
+          ) : (
+            mentions.map((m) => (
+              <MentionCard key={m.id} mention={m} />
+            ))
+          )}
         </div>
       )}
 

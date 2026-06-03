@@ -847,15 +847,20 @@ export function PublisherTabs() {
       {showFilters && <FiltersBar filters={filters} onChange={setFilters} />}
 
       {/* ── Tab Content ──────────────────────────────────────── */}
-      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
-        {activeTab === "composer" && <Composer />}
-        {activeTab === "calendar" && <ScheduledCalendar />}
-        {activeTab === "inbox" && <InboxLayout />}
-        {activeTab === "analytics" && <AnalyticsDashboard />}
-        {activeTab === "listening" && <ListeningDashboard />}
-        {activeTab === "streams" && <StreamsDashboard />}
-        {activeTab === "integrations" && <IntegrationsPanel />}
-      </div>
+      {activeTab === "inbox" ? (
+        <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
+          <InboxLayout />
+        </div>
+      ) : (
+        <div>
+          {activeTab === "composer" && <Composer />}
+          {activeTab === "calendar" && <ScheduledCalendar />}
+          {activeTab === "analytics" && <AnalyticsDashboard />}
+          {activeTab === "listening" && <ListeningDashboard />}
+          {activeTab === "streams" && <StreamsDashboard />}
+          {activeTab === "integrations" && <IntegrationsPanel />}
+        </div>
+      )}
     </div>
   );
 }
