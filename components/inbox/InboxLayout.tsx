@@ -94,6 +94,262 @@ function getInitials(name: string): string {
 
 
 // ═══════════════════════════════════════════════════════════════
+// TYPES — Connected Pages
+// ═══════════════════════════════════════════════════════════════
+
+interface ConnectedPage {
+  id: string;
+  name: string;
+  picture?: string;
+  platform: "facebook" | "instagram";
+  igId?: string;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// PAGE SELECTOR COMPONENT
+// ═══════════════════════════════════════════════════════════════
+
+function PageSelector({
+  pages,
+  selectedPage,
+  onSelect,
+}: {
+  pages: ConnectedPage[];
+  selectedPage: ConnectedPage | null;
+  onSelect: (page: ConnectedPage | null) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [search, setSearch] = useState("");
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Close on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const filteredPages = pages.filter(p =>
+    !search || p.name.toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      {/* Selected page button */}
+      <button
+        onClick={() => setOpen(!open)}
+        style={{
+          width: "100%", display: "flex", alignItems: "center", gap: 10,
+          padding: "8px 12px",
+          background: open ? "rgba(168,85,247,0.06)" : "rgba(255,255,255,0.02)",
+          border: `1px solid ${open ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.06)"}`,
+          borderRadius: 10, cursor: "pointer",
+          transition: "all 0.15s", fontFamily: "inherit",
+        }}
+      >
+        {/* Avatar */}
+        {selectedPage ? (
+          selectedPage.picture ? (
+            <img
+              src={selectedPage.picture}
+              alt=""
+              style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+            />
+          ) : (
+            <div style={{
+              width: 28, height: 28, borderRadius: "50%",
+              background: selectedPage.platform === "instagram" ? "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)" : "linear-gradient(135deg, #1877F2, #0d6efd)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              fontSize: 11, fontWeight: 700, color: "white", flexShrink: 0,
+            }}>
+              {selectedPage.name.charAt(0).toUpperCase()}
+            </div>
+          )
+        ) : (
+          <div style={{
+            width: 28, height: 28, borderRadius: "50%",
+            background: "rgba(168,85,247,0.1)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            flexShrink: 0,
+          }}>
+            <Globe style={{ width: 14, height: 14, color: "#a855f7" }} />
+          </div>
+        )}
+        <div style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
+          <div style={{
+            fontSize: 12, fontWeight: 600, color: "white",
+            whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+          }}>
+            {selectedPage?.name || "Todas las páginas"}
+          </div>
+          {selectedPage && (
+            <div style={{ fontSize: 9, color: "rgba(148,163,184,0.4)", textTransform: "capitalize" }}>
+              {selectedPage.platform}
+            </div>
+          )}
+        </div>
+        <ChevronDown style={{
+          width: 14, height: 14, color: "rgba(148,163,184,0.35)",
+          transform: open ? "rotate(180deg)" : "none",
+          transition: "transform 0.2s", flexShrink: 0,
+        }} />
+      </button>
+
+      {/* Dropdown */}
+      {open && (
+        <div style={{
+          position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
+          background: "rgba(12,12,24,0.98)",
+          border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: 10, zIndex: 50,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+          maxHeight: 360, display: "flex", flexDirection: "column",
+          overflow: "hidden",
+        }}>
+          {/* Search */}
+          <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "5px 8px",
+              background: "rgba(255,255,255,0.04)",
+              borderRadius: 6, border: "1px solid rgba(255,255,255,0.06)",
+            }}>
+              <Search style={{ width: 12, height: 12, color: "rgba(148,163,184,0.3)", flexShrink: 0 }} />
+              <input
+                type="text"
+                placeholder="Buscar página..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                autoFocus
+                style={{
+                  background: "transparent", border: "none", outline: "none",
+                  color: "white", fontSize: 11, width: "100%", fontFamily: "inherit",
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Page list */}
+          <div style={{ overflowY: "auto", flex: 1 }}>
+            {/* All pages option */}
+            <button
+              onClick={() => { onSelect(null); setOpen(false); setSearch(""); }}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 10,
+                padding: "8px 12px", background: !selectedPage ? "rgba(168,85,247,0.06)" : "transparent",
+                border: "none", borderBottom: "1px solid rgba(255,255,255,0.03)",
+                cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
+                borderLeft: !selectedPage ? "3px solid #a855f7" : "3px solid transparent",
+              }}
+              onMouseEnter={e => { if (selectedPage) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+              onMouseLeave={e => { if (selectedPage) e.currentTarget.style.background = "transparent"; }}
+            >
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%",
+                background: "rgba(168,85,247,0.1)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <Globe style={{ width: 15, height: 15, color: "#a855f7" }} />
+              </div>
+              <div style={{ textAlign: "left" }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: !selectedPage ? "#a855f7" : "white" }}>Todas las páginas</div>
+                <div style={{ fontSize: 9, color: "rgba(148,163,184,0.35)" }}>{pages.length} cuentas conectadas</div>
+              </div>
+            </button>
+
+            {filteredPages.map(page => {
+              const isActive = selectedPage?.id === page.id;
+              return (
+                <button
+                  key={page.id}
+                  onClick={() => { onSelect(page); setOpen(false); setSearch(""); }}
+                  style={{
+                    width: "100%", display: "flex", alignItems: "center", gap: 10,
+                    padding: "8px 12px",
+                    background: isActive ? "rgba(168,85,247,0.06)" : "transparent",
+                    border: "none", borderBottom: "1px solid rgba(255,255,255,0.03)",
+                    cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
+                    borderLeft: isActive ? "3px solid #a855f7" : "3px solid transparent",
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.03)"; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+                >
+                  {/* Page avatar */}
+                  <div style={{ position: "relative", flexShrink: 0 }}>
+                    {page.picture ? (
+                      <img
+                        src={page.picture}
+                        alt=""
+                        style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
+                      />
+                    ) : (
+                      <div style={{
+                        width: 32, height: 32, borderRadius: "50%",
+                        background: page.platform === "instagram"
+                          ? "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)"
+                          : "linear-gradient(135deg, #1877F2, #0d6efd)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 12, fontWeight: 700, color: "white",
+                      }}>
+                        {page.name.charAt(0).toUpperCase()}
+                      </div>
+                    )}
+                    {/* Platform badge */}
+                    <div style={{
+                      position: "absolute", bottom: -2, right: -2,
+                      width: 14, height: 14, borderRadius: "50%",
+                      background: page.platform === "instagram" ? "#E1306C" : "#1877F2",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      border: "2px solid rgba(12,12,24,1)",
+                    }}>
+                      {page.platform === "instagram" ? (
+                        <MessageCircle style={{ width: 7, height: 7, color: "white" }} />
+                      ) : (
+                        <MessageSquare style={{ width: 7, height: 7, color: "white" }} />
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Page info */}
+                  <div style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
+                    <div style={{
+                      fontSize: 12, fontWeight: isActive ? 600 : 500,
+                      color: isActive ? "#a855f7" : "white",
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    }}>
+                      {page.name}
+                    </div>
+                    <div style={{ fontSize: 9, color: "rgba(148,163,184,0.35)", textTransform: "capitalize" }}>
+                      {page.platform}
+                    </div>
+                  </div>
+
+                  {/* Active dot */}
+                  {isActive && (
+                    <div style={{
+                      width: 6, height: 6, borderRadius: "50%",
+                      background: "#a855f7", flexShrink: 0,
+                    }} />
+                  )}
+                </button>
+              );
+            })}
+
+            {filteredPages.length === 0 && (
+              <div style={{ padding: 16, textAlign: "center", fontSize: 11, color: "rgba(148,163,184,0.3)" }}>
+                Sin resultados
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
 // MAIN LAYOUT
 // ═══════════════════════════════════════════════════════════════
 
@@ -103,6 +359,46 @@ export function InboxLayout() {
   const [showProfile, setShowProfile] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [initialFetchDone, setInitialFetchDone] = useState(false);
+  const [connectedPages, setConnectedPages] = useState<ConnectedPage[]>([]);
+  const [selectedPage, setSelectedPage] = useState<ConnectedPage | null>(null);
+
+  // Fetch connected pages
+  useEffect(() => {
+    fetch("/api/connect/status")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data?.modules) return;
+        const allPages: ConnectedPage[] = [];
+        const seen = new Set<string>();
+        Object.values(data.modules).forEach((mod: any) => {
+          (mod.pages || []).forEach((p: any) => {
+            if (seen.has(p.id)) return;
+            seen.add(p.id);
+            allPages.push({
+              id: p.id,
+              name: p.name || "Página",
+              picture: p.picture || null,
+              platform: "facebook",
+            });
+            // If page has an IG account, add it too
+            if (p.instagram_business_account?.id) {
+              const igId = p.instagram_business_account.id;
+              if (!seen.has(igId)) {
+                seen.add(igId);
+                allPages.push({
+                  id: igId,
+                  name: p.instagram_business_account.name || p.name,
+                  picture: p.instagram_business_account.picture || p.picture,
+                  platform: "instagram",
+                  igId,
+                });
+              }
+            }
+          });
+        });
+        setConnectedPages(allPages);
+      }).catch(() => {});
+  }, []);
 
   // Fetch real conversations from API
   useEffect(() => {
@@ -125,6 +421,7 @@ export function InboxLayout() {
               tags: [],
               messages: [],
               _pageId: c.pageId,
+              _pageName: c.pageName,
             }));
             setConversations(mapped);
             setSelectedId(mapped[0]?.id || "");
@@ -179,11 +476,16 @@ export function InboxLayout() {
 
   const selected = conversations.find(c => c.id === selectedId) || conversations[0];
 
-  // Apply search filter only
+  // Apply search + page filter
   const filtered = conversations.filter(c => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       if (!c.contactName.toLowerCase().includes(q) && !c.lastMessage.toLowerCase().includes(q)) return false;
+    }
+    // Filter by selected page
+    if (selectedPage) {
+      const convPageId = (c as any)?._pageId;
+      if (convPageId && convPageId !== selectedPage.id) return false;
     }
     return true;
   });
@@ -277,28 +579,37 @@ export function InboxLayout() {
           borderRight: "1px solid rgba(255,255,255,0.06)",
           background: "rgba(255,255,255,0.01)",
         }}>
-          {/* Search + Actions */}
-          <div style={{ padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-            <div style={{ display: "flex", gap: 6 }}>
-              <div style={{
-                flex: 1, display: "flex", alignItems: "center", gap: 8,
-                padding: "7px 10px",
-                background: "rgba(255,255,255,0.04)",
-                borderRadius: 8,
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}>
-                <Search style={{ width: 14, height: 14, color: "rgba(148,163,184,0.3)", flexShrink: 0 }} />
-                <input
-                  type="text"
-                  placeholder="Buscar..."
-                  value={searchQuery}
-                  onChange={e => setSearchQuery(e.target.value)}
-                  style={{
-                    background: "transparent", border: "none", outline: "none",
-                    color: "white", fontSize: 12, width: "100%", fontFamily: "inherit",
-                  }}
-                />
-              </div>
+          {/* Page Selector */}
+          {connectedPages.length > 0 && (
+            <div style={{ padding: "10px 12px 6px", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+              <PageSelector
+                pages={connectedPages}
+                selectedPage={selectedPage}
+                onSelect={setSelectedPage}
+              />
+            </div>
+          )}
+
+          {/* Search */}
+          <div style={{ padding: "6px 12px 10px" }}>
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "7px 10px",
+              background: "rgba(255,255,255,0.04)",
+              borderRadius: 8,
+              border: "1px solid rgba(255,255,255,0.06)",
+            }}>
+              <Search style={{ width: 14, height: 14, color: "rgba(148,163,184,0.3)", flexShrink: 0 }} />
+              <input
+                type="text"
+                placeholder="Buscar conversación..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                style={{
+                  background: "transparent", border: "none", outline: "none",
+                  color: "white", fontSize: 12, width: "100%", fontFamily: "inherit",
+                }}
+              />
             </div>
           </div>
 
