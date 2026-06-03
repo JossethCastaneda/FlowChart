@@ -94,20 +94,29 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
-  /* ── Fetch posts ──────────────────────────────────────── */
-  const fetchPosts = useCallback(async () => {
+  /* ── Fetch posts & channels ──────────────────────────────────────── */
+  const [channels, setChannels] = useState<{ id: string; picture: string | null }[]>([]);
+
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/publisher/posts");
-      if (res.ok) {
-        const data = await res.json();
+      const [resPosts, resFilters] = await Promise.all([
+        fetch("/api/publisher/posts"),
+        fetch("/api/publisher/filters")
+      ]);
+      if (resPosts.ok) {
+        const data = await resPosts.json();
         setPosts(data.posts || []);
+      }
+      if (resFilters.ok) {
+        const data = await resFilters.json();
+        setChannels(data.channels || []);
       }
     } catch { /* silent */ }
     setLoading(false);
   }, []);
 
-  useEffect(() => { fetchPosts(); }, [fetchPosts]);
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   useEffect(() => {
     if (!banner) return;
@@ -188,7 +197,7 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
       const data = await res.json();
       if (res.ok) {
         setBanner({ type: "success", message: "¡Publicado exitosamente!" });
-        fetchPosts();
+        fetchData();
       } else {
         setBanner({ type: "error", message: data.error || "Error al publicar" });
       }
@@ -216,6 +225,8 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
     const d = date ? new Date(date) : null;
     const isEditable = ["Draft", "Scheduled"].includes(post.status);
     const media = post.mediaUrls?.[0] || post.mediaUrl;
+    const pageChannel = post.pageId ? channels.find(c => c.id === post.pageId) : null;
+    const avatarUrl = pageChannel?.picture;
 
     return (
       <div style={{
@@ -240,6 +251,18 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
             <div style={{ display: "flex", gap: 4 }}>
               {post.channels.map((ch) => <span key={ch}>{CHANNEL_ICON[ch]}</span>)}
             </div>
+            {post.pageName && (
+              <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 6px", borderRadius: 4, background: "rgba(255,255,255,0.03)" }}>
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="" style={{ width: 14, height: 14, borderRadius: "50%", objectFit: "cover" }} />
+                ) : (
+                  <div style={{ width: 14, height: 14, borderRadius: "50%", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: "#fff" }}>
+                    {post.pageName.charAt(0)}
+                  </div>
+                )}
+                <span style={{ fontSize: 11, fontWeight: 600, color: "#e2e8f0" }}>{post.pageName}</span>
+              </div>
+            )}
             {d && <span style={{ fontSize: 10, color: "#64748b" }}>{fmtDate(d)} · {fmtTime(d)}</span>}
           </div>
           <p style={{ fontSize: 12, color: "#cbd5e1", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
