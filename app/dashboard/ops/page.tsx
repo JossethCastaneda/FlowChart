@@ -9,6 +9,7 @@ import {
   LayoutGrid, List, ChevronLeft, MessageSquare, Paperclip, History,
   Send, Upload, ExternalLink, Image as ImageIcon,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 /* ═══ TYPES ═══ */
 interface Member { id: string; name: string; email: string | null; image: string | null; role: string }
@@ -475,7 +476,18 @@ export default function OpsPage() {
         </div>
       </div>
 
-      {loading && <div style={{ textAlign: "center", padding: "60px 0" }}><Loader2 style={{ width: 24, height: 24, color: "#00d4ff", animation: "spin 1s linear infinite", margin: "0 auto" }} /></div>}
+      {loading && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", padding: "24px 0" }}>
+          {[1, 2, 3, 4].map(i => (
+            <Skeleton key={i} style={{ height: "48px", width: "100%", borderRadius: "4px" }} />
+          ))}
+          <div style={{ textAlign: "center", marginTop: "8px" }}>
+            <span style={{ fontSize: "10px", color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>
+              Sincronizando Operaciones...
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* TABLE VIEW */}
       {!loading && view === "table" && GROUPS.map(g => {

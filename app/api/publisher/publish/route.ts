@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 
-const META_VERSION = process.env.META_API_VERSION || "v22.0";
+const META_VERSION = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
 /**
  * Converts a base64 data URL into a Buffer for multipart upload.

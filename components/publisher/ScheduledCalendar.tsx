@@ -16,6 +16,8 @@ import {
   Loader2,
   Image as ImageIcon,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 /* ── Social Icons (not in lucide-react) ───────────────── */
 const FacebookIcon = ({ style }: { style?: React.CSSProperties }) => (
@@ -49,10 +51,10 @@ interface Post {
 
 /* ── Status config ────────────────────────────────────── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
-  Draft: { label: "Borrador", color: "#94a3b8", bg: "rgba(148,163,184,0.08)", border: "rgba(148,163,184,0.2)", icon: <FileText style={{ width: 12, height: 12 }} /> },
-  Scheduled: { label: "Programado", color: "#fdab3d", bg: "rgba(253,171,61,0.08)", border: "rgba(253,171,61,0.2)", icon: <Clock style={{ width: 12, height: 12 }} /> },
-  Published: { label: "Publicado", color: "#00c875", bg: "rgba(0,200,117,0.08)", border: "rgba(0,200,117,0.2)", icon: <Check style={{ width: 12, height: 12 }} /> },
-  Failed: { label: "Fallido", color: "#e2445c", bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.2)", icon: <AlertCircle style={{ width: 12, height: 12 }} /> },
+  Draft: { label: "EN HANGAR", color: "#94a3b8", bg: "rgba(148,163,184,0.08)", border: "rgba(148,163,184,0.2)", icon: <FileText style={{ width: 12, height: 12 }} /> },
+  Scheduled: { label: "SECUENCIA INICIADA", color: "#fdab3d", bg: "rgba(253,171,61,0.08)", border: "rgba(253,171,61,0.2)", icon: <Clock style={{ width: 12, height: 12 }} /> },
+  Published: { label: "TRANSMISIÓN ENVIADA", color: "#00c875", bg: "rgba(0,200,117,0.08)", border: "rgba(0,200,117,0.2)", icon: <Check style={{ width: 12, height: 12 }} /> },
+  Failed: { label: "SEÑAL PERDIDA", color: "#e2445c", bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.2)", icon: <AlertCircle style={{ width: 12, height: 12 }} /> },
 };
 
 const CHANNEL_ICON: Record<string, React.ReactNode> = {
@@ -342,8 +344,10 @@ export function ScheduledCalendar() {
 
       {/* Loading */}
       {loading && (
-        <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
-          <Loader2 style={{ width: 24, height: 24, color: "#00d4ff", animation: "spin 1s linear infinite" }} />
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <Skeleton style={{ height: 80 }} />
+          <Skeleton style={{ height: 80 }} />
+          <Skeleton style={{ height: 80 }} />
         </div>
       )}
 
@@ -445,15 +449,13 @@ export function ScheduledCalendar() {
       {!loading && view === "list" && (
         <div>
           {filtered.length === 0 ? (
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-              padding: 60, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: 10, gap: 12,
-            }}>
-              <CalendarIcon style={{ width: 32, height: 32, color: "#334155" }} />
-              <p style={{ fontSize: 14, color: "#64748b", fontWeight: 500 }}>No hay publicaciones</p>
-              <p style={{ fontSize: 12, color: "#475569" }}>Crea tu primer post en el Redactor</p>
-            </div>
+            <EmptyState
+              icon={<CalendarIcon style={{ width: 32, height: 32, color: "#00d4ff" }} />}
+              title="RADAR DESPEJADO"
+              description="No hay transmisiones programadas ni en historial."
+              actionLabel="IR AL REDACTOR"
+              onAction={() => window.scrollTo(0, 0)}
+            />
           ) : (
             (() => {
               // Group by date

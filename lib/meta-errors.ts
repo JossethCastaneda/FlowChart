@@ -1,60 +1,136 @@
-// Meta Marketing API error code mapping to human-readable Spanish messages
+/**
+ * Router de Manejo de Errores (Capa 3.3 del Sistema Sodare)
+ * Mapea los códigos de error oficiales de Meta a acciones de sistema
+ */
 
-export interface MetaApiError {
-  code: number;
-  subcode?: number;
-  message: string;
-  userMessage: string;
-  action: "toast" | "redirect" | "retry";
-  retryAfterMs?: number;
+export interface MetaErrorParsed {
+  category: "transient" | "token" | "permission" | "query" | "policy" | "validation";
+  action: "retry_backoff" | "refresh_token" | "check_scopes" | "reduce_scope" | "human_intervention" | "fix_field";
+  retryable: boolean;
+  user_message: string;
+  original_code: number;
+  original_subcode?: number;
 }
 
-const ERROR_MAP: Record<number, { userMessage: string; action: "toast" | "redirect" | "retry" }> = {
-  1: { userMessage: "Error desconocido de Meta. Intenta de nuevo.", action: "toast" },
-  2: { userMessage: "Servicio de Meta temporalmente no disponible. Intenta en unos minutos.", action: "retry" },
-  4: { userMessage: "Demasiadas solicitudes a Meta. Esperando...", action: "retry" },
-  17: { userMessage: "Rate limit alcanzado. Reintentando automáticamente...", action: "retry" },
-  100: { userMessage: "Parámetro inválido enviado a Meta.", action: "toast" },
-  190: { userMessage: "Token de acceso inválido o expirado. Reconecta tu cuenta de Meta.", action: "redirect" },
-  200: { userMessage: "Permisos insuficientes. Verifica los scopes de tu conexión con Meta.", action: "toast" },
-  294: { userMessage: "Cuenta publicitaria en revisión por Meta.", action: "toast" },
-  368: { userMessage: "Cuenta publicitaria bloqueada temporalmente por Meta.", action: "toast" },
-  2635: { userMessage: "Error en presupuesto: el monto está fuera del rango permitido por Meta.", action: "toast" },
-};
+export function mapMetaError(metaError: any): MetaErrorParsed {
+  // If the error object is nested inside 'error'
+  const err = metaError?.error || metaError;
+  const code = err?.code || 5000;
+  const subcode = err?.error_subcode || err?.subcode || 0;
+  const message = err?.message || err?.error_user_msg || "Error desconocido en Meta API";
 
-export function parseMetaError(error: any): MetaApiError {
-  // Meta API errors come in format: { error: { message, type, code, error_subcode } }
-  const metaErr = error?.error || error;
-  const code = metaErr?.code || 0;
-  const subcode = metaErr?.error_subcode || metaErr?.subcode || 0;
-  const message = metaErr?.message || metaErr?.error_user_msg || error?.message || "Error desconocido";
+  // Catálogo oficial mapeado
+  const transientCodes = [1, 2, 4, 17, 613, 80000, 80001, 80002, 80003, 80004];
+  const policyCodes = [368, 1404078, 1404163, 2859015];
+  const permissionCodes = [10, 200, 294, 1815694];
 
-  const mapped = ERROR_MAP[code];
-  if (mapped) {
+  if (transientCodes.includes(code)) {
     return {
-      code,
-      subcode,
-      message,
-      userMessage: mapped.userMessage,
-      action: mapped.action,
-      retryAfterMs: mapped.action === "retry" ? 5000 : undefined,
+      category: "transient",
+      action: "retry_backoff",
+      retryable: true,
+      user_message: "Perturbación en la fuerza (Error temporal de Meta). Intenta nuevamente más tarde.",
+      original_code: code,
+      original_subcode: subcode
     };
   }
 
+  if (code === 190 || code === 102) {
+    return {
+      category: "token",
+      action: "refresh_token",
+      retryable: false,
+      user_message: "Enlace perdido. El token de sesión ha expirado o es inválido. Por favor reconecta tu cuenta.",
+      original_code: code,
+      original_subcode: subcode
+    };
+  }
+
+  if (permissionCodes.includes(code)) {
+    return {
+      category: "permission",
+      action: "check_scopes",
+      retryable: false,
+      user_message: "Falta nivel de acceso Jedi (Permisos insuficientes en Business Suite o cuenta de anuncios).",
+      original_code: code,
+      original_subcode: subcode
+    };
+  }
+
+  if (policyCodes.includes(code)) {
+    return {
+      category: "policy",
+      action: "human_intervention",
+      retryable: false,
+      user_message: "Lado Oscuro detectado. Acción bloqueada por políticas de Meta o cuenta restringida.",
+      original_code: code,
+      original_subcode: subcode
+    };
+  }
+
+  if (code >= 100 && code <= 199) {
+    // Si tiene subcódigo o blame_field_specs es de validación
+    if (err?.error_data?.blame_field_specs || subcode) {
+      return {
+        category: "validation",
+        action: "fix_field",
+        retryable: false,
+        user_message: `Parámetro inválido detectado. (${message})`,
+        original_code: code,
+        original_subcode: subcode
+      };
+    }
+    return {
+      category: "query",
+      action: "reduce_scope",
+      retryable: false,
+      user_message: `Consulta errónea o límite de plataforma excedido. (${message})`,
+      original_code: code,
+      original_subcode: subcode
+    };
+  }
+
+  // Fallback genérico
   return {
-    code,
-    subcode,
-    message,
-    userMessage: `Error de Meta (${code}): ${message}`,
-    action: "toast",
+    category: "transient",
+    action: "human_intervention",
+    retryable: false,
+    user_message: `Perturbación en la fuerza no catalogada: ${message}`,
+    original_code: code,
+    original_subcode: subcode
   };
 }
 
-// Helper to extract error from fetch response
-export async function handleMetaResponse(res: Response): Promise<{ success: boolean; data?: any; error?: MetaApiError }> {
+/**
+ * Utilidad de guardrail de output (Capa 5.2)
+ * Calcula data_age_days y establece si el aprendizaje está incompleto.
+ */
+export function calculateDataQuality(sinceDateStr?: string, untilDateStr?: string) {
+  if (!untilDateStr) {
+    return {
+      data_age_days: 0,
+      incomplete_learning: false
+    };
+  }
+  
+  const until = new Date(untilDateStr);
+  const now = new Date();
+  
+  // Calculate days difference
+  const diffTime = Math.abs(now.getTime() - until.getTime());
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+  
+  return {
+    data_age_days: diffDays,
+    incomplete_learning: diffDays < 3
+  };
+}
+
+// Helper to extract error from fetch response (mantener para no romper el resto del app si se usa en otros lados)
+export async function handleMetaResponse(res: Response): Promise<{ success: boolean; data?: any; error?: MetaErrorParsed }> {
   const json = await res.json();
   if (!res.ok || json.error) {
-    return { success: false, error: parseMetaError(json) };
+    return { success: false, error: mapMetaError(json) };
   }
   return { success: true, data: json };
 }

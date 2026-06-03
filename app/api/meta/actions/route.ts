@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { mapMetaError } from "@/lib/meta-errors";
 
 export async function POST(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req);
@@ -9,13 +10,21 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { action, ids, level, adAccountId, updates } = body;
+    const { action, ids, level, adAccountId, updates, confirmed_by_user } = body;
+    
+    if (confirmed_by_user !== true) {
+      return NextResponse.json({
+        status: "blocked",
+        blocked_reason: "Requiere confirmación explícita del usuario para ejecutar acciones en lote."
+      }, { status: 400 });
+    }
+
     if (!action || !ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+      return NextResponse.json({ status: "error", error: "Missing required fields" }, { status: 400 });
     }
 
     const token = accessToken;
-    const version = process.env.META_API_VERSION || "v22.0";
+    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
     const results = await Promise.allSettled(
       ids.map(async (id: string, index: number) => {
@@ -118,8 +127,19 @@ export async function POST(req: NextRequest) {
     const successCount = processedResults.filter((r: any) => r.success).length;
     const failCount = processedResults.length - successCount;
 
-    return NextResponse.json({ success: true, results: processedResults, successCount, failCount });
+    return NextResponse.json({
+      status: failCount === 0 ? "success" : successCount === 0 ? "error" : "partial",
+      operation: action,
+      object_type: level || "unknown",
+      ad_account_id: adAccountId,
+      confirmed_by_user: true,
+      data: processedResults,
+      meta: {
+        total_rows: processedResults.length,
+        api_version: version
+      }
+    });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }
 }

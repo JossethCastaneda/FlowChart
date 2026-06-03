@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { calculateDataQuality } from "@/lib/meta-errors";
 
 /**
  * Meta Insights API — Robust implementation
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
   if (!adAccountId.startsWith("act_")) adAccountId = `act_${adAccountId}`;
 
   const token = accessToken;
-  const version = process.env.META_API_VERSION || "v22.0";
+  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
   // ── Attribution windows ─────────────────────────────────────────────────
   const ATTRIBUTION_MAP: Record<string, string[] | null> = {
@@ -37,6 +38,16 @@ export async function GET(req: NextRequest) {
     "1d_view_1d_click": ["1d_click", "1d_view"],
     "7d_click_1d_view": ["7d_click", "1d_view"],
   };
+
+  if (attribution === "28d_view" || attribution === "7d_view") {
+    return NextResponse.json({
+      status: "error",
+      error_code: 400,
+      error_action: "fix_field",
+      user_message: "Ventanas de atribución 28d_view y 7d_view están deprecadas (Ene 2026). Usa ventanas activas."
+    }, { status: 400 });
+  }
+
   const attrWindows = ATTRIBUTION_MAP[attribution] ?? null;
 
   // ── Field sets — strictly separated by Meta API compatibility ──────────
@@ -149,10 +160,26 @@ export async function GET(req: NextRequest) {
   const unwrap = (r: PromiseSettledResult<any[]>) =>
     r.status === "fulfilled" ? r.value : [];
 
+  const dateUntil = dateEnd || new Date().toISOString().slice(0, 10);
+  const quality = calculateDataQuality(dateStart || undefined, dateUntil);
+  const warnings = quality.incomplete_learning ? ["La fase de aprendizaje podría estar incompleta (datos < 3 días)"] : [];
+
   return NextResponse.json({
-    timeSeries: unwrap(tsR),
-    campaigns: unwrap(campR),
-    adsets: unwrap(adsetR),
-    ads: unwrap(adR),
+    status: "success",
+    level: "account",
+    date_range: { since: dateStart || "N/A", until: dateUntil },
+    attribution_window: attribution,
+    data: {
+      timeSeries: unwrap(tsR),
+      campaigns: unwrap(campR),
+      adsets: unwrap(adsetR),
+      ads: unwrap(adR),
+    },
+    warnings: warnings,
+    meta: {
+      total_rows: 4,
+      ...quality,
+      api_version: version
+    }
   });
 }

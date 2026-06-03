@@ -4,7 +4,7 @@ import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 
-const META_VERSION = process.env.META_API_VERSION || "v22.0";
+const META_VERSION = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
 /**
  * POST /api/meta/refresh-token

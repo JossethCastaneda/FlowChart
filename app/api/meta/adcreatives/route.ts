@@ -124,7 +124,7 @@ export async function GET(req: NextRequest) {
   }
   if (!adAccountId.startsWith("act_")) adAccountId = `act_${adAccountId}`;
 
-  const version = process.env.META_API_VERSION || "v22.0";
+  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
   // ── Time param ──────────────────────────────────────────────────────────
   const timeParams = new URLSearchParams();

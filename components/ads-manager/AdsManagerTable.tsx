@@ -1,7 +1,8 @@
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { StatusToggle } from "./StatusToggle";
 import { InlineEditor } from "./InlineEditor";
-import { ExternalLink, Plus, Pencil, ArrowUp, ArrowDown, ChevronsUpDown, Zap, AlertTriangle, TrendingUp } from "lucide-react";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { ExternalLink, Plus, Pencil, ArrowUp, ArrowDown, ChevronsUpDown, Zap, AlertTriangle, TrendingUp, Radar } from "lucide-react";
 import {
   OBJECTIVE_MAP, LEARNING_PHASE_MAP, SW_STATUS,
   calcROAS, calcCPA, calcHookRate, calcLandingPageViews,
@@ -577,11 +578,12 @@ export function AdsManagerTable({
           <tbody>
             {sortedData.length === 0 ? (
               <tr>
-                <td
-                  colSpan={visibleColumns.length + 6}
-                  style={{ padding: 32, textAlign: "center", color: "rgba(148,163,184,0.4)", fontSize: 12 }}
-                >
-                  No se encontraron elementos. Selecciona una cuenta publicitaria y sincroniza.
+                <td colSpan={visibleColumns.length + 6} style={{ padding: 0 }}>
+                  <EmptyState
+                    icon={<Radar className="w-12 h-12" />}
+                    title="Señal Perdida"
+                    description="No se encontraron elementos. Selecciona una cuenta publicitaria y asegúrate de tener sincronizado el Holocrón."
+                  />
                 </td>
               </tr>
             ) : (

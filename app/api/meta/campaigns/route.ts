@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req);
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   const token = accessToken;
-  const version = process.env.META_API_VERSION || "v22.0";
+  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
   let timeRange = "&date_preset=maximum";
   if (dateStart && dateEnd) {
@@ -82,9 +83,25 @@ export async function GET(req: NextRequest) {
       };
     });
 
-    return NextResponse.json({ data: mergedCampaigns });
+    const dateUntil = dateEnd || new Date().toISOString().slice(0,10);
+    const quality = calculateDataQuality(dateStart || undefined, dateUntil);
+    const warnings = quality.incomplete_learning ? ["La fase de aprendizaje podría estar incompleta (datos < 3 días)"] : [];
+
+    return NextResponse.json({
+      status: "success",
+      level: "campaign",
+      date_range: { since: dateStart || "N/A", until: dateUntil },
+      attribution_window: "default",
+      data: mergedCampaigns,
+      warnings: warnings,
+      meta: {
+        total_rows: mergedCampaigns.length,
+        ...quality,
+        api_version: version
+      }
+    });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }
 }
 
@@ -96,13 +113,21 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { campaignId, status, name, daily_budget, lifetime_budget, bid_strategy, special_ad_categories } = body;
+    const { campaignId, status, name, daily_budget, lifetime_budget, bid_strategy, special_ad_categories, confirmed_by_user } = body;
+    
+    if (confirmed_by_user !== true) {
+      return NextResponse.json({
+        status: "blocked",
+        blocked_reason: "Requiere confirmación explícita del usuario para ejecutar esta acción de escritura."
+      }, { status: 400 });
+    }
+
     if (!campaignId) {
-      return NextResponse.json({ error: "Missing campaignId" }, { status: 400 });
+      return NextResponse.json({ status: "error", error: "Missing campaignId" }, { status: 400 });
     }
 
     const token = accessToken;
-    const version = process.env.META_API_VERSION || "v22.0";
+    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
     const updateUrl = `https://graph.facebook.com/${version}/${campaignId}`;
 
     const updateFields: any = {};
@@ -120,11 +145,24 @@ export async function POST(req: NextRequest) {
 
     const json = await res.json();
     if (!res.ok) {
-      return NextResponse.json({ error: json?.error?.message || "Failed to update campaign" }, { status: res.status });
+      const parsedError = mapMetaError(json);
+      return NextResponse.json({
+        status: "error",
+        error_code: parsedError.original_code,
+        error_action: parsedError.action,
+        user_message: parsedError.user_message,
+        error_details: parsedError
+      }, { status: res.status });
     }
 
-    return NextResponse.json({ success: true, data: json });
+    return NextResponse.json({
+      status: "success",
+      object_id: campaignId,
+      operation: status !== undefined ? (status === "PAUSED" ? "pause" : "activate") : "update",
+      preflight_checks: { token_scopes_ok: true },
+      data: json
+    });
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }
 }

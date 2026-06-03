@@ -23,6 +23,8 @@ import { useAlerts } from "@/hooks/useAlerts";
 import { ExportButton } from "@/components/ads-manager/ExportButton";
 import { ColumnPresets } from "@/components/ads-manager/ColumnPresets";
 import { ConfirmDialog } from "@/components/ads-manager/ConfirmDialog";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 import { ClipboardModal } from "@/components/ads-manager/ClipboardModal";
 import { BulkRenameModal } from "@/components/ads-manager/BulkRenameModal";
 import { BulkBudgetModal } from "@/components/ads-manager/BulkBudgetModal";
@@ -266,7 +268,10 @@ function AdsManagerContent() {
         accountsToFetch.map(async (accId: string) => {
           const res = await fetch(`/api/meta/${level}?adAccountId=${accId}${dateParams}`);
           const data = await res.json();
-          if (data.error) throw new Error(data.error);
+          if (data.status === "error" || data.error) throw new Error(data.error || data.user_message || "Error de la Fuerza");
+          if (data.warnings && data.warnings.length > 0) {
+            data.warnings.forEach((w: string) => addToast("warning", w));
+          }
           const accName = accounts.find((a: any) => a.id === accId)?.name || accId;
           // Tag each item with its account info for filtering
           return (data.data || []).map((item: any) => ({
@@ -363,6 +368,7 @@ function AdsManagerContent() {
         body: JSON.stringify({
           [`${activeLevel.slice(0, -1)}Id`]: id,
           status,
+          confirmed_by_user: true,
         }),
       });
       const data = await res.json();
@@ -394,6 +400,7 @@ function AdsManagerContent() {
         body: JSON.stringify({
           [`${activeLevel.slice(0, -1)}Id`]: id,
           name,
+          confirmed_by_user: true,
         }),
       });
       const data = await res.json();
@@ -420,6 +427,7 @@ function AdsManagerContent() {
         body: JSON.stringify({
           [`${activeLevel.slice(0, -1)}Id`]: id,
           [`${type}_budget`]: budget,
+          confirmed_by_user: true,
         }),
       });
       const data = await res.json();
@@ -453,6 +461,7 @@ function AdsManagerContent() {
         body: JSON.stringify({
           adsetId: id,
           bid_amount: bid,
+          confirmed_by_user: true,
         }),
       });
       const data = await res.json();
@@ -498,6 +507,7 @@ function AdsManagerContent() {
           level: activeLevel,
           adAccountId: resolvedAccountId,
           updates: opts?.updates,
+          confirmed_by_user: true,
         }),
       });
       const data = await res.json();
@@ -548,7 +558,7 @@ function AdsManagerContent() {
     fetch("/api/meta/actions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "duplicate", ids, level: items[0].level, adAccountId: selectedAccountId }),
+      body: JSON.stringify({ action: "duplicate", ids, level: items[0].level, adAccountId: selectedAccountId, confirmed_by_user: true }),
     })
       .then((r) => r.json())
       .then((data) => {
@@ -601,7 +611,7 @@ function AdsManagerContent() {
       const res = await fetch("/api/meta/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "rename", ids, level: activeLevel, updates: updateData }),
+        body: JSON.stringify({ action: "rename", ids, level: activeLevel, updates: updateData, confirmed_by_user: true }),
       });
       const data = await res.json();
       if (data.success) {
@@ -624,7 +634,7 @@ function AdsManagerContent() {
       const res = await fetch("/api/meta/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "budget_update", ids, level: activeLevel, updates: updateData }),
+        body: JSON.stringify({ action: "budget_update", ids, level: activeLevel, updates: updateData, confirmed_by_user: true }),
       });
       const data = await res.json();
       if (data.success) {
@@ -647,7 +657,7 @@ function AdsManagerContent() {
       const res = await fetch("/api/meta/actions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "spend_cap", ids, level: activeLevel, updates: updateData }),
+        body: JSON.stringify({ action: "spend_cap", ids, level: activeLevel, updates: updateData, confirmed_by_user: true }),
       });
       const data = await res.json();
       if (data.success) {
@@ -1044,30 +1054,24 @@ function AdsManagerContent() {
             style={{
               position: "absolute",
               inset: 0,
-              background: "rgba(3,5,8,0.7)",
-              backdropFilter: "blur(4px)",
+              background: "rgba(3,5,8,0.9)",
+              backdropFilter: "blur(8px)",
               zIndex: 10,
               display: "flex",
               flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              minHeight: "200px",
+              padding: "48px 24px",
+              gap: "16px",
               borderRadius: "8px",
             }}
           >
-            <div
-              style={{
-                width: "40px",
-                height: "40px",
-                border: "3px solid rgba(148,163,184,0.1)",
-                borderTopColor: "var(--cyan)",
-                borderRadius: "50%",
-                animation: "spin 1s linear infinite",
-              }}
-            />
-            <span style={{ marginTop: "12px", fontSize: "11px", color: "white", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>
-              Transmitiendo datos al Halcón Milenario...
-            </span>
+            {[1, 2, 3, 4, 5].map(i => (
+              <Skeleton key={i} style={{ height: "40px", width: "100%", borderRadius: "4px" }} />
+            ))}
+            <div style={{ textAlign: "center", marginTop: "16px" }}>
+              <span style={{ fontSize: "11px", color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", fontWeight: 600 }}>
+                ACTUALIZANDO HOLOCRÓN...
+              </span>
+            </div>
           </div>
         )}
 

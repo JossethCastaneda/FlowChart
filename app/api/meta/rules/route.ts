@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   if (!adAccountId) return NextResponse.json({ error: "Missing adAccountId" }, { status: 400 });
 
   const token = accessToken;
-  const version = process.env.META_API_VERSION || "v22.0";
+  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
   try {
     // FIX: guard against double act_ prefix (act_act_XXXXX)
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const token = accessToken;
-  const version = process.env.META_API_VERSION || "v22.0";
+  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
   try {
     const body = await req.json();

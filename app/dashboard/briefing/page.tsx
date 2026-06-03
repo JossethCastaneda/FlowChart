@@ -3,6 +3,9 @@
 import React, { useState, useCallback } from "react";
 import { GridFormData, FileInputData, ContentGridData, Post, VideoDetails } from "./types";
 import { generateContentGridClient } from "./geminiClient";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { BrainCircuit } from "lucide-react";
 
 
 /* ═══ CONSTANTS ═══ */
@@ -188,9 +191,15 @@ export default function BriefingPage() {
 
       {/* Loading */}
       {isLoading && (
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, padding: "24px 0" }}>
-          <div style={{ width: 20, height: 20, border: "2px solid rgba(0,229,0,0.12)", borderTopColor: "#00E500", borderRadius: "50%", animation: "spin 1s linear infinite" }} />
-          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.4)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Generando con Gemini AI...</span>
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px", padding: "24px 0" }}>
+          {[1, 2, 3].map(i => (
+            <Skeleton key={i} style={{ height: "48px", width: "100%", borderRadius: "4px" }} />
+          ))}
+          <div style={{ textAlign: "center", marginTop: "8px" }}>
+            <span style={{ fontSize: "10px", color: "rgba(0,229,0,0.6)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>
+              ACTUALIZANDO HOLOCRÓN (GEMINI AI)...
+            </span>
+          </div>
         </div>
       )}
 
@@ -206,9 +215,11 @@ export default function BriefingPage() {
 
       {/* Empty state */}
       {!gridData && !isLoading && !error && (
-        <div style={{ textAlign: "center", padding: "30px 0", color: "rgba(148,163,184,0.15)", fontSize: 10, letterSpacing: "0.05em" }}>
-          Configura y genera la parrilla con Gemini AI
-        </div>
+        <EmptyState
+          icon={<BrainCircuit className="w-12 h-12" />}
+          title="GridIA Inactiva"
+          description="Configura los parámetros del proyecto y presiona Generar para iniciar la conexión neuronal."
+        />
       )}
     </div>
   );

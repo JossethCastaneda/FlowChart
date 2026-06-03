@@ -4,8 +4,11 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Skeleton } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { KpiCard } from "@/components/ui/KpiCard";
 import {
-  FolderKanban, Plus, X, Users, Globe, DollarSign, Target,
+  FolderKanban, Plus, X, Users, Globe, DollarSign, Target, Rocket,
   Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown, AlertTriangle
 } from "lucide-react";
 
@@ -38,7 +41,7 @@ interface Project {
   dateEnd: string;
   persona: string;
   geo: string;
-  status: "Activo" | "Pausado" | "Draft" | "Completado";
+  status: "EN VUELO" | "EN ÓRBITA" | "Draft" | "Completado";
   workspaceId?: string;
   createdAt: string;
   updatedAt?: string;
@@ -92,9 +95,9 @@ const CPR_MAP: Record<string, string> = {
   "Video views": "CPV", "Alcance (Reach)": "CPM",
   "Tráfico a tienda": "Costo / visita",
 };
-const STATUSES = ["Activo", "Pausado", "Draft", "Completado"] as const;
+const STATUSES = ["EN VUELO", "EN ÓRBITA", "Draft", "Completado"] as const;
 const STATUS_COLORS: Record<string, string> = {
-  Activo: "emerald", Pausado: "amber", Draft: "muted", Completado: "cyan",
+  "EN VUELO": "emerald", "EN ÓRBITA": "amber", Draft: "muted", Completado: "cyan",
 };
 
 /* ═══════════════════════════════════════
@@ -649,7 +652,7 @@ export default function ProyectosPage() {
   }
 
   const editingProject = editingId ? projects.find(p => p.id === editingId) : null;
-  const activeCount = projects.filter(p => p.status === "Activo").length;
+  const activeCount = projects.filter(p => p.status === "EN VUELO").length;
   const totalBudget = projects.reduce((acc, p) => {
     return acc + p.channels.reduce((a, c) => a + (parseFloat(c.budget.replace(/[^0-9.]/g, "")) || 0), 0);
   }, 0);
@@ -670,7 +673,7 @@ export default function ProyectosPage() {
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard color="emerald" icon={<FolderKanban className="w-4 h-4" />} value={projects.length} label="Total Proyectos" />
-        <KpiCard color="cyan" icon={<Target className="w-4 h-4" />} value={activeCount} label="Activos" />
+        <KpiCard color="cyan" icon={<Target className="w-4 h-4" />} value={activeCount} label="En Vuelo" trend="up" trendValue={`${((activeCount / Math.max(projects.length, 1)) * 100).toFixed(0)}% activos`} />
         <KpiCard color="amber" icon={<DollarSign className="w-4 h-4" />} value={`$${totalBudget.toLocaleString()}`} label="Budget Total" />
       </div>
 
@@ -681,26 +684,26 @@ export default function ProyectosPage() {
           <span className="badge badge-emerald">{projects.length}</span>
         </div>
 
-        {!loading && projects.length === 0 ? (
-          <div style={{ padding: "56px 24px", textAlign: "center" }}>
-            <FolderKanban className="w-12 h-12 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.25)" }} />
-            <p style={{ fontFamily: "var(--font-display)", fontSize: "12px", letterSpacing: "0.2em", color: "rgba(148,163,184,0.45)", textTransform: "uppercase" }}>Sin proyectos</p>
-            <p style={{ fontSize: "12px", color: "rgba(148,163,184,0.35)", marginTop: "6px" }}>Crea tu primer proyecto para empezar a gestionar campañas.</p>
-            <button
-              className="btn-primary"
-              onClick={() => { setEditingId(null); setModalMode("create"); }}
-              style={{ marginTop: "20px", display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 24px" }}
-            >
-              <Plus className="w-4 h-4" /> Crear primer proyecto
-            </button>
+        {loading ? (
+          <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
+            {[1, 2, 3].map(i => <Skeleton key={i} style={{ height: "64px", width: "100%", borderRadius: "8px" }} />)}
           </div>
+        ) : projects.length === 0 ? (
+          <EmptyState
+            icon={<Rocket className="w-12 h-12" />}
+            title="Ningún proyecto en radar"
+            description="Aún no tienes misiones activas. Crea tu primer proyecto para empezar a gestionar campañas."
+            actionLabel="NUEVA MISIÓN"
+            actionIcon={<Plus className="w-4 h-4" />}
+            onAction={() => { setEditingId(null); setModalMode("create"); }}
+          />
         ) : projects.map(p => (
           <div key={p.id} className="data-row" style={{ position: "relative" }}>
             <div className="flex items-center gap-3" style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
               onClick={() => router.push(`/dashboard/proyectos/${p.id}`)}>
               <div className="status-indicator" style={{
-                background: p.status === "Activo" ? "var(--emerald)" : p.status === "Pausado" ? "var(--amber)" : p.status === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.3)",
-                boxShadow: p.status === "Activo" ? "0 0 8px var(--emerald)" : "none",
+                background: p.status === "EN VUELO" ? "var(--emerald)" : p.status === "EN ÓRBITA" ? "var(--amber)" : p.status === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.3)",
+                boxShadow: p.status === "EN VUELO" ? "0 0 8px var(--emerald)" : "none",
               }} />
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>{p.alias || "Sin nombre"}</p>
@@ -740,7 +743,7 @@ export default function ProyectosPage() {
             <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Editar Proyecto" onClick={() => { setEditingId(menuOpen); setModalMode("edit"); setMenuOpen(null); }} />
             <div style={{ height: "1px", background: "rgba(255,255,255,0.04)", margin: "4px 0" }} />
             {STATUSES.filter(s => s !== projects.find(pp => pp.id === menuOpen)?.status).map(s => (
-              <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "Activo" ? "var(--emerald)" : s === "Pausado" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.3)" }} />}
+              <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "EN VUELO" ? "var(--emerald)" : s === "EN ÓRBITA" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.3)" }} />}
                 text={`Cambiar a ${s}`} onClick={() => handleStatusChange(menuOpen, s)} />
             ))}
             <div style={{ height: "1px", background: "rgba(255,255,255,0.04)", margin: "4px 0" }} />
@@ -1098,20 +1101,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
    HELPERS
    ═══════════════════════════════════════ */
 
-function KpiCard({ color, icon, value, label }: { color: string; icon: React.ReactNode; value: string | number; label: string }) {
-  const c = `var(--${color})`;
-  return (
-    <div className={`kpi-card ${color}`}>
-      <div className="flex items-center gap-3">
-        <div style={{ width: 36, height: 36, background: `${c}12`.replace("var(--", "rgba(").replace(")", ",0.08)"), border: `1px solid ${c}25`.replace("var(--", "rgba(").replace(")", ",0.15)"), display: "flex", alignItems: "center", justifyContent: "center", color: c }}>{icon}</div>
-        <div>
-          <p className="kpi-value" style={{ color: c }}>{value}</p>
-          <p className="kpi-label">{label}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
+
 
 function MenuBtn({ icon, text, onClick, danger }: { icon: React.ReactNode; text: string; onClick: () => void; danger?: boolean }) {
   return (

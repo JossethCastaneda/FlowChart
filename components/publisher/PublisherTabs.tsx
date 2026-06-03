@@ -28,6 +28,7 @@ import {
   Globe,
   Bell,
 } from "lucide-react";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 /* ══════════════════════════════════════════════════════════
    TYPES
@@ -592,8 +593,8 @@ function IntegrationsPanel() {
 
   if (loading) {
     return (
-      <div style={{ display: "flex", justifyContent: "center", padding: 60 }}>
-        <Loader2 style={{ width: 24, height: 24, color: "#64748b", animation: "spin 1s linear infinite" }} />
+      <div style={{ padding: 20 }}>
+        <Skeleton style={{ height: 200 }} />
       </div>
     );
   }

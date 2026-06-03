@@ -108,7 +108,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
     setStep(3);
 
     const results = { success: 0, failed: 0, errors: [] as string[] };
-    const version = "v21.0";
+    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
     for (let i = 0; i < parsedRows.length; i++) {
       const row = parsedRows[i];

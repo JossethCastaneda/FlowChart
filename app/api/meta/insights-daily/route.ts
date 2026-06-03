@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   }
 
   const token = accessToken;
-  const version = process.env.META_API_VERSION || "v22.0";
+  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
   // Build time range for last N days
   const now = new Date();
