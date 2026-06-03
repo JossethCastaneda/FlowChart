@@ -33,6 +33,32 @@ function resolveMediaToBuffer(
 }
 
 /**
+ * Manually builds a multipart/form-data payload.
+ * Prevents Next.js / undici FormData boundary chunking issues with Facebook Graph API.
+ */
+function buildMultipartFormData(fields: Record<string, string>, fileBuffer: Buffer, filename: string, contentType: string) {
+  const boundary = "----WebKitFormBoundarySodare" + Math.random().toString(16).slice(2);
+  let head = "";
+  for (const [key, value] of Object.entries(fields)) {
+    head += `--${boundary}\r\n`;
+    head += `Content-Disposition: form-data; name="${key}"\r\n\r\n`;
+    head += `${value}\r\n`;
+  }
+  head += `--${boundary}\r\n`;
+  head += `Content-Disposition: form-data; name="source"; filename="${filename}"\r\n`;
+  head += `Content-Type: ${contentType}\r\n\r\n`;
+  
+  const tail = `\r\n--${boundary}--\r\n`;
+  const bodyBuffer = Buffer.concat([
+    Buffer.from(head, "utf-8"),
+    fileBuffer,
+    Buffer.from(tail, "utf-8")
+  ]);
+  
+  return { bodyBuffer, boundary };
+}
+
+/**
  * POST /api/publisher/publish
  *
  * Publishes a post to Facebook Page and/or Instagram.
@@ -117,15 +143,20 @@ export async function POST(req: NextRequest) {
 
           if (resolved) {
             // ── Multipart binary upload (for data: URLs, /tmp files) ──
-            const formData = new FormData();
-            const blob = new Blob([new Uint8Array(resolved.buffer)], { type: resolved.contentType });
-            formData.append("source", blob, resolved.filename);
-            formData.append("message", post.content);
-            formData.append("access_token", pageToken);
+            const multipart = buildMultipartFormData(
+              { message: post.content },
+              resolved.buffer,
+              resolved.filename,
+              resolved.contentType
+            );
 
             const fbRes = await fetch(
-              `https://graph.facebook.com/${META_VERSION}/${pageId}/photos`,
-              { method: "POST", body: formData }
+              `https://graph.facebook.com/${META_VERSION}/${pageId}/photos?access_token=${pageToken}`,
+              { 
+                method: "POST", 
+                headers: { "Content-Type": `multipart/form-data; boundary=${multipart.boundary}` },
+                body: multipart.bodyBuffer 
+              }
             );
             const fbData = await fbRes.json();
             if (fbRes.ok && fbData.id) {
@@ -186,15 +217,20 @@ export async function POST(req: NextRequest) {
 
           if (resolved) {
             // Upload to Facebook as unpublished photo to get a public URL
-            const formData = new FormData();
-            const blob = new Blob([new Uint8Array(resolved.buffer)], { type: resolved.contentType });
-            formData.append("source", blob, resolved.filename);
-            formData.append("published", "false");
-            formData.append("access_token", pageToken);
+            const multipart = buildMultipartFormData(
+              { published: "false" },
+              resolved.buffer,
+              resolved.filename,
+              resolved.contentType
+            );
 
             const uploadRes = await fetch(
-              `https://graph.facebook.com/${META_VERSION}/${pageId}/photos`,
-              { method: "POST", body: formData }
+              `https://graph.facebook.com/${META_VERSION}/${pageId}/photos?access_token=${pageToken}`,
+              { 
+                method: "POST", 
+                headers: { "Content-Type": `multipart/form-data; boundary=${multipart.boundary}` },
+                body: multipart.bodyBuffer 
+              }
             );
             const uploadData = await uploadRes.json();
 
