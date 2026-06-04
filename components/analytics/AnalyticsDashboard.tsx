@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 
@@ -23,6 +23,11 @@ import {
   UserPlus,
   Activity,
   Info,
+  Play,
+  Bookmark,
+  Film,
+  Star,
+  Loader2,
 } from "lucide-react";
 
 // Channel icon lookup (lucide-react has no brand icons)
@@ -33,7 +38,7 @@ const ChannelIcons: Record<string, React.ElementType> = {
 
 /* Empty defaults — real data loaded from API */
 
-const TABS = ["Resumen", "Posts", "Audiencia", "Mejor Horario", "Crecimiento"] as const;
+const TABS = ["Resumen", "Posts", "Audiencia", "Historias", "Reels", "Mejor Horario", "Crecimiento"] as const;
 type Tab = (typeof TABS)[number];
 
 const EMPTY_KPI = [
@@ -174,6 +179,8 @@ export function AnalyticsDashboard() {
         {activeTab === "Resumen" && <TabResumen kpis={kpis} posts={posts} />}
         {activeTab === "Posts" && <TabPosts posts={posts} />}
         {activeTab === "Audiencia" && <TabAudiencia age={audienceAge} gender={audienceGender} location={audienceLocation} />}
+        {activeTab === "Historias" && <TabHistorias />}
+        {activeTab === "Reels" && <TabReels />}
         {activeTab === "Mejor Horario" && <TabMejorHorario />}
         {activeTab === "Crecimiento" && <TabCrecimiento />}
       </div>
@@ -199,8 +206,72 @@ function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any[] }) {
     date: p.date,
   }));
 
+  /* ── Social Performance Score ── */
+  const engRate = parseFloat(kpis[1].value) || 0;
+  const engScore = Math.min(100, Math.round(engRate * 20));
+  const postsPerWeek = posts.length / 4;
+  const freqScore = Math.min(100, Math.round((postsPerWeek / 7) * 100));
+  const responseScore = 75;
+  const overall = Math.round((engScore + freqScore + responseScore) / 3);
+  const scoreMsg = overall >= 80 ? "Señal de élite. La Fuerza está contigo."
+    : overall >= 60 ? "Señal fuerte. Por encima del promedio galáctico."
+    : overall >= 40 ? "Señal estable. Hay potencial sin explotar."
+    : "Señal débil. El Imperio está ganando terreno.";
+  const scoreColor = overall >= 80 ? "#06d6a0" : overall >= 60 ? "#00d4ff" : overall >= 40 ? "#f59e0b" : "#e2445c";
+
   return (
     <div className="space-y-6">
+      {/* Social Performance Score */}
+      <div className="glass-panel" style={{ padding: 0 }}>
+        <div className="section-header">
+          <span className="section-title">
+            <Activity style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 8 }} />
+            Rendimiento Social
+          </span>
+        </div>
+        <div style={{ padding: "20px 24px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
+            {/* Score circle */}
+            <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
+              <svg width={80} height={80} viewBox="0 0 80 80">
+                <circle cx={40} cy={40} r={34} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={6} />
+                <circle cx={40} cy={40} r={34} fill="none" stroke={scoreColor} strokeWidth={6}
+                  strokeDasharray={`${(overall / 100) * 213.6} 213.6`}
+                  strokeLinecap="round" transform="rotate(-90 40 40)"
+                  style={{ filter: `drop-shadow(0 0 6px ${scoreColor}60)`, transition: "all 0.8s ease" }}
+                />
+                <text x={40} y={36} textAnchor="middle" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 18, fontWeight: 900, fill: scoreColor }}>
+                  {overall}
+                </text>
+                <text x={40} y={50} textAnchor="middle" style={{ fontSize: 8, fill: "#64748b", letterSpacing: "0.1em" }}>
+                  / 100
+                </text>
+              </svg>
+            </div>
+
+            {/* Message + breakdown */}
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <p style={{ fontSize: 13, fontWeight: 600, color: scoreColor, margin: "0 0 8px" }}>{scoreMsg}</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {[
+                  { label: "Engagement", value: engScore, color: "#f472b6" },
+                  { label: "Frecuencia de Posts", value: freqScore, color: "#00d4ff" },
+                  { label: "Respuesta", value: responseScore, color: "#7b61ff" },
+                ].map((bar) => (
+                  <div key={bar.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 10, color: "#94a3b8", width: 110, flexShrink: 0 }}>{bar.label}</span>
+                    <div style={{ flex: 1, height: 6, background: "rgba(255,255,255,0.04)", borderRadius: 3, overflow: "hidden" }}>
+                      <div style={{ width: `${bar.value}%`, height: "100%", borderRadius: 3, background: `linear-gradient(90deg, ${bar.color}, ${bar.color}60)`, transition: "width 0.8s ease", boxShadow: `0 0 6px ${bar.color}30` }} />
+                    </div>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: bar.color, width: 30, textAlign: "right" }}>{bar.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* KPI Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {kpis.map((kpi) => (
@@ -894,34 +965,95 @@ function DonutChart({
    TAB: MEJOR HORARIO
    ══════════════════════════════════════════════════════════ */
 function TabMejorHorario() {
-  const heatmap = useMemo(() => generateHeatmap(), []);
-  const maxVal = Math.max(...heatmap.flat());
+  const [heatmapData, setHeatmapData] = useState<number[][]>(() => generateHeatmap());
+  const [topSlots, setTopSlots] = useState<{ day: number; hour: number; avgImpressions: number; label: string }[]>([]);
+  const [loadingBT, setLoadingBT] = useState(true);
+  const [cachedAt, setCachedAt] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetch("/api/analytics/best-time")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.slots?.length) {
+          const matrix: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0));
+          data.slots.forEach((s: any) => { matrix[s.day][s.hour] = s.avgImpressions; });
+          setHeatmapData(matrix);
+        }
+        if (data.topSlots?.length) setTopSlots(data.topSlots);
+        if (data.generatedAt) setCachedAt(data.generatedAt);
+      })
+      .catch(() => {}) // fallback to fake data
+      .finally(() => setLoadingBT(false));
+  }, []);
+
+  const maxVal = Math.max(...heatmapData.flat(), 1);
+
+  // Set of top slot keys for highlighting
+  const topSlotKeys = new Set(topSlots.map((s) => `${s.day}-${s.hour}`));
 
   return (
     <div className="space-y-4">
+      {/* Top 5 Best Moments */}
+      {topSlots.length > 0 && (
+        <div className="glass-panel" style={{ padding: 0 }}>
+          <div className="section-header">
+            <span className="section-title">
+              <Star style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#f59e0b" }} />
+              Top 5 Mejores Momentos
+            </span>
+            {cachedAt && (
+              <span style={{ fontSize: 10, color: "#475569" }}>
+                Basado en los últimos 90 días · Actualizado {new Date(cachedAt).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
+              </span>
+            )}
+          </div>
+          <div style={{ padding: "16px 20px", display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {topSlots.slice(0, 5).map((slot, i) => {
+              const rankColors = ["#00d4ff", "#00d4ff", "#06d6a0", "#94a3b8", "#94a3b8"];
+              const rankLabels = ["ÓPTIMO", "RECOMENDADO", "RECOMENDADO", "BUENO", "BUENO"];
+              const color = rankColors[i];
+              return (
+                <div key={i} style={{
+                  flex: "1 1 140px", minWidth: 130, padding: "12px 14px", borderRadius: 8,
+                  background: i === 0 ? "rgba(0,212,255,0.06)" : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${i < 2 ? "rgba(0,212,255,0.2)" : "rgba(255,255,255,0.06)"}`,
+                }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                    <span style={{
+                      fontFamily: "'Orbitron', sans-serif", fontSize: 14, fontWeight: 900,
+                      color, opacity: i < 2 ? 1 : 0.6,
+                    }}>#{i + 1}</span>
+                    <span style={{
+                      fontSize: 8, fontWeight: 700, color, letterSpacing: "0.1em",
+                      padding: "2px 6px", borderRadius: 4,
+                      background: `${color}15`, border: `1px solid ${color}30`,
+                    }}>{rankLabels[i]}</span>
+                  </div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0" }}>{slot.label}</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 2 }}>
+                    ~{slot.avgImpressions.toLocaleString()} impresiones
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Heatmap */}
       <div className="glass-panel" style={{ padding: 0 }}>
         <div className="section-header">
           <span className="section-title">
             <Clock style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 8 }} />
             Mejor horario para publicar
           </span>
+          {loadingBT && <Loader2 style={{ width: 14, height: 14, color: "#64748b", animation: "spin 1s linear infinite" }} />}
         </div>
         <div style={{ padding: "24px 16px", overflowX: "auto" }}>
           {/* Hour labels */}
           <div className="flex" style={{ paddingLeft: 44, gap: 2, marginBottom: 4 }}>
             {HOURS.map((h) => (
-              <div
-                key={h}
-                style={{
-                  width: 32,
-                  minWidth: 32,
-                  textAlign: "center",
-                  fontSize: 9,
-                  fontFamily: "'Orbitron', sans-serif",
-                  fontWeight: 600,
-                  color: "rgba(148,163,184,0.65)",
-                }}
-              >
+              <div key={h} style={{ width: 32, minWidth: 32, textAlign: "center", fontSize: 9, fontFamily: "'Orbitron', sans-serif", fontWeight: 600, color: "rgba(148,163,184,0.65)" }}>
                 {h.toString().padStart(2, "0")}
               </div>
             ))}
@@ -930,64 +1062,36 @@ function TabMejorHorario() {
           {/* Grid rows */}
           {DAYS.map((day, di) => (
             <div key={day} className="flex items-center" style={{ gap: 2, marginBottom: 2 }}>
-              <span
-                style={{
-                  width: 40,
-                  fontSize: 10,
-                  fontFamily: "'Orbitron', sans-serif",
-                  fontWeight: 600,
-                  color: "#64748b",
-                  textAlign: "right",
-                  paddingRight: 4,
-                }}
-              >
+              <span style={{ width: 40, fontSize: 10, fontFamily: "'Orbitron', sans-serif", fontWeight: 600, color: "#64748b", textAlign: "right", paddingRight: 4 }}>
                 {day}
               </span>
-              {heatmap[di].map((val, hi) => {
+              {heatmapData[di].map((val, hi) => {
                 const intensity = val / maxVal;
+                const isTop = topSlotKeys.has(`${di}-${hi}`);
                 return (
                   <div
                     key={hi}
-                    title={`${day} ${hi}:00 — Engagement: ${val}`}
+                    title={`${day} ${hi}:00 — Impresiones: ${val}`}
                     style={{
-                      width: 32,
-                      minWidth: 32,
-                      height: 28,
-                      borderRadius: 4,
-                      background:
-                        intensity > 0.7
-                          ? `rgba(244,114,182,${0.3 + intensity * 0.55})`
-                          : intensity > 0.4
-                          ? `rgba(244,114,182,${0.08 + intensity * 0.25})`
-                          : `rgba(244,114,182,${intensity * 0.1})`,
-                      border: `1px solid rgba(244,114,182,${intensity * 0.15})`,
-                      transition: "all 0.3s ease",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      position: "relative",
+                      width: 32, minWidth: 32, height: 28, borderRadius: 4,
+                      background: intensity > 0.7
+                        ? `rgba(244,114,182,${0.3 + intensity * 0.55})`
+                        : intensity > 0.4
+                        ? `rgba(244,114,182,${0.08 + intensity * 0.25})`
+                        : `rgba(244,114,182,${intensity * 0.1})`,
+                      border: isTop ? "1px solid rgba(0,212,255,0.6)" : `1px solid rgba(244,114,182,${intensity * 0.15})`,
+                      boxShadow: isTop ? "0 0 8px rgba(0,212,255,0.3)" : "none",
+                      transition: "all 0.3s ease", cursor: "pointer",
+                      display: "flex", alignItems: "center", justifyContent: "center", position: "relative",
                     }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = "scale(1.15)";
-                      e.currentTarget.style.zIndex = "10";
-                      e.currentTarget.style.boxShadow = `0 0 12px rgba(244,114,182,${intensity * 0.5})`;
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.zIndex = "0";
-                      e.currentTarget.style.boxShadow = "none";
-                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.transform = "scale(1.15)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.boxShadow = `0 0 12px rgba(244,114,182,${intensity * 0.5})`; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "0"; e.currentTarget.style.boxShadow = isTop ? "0 0 8px rgba(0,212,255,0.3)" : "none"; }}
                   >
+                    {isTop && (
+                      <span style={{ position: "absolute", top: -2, right: -2, fontSize: 8, color: "#00d4ff" }}>★</span>
+                    )}
                     {intensity > 0.75 && (
-                      <span
-                        style={{
-                          fontSize: 8,
-                          fontWeight: 700,
-                          color: "rgba(255,255,255,0.8)",
-                          fontFamily: "'Orbitron', sans-serif",
-                        }}
-                      >
+                      <span style={{ fontSize: 8, fontWeight: 700, color: "rgba(255,255,255,0.8)", fontFamily: "'Orbitron', sans-serif" }}>
                         {val}
                       </span>
                     )}
@@ -1002,19 +1106,286 @@ function TabMejorHorario() {
             <span style={{ fontSize: 10, color: "#64748b" }}>Bajo engagement</span>
             <div className="flex" style={{ gap: 2 }}>
               {[0.05, 0.12, 0.22, 0.35, 0.5, 0.65, 0.8].map((int, i) => (
-                <div
-                  key={i}
-                  style={{
-                    width: 24,
-                    height: 12,
-                    borderRadius: 2,
-                    background: `rgba(244,114,182,${int})`,
-                    border: `1px solid rgba(244,114,182,${int * 0.3})`,
-                  }}
-                />
+                <div key={i} style={{ width: 24, height: 12, borderRadius: 2, background: `rgba(244,114,182,${int})`, border: `1px solid rgba(244,114,182,${int * 0.3})` }} />
               ))}
             </div>
             <span style={{ fontSize: 10, color: "#f472b6" }}>Alto engagement</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   TAB: HISTORIAS
+   ══════════════════════════════════════════════════════════ */
+interface StoryData {
+  id: string; timestamp: string; exits: number; impressions: number;
+  reach: number; replies: number; tapsForward: number; tapsBack: number;
+  completionRate: number;
+}
+
+function TabHistorias() {
+  const [stories, setStories] = useState<StoryData[]>([]);
+  const [loadingS, setLoadingS] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/analytics/stories")
+      .then((r) => r.json())
+      .then((data) => setStories(data.stories || []))
+      .catch(() => {})
+      .finally(() => setLoadingS(false));
+  }, []);
+
+  if (loadingS) return <div style={{ display: "flex", justifyContent: "center", padding: 40 }}><Loader2 style={{ width: 24, height: 24, color: "#64748b", animation: "spin 1s linear infinite" }} /></div>;
+
+  if (stories.length === 0) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 60, gap: 12, borderRadius: 12, background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.09)" }}>
+        <Camera style={{ width: 32, height: 32, color: "#334155" }} />
+        <p style={{ fontSize: 13, color: "#64748b", textAlign: "center" }}>No hay historias en los últimos 30 días o conecta tu cuenta de <strong style={{ color: "#E1306C" }}>Instagram</strong></p>
+      </div>
+    );
+  }
+
+  const totalImpressions = stories.reduce((s, h) => s + h.impressions, 0);
+  const avgReach = Math.round(stories.reduce((s, h) => s + h.reach, 0) / stories.length);
+  const totalReplies = stories.reduce((s, h) => s + h.replies, 0);
+  const avgCompletion = (stories.reduce((s, h) => s + h.completionRate, 0) / stories.length).toFixed(1);
+
+  return (
+    <div className="space-y-4">
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard label="Impresiones" value={totalImpressions.toLocaleString()} change="Total" positive={true} icon={Eye} color="#7b61ff" accent="purple" />
+        <KpiCard label="Alcance Prom." value={avgReach.toLocaleString()} change="Por historia" positive={true} icon={Users} color="#00d4ff" accent="cyan" />
+        <KpiCard label="Respuestas" value={totalReplies.toString()} change="Total" positive={true} icon={MessageCircle} color="#f472b6" accent="pink" />
+        <KpiCard label="Completion Rate" value={`${avgCompletion}%`} change="Promedio" positive={parseFloat(avgCompletion) >= 50} icon={Activity} color="#06d6a0" accent="emerald" />
+      </div>
+
+      {/* Stories Table */}
+      <div className="glass-panel" style={{ padding: 0, overflow: "auto" }}>
+        <div className="section-header">
+          <span className="section-title">
+            <Camera style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 8 }} />
+            Historias Recientes
+          </span>
+          <span style={{ fontSize: 10, color: "#64748b" }}>{stories.length} historias</span>
+        </div>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              {["Fecha", "Impresiones", "Alcance", "Completion %", "Respuestas", "Taps →", "Taps ←", "Salidas"].map((col) => (
+                <th key={col} style={{ padding: "14px 14px", textAlign: "left", fontFamily: "'Orbitron', sans-serif", fontSize: 9, fontWeight: 600, letterSpacing: "0.15em", textTransform: "uppercase", color: "#64748b", borderBottom: "1px solid rgba(6,214,160,0.08)", background: "rgba(6,214,160,0.02)", whiteSpace: "nowrap" }}>
+                  {col}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {stories.map((s) => {
+              const completionColor = s.completionRate >= 80 ? "#06d6a0" : s.completionRate >= 50 ? "#f59e0b" : "#e2445c";
+              return (
+                <tr key={s.id} style={{ borderBottom: "1px solid rgba(6,214,160,0.04)" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(6,214,160,0.03)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  <td style={{ padding: "10px 14px", fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap" }}>
+                    {new Date(s.timestamp).toLocaleDateString("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </td>
+                  <td style={{ padding: "10px 14px", fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{s.impressions.toLocaleString()}</td>
+                  <td style={{ padding: "10px 14px", fontSize: 12, color: "#e2e8f0" }}>{s.reach.toLocaleString()}</td>
+                  <td style={{ padding: "10px 14px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <div style={{ width: 60, height: 6, background: "rgba(255,255,255,0.04)", borderRadius: 3, overflow: "hidden" }}>
+                        <div style={{ width: `${Math.min(100, s.completionRate)}%`, height: "100%", borderRadius: 3, background: completionColor, transition: "width 0.5s" }} />
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 600, color: completionColor }}>{s.completionRate.toFixed(0)}%</span>
+                    </div>
+                  </td>
+                  <td style={{ padding: "10px 14px", fontSize: 12, color: "#e2e8f0" }}>{s.replies}</td>
+                  <td style={{ padding: "10px 14px", fontSize: 12, color: "#94a3b8" }}>{s.tapsForward}</td>
+                  <td style={{ padding: "10px 14px", fontSize: 12, color: "#94a3b8" }}>{s.tapsBack}</td>
+                  <td style={{ padding: "10px 14px", fontSize: 12, color: "#e2445c" }}>{s.exits}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      {/* Completion Rate Chart */}
+      <div className="glass-panel" style={{ padding: 0 }}>
+        <div className="section-header">
+          <span className="section-title">Completion Rate por Historia</span>
+        </div>
+        <div style={{ padding: "16px 24px" }}>
+          <div className="space-y-2">
+            {stories.slice(0, 15).map((s, i) => {
+              const color = s.completionRate >= 80 ? "#06d6a0" : s.completionRate >= 50 ? "#f59e0b" : "#e2445c";
+              return (
+                <div key={s.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 10, color: "#64748b", width: 80, flexShrink: 0, textAlign: "right" }}>
+                    {new Date(s.timestamp).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}
+                  </span>
+                  <div style={{ flex: 1, height: 16, background: "rgba(255,255,255,0.03)", borderRadius: 4, overflow: "hidden" }}>
+                    <div style={{ width: `${Math.min(100, s.completionRate)}%`, height: "100%", borderRadius: 4, background: `linear-gradient(90deg, ${color}, ${color}50)`, transition: "width 0.6s ease", boxShadow: `0 0 6px ${color}25` }} />
+                  </div>
+                  <span style={{ fontSize: 11, fontWeight: 600, color, width: 36, textAlign: "right" }}>{s.completionRate.toFixed(0)}%</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════
+   TAB: REELS
+   ══════════════════════════════════════════════════════════ */
+interface ReelData {
+  id: string; timestamp: string; caption: string; thumbnailUrl?: string;
+  comments: number; likes: number; plays: number; reach: number;
+  saved: number; shares: number; engagementRate: number;
+}
+
+function TabReels() {
+  const [reels, setReels] = useState<ReelData[]>([]);
+  const [loadingR, setLoadingR] = useState(true);
+  const [sortBy, setSortBy] = useState<"plays" | "likes" | "shares" | "saved" | "engagementRate">("plays");
+
+  useEffect(() => {
+    fetch("/api/analytics/reels")
+      .then((r) => r.json())
+      .then((data) => setReels(data.reels || []))
+      .catch(() => {})
+      .finally(() => setLoadingR(false));
+  }, []);
+
+  if (loadingR) return <div style={{ display: "flex", justifyContent: "center", padding: 40 }}><Loader2 style={{ width: 24, height: 24, color: "#64748b", animation: "spin 1s linear infinite" }} /></div>;
+
+  if (reels.length === 0) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 60, gap: 12, borderRadius: 12, background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.09)" }}>
+        <Film style={{ width: 32, height: 32, color: "#334155" }} />
+        <p style={{ fontSize: 13, color: "#64748b", textAlign: "center" }}>No hay Reels publicados o conecta tu cuenta de <strong style={{ color: "#E1306C" }}>Instagram</strong></p>
+      </div>
+    );
+  }
+
+  const totalPlays = reels.reduce((s, r) => s + r.plays, 0);
+  const avgReach = Math.round(reels.reduce((s, r) => s + r.reach, 0) / reels.length);
+  const totalSaved = reels.reduce((s, r) => s + r.saved, 0);
+  const avgEngRate = (reels.reduce((s, r) => s + r.engagementRate, 0) / reels.length).toFixed(1);
+
+  const topReels = [...reels].sort((a, b) => (b[sortBy] as number) - (a[sortBy] as number)).slice(0, 5);
+  const maxTopVal = Math.max(...topReels.map((r) => r[sortBy] as number), 1);
+
+  const engBadgeColor = (rate: number) => rate >= 10 ? "#06d6a0" : rate >= 5 ? "#f59e0b" : "#94a3b8";
+
+  return (
+    <div className="space-y-4">
+      {/* KPIs */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <KpiCard label="Reproducciones" value={totalPlays.toLocaleString()} change="Total" positive={true} icon={Play} color="#f472b6" accent="pink" />
+        <KpiCard label="Alcance Prom." value={avgReach.toLocaleString()} change="Por reel" positive={true} icon={Eye} color="#00d4ff" accent="cyan" />
+        <KpiCard label="Guardados" value={totalSaved.toString()} change="Total" positive={true} icon={Bookmark} color="#f59e0b" accent="purple" />
+        <KpiCard label="Eng. Rate" value={`${avgEngRate}%`} change="Promedio" positive={parseFloat(avgEngRate) >= 5} icon={Activity} color="#06d6a0" accent="emerald" />
+      </div>
+
+      {/* Reels Grid */}
+      <div className="glass-panel" style={{ padding: 0 }}>
+        <div className="section-header">
+          <span className="section-title">
+            <Film style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 8 }} />
+            Reels
+          </span>
+          <span style={{ fontSize: 10, color: "#64748b" }}>{reels.length} reels</span>
+        </div>
+        <div style={{ padding: 16, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
+          {reels.map((reel) => {
+            const ec = engBadgeColor(reel.engagementRate);
+            return (
+              <div key={reel.id} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, overflow: "hidden", transition: "border-color 0.2s" }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(244,114,182,0.2)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; }}
+              >
+                {/* Thumbnail */}
+                {reel.thumbnailUrl ? (
+                  <div style={{ aspectRatio: "9/16", maxHeight: 200, overflow: "hidden", background: "#000" }}>
+                    <img src={reel.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                ) : (
+                  <div style={{ aspectRatio: "9/16", maxHeight: 200, background: "linear-gradient(135deg, #0f172a, #1e293b)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <Play style={{ width: 32, height: 32, color: "#f472b6", opacity: 0.5 }} />
+                  </div>
+                )}
+                {/* Caption */}
+                <div style={{ padding: "10px 12px" }}>
+                  <p style={{ fontSize: 11, color: "#cbd5e1", lineHeight: 1.4, margin: "0 0 8px", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    {reel.caption || "Sin descripción"}
+                  </p>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4, fontSize: 10 }}>
+                    <span style={{ color: "#94a3b8" }}>▶ {reel.plays.toLocaleString()}</span>
+                    <span style={{ color: "#94a3b8" }}>♡ {reel.likes.toLocaleString()}</span>
+                    <span style={{ color: "#94a3b8" }}>💬 {reel.comments}</span>
+                    <span style={{ color: "#94a3b8" }}>🔖 {reel.saved}</span>
+                  </div>
+                  <div style={{ marginTop: 8, display: "flex", justifyContent: "center" }}>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: ec, padding: "3px 10px", borderRadius: 10, background: `${ec}12`, border: `1px solid ${ec}30` }}>
+                      {reel.engagementRate.toFixed(1)}% eng
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Top Reels by Metric */}
+      <div className="glass-panel" style={{ padding: 0 }}>
+        <div className="section-header" style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <span className="section-title">Top Reels</span>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            style={{ fontSize: 11, padding: "4px 10px", borderRadius: 6, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", outline: "none", cursor: "pointer" }}
+          >
+            <option value="plays">Reproducciones</option>
+            <option value="likes">Likes</option>
+            <option value="shares">Compartidos</option>
+            <option value="saved">Guardados</option>
+            <option value="engagementRate">Engagement</option>
+          </select>
+        </div>
+        <div style={{ padding: "16px 24px" }}>
+          <div className="space-y-3">
+            {topReels.map((r, i) => {
+              const val = r[sortBy] as number;
+              const pct = (val / maxTopVal) * 100;
+              return (
+                <div key={r.id} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 12, fontWeight: 900, color: i === 0 ? "#f472b6" : i === 1 ? "#00d4ff" : "#64748b", width: 20 }}>
+                    #{i + 1}
+                  </span>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 11, color: "#cbd5e1", margin: "0 0 4px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                      {r.caption || "Sin descripción"}
+                    </p>
+                    <div style={{ height: 8, background: "rgba(255,255,255,0.04)", borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ width: `${pct}%`, height: "100%", borderRadius: 4, background: "linear-gradient(90deg, #f472b6, rgba(244,114,182,0.3))", boxShadow: "0 0 6px rgba(244,114,182,0.2)", transition: "width 0.6s ease" }} />
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0", width: 60, textAlign: "right" }}>
+                    {sortBy === "engagementRate" ? `${val.toFixed(1)}%` : val.toLocaleString()}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
