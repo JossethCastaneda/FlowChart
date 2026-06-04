@@ -882,6 +882,7 @@ function TabAudiencia({ age, gender, location }: { age: any[]; gender: any[]; lo
       </div>
 
       {/* Dispositivo - Pie */}
+      {AUDIENCE_DEVICE.length > 0 && (
       <div className="glass-panel" style={{ padding: 0 }}>
         <div className="section-header">
           <span className="section-title">Dispositivo</span>
@@ -899,6 +900,7 @@ function TabAudiencia({ age, gender, location }: { age: any[]; gender: any[]; lo
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
@@ -914,6 +916,15 @@ function DonutChart({
   const radius = size / 2 - 12;
   const circumference = 2 * Math.PI * radius;
   let offset = 0;
+
+  if (data.length === 0) {
+    return (
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={16} />
+        <text x={size / 2} y={size / 2 + 4} textAnchor="middle" style={{ fontSize: 10, fill: "#64748b" }}>Sin datos</text>
+      </svg>
+    );
+  }
 
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
