@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { AnalyticsFilters, type Platform } from "./AnalyticsFilters";
 
 import {
   TrendingUp,
@@ -93,6 +94,20 @@ export function AnalyticsDashboard() {
   const [audienceGender, setAudienceGender] = useState<any[]>([]);
   const [audienceLocation, setAudienceLocation] = useState<any[]>([]);
 
+  // ── Filter state ──
+  const [filterPlatform, setFilterPlatform] = useState<Platform>("all");
+  const [filterAccountIds, setFilterAccountIds] = useState<string[]>([]);
+
+  const handleFilterChange = useCallback((platform: Platform, selectedIds: string[]) => {
+    setFilterPlatform(platform);
+    setFilterAccountIds(selectedIds);
+  }, []);
+
+  // Extract raw page IDs from filter keys (fb_123 → 123, ig_456 → 456)
+  const filterPageIds = useMemo(() => {
+    return filterAccountIds.map((id) => id.replace(/^(fb_|ig_)/, ""));
+  }, [filterAccountIds]);
+
   // Fetch real organic KPIs
   useEffect(() => {
     const fetchData = async () => {
@@ -149,12 +164,21 @@ export function AnalyticsDashboard() {
       } catch { /* fallback to demo */ }
     };
     fetchData();
-  }, []);
+  }, [filterPlatform, filterAccountIds]);
+
+  // Filter posts by selected platform
+  const filteredPosts = useMemo(() => {
+    if (filterPlatform === "all") return posts;
+    const platformMap: Record<string, string> = { facebook: "Facebook", instagram: "Instagram" };
+    const target = platformMap[filterPlatform] || "";
+    return posts.filter((p) => p.channel === target);
+  }, [posts, filterPlatform]);
 
   return (
     <div className="space-y-4 page-enter">
 
-
+      {/* ─── FILTERS BAR ─── */}
+      <AnalyticsFilters onFilterChange={handleFilterChange} />
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 glass-panel p-1 w-fit">
@@ -176,8 +200,8 @@ export function AnalyticsDashboard() {
 
       {/* Tab Content */}
       <div style={{ animation: "page-fade-in 0.3s ease-out forwards" }}>
-        {activeTab === "Resumen" && <TabResumen kpis={kpis} posts={posts} />}
-        {activeTab === "Posts" && <TabPosts posts={posts} />}
+        {activeTab === "Resumen" && <TabResumen kpis={kpis} posts={filteredPosts} />}
+        {activeTab === "Posts" && <TabPosts posts={filteredPosts} />}
         {activeTab === "Audiencia" && <TabAudiencia age={audienceAge} gender={audienceGender} location={audienceLocation} />}
         {activeTab === "Historias" && <TabHistorias />}
         {activeTab === "Reels" && <TabReels />}
