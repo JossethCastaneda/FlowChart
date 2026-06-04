@@ -53,11 +53,7 @@ interface Post {
   externalIds?: Record<string, string>;
 }
 
-export interface CalendarProps {
-  filters?: {
-    channels: string[];
-  };
-}
+
 
 /* ── Status config ────────────────────────────────────── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
@@ -87,7 +83,7 @@ const toDateKey = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).pa
 /* ══════════════════════════════════════════════════════════
    SCHEDULED CALENDAR COMPONENT
    ══════════════════════════════════════════════════════════ */
-export function ScheduledCalendar({ filters }: CalendarProps) {
+export function ScheduledCalendar() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [view, setView] = useState<"month" | "list">("month");
@@ -134,9 +130,6 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
   /* ── Filter posts ─────────────────────────────────────── */
   const filtered = posts.filter((p) => {
     if (filterStatus !== "all" && p.status !== filterStatus) return false;
-    if (filters && filters.channels && filters.channels.length > 0) {
-      if (!p.pageId || !filters.channels.includes(p.pageId)) return false;
-    }
     return true;
   });
 
