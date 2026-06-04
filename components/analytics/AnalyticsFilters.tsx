@@ -124,11 +124,24 @@ export function AnalyticsFilters({ onFilterChange }: Props) {
   const handlePlatformSelect = (key: Platform) => {
     setPlatform(key);
     setPlatformOpen(false);
-    // When switching platform, select all accounts of that platform
-    const newAccounts = key === "all" ? accounts : accounts.filter((a) => a.platform === key);
-    const newIds = newAccounts.map((a) => a.id);
-    setSelectedIds(newIds);
-    onFilterChange(key, newIds);
+    // Keep current selections — only filter the dropdown view
+    // Apply immediately with the current selection intersected with the new platform
+    const relevantIds = key === "all"
+      ? selectedIds
+      : selectedIds.filter((id) => {
+          const acc = accounts.find((a) => a.id === id);
+          return acc && acc.platform === key;
+        });
+    // If no accounts match the new platform, auto-select all of that platform
+    if (relevantIds.length === 0) {
+      const newAccounts = key === "all" ? accounts : accounts.filter((a) => a.platform === key);
+      const newIds = newAccounts.map((a) => a.id);
+      setSelectedIds(newIds);
+      onFilterChange(key, newIds);
+    } else {
+      setSelectedIds(relevantIds);
+      onFilterChange(key, relevantIds);
+    }
   };
 
   const toggleAccount = (id: string) => {

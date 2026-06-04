@@ -110,10 +110,17 @@ export function AnalyticsDashboard() {
 
   // Fetch real organic KPIs
   useEffect(() => {
+    // Skip initial render before filters load
+    if (filterAccountIds.length === 0) return;
+
     const fetchData = async () => {
+      // Build page ID query string for server-side filtering
+      const pageIdParam = filterPageIds.length > 0 ? `&pageIds=${filterPageIds.join(",")}` : "";
+      const platformParam = filterPlatform !== "all" ? `&platform=${filterPlatform}` : "";
+
       try {
         // Fetch KPIs
-        const kpiRes = await fetch("/api/analytics/organic?days=30");
+        const kpiRes = await fetch(`/api/analytics/organic?days=30${pageIdParam}${platformParam}`);
         if (kpiRes.ok) {
           const kpiData = await kpiRes.json();
           if (kpiData && !kpiData.error) {
@@ -130,7 +137,7 @@ export function AnalyticsDashboard() {
 
       try {
         // Fetch posts
-        const postRes = await fetch("/api/analytics/posts?limit=25");
+        const postRes = await fetch(`/api/analytics/posts?limit=25${pageIdParam}${platformParam}`);
         if (postRes.ok) {
           const postData = await postRes.json();
           if (postData.posts?.length) {
@@ -151,7 +158,7 @@ export function AnalyticsDashboard() {
 
       try {
         // Fetch audience
-        const audRes = await fetch("/api/analytics/audience");
+        const audRes = await fetch(`/api/analytics/audience${pageIdParam ? `?${pageIdParam.slice(1)}` : ""}`);
         if (audRes.ok) {
           const audData = await audRes.json();
           if (audData.age?.length) setAudienceAge(audData.age);
@@ -175,7 +182,7 @@ export function AnalyticsDashboard() {
   }, [posts, filterPlatform]);
 
   return (
-    <div className="space-y-4 page-enter">
+    <div className="space-y-4">
 
       {/* ─── FILTERS BAR ─── */}
       <AnalyticsFilters onFilterChange={handleFilterChange} />

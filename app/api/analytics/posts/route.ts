@@ -55,7 +55,15 @@ export async function GET(request: NextRequest) {
       );
     }
     const pagesJson = await pagesRes.json();
-    const pages: any[] = pagesJson.data || [];
+    let pages: any[] = pagesJson.data || [];
+
+    // Apply pageIds filter if provided
+    const pageIdsParam = request.nextUrl.searchParams.get("pageIds");
+    const platformParam = request.nextUrl.searchParams.get("platform");
+    if (pageIdsParam) {
+      const allowedIds = pageIdsParam.split(",").map((id) => id.trim());
+      pages = pages.filter((p) => allowedIds.includes(p.id));
+    }
 
     if (!pages.length) {
       return NextResponse.json({ posts: [] });
@@ -68,20 +76,22 @@ export async function GET(request: NextRequest) {
       const pageToken = page.access_token || token;
       const igAccountId = page.instagram_business_account?.id;
 
-      // ── Facebook published posts ─────────────────────────────────────
-      const fbPostsUrl = metaUrl(`${page.id}/published_posts`, {
-        fields: [
-          "id", "message", "created_time", "full_picture",
-          "shares",
-          "likes.summary(true)",
-          "comments.summary(true)",
-          "insights.metric(post_impressions,post_engaged_users)",
-        ].join(","),
-        limit,
-      });
+      // ── Facebook published posts (skip if platform=instagram) ──────
+      const fbPostsUrl = platformParam !== "instagram"
+        ? metaUrl(`${page.id}/published_posts`, {
+            fields: [
+              "id", "message", "created_time", "full_picture",
+              "shares",
+              "likes.summary(true)",
+              "comments.summary(true)",
+              "insights.metric(post_impressions,post_engaged_users)",
+            ].join(","),
+            limit,
+          })
+        : null;
 
-      // ── Instagram media ──────────────────────────────────────────────
-      const igMediaUrl = igAccountId
+      // ── Instagram media (skip if platform=facebook) ───────────────
+      const igMediaUrl = igAccountId && platformParam !== "facebook"
         ? metaUrl(`${igAccountId}/media`, {
             fields: [
               "id", "caption", "timestamp", "media_url", "thumbnail_url",
@@ -93,14 +103,16 @@ export async function GET(request: NextRequest) {
         : null;
 
       const [fbResult, igResult] = await Promise.allSettled([
-        metaFetch(fbPostsUrl, pageToken).then(async (r) => {
-          if (!r.ok) {
-            const err = await r.json().catch(() => ({}));
-            console.error(`[POSTS] FB posts error for page ${page.id}:`, err?.error?.message);
-            return null;
-          }
-          return r.json();
-        }),
+        fbPostsUrl
+          ? metaFetch(fbPostsUrl, pageToken).then(async (r) => {
+              if (!r.ok) {
+                const err = await r.json().catch(() => ({}));
+                console.error(`[POSTS] FB posts error for page ${page.id}:`, err?.error?.message);
+                return null;
+              }
+              return r.json();
+            })
+          : Promise.resolve(null),
         igMediaUrl
           ? metaFetch(igMediaUrl, token).then(async (r) => {
               if (!r.ok) {
