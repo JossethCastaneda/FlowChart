@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -15,9 +15,11 @@ import {
   Pencil,
   Loader2,
   Image as ImageIcon,
+  Zap,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { BoostModal, type BoostResult } from "./BoostModal";
 
 /* ── Social Icons (not in lucide-react) ───────────────── */
 const FacebookIcon = ({ style }: { style?: React.CSSProperties }) => (
@@ -48,6 +50,7 @@ interface Post {
   pageName: string | null;
   pageId: string | null;
   error: string | null;
+  externalIds?: Record<string, string>;
 }
 
 export interface CalendarProps {
@@ -93,6 +96,10 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Boost state
+  const [boostTarget, setBoostTarget] = useState<Post | null>(null);
+  const [boostResults, setBoostResults] = useState<Record<string, BoostResult>>({});
 
   /* ── Fetch posts & channels ──────────────────────────────────────── */
   const [channels, setChannels] = useState<{ id: string; picture: string | null }[]>([]);
@@ -219,6 +226,17 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
     );
   };
 
+  /* ── Boost helpers ─────────────────────────────────── */
+  const openBoostModal = (post: Post) => setBoostTarget(post);
+  const closeBoostModal = () => setBoostTarget(null);
+  const handleBoostSuccess = (result: BoostResult) => {
+    if (boostTarget) {
+      setBoostResults((prev) => ({ ...prev, [boostTarget.id]: result }));
+    }
+    setBoostTarget(null);
+    setBanner({ type: "success", message: "⚡ Boost lanzado. Campaña activa en Meta Ads Manager." });
+  };
+
   /* ── Post card (list view + day detail) ────────────────── */
   const PostCard = ({ post }: { post: Post }) => {
     const date = post.scheduledAt || post.createdAt;
@@ -248,6 +266,17 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
             <StatusBadge status={post.status} />
+            {boostResults[post.id] && (
+              <span style={{
+                fontSize: 9, fontWeight: 600, color: "#f59e0b",
+                background: "rgba(245,158,11,0.1)",
+                border: "1px solid rgba(245,158,11,0.3)",
+                borderRadius: 4, padding: "2px 6px",
+                display: "inline-flex", alignItems: "center", gap: 3,
+              }}>
+                <Zap style={{ width: 9, height: 9 }} /> BOOST ACTIVO
+              </span>
+            )}
             <div style={{ display: "flex", gap: 4 }}>
               {post.channels.map((ch) => <span key={ch}>{CHANNEL_ICON[ch]}</span>)}
             </div>
@@ -290,6 +319,24 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
               </button>
             </>
           )}
+          {post.status === "Published" && post.pageId && !boostResults[post.id] && (
+            <button
+              onClick={() => openBoostModal(post)}
+              title="Boost este post"
+              style={{ ...actionBtnStyle, color: "#f59e0b" }}
+            >
+              <Zap style={{ width: 13, height: 13 }} />
+            </button>
+          )}
+          {boostResults[post.id] && (
+            <button
+              disabled
+              title="Boost activo"
+              style={{ ...actionBtnStyle, color: "#00c875", cursor: "default", opacity: 0.8 }}
+            >
+              <Zap style={{ width: 13, height: 13, fill: "#00c875" }} />
+            </button>
+          )}
           <button onClick={() => deletePost(post.id)} title="Eliminar" disabled={actionLoading === post.id} style={{ ...actionBtnStyle, color: "#e2445c" }}>
             <Trash2 style={{ width: 13, height: 13 }} />
           </button>
@@ -318,7 +365,7 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
      RENDER
      ══════════════════════════════════════════════════════════ */
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 16, position: "relative" }}>
       <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 
       {/* Banner */}
@@ -507,6 +554,15 @@ export function ScheduledCalendar({ filters }: CalendarProps) {
             })()
           )}
         </div>
+      )}
+
+      {/* ── BOOST MODAL ── */}
+      {boostTarget && (
+        <BoostModal
+          post={boostTarget}
+          onClose={closeBoostModal}
+          onSuccess={handleBoostSuccess}
+        />
       )}
     </div>
   );

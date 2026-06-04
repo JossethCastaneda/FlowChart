@@ -1,0 +1,410 @@
+"use client";
+
+import React, { useState } from "react";
+import { Zap, X, Loader2, MapPin, DollarSign, Calendar, AlertCircle, Check } from "lucide-react";
+
+/* ── Types ─────────────────────────────────────────────── */
+interface Post {
+  id: string;
+  content: string;
+  channels: string[];
+  mediaUrls: string[];
+  mediaUrl: string | null;
+  status: string;
+  pageId: string | null;
+  pageName: string | null;
+  [key: string]: any;
+}
+
+export interface BoostResult {
+  campaignId: string;
+  adsetId: string;
+  adId: string;
+}
+
+export interface BoostModalProps {
+  post: Post;
+  onClose: () => void;
+  onSuccess: (result: BoostResult) => void;
+}
+
+/* ── Constants ─────────────────────────────────────────── */
+const PRESET_COUNTRIES = [
+  { code: "MX", label: "México", flag: "🇲🇽" },
+  { code: "US", label: "EE.UU", flag: "🇺🇸" },
+  { code: "CO", label: "Colombia", flag: "🇨🇴" },
+  { code: "AR", label: "Argentina", flag: "🇦🇷" },
+  { code: "ES", label: "España", flag: "🇪🇸" },
+  { code: "CL", label: "Chile", flag: "🇨🇱" },
+];
+
+const BUDGET_PRESETS = [50, 100, 200, 500];
+
+/* ══════════════════════════════════════════════════════════
+   BOOST MODAL COMPONENT
+   ══════════════════════════════════════════════════════════ */
+export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
+  const [budget, setBudget] = useState(100);
+  const [days, setDays] = useState(3);
+  const [countries, setCountries] = useState<string[]>(["MX"]);
+  const [adAccountId, setAdAccountId] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  /* ── Country toggle ─────────────────────────────────── */
+  const toggleCountry = (code: string) => {
+    setCountries((prev) =>
+      prev.includes(code)
+        ? prev.filter((c) => c !== code)
+        : [...prev, code]
+    );
+  };
+
+  /* ── Submit ─────────────────────────────────────────── */
+  const handleBoost = async () => {
+    if (!adAccountId.trim()) {
+      setError("Ingresa el ID de tu cuenta publicitaria de Meta");
+      return;
+    }
+    if (countries.length === 0) {
+      setError("Selecciona al menos un país");
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/ads/boost", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId: post.id,
+          adAccountId: adAccountId.trim().replace("act_", ""),
+          budgetCents: budget * 100,
+          durationDays: days,
+          countries,
+          pageId: post.pageId,
+          pageToken: "",
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error || "Error lanzando el boost");
+      }
+      onSuccess({
+        campaignId: data.campaignId,
+        adsetId: data.adsetId,
+        adId: data.adId,
+      });
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const totalEstimated = budget * days;
+
+  /* ── Render ─────────────────────────────────────────── */
+  return (
+    <div
+      onClick={onClose}
+      style={{
+        position: "absolute", inset: 0, zIndex: 50,
+        background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+        display: "flex", alignItems: "center", justifyContent: "center",
+        padding: 20,
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#0f172a",
+          border: "1px solid rgba(245,158,11,0.3)",
+          borderRadius: 12, padding: 0, width: "100%", maxWidth: 420,
+          boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(245,158,11,0.06)",
+          overflow: "hidden",
+        }}
+      >
+        {/* ── Header ── */}
+        <div style={{
+          display: "flex", alignItems: "center", justifyContent: "space-between",
+          padding: "14px 20px", borderBottom: "1px solid rgba(245,158,11,0.15)",
+          background: "rgba(245,158,11,0.04)",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <Zap style={{ width: 16, height: 16, color: "#f59e0b" }} />
+            <span style={{
+              fontSize: 13, fontWeight: 700, color: "#f59e0b",
+              fontFamily: "var(--font-display)", letterSpacing: "0.1em",
+            }}>
+              CONFIGURAR IMPULSO
+            </span>
+          </div>
+          <button onClick={onClose} style={{
+            background: "none", border: "none", color: "#64748b",
+            cursor: "pointer", padding: 4, display: "flex",
+          }}>
+            <X style={{ width: 16, height: 16 }} />
+          </button>
+        </div>
+
+        {/* ── Post Preview ── */}
+        <div style={{
+          display: "flex", gap: 10, padding: "12px 20px",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(255,255,255,0.02)",
+        }}>
+          {(post.mediaUrls?.[0] || post.mediaUrl) && (
+            <div style={{
+              width: 44, height: 44, borderRadius: 6, overflow: "hidden",
+              flexShrink: 0, background: "#000",
+            }}>
+              <img
+                src={post.mediaUrls?.[0] || post.mediaUrl || ""}
+                alt=""
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </div>
+          )}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{
+              fontSize: 12, color: "#cbd5e1", margin: 0,
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            }}>
+              {post.content.length > 80 ? post.content.slice(0, 80) + "..." : post.content}
+            </p>
+            <p style={{ fontSize: 10, color: "#64748b", margin: "2px 0 0" }}>
+              {post.pageName || "Página"} · {post.channels.join(", ")}
+            </p>
+          </div>
+        </div>
+
+        <div style={{ padding: "16px 20px", display: "flex", flexDirection: "column", gap: 16 }}>
+          {/* ── Budget ── */}
+          <div>
+            <label style={{
+              fontSize: 10, fontWeight: 700, color: "#94a3b8",
+              fontFamily: "var(--font-display)", letterSpacing: "0.1em",
+              display: "flex", alignItems: "center", gap: 6, marginBottom: 8,
+            }}>
+              <DollarSign style={{ width: 12, height: 12 }} />
+              PRESUPUESTO DIARIO
+            </label>
+
+            {/* Budget input */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 8,
+              padding: "8px 12px", borderRadius: 8,
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
+            }}>
+              <span style={{ fontSize: 14, color: "#64748b", fontWeight: 600 }}>$</span>
+              <input
+                type="number"
+                min={10}
+                max={10000}
+                value={budget}
+                onChange={(e) => setBudget(Math.max(10, Number(e.target.value)))}
+                style={{
+                  flex: 1, background: "transparent", border: "none", outline: "none",
+                  color: "#e2e8f0", fontSize: 16, fontWeight: 600,
+                  fontFamily: "Inter, sans-serif",
+                }}
+              />
+              <span style={{ fontSize: 12, color: "#64748b", fontWeight: 500 }}>MXN / día</span>
+            </div>
+
+            {/* Budget presets */}
+            <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+              {BUDGET_PRESETS.map((preset) => (
+                <button
+                  key={preset}
+                  onClick={() => setBudget(preset)}
+                  style={{
+                    padding: "4px 12px", borderRadius: 16, fontSize: 11, fontWeight: 600,
+                    cursor: "pointer", transition: "all 0.15s",
+                    background: budget === preset ? "rgba(245,158,11,0.15)" : "rgba(255,255,255,0.04)",
+                    border: budget === preset ? "1px solid rgba(245,158,11,0.4)" : "1px solid rgba(255,255,255,0.06)",
+                    color: budget === preset ? "#f59e0b" : "#64748b",
+                  }}
+                >
+                  ${preset}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Duration ── */}
+          <div>
+            <label style={{
+              fontSize: 10, fontWeight: 700, color: "#94a3b8",
+              fontFamily: "var(--font-display)", letterSpacing: "0.1em",
+              display: "flex", alignItems: "center", gap: 6, marginBottom: 8,
+            }}>
+              <Calendar style={{ width: 12, height: 12 }} />
+              DURACIÓN
+            </label>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <input
+                type="range"
+                min={1}
+                max={30}
+                value={days}
+                onChange={(e) => setDays(Number(e.target.value))}
+                style={{
+                  flex: 1, accentColor: "#f59e0b", height: 4,
+                  cursor: "pointer",
+                }}
+              />
+              <span style={{
+                fontSize: 13, fontWeight: 600, color: "#e2e8f0",
+                minWidth: 50, textAlign: "right",
+              }}>
+                {days} día{days > 1 ? "s" : ""}
+              </span>
+            </div>
+
+            <div style={{
+              display: "flex", justifyContent: "space-between", alignItems: "center",
+              marginTop: 6, padding: "6px 10px", borderRadius: 6,
+              background: "rgba(245,158,11,0.06)",
+              border: "1px solid rgba(245,158,11,0.15)",
+            }}>
+              <span style={{ fontSize: 11, color: "#94a3b8" }}>Total estimado:</span>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#f59e0b" }}>
+                ${totalEstimated.toLocaleString()} MXN
+              </span>
+            </div>
+          </div>
+
+          {/* ── Countries ── */}
+          <div>
+            <label style={{
+              fontSize: 10, fontWeight: 700, color: "#94a3b8",
+              fontFamily: "var(--font-display)", letterSpacing: "0.1em",
+              display: "flex", alignItems: "center", gap: 6, marginBottom: 8,
+            }}>
+              <MapPin style={{ width: 12, height: 12 }} />
+              PAÍSES DE ALCANCE
+            </label>
+
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {PRESET_COUNTRIES.map((c) => {
+                const active = countries.includes(c.code);
+                return (
+                  <button
+                    key={c.code}
+                    onClick={() => toggleCountry(c.code)}
+                    style={{
+                      display: "flex", alignItems: "center", gap: 4,
+                      padding: "5px 10px", borderRadius: 20, fontSize: 11, fontWeight: 500,
+                      cursor: "pointer", transition: "all 0.15s",
+                      background: active ? "rgba(0,200,117,0.1)" : "rgba(255,255,255,0.04)",
+                      border: active ? "1px solid rgba(0,200,117,0.3)" : "1px solid rgba(255,255,255,0.06)",
+                      color: active ? "#00c875" : "#64748b",
+                    }}
+                  >
+                    <span>{c.flag}</span>
+                    <span>{c.label}</span>
+                    {active && <Check style={{ width: 11, height: 11 }} />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* ── Ad Account ID ── */}
+          <div>
+            <label style={{
+              fontSize: 10, fontWeight: 700, color: "#94a3b8",
+              fontFamily: "var(--font-display)", letterSpacing: "0.1em",
+              display: "block", marginBottom: 8,
+            }}>
+              CUENTA PUBLICITARIA
+            </label>
+
+            <input
+              type="text"
+              value={adAccountId}
+              onChange={(e) => setAdAccountId(e.target.value)}
+              placeholder="ID de cuenta (ej: 123456789)"
+              style={{
+                width: "100%", padding: "8px 12px", borderRadius: 8,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "#e2e8f0", fontSize: 13, fontFamily: "Inter, sans-serif",
+                outline: "none",
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(245,158,11,0.4)"; }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
+            />
+            <p style={{ fontSize: 10, color: "#475569", margin: "4px 0 0" }}>
+              Sin prefijo "act_" — lo encontrarás en Meta Business Suite → Configuración
+            </p>
+          </div>
+
+          {/* ── Error ── */}
+          {error && (
+            <div style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "8px 12px", borderRadius: 6, fontSize: 12,
+              background: "rgba(226,68,92,0.1)",
+              border: "1px solid rgba(226,68,92,0.25)",
+              color: "#e2445c",
+            }}>
+              <AlertCircle style={{ width: 13, height: 13, flexShrink: 0 }} />
+              {error}
+            </div>
+          )}
+        </div>
+
+        {/* ── Footer ── */}
+        <div style={{
+          display: "flex", gap: 8, padding: "14px 20px",
+          borderTop: "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(255,255,255,0.02)",
+          justifyContent: "flex-end",
+        }}>
+          <button
+            onClick={onClose}
+            disabled={loading}
+            style={{
+              padding: "8px 18px", borderRadius: 8, fontSize: 12, fontWeight: 500,
+              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)",
+              color: "#94a3b8", cursor: loading ? "not-allowed" : "pointer",
+              transition: "all 0.15s",
+            }}
+          >
+            Cancelar
+          </button>
+          <button
+            onClick={handleBoost}
+            disabled={loading}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "8px 22px", borderRadius: 8, fontSize: 13, fontWeight: 600,
+              background: loading
+                ? "rgba(245,158,11,0.2)"
+                : "linear-gradient(135deg, #f59e0b, #d97706)",
+              border: "none",
+              color: "#fff", cursor: loading ? "not-allowed" : "pointer",
+              boxShadow: loading ? "none" : "0 4px 16px rgba(245,158,11,0.25)",
+              transition: "all 0.2s",
+              opacity: loading ? 0.7 : 1,
+            }}
+          >
+            {loading ? (
+              <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} />
+            ) : (
+              <Zap style={{ width: 14, height: 14 }} />
+            )}
+            {loading ? "LANZANDO..." : "LANZAR BOOST"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
