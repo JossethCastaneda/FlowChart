@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 
 import {
   Plus,
@@ -18,9 +18,11 @@ import {
   RefreshCw,
   ChevronDown,
   ChevronUp,
+  Trash2,
+  Loader2,
 } from "lucide-react";
 
-/* No demo data — columns loaded dynamically */
+/* Column type definitions */
 const STREAM_TYPES = [
   { type: "home_feed", label: "Home Feed", icon: Home },
   { type: "mentions", label: "Menciones", icon: AtSign },
@@ -50,17 +52,13 @@ interface StreamPost {
   image?: string;
 }
 
-const generatePosts = (type: string, platform: string): StreamPost[] => {
-  /* Posts are loaded from the API when Meta is connected */
-  return [];
-};
-
 /* ── Board interface ────────────────────────────────────── */
 interface BoardColumn {
   id: string;
   type: string;
   platform: string;
   query?: string;
+  position?: number;
 }
 
 interface Board {
@@ -69,20 +67,48 @@ interface Board {
   columns: BoardColumn[];
 }
 
-const DEFAULT_BOARDS: Board[] = [];
-
 /* ═══════════════════════════════════════════════════════
    STREAMS DASHBOARD
    ═══════════════════════════════════════════════════════ */
 export function StreamsDashboard() {
-  const [boards, setBoards] = useState<Board[]>(DEFAULT_BOARDS);
-  const [activeBoardId, setActiveBoardId] = useState("1");
+  const [boards, setBoards] = useState<Board[]>([]);
+  const [activeBoardId, setActiveBoardId] = useState("");
   const [addingColumn, setAddingColumn] = useState(false);
   const [newColType, setNewColType] = useState("home_feed");
   const [newColPlatform, setNewColPlatform] = useState("facebook");
   const [newColQuery, setNewColQuery] = useState("");
+  const [loadingBoards, setLoadingBoards] = useState(true);
+
+  // Load boards from DB
+  useEffect(() => {
+    fetch("/api/streams/boards")
+      .then((r) => r.json())
+      .then((data) => {
+        const b = data.boards || [];
+        setBoards(b);
+        if (b[0]) setActiveBoardId(b[0].id);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingBoards(false));
+  }, []);
 
   const activeBoard = boards.find((b) => b.id === activeBoardId) || boards[0];
+
+  /* ── Persist columns to DB ── */
+  const saveColumns = useCallback(async (boardId: string, columns: BoardColumn[]) => {
+    await fetch(`/api/streams/boards/${boardId}/columns`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        columns: columns.map((c, i) => ({
+          type: c.type,
+          platform: c.platform,
+          query: c.query || null,
+          position: i,
+        })),
+      }),
+    }).catch(() => {});
+  }, []);
 
   const addColumn = () => {
     if (!activeBoard) return;
@@ -92,18 +118,61 @@ export function StreamsDashboard() {
       platform: newColPlatform,
       query: newColQuery || undefined,
     };
+    const updatedCols = [...activeBoard.columns, newCol];
     setBoards(boards.map((b) =>
-      b.id === activeBoardId ? { ...b, columns: [...b.columns, newCol] } : b
+      b.id === activeBoardId ? { ...b, columns: updatedCols } : b
     ));
     setAddingColumn(false);
     setNewColQuery("");
+    saveColumns(activeBoardId, updatedCols);
   };
 
   const removeColumn = (colId: string) => {
+    if (!activeBoard) return;
+    const updatedCols = activeBoard.columns.filter((c) => c.id !== colId);
     setBoards(boards.map((b) =>
-      b.id === activeBoardId ? { ...b, columns: b.columns.filter((c) => c.id !== colId) } : b
+      b.id === activeBoardId ? { ...b, columns: updatedCols } : b
     ));
+    saveColumns(activeBoardId, updatedCols);
   };
+
+  /* ── Board CRUD ── */
+  const createBoard = async () => {
+    const name = prompt("Nombre del board:");
+    if (!name?.trim()) return;
+    try {
+      const res = await fetch("/api/streams/boards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim() }),
+      });
+      const data = await res.json();
+      if (data.board) {
+        setBoards((prev) => [...prev, { ...data.board, columns: data.board.columns || [] }]);
+        setActiveBoardId(data.board.id);
+      }
+    } catch {}
+  };
+
+  const deleteBoard = async (boardId: string) => {
+    if (boards.length <= 1) return;
+    if (!confirm("¿Eliminar este board?")) return;
+    await fetch(`/api/streams/boards/${boardId}`, { method: "DELETE" }).catch(() => {});
+    const remaining = boards.filter((b) => b.id !== boardId);
+    setBoards(remaining);
+    if (activeBoardId === boardId) {
+      setActiveBoardId(remaining[0]?.id || "");
+    }
+  };
+
+  if (loadingBoards) {
+    return (
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 20px", gap: 12 }}>
+        <Loader2 style={{ width: 24, height: 24, color: "#22d3ee", animation: "spin 1s linear infinite" }} />
+        <p style={{ fontSize: 13, color: "#64748b" }}>Cargando boards...</p>
+      </div>
+    );
+  }
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 40 }}>
@@ -112,18 +181,41 @@ export function StreamsDashboard() {
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <div className="flex space-x-1 glass-panel p-1">
           {boards.map((board) => (
-            <button
-              key={board.id}
-              onClick={() => setActiveBoardId(board.id)}
-              className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                activeBoardId === board.id
-                  ? "bg-white/10 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-              }`}
-            >
-              {board.name}
-            </button>
+            <div key={board.id} style={{ display: "flex", alignItems: "center", position: "relative" }}>
+              <button
+                onClick={() => setActiveBoardId(board.id)}
+                className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
+                  activeBoardId === board.id
+                    ? "bg-white/10 text-white shadow-sm"
+                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
+                }`}
+              >
+                {board.name}
+              </button>
+              {boards.length > 1 && activeBoardId === board.id && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteBoard(board.id); }}
+                  style={{
+                    position: "absolute", top: -4, right: -4, width: 16, height: 16,
+                    borderRadius: "50%", background: "rgba(226,68,92,0.3)", border: "none",
+                    color: "#e2445c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 10,
+                  }}
+                  title="Eliminar board"
+                >
+                  <X style={{ width: 8, height: 8 }} />
+                </button>
+              )}
+            </div>
           ))}
+          {/* Add board button */}
+          <button
+            onClick={createBoard}
+            className="px-3 py-2 text-sm font-medium rounded-xl text-slate-500 hover:text-cyan-400 hover:bg-white/5 transition-all duration-200"
+            title="Nuevo board"
+          >
+            <Plus style={{ width: 14, height: 14 }} />
+          </button>
         </div>
 
         <button
@@ -200,6 +292,17 @@ export function StreamsDashboard() {
         </div>
       )}
 
+      {/* Empty state for no columns */}
+      {activeBoard && activeBoard.columns.length === 0 && (
+        <div className="glass-panel" style={{ padding: "48px 20px", textAlign: "center" }}>
+          <Settings style={{ width: 32, height: 32, color: "#334155", margin: "0 auto 12px" }} />
+          <p style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.6)", margin: 0 }}>Board vacío</p>
+          <p style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
+            Agrega columnas para monitorear tu feed, menciones y publicaciones en tiempo real.
+          </p>
+        </div>
+      )}
+
       {/* Columns grid */}
       <div style={{
         display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8,
@@ -213,44 +316,75 @@ export function StreamsDashboard() {
   );
 }
 
-/* ── Stream Column with real data fetching ──────────────── */
+/* ── Stream Column with real data fetching + auto-refresh ── */
 const INITIAL_VISIBLE = 10;
+const REFRESH_INTERVAL = 60_000; // 60s
 
 function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: string) => void }) {
   const streamType = STREAM_TYPES.find((t) => t.type === col.type);
   const Icon = streamType?.icon || Home;
   const platColor = platformColors[col.platform] || "#64748b";
-  const [posts, setPosts] = useState<StreamPost[]>(generatePosts(col.type, col.platform));
+  const [posts, setPosts] = useState<StreamPost[]>([]);
   const [isReal, setIsReal] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const [showAll, setShowAll] = useState(false);
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [secondsAgo, setSecondsAgo] = useState(0);
 
-  useEffect(() => {
-    // Only fetch for feed types (home_feed, mentions, published)
-    if (["home_feed", "mentions", "published"].includes(col.type)) {
-      fetch(`/api/streams/feed?type=${col.type}&platform=${col.platform}`)
-        .then(r => r.ok ? r.json() : null)
-        .then(data => {
-          if (data?.posts?.length) {
-            const mapped: StreamPost[] = data.posts.map((p: any) => ({
-              id: p.id,
-              author: p.author || "Usuario",
-              handle: p.handle || "",
-              content: p.content || "",
-              time: relativeTime(p.time),
-              likes: p.likes || 0,
-              comments: p.comments || 0,
-              shares: p.shares || 0,
-              platform: p.platform || col.platform,
-              image: p.image,
-            }));
-            setPosts(mapped);
-            setIsReal(true);
-          }
-        })
-        .catch(() => {});
+  // Fetch data
+  const fetchData = useCallback(() => {
+    if (!["home_feed", "mentions", "published"].includes(col.type)) {
+      setLoading(false);
+      return;
     }
+    fetch(`/api/streams/feed?type=${col.type}&platform=${col.platform}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
+        if (data?.posts?.length) {
+          const mapped: StreamPost[] = data.posts.map((p: any) => ({
+            id: p.id,
+            author: p.author || "Usuario",
+            handle: p.handle || "",
+            content: p.content || "",
+            time: relativeTime(p.time),
+            likes: p.likes || 0,
+            comments: p.comments || 0,
+            shares: p.shares || 0,
+            platform: p.platform || col.platform,
+            image: p.image,
+          }));
+          setPosts(mapped);
+          setIsReal(true);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        setLoading(false);
+        setLastRefresh(Date.now());
+      });
   }, [col.type, col.platform]);
+
+  // Initial fetch
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Auto-refresh every 60s
+  useEffect(() => {
+    const interval = setInterval(() => {
+      fetchData();
+    }, REFRESH_INTERVAL);
+    return () => clearInterval(interval);
+  }, [fetchData]);
+
+  // Seconds-ago counter
+  useEffect(() => {
+    const tick = setInterval(() => {
+      setSecondsAgo(Math.floor((Date.now() - lastRefresh) / 1000));
+    }, 5000);
+    return () => clearInterval(tick);
+  }, [lastRefresh]);
 
   const visiblePosts = showAll ? posts : posts.slice(0, INITIAL_VISIBLE);
   const hasMore = posts.length > INITIAL_VISIBLE;
@@ -302,6 +436,22 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
       {!collapsed && (
         <>
           <div style={{ flex: 1, overflowY: "auto", padding: "4px 0" }}>
+            {loading && (
+              <div style={{ display: "flex", justifyContent: "center", padding: 24 }}>
+                <Loader2 style={{ width: 16, height: 16, color: platColor, animation: "spin 1s linear infinite" }} />
+              </div>
+            )}
+
+            {!loading && posts.length === 0 && (
+              <div style={{ padding: "32px 16px", textAlign: "center" }}>
+                <Icon style={{ width: 24, height: 24, color: platColor, opacity: 0.3, margin: "0 auto 8px" }} />
+                <p style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}>
+                  Sin contenido aún.{"\n"}
+                  Conecta tu cuenta Meta en Integraciones.
+                </p>
+              </div>
+            )}
+
             {visiblePosts.map((post) => (
               <div
                 key={post.id}
@@ -384,8 +534,16 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
             padding: 8, borderTop: "1px solid rgba(255,255,255,0.09)",
             fontSize: 10, color: "#475569",
           }}>
-            <RefreshCw style={{ width: 10, height: 10 }} />
-            {isReal ? "Datos en vivo" : "Sin datos — conecta Meta"}
+            <button
+              onClick={(e) => { e.stopPropagation(); fetchData(); }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 0, display: "flex" }}
+              title="Refrescar ahora"
+            >
+              <RefreshCw style={{ width: 10, height: 10 }} />
+            </button>
+            {isReal
+              ? `Actualizado hace ${secondsAgo < 5 ? "un momento" : `${secondsAgo}s`}`
+              : "Sin datos — conecta Meta"}
           </div>
         </>
       )}

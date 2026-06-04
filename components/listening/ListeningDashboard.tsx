@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import {
   Search,
@@ -15,9 +15,11 @@ import {
   Plus,
   X,
   AlertTriangle,
+  Loader2,
+  ExternalLink,
+  Heart,
+  Eye,
 } from "lucide-react";
-
-/* No demo data — real data loaded from API */
 
 /* ── Sentiment helpers ─────────────────────────────────── */
 const sentimentConfig = {
@@ -52,12 +54,34 @@ export function ListeningDashboard() {
   const [trackedKeywords, setTrackedKeywords] = useState<any[]>([]);
   const [newKeyword, setNewKeyword] = useState("");
   const [mentions, setMentions] = useState<any[]>([]);
+  const [loadingKw, setLoadingKw] = useState(true);
+  const [addingKw, setAddingKw] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+
+  // Hashtag monitoring state
+  const [hashtagPosts, setHashtagPosts] = useState<Record<string, any[]>>({});
+  const [loadingHashtag, setLoadingHashtag] = useState<string | null>(null);
+
+  // Show toast for 3 seconds
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 3000);
+  }, []);
+
+  // Fetch tracked keywords from DB
+  useEffect(() => {
+    fetch("/api/listening/keywords")
+      .then((r) => r.json())
+      .then((data) => setTrackedKeywords(data.keywords || []))
+      .catch(() => {})
+      .finally(() => setLoadingKw(false));
+  }, []);
 
   // Fetch real mentions from API
   useEffect(() => {
     fetch("/api/listening/mentions")
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => {
         if (data?.mentions?.length) {
           const mapped = data.mentions.map((m: any) => ({
             id: m.id,
@@ -69,11 +93,49 @@ export function ListeningDashboard() {
             avatar: null,
           }));
           setMentions(mapped);
-
         }
       })
       .catch(() => {});
   }, []);
+
+  /* ── Keyword CRUD ── */
+  const addKeyword = async () => {
+    const q = newKeyword.trim();
+    if (!q || addingKw) return;
+    const type = q.startsWith("#") ? "hashtag" : q.startsWith("@") ? "competitor" : "keyword";
+    setAddingKw(true);
+    try {
+      const res = await fetch("/api/listening/keywords", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q, type }),
+      });
+      const data = await res.json();
+      if (data.keyword) {
+        setTrackedKeywords((prev) => [...prev, data.keyword]);
+        setNewKeyword("");
+      }
+    } catch {}
+    setAddingKw(false);
+  };
+
+  const removeKeyword = async (id: string) => {
+    setTrackedKeywords((prev) => prev.filter((k) => k.id !== id));
+    await fetch(`/api/listening/keywords/${id}`, { method: "DELETE" }).catch(() => {});
+  };
+
+  /* ── Hashtag fetch ── */
+  const fetchHashtagPosts = async (hashtag: string) => {
+    const q = hashtag.replace(/^#/, "");
+    setLoadingHashtag(q);
+    try {
+      const res = await fetch(`/api/listening/hashtags?q=${encodeURIComponent(q)}`);
+      const data = await res.json();
+      setHashtagPosts((prev) => ({ ...prev, [q]: data.posts || [] }));
+      if (data.error) showToast(data.error);
+    } catch {}
+    setLoadingHashtag(null);
+  };
 
   const tabs = [
     { key: "search", label: "Quick Search", icon: Search },
@@ -92,12 +154,24 @@ export function ListeningDashboard() {
     negative: mentions.filter((m) => m.sentiment === "negative").length,
     neutral: mentions.filter((m) => m.sentiment === "neutral").length,
   };
-  const totalMentions = mentions.length;
+  const totalMentions = mentions.length || 1; // avoid /0
+
+  // Hashtag keywords
+  const hashtagKeywords = trackedKeywords.filter((k) => k.type === "hashtag");
 
   return (
     <div className="space-y-4" style={{ paddingBottom: 40 }}>
-
-
+      {/* Toast */}
+      {toast && (
+        <div style={{
+          position: "fixed", top: 20, right: 20, zIndex: 9999, padding: "10px 18px",
+          borderRadius: 8, background: "rgba(0,200,117,0.15)", border: "1px solid rgba(0,200,117,0.3)",
+          color: "#00c875", fontSize: 13, fontWeight: 500, boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
+          animation: "page-fade-in 0.2s ease-out",
+        }}>
+          {toast}
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex space-x-1 glass-panel p-1 w-fit">
@@ -151,40 +225,46 @@ export function ListeningDashboard() {
           {/* Tracked Keywords */}
           <div className="glass-panel p-4">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 600, color: "white" }}>Keywords Monitoreadas</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: "white" }}>
+                Keywords Monitoreadas
+                {loadingKw && <Loader2 style={{ width: 12, height: 12, display: "inline", marginLeft: 8, animation: "spin 1s linear infinite", color: "#64748b" }} />}
+              </h3>
               <div style={{ display: "flex", gap: 8 }}>
                 <input
                   value={newKeyword}
                   onChange={(e) => setNewKeyword(e.target.value)}
-                  placeholder="Agregar keyword..."
+                  onKeyDown={(e) => e.key === "Enter" && addKeyword()}
+                  placeholder="#hashtag, keyword o @competidor"
                   style={{
                     padding: "6px 10px", borderRadius: 6, background: "rgba(255,255,255,0.1)",
                     border: "1px solid rgba(255,255,255,0.08)", color: "white", fontSize: 12, outline: "none",
+                    width: 220,
                   }}
                 />
                 <button
-                  onClick={() => {
-                    if (newKeyword.trim()) {
-                      setTrackedKeywords([...trackedKeywords, {
-                        id: Date.now().toString(),
-                        query: newKeyword.trim(),
-                        type: newKeyword.startsWith("#") ? "hashtag" : "keyword",
-                        mentions: 0,
-                        sentiment: 50,
-                      }]);
-                      setNewKeyword("");
-                    }
-                  }}
+                  onClick={addKeyword}
+                  disabled={addingKw}
                   style={{
                     padding: "6px 12px", borderRadius: 6, background: "rgba(251,146,60,0.15)",
                     border: "1px solid rgba(251,146,60,0.3)", color: "#fb923c", fontSize: 12,
-                    cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+                    cursor: addingKw ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 4,
+                    opacity: addingKw ? 0.6 : 1,
                   }}
                 >
-                  <Plus style={{ width: 12, height: 12 }} /> Agregar
+                  {addingKw ? <Loader2 style={{ width: 12, height: 12, animation: "spin 1s linear infinite" }} /> : <Plus style={{ width: 12, height: 12 }} />}
+                  Agregar
                 </button>
               </div>
             </div>
+
+            {trackedKeywords.length === 0 && !loadingKw && (
+              <div style={{ padding: "24px 16px", textAlign: "center" }}>
+                <Hash style={{ width: 24, height: 24, color: "#334155", margin: "0 auto 8px" }} />
+                <p style={{ fontSize: 12, color: "#64748b" }}>
+                  Agrega keywords, #hashtags o @competidores para monitorear
+                </p>
+              </div>
+            )}
 
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
               {trackedKeywords.map((kw) => (
@@ -193,7 +273,7 @@ export function ListeningDashboard() {
                   border: "1px solid rgba(255,255,255,0.06)", position: "relative",
                 }}>
                   <button
-                    onClick={() => setTrackedKeywords(trackedKeywords.filter((k) => k.id !== kw.id))}
+                    onClick={() => removeKeyword(kw.id)}
                     style={{
                       position: "absolute", top: 8, right: 8, background: "none", border: "none",
                       color: "#64748b", cursor: "pointer", padding: 2,
@@ -211,11 +291,9 @@ export function ListeningDashboard() {
                     )}
                     <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{kw.query}</span>
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "#94a3b8" }}>
-                    <span>{kw.mentions.toLocaleString()} menciones</span>
-                    <span style={{ color: kw.sentiment > 60 ? "#00c875" : kw.sentiment < 40 ? "#e2445c" : "#94a3b8" }}>
-                      {kw.sentiment}% positivo
-                    </span>
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#64748b" }}>
+                    <span style={{ textTransform: "capitalize" }}>{kw.type}</span>
+                    <span>{new Date(kw.createdAt).toLocaleDateString("es-MX", { day: "numeric", month: "short" })}</span>
                   </div>
                 </div>
               ))}
@@ -274,7 +352,7 @@ export function ListeningDashboard() {
               const config = sentimentConfig[key];
               const Icon = config.icon;
               const count = sentimentCounts[key];
-              const pct = Math.round((count / totalMentions) * 100);
+              const pct = mentions.length > 0 ? Math.round((count / mentions.length) * 100) : 0;
               return (
                 <div key={key} className="glass-panel" style={{ padding: 20, textAlign: "center" }}>
                   <Icon style={{ width: 28, height: 28, color: config.color, margin: "0 auto 8px" }} />
@@ -288,20 +366,22 @@ export function ListeningDashboard() {
           </div>
 
           {/* Sentiment bar */}
-          <div className="glass-panel p-4">
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 12 }}>Distribución de Sentimiento</h3>
-            <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 32 }}>
-              <div style={{ width: `${(sentimentCounts.positive / totalMentions) * 100}%`, background: "#00c875", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "white", fontWeight: 600 }}>
-                {Math.round((sentimentCounts.positive / totalMentions) * 100)}%
-              </div>
-              <div style={{ width: `${(sentimentCounts.neutral / totalMentions) * 100}%`, background: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "white", fontWeight: 600 }}>
-                {Math.round((sentimentCounts.neutral / totalMentions) * 100)}%
-              </div>
-              <div style={{ width: `${(sentimentCounts.negative / totalMentions) * 100}%`, background: "#e2445c", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "white", fontWeight: 600 }}>
-                {Math.round((sentimentCounts.negative / totalMentions) * 100)}%
+          {mentions.length > 0 && (
+            <div className="glass-panel p-4">
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 12 }}>Distribución de Sentimiento</h3>
+              <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 32 }}>
+                <div style={{ width: `${(sentimentCounts.positive / mentions.length) * 100}%`, background: "#00c875", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "white", fontWeight: 600 }}>
+                  {Math.round((sentimentCounts.positive / mentions.length) * 100)}%
+                </div>
+                <div style={{ width: `${(sentimentCounts.neutral / mentions.length) * 100}%`, background: "#64748b", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "white", fontWeight: 600 }}>
+                  {Math.round((sentimentCounts.neutral / mentions.length) * 100)}%
+                </div>
+                <div style={{ width: `${(sentimentCounts.negative / mentions.length) * 100}%`, background: "#e2445c", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "white", fontWeight: 600 }}>
+                  {Math.round((sentimentCounts.negative / mentions.length) * 100)}%
+                </div>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Mentions by sentiment */}
           <div className="glass-panel p-4">
@@ -318,41 +398,140 @@ export function ListeningDashboard() {
       {/* ── Tab: Trends ────────────────────────────────── */}
       {activeTab === "trends" && (
         <div className="space-y-4">
+          {/* Monitored Hashtags */}
           <div className="glass-panel p-4">
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 16 }}>Tendencias Emergentes</h3>
-            <div style={{
-              display: "flex", flexDirection: "column", alignItems: "center",
-              justifyContent: "center", padding: 40, gap: 10,
-            }}>
-              <TrendingUp style={{ width: 28, height: 28, color: "#334155" }} />
-              <p style={{ fontSize: 12, color: "#64748b", textAlign: "center" }}>
-                Las tendencias aparecerán cuando se conecten datos de monitoreo social
-              </p>
-            </div>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 16 }}>
+              <Hash style={{ width: 14, height: 14, display: "inline", marginRight: 6, color: "#fb923c" }} />
+              Hashtags Monitoreados
+            </h3>
+
+            {hashtagKeywords.length === 0 ? (
+              <div style={{ padding: "24px 16px", textAlign: "center" }}>
+                <Hash style={{ width: 28, height: 28, color: "#334155", margin: "0 auto 8px" }} />
+                <p style={{ fontSize: 12, color: "#64748b" }}>
+                  Agrega un hashtag en <button onClick={() => setActiveTab("search")} style={{ background: "none", border: "none", color: "#fb923c", cursor: "pointer", fontWeight: 600 }}>Quick Search</button> para monitorear tendencias
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {hashtagKeywords.map((kw) => {
+                  const q = kw.query.replace(/^#/, "");
+                  const posts = hashtagPosts[q];
+                  const isLoading = loadingHashtag === q;
+                  return (
+                    <div key={kw.id}>
+                      {/* Hashtag header */}
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: "#fb923c" }}>{kw.query}</span>
+                        <button
+                          onClick={() => fetchHashtagPosts(kw.query)}
+                          disabled={isLoading}
+                          style={{
+                            padding: "4px 12px", borderRadius: 6, fontSize: 11, fontWeight: 500,
+                            background: "rgba(251,146,60,0.1)", border: "1px solid rgba(251,146,60,0.2)",
+                            color: "#fb923c", cursor: isLoading ? "not-allowed" : "pointer",
+                            display: "flex", alignItems: "center", gap: 4,
+                          }}
+                        >
+                          {isLoading ? <Loader2 style={{ width: 11, height: 11, animation: "spin 1s linear infinite" }} /> : <Eye style={{ width: 11, height: 11 }} />}
+                          {posts ? "Actualizar" : "Ver posts"}
+                        </button>
+                      </div>
+
+                      {/* Hashtag posts grid */}
+                      {posts && posts.length > 0 && (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8 }}>
+                          {posts.slice(0, 8).map((p: any) => (
+                            <div key={p.id} style={{
+                              padding: 10, borderRadius: 8, background: "rgba(255,255,255,0.03)",
+                              border: "1px solid rgba(255,255,255,0.06)", fontSize: 11,
+                            }}>
+                              <p style={{ color: "#cbd5e1", lineHeight: 1.4, marginBottom: 6, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                                {p.caption || "(sin texto)"}
+                              </p>
+                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#64748b", fontSize: 10 }}>
+                                <div style={{ display: "flex", gap: 8 }}>
+                                  <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                    <Heart style={{ width: 10, height: 10 }} /> {p.likes}
+                                  </span>
+                                  <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
+                                    <MessageCircle style={{ width: 10, height: 10 }} /> {p.comments}
+                                  </span>
+                                </div>
+                                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                                  <span>{relativeTime(p.timestamp)}</span>
+                                  {p.permalink && (
+                                    <a href={p.permalink} target="_blank" rel="noopener noreferrer" style={{ color: "#E4405F" }}>
+                                      <ExternalLink style={{ width: 10, height: 10 }} />
+                                    </a>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {posts && posts.length === 0 && !isLoading && (
+                        <p style={{ fontSize: 11, color: "#475569", padding: "8px 0" }}>Sin posts recientes para este hashtag</p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
-          {/* Word Cloud placeholder */}
+          {/* Word Cloud from mention content */}
           <div className="glass-panel p-6" style={{ textAlign: "center" }}>
             <h3 style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 16 }}>Nube de Palabras</h3>
             <div style={{
               display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 16px",
               padding: 20,
             }}>
-              {["marketing", "digital", "social media", "contenido", "estrategia", "engagement", "redes", "publicidad", "marca", "audiencia", "crecimiento", "analytics", "influencer", "viral", "tendencia", "orgánico"].map((word, i) => {
-                const s1 = ((Math.sin(i * 127.1 + 311.7) * 43758.5453) % 1 + 1) % 1;
-                const s2 = ((Math.sin(i * 269.5 + 183.3) * 43758.5453) % 1 + 1) % 1;
-                const s3 = ((Math.sin(i * 419.2 + 71.9) * 43758.5453) % 1 + 1) % 1;
-                return (
-                <span key={word} style={{
-                  fontSize: 12 + s1 * 20,
-                  fontWeight: s2 > 0.5 ? 700 : 400,
-                  color: `hsl(${25 + i * 8}, 80%, ${55 + s3 * 20}%)`,
-                  opacity: 0.6 + s1 * 0.4,
-                }}>
-                  {word}
-                </span>
-                );
-              })}
+              {(() => {
+                // Extract words from real mentions
+                const stopWords = new Set(["de","la","el","en","y","a","los","las","del","un","una","por","con","para","que","es","se"]);
+                const words: Record<string, number> = {};
+                mentions.forEach((m) => {
+                  m.content.toLowerCase().split(/\s+/).forEach((w: string) => {
+                    const clean = w.replace(/[^a-záéíóúñü#@]/g, "");
+                    if (clean.length > 2 && !stopWords.has(clean)) {
+                      words[clean] = (words[clean] || 0) + 1;
+                    }
+                  });
+                });
+                const sorted = Object.entries(words).sort((a, b) => b[1] - a[1]).slice(0, 20);
+                const maxCount = sorted[0]?.[1] || 1;
+
+                if (sorted.length === 0) {
+                  // Fallback static words
+                  return ["marketing", "digital", "social media", "contenido", "estrategia", "engagement", "redes", "publicidad", "marca", "audiencia"].map((word, i) => {
+                    const s1 = ((Math.sin(i * 127.1 + 311.7) * 43758.5453) % 1 + 1) % 1;
+                    return (
+                      <span key={word} style={{
+                        fontSize: 12 + s1 * 16, fontWeight: s1 > 0.5 ? 700 : 400,
+                        color: `hsl(25, 80%, ${55 + s1 * 20}%)`, opacity: 0.5 + s1 * 0.5,
+                      }}>
+                        {word}
+                      </span>
+                    );
+                  });
+                }
+
+                return sorted.map(([word, count], i) => {
+                  const size = 12 + (count / maxCount) * 20;
+                  const hue = 25 + i * 12;
+                  return (
+                    <span key={word} style={{
+                      fontSize: size, fontWeight: count > maxCount * 0.5 ? 700 : 400,
+                      color: `hsl(${hue}, 80%, ${55 + (count / maxCount) * 15}%)`,
+                      opacity: 0.6 + (count / maxCount) * 0.4,
+                    }}>
+                      {word}
+                    </span>
+                  );
+                });
+              })()}
             </div>
           </div>
 
@@ -363,11 +542,17 @@ export function ListeningDashboard() {
                 <h3 style={{ fontSize: 14, fontWeight: 600, color: "white" }}>Alertas de Picos</h3>
                 <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 2 }}>Recibe notificaciones cuando haya un pico inusual de menciones</p>
               </div>
-              <button style={{
-                padding: "8px 16px", borderRadius: 8, background: "rgba(251,146,60,0.15)",
-                border: "1px solid rgba(251,146,60,0.3)", color: "#fb923c", fontSize: 12,
-                cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
-              }}>
+              <button
+                onClick={() => {
+                  localStorage.setItem("sodare_spike_alerts", "true");
+                  showToast("✅ Alertas configuradas. Recibirás una notificación cuando haya un pico de menciones.");
+                }}
+                style={{
+                  padding: "8px 16px", borderRadius: 8, background: "rgba(251,146,60,0.15)",
+                  border: "1px solid rgba(251,146,60,0.3)", color: "#fb923c", fontSize: 12,
+                  cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
                 <Bell style={{ width: 14, height: 14 }} /> Configurar Alertas
               </button>
             </div>
@@ -380,7 +565,7 @@ export function ListeningDashboard() {
 
 /* ── Mention Card ──────────────────────────────────────── */
 function MentionCard({ mention }: { mention: any }) {
-  const config = sentimentConfig[mention.sentiment as keyof typeof sentimentConfig];
+  const config = sentimentConfig[mention.sentiment as keyof typeof sentimentConfig] || sentimentConfig.neutral;
   const SentIcon = config.icon;
   const platformColor = platformColors[mention.platform] || "#64748b";
 

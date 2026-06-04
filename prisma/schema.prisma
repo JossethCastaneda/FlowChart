@@ -88,7 +88,8 @@ model Workspace {
   posts        ScheduledPost[]
   integrations Integration[]
   conversations InboxConversation[]
-  streamBoards  StreamBoard[]
+  streamBoards    StreamBoard[]
+  trackedKeywords TrackedKeyword[]
 }
 
 model WorkspaceMember {
@@ -452,6 +453,27 @@ model BestTimeCache {
   generatedAt DateTime
 
   @@index([workspaceId])
+}
+
+model TrackedKeyword {
+  id          String   @id @default(cuid())
+  workspaceId String
+  query       String
+  type        String   // "keyword" | "hashtag" | "competitor"
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  @@unique([workspaceId, query])
+  @@index([workspaceId])
+}
+
+model HashtagCache {
+  id          String   @id @default(cuid())
+  workspaceId String
+  hashtag     String
+  igHashtagId String
+  expiresAt   DateTime
+  @@unique([workspaceId, hashtag])
 }
 
 // ------------------------------------------------------
