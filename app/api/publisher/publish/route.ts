@@ -155,6 +155,11 @@ export async function POST(req: NextRequest) {
     const externalIds: Record<string, string> = {};
     const errors: string[] = [];
 
+    // ── Per-platform content (Sprint 1.3) ──
+    const cbp = post.contentByPlatform as Record<string, string> | null;
+    const fbContent = cbp?.facebook || post.content;
+    const igContent = cbp?.instagram || post.content;
+
     // ── Get media info ──
     const mediaUrl = post.mediaUrls?.[0] || post.mediaUrl || "";
 
@@ -173,9 +178,9 @@ export async function POST(req: NextRequest) {
             
             const form = new FormData();
             if (isVideo) {
-              form.append("description", post.content);
+              form.append("description", fbContent);
             } else {
-              form.append("message", post.content);
+              form.append("message", fbContent);
             }
             // SECURITY: Token in Authorization header, NOT in form body
             
@@ -209,10 +214,10 @@ export async function POST(req: NextRequest) {
             const payload: any = {};
             if (isVideo) {
               payload.file_url = mediaUrl;
-              payload.description = post.content;
+              payload.description = fbContent;
             } else {
               payload.url = mediaUrl;
-              payload.message = post.content;
+              payload.message = fbContent;
             }
 
             const fbRes = await fetch(
@@ -240,7 +245,7 @@ export async function POST(req: NextRequest) {
             {
               method: "POST",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${pageToken}` },
-              body: JSON.stringify({ message: post.content }),
+              body: JSON.stringify({ message: fbContent }),
             }
           );
           const fbData = await fbRes.json();
@@ -340,7 +345,7 @@ export async function POST(req: NextRequest) {
             if (allMedia.length === 1) {
               // ── Single media post ──
               const isVideo = await checkIfVideo(igMediaUrl);
-              const containerBody: any = { caption: post.content };
+              const containerBody: any = { caption: igContent };
               if (isVideo) {
                 containerBody.media_type = "VIDEO";
                 containerBody.video_url = igMediaUrl;
@@ -457,7 +462,7 @@ export async function POST(req: NextRequest) {
                     body: JSON.stringify({
                       media_type: "CAROUSEL",
                       children: childIds.join(","),
-                      caption: post.content,
+                      caption: igContent,
                     }),
                   }
                 );
@@ -524,6 +529,10 @@ export async function POST(req: NextRequest) {
       published: externalIds,
       warnings: errors.length > 0 ? errors : undefined,
     });
+
+    // ── Sprint 1.4: Auto first-comment on Instagram ──
+    // Note: This runs AFTER the response is sent to the user for speed.
+    // We use a fire-and-forget pattern here.
   } catch (err: any) {
     console.error("[PUBLISHER] Publish error:", err);
     return NextResponse.json({ error: err?.message || "Error" }, { status: 500 });

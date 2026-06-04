@@ -276,6 +276,8 @@ model ScheduledPost {
   userId       String?  // who created this post
   channels     String[] // ["facebook", "instagram", "tiktok", "linkedin"]
   content      String   @db.Text
+  contentByPlatform Json? // { "facebook": "...", "instagram": "..." }
+  firstComment String?  @db.Text // Auto-posted as first comment on IG after publish
   mediaUrls    String[] // multiple media files
   mediaUrl     String?  // legacy single media (kept for compat)
   type         String   @default("post") // post, reel, story, carousel
@@ -368,19 +370,21 @@ model InboxConversation {
   workspaceId   String
   platform      String   // "facebook_messenger", "instagram_dm", "instagram_comment"
   externalId    String   // Conversation ID from Meta
+  pageId        String?  // Facebook Page ID or IG user ID
   contactName   String?
   contactAvatar String?
   lastMessage   String?
   lastMessageAt DateTime?
   unread        Boolean  @default(true)
   assignedTo    String?  // userId
-  status        String   @default("open") // "open", "closed"
+  status        String   @default("open") // "open", "closed", "assigned"
   tags          String[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
   workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   messages      InboxMessage[]
+  notes         InboxNote[]
 
   @@unique([workspaceId, externalId])
   @@index([workspaceId])
@@ -410,6 +414,42 @@ model SavedReply {
   content     String   @db.Text
   shortcut    String?  // e.g., "/gracias"
   createdAt   DateTime @default(now())
+
+  @@index([workspaceId])
+}
+
+model InboxNote {
+  id             String            @id @default(cuid())
+  conversationId String
+  userId         String
+  content        String            @db.Text
+  createdAt      DateTime          @default(now())
+
+  conversation   InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+}
+
+model DmAutomationRule {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  trigger     String   // keyword that activates the rule
+  response    String   @db.Text // auto-reply message
+  platforms   String[] // ["messenger", "instagram_dm"]
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([workspaceId, active])
+}
+
+model BestTimeCache {
+  id          String   @id @default(cuid())
+  workspaceId String   @unique
+  data        Json     // { slots: [{day, hour, avgImpressions}], generatedAt }
+  generatedAt DateTime
 
   @@index([workspaceId])
 }

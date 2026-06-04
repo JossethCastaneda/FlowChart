@@ -16,11 +16,14 @@ const MODULE_PROVIDER_MAP: Record<string, string> = {
   ads: "meta_ads",
   analytics: "meta_analytics",
   community: "meta_community",
-  // Aliases
-  publisher: "meta_publisher_facebook",  // publisher defaults to FB publisher token
+  // Inbox / Community aliases (all share inbox token with DM permissions)
   inbox: "meta_community",
+  messenger: "meta_community",
+  comments: "meta_community",
   listening: "meta_community",
   streams: "meta_community",
+  // Aliases
+  publisher: "meta_publisher_facebook",  // publisher defaults to FB publisher token
 };
 
 /**
