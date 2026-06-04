@@ -28,7 +28,9 @@ export async function GET(request: NextRequest) {
   const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; tokenExpiresSoon?: boolean; daysUntilExpiry?: number }> = {};
 
   for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community"]) {
-    const integration = integrations.find((i) => i.provider === `meta_${mod}`);
+    // Look for module-specific integration first, then fall back to generic "meta"
+    const integration = integrations.find((i) => i.provider === `meta_${mod}`)
+      || integrations.find((i) => i.provider === "meta");
     const creds = integration?.credentials as any;
 
     // Detect token expiry
