@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "crypto";
 import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
+import { encryptToken } from "@/lib/encryption";
 
 /**
  * GET /api/connect/callback
@@ -128,7 +129,7 @@ export async function GET(request: NextRequest) {
       pages = (pagesData.data || []).map((p: any) => ({
         id: p.id,
         name: p.name,
-        accessToken: p.access_token,
+        accessToken: encryptToken(p.access_token),
         picture: p.picture?.data?.url || null,
         instagramId: p.instagram_business_account?.id || null,
       }));
@@ -164,6 +165,8 @@ export async function GET(request: NextRequest) {
     // 5. Store the token in the Integration table keyed by module
     const provider = `meta_${module}`; // e.g. "meta_social", "meta_analytics"
     const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
+    
+    const encryptedAccessToken = encryptToken(accessToken);
 
     await prisma.integration.upsert({
       where: {
@@ -174,7 +177,7 @@ export async function GET(request: NextRequest) {
       },
       update: {
         credentials: {
-          accessToken,
+          accessToken: encryptedAccessToken,
           pages,
           expiresAt,
           refreshedAt: new Date().toISOString(),
@@ -188,7 +191,7 @@ export async function GET(request: NextRequest) {
         workspaceId: resolvedWorkspaceId,
         provider,
         credentials: {
-          accessToken,
+          accessToken: encryptedAccessToken,
           pages,
           expiresAt,
           refreshedAt: new Date().toISOString(),
@@ -210,7 +213,7 @@ export async function GET(request: NextRequest) {
       },
       update: {
         credentials: {
-          accessToken,
+          accessToken: encryptedAccessToken,
           pages,
           expiresAt,
           refreshedAt: new Date().toISOString(),
@@ -223,7 +226,7 @@ export async function GET(request: NextRequest) {
         workspaceId: resolvedWorkspaceId,
         provider: "meta",
         credentials: {
-          accessToken,
+          accessToken: encryptedAccessToken,
           pages,
           expiresAt,
           refreshedAt: new Date().toISOString(),

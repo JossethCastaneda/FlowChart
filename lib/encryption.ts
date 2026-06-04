@@ -1,0 +1,76 @@
+import crypto from "crypto";
+
+const ALGORITHM = "aes-256-gcm";
+// ENCRYPTION_KEY must be a 32-byte hex string (64 characters)
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || ""; 
+
+/**
+ * Encrypts a plain text string using AES-256-GCM.
+ * Returns a string in the format: "enc:ivHex:authTagHex:encryptedHex"
+ * If ENCRYPTION_KEY is not set or text is empty, returns the original text.
+ */
+export function encryptToken(text: string | null | undefined): string {
+  if (!text) return "";
+  if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 64) {
+    console.warn("[ENCRYPTION] ENCRYPTION_KEY is not set or invalid length (must be 64 hex chars). Storing token as plain text.");
+    return text;
+  }
+  
+  // Skip if already encrypted
+  if (text.startsWith("enc:")) return text;
+
+  try {
+    const key = Buffer.from(ENCRYPTION_KEY, "hex");
+    const iv = crypto.randomBytes(12);
+    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
+    
+    let encrypted = cipher.update(text, "utf8", "hex");
+    encrypted += cipher.final("hex");
+    const authTag = cipher.getAuthTag().toString("hex");
+    
+    return `enc:${iv.toString("hex")}:${authTag}:${encrypted}`;
+  } catch (err) {
+    console.error("[ENCRYPTION] Failed to encrypt token:", err);
+    return text; // Fallback to plain text if encryption fails
+  }
+}
+
+/**
+ * Decrypts a token encrypted with encryptToken().
+ * If the text does not start with "enc:", it's assumed to be plain text and is returned as-is
+ * (this ensures backward compatibility with older unencrypted tokens).
+ */
+export function decryptToken(encryptedText: string | null | undefined): string {
+  if (!encryptedText) return "";
+  
+  // Backward compatibility: if it doesn't look like our encrypted format, return as-is
+  if (!encryptedText.startsWith("enc:")) {
+    return encryptedText;
+  }
+
+  if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 64) {
+    console.error("[ENCRYPTION] Cannot decrypt token because ENCRYPTION_KEY is missing or invalid.");
+    return encryptedText; // Will likely cause auth failures, but we can't do anything else
+  }
+
+  try {
+    const parts = encryptedText.split(":");
+    if (parts.length !== 4) return encryptedText;
+    
+    const [, ivHex, authTagHex, encryptedHex] = parts;
+    const key = Buffer.from(ENCRYPTION_KEY, "hex");
+    const iv = Buffer.from(ivHex, "hex");
+    const authTag = Buffer.from(authTagHex, "hex");
+    
+    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+    decipher.setAuthTag(authTag);
+    
+    let decrypted = decipher.update(encryptedHex, "hex", "utf8");
+    decrypted += decipher.final("utf8");
+    
+    return decrypted;
+  } catch (err) {
+    console.error("[ENCRYPTION] Failed to decrypt token:", err);
+    return encryptedText; // Return encrypted string if decryption fails
+  }
+}

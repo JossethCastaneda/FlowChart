@@ -2,6 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { encryptToken, decryptToken } from "@/lib/encryption";
 
 /**
  * Module-to-provider mapping for config_id-specific tokens.
@@ -54,7 +55,7 @@ export async function getMetaAccessToken(
         });
         if (moduleIntegration?.connected && moduleIntegration.credentials) {
           const creds = moduleIntegration.credentials as any;
-          if (creds.accessToken) return creds.accessToken;
+          if (creds.accessToken) return decryptToken(creds.accessToken);
         }
       }
 
@@ -66,7 +67,7 @@ export async function getMetaAccessToken(
       });
       if (integration?.connected && integration.credentials) {
         const creds = integration.credentials as any;
-        if (creds.accessToken) return creds.accessToken;
+        if (creds.accessToken) return decryptToken(creds.accessToken);
       }
     }
 
@@ -115,6 +116,8 @@ export async function saveMetaTokenToWorkspace(
     const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
 
     // Save token to ALL workspaces where user is owner/admin
+    const encryptedToken = encryptToken(accessToken);
+
     for (const m of memberships) {
       await prisma.integration.upsert({
         where: {
@@ -124,7 +127,7 @@ export async function saveMetaTokenToWorkspace(
           },
         },
         update: {
-          credentials: { accessToken, expiresAt, refreshedAt: new Date().toISOString() },
+          credentials: { accessToken: encryptedToken, expiresAt, refreshedAt: new Date().toISOString() },
           connected: true,
           connectedAt: new Date(),
           connectedBy: userId,
@@ -132,7 +135,7 @@ export async function saveMetaTokenToWorkspace(
         create: {
           workspaceId: m.workspaceId,
           provider: "meta",
-          credentials: { accessToken, expiresAt, refreshedAt: new Date().toISOString() },
+          credentials: { accessToken: encryptedToken, expiresAt, refreshedAt: new Date().toISOString() },
           connected: true,
           connectedAt: new Date(),
           connectedBy: userId,

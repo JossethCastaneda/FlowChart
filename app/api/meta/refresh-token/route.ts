@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { encryptToken, decryptToken } from "@/lib/encryption";
 
 const META_VERSION = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
 
@@ -46,7 +47,7 @@ export async function POST(req: NextRequest) {
     const anyMeta = allIntegrations[0];
     const integration = genericMeta || anyMeta;
     const creds = integration.credentials as any;
-    const currentToken = creds?.accessToken;
+    const currentToken = decryptToken(creds?.accessToken);
 
     if (!currentToken) {
       return NextResponse.json(
@@ -97,7 +98,7 @@ export async function POST(req: NextRequest) {
         data: {
           credentials: {
             ...existingCreds,
-            accessToken: newToken,
+            accessToken: encryptToken(newToken),
             expiresAt: expiresAt.toISOString(),
             refreshedAt,
           },

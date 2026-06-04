@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
     modules[mod] = {
       connected: integration?.connected ?? false,
       connectedAt: integration?.connectedAt?.toISOString() || null,
-      pages: creds?.pages || [],
+      pages: (creds?.pages || []).map(({ accessToken, ...p }: any) => p),
       tokenExpiresSoon,
       daysUntilExpiry,
     };
@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
 
   // Also get pages from generic "meta" integration as fallback
   const genericMeta = integrations.find((i) => i.provider === "meta");
-  const genericPages = (genericMeta?.credentials as any)?.pages || [];
+  const genericPages = ((genericMeta?.credentials as any)?.pages || []).map(({ accessToken, ...p }: any) => p);
   const genericCreds = genericMeta?.credentials as any;
 
   // Check generic token expiry
