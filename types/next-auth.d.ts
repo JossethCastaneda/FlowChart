@@ -5,7 +5,8 @@ declare module "next-auth" {
     user: {
       id: string;
     } & DefaultSession["user"];
-    accessToken?: string;
+    // NOTE: accessToken intentionally NOT exposed in Session.
+    // Use getMetaAccessToken() from lib/server-auth.ts in server routes.
     hasWorkspace?: boolean;
     provider?: string | null;
   }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 
-const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN || "sodare_webhook_verify_2026";
+const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN;
 
 /**
  * GET — Meta Webhook Verification
@@ -9,6 +9,11 @@ const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN || "sodare_webhook_ve
  * We must return hub.challenge as plain text if verify_token matches.
  */
 export async function GET(req: NextRequest) {
+  if (!VERIFY_TOKEN) {
+    console.error("[WEBHOOK] META_WEBHOOK_VERIFY_TOKEN not configured");
+    return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+  }
+
   const { searchParams } = new URL(req.url);
   const mode = searchParams.get("hub.mode");
   const token = searchParams.get("hub.verify_token");
@@ -49,18 +54,28 @@ export async function POST(req: NextRequest) {
     // ── HMAC-SHA256 Signature Validation (Meta Security Requirement) ──────
     const rawBody = await req.text();
     const signature = req.headers.get("x-hub-signature-256");
-    const appSecret = process.env.FACEBOOK_CLIENT_SECRET || "";
+    const appSecret = process.env.FACEBOOK_CLIENT_SECRET;
 
-    if (appSecret && signature) {
-      const { createHmac } = await import("crypto");
-      const expected = "sha256=" + createHmac("sha256", appSecret).update(rawBody).digest("hex");
-      if (signature !== expected) {
-        console.warn("[WEBHOOK] ❌ HMAC signature mismatch — possible spoofed request");
-        return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
-      }
-    } else if (!signature) {
-      // Log warning but don't reject — during initial setup Meta may skip it
-      console.warn("[WEBHOOK] ⚠️ No X-Hub-Signature-256 header — verify Meta app webhook config");
+    // Reject if app secret is not configured
+    if (!appSecret) {
+      console.error("[WEBHOOK] FACEBOOK_CLIENT_SECRET not set");
+      return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
+    }
+
+    // Reject if signature is missing
+    if (!signature) {
+      console.warn("[WEBHOOK] ❌ Missing X-Hub-Signature-256 — rejecting");
+      return NextResponse.json({ error: "Missing signature" }, { status: 403 });
+    }
+
+    // Verify HMAC with timing-safe comparison
+    const { createHmac, timingSafeEqual } = await import("crypto");
+    const expected = "sha256=" + createHmac("sha256", appSecret).update(rawBody).digest("hex");
+    const sigBuf = Buffer.from(signature);
+    const expBuf = Buffer.from(expected);
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
+      console.warn("[WEBHOOK] ❌ HMAC mismatch — possible spoofed request");
+      return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
     }
 
     const body = JSON.parse(rawBody);

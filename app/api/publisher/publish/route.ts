@@ -5,6 +5,7 @@ import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { mapMetaError } from "@/lib/meta-errors";
 
 const META_VERSION = process.env.META_API_VERSION || "v22.0";
 
@@ -50,48 +51,7 @@ async function checkIfVideo(url: string): Promise<boolean> {
   }
 }
 
-/**
- * Interprets Meta/Facebook API errors and returns a user-friendly message.
- */
-function interpretMetaError(error: any): string {
-  const code = error?.code;
-  const subcode = error?.error_subcode;
-  const msg = error?.message || "Error desconocido";
 
-  // Token expired or invalid
-  if (code === 190) {
-    const sub = error?.error_subcode;
-    if (sub === 463 || sub === 467) return "Token de acceso expirado. Ve a Integraciones y reconecta tu cuenta de Meta.";
-    if (sub === 460) return "Contraseña de Facebook cambiada. Reconecta tu cuenta en Integraciones.";
-    return "Token de acceso inválido. Ve a Integraciones y reconecta tu cuenta de Meta.";
-  }
-
-  // App in development mode / token generated in dev mode
-  if (code === 1 && subcode === 2424009) {
-    return "El token de Meta fue generado en modo Desarrollo. Ve a Integraciones, desconecta y vuelve a conectar tu cuenta de Facebook para obtener un token válido.";
-  }
-
-  // Permission missing
-  if (code === 200 || code === 10) {
-    return `Permiso insuficiente en la app de Facebook: ${msg}. Reconecta tu cuenta en Integraciones.`;
-  }
-
-  // Rate limit
-  if (code === 32 || code === 613) {
-    return "Límite de publicaciones de Facebook alcanzado. Espera unos minutos e intenta de nuevo.";
-  }
-
-  // Duplicate post
-  if (code === 506) {
-    return "Facebook detectó contenido duplicado. Cambia el texto e intenta de nuevo.";
-  }
-
-  // Generic with user message from Meta
-  if (error?.error_user_msg) return error.error_user_msg;
-  if (error?.error_user_title) return error.error_user_title;
-
-  return msg;
-}
 
 /**
  * POST /api/publisher/publish
@@ -217,7 +177,7 @@ export async function POST(req: NextRequest) {
             } else {
               form.append("message", post.content);
             }
-            form.append("access_token", pageToken);
+            // SECURITY: Token in Authorization header, NOT in form body
             
             const blob = new Blob([resolved.buffer as any], { type: resolved.contentType });
             form.append("source", blob, resolved.filename);
@@ -227,6 +187,7 @@ export async function POST(req: NextRequest) {
                 `https://${domain}/${META_VERSION}/${pageId}/${endpoint}`,
                 {
                   method: "POST",
+                  headers: { Authorization: `Bearer ${pageToken}` },
                   body: form,
                 }
               );
@@ -267,7 +228,7 @@ export async function POST(req: NextRequest) {
             if (fbRes.ok && fbData.id) {
               externalIds.facebook = fbData.id;
             } else {
-              const fbErr = `Facebook: ${interpretMetaError(fbData?.error)}`;
+              const fbErr = `Facebook: ${mapMetaError(fbData?.error).user_message}`;
               console.error("[PUBLISHER] FB error:", fbErr, JSON.stringify(fbData?.error));
               errors.push(fbErr);
             }
@@ -287,7 +248,7 @@ export async function POST(req: NextRequest) {
           if (fbRes.ok && fbData.id) {
             externalIds.facebook = fbData.id;
           } else {
-            const fbErr = `Facebook: ${interpretMetaError(fbData?.error)}`;
+            const fbErr = `Facebook: ${mapMetaError(fbData?.error).user_message}`;
             console.error("[PUBLISHER] FB feed error:", fbErr, JSON.stringify(fbData?.error));
             errors.push(fbErr);
           }
@@ -318,7 +279,7 @@ export async function POST(req: NextRequest) {
             const form = new FormData();
             form.append("published", "false");
             if (isVideo) form.append("description", "instagram_video_temp");
-            form.append("access_token", pageToken);
+            // SECURITY: Token in Authorization header, NOT in form body
             
             const blob = new Blob([resolved.buffer as any], { type: resolved.contentType });
             form.append("source", blob, resolved.filename);
@@ -328,6 +289,7 @@ export async function POST(req: NextRequest) {
                 `https://${domain}/${META_VERSION}/${pageId}/${endpoint}`,
                 {
                   method: "POST",
+                  headers: { Authorization: `Bearer ${pageToken}` },
                   body: form,
                 }
               );

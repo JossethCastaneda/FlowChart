@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
+import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 
 /**
@@ -7,7 +9,7 @@ import prisma from "@/lib/prisma";
  * 
  * Query params from Facebook:
  *   - code: authorization code
- *   - state: base64url-encoded JSON { module, userId }
+ *   - state: base64url-encoded JSON { payload, sig } — HMAC-signed
  */
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
@@ -26,13 +28,51 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=missing_params`);
   }
 
-  // Decode state
+  // ── SECURITY: Verify active session ──
+  const jwt = await getToken({ req: request as any });
+  if (!jwt?.sub) {
+    return NextResponse.redirect(`${baseUrl}/login`);
+  }
+
+  // ── SECURITY: Verify HMAC signature on state ──
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    console.error("[CONNECT CALLBACK] NEXTAUTH_SECRET not configured");
+    return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=server_error`);
+  }
+
   let module = "unknown";
   let userId = "";
+  let workspaceId = "";
   try {
-    const decoded = JSON.parse(Buffer.from(stateParam, "base64url").toString());
+    const parsed = JSON.parse(Buffer.from(stateParam, "base64url").toString());
+    const { payload, sig } = parsed;
+
+    if (!payload || !sig) {
+      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=invalid_state`);
+    }
+
+    const expected = createHmac("sha256", secret)
+      .update(payload)
+      .digest("hex");
+    const sigBuf = Buffer.from(sig, "hex");
+    const expBuf = Buffer.from(expected, "hex");
+
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
+      console.warn("[CONNECT CALLBACK] ❌ HMAC signature mismatch — possible CSRF attack");
+      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=invalid_state`);
+    }
+
+    const decoded = JSON.parse(payload);
     module = decoded.module;
     userId = decoded.userId;
+    workspaceId = decoded.workspaceId || "";
+
+    // Verify that the userId in the state matches the current JWT session
+    if (userId !== jwt.sub) {
+      console.warn(`[CONNECT CALLBACK] ❌ User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
+      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=user_mismatch`);
+    }
   } catch {
     return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=invalid_state`);
   }
@@ -96,15 +136,29 @@ export async function GET(request: NextRequest) {
       console.warn("[CONNECT CALLBACK] Failed to fetch pages:", e);
     }
 
-    // 4. Find user's workspace
-    const membership = await prisma.workspaceMember.findFirst({
-      where: { userId },
-      orderBy: { workspace: { createdAt: "asc" } },
-      select: { workspaceId: true },
-    });
+    // 4. Verify workspace membership using workspaceId from state
+    let resolvedWorkspaceId = workspaceId;
 
-    if (!membership) {
-      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=no_workspace`);
+    if (resolvedWorkspaceId) {
+      // Verify that the user actually belongs to this workspace
+      const member = await prisma.workspaceMember.findFirst({
+        where: { userId, workspaceId: resolvedWorkspaceId },
+      });
+      if (!member) {
+        console.warn(`[CONNECT CALLBACK] ❌ User ${userId} is not a member of workspace ${resolvedWorkspaceId}`);
+        return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=no_workspace`);
+      }
+    } else {
+      // Fallback: find user's first workspace
+      const membership = await prisma.workspaceMember.findFirst({
+        where: { userId },
+        orderBy: { workspace: { createdAt: "asc" } },
+        select: { workspaceId: true },
+      });
+      if (!membership) {
+        return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=no_workspace`);
+      }
+      resolvedWorkspaceId = membership.workspaceId;
     }
 
     // 5. Store the token in the Integration table keyed by module
@@ -114,7 +168,7 @@ export async function GET(request: NextRequest) {
     await prisma.integration.upsert({
       where: {
         workspaceId_provider: {
-          workspaceId: membership.workspaceId,
+          workspaceId: resolvedWorkspaceId,
           provider,
         },
       },
@@ -131,7 +185,7 @@ export async function GET(request: NextRequest) {
         connectedBy: userId,
       },
       create: {
-        workspaceId: membership.workspaceId,
+        workspaceId: resolvedWorkspaceId,
         provider,
         credentials: {
           accessToken,
@@ -150,7 +204,7 @@ export async function GET(request: NextRequest) {
     await prisma.integration.upsert({
       where: {
         workspaceId_provider: {
-          workspaceId: membership.workspaceId,
+          workspaceId: resolvedWorkspaceId,
           provider: "meta",
         },
       },
@@ -166,7 +220,7 @@ export async function GET(request: NextRequest) {
         connectedBy: userId,
       },
       create: {
-        workspaceId: membership.workspaceId,
+        workspaceId: resolvedWorkspaceId,
         provider: "meta",
         credentials: {
           accessToken,

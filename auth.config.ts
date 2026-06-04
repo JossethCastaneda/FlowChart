@@ -168,9 +168,9 @@ export const authOptions: NextAuthOptions = {
       if (token.sub && session.user) {
         session.user.id = token.sub;
       }
-      if (token.accessToken) {
-        session.accessToken = token.accessToken as string;
-      }
+      // NOTE: accessToken is intentionally NOT included in the session object.
+      // It only exists in the JWT (httpOnly cookie) and in the Integration table.
+      // Server routes use getMetaAccessToken() from lib/server-auth.ts.
       session.hasWorkspace =
         (token.hasWorkspace as boolean) ?? false;
       session.provider =

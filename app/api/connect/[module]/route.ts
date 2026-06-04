@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { createHmac } from "crypto";
 
 /**
  * GET /api/connect/[module]
@@ -73,15 +74,42 @@ export async function GET(
     return NextResponse.json({ error: "FACEBOOK_CLIENT_ID not configured" }, { status: 500 });
   }
 
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    return NextResponse.json({ error: "NEXTAUTH_SECRET not configured" }, { status: 500 });
+  }
+
   const configId = process.env[config.envKey] || config.fallback;
 
   // Build the redirect URI for the callback
   const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
   const redirectUri = `${baseUrl}/api/connect/callback`;
 
-  // State includes module + userId for the callback to know where to store the token
-  const state = JSON.stringify({ module, userId: jwt.sub });
-  const encodedState = Buffer.from(state).toString("base64url");
+  // ── SECURITY: HMAC-signed state with nonce ──
+  // Resolve user's active workspaceId to embed in state
+  let workspaceId = "";
+  try {
+    const { default: prisma } = await import("@/lib/prisma");
+    const membership = await prisma.workspaceMember.findFirst({
+      where: { userId: jwt.sub },
+      orderBy: { workspace: { createdAt: "asc" } },
+      select: { workspaceId: true },
+    });
+    workspaceId = membership?.workspaceId || "";
+  } catch {
+    // If workspace lookup fails, callback will handle it
+  }
+
+  const payload = JSON.stringify({
+    module,
+    userId: jwt.sub,
+    workspaceId,
+    nonce: crypto.randomUUID(),
+  });
+  const sig = createHmac("sha256", secret)
+    .update(payload)
+    .digest("hex");
+  const encodedState = Buffer.from(JSON.stringify({ payload, sig })).toString("base64url");
 
   // Build Facebook OAuth URL with config_id
   const fbUrl = new URL("https://www.facebook.com/v22.0/dialog/oauth");
