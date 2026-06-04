@@ -16,15 +16,31 @@ interface NormalizedPost {
   comments: number;
   shares: number;
   engagement: number;
+  engagementRate: number;   // BUG 5 FIX — rate as %
 }
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
-/** Extract a numeric metric from FB post insights */
-function fbInsightValue(insights: any, metricName: string): number {
+/** Extract a numeric metric from FB/IG post insights object */
+function insightValue(insights: any, metricName: string): number {
   if (!insights?.data) return 0;
   const found = insights.data.find((d: any) => d.name === metricName);
   return Number(found?.values?.[0]?.value) || 0;
+}
+
+/** Process items in chunks to avoid timeout (BUG 4) */
+async function processInChunks<T, R>(
+  items: T[],
+  chunkSize: number,
+  fn: (item: T) => Promise<R>
+): Promise<PromiseSettledResult<R>[]> {
+  const results: PromiseSettledResult<R>[] = [];
+  for (let i = 0; i < items.length; i += chunkSize) {
+    const chunk = items.slice(i, i + chunkSize);
+    const chunkResults = await Promise.allSettled(chunk.map(fn));
+    results.push(...chunkResults);
+  }
+  return results;
 }
 
 // ── Main handler ───────────────────────────────────────────────────────────
@@ -35,8 +51,13 @@ export async function GET(request: NextRequest) {
   if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
-  const token = await getMetaAccessToken(request, "analytics");
-  if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
+
+  // BUG 1 FIX — Token fallback multi-módulo
+  let token = await getMetaAccessToken(request, "analytics");
+  if (!token) token = await getMetaAccessToken(request, "social");
+  if (!token) token = await getMetaAccessToken(request, "publisher_facebook");
+  if (!token) token = await getMetaAccessToken(request);
+  if (!token) return NextResponse.json({ error: "No hay token Meta. Conecta tu cuenta en Integraciones." }, { status: 401 });
 
   try {
     const limit = request.nextUrl.searchParams.get("limit") || "25";
@@ -69,10 +90,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ posts: [] });
     }
 
+    // BUG 4 FIX — Limit to 15 pages max to avoid timeout
+    const pagesToProcess = pageIdsParam ? pages : pages.slice(0, 15);
     const allPosts: NormalizedPost[] = [];
 
-    // 2. Fetch posts for each page in parallel
-    const pagePromises = pages.map(async (page: any) => {
+    // 2. Fetch posts for each page (BUG 4: chunked, 5 at a time)
+    await processInChunks(pagesToProcess, 5, async (page: any) => {
       const pageToken = page.access_token || token;
       const igAccountId = page.instagram_business_account?.id;
 
@@ -128,11 +151,12 @@ export async function GET(request: NextRequest) {
       // ── Normalize Facebook posts ─────────────────────────────────────
       if (fbResult.status === "fulfilled" && fbResult.value?.data) {
         for (const post of fbResult.value.data) {
-          const reach = fbInsightValue(post.insights, "post_impressions");
-          const engaged = fbInsightValue(post.insights, "post_engaged_users");
+          const reach = insightValue(post.insights, "post_impressions");
+          const engaged = insightValue(post.insights, "post_engaged_users");
           const likes = Number(post.likes?.summary?.total_count) || 0;
           const comments = Number(post.comments?.summary?.total_count) || 0;
           const shares = Number(post.shares?.count) || 0;
+          const engagementAbs = engaged || (likes + comments + shares);
 
           allPosts.push({
             id: post.id,
@@ -144,7 +168,11 @@ export async function GET(request: NextRequest) {
             likes,
             comments,
             shares,
-            engagement: engaged || (likes + comments + shares),
+            engagement: engagementAbs,
+            // BUG 5 FIX — engagement rate as %
+            engagementRate: reach > 0
+              ? parseFloat(((engagementAbs / reach) * 100).toFixed(2))
+              : 0,
           });
         }
       }
@@ -152,11 +180,14 @@ export async function GET(request: NextRequest) {
       // ── Normalize Instagram posts ────────────────────────────────────
       if (igResult.status === "fulfilled" && igResult.value?.data) {
         for (const media of igResult.value.data) {
-          const impressions = fbInsightValue(media, "impressions"); // reuses same helper shape
-          const reach = fbInsightValue(media, "reach");
-          const saved = fbInsightValue(media, "saved");
+          // BUG 2 FIX — use media.insights, not media directly
+          const impressions = insightValue(media.insights, "impressions");
+          const reach = insightValue(media.insights, "reach");
+          const saved = insightValue(media.insights, "saved");
           const likes = Number(media.like_count) || 0;
           const comments = Number(media.comments_count) || 0;
+          const engagementAbs = likes + comments + saved;
+          const denominator = reach || impressions;
 
           allPosts.push({
             id: media.id,
@@ -168,16 +199,18 @@ export async function GET(request: NextRequest) {
             likes,
             comments,
             shares: 0, // IG API doesn't expose shares
-            engagement: likes + comments + saved,
+            engagement: engagementAbs,
+            // BUG 5 FIX — engagement rate as %
+            engagementRate: denominator > 0
+              ? parseFloat(((engagementAbs / denominator) * 100).toFixed(2))
+              : 0,
           });
         }
       }
     });
 
-    await Promise.allSettled(pagePromises);
-
-    // 3. Sort by date descending
-    allPosts.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // 3. Sort by engagement rate descending (match Hootsuite behavior)
+    allPosts.sort((a, b) => b.engagementRate - a.engagementRate);
 
     return NextResponse.json({ posts: allPosts });
   } catch (error: any) {
@@ -188,3 +221,6 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+// BUG 4 FIX — Extend serverless function timeout
+export const maxDuration = 30;

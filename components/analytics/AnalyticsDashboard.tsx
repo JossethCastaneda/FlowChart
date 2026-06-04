@@ -150,7 +150,7 @@ export function AnalyticsDashboard() {
               likes: p.likes || 0,
               comments: p.comments || 0,
               shares: p.shares || 0,
-              engagement: p.engagement || 0,
+              engagement: p.engagementRate || 0,
             })));
           }
         }
@@ -550,7 +550,7 @@ function TopPostCard({ post, rank }: { post: any; rank: number }) {
       >
         <Activity style={{ width: 12, height: 12, color: "#f472b6" }} />
         <span style={{ fontSize: 11, fontWeight: 600, color: "#f472b6" }}>
-          Engagement: {post.engagement}
+          Engagement: {post.engagement}%
         </span>
       </div>
     </div>

@@ -37,6 +37,8 @@ export async function GET(req: NextRequest) {
     }
 
     let token = await getMetaAccessToken(req, "analytics");
+    if (!token) token = await getMetaAccessToken(req, "social");
+    if (!token) token = await getMetaAccessToken(req, "publisher_facebook");
     if (!token) token = await getMetaAccessToken(req);
     if (!token) {
       return NextResponse.json(
@@ -185,3 +187,5 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+
+export const maxDuration = 30;

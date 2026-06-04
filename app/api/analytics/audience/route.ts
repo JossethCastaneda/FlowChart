@@ -73,8 +73,11 @@ export async function GET(request: NextRequest) {
   if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
-  const token = await getMetaAccessToken(request, "analytics");
-  if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
+  let token = await getMetaAccessToken(request, "analytics");
+  if (!token) token = await getMetaAccessToken(request, "social");
+  if (!token) token = await getMetaAccessToken(request, "publisher_facebook");
+  if (!token) token = await getMetaAccessToken(request);
+  if (!token) return NextResponse.json({ error: "No hay token Meta. Conecta tu cuenta en Integraciones." }, { status: 401 });
 
   try {
     // 1. Get all pages
@@ -189,3 +192,5 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export const maxDuration = 30;
