@@ -170,6 +170,10 @@ export function IntegrationsPanel() {
           const expiring = st?.tokenExpiresSoon;
           const Icon = mod.icon;
 
+          // Summary counts (no more page name spam)
+          const pageCount = pages.length;
+          const igCount = pages.filter((p: any) => p.instagramId || p.instagram?.id).length;
+
           return (
             <div key={mod.key} style={{
               borderRadius: 8, overflow: "hidden",
@@ -190,7 +194,7 @@ export function IntegrationsPanel() {
                   <Icon />
                 </div>
 
-                {/* Label */}
+                {/* Label + summary */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
                     <span style={{ fontSize: 12, fontWeight: 500, color: connected ? "#e2e8f0" : "#475569" }}>
@@ -206,9 +210,25 @@ export function IntegrationsPanel() {
                       </span>
                     )}
                   </div>
-                  {connected && pages.length > 0 && (
+
+                  {/* Summary count instead of 57 page names */}
+                  {connected && pageCount > 0 && (
+                    <div style={{
+                      fontSize: 10, color: "#475569", marginTop: 1,
+                      display: "flex", alignItems: "center", gap: 5,
+                    }}>
+                      <span>{pageCount} página{pageCount !== 1 ? "s" : ""}</span>
+                      {igCount > 0 && (
+                        <>
+                          <span style={{ color: "#1e293b" }}>·</span>
+                          <span>{igCount} cuenta{igCount !== 1 ? "s" : ""} IG</span>
+                        </>
+                      )}
+                    </div>
+                  )}
+                  {connected && pageCount === 0 && (
                     <div style={{ fontSize: 10, color: "#475569", marginTop: 1 }}>
-                      {pages.map((p: any) => p.name).join(", ")}
+                      Conectado
                     </div>
                   )}
                 </div>
@@ -245,7 +265,7 @@ export function IntegrationsPanel() {
                 </button>
 
                 {/* Expand toggle (only when connected + has pages) */}
-                {connected && pages.length > 0 && (
+                {connected && pageCount > 0 && (
                   <button
                     onClick={() => setExpanded(isExpanded ? null : mod.key)}
                     style={{
