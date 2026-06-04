@@ -359,7 +359,6 @@ export function ScheduledCalendar() {
      ══════════════════════════════════════════════════════════ */
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, position: "relative" }}>
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
 
       {/* Banner */}
       {banner && (

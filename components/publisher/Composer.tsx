@@ -27,15 +27,10 @@ import {
   CheckCircle,
   XCircle,
   ChevronUp,
-  Video,
-  FileText,
-  Calendar,
-  Tag,
 } from "lucide-react";
 import { openConnectPopup } from "@/lib/connect-popup";
 
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Skeleton } from "@/components/ui/Skeleton";
 import { FormatSelector, type PostFormat } from "./FormatSelector";
 import { PlatformContentTabs } from "./PlatformContentTabs";
 import { FirstCommentExpander } from "./FirstCommentExpander";
@@ -1221,14 +1216,6 @@ export function Composer() {
           </div>
         </div>
       </div>
-
-      {/* Spin keyframes */}
-      <style>{`
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

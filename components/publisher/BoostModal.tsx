@@ -111,7 +111,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
     <div
       onClick={onClose}
       style={{
-        position: "absolute", inset: 0, zIndex: 50,
+        position: "fixed", inset: 0, zIndex: 50,
         background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20,
@@ -123,8 +123,8 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
           background: "#0f172a",
           border: "1px solid rgba(245,158,11,0.3)",
           borderRadius: 12, padding: 0, width: "100%", maxWidth: 420,
+          maxHeight: "90vh", overflowY: "auto",
           boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(245,158,11,0.06)",
-          overflow: "hidden",
         }}
       >
         {/* ── Header ── */}
