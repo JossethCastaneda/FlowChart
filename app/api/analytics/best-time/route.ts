@@ -75,7 +75,28 @@ export async function GET(req: NextRequest) {
       orderBy: { updatedAt: "desc" },
     });
 
-    const igUserId = (integration?.credentials as any)?.igUserId || null;
+    let igUserId = (integration?.credentials as any)?.igUserId || null;
+
+    // Fallback: auto-detect IG account from connected Facebook Pages
+    if (!igUserId) {
+      try {
+        const pagesUrl = `https://graph.facebook.com/${META_V}/me/accounts?fields=instagram_business_account&limit=100`;
+        const pagesRes = await metaFetch(pagesUrl, token);
+        if (pagesRes.ok) {
+          const pagesData = await pagesRes.json();
+          const pages = pagesData.data || [];
+          // Use the first page that has an IG business account
+          for (const page of pages) {
+            if (page.instagram_business_account?.id) {
+              igUserId = page.instagram_business_account.id;
+              break;
+            }
+          }
+        }
+      } catch {
+        // ignore — will fall through to error below
+      }
+    }
 
     if (!igUserId) {
       return NextResponse.json(
