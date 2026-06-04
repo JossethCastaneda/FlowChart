@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -36,6 +36,10 @@ import { openConnectPopup } from "@/lib/connect-popup";
 
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { FormatSelector, type PostFormat } from "./FormatSelector";
+import { PlatformContentTabs } from "./PlatformContentTabs";
+import { FirstCommentExpander } from "./FirstCommentExpander";
+import { PostPreview } from "./PostPreview";
 
 /* ── Social Icons (not in lucide-react) ───────────────── */
 const Facebook = ({ style }: { style?: React.CSSProperties }) => (
@@ -103,6 +107,14 @@ export function Composer() {
   const [hashtags, setHashtags] = useState<string[]>([]);
   const [hashtagInput, setHashtagInput] = useState("");
   const [scheduledAt, setScheduledAt] = useState("");
+
+  // ── New: Format + Per-platform + First comment ──
+  const [format, setFormat] = useState<PostFormat>("post");
+  const [customizeByPlatform, setCustomizeByPlatform] = useState(false);
+  const [fbContent, setFbContent] = useState("");
+  const [igContent, setIgContent] = useState("");
+  const [activePlatformTab, setActivePlatformTab] = useState<"facebook" | "instagram">("facebook");
+  const [firstComment, setFirstComment] = useState("");
 
   // Pages
   const [pages, setPages] = useState<MetaPage[]>([]);
@@ -339,6 +351,8 @@ export function Composer() {
   /* ── Clear form ─────────────────────────────────────── */
   const clearForm = () => {
     setContent(""); setMediaFiles([]); setHashtags([]); setHashtagInput(""); setScheduledAt("");
+    setFormat("post"); setCustomizeByPlatform(false); setFbContent(""); setIgContent("");
+    setFirstComment(""); setActivePlatformTab("facebook");
   };
 
   /* ── Actions ────────────────────────────────────────── */
@@ -356,11 +370,13 @@ export function Composer() {
     const fallbackTarget = selectedTargets[0];
     return {
       content: fullContent(),
+      contentByPlatform: customizeByPlatform ? { facebook: fbContent, instagram: igContent } : undefined,
+      firstComment: firstComment.trim() || undefined,
       channels: selectedChannels,
       mediaUrls: mediaFiles.map((m) => m.url),
       scheduledAt: status === "Scheduled" ? new Date(scheduledAt).toISOString() : undefined,
       status,
-      type: "post",
+      type: format,
       hashtags,
       pageName: firstFbTarget?.pageName || fallbackTarget?.pageName || null,
       pageId: firstFbTarget?.pageId || fallbackTarget?.pageId || null,
@@ -421,6 +437,7 @@ export function Composer() {
     if (err) { setBanner({ type: "error", message: err }); return; }
     setPublishing(true);
     try {
+      // ── Step 1: Save post to DB ──
       const createRes = await fetch("/api/publisher/posts", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildPayload("Draft")),
@@ -428,22 +445,104 @@ export function Composer() {
       const createData = await createRes.json();
       if (!createRes.ok) throw new Error(createData.error || "Error creando post");
       const { post } = createData;
-      const pubRes = await fetch("/api/publisher/publish", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postId: post.id }),
-      });
-      const pubData = await pubRes.json();
-      if (!pubRes.ok) {
-        // Show detailed error from the API
-        const detail = pubData.error || "Error al desplegar mensaje en redes.";
-        throw new Error(detail);
-      }
-      if (pubData.status === "Processing") {
-        setBanner({ type: "success", message: "Video en procesamiento — se publicará en segundos en background." });
+
+      // ── Step 2: Publish via correct endpoint based on format ──
+      let pubEndpoint = "/api/publisher/publish";
+      let pubBody: any = { postId: post.id };
+
+      if (format === "reel" || format === "story") {
+        // For reels/stories, we publish directly per-platform
+        pubEndpoint = format === "reel" ? "/api/publisher/reels" : "/api/publisher/stories";
+        const igTarget = selectedTargets.find((t) => t.platform === "instagram");
+        const fbTarget = selectedTargets.find((t) => t.platform === "facebook");
+        const mediaUrl = mediaFiles[0]?.url || "";
+        const caption = customizeByPlatform
+          ? (igTarget ? igContent : fbContent)
+          : fullContent();
+
+        // Publish to each selected platform
+        const results: any[] = [];
+        for (const target of selectedTargets) {
+          const platformCaption = customizeByPlatform
+            ? (target.platform === "facebook" ? fbContent : igContent) || fullContent()
+            : fullContent();
+          const body: any = {
+            platform: target.platform,
+            caption: platformCaption,
+            pageId: target.pageId,
+            igUserId: target.igId,
+            pageToken: "", // server resolves from session
+          };
+          if (format === "reel") {
+            body.videoUrl = mediaUrl;
+            body.shareToFeed = true;
+          } else {
+            body.mediaUrl = mediaUrl;
+            body.mediaType = mediaFiles[0]?.type || "image";
+          }
+          const res = await fetch(pubEndpoint, {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          const data = await res.json();
+          results.push({ ...data, platform: target.platform });
+
+          // First comment for IG (post/reel only)
+          if (
+            target.platform === "instagram" &&
+            data.success &&
+            firstComment.trim() &&
+            format !== "story"
+          ) {
+            const mediaId = data.reelId || data.storyId;
+            if (mediaId) {
+              await fetch("/api/publisher/first-comment", {
+                method: "POST", headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mediaId, comment: firstComment }),
+              }).catch(() => {}); // non-critical
+            }
+          }
+        }
+
+        const anySuccess = results.some((r) => r.success);
+        if (anySuccess) {
+          setBanner({ type: "success", message: `¡${format === "reel" ? "Reel" : "Story"} publicado con éxito!` });
+          clearForm();
+        } else {
+          const errs = results.map((r) => r.error).filter(Boolean).join(" | ");
+          throw new Error(errs || "Error al publicar");
+        }
       } else {
-        setBanner({ type: "success", message: "¡Transmisión Ejecutada! La señal está en vivo." });
+        // Standard post/carousel flow
+        const pubRes = await fetch("/api/publisher/publish", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId: post.id }),
+        });
+        const pubData = await pubRes.json();
+        if (!pubRes.ok) {
+          const detail = pubData.error || "Error al desplegar mensaje en redes.";
+          throw new Error(detail);
+        }
+
+        // First comment for IG
+        if (
+          firstComment.trim() &&
+          pubData.published?.instagram &&
+          format === "post"
+        ) {
+          await fetch("/api/publisher/first-comment", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ mediaId: pubData.published.instagram, comment: firstComment }),
+          }).catch(() => {});
+        }
+
+        if (pubData.status === "Processing") {
+          setBanner({ type: "success", message: "Video en procesamiento — se publicará en segundos en background." });
+        } else {
+          setBanner({ type: "success", message: "¡Transmisión Ejecutada! La señal está en vivo." });
+        }
+        clearForm();
       }
-      clearForm();
     } catch (e: any) { 
       console.error("publishNow error:", e);
       setBanner({ type: "error", message: e.message || "Error desconocido" }); 
@@ -687,6 +786,14 @@ export function Composer() {
             </div>
           </div>
 
+          {/* ── Format Selector (Post / Reel / Story / Carousel) ── */}
+          <div style={{
+            padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+            background: "rgba(255,255,255,0.02)",
+          }}>
+            <FormatSelector value={format} onChange={setFormat} />
+          </div>
+
           {/* ── Text area with toolbar ──────────────────────── */}
           <div
             ref={dropZoneRef}
@@ -846,6 +953,28 @@ export function Composer() {
               </div>
             </div>
           </div>
+
+          {/* ── Per-platform text tabs ── */}
+          {selectedTargets.some(t => t.platform === "facebook") && selectedTargets.some(t => t.platform === "instagram") && format !== "story" && (
+            <PlatformContentTabs
+              enabled={customizeByPlatform}
+              onToggle={setCustomizeByPlatform}
+              activePlatform={activePlatformTab}
+              onPlatformChange={setActivePlatformTab}
+              fbContent={fbContent}
+              onFbContentChange={setFbContent}
+              igContent={igContent}
+              onIgContentChange={setIgContent}
+              generalContent={content}
+            />
+          )}
+
+          {/* ── First Comment Expander (IG only, post/reel only) ── */}
+          <FirstCommentExpander
+            value={firstComment}
+            onChange={setFirstComment}
+            visible={hasIg && (format === "post" || format === "reel")}
+          />
 
           {/* ── Schedule + Action bar ───────────────────────── */}
           <div style={{
@@ -1020,6 +1149,13 @@ export function Composer() {
               HOLOGRAMA DE SIMULACIÓN
             </span>
             <span style={{
+              fontSize: 10, fontWeight: 600, color: "#00d4ff",
+              background: "rgba(0,212,255,0.1)", padding: "2px 8px", borderRadius: 10,
+              border: "1px solid rgba(0,212,255,0.2)", textTransform: "uppercase", letterSpacing: 0.5,
+            }}>
+              {format}
+            </span>
+            <span style={{
               marginLeft: "auto", fontSize: 11, color: "#475569",
               background: "rgba(255,255,255,0.09)", padding: "3px 8px", borderRadius: 4,
             }}>
@@ -1060,129 +1196,28 @@ export function Composer() {
               </div>
             )}
 
-            {/* Facebook preview cards */}
-            {selectedTargets.filter((t) => t.platform === "facebook").map((target) => (
-              <div key={target.key} style={{
-                background: "rgba(255,255,255,0.09)", border: "1px solid rgba(255,255,255,0.08)",
-                borderRadius: 12, overflow: "hidden", fontFamily: "Inter, Arial, sans-serif",
-              }}>
-                {/* Platform label */}
-                <div style={{
-                  padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.1)",
-                  display: "flex", alignItems: "center", gap: 6,
-                  background: "rgba(24,119,242,0.06)",
-                }}>
-                  <Facebook style={{ width: 13, height: 13, color: "#1877f2" }} />
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#60a5fa" }}>Facebook Post</span>
-                </div>
-                {/* Header */}
-                <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <img src={target.pagePicture} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
-                    <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{target.pageName}</div>
-                      <div style={{ fontSize: 11, color: "#94a3b8" }}>Justo ahora · 🌎</div>
-                    </div>
-                  </div>
-                  <MoreHorizontal style={{ width: 18, height: 18, color: "#64748b" }} />
-                </div>
-                {/* Content */}
-                <div style={{ padding: "0 14px 12px", fontSize: 14, color: "#cbd5e1", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
-                  {previewText}
-                </div>
-                {/* Media */}
-                {previewMedia && (
-                  <div style={{ width: "100%", height: 200, background: "#0f172a" }}>
-                    {mediaFiles[0]?.type === "video" ? (
-                      <video src={previewMedia} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
-                    ) : (
-                      <img src={previewMedia} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    )}
-                  </div>
-                )}
-                {/* Actions */}
-                <div style={{ display: "flex", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "8px 4px" }}>
-                  {[
-                    { icon: <Heart style={{ width: 15, height: 15 }} />, label: "Me gusta" },
-                    { icon: <MessageCircle style={{ width: 15, height: 15 }} />, label: "Comentar" },
-                    { icon: <Share2 style={{ width: 15, height: 15 }} />, label: "Compartir" },
-                  ].map((btn) => (
-                    <div key={btn.label} style={{
-                      flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                      gap: 5, color: "#64748b", fontSize: 12, fontWeight: 500, padding: "6px 0",
-                    }}>
-                      {btn.icon}<span>{btn.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-
-            {/* Instagram preview cards */}
-            {selectedTargets.filter((t) => t.platform === "instagram").map((target) => (
-              <div key={target.key} style={{
-                background: "#000", border: "1px solid rgba(255,255,255,0.12)",
-                borderRadius: 12, overflow: "hidden", fontFamily: "Inter, -apple-system, sans-serif",
-                color: "#fff",
-              }}>
-                {/* Platform label */}
-                <div style={{
-                  padding: "8px 14px", borderBottom: "1px solid rgba(255,255,255,0.08)",
-                  display: "flex", alignItems: "center", gap: 6,
-                  background: "rgba(225,48,108,0.06)",
-                }}>
-                  <Instagram style={{ width: 13, height: 13, color: "#E1306C" }} />
-                  <span style={{ fontSize: 11, fontWeight: 600, color: "#f472b6" }}>Instagram Post</span>
-                </div>
-                {/* Header */}
-                <div style={{ padding: "10px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{
-                      width: 32, height: 32, borderRadius: "50%", padding: 2,
-                      background: "linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <img src={target.igPicture || target.pagePicture} alt=""
-                        style={{ width: 26, height: 26, borderRadius: "50%", objectFit: "cover" }} />
-                    </div>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>@{target.igUsername}</div>
-                  </div>
-                  <MoreHorizontal style={{ width: 18, height: 18 }} />
-                </div>
-                {/* Media */}
-                {previewMedia ? (
-                  <div style={{ width: "100%", aspectRatio: "1", background: "#0a0f1e" }}>
-                    {mediaFiles[0]?.type === "video" ? (
-                      <video src={previewMedia} style={{ width: "100%", height: "100%", objectFit: "cover" }} muted />
-                    ) : (
-                      <img src={previewMedia} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                    )}
-                  </div>
-                ) : (
-                  <div style={{
-                    width: "100%", aspectRatio: "1", background: "#0a0f1e",
-                    display: "flex", alignItems: "center", justifyContent: "center", color: "#334155",
-                  }}>
-                    <ImageIcon style={{ width: 48, height: 48 }} />
-                  </div>
-                )}
-                {/* Actions + Caption */}
-                <div style={{ padding: "12px 14px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                    <div style={{ display: "flex", gap: 16 }}>
-                      <Heart style={{ width: 22, height: 22 }} />
-                      <MessageCircle style={{ width: 22, height: 22 }} />
-                      <Send style={{ width: 22, height: 22 }} />
-                    </div>
-                    <Bookmark style={{ width: 22, height: 22 }} />
-                  </div>
-                  <div style={{ fontSize: 13, lineHeight: 1.5 }}>
-                    <span style={{ fontWeight: 600, marginRight: 6 }}>@{target.igUsername}</span>
-                    {previewText}
-                  </div>
-                </div>
-              </div>
-            ))}
+            {/* Preview cards — one per selected target, format-aware */}
+            {selectedTargets.map((target) => {
+              const isFb = target.platform === "facebook";
+              const platformContent = customizeByPlatform
+                ? (isFb ? fbContent : igContent) || previewText
+                : previewText;
+              return (
+                <PostPreview
+                  key={target.key}
+                  format={format}
+                  platform={target.platform}
+                  content={platformContent}
+                  mediaUrls={mediaFiles.map(m => m.url)}
+                  mediaTypes={mediaFiles.map(m => m.type)}
+                  pageName={target.pageName}
+                  pageAvatar={target.pagePicture}
+                  igUsername={target.igUsername}
+                  igAvatar={target.igPicture}
+                  firstComment={target.platform === "instagram" && firstComment.trim() ? firstComment : undefined}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
