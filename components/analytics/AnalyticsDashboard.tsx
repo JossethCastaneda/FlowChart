@@ -158,7 +158,11 @@ export function AnalyticsDashboard() {
 
       try {
         // Fetch audience
-        const audRes = await fetch(`/api/analytics/audience${pageIdParam ? `?${pageIdParam.slice(1)}` : ""}`);
+        const audParams: string[] = [];
+        if (filterPageIds.length > 0) audParams.push(`pageIds=${filterPageIds.join(",")}`);
+        if (filterPlatform !== "all") audParams.push(`platform=${filterPlatform}`);
+        const audQueryStr = audParams.length > 0 ? `?${audParams.join("&")}` : "";
+        const audRes = await fetch(`/api/analytics/audience${audQueryStr}`);
         if (audRes.ok) {
           const audData = await audRes.json();
           if (audData.age?.length) setAudienceAge(audData.age);
@@ -180,6 +184,14 @@ export function AnalyticsDashboard() {
     const target = platformMap[filterPlatform] || "";
     return posts.filter((p) => p.channel === target);
   }, [posts, filterPlatform]);
+
+  // Build query string for sub-tabs
+  const filterQuery = useMemo(() => {
+    const params: string[] = [];
+    if (filterPageIds.length > 0) params.push(`pageIds=${filterPageIds.join(",")}`);
+    if (filterPlatform !== "all") params.push(`platform=${filterPlatform}`);
+    return params.length > 0 ? `?${params.join("&")}` : "";
+  }, [filterPageIds, filterPlatform]);
 
   return (
     <div className="space-y-4">
@@ -210,10 +222,10 @@ export function AnalyticsDashboard() {
         {activeTab === "Resumen" && <TabResumen kpis={kpis} posts={filteredPosts} />}
         {activeTab === "Posts" && <TabPosts posts={filteredPosts} />}
         {activeTab === "Audiencia" && <TabAudiencia age={audienceAge} gender={audienceGender} location={audienceLocation} />}
-        {activeTab === "Historias" && <TabHistorias />}
-        {activeTab === "Reels" && <TabReels />}
-        {activeTab === "Mejor Horario" && <TabMejorHorario />}
-        {activeTab === "Crecimiento" && <TabCrecimiento />}
+        {activeTab === "Historias" && <TabHistorias filterQuery={filterQuery} />}
+        {activeTab === "Reels" && <TabReels filterQuery={filterQuery} />}
+        {activeTab === "Mejor Horario" && <TabMejorHorario filterQuery={filterQuery} />}
+        {activeTab === "Crecimiento" && <TabCrecimiento filterQuery={filterQuery} />}
       </div>
     </div>
   );
@@ -1006,14 +1018,15 @@ function DonutChart({
 /* ══════════════════════════════════════════════════════════
    TAB: MEJOR HORARIO
    ══════════════════════════════════════════════════════════ */
-function TabMejorHorario() {
+function TabMejorHorario({ filterQuery }: { filterQuery: string }) {
   const [heatmapData, setHeatmapData] = useState<number[][]>(() => generateHeatmap());
   const [topSlots, setTopSlots] = useState<{ day: number; hour: number; avgImpressions: number; label: string }[]>([]);
   const [loadingBT, setLoadingBT] = useState(true);
   const [cachedAt, setCachedAt] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch("/api/analytics/best-time")
+    setLoadingBT(true);
+    fetch(`/api/analytics/best-time${filterQuery}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.slots?.length) {
@@ -1026,7 +1039,7 @@ function TabMejorHorario() {
       })
       .catch(() => {}) // fallback to fake data
       .finally(() => setLoadingBT(false));
-  }, []);
+  }, [filterQuery]);
 
   const maxVal = Math.max(...heatmapData.flat(), 1);
 
@@ -1168,17 +1181,18 @@ interface StoryData {
   completionRate: number;
 }
 
-function TabHistorias() {
+function TabHistorias({ filterQuery }: { filterQuery: string }) {
   const [stories, setStories] = useState<StoryData[]>([]);
   const [loadingS, setLoadingS] = useState(true);
 
   useEffect(() => {
-    fetch("/api/analytics/stories")
+    setLoadingS(true);
+    fetch(`/api/analytics/stories${filterQuery}`)
       .then((r) => r.json())
       .then((data) => setStories(data.stories || []))
       .catch(() => {})
       .finally(() => setLoadingS(false));
-  }, []);
+  }, [filterQuery]);
 
   if (loadingS) return <div style={{ display: "flex", justifyContent: "center", padding: 40 }}><Loader2 style={{ width: 24, height: 24, color: "#64748b", animation: "spin 1s linear infinite" }} /></div>;
 
@@ -1294,18 +1308,19 @@ interface ReelData {
   saved: number; shares: number; engagementRate: number;
 }
 
-function TabReels() {
+function TabReels({ filterQuery }: { filterQuery: string }) {
   const [reels, setReels] = useState<ReelData[]>([]);
   const [loadingR, setLoadingR] = useState(true);
   const [sortBy, setSortBy] = useState<"plays" | "likes" | "shares" | "saved" | "engagementRate">("plays");
 
   useEffect(() => {
-    fetch("/api/analytics/reels")
+    setLoadingR(true);
+    fetch(`/api/analytics/reels${filterQuery}`)
       .then((r) => r.json())
       .then((data) => setReels(data.reels || []))
       .catch(() => {})
       .finally(() => setLoadingR(false));
-  }, []);
+  }, [filterQuery]);
 
   if (loadingR) return <div style={{ display: "flex", justifyContent: "center", padding: 40 }}><Loader2 style={{ width: 24, height: 24, color: "#64748b", animation: "spin 1s linear infinite" }} /></div>;
 
@@ -1438,7 +1453,7 @@ function TabReels() {
 /* ══════════════════════════════════════════════════════════
    TAB: CRECIMIENTO
    ══════════════════════════════════════════════════════════ */
-function TabCrecimiento() {
+function TabCrecimiento({ filterQuery }: { filterQuery: string }) {
   if (GROWTH_DATA.length === 0) {
     return (
       <div style={{

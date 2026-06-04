@@ -91,7 +91,15 @@ export async function GET(request: NextRequest) {
       );
     }
     const pagesJson = await pagesRes.json();
-    const pages: any[] = pagesJson.data || [];
+    let pages: any[] = pagesJson.data || [];
+
+    // Apply pageIds filter if provided
+    const pageIdsParam = request.nextUrl.searchParams.get("pageIds");
+    const platformParam = request.nextUrl.searchParams.get("platform");
+    if (pageIdsParam) {
+      const allowedIds = pageIdsParam.split(",").map((id) => id.trim());
+      pages = pages.filter((p) => allowedIds.includes(p.id));
+    }
 
     if (!pages.length) {
       return NextResponse.json({ age: [], gender: [], location: [] });
@@ -108,15 +116,16 @@ export async function GET(request: NextRequest) {
       const pageToken = page.access_token || token;
       const igAccountId = page.instagram_business_account?.id;
 
-      // ── FB Page demographics (lifetime) ──────────────────────────────
-      const fbUrl = metaUrl(`${page.id}/insights`, {
-        metric: "page_fans_city,page_fans_gender_age,page_fans_country",
-        period: "lifetime",
-      });
+      // ── FB Page demographics (skip if platform=instagram) ──────────
+      const fbUrl = platformParam !== "instagram"
+        ? metaUrl(`${page.id}/insights`, {
+            metric: "page_fans_city,page_fans_gender_age,page_fans_country",
+            period: "lifetime",
+          })
+        : null;
 
-      // ── IG demographics (lifetime) ──────────────────────────────────
-      // Note: IG audience_* metrics require >= 100 followers
-      const igUrl = igAccountId
+      // ── IG demographics (skip if platform=facebook) ─────────────────
+      const igUrl = igAccountId && platformParam !== "facebook"
         ? metaUrl(`${igAccountId}/insights`, {
             metric: "audience_city,audience_gender_age,audience_country",
             period: "lifetime",
@@ -124,14 +133,16 @@ export async function GET(request: NextRequest) {
         : null;
 
       const [fbResult, igResult] = await Promise.allSettled([
-        metaFetch(fbUrl, pageToken).then(async (r) => {
-          if (!r.ok) {
-            const err = await r.json().catch(() => ({}));
-            console.error(`[AUDIENCE] FB demographics error for page ${page.id}:`, err?.error?.message);
-            return null;
-          }
-          return r.json();
-        }),
+        fbUrl
+          ? metaFetch(fbUrl, pageToken).then(async (r) => {
+              if (!r.ok) {
+                const err = await r.json().catch(() => ({}));
+                console.error(`[AUDIENCE] FB demographics error for page ${page.id}:`, err?.error?.message);
+                return null;
+              }
+              return r.json();
+            })
+          : Promise.resolve(null),
         igUrl
           ? metaFetch(igUrl, token).then(async (r) => {
               if (!r.ok) {
