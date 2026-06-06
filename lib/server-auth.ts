@@ -5,7 +5,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { encryptToken, decryptToken } from "@/lib/encryption";
 
 /** Centralized Meta Graph API version — use this everywhere, never hardcode */
-export const META_API_VERSION = process.env.META_API_VERSION || "v23.0";
+export const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
 
 /**
  * Module-to-provider mapping for config_id-specific tokens.

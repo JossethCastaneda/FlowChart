@@ -5,7 +5,7 @@ import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 import { decryptToken } from "@/lib/encryption";
 
-const META_V = process.env.META_API_VERSION || "v23.0";
+const META_V = process.env.META_API_VERSION || "v25.0";
 
 /**
  * POST /api/publisher/first-comment

@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
               "shares",
               "likes.summary(true)",
               "comments.summary(true)",
-              "insights.metric(post_total_media_view_unique,post_media_view,post_engaged_users)",
+              "insights.metric(post_media_view,post_engaged_users)",
             ].join(","),
             limit,
           })
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
       // ── Normalize Facebook posts ─────────────────────────────────────
       if (fbResult.status === "fulfilled" && fbResult.value?.data) {
         for (const post of fbResult.value.data) {
-          const reach = insightValue(post.insights, "post_total_media_view_unique") || insightValue(post.insights, "post_impressions");
+          const reach = insightValue(post.insights, "post_media_view") || insightValue(post.insights, "post_impressions");
           const engaged = insightValue(post.insights, "post_engaged_users");
           const likes = Number(post.likes?.summary?.total_count) || 0;
           const comments = Number(post.comments?.summary?.total_count) || 0;

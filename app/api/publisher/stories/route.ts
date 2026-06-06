@@ -5,7 +5,7 @@ import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 import { decryptToken } from "@/lib/encryption";
 
-const META_V = process.env.META_API_VERSION || "v23.0";
+const META_V = process.env.META_API_VERSION || "v25.0";
 
 /**
  * POST /api/publisher/stories
@@ -140,13 +140,31 @@ export async function POST(req: NextRequest) {
           platform: "facebook",
         });
       } else {
-        // Facebook Photo Story
+        // Facebook Photo Story — 2-step flow per Meta docs:
+        // 1. Upload photo as unpublished
+        // 2. Post photo_id to /photo_stories
+        const uploadRes = await metaFetch(
+          `https://graph.facebook.com/${META_V}/${pageId}/photos`,
+          pageToken,
+          {
+            method: "POST",
+            body: JSON.stringify({ url: mediaUrl, published: false }),
+          }
+        );
+        const uploadData = await uploadRes.json();
+        if (!uploadRes.ok || !uploadData.id) {
+          return NextResponse.json(
+            { error: mapMetaError(uploadData?.error).user_message || "Error subiendo foto para Story" },
+            { status: 422 }
+          );
+        }
+
         const res = await metaFetch(
           `https://graph.facebook.com/${META_V}/${pageId}/photo_stories`,
           pageToken,
           {
             method: "POST",
-            body: JSON.stringify({ url: mediaUrl, published: true }),
+            body: JSON.stringify({ photo_id: uploadData.id }),
           }
         );
         const data = await res.json();

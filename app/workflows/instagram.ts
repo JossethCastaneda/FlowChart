@@ -1,6 +1,6 @@
 import { sleep } from "workflow";
 
-const META_VERSION = process.env.META_API_VERSION || "v22.0";
+const META_VERSION = process.env.META_API_VERSION || "v25.0";
 
 // STEP FUNCTION: Has full Node.js access
 export async function markInstagramPostPublished(args: {

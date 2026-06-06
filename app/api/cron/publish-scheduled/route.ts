@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { metaFetch } from "@/lib/server-auth";
 
-const META_VERSION = process.env.META_API_VERSION || "v22.0";
+const META_VERSION = process.env.META_API_VERSION || "v25.0";
 
 /**
  * Shared auth check for GET (Vercel Cron) and POST (Vercel Workflow).

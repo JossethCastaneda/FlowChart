@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, useRef } from "react";
 import { X, Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Loader2, Download } from "lucide-react";
 
@@ -108,7 +108,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
     setStep(3);
 
     const results = { success: 0, failed: 0, errors: [] as string[] };
-    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0";
 
     for (let i = 0; i < parsedRows.length; i++) {
       const row = parsedRows[i];

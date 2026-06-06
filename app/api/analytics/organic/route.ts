@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       // Facebook periodic insights (skip if platform=instagram)
       const fbInsightsUrl = platformParam !== "instagram"
         ? metaUrl(`${page.id}/insights`, {
-            metric: "page_impressions,page_impressions_unique,page_engaged_users,page_total_media_view_unique",
+            metric: "page_media_view,page_total_media_view_unique,page_post_engagements",
             period: "day",
             since: sinceStr,
             until: untilStr,
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
       // IG periodic insights (skip if platform=facebook)
       const igInsightsUrl = igAccountId && platformParam !== "facebook"
         ? metaUrl(`${igAccountId}/insights`, {
-            metric: "views,reach,accounts_engaged",
+            metric: "views,reach,total_interactions",
             period: "day",
             since: sinceStr,
             until: untilStr,
@@ -192,9 +192,9 @@ export async function GET(request: NextRequest) {
       const igData = igResult.status === "fulfilled" && igResult.value?.data ? igResult.value.data : [];
 
       // ── Aggregate FB metrics ─────────────────────────────────────────
-      const fbImpressions = findMetric(fbData, "page_impressions");
-      const fbReach = findMetric(fbData, "page_total_media_view_unique") || findMetric(fbData, "page_impressions_unique");
-      const fbEngaged = findMetric(fbData, "page_engaged_users");
+      const fbImpressions = findMetric(fbData, "page_media_view");
+      const fbReach = findMetric(fbData, "page_total_media_view_unique") || findMetric(fbData, "page_media_view");
+      const fbEngaged = findMetric(fbData, "page_post_engagements");
 
       const fbImpValues = fbImpressions?.values || [];
       const fbReachValues = fbReach?.values || fbImpValues; // fallback to impressions
@@ -212,7 +212,7 @@ export async function GET(request: NextRequest) {
       // ── Aggregate IG metrics ─────────────────────────────────────────
       const igImpressions = findMetric(igData, "views") || findMetric(igData, "impressions");
       const igReach = findMetric(igData, "reach");
-      const igEngaged = findMetric(igData, "accounts_engaged");
+      const igEngaged = findMetric(igData, "total_interactions");
 
       const igImpValues = igImpressions?.values || [];
       const igReachValues = igReach?.values || [];

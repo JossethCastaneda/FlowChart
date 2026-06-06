@@ -13,7 +13,7 @@ export async function GET(req: Request) {
   }
 
   // FIX: use env var, never hardcode a version
-  const META_VERSION = process.env.META_API_VERSION || "v22.0";
+  const META_VERSION = process.env.META_API_VERSION || "v25.0";
 
   try {
     // Get all active projects with channels + workspace members

@@ -6,7 +6,7 @@ import { mapMetaError } from "@/lib/meta-errors";
 import { decryptToken } from "@/lib/encryption";
 import prisma from "@/lib/prisma";
 
-const META_V = process.env.META_API_VERSION || "v23.0";
+const META_V = process.env.META_API_VERSION || "v25.0";
 
 /**
  * POST /api/inbox/reply
@@ -63,15 +63,25 @@ export async function POST(req: NextRequest) {
     // Decrypt the page token — page token is required for conversation replies
     const pageToken = decryptToken(encryptedPageToken) || token;
 
-    // ── Send the reply via Meta Graph API ──
+    // ── Send the reply via Meta Send API ──
+    // CRITICAL FIX: /{conversationId}/messages is GET-only.
+    // Replies must go through POST /{pageId}/messages (Send API).
+    if (!pageId) {
+      return NextResponse.json(
+        { error: "pageId es requerido para enviar respuestas" },
+        { status: 400 }
+      );
+    }
+
     const replyRes = await metaFetch(
-      `https://graph.facebook.com/${META_V}/${conversationId}/messages`,
+      `https://graph.facebook.com/${META_V}/${pageId}/messages`,
       pageToken,
       {
         method: "POST",
         body: JSON.stringify({
           recipient: { id: recipientId },
           message: { text },
+          messaging_type: "RESPONSE",
         }),
       }
     );

@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
   const FIELDS_FULL =
     "spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,action_values," +
     "cost_per_action_type,purchase_roas,outbound_clicks,outbound_clicks_ctr," +
-    "unique_clicks,unique_ctr,video_p25_watched_actions,video_p50_watched_actions," +
+    "video_p25_watched_actions,video_p50_watched_actions," +
     "video_p75_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions," +
     "cost_per_thruplay";
 

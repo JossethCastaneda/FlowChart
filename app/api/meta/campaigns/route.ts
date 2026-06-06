@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // 1. Fetch campaigns details
-    const fields = "id,name,status,effective_status,objective,daily_budget,lifetime_budget,budget_remaining,bid_strategy,special_ad_categories,buying_type,smart_promotion_type,start_time,stop_time,created_time,updated_time";
+    const fields = "id,name,status,effective_status,objective,daily_budget,lifetime_budget,budget_remaining,bid_strategy,special_ad_categories,buying_type,start_time,stop_time,created_time,updated_time";
     const campaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/campaigns?fields=${fields}&limit=150`;
     
     const campaignsRes = await metaFetch(campaignsUrl, token);

@@ -149,9 +149,7 @@ export function frequencyAlertLevel(freq: number): "none" | "warning" | "critica
 
 // ── Advantage+ Detection ────────────────────────────────────────────────────
 export function isAdvantagePlus(row: any): boolean {
-  return (
-    row.buying_type === "AUCTION" && row.smart_promotion_type === "SMART_APP_PROMOTION"
-  ) || row.buying_type === "RESERVED" || !!row.smart_promotion_type;
+  return row.buying_type === "RESERVED" || row.objective === "OUTCOME_APP_PROMOTION";
 }
 
 // ── Stardate formatter ──────────────────────────────────────────────────────

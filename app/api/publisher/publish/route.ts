@@ -7,7 +7,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 
-const META_VERSION = process.env.META_API_VERSION || "v23.0";
+const META_VERSION = process.env.META_API_VERSION || "v25.0";
 
 /**
  * Converts a base64 data URL into a Buffer for multipart upload.

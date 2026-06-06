@@ -122,20 +122,39 @@ export async function GET(request: NextRequest) {
       // ── FB Page demographics (skip if platform=instagram) ──────────
       const fbUrl = platformParam !== "instagram"
         ? metaUrl(`${page.id}/insights`, {
-            metric: "page_fans_city,page_fans_gender_age,page_fans_country",
+            metric: "page_follows_city,page_follows_gender_age,page_follows_country",
             period: "lifetime",
           })
         : null;
 
-      // ── IG demographics (skip if platform=facebook) ─────────────────
-      const igUrl = igAccountId && platformParam !== "facebook"
+      // ── IG demographics now uses follower_demographics with breakdown params ──
+      // We need 3 separate calls for city, age+gender, and country
+      const igCityUrl = igAccountId && platformParam !== "facebook"
         ? metaUrl(`${igAccountId}/insights`, {
-            metric: "audience_city,audience_gender_age,audience_country",
+            metric: "follower_demographics",
             period: "lifetime",
+            metric_type: "total_value",
+            breakdown: "city",
+          })
+        : null;
+      const igGenderAgeUrl = igAccountId && platformParam !== "facebook"
+        ? metaUrl(`${igAccountId}/insights`, {
+            metric: "follower_demographics",
+            period: "lifetime",
+            metric_type: "total_value",
+            breakdown: "age,gender",
+          })
+        : null;
+      const igCountryUrl = igAccountId && platformParam !== "facebook"
+        ? metaUrl(`${igAccountId}/insights`, {
+            metric: "follower_demographics",
+            period: "lifetime",
+            metric_type: "total_value",
+            breakdown: "country",
           })
         : null;
 
-      const [fbResult, igResult] = await Promise.allSettled([
+      const [fbResult, igCityResult, igGenderAgeResult, igCountryResult] = await Promise.allSettled([
         fbUrl
           ? metaFetch(fbUrl, pageToken).then(async (r) => {
               if (!r.ok) {
@@ -146,13 +165,21 @@ export async function GET(request: NextRequest) {
               return r.json();
             })
           : Promise.resolve(null),
-        igUrl
-          ? metaFetch(igUrl, token).then(async (r) => {
-              if (!r.ok) {
-                const err = await r.json().catch(() => ({}));
-                console.error(`[AUDIENCE] IG demographics error for ${igAccountId}:`, err?.error?.message);
-                return null;
-              }
+        igCityUrl
+          ? metaFetch(igCityUrl, token).then(async (r) => {
+              if (!r.ok) { console.error(`[AUDIENCE] IG city error`); return null; }
+              return r.json();
+            })
+          : Promise.resolve(null),
+        igGenderAgeUrl
+          ? metaFetch(igGenderAgeUrl, token).then(async (r) => {
+              if (!r.ok) { console.error(`[AUDIENCE] IG gender_age error`); return null; }
+              return r.json();
+            })
+          : Promise.resolve(null),
+        igCountryUrl
+          ? metaFetch(igCountryUrl, token).then(async (r) => {
+              if (!r.ok) { console.error(`[AUDIENCE] IG country error`); return null; }
               return r.json();
             })
           : Promise.resolve(null),
@@ -161,17 +188,25 @@ export async function GET(request: NextRequest) {
       // ── Process Facebook data ────────────────────────────────────────
       if (fbResult.status === "fulfilled" && fbResult.value?.data) {
         const fbData = fbResult.value.data;
-        mergeInto(cityAcc, getInsightValue(fbData, "page_fans_city"));
-        mergeInto(countryAcc, getInsightValue(fbData, "page_fans_country"));
-        parseGenderAge(getInsightValue(fbData, "page_fans_gender_age"), ageAcc, genderAcc);
+        mergeInto(cityAcc, getInsightValue(fbData, "page_follows_city"));
+        mergeInto(countryAcc, getInsightValue(fbData, "page_follows_country"));
+        parseGenderAge(getInsightValue(fbData, "page_follows_gender_age"), ageAcc, genderAcc);
       }
 
-      // ── Process Instagram data ───────────────────────────────────────
-      if (igResult.status === "fulfilled" && igResult.value?.data) {
-        const igData = igResult.value.data;
-        mergeInto(cityAcc, getInsightValue(igData, "audience_city"));
-        mergeInto(countryAcc, getInsightValue(igData, "audience_country"));
-        parseGenderAge(getInsightValue(igData, "audience_gender_age"), ageAcc, genderAcc);
+      // Process IG city data
+      if (igCityResult.status === "fulfilled" && igCityResult.value?.data) {
+        const cityData = igCityResult.value.data;
+        mergeInto(cityAcc, getInsightValue(cityData, "follower_demographics"));
+      }
+      // Process IG gender+age data
+      if (igGenderAgeResult.status === "fulfilled" && igGenderAgeResult.value?.data) {
+        const gaData = igGenderAgeResult.value.data;
+        parseGenderAge(getInsightValue(gaData, "follower_demographics"), ageAcc, genderAcc);
+      }
+      // Process IG country data
+      if (igCountryResult.status === "fulfilled" && igCountryResult.value?.data) {
+        const countryData = igCountryResult.value.data;
+        mergeInto(countryAcc, getInsightValue(countryData, "follower_demographics"));
       }
     });
 
