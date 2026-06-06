@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
 import { calculateDataQuality } from "@/lib/meta-errors";
 
 /**
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   if (!adAccountId.startsWith("act_")) adAccountId = `act_${adAccountId}`;
 
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+  const version = META_API_VERSION;
 
   // ── Attribution windows ─────────────────────────────────────────────────
   const ATTRIBUTION_MAP: Record<string, string[] | null> = {

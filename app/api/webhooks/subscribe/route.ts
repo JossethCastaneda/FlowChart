@@ -3,7 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 
-const META_VERSION = process.env.META_API_VERSION || "v22.0";
+const META_VERSION = process.env.META_API_VERSION || "v23.0";
 
 /**
  * POST /api/webhooks/subscribe

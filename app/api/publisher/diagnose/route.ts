@@ -5,7 +5,7 @@ import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
 
-const META_VERSION = process.env.META_API_VERSION || "v22.0";
+const META_VERSION = process.env.META_API_VERSION || "v23.0";
 
 /**
  * GET /api/publisher/diagnose

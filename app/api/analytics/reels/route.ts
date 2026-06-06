@@ -4,7 +4,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 
-const META_V = process.env.META_API_VERSION || "v22.0";
+const META_V = process.env.META_API_VERSION || "v23.0";
 
 /**
  * GET /api/analytics/reels

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "analytics");
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
   }
 
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+  const version = META_API_VERSION;
 
   // Build time range for last N days
   const now = new Date();

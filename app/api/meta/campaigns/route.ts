@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
 
 export async function GET(req: NextRequest) {
-  const accessToken = await getMetaAccessToken(req, "ads");
+  // Token with multi-module fallback
+  let accessToken = await getMetaAccessToken(req, "ads");
+  if (!accessToken) accessToken = await getMetaAccessToken(req);
   if (!accessToken) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "No hay token Meta. Conecta tu cuenta en Integraciones." }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);
@@ -22,7 +24,8 @@ export async function GET(req: NextRequest) {
   }
 
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+  // MP-0 FIX: Use centralized version (v23.0+), NOT the expired v21.0
+  const version = META_API_VERSION;
 
   let timeRange = "&date_preset=maximum";
   if (dateStart && dateEnd) {
@@ -44,15 +47,36 @@ export async function GET(req: NextRequest) {
     const campaignsJson = await campaignsRes.json();
     const campaigns = campaignsJson.data || [];
 
-    // 2. Fetch insights
+    // 2. Fetch insights — MP-0 FIX: surface errors instead of silent zeros
     const insightsFields = "campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions";
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=campaign&fields=${insightsFields}&limit=150`;
     
     const insightsRes = await metaFetch(insightsUrl, token);
     let insights: any[] = [];
+    let insightsError: string | null = null;
+
     if (insightsRes.ok) {
       const insightsJson = await insightsRes.json();
       insights = insightsJson.data || [];
+    } else {
+      // MP-0 FIX: Don't swallow the error — surface it
+      const errJson = await insightsRes.json().catch(() => ({}));
+      const mapped = mapMetaError(errJson);
+      insightsError = mapped.user_message || errJson?.error?.message || "Error al obtener métricas";
+      console.error("[ADS] insights error:", insightsError, "status:", insightsRes.status, "api_version:", version);
+
+      // Fallback: try with explicit time_range if preset failed
+      if (!dateStart && !dateEnd) {
+        const fallbackSince = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+        const fallbackUntil = new Date().toISOString().slice(0, 10);
+        const fallbackUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?time_range=${encodeURIComponent(JSON.stringify({ since: fallbackSince, until: fallbackUntil }))}&level=campaign&fields=${insightsFields}&limit=150`;
+        const fallbackRes = await metaFetch(fallbackUrl, token);
+        if (fallbackRes.ok) {
+          const fallbackJson = await fallbackRes.json();
+          insights = fallbackJson.data || [];
+          if (insights.length > 0) insightsError = null; // cleared — fallback worked
+        }
+      }
     }
 
     // Merge insights into campaigns
@@ -85,7 +109,10 @@ export async function GET(req: NextRequest) {
 
     const dateUntil = dateEnd || new Date().toISOString().slice(0,10);
     const quality = calculateDataQuality(dateStart || undefined, dateUntil);
-    const warnings = quality.incomplete_learning ? ["La fase de aprendizaje podría estar incompleta (datos < 3 días)"] : [];
+    const warnings = [
+      ...(quality.incomplete_learning ? ["La fase de aprendizaje podría estar incompleta (datos < 3 días)"] : []),
+      ...(insightsError ? [`Métricas limitadas: ${insightsError}`] : []),
+    ];
 
     return NextResponse.json({
       status: "success",
@@ -93,7 +120,8 @@ export async function GET(req: NextRequest) {
       date_range: { since: dateStart || "N/A", until: dateUntil },
       attribution_window: "default",
       data: mergedCampaigns,
-      warnings: warnings,
+      warnings,
+      insights_error: insightsError,
       meta: {
         total_rows: mergedCampaigns.length,
         ...quality,
@@ -127,7 +155,7 @@ export async function POST(req: NextRequest) {
     }
 
     const token = accessToken;
-    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+    const version = META_API_VERSION;
     const updateUrl = `https://graph.facebook.com/${version}/${campaignId}`;
 
     const updateFields: any = {};
@@ -166,3 +194,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }
 }
+
+export const maxDuration = 30;

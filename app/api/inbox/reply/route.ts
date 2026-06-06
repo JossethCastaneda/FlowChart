@@ -6,7 +6,7 @@ import { mapMetaError } from "@/lib/meta-errors";
 import { decryptToken } from "@/lib/encryption";
 import prisma from "@/lib/prisma";
 
-const META_V = process.env.META_API_VERSION || "v22.0";
+const META_V = process.env.META_API_VERSION || "v23.0";
 
 /**
  * POST /api/inbox/reply

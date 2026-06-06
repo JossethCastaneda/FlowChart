@@ -4,6 +4,9 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { encryptToken, decryptToken } from "@/lib/encryption";
 
+/** Centralized Meta Graph API version — use this everywhere, never hardcode */
+export const META_API_VERSION = process.env.META_API_VERSION || "v23.0";
+
 /**
  * Module-to-provider mapping for config_id-specific tokens.
  */
@@ -58,7 +61,13 @@ export async function getMetaAccessToken(
         });
         if (moduleIntegration?.connected && moduleIntegration.credentials) {
           const creds = moduleIntegration.credentials as any;
-          if (creds.accessToken) return decryptToken(creds.accessToken);
+          // A2 FIX: check token expiry before returning
+          const expiresAt = creds.expiresAt ? new Date(creds.expiresAt) : null;
+          const isExpired = !!expiresAt && expiresAt.getTime() < Date.now();
+          if (creds.accessToken && !isExpired) return decryptToken(creds.accessToken);
+          if (isExpired) {
+            console.warn(`[SERVER-AUTH] Token expired for ${module} (expired ${expiresAt?.toISOString()})`);
+          }
         }
       }
 
@@ -70,7 +79,12 @@ export async function getMetaAccessToken(
       });
       if (integration?.connected && integration.credentials) {
         const creds = integration.credentials as any;
-        if (creds.accessToken) return decryptToken(creds.accessToken);
+        const expiresAt = creds.expiresAt ? new Date(creds.expiresAt) : null;
+        const isExpired = !!expiresAt && expiresAt.getTime() < Date.now();
+        if (creds.accessToken && !isExpired) return decryptToken(creds.accessToken);
+        if (isExpired) {
+          console.warn(`[SERVER-AUTH] Generic meta token expired (expired ${expiresAt?.toISOString()})`);
+        }
       }
     }
 
@@ -99,52 +113,62 @@ export async function getMetaAccessToken(
 
 /**
  * Save Meta access token to the workspace Integration table.
+ * W8 FIX: Scoped to the ACTIVE workspace only (not all workspaces).
  * Called from auth.config.ts when owner logs in with Facebook.
  */
 export async function saveMetaTokenToWorkspace(
   userId: string,
-  accessToken: string
+  accessToken: string,
+  targetWorkspaceId?: string
 ): Promise<void> {
   try {
-    // Find user's workspaces where they are OWNER or ADMIN
-    const memberships = await prisma.workspaceMember.findMany({
+    // W8 FIX: Only save to the active workspace, not all workspaces
+    const workspaceId = targetWorkspaceId || await getActiveWorkspaceId(userId);
+    if (!workspaceId) {
+      console.warn("[SERVER-AUTH] saveMetaTokenToWorkspace: no active workspace found");
+      return;
+    }
+
+    // Verify user has permission in this workspace
+    const membership = await prisma.workspaceMember.findFirst({
       where: {
         userId,
+        workspaceId,
         role: { in: ["OWNER", "ADMIN"] },
       },
-      select: { workspaceId: true },
     });
+
+    if (!membership) {
+      console.warn("[SERVER-AUTH] saveMetaTokenToWorkspace: user is not OWNER/ADMIN in workspace");
+      return;
+    }
 
     // Long-lived tokens last ~60 days
     const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
-
-    // Save token to ALL workspaces where user is owner/admin
     const encryptedToken = encryptToken(accessToken);
 
-    for (const m of memberships) {
-      await prisma.integration.upsert({
-        where: {
-          workspaceId_provider: {
-            workspaceId: m.workspaceId,
-            provider: "meta",
-          },
-        },
-        update: {
-          credentials: { accessToken: encryptedToken, expiresAt, refreshedAt: new Date().toISOString() },
-          connected: true,
-          connectedAt: new Date(),
-          connectedBy: userId,
-        },
-        create: {
-          workspaceId: m.workspaceId,
+    await prisma.integration.upsert({
+      where: {
+        workspaceId_provider: {
+          workspaceId,
           provider: "meta",
-          credentials: { accessToken: encryptedToken, expiresAt, refreshedAt: new Date().toISOString() },
-          connected: true,
-          connectedAt: new Date(),
-          connectedBy: userId,
         },
-      });
-    }
+      },
+      update: {
+        credentials: { accessToken: encryptedToken, expiresAt, refreshedAt: new Date().toISOString() },
+        connected: true,
+        connectedAt: new Date(),
+        connectedBy: userId,
+      },
+      create: {
+        workspaceId,
+        provider: "meta",
+        credentials: { accessToken: encryptedToken, expiresAt, refreshedAt: new Date().toISOString() },
+        connected: true,
+        connectedAt: new Date(),
+        connectedBy: userId,
+      },
+    });
   } catch (err) {
     console.error("[SERVER-AUTH] saveMetaTokenToWorkspace error:", err);
   }
@@ -181,7 +205,7 @@ export function metaUrl(
   path: string,
   params: Record<string, string> = {}
 ): string {
-  const base = `https://graph.facebook.com/v22.0/${path}`;
+  const base = `https://graph.facebook.com/${META_API_VERSION}/${path}`;
   const search = new URLSearchParams(params).toString();
   return search ? `${base}?${search}` : base;
 }

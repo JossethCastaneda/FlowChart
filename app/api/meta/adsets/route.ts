@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
 
 export async function GET(req: NextRequest) {
@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
   }
 
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+  const version = META_API_VERSION;
 
   let timeRange = "&date_preset=maximum";
   if (dateStart && dateEnd) {
@@ -126,7 +126,7 @@ export async function POST(req: NextRequest) {
     }
 
     const token = accessToken;
-    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+    const version = META_API_VERSION;
     const updateUrl = `https://graph.facebook.com/${version}/${adsetId}`;
 
     const updateFields: any = {};

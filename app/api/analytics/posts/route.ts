@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
               "shares",
               "likes.summary(true)",
               "comments.summary(true)",
-              "insights.metric(post_impressions,post_engaged_users)",
+              "insights.metric(post_total_media_view_unique,post_media_view,post_engaged_users)",
             ].join(","),
             limit,
           })
@@ -119,7 +119,7 @@ export async function GET(request: NextRequest) {
             fields: [
               "id", "caption", "timestamp", "media_url", "thumbnail_url",
               "like_count", "comments_count",
-              "insights.metric(impressions,reach,saved)",
+              "insights.metric(views,reach,saved)",
             ].join(","),
             limit,
           })
@@ -151,7 +151,7 @@ export async function GET(request: NextRequest) {
       // ── Normalize Facebook posts ─────────────────────────────────────
       if (fbResult.status === "fulfilled" && fbResult.value?.data) {
         for (const post of fbResult.value.data) {
-          const reach = insightValue(post.insights, "post_impressions");
+          const reach = insightValue(post.insights, "post_total_media_view_unique") || insightValue(post.insights, "post_impressions");
           const engaged = insightValue(post.insights, "post_engaged_users");
           const likes = Number(post.likes?.summary?.total_count) || 0;
           const comments = Number(post.comments?.summary?.total_count) || 0;
@@ -181,13 +181,13 @@ export async function GET(request: NextRequest) {
       if (igResult.status === "fulfilled" && igResult.value?.data) {
         for (const media of igResult.value.data) {
           // BUG 2 FIX — use media.insights, not media directly
-          const impressions = insightValue(media.insights, "impressions");
+          const views = insightValue(media.insights, "views") || insightValue(media.insights, "impressions");
           const reach = insightValue(media.insights, "reach");
           const saved = insightValue(media.insights, "saved");
           const likes = Number(media.like_count) || 0;
           const comments = Number(media.comments_count) || 0;
           const engagementAbs = likes + comments + saved;
-          const denominator = reach || impressions;
+          const denominator = reach || views;
 
           allPosts.push({
             id: media.id,
@@ -195,7 +195,7 @@ export async function GET(request: NextRequest) {
             channel: "instagram",
             date: media.timestamp,
             image: media.media_url || media.thumbnail_url || null,
-            reach: reach || impressions,
+            reach: reach || views,
             likes,
             comments,
             shares: 0, // IG API doesn't expose shares

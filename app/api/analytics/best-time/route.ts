@@ -5,7 +5,7 @@ import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 import prisma from "@/lib/prisma";
 
-const META_V = process.env.META_API_VERSION || "v22.0";
+const META_V = process.env.META_API_VERSION || "v23.0";
 
 interface TimeSlot {
   day: number;      // 0 (Sunday) – 6 (Saturday)
@@ -111,7 +111,7 @@ export async function GET(req: NextRequest) {
 
     let allMedia: any[] = [];
     let nextUrl: string | null =
-      `https://graph.facebook.com/${META_V}/${igUserId}/media?fields=id,timestamp,insights.metric(impressions){values}&limit=100&since=${sinceTs}`;
+      `https://graph.facebook.com/${META_V}/${igUserId}/media?fields=id,timestamp,insights.metric(views){values}&limit=100&since=${sinceTs}`;
 
     while (nextUrl && allMedia.length < 500) {
       const mediaRes = await metaFetch(nextUrl, token);
@@ -160,6 +160,7 @@ export async function GET(req: NextRequest) {
 
       // Extract impressions from insights
       const impressions =
+        media.insights?.data?.find((d: any) => d.name === "views")?.values?.[0]?.value ??
         media.insights?.data?.[0]?.values?.[0]?.value ?? 0;
 
       grid[slotIndex].totalImpressions += Number(impressions) || 0;

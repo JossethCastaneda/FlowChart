@@ -3,9 +3,9 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { metaFetch } from "@/lib/server-auth";
+import { metaFetch , META_API_VERSION } from "@/lib/server-auth";
 
-const META_VERSION = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+const META_VERSION = META_API_VERSION;
 
 /**
  * GET /api/meta/connection-status

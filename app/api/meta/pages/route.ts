@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getMetaAccessToken, metaGetAll } from "@/lib/server-auth";
+import { getMetaAccessToken, metaGetAll , META_API_VERSION } from "@/lib/server-auth";
 
 export async function GET(request: Request) {
   try {
@@ -10,7 +10,7 @@ export async function GET(request: Request) {
     }
 
     // FIX: use env var, not hardcoded version
-    const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+    const version = META_API_VERSION;
     const url = `https://graph.facebook.com/${version}/me/accounts?fields=id,name,fan_count,picture{url},instagram_business_account{id,username,profile_picture_url,followers_count}&limit=100`;
     const { data: allData, error } = await metaGetAll(url, accessToken);
 

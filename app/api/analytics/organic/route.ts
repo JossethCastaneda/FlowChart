@@ -118,7 +118,7 @@ export async function GET(request: NextRequest) {
       // Facebook periodic insights (skip if platform=instagram)
       const fbInsightsUrl = platformParam !== "instagram"
         ? metaUrl(`${page.id}/insights`, {
-            metric: "page_impressions,page_impressions_unique,page_engaged_users",
+            metric: "page_impressions,page_impressions_unique,page_engaged_users,page_total_media_view_unique",
             period: "day",
             since: sinceStr,
             until: untilStr,
@@ -135,7 +135,7 @@ export async function GET(request: NextRequest) {
       // IG periodic insights (skip if platform=facebook)
       const igInsightsUrl = igAccountId && platformParam !== "facebook"
         ? metaUrl(`${igAccountId}/insights`, {
-            metric: "impressions,reach,accounts_engaged",
+            metric: "views,reach,accounts_engaged",
             period: "day",
             since: sinceStr,
             until: untilStr,
@@ -193,7 +193,7 @@ export async function GET(request: NextRequest) {
 
       // ── Aggregate FB metrics ─────────────────────────────────────────
       const fbImpressions = findMetric(fbData, "page_impressions");
-      const fbReach = findMetric(fbData, "page_impressions_unique");
+      const fbReach = findMetric(fbData, "page_total_media_view_unique") || findMetric(fbData, "page_impressions_unique");
       const fbEngaged = findMetric(fbData, "page_engaged_users");
 
       const fbImpValues = fbImpressions?.values || [];
@@ -210,7 +210,7 @@ export async function GET(request: NextRequest) {
       const pageImpressions = sumValues(fbImpValues);
 
       // ── Aggregate IG metrics ─────────────────────────────────────────
-      const igImpressions = findMetric(igData, "impressions");
+      const igImpressions = findMetric(igData, "views") || findMetric(igData, "impressions");
       const igReach = findMetric(igData, "reach");
       const igEngaged = findMetric(igData, "accounts_engaged");
 

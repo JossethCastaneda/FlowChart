@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
 
 /**
  * Meta Breakdowns API — Robust implementation
@@ -99,7 +99,7 @@ export async function GET(req: NextRequest) {
   }
 
   const token   = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+  const version = META_API_VERSION;
 
   // Select field set
   const fields = PLATFORM_ONLY_BREAKDOWNS.has(breakdownKey)

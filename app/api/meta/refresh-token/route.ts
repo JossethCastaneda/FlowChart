@@ -1,3 +1,4 @@
+import { META_API_VERSION } from "@/lib/server-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
@@ -5,7 +6,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { encryptToken, decryptToken } from "@/lib/encryption";
 
-const META_VERSION = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+const META_VERSION = META_API_VERSION;
 
 /**
  * POST /api/meta/refresh-token

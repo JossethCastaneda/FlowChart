@@ -4,7 +4,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 
-const META_V = process.env.META_API_VERSION || "v22.0";
+const META_V = process.env.META_API_VERSION || "v23.0";
 
 /**
  * GET /api/analytics/stories
@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
     const results = await Promise.allSettled(
       accountsToProcess.map(async (igUserId) => {
         const res = await metaFetch(
-          `https://graph.facebook.com/${META_V}/${igUserId}/stories?fields=id,timestamp,media_url,media_type,insights.metric(exits,impressions,reach,replies,taps_forward,taps_back){name,values}`,
+          `https://graph.facebook.com/${META_V}/${igUserId}/stories?fields=id,timestamp,media_url,media_type,insights.metric(exits,views,reach,replies,taps_forward,taps_back){name,values}`,
           token
         );
         const data = await res.json();

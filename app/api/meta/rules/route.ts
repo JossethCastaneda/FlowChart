@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
 
 const RULE_FIELDS = "name,status,evaluation_spec,execution_spec,schedule_spec,entity_type,filter_spec";
 
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   if (!adAccountId) return NextResponse.json({ error: "Missing adAccountId" }, { status: 400 });
 
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+  const version = META_API_VERSION;
 
   try {
     // FIX: guard against double act_ prefix (act_act_XXXXX)
@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const token = accessToken;
-  const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v22.0";
+  const version = META_API_VERSION;
 
   try {
     const body = await req.json();
