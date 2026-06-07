@@ -42,11 +42,11 @@ export function PageHeader({ title, description, icon, action }: PageHeaderProps
         )}
         <div>
           <h1 style={{
-            fontFamily: "'Orbitron', sans-serif",
-            fontSize: "22px",
-            fontWeight: 700,
+            fontFamily: "var(--font-sans)",
+            fontSize: "24px",
+            fontWeight: 800,
             color: "white",
-            letterSpacing: "0.08em",
+            letterSpacing: 0,
             lineHeight: 1.2,
           }}>
             {title}

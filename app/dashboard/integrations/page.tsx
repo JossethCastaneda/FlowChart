@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Settings, CheckCircle, XCircle, Loader2, ChevronRight, Zap, BarChart2, Users, Megaphone } from "lucide-react";
 import { openConnectPopup } from "@/lib/connect-popup";
+import { MetaConnectionHealthCenter } from "@/components/meta/MetaConnectionHealthCenter";
 
 /* ─── Icons ─── */
 const MetaIcon = () => (
@@ -137,9 +138,11 @@ export default function IntegrationsPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       <PageHeader
         title="Integraciones"
-        description="Conecta tus plataformas de publicidad, analytics y automatización."
+        description="Conecta plataformas, revisa permisos y valida que cada modulo pueda operar."
         icon={<Settings size={20} style={{ color: "var(--cyan)" }} />}
       />
+
+      <MetaConnectionHealthCenter />
 
       {/* Publisher notice */}
       <button

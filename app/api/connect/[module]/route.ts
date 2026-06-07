@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { createHmac } from "crypto";
 
+const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
+
 /**
  * GET /api/connect/[module]
  * Initiates Facebook OAuth with the module-specific config_id.
@@ -79,7 +81,13 @@ export async function GET(
     return NextResponse.json({ error: "NEXTAUTH_SECRET not configured" }, { status: 500 });
   }
 
-  const configId = process.env[config.envKey] || config.fallback;
+  const configId = process.env[config.envKey] || (process.env.NODE_ENV === "production" ? "" : config.fallback);
+  if (!configId) {
+    return NextResponse.json(
+      { error: `${config.envKey} not configured for ${config.label}` },
+      { status: 500 }
+    );
+  }
 
   // Build the redirect URI for the callback
   const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
@@ -112,7 +120,7 @@ export async function GET(
   const encodedState = Buffer.from(JSON.stringify({ payload, sig })).toString("base64url");
 
   // Build Facebook OAuth URL with config_id
-  const fbUrl = new URL("https://www.facebook.com/v22.0/dialog/oauth");
+  const fbUrl = new URL(`https://www.facebook.com/${META_API_VERSION}/dialog/oauth`);
   fbUrl.searchParams.set("client_id", clientId);
   fbUrl.searchParams.set("redirect_uri", redirectUri);
   fbUrl.searchParams.set("state", encodedState);

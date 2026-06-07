@@ -76,7 +76,7 @@ export default function ResumenPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <PageHeader title="Command Center" description="Cargando datos del workspace..."
+        <PageHeader title="Inicio" description="Cargando datos del workspace..."
           icon={<LayoutDashboard className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
         <div style={{ textAlign: "center", padding: "60px 0" }}>
           <Loader2 style={{ width: 32, height: 32, color: "#00d4ff", animation: "spin 1s linear infinite", margin: "0 auto" }} />
@@ -143,10 +143,46 @@ export default function ResumenPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Command Center"
+        title="Inicio"
         description={d.workspace ? `${d.workspace.name} · Plan ${d.workspace.plan}` : "Tu centro de operaciones"}
         icon={<LayoutDashboard className="w-6 h-6" style={{ color: "var(--cyan)" }} />}
       />
+
+      <div className="glass-panel" style={{ padding: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#f8fafc" }}>Trabajo de hoy</h2>
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#94a3b8" }}>
+              Prioriza publicar, responder, revisar Ads y cerrar tareas sin navegar por todos los modulos.
+            </p>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            {[
+              ["Planner", "/dashboard/publisher"],
+              ["Inbox", "/dashboard/inbox"],
+              ["Ads", "/dashboard/ads-manager"],
+              ["Integraciones", "/dashboard/integrations"],
+            ].map(([label, href]) => (
+              <Link
+                key={label}
+                href={href}
+                style={{
+                  padding: "7px 11px",
+                  borderRadius: 6,
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  background: "rgba(255,255,255,0.04)",
+                  color: "#e2e8f0",
+                  fontSize: 12,
+                  fontWeight: 700,
+                  textDecoration: "none",
+                }}
+              >
+                {label}
+              </Link>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

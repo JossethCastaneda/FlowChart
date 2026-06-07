@@ -6,8 +6,8 @@ export default function PublisherPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, height: "100%", minHeight: 0 }}>
       <PageHeader
-        title="Publisher"
-        description="Centro de control: redacta, programa, analiza y gestiona todas tus redes sociales."
+        title="Planner"
+        description="Planifica, redacta, programa y prepara aprobaciones para tus canales sociales."
         icon={<Zap className="w-6 h-6" style={{ color: "#ffbe0b" }} />}
       />
 

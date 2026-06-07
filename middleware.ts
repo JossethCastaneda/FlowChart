@@ -22,7 +22,10 @@ export async function middleware(req: NextRequest) {
   }
 
   // Obtener token JWT
-  const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET });
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  });
 
   // Sin sesión → login
   if (!token) {

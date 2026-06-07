@@ -3,9 +3,31 @@
 import React, { useState, useEffect } from "react";
 import { SodareLogo } from "@/components/ui/SodareLogo";
 
+type AuthProviders = Record<string, unknown>;
+
+function getSafeCallbackUrl() {
+  if (typeof window === "undefined") return "/dashboard/resumen";
+
+  const rawCallbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
+  if (!rawCallbackUrl) return "/dashboard/resumen";
+
+  if (rawCallbackUrl.startsWith("/")) return rawCallbackUrl;
+
+  try {
+    const callbackUrl = new URL(rawCallbackUrl);
+    if (callbackUrl.origin === window.location.origin) {
+      return `${callbackUrl.pathname}${callbackUrl.search}${callbackUrl.hash}`;
+    }
+  } catch {
+    return "/dashboard/resumen";
+  }
+
+  return "/dashboard/resumen";
+}
+
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [providers, setProviders] = useState<AuthProviders | null>(null);
   const [showCredentials, setShowCredentials] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState("");
@@ -19,10 +41,43 @@ export default function LoginPage() {
   }>({ type: "idle", message: "Awaiting authentication..." });
 
   useEffect(() => {
-    setMounted(true);
+    let isActive = true;
+
+    async function loadProviders() {
+      try {
+        const res = await fetch("/api/auth/providers");
+        if (!res.ok) throw new Error("Unable to load providers");
+        const data = await res.json();
+        if (isActive) setProviders(data || {});
+      } catch {
+        if (isActive) {
+          setProviders({});
+          setStatus({
+            type: "error",
+            message: "No se pudo verificar la configuración de login.",
+          });
+        }
+      }
+    }
+
+    loadProviders();
+    return () => {
+      isActive = false;
+    };
   }, []);
 
+  const providerStatusLoaded = providers !== null;
+  const hasFacebookProvider = Boolean(providers?.facebook);
+  const hasGoogleProvider = Boolean(providers?.google);
+
   async function handleFacebookLogin() {
+    if (!hasFacebookProvider) {
+      setStatus({
+        type: "error",
+        message: "Facebook Login no está configurado en este entorno.",
+      });
+      return;
+    }
     setIsLoading(true);
     setStatus({
       type: "connecting",
@@ -30,7 +85,7 @@ export default function LoginPage() {
     });
     const { signIn } = await import("next-auth/react");
     try {
-      await signIn("facebook", { callbackUrl: "/dashboard/resumen" });
+      await signIn("facebook", { callbackUrl: getSafeCallbackUrl() });
     } catch {
       setIsLoading(false);
       setStatus({ type: "error", message: "⚠ Connection failed. Retry." });
@@ -38,6 +93,13 @@ export default function LoginPage() {
   }
 
   async function handleGoogleLogin() {
+    if (!hasGoogleProvider) {
+      setStatus({
+        type: "error",
+        message: "Google Login no está configurado en este entorno.",
+      });
+      return;
+    }
     setIsLoading(true);
     setStatus({
       type: "connecting",
@@ -45,7 +107,7 @@ export default function LoginPage() {
     });
     const { signIn } = await import("next-auth/react");
     try {
-      await signIn("google", { callbackUrl: "/dashboard/resumen" });
+      await signIn("google", { callbackUrl: getSafeCallbackUrl() });
     } catch {
       setIsLoading(false);
       setStatus({ type: "error", message: "⚠ Connection failed. Retry." });
@@ -73,7 +135,7 @@ export default function LoginPage() {
       return;
     }
     setStatus({ type: "success", message: "Access granted" });
-    window.location.href = "/dashboard/resumen";
+    window.location.href = getSafeCallbackUrl();
   }
 
   async function handleRegister() {
@@ -119,7 +181,7 @@ export default function LoginPage() {
       return;
     }
     setStatus({ type: "success", message: "Access granted" });
-    window.location.href = "/dashboard/resumen";
+    window.location.href = getSafeCallbackUrl();
   }
 
   return (
@@ -139,7 +201,7 @@ export default function LoginPage() {
       <div className="scanlines" />
 
       {/* Main content */}
-      <div className={`login-wrapper ${mounted ? "is-visible" : ""}`}>
+      <div className="login-wrapper is-visible">
         {/* Decorative corner brackets */}
         <div className="corner-brackets">
           <span className="corner tl" />
@@ -170,8 +232,9 @@ export default function LoginPage() {
           {/* Facebook button */}
           <button
             onClick={handleFacebookLogin}
-            disabled={isLoading}
+            disabled={isLoading || !providerStatusLoaded || !hasFacebookProvider}
             className="fb-btn"
+            title={!hasFacebookProvider && providerStatusLoaded ? "Faltan FACEBOOK_CLIENT_ID/FACEBOOK_CLIENT_SECRET" : undefined}
           >
             <div className="fb-btn-bg" />
             <div className="fb-btn-content">
@@ -180,7 +243,13 @@ export default function LoginPage() {
                   <svg viewBox="0 0 24 24" className="fb-icon">
                     <path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" />
                   </svg>
-                  <span>{status.type === "error" ? "RETRY CONNECTION" : "CONNECT WITH FACEBOOK"}</span>
+                  <span>
+                    {!providerStatusLoaded
+                      ? "CHECKING FACEBOOK"
+                      : hasFacebookProvider
+                        ? status.type === "error" ? "RETRY CONNECTION" : "CONNECT WITH FACEBOOK"
+                        : "FACEBOOK NOT CONFIGURED"}
+                  </span>
                 </>
               ) : (
                 <>
@@ -203,8 +272,9 @@ export default function LoginPage() {
           {/* Google Login */}
           <button
             onClick={handleGoogleLogin}
-            disabled={isLoading}
+            disabled={isLoading || !providerStatusLoaded || !hasGoogleProvider}
             className="google-btn"
+            title={!hasGoogleProvider && providerStatusLoaded ? "Faltan GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET" : undefined}
           >
             <div className="fb-btn-bg" />
             <div className="fb-btn-content">
@@ -216,7 +286,13 @@ export default function LoginPage() {
                     <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
                     <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
                   </svg>
-                  <span>CONNECT WITH GOOGLE</span>
+                  <span>
+                    {!providerStatusLoaded
+                      ? "CHECKING GOOGLE"
+                      : hasGoogleProvider
+                        ? "CONNECT WITH GOOGLE"
+                        : "GOOGLE NOT CONFIGURED"}
+                  </span>
                 </>
               ) : (
                 <>

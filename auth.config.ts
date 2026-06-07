@@ -4,6 +4,8 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 
+const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
+
 // Build providers dynamically — only register if credentials are configured
 const providers: NextAuthOptions["providers"] = [];
 
@@ -13,6 +15,7 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
       clientId: process.env.FACEBOOK_CLIENT_ID,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
       authorization: {
+        url: `https://www.facebook.com/${META_API_VERSION}/dialog/oauth`,
         params: {
           // Sodare — User Login (basic login only)
           // Config ID 2028091691078800 must be set in Facebook App to request email,public_profile only.
@@ -66,6 +69,7 @@ providers.push(
 
 export const authOptions: NextAuthOptions = {
   providers,
+  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
 
   pages: {
     signIn: "/login",
@@ -125,7 +129,7 @@ export const authOptions: NextAuthOptions = {
           // Exchange short-lived token (~1hr) for long-lived token (~60 days)
           let longLivedToken = account.access_token;
           try {
-            const exchangeUrl = new URL("https://graph.facebook.com/v22.0/oauth/access_token");
+            const exchangeUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
             exchangeUrl.searchParams.set("grant_type", "fb_exchange_token");
             exchangeUrl.searchParams.set("client_id", process.env.FACEBOOK_CLIENT_ID || "");
             exchangeUrl.searchParams.set("client_secret", process.env.FACEBOOK_CLIENT_SECRET || "");

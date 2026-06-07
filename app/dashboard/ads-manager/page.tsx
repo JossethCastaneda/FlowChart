@@ -12,6 +12,7 @@ import { ColumnSelector } from "@/components/ads-manager/ColumnSelector";
 import { TableActionBar } from "@/components/ads-manager/TableActionBar";
 import { BulkActionBar } from "@/components/ads-manager/BulkActionBar";
 import { AdsManagerTable } from "@/components/ads-manager/AdsManagerTable";
+import { AdsExecutiveSummary } from "@/components/ads-manager/AdsExecutiveSummary";
 import { EditCampaignModal } from "@/components/ads-manager/EditCampaignModal";
 import { EditAdSetModal } from "@/components/ads-manager/EditAdSetModal";
 import { EditAdModal } from "@/components/ads-manager/EditAdModal";
@@ -122,6 +123,7 @@ function AdsManagerContent() {
 
   // Active level tab
   const [activeLevel, setActiveLevel] = useState<"campaigns" | "adsets" | "ads">("campaigns");
+  const [viewMode, setViewMode] = useState<"health" | "expert">("health");
 
   // Data lists
   const [campaigns, setCampaigns] = useState<any[]>([]);
@@ -1013,6 +1015,48 @@ function AdsManagerContent() {
         </div>
       </div>
 
+      {!isEmbedded && (
+        <div style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 10,
+          padding: "2px 2px 0",
+        }}>
+          <div style={{ display: "inline-flex", padding: 3, borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            {([
+              ["health", "Salud ejecutiva"],
+              ["expert", "Tabla experta"],
+            ] as const).map(([mode, label]) => {
+              const active = viewMode === mode;
+              return (
+                <button
+                  key={mode}
+                  onClick={() => setViewMode(mode)}
+                  style={{
+                    padding: "7px 12px",
+                    borderRadius: 6,
+                    border: "none",
+                    background: active ? "rgba(0,129,251,0.18)" : "transparent",
+                    color: active ? "#60a5fa" : "#94a3b8",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    cursor: "pointer",
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <div style={{ fontSize: 11, color: "#64748b" }}>
+            Revisa riesgos antes de aplicar cambios en Meta.
+          </div>
+        </div>
+      )}
+
+      {viewMode === "expert" && (
+      <>
       {/* ── FILTER BAR ── */}
       <FilterPanel
         activeFilters={activeFilters}
@@ -1098,9 +1142,25 @@ function AdsManagerContent() {
           <ColumnPresets currentColumns={visibleColumns} onApply={handleColumnsChange} />
         </div>
       </TableActionBar>
+      </>
+      )}
       </div>
 
       {/* ── TABLE CONTAINER ── */}
+      {viewMode === "health" && !isEmbedded ? (
+        <div style={{ flex: 1, overflowY: "auto", padding: "4px 12px 18px", minHeight: 0 }}>
+          <AdsExecutiveSummary
+            campaigns={campaigns}
+            adsets={adsets}
+            ads={ads}
+            loading={loadingData}
+            error={error}
+            lastSynced={lastSynced}
+            onOpenExpert={() => setViewMode("expert")}
+            onRefresh={() => { fetchData(); setLastSynced(new Date()); }}
+          />
+        </div>
+      ) : (
       <div style={{ position: "relative", flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", padding: "4px 12px 0", minHeight: 0 }}>
         {loadingData && (
           <div
@@ -1145,6 +1205,7 @@ function AdsManagerContent() {
           selectedBreakdown={selectedBreakdown}
         />
       </div>
+      )}
 
       <BulkActionBar
         selectedCount={selectedIds.length}

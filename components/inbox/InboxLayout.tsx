@@ -1,6 +1,7 @@
 ﻿"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useSession } from "next-auth/react";
 
 import {
   Search, Send, X, ChevronRight, ChevronDown, ChevronUp, UserPlus, Tag, Clock,
@@ -114,6 +115,7 @@ function getPlatformConfig(platform: Platform) {
 }
 
 type ChannelFilter = "all" | "messenger" | "instagram" | "fb_comment" | "ig_comment";
+type QueueFilter = "all" | "unassigned" | "mine" | "needs_reply" | "done";
 
 const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; platforms: Platform[] }[] = [
   { key: "all", label: "Todos los mensajes", color: "#00d4ff", platforms: [] },
@@ -121,6 +123,14 @@ const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; platform
   { key: "instagram", label: "Instagram", color: "#E1306C", platforms: ["ig_dm"] },
   { key: "fb_comment", label: "Comentarios de Facebook", color: "#1877F2", platforms: ["fb_comment"] },
   { key: "ig_comment", label: "Comentarios de Instagram", color: "#F77737", platforms: ["ig_comment", "instagram_comment"] },
+];
+
+const QUEUE_TABS: { key: QueueFilter; label: string; color: string }[] = [
+  { key: "all", label: "Todo", color: "#00d4ff" },
+  { key: "unassigned", label: "Sin asignar", color: "#fbbf24" },
+  { key: "mine", label: "Mias", color: "#22c55e" },
+  { key: "needs_reply", label: "Requiere respuesta", color: "#fb7185" },
+  { key: "done", label: "Cerradas", color: "#94a3b8" },
 ];
 
 function getInitials(name: string): string {
@@ -577,6 +587,7 @@ function PostView({ conversation }: { conversation: Conversation }) {
 // ═══════════════════════════════════════════════════════════════
 
 export function InboxLayout() {
+  const { data: session } = useSession();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [showProfile, setShowProfile] = useState(true);
@@ -585,6 +596,8 @@ export function InboxLayout() {
   const [connectedPages, setConnectedPages] = useState<ConnectedPage[]>([]);
   const [selectedPage, setSelectedPage] = useState<ConnectedPage | null>(null);
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
+  const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
+  const currentAssignee = session?.user?.name || "Ana";
 
   // Fetch connected pages
   useEffect(() => {
@@ -730,6 +743,10 @@ export function InboxLayout() {
       const tab = CHANNEL_TABS.find(t => t.key === channelFilter);
       if (tab && tab.platforms.length > 0 && !tab.platforms.includes(c.platform)) return false;
     }
+    if (queueFilter === "unassigned" && c.assignedTo) return false;
+    if (queueFilter === "mine" && c.assignedTo !== currentAssignee) return false;
+    if (queueFilter === "needs_reply" && (c.closed || !c.unread)) return false;
+    if (queueFilter === "done" && !c.closed) return false;
     return true;
   });
 
@@ -742,7 +759,7 @@ export function InboxLayout() {
       setSelectedId(filtered[0].id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelFilter]);
+  }, [channelFilter, queueFilter]);
 
   const handleSendMessage = (text: string) => {
     if (!text.trim()) return;
@@ -961,6 +978,77 @@ export function InboxLayout() {
               </button>
             );
           })}
+        </div>
+      )}
+
+      {conversations.length > 0 && initialFetchDone && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            padding: "8px 12px",
+            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            overflowX: "auto",
+            flexShrink: 0,
+            background: "rgba(255,255,255,0.02)",
+          }}
+        >
+          {QUEUE_TABS.map((tab) => {
+            const total = conversations.filter((c) => {
+              if (tab.key === "all") return true;
+              if (tab.key === "unassigned") return !c.assignedTo;
+              if (tab.key === "mine") return c.assignedTo === currentAssignee;
+              if (tab.key === "needs_reply") return !c.closed && c.unread;
+              if (tab.key === "done") return c.closed;
+              return true;
+            }).length;
+            const isActive = queueFilter === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setQueueFilter(tab.key)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  padding: "6px 10px",
+                  borderRadius: 999,
+                  border: `1px solid ${isActive ? `${tab.color}55` : "rgba(255,255,255,0.08)"}`,
+                  background: isActive ? `${tab.color}18` : "rgba(255,255,255,0.03)",
+                  color: isActive ? tab.color : "#94a3b8",
+                  fontSize: 11,
+                  fontWeight: 700,
+                  whiteSpace: "nowrap",
+                  cursor: "pointer",
+                }}
+              >
+                {tab.label}
+                <span
+                  style={{
+                    minWidth: 18,
+                    height: 18,
+                    borderRadius: 9,
+                    padding: "0 5px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    background: isActive ? `${tab.color}2b` : "rgba(148,163,184,0.16)",
+                    color: isActive ? tab.color : "#94a3b8",
+                    fontSize: 10,
+                  }}
+                >
+                  {total}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {conversations.length > 0 && !selected && initialFetchDone && (
+        <div style={{ padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
+          No hay conversaciones en esta vista. Cambia el filtro de cola o canal para revisar otros mensajes.
         </div>
       )}
 

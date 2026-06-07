@@ -9,12 +9,35 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
+function createMissingDatabaseClient(): PrismaClient {
+  const message = "[Prisma] DATABASE_URL is required before executing database queries.";
+  const throwingFunction = () => {
+    throw new Error(message);
+  };
+
+  return new Proxy(
+    {},
+    {
+      get() {
+        return new Proxy(throwingFunction, {
+          get() {
+            return throwingFunction;
+          },
+          apply() {
+            return throwingFunction();
+          },
+        });
+      },
+    }
+  ) as PrismaClient;
+}
+
 function createPrismaClient(): PrismaClient {
   let connectionString = process.env.DATABASE_URL;
 
   if (!connectionString) {
-    console.warn("[Prisma] DATABASE_URL not set — queries will fail");
-    return new PrismaClient({ adapter: undefined as any });
+    console.warn("[Prisma] DATABASE_URL not set - database queries will fail if executed");
+    return createMissingDatabaseClient();
   }
 
   // Suppress the node-postgres warning about sslmode=require

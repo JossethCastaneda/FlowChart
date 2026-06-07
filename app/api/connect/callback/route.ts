@@ -4,6 +4,8 @@ import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
 
+const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
+
 /**
  * GET /api/connect/callback
  * Facebook OAuth callback — exchanges code for token and saves to Integration table.
@@ -84,7 +86,7 @@ export async function GET(request: NextRequest) {
 
   try {
     // 1. Exchange code for short-lived token
-    const tokenUrl = new URL("https://graph.facebook.com/v22.0/oauth/access_token");
+    const tokenUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
     tokenUrl.searchParams.set("client_id", clientId);
     tokenUrl.searchParams.set("client_secret", clientSecret);
     tokenUrl.searchParams.set("redirect_uri", redirectUri);
@@ -102,7 +104,7 @@ export async function GET(request: NextRequest) {
 
     // 2. Exchange for long-lived token (~60 days)
     try {
-      const llUrl = new URL("https://graph.facebook.com/v22.0/oauth/access_token");
+      const llUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
       llUrl.searchParams.set("grant_type", "fb_exchange_token");
       llUrl.searchParams.set("client_id", clientId);
       llUrl.searchParams.set("client_secret", clientSecret);
@@ -122,7 +124,7 @@ export async function GET(request: NextRequest) {
     let pages: any[] = [];
     try {
       const pagesRes = await fetch(
-        `https://graph.facebook.com/v22.0/me/accounts?fields=id,name,access_token,picture,instagram_business_account&limit=100`,
+        `https://graph.facebook.com/${META_API_VERSION}/me/accounts?fields=id,name,access_token,picture,instagram_business_account&limit=100`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       const pagesData = await pagesRes.json();

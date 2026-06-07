@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { metaFetch } from "@/lib/server-auth";
+import { decryptToken } from "@/lib/encryption";
 
 const META_VERSION = process.env.META_API_VERSION || "v25.0";
 
@@ -119,7 +120,14 @@ async function publishSinglePost(
       return { id: post.id, status: "Failed", error: "No token" };
     }
 
-    const accessToken = (integration.credentials as any).accessToken;
+    const accessToken = decryptToken((integration.credentials as any).accessToken);
+    if (!accessToken || accessToken.startsWith("enc:")) {
+      await prisma.scheduledPost.update({
+        where: { id: post.id },
+        data: { status: "Failed", error: "Meta token could not be decrypted" },
+      });
+      return { id: post.id, status: "Failed", error: "Invalid token" };
+    }
 
     // Get pages
     const pagesUrl = `https://graph.facebook.com/${META_VERSION}/me/accounts?fields=id,name,access_token,instagram_business_account{id}&limit=100`;

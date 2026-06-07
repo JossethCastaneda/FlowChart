@@ -93,6 +93,7 @@ export function AnalyticsDashboard() {
   const [audienceAge, setAudienceAge] = useState<any[]>([]);
   const [audienceGender, setAudienceGender] = useState<any[]>([]);
   const [audienceLocation, setAudienceLocation] = useState<any[]>([]);
+  const [dataNotices, setDataNotices] = useState<string[]>([]);
 
   // ── Filter state ──
   const [filterPlatform, setFilterPlatform] = useState<Platform>("all");
@@ -101,6 +102,10 @@ export function AnalyticsDashboard() {
   const handleFilterChange = useCallback((platform: Platform, selectedIds: string[]) => {
     setFilterPlatform(platform);
     setFilterAccountIds(selectedIds);
+  }, []);
+
+  const addDataNotice = useCallback((message: string) => {
+    setDataNotices((prev) => (prev.includes(message) ? prev : [...prev, message]));
   }, []);
 
   // Extract raw page IDs from filter keys (fb_123 → 123, ig_456 → 456)
@@ -114,6 +119,7 @@ export function AnalyticsDashboard() {
     if (filterAccountIds.length === 0) return;
 
     const fetchData = async () => {
+      setDataNotices([]);
       // Build page ID query string for server-side filtering
       const pageIdParam = filterPageIds.length > 0 ? `&pageIds=${filterPageIds.join(",")}` : "";
       const platformParam = filterPlatform !== "all" ? `&platform=${filterPlatform}` : "";
@@ -133,7 +139,9 @@ export function AnalyticsDashboard() {
             // Data loaded from API
           }
         }
-      } catch { /* fallback to demo */ }
+      } catch {
+        addDataNotice("No se pudieron actualizar KPIs organicos. El resto del reporte puede estar parcial.");
+      }
 
       try {
         // Fetch posts
@@ -154,7 +162,9 @@ export function AnalyticsDashboard() {
             })));
           }
         }
-      } catch { /* fallback to demo */ }
+      } catch {
+        addDataNotice("No se pudieron cargar posts recientes desde Meta.");
+      }
 
       try {
         // Fetch audience
@@ -172,10 +182,12 @@ export function AnalyticsDashboard() {
           }
           if (audData.location?.length) setAudienceLocation(audData.location);
         }
-      } catch { /* fallback to demo */ }
+      } catch {
+        addDataNotice("No se pudieron cargar datos de audiencia. Revisa permisos de insights.");
+      }
     };
     fetchData();
-  }, [filterPlatform, filterAccountIds]);
+  }, [filterPlatform, filterAccountIds, filterPageIds, addDataNotice]);
 
   // Filter posts by selected platform
   const filteredPosts = useMemo(() => {
@@ -198,6 +210,32 @@ export function AnalyticsDashboard() {
 
       {/* ─── FILTERS BAR ─── */}
       <AnalyticsFilters onFilterChange={handleFilterChange} />
+
+      {dataNotices.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            gap: 10,
+            alignItems: "flex-start",
+            padding: "12px 14px",
+            borderRadius: 8,
+            border: "1px solid rgba(251,191,36,0.24)",
+            background: "rgba(251,191,36,0.08)",
+            color: "#fbbf24",
+            fontSize: 12,
+          }}
+        >
+          <Info style={{ width: 15, height: 15, flexShrink: 0, marginTop: 1 }} />
+          <div>
+            <strong style={{ color: "#fde68a" }}>Datos parciales</strong>
+            <div style={{ marginTop: 4, display: "flex", flexDirection: "column", gap: 3 }}>
+              {dataNotices.map((notice) => (
+                <span key={notice}>{notice}</span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tab Navigation */}
       <div className="flex space-x-1 glass-panel p-1 w-fit">

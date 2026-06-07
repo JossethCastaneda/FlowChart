@@ -105,11 +105,11 @@
   align-items: center;
   gap: 12px;
   padding: 10px 16px;
-  font-family: 'Orbitron', sans-serif;
-  font-size: 11px;
+  font-family: var(--font-sans);
+  font-size: 13px;
   font-weight: 600;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   color: rgba(148,163,184,0.8);      /* ↑ was 0.7 */
   transition: all 0.25s ease;
   position: relative;
@@ -430,8 +430,8 @@ select option:disabled { color: rgba(148,163,184,0.55); }
   .nav-full-name        { display: none; }
   .nav-short-name {
     display: block; flex: 1;
-    font-family: 'Orbitron', sans-serif;
-    font-size: 9px; font-weight: 600; letter-spacing: 0.1em;
+    font-family: var(--font-sans);
+    font-size: 10px; font-weight: 700; letter-spacing: 0;
   }
   .nav-item {
     flex-direction: column; gap: 4px;

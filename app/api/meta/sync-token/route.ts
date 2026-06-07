@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
-import { saveMetaTokenToWorkspace } from "@/lib/server-auth";
+import { META_API_VERSION, saveMetaTokenToWorkspace } from "@/lib/server-auth";
 
 /**
  * POST: Force-sync the current user's Meta token from JWT to the Integration table.
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     // Verify the token works with Meta
     const { metaFetch: mf } = await import("@/lib/server-auth");
-    const testRes = await mf(`https://graph.facebook.com/v22.0/me`, metaToken);
+    const testRes = await mf(`https://graph.facebook.com/${META_API_VERSION}/me`, metaToken);
     if (!testRes.ok) {
       return NextResponse.json(
         { error: "Tu token de Meta expiró. Vuelve a iniciar sesión con Facebook." },
