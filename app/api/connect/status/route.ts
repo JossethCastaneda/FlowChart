@@ -3,13 +3,15 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
 
+const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+
 /**
  * GET /api/connect/status
  * Returns the connection status for all modules.
  * Response: { modules: { social, ads, analytics, community }, pages: [...], tokenExpiresSoon }
  */
 export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
+  const jwt = await getToken({ req: request, secret: AUTH_SECRET });
   if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
 
   const workspaceId = await getActiveWorkspaceId(jwt.sub);

@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
 
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
+const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
 /**
  * GET /api/connect/callback
@@ -32,15 +33,15 @@ export async function GET(request: NextRequest) {
   }
 
   // ── SECURITY: Verify active session ──
-  const jwt = await getToken({ req: request as any });
+  const jwt = await getToken({ req: request as any, secret: AUTH_SECRET });
   if (!jwt?.sub) {
     return NextResponse.redirect(`${baseUrl}/login`);
   }
 
   // ── SECURITY: Verify HMAC signature on state ──
-  const secret = process.env.NEXTAUTH_SECRET;
+  const secret = AUTH_SECRET;
   if (!secret) {
-    console.error("[CONNECT CALLBACK] NEXTAUTH_SECRET not configured");
+    console.error("[CONNECT CALLBACK] NEXTAUTH_SECRET/AUTH_SECRET not configured");
     return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=server_error`);
   }
 

@@ -3,7 +3,7 @@ import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-a
 import { mapMetaError } from "@/lib/meta-errors";
 
 export async function POST(req: NextRequest) {
-  const accessToken = await getMetaAccessToken(req);
+  const accessToken = await getMetaAccessToken(req, "ads");
   if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }

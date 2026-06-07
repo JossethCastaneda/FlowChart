@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { createHmac } from "crypto";
 
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
+const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
 /**
  * GET /api/connect/[module]
@@ -45,7 +46,7 @@ const CONFIG_MAP: Record<string, { envKey: string; fallback: string; label: stri
   },
   community: {
     envKey: "FACEBOOK_COMMUNITY_CONFIG_ID",
-    fallback: "1019626107702535",
+    fallback: "3030320280494722",
     label: "Community Management",
   },
 };
@@ -58,7 +59,7 @@ export async function GET(
   const { module } = await params;
 
   // Auth check
-  const jwt = await getToken({ req: request });
+  const jwt = await getToken({ req: request, secret: AUTH_SECRET });
   if (!jwt?.sub) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
@@ -76,9 +77,9 @@ export async function GET(
     return NextResponse.json({ error: "FACEBOOK_CLIENT_ID not configured" }, { status: 500 });
   }
 
-  const secret = process.env.NEXTAUTH_SECRET;
+  const secret = AUTH_SECRET;
   if (!secret) {
-    return NextResponse.json({ error: "NEXTAUTH_SECRET not configured" }, { status: 500 });
+    return NextResponse.json({ error: "NEXTAUTH_SECRET/AUTH_SECRET not configured" }, { status: 500 });
   }
 
   const configId = process.env[config.envKey] || (process.env.NODE_ENV === "production" ? "" : config.fallback);

@@ -3,20 +3,50 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { metaFetch , META_API_VERSION } from "@/lib/server-auth";
+import { metaFetch, META_API_VERSION } from "@/lib/server-auth";
+import { decryptToken } from "@/lib/encryption";
 
-const META_VERSION = META_API_VERSION;
+const MODULE_PROVIDER_MAP: Record<string, string> = {
+  publisher_facebook: "meta_publisher_facebook",
+  publisher_instagram: "meta_publisher_instagram",
+  social: "meta_social",
+  ads: "meta_ads",
+  analytics: "meta_analytics",
+  community: "meta_community",
+};
+
+const REQUIRED_SCOPES_BY_MODULE: Record<string, string[]> = {
+  ads: ["ads_read", "ads_management"],
+  analytics: ["read_insights", "pages_read_engagement"],
+  community: ["pages_messaging", "instagram_manage_messages", "instagram_manage_comments"],
+  publisher_facebook: ["pages_show_list", "pages_read_engagement", "pages_manage_posts"],
+  publisher_instagram: ["pages_show_list", "instagram_basic", "instagram_content_publish"],
+  social: ["pages_show_list", "pages_read_engagement"],
+  meta: ["pages_show_list", "pages_manage_posts", "instagram_business_content_publish"],
+};
+
+type IntegrationCredentials = {
+  accessToken?: unknown;
+  expiresAt?: unknown;
+};
+
+type MetaPermission = {
+  permission?: string;
+  status?: string;
+};
+
+type MetaPage = {
+  instagram_business_account?: {
+    id?: string;
+  };
+};
 
 /**
- * GET /api/meta/connection-status
+ * GET /api/meta/connection-status?module=ads
  *
- * Returns the current Meta integration status for the workspace:
- * - connected: boolean
- * - tokenValid: boolean (tested against Meta API)
- * - expiresAt: string | null
- * - scopes: string[] (granted permissions)
- * - pages: number (count of accessible pages)
- * - igAccounts: number (count of linked IG business accounts)
+ * Validates the active workspace Meta integration. When module is provided,
+ * the module-specific token is checked first (for example meta_ads), then the
+ * generic meta token is used only as a fallback.
  */
 export async function GET(req: NextRequest) {
   try {
@@ -30,78 +60,88 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
     }
 
-    const integration = await prisma.integration.findUnique({
-      where: {
-        workspaceId_provider: { workspaceId, provider: "meta" },
-      },
+    const requestedModule = req.nextUrl.searchParams.get("module") || "meta";
+    const provider = MODULE_PROVIDER_MAP[requestedModule] || "meta";
+    const moduleIntegration = provider === "meta"
+      ? null
+      : await prisma.integration.findUnique({
+          where: { workspaceId_provider: { workspaceId, provider } },
+        });
+    const genericIntegration = await prisma.integration.findUnique({
+      where: { workspaceId_provider: { workspaceId, provider: "meta" } },
     });
+    const integration = moduleIntegration || genericIntegration;
+    const providerUsed = integration?.provider || null;
 
     if (!integration?.connected || !integration.credentials) {
       return NextResponse.json({
         connected: false,
         tokenValid: false,
+        module: requestedModule,
+        provider,
+        providerUsed,
         expiresAt: null,
         scopes: [],
         pages: 0,
         igAccounts: 0,
-        message: "No hay integración de Meta conectada",
+        message: `No hay integracion de Meta conectada para ${requestedModule}`,
       });
     }
 
-    const creds = integration.credentials as any;
-    const accessToken = creds?.accessToken;
-    const expiresAt = creds?.expiresAt || null;
+    const creds = integration.credentials as IntegrationCredentials;
+    const encryptedAccessToken = typeof creds.accessToken === "string" ? creds.accessToken : undefined;
+    const accessToken = decryptToken(encryptedAccessToken);
+    const expiresAt = typeof creds.expiresAt === "string" ? creds.expiresAt : null;
 
-    if (!accessToken) {
+    if (!accessToken || accessToken.startsWith("enc:")) {
       return NextResponse.json({
         connected: true,
         tokenValid: false,
+        module: requestedModule,
+        provider,
+        providerUsed,
         expiresAt,
         scopes: [],
         pages: 0,
         igAccounts: 0,
-        message: "Token no encontrado",
+        message: "Token no encontrado o no se pudo descifrar",
       });
     }
 
-    // Test the token by calling /me
     let tokenValid = false;
     let scopes: string[] = [];
     let pagesCount = 0;
     let igAccountsCount = 0;
 
     try {
-      // Check token validity + granted scopes
-      const debugRes = await metaFetch(
-        `https://graph.facebook.com/${META_VERSION}/me/permissions`,
+      const permissionsRes = await metaFetch(
+        `https://graph.facebook.com/${META_API_VERSION}/me/permissions`,
         accessToken
       );
-      const debugData = await debugRes.json();
+      const permissionsData = await permissionsRes.json() as { data?: MetaPermission[] };
 
-      if (debugRes.ok && debugData.data) {
+      if (permissionsRes.ok && permissionsData.data) {
         tokenValid = true;
-        scopes = debugData.data
-          .filter((p: any) => p.status === "granted")
-          .map((p: any) => p.permission);
+        scopes = permissionsData.data
+          .filter((permission) => permission.status === "granted" && typeof permission.permission === "string")
+          .map((permission) => permission.permission as string);
       }
 
-      // Count pages
       const pagesRes = await metaFetch(
-        `https://graph.facebook.com/${META_VERSION}/me/accounts?fields=id,instagram_business_account{id}&limit=100`,
+        `https://graph.facebook.com/${META_API_VERSION}/me/accounts?fields=id,instagram_business_account{id}&limit=100`,
         accessToken
       );
-      const pagesData = await pagesRes.json();
+      const pagesData = await pagesRes.json() as { data?: MetaPage[] };
       if (pagesRes.ok && pagesData.data) {
         pagesCount = pagesData.data.length;
         igAccountsCount = pagesData.data.filter(
-          (p: any) => p.instagram_business_account?.id
+          (page) => page.instagram_business_account?.id
         ).length;
       }
     } catch {
       tokenValid = false;
     }
 
-    // Check if token is expiring soon (< 7 days)
     let expiringWarning: string | null = null;
     if (expiresAt) {
       const daysUntilExpiry = Math.floor(
@@ -110,29 +150,26 @@ export async function GET(req: NextRequest) {
       if (daysUntilExpiry < 0) {
         expiringWarning = "Token expirado. Reconecta tu cuenta.";
       } else if (daysUntilExpiry < 7) {
-        expiringWarning = `Token expira en ${daysUntilExpiry} días. Reconecta para renovar.`;
+        expiringWarning = `Token expira en ${daysUntilExpiry} dias. Reconecta para renovar.`;
       }
     }
 
-    // Check critical scopes
-    const requiredScopes = [
-      "pages_show_list",
-      "pages_manage_posts",
-      "instagram_business_content_publish",
-    ];
-    const missingScopes = requiredScopes.filter((s) => !scopes.includes(s));
-    // Also check old scope names as fallback
+    const requiredScopes = REQUIRED_SCOPES_BY_MODULE[requestedModule] || REQUIRED_SCOPES_BY_MODULE.meta;
+    const missingScopes = requiredScopes.filter((scope) => !scopes.includes(scope));
     const oldScopeMap: Record<string, string> = {
       instagram_business_content_publish: "instagram_content_publish",
     };
-    const actuallyMissing = missingScopes.filter((s) => {
-      const oldName = oldScopeMap[s];
+    const actuallyMissing = missingScopes.filter((scope) => {
+      const oldName = oldScopeMap[scope];
       return !oldName || !scopes.includes(oldName);
     });
 
     return NextResponse.json({
       connected: true,
       tokenValid,
+      module: requestedModule,
+      provider,
+      providerUsed,
       expiresAt,
       expiringWarning,
       scopes,
@@ -142,8 +179,8 @@ export async function GET(req: NextRequest) {
       connectedAt: integration.connectedAt?.toISOString() || null,
       connectedBy: integration.connectedBy || null,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("[META STATUS] Error:", err);
-    return NextResponse.json({ error: err?.message || "Error" }, { status: 500 });
+    return NextResponse.json({ error: err instanceof Error ? err.message : "Error" }, { status: 500 });
   }
 }

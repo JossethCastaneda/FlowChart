@@ -6,6 +6,7 @@ import { encryptToken, decryptToken } from "@/lib/encryption";
 
 /** Centralized Meta Graph API version — use this everywhere, never hardcode */
 export const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
+const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
 /**
  * Module-to-provider mapping for config_id-specific tokens.
@@ -44,7 +45,7 @@ export async function getMetaAccessToken(
   module?: string
 ): Promise<string | null> {
   try {
-    const jwtToken = await getToken({ req: request as NextRequest });
+    const jwtToken = await getToken({ req: request as NextRequest, secret: AUTH_SECRET });
     if (!jwtToken?.sub) return null;
 
     const userId = jwtToken.sub;

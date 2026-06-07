@@ -5,6 +5,8 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import { META_API_VERSION, saveMetaTokenToWorkspace } from "@/lib/server-auth";
 
+const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+
 /**
  * POST: Force-sync the current user's Meta token from JWT to the Integration table.
  * 
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Get the JWT token which has the Meta accessToken
-    const token = await getToken({ req });
+    const token = await getToken({ req, secret: AUTH_SECRET });
     const metaToken = token?.accessToken as string | undefined;
 
     if (!metaToken) {
