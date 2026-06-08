@@ -80,9 +80,10 @@ export async function listSessions(
     `/sessions?from=${encodeURIComponent(fromISO)}&to=${encodeURIComponent(toISO)}&include-messages=true&include-events=true`;
   let pages = 0;
   while (next && pages < maxPages) {
-    const res: Response = next.startsWith("http")
-      ? await fetch(next, { headers: { Accept: "application/json", "access-token": token } })
-      : await botmakerFetch(next, token);
+    // Always route through botmakerFetch for consistent retry/headers.
+    // If BotMaker returns a full URL as nextPage, extract the path.
+    const path = next.startsWith("http") ? new URL(next).pathname + new URL(next).search : next;
+    const res = await botmakerFetch(path, token);
     if (!res.ok) break;
     const data = await res.json();
     if (Array.isArray(data.items)) all.push(...data.items);

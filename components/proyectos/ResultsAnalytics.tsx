@@ -60,7 +60,7 @@ export function ResultsAnalytics({ project }: { project: Project }) {
         setBotErrors(d.botErrors || []);
         if (typeof d.connected === "boolean") setConnected(d.connected);
       })
-      .catch(() => {})
+      .catch((err) => { console.error("[ResultsAnalytics] fetch error:", err); setErrorMsg("Error de red al consultar analíticas"); })
       .finally(() => setLoading(false));
   }, [channelId]);
 
@@ -94,7 +94,7 @@ export function ResultsAnalytics({ project }: { project: Project }) {
       {channels.length > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 11, color: "#64748b" }}>Canal:</span>
-          <select value={channelId} onChange={(e) => setChannelId(e.target.value)} style={{ fontSize: 12, padding: "5px 10px", borderRadius: 6, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", outline: "none", cursor: "pointer" }}>
+          <select value={channelId} onChange={(e) => setChannelId(e.target.value)} aria-label="Seleccionar canal" style={{ fontSize: 12, padding: "5px 10px", borderRadius: 6, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", outline: "none", cursor: "pointer" }}>
             {channels.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.platform})</option>)}
           </select>
         </div>
