@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { AnalyticsFilters, type Platform } from "./AnalyticsFilters";
 import { ComparisonControl, compareLabel, type ComparisonState, type CompareMode } from "./ComparisonControl";
 
@@ -30,6 +30,7 @@ import {
   Film,
   Star,
   Loader2,
+  Check,
 } from "lucide-react";
 
 // Channel icon lookup (lucide-react has no brand icons)
@@ -755,10 +756,119 @@ function PostMediaBlock({ image, mediaType, channel }: { image: string | null; m
    ══════════════════════════════════════════════════════════ */
 type SortKey = "reach" | "likes" | "comments" | "shares" | "engagement" | "date";
 
+// Configurable columns for the Posts table. `always` columns can't be hidden.
+// Extend this array to add a column — no other change needed.
+type PostColumn = { key: string; label: string; sortable?: SortKey; always?: boolean };
+const POST_COLUMNS: PostColumn[] = [
+  { key: "post", label: "Post", always: true },
+  { key: "channel", label: "Canal" },
+  { key: "format", label: "Formato" },
+  { key: "date", label: "Fecha", sortable: "date" },
+  { key: "reach", label: "Alcance", sortable: "reach" },
+  { key: "likes", label: "Likes", sortable: "likes" },
+  { key: "comments", label: "Comentarios", sortable: "comments" },
+  { key: "shares", label: "Compartidos", sortable: "shares" },
+  { key: "engagement", label: "Eng. Rate", sortable: "engagement" },
+];
+const POST_COLS_KEY = "sodare:analytics-post-cols";
+const DEFAULT_POST_COLS = POST_COLUMNS.filter((c) => c.key !== "format").map((c) => c.key);
+
+/** Render a single Posts-table cell by column key. */
+function renderPostCell(key: string, p: any): React.ReactNode {
+  switch (key) {
+    case "post": {
+      return (
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <PostMediaThumb image={p.image} mediaType={p.mediaType} channel={p.channel} />
+          <div style={{ minWidth: 0 }}>
+            <div style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+              {p.text || <span style={{ color: "#64748b", fontStyle: "italic" }}>{formatBadge(p.mediaType).label}</span>}
+            </div>
+            {p.permalink && (
+              <a href={p.permalink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#00d4ff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3, marginTop: 2 }}>
+                Ver publicación <ArrowUpRight style={{ width: 10, height: 10 }} />
+              </a>
+            )}
+          </div>
+        </div>
+      );
+    }
+    case "channel": {
+      const ChannelIcon = ChannelIcons[p.channel] || ThumbsUp;
+      return (
+        <div className="flex items-center gap-2">
+          <ChannelIcon style={{ width: 14, height: 14, color: p.channel === "Instagram" ? "#E1306C" : "#1877F2" }} />
+          <span style={{ fontSize: 11, color: "#94a3b8" }}>{p.channel}</span>
+        </div>
+      );
+    }
+    case "format": {
+      const b = formatBadge(p.mediaType);
+      const Icon = b.icon;
+      return (
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11, color: "#94a3b8" }}>
+          <Icon style={{ width: 12, height: 12 }} /> {b.label}
+        </span>
+      );
+    }
+    case "date":
+      return <span style={{ fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap" }}>{p.date}</span>;
+    case "reach":
+      return <span style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{(p.reach || 0).toLocaleString()}</span>;
+    case "likes":
+      return <span style={{ fontSize: 12, color: "#e2e8f0" }}>{(p.likes || 0).toLocaleString()}</span>;
+    case "comments":
+      return <span style={{ fontSize: 12, color: "#e2e8f0" }}>{p.comments}</span>;
+    case "shares":
+      return <span style={{ fontSize: 12, color: "#e2e8f0" }}>{p.shares}</span>;
+    case "engagement":
+      return (
+        <span style={{ fontSize: 11, fontWeight: 600, color: "#f472b6", padding: "3px 10px", borderRadius: 6, background: "rgba(244,114,182,0.08)", border: "1px solid rgba(244,114,182,0.15)" }}>
+          {p.engagement}%
+        </span>
+      );
+    default:
+      return null;
+  }
+}
+
 function TabPosts({ posts }: { posts: any[] }) {
   const [viewMode, setViewMode] = useState<"table" | "card">("table");
   const [sortKey, setSortKey] = useState<SortKey>("reach");
   const [sortAsc, setSortAsc] = useState(false);
+
+  // ── Configurable columns (persisted per user) ──
+  const [visibleCols, setVisibleCols] = useState<string[]>(DEFAULT_POST_COLS);
+  const [colMenuOpen, setColMenuOpen] = useState(false);
+  const colMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(POST_COLS_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (Array.isArray(saved)) setVisibleCols(saved);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (colMenuRef.current && !colMenuRef.current.contains(e.target as Node)) setColMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
+
+  const toggleCol = (key: string) => {
+    setVisibleCols((prev) => {
+      const next = prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key];
+      try { localStorage.setItem(POST_COLS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  const cols = POST_COLUMNS.filter((c) => c.always || visibleCols.includes(c.key));
 
   const sorted = useMemo(() => {
     const copy = [...posts];
@@ -805,23 +915,83 @@ function TabPosts({ posts }: { posts: any[] }) {
         >
           Rendimiento de Posts
         </span>
-        <div className="flex space-x-1 glass-panel p-1">
-          <button
-            onClick={() => setViewMode("table")}
-            className={`p-2 rounded-lg transition-all ${
-              viewMode === "table" ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
-            }`}
-          >
-            <List style={{ width: 16, height: 16 }} />
-          </button>
-          <button
-            onClick={() => setViewMode("card")}
-            className={`p-2 rounded-lg transition-all ${
-              viewMode === "card" ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
-            }`}
-          >
-            <Grid3X3 style={{ width: 16, height: 16 }} />
-          </button>
+        <div className="flex items-center gap-2">
+          {/* Column selector (table view only) */}
+          {viewMode === "table" && (
+            <div ref={colMenuRef} style={{ position: "relative" }}>
+              <button
+                onClick={() => setColMenuOpen((o) => !o)}
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: 6,
+                  padding: "7px 12px", borderRadius: 8,
+                  background: "rgba(255,255,255,0.04)",
+                  border: `1px solid ${colMenuOpen ? "rgba(0,212,255,0.3)" : "rgba(255,255,255,0.08)"}`,
+                  color: "#94a3b8", fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                <List style={{ width: 14, height: 14 }} />
+                Columnas
+                <ChevronDown style={{ width: 13, height: 13, opacity: 0.7 }} />
+              </button>
+              {colMenuOpen && (
+                <div style={{
+                  position: "absolute", top: "calc(100% + 6px)", right: 0, minWidth: 200, zIndex: 100,
+                  background: "#0c1222", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 10,
+                  overflow: "hidden", boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                }}>
+                  <div style={{ padding: "8px 12px", fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    Mostrar columnas
+                  </div>
+                  {POST_COLUMNS.map((c) => {
+                    const checked = c.always || visibleCols.includes(c.key);
+                    return (
+                      <button
+                        key={c.key}
+                        onClick={() => !c.always && toggleCol(c.key)}
+                        disabled={c.always}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 10, width: "100%",
+                          padding: "9px 12px", background: "transparent",
+                          border: "none", borderBottom: "1px solid rgba(255,255,255,0.03)",
+                          color: c.always ? "#64748b" : "#e2e8f0", fontSize: 12,
+                          cursor: c.always ? "default" : "pointer", textAlign: "left", fontFamily: "inherit",
+                        }}
+                      >
+                        <div style={{
+                          width: 16, height: 16, borderRadius: 4, flexShrink: 0,
+                          border: checked ? "none" : "1.5px solid rgba(255,255,255,0.25)",
+                          background: checked ? "#00d4ff" : "transparent",
+                          display: "flex", alignItems: "center", justifyContent: "center",
+                        }}>
+                          {checked && <Check style={{ width: 11, height: 11, color: "#0a0f1e" }} />}
+                        </div>
+                        {c.label}{c.always && <span style={{ fontSize: 9, color: "#475569" }}>(fija)</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
+          <div className="flex space-x-1 glass-panel p-1">
+            <button
+              onClick={() => setViewMode("table")}
+              className={`p-2 rounded-lg transition-all ${
+                viewMode === "table" ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+              }`}
+            >
+              <List style={{ width: 16, height: 16 }} />
+            </button>
+            <button
+              onClick={() => setViewMode("card")}
+              className={`p-2 rounded-lg transition-all ${
+                viewMode === "card" ? "bg-white/10 text-white" : "text-slate-500 hover:text-slate-300"
+              }`}
+            >
+              <Grid3X3 style={{ width: 16, height: 16 }} />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -830,19 +1000,10 @@ function TabPosts({ posts }: { posts: any[] }) {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {[
-                  { key: null, label: "Post" },
-                  { key: null, label: "Canal" },
-                  { key: "date" as SortKey, label: "Fecha" },
-                  { key: "reach" as SortKey, label: "Alcance" },
-                  { key: "likes" as SortKey, label: "Likes" },
-                  { key: "comments" as SortKey, label: "Comentarios" },
-                  { key: "shares" as SortKey, label: "Compartidos" },
-                  { key: "engagement" as SortKey, label: "Eng. Rate" },
-                ].map((col) => (
+                {cols.map((col) => (
                   <th
-                    key={col.label}
-                    onClick={() => col.key && handleSort(col.key)}
+                    key={col.key}
+                    onClick={() => col.sortable && handleSort(col.sortable)}
                     style={{
                       padding: "14px 16px",
                       textAlign: "left",
@@ -854,84 +1015,40 @@ function TabPosts({ posts }: { posts: any[] }) {
                       color: "#64748b",
                       borderBottom: "1px solid rgba(0,212,255,0.08)",
                       background: "rgba(0,212,255,0.02)",
-                      cursor: col.key ? "pointer" : "default",
+                      cursor: col.sortable ? "pointer" : "default",
                       whiteSpace: "nowrap",
                       userSelect: "none",
                     }}
                   >
                     <span className="flex items-center gap-1">
                       {col.label}
-                      {col.key && <SortIcon col={col.key} />}
+                      {col.sortable && <SortIcon col={col.sortable} />}
                     </span>
                   </th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {sorted.map((p) => {
-                const ChannelIcon = ChannelIcons[p.channel] || ThumbsUp;
-                return (
-                  <tr
-                    key={p.id}
-                    style={{
-                      borderBottom: "1px solid rgba(0,212,255,0.04)",
-                      transition: "background 0.2s",
-                    }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,212,255,0.03)")}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-                  >
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "rgba(200,214,229,0.8)", maxWidth: 300 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                        <PostMediaThumb image={p.image} mediaType={p.mediaType} channel={p.channel} />
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                            {p.text || <span style={{ color: "#64748b", fontStyle: "italic" }}>{formatBadge(p.mediaType).label}</span>}
-                          </div>
-                          {p.permalink && (
-                            <a href={p.permalink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#00d4ff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3, marginTop: 2 }}>
-                              Ver publicación <ArrowUpRight style={{ width: 10, height: 10 }} />
-                            </a>
-                          )}
-                        </div>
-                      </div>
+              {sorted.map((p) => (
+                <tr
+                  key={p.id}
+                  style={{
+                    borderBottom: "1px solid rgba(0,212,255,0.04)",
+                    transition: "background 0.2s",
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,212,255,0.03)")}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                >
+                  {cols.map((col) => (
+                    <td
+                      key={col.key}
+                      style={{ padding: "12px 16px", ...(col.key === "post" ? { maxWidth: 300, color: "rgba(200,214,229,0.8)", fontSize: 12 } : {}) }}
+                    >
+                      {renderPostCell(col.key, p)}
                     </td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <div className="flex items-center gap-2">
-                        <ChannelIcon
-                          style={{
-                            width: 14,
-                            height: 14,
-                            color: p.channel === "Instagram" ? "#E1306C" : "#1877F2",
-                          }}
-                        />
-                        <span style={{ fontSize: 11, color: "#94a3b8" }}>{p.channel}</span>
-                      </div>
-                    </td>
-                    <td style={{ padding: "12px 16px", fontSize: 11, color: "#94a3b8", whiteSpace: "nowrap" }}>{p.date}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>
-                      {p.reach.toLocaleString()}
-                    </td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#e2e8f0" }}>{p.likes.toLocaleString()}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#e2e8f0" }}>{p.comments}</td>
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "#e2e8f0" }}>{p.shares}</td>
-                    <td style={{ padding: "12px 16px" }}>
-                      <span
-                        style={{
-                          fontSize: 11,
-                          fontWeight: 600,
-                          color: "#f472b6",
-                          padding: "3px 10px",
-                          borderRadius: 6,
-                          background: "rgba(244,114,182,0.08)",
-                          border: "1px solid rgba(244,114,182,0.15)",
-                        }}
-                      >
-                        {p.engagement}%
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
+                  ))}
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
