@@ -227,6 +227,10 @@ model Task {
   projectId   String?
   parentId    String?
   createdBy   String?  // userId who created the task
+  // ── Cross-area request (Capa 3): a task with targetAreaId is a "solicitud" ──
+  targetAreaId String? // area the request is routed to (id from WorkspaceSettings.areas)
+  requestType  String? // request type label/id within the target area
+  requesterId  String? // userId who raised the request
   workspaceId String
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

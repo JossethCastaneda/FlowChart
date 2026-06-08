@@ -73,7 +73,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, assignee, priority, status, projectId, dueDate, tags, parentId } = body;
+    const { title, description, assignee, priority, status, projectId, dueDate, tags, parentId, targetAreaId, requestType } = body;
 
     if (!title || typeof title !== "string" || title.trim().length < 1) {
       return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
@@ -107,6 +107,10 @@ export async function POST(req: NextRequest) {
         order: nextOrder,
         projectId: projectId || null,
         parentId: parentId || null,
+        // Cross-area request: server stamps the requester (the creator).
+        targetAreaId: targetAreaId || null,
+        requestType: requestType || null,
+        requesterId: targetAreaId ? session.user.id : null,
       },
       include: { children: true },
     });
