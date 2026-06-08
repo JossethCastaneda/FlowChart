@@ -210,26 +210,30 @@ function AdsManagerContent() {
 
   // Fetch accounts on load (filtered by project accounts if embedded)
   useEffect(() => {
-    fetch("/api/meta/adaccounts")
+    // Pull per-account spend for the active period so we can default to the
+    // highest-spend account (marketing focus: start where the money is).
+    fetch(`/api/meta/adaccounts?preset=${datePreset || "maximum"}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.data && Array.isArray(data.data)) {
           let list = data.data.filter((acc: any) => acc.id !== "error");
-          
+
           if (projectAccountsParam) {
             const allowed = projectAccountsParam.split(",");
             list = list.filter((acc: any) => allowed.includes(acc.id));
           }
-          
+
           setAccounts(list);
-          
+
           // When embedded with project accounts, default to 'all' to show combined data
           if (isEmbedded && projectAccountsParam && list.length > 1) {
             setSelectedAccountId("all");
           } else if (initialAccount && list.some((a: any) => a.id === initialAccount)) {
             setSelectedAccountId(initialAccount);
           } else if (list.length > 0) {
-            setSelectedAccountId(list[0].id);
+            // Default to the account with the most spend in the period.
+            const top = [...list].sort((a: any, b: any) => (b.spend || 0) - (a.spend || 0))[0];
+            setSelectedAccountId((top || list[0]).id);
           }
         }
         setLoadingAccounts(false);
