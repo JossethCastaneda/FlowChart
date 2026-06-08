@@ -450,3 +450,43 @@ select option:disabled { color: rgba(148,163,184,0.55); }
   .nav-short-name     { display: none; }
   .nav-full-name      { display: block; }
 }
+
+/* ─── Manual collapse (user toggle) — desktop only ───
+   Forces the compact icon-rail layout regardless of breakpoint and
+   centers the logo. Uses 2-class selectors so it wins over the
+   breakpoint rules above without !important (except width). */
+@media (min-width: 1024px) {
+  .sidebar-collapsed.sidebar-responsive { width: 80px !important; }
+  .sidebar-collapsed .sidebar-hide-compact { display: none !important; }
+  .sidebar-collapsed .nav-full-name { display: none; }
+  .sidebar-collapsed .nav-short-name {
+    display: block; flex: 1;
+    font-family: var(--font-sans);
+    font-size: 10px; font-weight: 700; letter-spacing: 0;
+  }
+  .sidebar-collapsed .nav-item {
+    flex-direction: column; gap: 4px;
+    padding: 10px 8px; text-align: center;
+    justify-content: center;
+    border-left: none; border-bottom: 1px solid transparent;
+  }
+  .sidebar-collapsed .nav-item:hover  { border-left-color: transparent; border-bottom-color: rgba(0,212,255,0.4); }
+  .sidebar-collapsed .nav-item.active { border-left-color: transparent; border-bottom-color: var(--cyan); }
+  .sidebar-collapsed .nav-item.active::before { display: none; }
+  .sidebar-collapsed .user-chip { justify-content: center; padding: 12px 8px; }
+  /* Center the logo when collapsed */
+  .sidebar-collapsed .sidebar-logo-row { justify-content: center; padding-left: 0; padding-right: 0; }
+}
+
+/* Collapse toggle button */
+.sidebar-collapse-btn {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%; padding: 10px 16px;
+  border-top: 1px solid var(--border);
+  color: rgba(148,163,184,0.7);
+  font-size: 12px; font-weight: 600;
+  background: transparent; cursor: pointer;
+  transition: color 0.2s, background 0.2s;
+}
+.sidebar-collapse-btn:hover { color: #e2e8f0; background: rgba(0,212,255,0.06); }
+.sidebar-collapsed .sidebar-collapse-btn { justify-content: center; padding: 10px 8px; }

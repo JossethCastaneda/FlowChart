@@ -44,15 +44,30 @@ const NAV_ITEMS = [
 
 
 
+const SIDEBAR_COLLAPSE_KEY = "sodare:sidebar-collapsed";
+
 export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isEmbedded, setIsEmbedded] = useState(false);
   const pathname = usePathname();
 
   const { data: session } = useSession();
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => {
+    setMounted(true);
+    // Restore the user's collapse preference (client-only to avoid hydration mismatch).
+    try { setCollapsed(localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === "1"); } catch { /* ignore */ }
+  }, []);
+
+  const toggleCollapsed = () => {
+    setCollapsed((prev) => {
+      const next = !prev;
+      try { localStorage.setItem(SIDEBAR_COLLAPSE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
+      return next;
+    });
+  };
 
   // Detect iframe on mount (client-side only)
   useEffect(() => {
@@ -91,12 +106,13 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         className={`sidebar sidebar-responsive fixed inset-y-0 left-0 z-50 flex flex-col
           transform transition-all duration-300 ease-in-out
           lg:translate-x-0 lg:static lg:z-auto
+          ${collapsed ? "sidebar-collapsed" : ""}
           ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"}`}
       >
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--border)" }}>
+        <div className="sidebar-logo-row flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--border)" }}>
           <Link href="/dashboard/resumen" className="flex items-center gap-3">
-            <SodareLogo size="sm" />
+            <SodareLogo size="sm" showText={!collapsed} />
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white">
             <X className="w-5 h-5" />
@@ -104,7 +120,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Workspace Switcher */}
-        <div style={{ padding: "12px 0 0" }}>
+        <div className="sidebar-hide-compact" style={{ padding: "12px 0 0" }}>
           <WorkspaceSwitcher />
         </div>
 
@@ -152,6 +168,20 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             );
           })}
         </nav>
+
+        {/* Collapse toggle — desktop only */}
+        <button
+          onClick={toggleCollapsed}
+          className="sidebar-collapse-btn hidden lg:flex"
+          title={collapsed ? "Expandir menú" : "Colapsar menú"}
+          aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+        >
+          <ChevronRight
+            className="w-[18px] h-[18px] flex-shrink-0"
+            style={{ transform: collapsed ? "none" : "rotate(180deg)", transition: "transform 0.3s ease" }}
+          />
+          <span className="sidebar-hide-compact">Colapsar</span>
+        </button>
 
         {/* User section */}
         <div className="user-chip">
