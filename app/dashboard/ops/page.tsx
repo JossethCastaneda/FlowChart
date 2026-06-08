@@ -526,6 +526,7 @@ export default function OpsPage() {
   const [fPriority, setFPriority] = useState("");
   const [fTag, setFTag] = useState("");
   const [fArea, setFArea] = useState(""); // filter by target area (incoming requests)
+  const [viewArea, setViewArea] = useState<string>("__all__"); // area-view tab: __all__ | __mine__ | areaId
   const newRef = useRef<HTMLInputElement>(null);
   const subRef = useRef<HTMLInputElement>(null);
 
@@ -576,9 +577,17 @@ export default function OpsPage() {
       if (fPriority && t.priority !== fPriority) return false;
       if (fTag && !t.tags?.includes(fTag)) return false;
       if (fArea && t.targetAreaId !== fArea) return false;
+      // viewArea tab filter
+      if (viewArea === "__mine__" && myArea) {
+        const inMyArea = t.targetAreaId === myArea.id || myArea.memberIds.some(mid => { const mm = members.find(m => m.id === mid); return mm?.name === t.assignee; });
+        if (!inMyArea) return false;
+      } else if (viewArea !== "__all__" && viewArea !== "__mine__") {
+        const inSelectedArea = t.targetAreaId === viewArea || config.areas.find(a => a.id === viewArea)?.memberIds.some(mid => { const mm = members.find(m => m.id === mid); return mm?.name === t.assignee; });
+        if (!inSelectedArea) return false;
+      }
       return true;
     });
-  }, [tasks, search, fAssignee, fPriority, fTag, fArea]);
+  }, [tasks, search, fAssignee, fPriority, fTag, fArea, viewArea, myArea, members, config]);
 
   // Dynamic groups for the table view, driven by `groupBy`.
   const dynamicGroups = useMemo(() => {
@@ -603,6 +612,10 @@ export default function OpsPage() {
   const [config, setConfig] = useState<WorkflowConfig>({ areas: [], requireLeadReview: true });
   useEffect(() => { fetch("/api/workspace/settings").then(r => r.json()).then(d => setConfig(parseWorkflow(d))).catch(() => {}); }, []);
   const currentUserId = (session?.user as any)?.id || "";
+  // Detect user's area and default viewArea to it.
+  const myArea = useMemo(() => findUserArea(config, currentUserId), [config, currentUserId]);
+  useEffect(() => { if (myArea && viewArea === "__all__") setViewArea("__mine__"); }, [myArea]); // eslint-disable-line react-hooks/exhaustive-deps
+  const pendingReviews = useMemo(() => tasks.filter(t => t.status === "Review" && myArea && (t.targetAreaId === myArea.id || (!t.targetAreaId && myArea.memberIds.some(mid => { const mm = members.find(m => m.id === mid); return mm?.name === t.assignee; })))).length, [tasks, myArea, members]);
 
   // Tasks store the assignee as a NAME — map it to the member's userId.
   const memberIdByName = useMemo(() => { const m: Record<string, string> = {}; members.forEach(mm => { if (mm.name) m[mm.name] = mm.id; }); return m; }, [members]);
@@ -629,11 +642,13 @@ export default function OpsPage() {
     const ahead = tasks.filter(t => t.id !== task.id && (t.assignee || "") === task.assignee && t.status !== "Done").length;
     return etaDate(estimateEtaHours(ahead, area));
   }, [config, areaForAssignee, tasks]);
-  // Lead-review gate: who may close (set Done). For requests, the target area's leads.
+  // Lead-review gate: who may close (set Done). Checks BOTH global and per-area flag.
   const canCloseTask = useCallback((task: Task): boolean => {
-    if (!config.requireLeadReview) return true;
     const area = (task.targetAreaId ? config.areas.find(a => a.id === task.targetAreaId) : null) || areaForAssignee(task.assignee);
     if (!area) return true; // no area configured → no gating
+    // Check per-area first, fallback to global
+    const areaRequiresReview = (area as any).requireLeadReview ?? config.requireLeadReview;
+    if (!areaRequiresReview) return true;
     const myRole = members.find(m => m.id === currentUserId)?.role;
     if (myRole === "OWNER" || myRole === "ADMIN") return true;
     return area.leadIds.includes(currentUserId);
@@ -674,6 +689,28 @@ export default function OpsPage() {
           </div>
         ))}
       </div>
+
+      {/* ── Area view tabs ── */}
+      {!loading && config.areas.length > 0 && (
+        <div style={{ display: "flex", gap: 4, overflowX: "auto", paddingBottom: 2 }}>
+          <button onClick={() => setViewArea("__all__")} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", border: viewArea === "__all__" ? "1px solid rgba(0,212,255,0.3)" : "1px solid rgba(255,255,255,0.06)", background: viewArea === "__all__" ? "rgba(0,212,255,0.1)" : "transparent", color: viewArea === "__all__" ? "#00d4ff" : "#94a3b8" }}>Todas</button>
+          {myArea && (
+            <button onClick={() => setViewArea("__mine__")} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", border: viewArea === "__mine__" ? `1px solid ${myArea.color}55` : "1px solid rgba(255,255,255,0.06)", background: viewArea === "__mine__" ? `${myArea.color}18` : "transparent", color: viewArea === "__mine__" ? myArea.color : "#94a3b8", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: myArea.color }} />
+              Mi Área ({myArea.name})
+              {pendingReviews > 0 && myArea.leadIds.includes(currentUserId) && (
+                <span style={{ background: "#e2445c", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 10, padding: "1px 6px", marginLeft: 4 }}>{pendingReviews}</span>
+              )}
+            </button>
+          )}
+          {config.areas.filter(a => a.id !== myArea?.id).map(a => (
+            <button key={a.id} onClick={() => setViewArea(a.id)} style={{ padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit", border: viewArea === a.id ? `1px solid ${a.color}55` : "1px solid rgba(255,255,255,0.06)", background: viewArea === a.id ? `${a.color}18` : "transparent", color: viewArea === a.id ? a.color : "#94a3b8", display: "flex", alignItems: "center", gap: 6, whiteSpace: "nowrap" }}>
+              <span style={{ width: 8, height: 8, borderRadius: "50%", background: a.color }} />
+              {a.name}
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Toolbar */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
