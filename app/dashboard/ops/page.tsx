@@ -10,6 +10,8 @@ import {
   Send, Upload, ExternalLink, Image as ImageIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { useSession } from "next-auth/react";
+import { parseWorkflow, findUserArea, estimateEtaHours, etaDate, type WorkflowConfig, type Area } from "@/lib/workflow-config";
 
 /* ═══ TYPES ═══ */
 interface Member { id: string; name: string; email: string | null; image: string | null; role: string }
@@ -471,8 +473,8 @@ export default function OpsPage() {
   const createWith = async (defaults: any) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), status: "Backlog", ...defaults }) }); const d = await r.json(); if (r.ok) setTasks(p => [...p, d.data]); } catch {} setNewTitle(""); setAddingIn(null); };
   const createSub = async (parentId: string) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), parentId, status: "Backlog" }) }); const d = await r.json(); if (r.ok) setTasks(p => p.map(t => t.id === parentId ? { ...t, children: [...(t.children || []), d.data] } : t)); } catch {} setNewTitle(""); setAddingSubIn(null); };
   const fullCreate = async (data: any) => { try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => [...p, d.data]); setShowCreate(false); } } catch {} };
-  const fullUpdate = async (data: any) => { if (!editTask) return; try { const r = await fetch(`/api/ops/${editTask.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => p.map(t => t.id === editTask.id ? d.data : t)); setEditTask(null); } } catch {} };
-  const patch = async (id: string, p: any) => { setTasks(prev => prev.map(t => t.id === id ? { ...t, ...p } : t)); try { await fetch(`/api/ops/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }); } catch { fetch_(); } };
+  const fullUpdate = async (data: any) => { if (!editTask) return; if (data.status === "Done" && !canCloseTask(editTask)) { alert("Esta tarea requiere la aprobación de un líder del área antes de cerrarse."); return; } try { const r = await fetch(`/api/ops/${editTask.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => p.map(t => t.id === editTask.id ? d.data : t)); setEditTask(null); } } catch {} };
+  const patch = async (id: string, p: any) => { if (p.status === "Done") { const t = tasks.find(x => x.id === id) || tasks.flatMap(x => x.children || []).find(c => c.id === id); if (t && !canCloseTask(t)) { alert("Esta tarea requiere la aprobación de un líder del área antes de cerrarse."); return; } } setTasks(prev => prev.map(t => t.id === id ? { ...t, ...p } : t)); try { await fetch(`/api/ops/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }); } catch { fetch_(); } };
   const del = async (id: string) => { if (!confirm("¿Eliminar?")) return; setTasks(p => p.filter(t => t.id !== id)); try { await fetch(`/api/ops/${id}`, { method: "DELETE" }); } catch { fetch_(); } };
 
   const cnt = (s: string) => tasks.filter(t => t.status === s).length;
@@ -506,6 +508,36 @@ export default function OpsPage() {
   const allTags = useMemo(() => Array.from(new Set([...TAG_PRESETS, ...tasks.flatMap(t => t.tags || [])])).sort(), [tasks]);
   const filtersActive = !!(fAssignee || fPriority || fTag);
   const ch: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.09)" };
+
+  // ── Workflow: SLA/ETA + lead review (from Admin → Áreas y flujos) ──
+  const { data: session } = useSession();
+  const [config, setConfig] = useState<WorkflowConfig>({ areas: [], requireLeadReview: true });
+  useEffect(() => { fetch("/api/workspace/settings").then(r => r.json()).then(d => setConfig(parseWorkflow(d))).catch(() => {}); }, []);
+  const currentUserId = (session?.user as any)?.id || "";
+
+  // Tasks store the assignee as a NAME — map it to the member's userId.
+  const memberIdByName = useMemo(() => { const m: Record<string, string> = {}; members.forEach(mm => { if (mm.name) m[mm.name] = mm.id; }); return m; }, [members]);
+  const areaForAssignee = useCallback((assignee?: string | null): Area | null => {
+    if (!assignee) return null;
+    const uid = memberIdByName[assignee];
+    return uid ? findUserArea(config, uid) : null;
+  }, [memberIdByName, config]);
+  // Workload-aware delivery ETA: counts the assignee's still-open tasks × area SLA.
+  const etaForTask = useCallback((task: Task): Date | null => {
+    const area = areaForAssignee(task.assignee);
+    if (!area || !task.assignee || task.status === "Done") return null;
+    const ahead = tasks.filter(t => t.id !== task.id && (t.assignee || "") === task.assignee && t.status !== "Done").length;
+    return etaDate(estimateEtaHours(ahead, area));
+  }, [areaForAssignee, tasks]);
+  // Lead-review gate: who may close (set Done) a task.
+  const canCloseTask = useCallback((task: Task): boolean => {
+    if (!config.requireLeadReview) return true;
+    const area = areaForAssignee(task.assignee);
+    if (!area) return true; // no area configured → no gating
+    const myRole = members.find(m => m.id === currentUserId)?.role;
+    if (myRole === "OWNER" || myRole === "ADMIN") return true;
+    return area.leadIds.includes(currentUserId);
+  }, [config, areaForAssignee, members, currentUserId]);
 
   return (
     <div className="space-y-6">
@@ -629,6 +661,8 @@ export default function OpsPage() {
                           <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 8px", flexWrap: "wrap" }}>
                             {task.tags?.map((t, j) => <span key={j} style={{ fontSize: 8, padding: "1px 5px", background: "rgba(123,97,255,0.08)", color: "rgba(123,97,255,0.5)", borderRadius: 2 }}>{t}</span>)}
                             {hasChildren && <span style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>{childDone}/{task.children.length} sub</span>}
+                            {(() => { const eta = etaForTask(task); return eta ? <span title="Entrega estimada (según SLA del área y tareas abiertas)" style={{ fontSize: 8, padding: "1px 6px", background: "rgba(0,212,255,0.08)", color: "#00d4ff", borderRadius: 2, display: "inline-flex", alignItems: "center", gap: 2 }}><Clock style={{ width: 8, height: 8 }} /> ETA {eta.toLocaleDateString("es-MX", { day: "numeric", month: "short" })}</span> : null; })()}
+                            {config.requireLeadReview && task.status === "Review" && !!areaForAssignee(task.assignee) && <span title="Pendiente de aprobación de un líder del área" style={{ fontSize: 8, padding: "1px 6px", background: "rgba(251,191,36,0.1)", color: "#fbbf24", borderRadius: 2 }}>★ revisión líder</span>}
                           </div>
                         </div>
                       </div>
