@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Bell, Check, Clock, AlertTriangle, UserPlus, ExternalLink } from "lucide-react";
+import { createPortal } from "react-dom";
+import { Bell, Check, Clock, AlertTriangle, UserPlus, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 interface Notification {
@@ -26,7 +27,9 @@ export function NotificationBell() {
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const bellRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const [panelPos, setPanelPos] = useState({ top: 0, right: 0 });
   const router = useRouter();
 
   const fetchNotifications = useCallback(async () => {
@@ -60,7 +63,7 @@ export function NotificationBell() {
         const bNotif = new window.Notification(`SODARE — ${latest.title}`, {
           body: latest.message,
           icon: "/icon.svg",
-          tag: latest.id, // Prevents duplicates
+          tag: latest.id,
         });
         bNotif.onclick = () => {
           window.focus();
@@ -73,10 +76,35 @@ export function NotificationBell() {
 
   // Close on outside click
   useEffect(() => {
-    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    if (!open) return;
+    const h = (e: MouseEvent) => {
+      if (
+        panelRef.current && !panelRef.current.contains(e.target as Node) &&
+        bellRef.current && !bellRef.current.contains(e.target as Node)
+      ) setOpen(false);
+    };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
-  }, []);
+  }, [open]);
+
+  // Calculate panel position relative to the bell button
+  useEffect(() => {
+    if (open && bellRef.current) {
+      const rect = bellRef.current.getBoundingClientRect();
+      setPanelPos({
+        top: rect.bottom + 8,
+        right: Math.max(12, window.innerWidth - rect.right),
+      });
+    }
+  }, [open]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: KeyboardEvent) => { if (e.key === "Escape") setOpen(false); };
+    document.addEventListener("keydown", h);
+    return () => document.removeEventListener("keydown", h);
+  }, [open]);
 
   const markAllRead = async () => {
     setLoading(true);
@@ -103,10 +131,13 @@ export function NotificationBell() {
   };
 
   return (
-    <div ref={ref} style={{ position: "relative" }}>
+    <>
       {/* Bell button */}
       <button
+        ref={bellRef}
         onClick={() => { setOpen(!open); if (!open) fetchNotifications(); }}
+        aria-label="Notificaciones"
+        aria-expanded={open}
         style={{
           position: "relative", background: "none", border: "none", cursor: "pointer",
           padding: 6, color: unreadCount > 0 ? "#00d4ff" : "rgba(148,163,184,0.65)",
@@ -129,41 +160,74 @@ export function NotificationBell() {
         )}
       </button>
 
-      {/* Dropdown panel */}
-      {open && (
-        <div style={{
-          position: "absolute", top: "calc(100% + 8px)", right: 0, width: 340,
-          background: "rgba(8,12,24,0.97)", border: "1px solid rgba(0,212,255,0.12)",
-          borderRadius: 8, overflow: "hidden",
-          boxShadow: "0 12px 48px rgba(0,0,0,0.6)",
-          zIndex: 100,
-          animation: "fadeInScale 0.2s ease-out",
-        }}>
+      {/* Portal-rendered notification panel — always on top */}
+      {open && typeof document !== "undefined" && createPortal(
+        <div
+          ref={panelRef}
+          role="dialog"
+          aria-label="Panel de notificaciones"
+          style={{
+            position: "fixed",
+            top: panelPos.top,
+            right: panelPos.right,
+            width: 370,
+            maxWidth: "calc(100vw - 24px)",
+            maxHeight: "min(480px, calc(100vh - 80px))",
+            background: "#0c1020",
+            border: "1px solid rgba(0,212,255,0.18)",
+            borderRadius: 10,
+            overflow: "hidden",
+            boxShadow: "0 16px 64px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,212,255,0.08)",
+            zIndex: 99999,
+            display: "flex",
+            flexDirection: "column",
+            animation: "fadeInScale 0.2s ease-out",
+          }}
+        >
           {/* Header */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "14px 16px", borderBottom: "1px solid rgba(0,212,255,0.06)",
+            padding: "14px 18px", borderBottom: "1px solid rgba(0,212,255,0.08)",
+            background: "rgba(0,212,255,0.03)", flexShrink: 0,
           }}>
-            <span style={{
-              fontFamily: "'Orbitron', sans-serif", fontSize: 11, fontWeight: 700,
-              color: "#e2e8f0", letterSpacing: "0.1em",
-            }}>NOTIFICACIONES</span>
-            {unreadCount > 0 && (
-              <button onClick={markAllRead} disabled={loading} style={{
-                fontSize: 10, color: "#00d4ff", background: "none", border: "none",
-                cursor: "pointer", opacity: loading ? 0.5 : 1,
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Bell style={{ width: 14, height: 14, color: "#00d4ff" }} />
+              <span style={{
+                fontFamily: "'Orbitron', sans-serif", fontSize: 11, fontWeight: 700,
+                color: "#e2e8f0", letterSpacing: "0.1em",
+              }}>NOTIFICACIONES</span>
+              {unreadCount > 0 && (
+                <span style={{
+                  fontSize: 9, fontWeight: 700, color: "#fff", background: "#e2445c",
+                  borderRadius: 8, padding: "1px 6px", minWidth: 16, textAlign: "center",
+                }}>{unreadCount}</span>
+              )}
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {unreadCount > 0 && (
+                <button onClick={markAllRead} disabled={loading} style={{
+                  fontSize: 10, color: "#00d4ff", background: "none", border: "none",
+                  cursor: "pointer", opacity: loading ? 0.5 : 1, fontFamily: "inherit",
+                  whiteSpace: "nowrap",
+                }}>
+                  Marcar todo leído
+                </button>
+              )}
+              <button onClick={() => setOpen(false)} aria-label="Cerrar notificaciones" style={{
+                background: "none", border: "none", cursor: "pointer", color: "#64748b",
+                padding: 2, display: "flex",
               }}>
-                Marcar todo leido
+                <X style={{ width: 14, height: 14 }} />
               </button>
-            )}
+            </div>
           </div>
 
           {/* List */}
-          <div style={{ maxHeight: 360, overflowY: "auto" }}>
+          <div style={{ overflowY: "auto", flex: 1 }}>
             {notifications.length === 0 ? (
-              <div style={{ padding: "32px 16px", textAlign: "center" }}>
-                <Bell style={{ width: 24, height: 24, color: "#64748b", margin: "0 auto 8px" }} />
-                <p style={{ fontSize: 12, color: "rgba(148,163,184,0.65)" }}>Sin notificaciones</p>
+              <div style={{ padding: "40px 16px", textAlign: "center" }}>
+                <Bell style={{ width: 28, height: 28, color: "rgba(100,116,139,0.4)", margin: "0 auto 10px" }} />
+                <p style={{ fontSize: 12, color: "rgba(148,163,184,0.5)", margin: 0 }}>Sin notificaciones</p>
               </div>
             ) : (
               notifications.slice(0, 20).map(n => {
@@ -171,31 +235,44 @@ export function NotificationBell() {
                 const Icon = typeCfg.icon;
                 return (
                   <div key={n.id} onClick={() => handleClick(n)} style={{
-                    display: "flex", gap: 10, padding: "12px 16px", cursor: n.link ? "pointer" : "default",
+                    display: "flex", gap: 12, padding: "12px 18px", cursor: n.link ? "pointer" : "default",
                     borderBottom: "1px solid rgba(255,255,255,0.04)",
-                    background: n.read ? "transparent" : "rgba(0,212,255,0.02)",
+                    background: n.read ? "transparent" : "rgba(0,212,255,0.04)",
                     transition: "background 0.15s",
                   }}
-                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.03)"}
-                    onMouseLeave={e => e.currentTarget.style.background = n.read ? "transparent" : "rgba(0,212,255,0.02)"}>
-                    <div style={{ flexShrink: 0, width: 28, height: 28, borderRadius: 6, background: `${typeCfg.color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Icon style={{ width: 13, height: 13, color: typeCfg.color }} />
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
+                    onMouseLeave={e => e.currentTarget.style.background = n.read ? "transparent" : "rgba(0,212,255,0.04)"}>
+                    <div style={{
+                      flexShrink: 0, width: 32, height: 32, borderRadius: 8,
+                      background: `${typeCfg.color}18`, display: "flex",
+                      alignItems: "center", justifyContent: "center",
+                    }}>
+                      <Icon style={{ width: 14, height: 14, color: typeCfg.color }} />
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-                        <span style={{ fontSize: 12, fontWeight: 600, color: n.read ? "#94a3b8" : "#e2e8f0" }}>{n.title}</span>
-                        <span style={{ fontSize: 9, color: "#94a3b8", flexShrink: 0 }}>{timeAgo(n.createdAt)}</span>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 3 }}>
+                        <span style={{
+                          fontSize: 12, fontWeight: n.read ? 500 : 700,
+                          color: n.read ? "#94a3b8" : "#e2e8f0",
+                          lineHeight: 1.3,
+                        }}>{n.title}</span>
+                        <span style={{ fontSize: 9, color: "rgba(148,163,184,0.6)", flexShrink: 0, marginTop: 2 }}>{timeAgo(n.createdAt)}</span>
                       </div>
-                      <p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{n.message}</p>
+                      <p style={{
+                        fontSize: 11, color: n.read ? "rgba(148,163,184,0.5)" : "rgba(148,163,184,0.8)",
+                        margin: 0, lineHeight: 1.4, display: "-webkit-box",
+                        WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
+                      }}>{n.message}</p>
                     </div>
-                    {!n.read && <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#00d4ff", flexShrink: 0, alignSelf: "center", boxShadow: "0 0 6px rgba(0,212,255,0.5)" }} />}
+                    {!n.read && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#00d4ff", flexShrink: 0, alignSelf: "center", boxShadow: "0 0 8px rgba(0,212,255,0.5)" }} />}
                   </div>
                 );
               })
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
-    </div>
+    </>
   );
 }
