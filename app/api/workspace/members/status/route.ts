@@ -72,12 +72,13 @@ export async function GET() {
       where: {
         workspaceId_userId: { workspaceId, userId: session.user.id },
       },
-      select: { activityStatus: true, lastActiveAt: true },
+      select: { activityStatus: true, lastActiveAt: true, role: true },
     });
 
     return NextResponse.json({
       activityStatus: member?.activityStatus || "disponible",
       lastActiveAt: member?.lastActiveAt || null,
+      role: member?.role || "MEMBER",
     });
   } catch (err: any) {
     console.error("[MEMBER_STATUS] GET error:", err);

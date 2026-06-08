@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Trash2, X, Star, Check, Loader2, ChevronDown, ChevronRight, Shield, Eye, EyeOff, Pencil } from "lucide-react";
-import { SUGGESTED_AREAS, type Area, type RequestType } from "@/lib/workflow-config";
+import { SUGGESTED_AREAS, DEFAULT_MEMBER_PERMS, DEFAULT_EXTERNAL_PERMS, type Area, type RequestType } from "@/lib/workflow-config";
 
 interface Member { id: string; name: string; activityStatus?: string }
 
@@ -11,21 +11,9 @@ const STATUS_COLORS: Record<string, string> = { disponible: "#00c875", ocupado: 
 const COLORS = ["#0081FB", "#f472b6", "#06d6a0", "#7b61ff", "#fb923c", "#00d4ff", "#e2445c", "#fdab3d"];
 const uid = () => Math.random().toString(36).slice(2, 9);
 
-/* ── Permission defaults ── */
-const DEFAULT_PERMS = {
-  canViewTasks: true,
-  canCreateTasks: true,
-  canEditTasks: true,
-  canCloseTasks: false,
-  canViewAnalytics: true,
-};
-const EXTERNAL_PERMS = {
-  canViewTasks: false,
-  canCreateTasks: true,  // can send requests to the area
-  canEditTasks: false,
-  canCloseTasks: false,
-  canViewAnalytics: false,
-};
+/* ── Permission defaults (imported from workflow-config) ── */
+const DEFAULT_PERMS = DEFAULT_MEMBER_PERMS;
+const EXTERNAL_PERMS = DEFAULT_EXTERNAL_PERMS;
 
 const PERM_LABELS: Record<string, { label: string; icon: React.ElementType }> = {
   canViewTasks: { label: "Ver tareas", icon: Eye },

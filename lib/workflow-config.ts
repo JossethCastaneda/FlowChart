@@ -7,6 +7,30 @@ export interface RequestType {
   slaHours: number; // estimated turnaround for this deliverable type
 }
 
+export interface AreaPermissions {
+  canViewTasks: boolean;
+  canCreateTasks: boolean;
+  canEditTasks: boolean;
+  canCloseTasks: boolean;
+  canViewAnalytics: boolean;
+}
+
+export const DEFAULT_MEMBER_PERMS: AreaPermissions = {
+  canViewTasks: true,
+  canCreateTasks: true,
+  canEditTasks: true,
+  canCloseTasks: false,
+  canViewAnalytics: true,
+};
+
+export const DEFAULT_EXTERNAL_PERMS: AreaPermissions = {
+  canViewTasks: false,
+  canCreateTasks: true,  // can send requests to the area
+  canEditTasks: false,
+  canCloseTasks: false,
+  canViewAnalytics: false,
+};
+
 export interface Area {
   id: string;
   name: string;
@@ -15,6 +39,13 @@ export interface Area {
   leadIds: string[];     // team leads — they review/approve
   memberIds: string[];   // members of the area
   requestTypes: RequestType[];
+  // Granular permissions per area
+  permissions?: {
+    members: AreaPermissions;
+    external: AreaPermissions;
+  };
+  requireLeadReview?: boolean; // per-area override of global flag
+  slaMode?: string;            // "manual" | "auto"
 }
 
 export interface WorkflowConfig {
@@ -62,6 +93,17 @@ export const SUGGESTED_AREAS: Omit<Area, "leadIds" | "memberIds">[] = [
   },
 ];
 
+function parsePerms(raw: any, defaults: AreaPermissions): AreaPermissions {
+  if (!raw || typeof raw !== "object") return { ...defaults };
+  return {
+    canViewTasks: typeof raw.canViewTasks === "boolean" ? raw.canViewTasks : defaults.canViewTasks,
+    canCreateTasks: typeof raw.canCreateTasks === "boolean" ? raw.canCreateTasks : defaults.canCreateTasks,
+    canEditTasks: typeof raw.canEditTasks === "boolean" ? raw.canEditTasks : defaults.canEditTasks,
+    canCloseTasks: typeof raw.canCloseTasks === "boolean" ? raw.canCloseTasks : defaults.canCloseTasks,
+    canViewAnalytics: typeof raw.canViewAnalytics === "boolean" ? raw.canViewAnalytics : defaults.canViewAnalytics,
+  };
+}
+
 /** Normalize raw JSON into a safe WorkflowConfig. */
 export function parseWorkflow(raw: any): WorkflowConfig {
   const areas: Area[] = Array.isArray(raw?.areas)
@@ -75,6 +117,13 @@ export function parseWorkflow(raw: any): WorkflowConfig {
         requestTypes: Array.isArray(a.requestTypes)
           ? a.requestTypes.map((t: any) => ({ id: String(t.id || ""), name: String(t.name || ""), slaHours: Number(t.slaHours) || 24 }))
           : [],
+        // Preserve granular permissions (previously dropped!)
+        permissions: a.permissions ? {
+          members: parsePerms(a.permissions.members, DEFAULT_MEMBER_PERMS),
+          external: parsePerms(a.permissions.external, DEFAULT_EXTERNAL_PERMS),
+        } : undefined,
+        requireLeadReview: typeof a.requireLeadReview === "boolean" ? a.requireLeadReview : undefined,
+        slaMode: typeof a.slaMode === "string" ? a.slaMode : undefined,
       }))
     : [];
   return { areas, requireLeadReview: raw?.requireLeadReview !== false };
@@ -88,6 +137,39 @@ export function findUserArea(config: WorkflowConfig, userId: string): Area | nul
 /** Whether a user is a lead of any area. */
 export function isLead(config: WorkflowConfig, userId: string): boolean {
   return config.areas.some((a) => a.leadIds.includes(userId));
+}
+
+/**
+ * Get effective permissions for a user relative to a specific area.
+ * - OWNER/ADMIN → all permissions granted
+ * - Lead of the area → all permissions granted (including canCloseTasks)
+ * - Member of the area → area.permissions.members (or defaults)
+ * - External (not in the area) → area.permissions.external (or defaults)
+ * - No area → full permissions (unassigned users can do everything)
+ */
+export function getPermissions(
+  area: Area | null,
+  userId: string,
+  userRole: string, // workspace-level role: OWNER, ADMIN, MEMBER
+): AreaPermissions {
+  // Full access for admins
+  if (userRole === "OWNER" || userRole === "ADMIN") {
+    return { canViewTasks: true, canCreateTasks: true, canEditTasks: true, canCloseTasks: true, canViewAnalytics: true };
+  }
+  // No area configured → full access (no restrictions without area config)
+  if (!area) {
+    return { ...DEFAULT_MEMBER_PERMS, canCloseTasks: true };
+  }
+  // Leads get full access to their area
+  if (area.leadIds.includes(userId)) {
+    return { canViewTasks: true, canCreateTasks: true, canEditTasks: true, canCloseTasks: true, canViewAnalytics: true };
+  }
+  // Members of the area
+  if (area.memberIds.includes(userId)) {
+    return area.permissions?.members ? { ...area.permissions.members } : { ...DEFAULT_MEMBER_PERMS };
+  }
+  // External users (not in this area)
+  return area.permissions?.external ? { ...area.permissions.external } : { ...DEFAULT_EXTERNAL_PERMS };
 }
 
 /**

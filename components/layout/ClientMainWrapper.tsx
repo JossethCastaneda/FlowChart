@@ -27,7 +27,7 @@ import {
   Columns3,
 } from "lucide-react";
 
-const NAV_ITEMS = [
+const NAV_ITEMS: { name: string; short: string; href: string; icon: any; color: string; roles?: string[] }[] = [
   { name: "Inicio", short: "HOME", href: "/dashboard/resumen", icon: LayoutDashboard, color: "#00d4ff" },
   { name: "Clientes", short: "CLI", href: "/dashboard/proyectos", icon: FolderKanban, color: "#06d6a0" },
   { name: "Planner", short: "PLAN", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b" },
@@ -38,8 +38,8 @@ const NAV_ITEMS = [
   { name: "Streams", short: "STRM", href: "/dashboard/streams", icon: Columns3, color: "#22d3ee" },
   { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500" },
   { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55" },
-  { name: "Integraciones", short: "APIs", href: "/dashboard/integrations", icon: Plug, color: "#00d4ff" },
-  { name: "Admin", short: "ADM", href: "/dashboard/settings", icon: Settings, color: "#94a3b8" },
+  { name: "Integraciones", short: "APIs", href: "/dashboard/integrations", icon: Plug, color: "#00d4ff", roles: ["OWNER", "ADMIN"] },
+  { name: "Admin", short: "ADM", href: "/dashboard/settings", icon: Settings, color: "#94a3b8", roles: ["OWNER", "ADMIN"] },
 ];
 
 
@@ -82,13 +82,14 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     { key: "offline", label: "Offline", color: "#64748b" },
   ];
   const [activityStatus, setActivityStatus] = useState("disponible");
+  const [userRole, setUserRole] = useState<string>("");
   const [statusMenuOpen, setStatusMenuOpen] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     fetch("/api/workspace/members/status")
       .then(r => r.json())
-      .then(d => { if (d.activityStatus) setActivityStatus(d.activityStatus); })
+      .then(d => { if (d.activityStatus) setActivityStatus(d.activityStatus); if (d.role) setUserRole(d.role); })
       .catch(() => {});
   }, []);
 
@@ -172,7 +173,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
         {/* Navigation */}
         <nav className="flex-1 px-3 pb-4 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {NAV_ITEMS.filter(item => !item.roles || !userRole || item.roles.includes(userRole)).map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
             const Icon = item.icon;
 
