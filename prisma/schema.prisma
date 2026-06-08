@@ -90,6 +90,28 @@ model Workspace {
   conversations InboxConversation[]
   streamBoards    StreamBoard[]
   trackedKeywords TrackedKeyword[]
+  settings        WorkspaceSettings?
+}
+
+// ------------------------------------------------------
+// WORKFLOW / AREAS (agency org chart + SLA config)
+// ------------------------------------------------------
+// Stored as JSON so each workspace can model its own areas, leads, members,
+// per-area SLA and request types — fully editable from Admin → Áreas y flujos.
+//
+// areas shape: [{
+//   id, name, color, slaHours, leadIds: string[], memberIds: string[],
+//   requestTypes: [{ id, name, slaHours }]
+// }]
+model WorkspaceSettings {
+  id                String   @id @default(cuid())
+  workspaceId       String   @unique
+  areas             Json     @default("[]")
+  requireLeadReview Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
 model WorkspaceMember {
