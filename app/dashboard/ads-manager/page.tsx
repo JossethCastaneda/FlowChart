@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, ChevronDown, CheckCircle, AlertTriangle } from "lucide-react";
 import DateRangePicker from "@/components/DateRangePicker";
 import { AccountSelector } from "@/components/ads-manager/AccountSelector";
+import { CreateCampaignModal } from "@/components/ads-manager/CreateCampaignModal";
 import { BreakdownSelector } from "@/components/ads-manager/BreakdownSelector";
 import { ColumnSelector } from "@/components/ads-manager/ColumnSelector";
 import { TableActionBar } from "@/components/ads-manager/TableActionBar";
@@ -120,6 +121,7 @@ function AdsManagerContent() {
   const [accounts, setAccounts] = useState<any[]>([]);
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [loadingAccounts, setLoadingAccounts] = useState(true);
+  const [showCreateCampaign, setShowCreateCampaign] = useState(false);
 
   // Active level tab
   const [activeLevel, setActiveLevel] = useState<"campaigns" | "adsets" | "ads">("campaigns");
@@ -947,6 +949,17 @@ function AdsManagerContent() {
             />
           )}
 
+        {/* Create campaign — only for a specific account (not "Todas") */}
+        {!loadingAccounts && selectedAccountId && selectedAccountId !== "all" && (
+          <button
+            onClick={() => setShowCreateCampaign(true)}
+            title="Crear una campaña nueva (se crea en pausa)"
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(0,129,251,0.12)", border: "1px solid rgba(0,129,251,0.35)", color: "#4aa3ff", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+          >
+            <Plus style={{ width: 14, height: 14 }} /> Crear campaña
+          </button>
+        )}
+
         {/* Search Bar */}
         <div
           style={{
@@ -1309,6 +1322,21 @@ function AdsManagerContent() {
           level={activeLevel}
           onClose={() => setShowImportModal(false)}
           onImported={() => { fetchData(); addToast("success", "✅ Importación completada"); }}
+        />
+      )}
+
+      {/* ── CREATE CAMPAIGN ── */}
+      {showCreateCampaign && selectedAccountId && selectedAccountId !== "all" && (
+        <CreateCampaignModal
+          adAccountId={selectedAccountId}
+          adAccountName={accounts.find((a: any) => a.id === selectedAccountId)?.name?.split(" — ")[0]}
+          onClose={() => setShowCreateCampaign(false)}
+          onCreated={() => {
+            setShowCreateCampaign(false);
+            addToast("success", "✅ Campaña creada en pausa");
+            setActiveLevel("campaigns");
+            fetchData();
+          }}
         />
       )}
 
