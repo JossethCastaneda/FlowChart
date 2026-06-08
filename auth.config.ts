@@ -6,6 +6,11 @@ import bcrypt from "bcryptjs";
 
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
 
+const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+if (!AUTH_SECRET && process.env.NODE_ENV === "production") {
+  throw new Error("[AUTH] NEXTAUTH_SECRET or AUTH_SECRET must be set in production");
+}
+
 // Build providers dynamically — only register if credentials are configured
 const providers: NextAuthOptions["providers"] = [];
 
@@ -69,7 +74,7 @@ providers.push(
 
 export const authOptions: NextAuthOptions = {
   providers,
-  secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  secret: AUTH_SECRET,
 
   pages: {
     signIn: "/login",

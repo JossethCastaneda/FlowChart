@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { verifySignedRequest } from "@/lib/meta-signed-request";
 
 /**
  * Meta Deauthorization Callback
@@ -11,14 +12,11 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.formData().catch(() => null);
     const signedRequest = body?.get("signed_request") as string | null;
+    const appSecret = process.env.FACEBOOK_CLIENT_SECRET;
 
-    if (signedRequest) {
-      // Parse the signed_request to get the user ID
-      const [, payload] = signedRequest.split(".");
-      if (payload) {
-        const decoded = JSON.parse(
-          Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf-8")
-        );
+    if (signedRequest && appSecret) {
+      const decoded = verifySignedRequest(signedRequest, appSecret);
+      if (decoded) {
         const userId = decoded.user_id;
         console.log(`[Meta Deauthorize] User ${userId} has deauthorized the app`);
         
@@ -26,7 +24,11 @@ export async function POST(req: NextRequest) {
         // - Mark the user's Meta integration as disconnected in the DB
         // - Revoke stored tokens
         // - Log the event for compliance
+      } else {
+        console.warn("[Meta Deauthorize] ⚠️ signed_request HMAC verification failed");
       }
+    } else if (signedRequest) {
+      console.warn("[Meta Deauthorize] ⚠️ FACEBOOK_CLIENT_SECRET not set, cannot verify signed_request");
     }
 
     // Meta expects a 200 OK response

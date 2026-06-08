@@ -146,11 +146,11 @@ export async function GET(request: NextRequest) {
     if (resolvedWorkspaceId) {
       // Verify that the user actually belongs to this workspace
       const member = await prisma.workspaceMember.findFirst({
-        where: { userId, workspaceId: resolvedWorkspaceId },
+        where: { userId, workspaceId: resolvedWorkspaceId, role: { in: ["OWNER", "ADMIN"] } },
       });
       if (!member) {
-        console.warn(`[CONNECT CALLBACK] ❌ User ${userId} is not a member of workspace ${resolvedWorkspaceId}`);
-        return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=no_workspace`);
+        console.warn(`[CONNECT CALLBACK] ❌ User ${userId} is not OWNER/ADMIN of workspace ${resolvedWorkspaceId}`);
+        return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=insufficient_role`);
       }
     } else {
       // Fallback: find user's first workspace

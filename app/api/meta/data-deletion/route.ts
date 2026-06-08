@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
+import { verifySignedRequest } from "@/lib/meta-signed-request";
 
 /**
  * Meta Data Deletion Request Callback
@@ -19,15 +20,17 @@ export async function POST(req: NextRequest) {
     const signedRequest = body?.get("signed_request") as string | null;
 
     let userId = "unknown";
+    const appSecret = process.env.FACEBOOK_CLIENT_SECRET;
 
-    if (signedRequest) {
-      const [, payload] = signedRequest.split(".");
-      if (payload) {
-        const decoded = JSON.parse(
-          Buffer.from(payload.replace(/-/g, "+").replace(/_/g, "/"), "base64").toString("utf-8")
-        );
+    if (signedRequest && appSecret) {
+      const decoded = verifySignedRequest(signedRequest, appSecret);
+      if (decoded) {
         userId = decoded.user_id || "unknown";
+      } else {
+        console.warn("[Meta Data Deletion] ⚠️ signed_request HMAC verification failed");
       }
+    } else if (signedRequest) {
+      console.warn("[Meta Data Deletion] ⚠️ FACEBOOK_CLIENT_SECRET not set, cannot verify signed_request");
     }
 
     // Generate a unique confirmation code for this deletion request

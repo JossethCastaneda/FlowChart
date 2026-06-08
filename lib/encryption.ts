@@ -38,7 +38,7 @@ export function encryptToken(text: string | null | undefined): string {
     return `enc:${iv.toString("hex")}:${authTag}:${encrypted}`;
   } catch (err) {
     console.error("[ENCRYPTION] Failed to encrypt token:", err);
-    return text; // Fallback to plain text if encryption fails
+    throw new Error("[ENCRYPTION] Failed to encrypt token. Refusing to store unencrypted credentials.");
   }
 }
 
