@@ -9,10 +9,11 @@ import {
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { IntegrationsPanel } from "@/components/publisher/IntegrationsPanel";
+import { AreasManager } from "@/components/settings/AreasManager";
 
 // ── Settings catalogue: groups (menus) → sections (submenus) ──
 // Single source of truth — add a section here and render it in the switch below.
-type SectionKey = "profile" | "preferences" | "general" | "team" | "integrations" | "plan" | "danger";
+type SectionKey = "profile" | "preferences" | "general" | "team" | "areas" | "integrations" | "plan" | "danger";
 
 const SETTINGS_GROUPS: {
   group: string;
@@ -30,6 +31,7 @@ const SETTINGS_GROUPS: {
     items: [
       { key: "general", label: "General", icon: Globe },
       { key: "team", label: "Equipo y roles", icon: Users, roles: ["OWNER", "ADMIN"] },
+      { key: "areas", label: "Áreas y flujos", icon: Users },
       { key: "integrations", label: "Integraciones", icon: Plug },
       { key: "plan", label: "Plan", icon: CreditCard },
     ],
@@ -469,6 +471,21 @@ export default function SettingsPage() {
                 ))}
               </div>
             </>
+          )}
+
+          {/* ÁREAS Y FLUJOS */}
+          {activeSection === "areas" && (
+            <div className="glass-panel" style={{ padding: 24 }}>
+              <div className="section-header" style={{ marginBottom: 16 }}>
+                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Users style={{ width: 14, height: 14, color: "#00d4ff" }} /> Áreas y flujos
+                </span>
+              </div>
+              <AreasManager
+                members={members.map((m: any) => ({ id: m.user.id, name: m.user.name || m.user.email || "Usuario" }))}
+                canEdit={isAdmin}
+              />
+            </div>
           )}
 
           {/* INTEGRACIONES */}
