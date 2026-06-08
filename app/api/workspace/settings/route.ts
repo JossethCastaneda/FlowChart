@@ -54,8 +54,13 @@ export async function PUT(request: NextRequest) {
     return NextResponse.json({ success: true, ...cfg });
   } catch (err: any) {
     console.error("[WORKSPACE/SETTINGS] write failed:", err);
+    const tableMissing = err?.code === "P2021" || /does not exist/i.test(String(err?.message || ""));
     return NextResponse.json(
-      { error: "No se pudo guardar. ¿Falta aplicar la migración (npm run db:push)?" },
+      {
+        error: tableMissing
+          ? "Falta la tabla en la base de datos. Aplica el schema (npm run db:push) y reintenta."
+          : `No se pudo guardar${err?.message ? `: ${err.message}` : "."}`,
+      },
       { status: 500 }
     );
   }
