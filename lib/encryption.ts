@@ -12,7 +12,14 @@ const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "";
 export function encryptToken(text: string | null | undefined): string {
   if (!text) return "";
   if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 64) {
-    console.warn("[ENCRYPTION] ENCRYPTION_KEY is not set or invalid length (must be 64 hex chars). Storing token as plain text.");
+    const msg = "[ENCRYPTION] ENCRYPTION_KEY is not set or invalid length (must be 64 hex chars).";
+    // Fail-fast in production: never persist Meta tokens / credentials in plain text.
+    // The caller (OAuth callback, token sync) surfaces this as a visible error
+    // instead of silently storing secrets unencrypted at rest.
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(`${msg} Refusing to store credentials unencrypted.`);
+    }
+    console.warn(`${msg} Storing token as plain text (dev only).`);
     return text;
   }
   
