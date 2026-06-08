@@ -45,7 +45,9 @@ function createPrismaClient(): PrismaClient {
 
   const pool = new Pool({
     connectionString,
-    ssl: { rejectUnauthorized: false },
+    ssl: process.env.NODE_ENV === "production"
+      ? { rejectUnauthorized: true }
+      : { rejectUnauthorized: false },
     max: process.env.NODE_ENV === "production" ? 10 : 5,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,

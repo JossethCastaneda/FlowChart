@@ -11,7 +11,10 @@ const META_VERSION = process.env.META_API_VERSION || "v25.0";
 function verifyCronAuth(req: NextRequest): boolean {
   const authHeader = req.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) return true; // No secret configured — dev mode
+  if (!cronSecret) {
+    if (process.env.NODE_ENV === "production") return false;
+    return true; // No secret configured — dev mode only
+  }
   return authHeader === `Bearer ${cronSecret}`;
 }
 

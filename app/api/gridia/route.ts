@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { GoogleGenAI, Type } from "@google/genai";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/auth.config";
 
 /* ═══ TYPES ═══ */
 interface FileInputData { mimeType: string; data: string; }
@@ -143,12 +145,23 @@ Your output must be professional, strategic, and ready for a high-performance ma
 /* ═══ API HANDLER ═══ */
 export async function POST(req: NextRequest) {
   try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
     }
 
     const body = (await req.json()) as GridFormData;
+    if (!body.client || !body.month || !body.postCount || body.postCount < 1 || body.postCount > 60) {
+      return NextResponse.json({ error: "Invalid input: client, month, postCount (1-60) required" }, { status: 400 });
+    }
+    if (body.brandFiles && body.brandFiles.length > 5) {
+      return NextResponse.json({ error: "Maximum 5 brand files allowed" }, { status: 400 });
+    }
     const ai = new GoogleGenAI({ apiKey });
     const contentParts = buildPromptParts(body);
 

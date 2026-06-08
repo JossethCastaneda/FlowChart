@@ -7,7 +7,7 @@ export async function POST(req: NextRequest) {
     const { name, email, password } = await req.json();
 
     // Validaciones
-    if (!email || !email.includes("@")) {
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       return NextResponse.json({ error: "Email inválido" }, { status: 400 });
     }
     if (!password || password.length < 8) {
@@ -28,8 +28,6 @@ export async function POST(req: NextRequest) {
       where: { email: email.toLowerCase() },
     });
 
-    const hashedPassword = await bcrypt.hash(password, 12);
-
     if (existing) {
       if (existing.password) {
         // Ya tiene password → no permitir re-registro
@@ -39,6 +37,7 @@ export async function POST(req: NextRequest) {
         );
       }
       // Existe pero sin password (OAuth o bug de invite) → setear password
+      const hashedPassword = await bcrypt.hash(password, 12);
       await prisma.user.update({
         where: { id: existing.id },
         data: {
@@ -48,6 +47,7 @@ export async function POST(req: NextRequest) {
       });
     } else {
       // Usuario nuevo → crear
+      const hashedPassword = await bcrypt.hash(password, 12);
       await prisma.user.create({
         data: {
           name: name.trim(),
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
   } catch (err: any) {
     console.error("[REGISTER] Error:", err);
     return NextResponse.json(
-      { error: err?.message || "Error al registrar" },
+      { error: "Error al registrar. Intente de nuevo." },
       { status: 500 }
     );
   }
