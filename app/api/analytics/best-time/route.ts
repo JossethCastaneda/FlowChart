@@ -7,8 +7,12 @@ import prisma from "@/lib/prisma";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
+// Monday-first day labels — MUST match the frontend heatmap (DAYS) order,
+// where index 0 = Monday. Meta timestamps use Sunday=0, so we re-map below.
+const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+
 interface TimeSlot {
-  day: number;      // 0 (Sunday) – 6 (Saturday)
+  day: number;      // 0 (Monday) – 6 (Sunday) — Monday-first to match the UI
   hour: number;     // 0 – 23
   avgImpressions: number;
   postCount: number;
@@ -57,8 +61,10 @@ export async function GET(req: NextRequest) {
       const twentyFourHoursMs = 24 * 60 * 60 * 1000;
 
       if (ageMs < twentyFourHoursMs) {
+        const cd = cached.data as any;
         return NextResponse.json({
-          slots: (cached.data as any).slots || [],
+          slots: cd.slots || [],
+          topSlots: cd.topSlots || [],
           cached: true,
           generatedAt: cached.generatedAt,
         });
@@ -154,7 +160,8 @@ export async function GET(req: NextRequest) {
     for (const media of allMedia) {
       if (!media.timestamp) continue;
       const ts = new Date(media.timestamp);
-      const day = ts.getUTCDay();   // 0 = Sunday
+      // Re-map Meta's Sunday=0 to Monday-first (Mon=0 … Sun=6) to match the UI grid.
+      const day = (ts.getUTCDay() + 6) % 7;
       const hour = ts.getUTCHours();
       const slotIndex = day * 24 + hour;
 
@@ -178,25 +185,39 @@ export async function GET(req: NextRequest) {
       .filter((s) => s.postCount > 0)
       .sort((a, b) => b.avgImpressions - a.avgImpressions);
 
-    const top5 = rankedSlots.slice(0, 5);
+    // Full grid (all slots with posts) — used to paint the heatmap.
+    const slots = rankedSlots.map(({ day, hour, avgImpressions }) => ({
+      day,
+      hour,
+      avgImpressions,
+    }));
+
+    // Top 5 with a human-readable label — used for the "Mejores Momentos" cards.
+    const topSlots = rankedSlots.slice(0, 5).map((s) => ({
+      day: s.day,
+      hour: s.hour,
+      avgImpressions: s.avgImpressions,
+      label: `${DAY_LABELS[s.day]} ${String(s.hour).padStart(2, "0")}:00`,
+    }));
 
     // ── Save to BestTimeCache ──
     const now = new Date();
     await prisma.bestTimeCache.upsert({
       where: { workspaceId },
       update: {
-        data: { slots: top5 as unknown as any[] },
+        data: { slots, topSlots } as unknown as any,
         generatedAt: now,
       },
       create: {
         workspaceId,
-        data: { slots: top5 as unknown as any[] },
+        data: { slots, topSlots } as unknown as any,
         generatedAt: now,
       },
     });
 
     return NextResponse.json({
-      slots: top5,
+      slots,
+      topSlots,
       cached: false,
       generatedAt: now,
       totalPostsAnalyzed: allMedia.length,

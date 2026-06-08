@@ -51,7 +51,6 @@ const EMPTY_KPI = [
 
 /* These are rendered directly — empty arrays = empty charts */
 const AUDIENCE_DEVICE: { label: string; pct: number; color: string }[] = [];
-const GROWTH_DATA: { period: string; followers: number; gained: number }[] = [];
 
 const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
@@ -152,8 +151,13 @@ export function AnalyticsDashboard() {
             setPosts(postData.posts.map((p: any, i: number) => ({
               id: p.id || i + 1,
               text: p.text || "",
-              channel: p.channel || "Facebook",
+              // Route returns lowercase ("facebook"/"instagram"); normalize to the
+              // capitalized form the icons and platform filter expect.
+              channel: p.channel === "instagram" ? "Instagram" : "Facebook",
               date: p.date ? new Date(p.date).toLocaleDateString("es-MX", { day: "numeric", month: "short" }) : "",
+              image: p.image || null,
+              mediaType: p.mediaType || "text",
+              permalink: p.permalink || null,
               reach: p.reach || 0,
               likes: p.likes || 0,
               comments: p.comments || 0,
@@ -615,6 +619,71 @@ function MiniStat({
   );
 }
 
+/* ── Post media (adapted to the publication format) ─────── */
+function formatBadge(mediaType: string): { icon: React.ElementType; label: string } {
+  switch (mediaType) {
+    case "video": return { icon: Play, label: "Video / Reel" };
+    case "carousel": return { icon: Grid3X3, label: "Carrusel" };
+    case "image": return { icon: Camera, label: "Imagen" };
+    case "link": return { icon: ArrowUpRight, label: "Enlace" };
+    default: return { icon: MessageCircle, label: "Texto" };
+  }
+}
+
+/** Small square thumbnail with a format badge — used in the posts table. */
+function PostMediaThumb({ image, mediaType, channel, size = 44 }: { image: string | null; mediaType: string; channel: string; size?: number }) {
+  const badge = formatBadge(mediaType);
+  const Badge = badge.icon;
+  const accent = channel === "Instagram" ? "#E1306C" : "#1877F2";
+  return (
+    <div title={badge.label} style={{ position: "relative", width: size, height: size, borderRadius: 8, overflow: "hidden", flexShrink: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {image ? (
+        <img src={image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+      ) : (
+        <Badge style={{ width: size * 0.4, height: size * 0.4, color: "#475569" }} />
+      )}
+      {mediaType === "video" && image && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.25)" }}>
+          <Play style={{ width: size * 0.34, height: size * 0.34, color: "#fff" }} />
+        </div>
+      )}
+      <div style={{ position: "absolute", bottom: 2, right: 2, width: 16, height: 16, borderRadius: 4, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", border: `1px solid ${accent}55` }}>
+        <Badge style={{ width: 9, height: 9, color: accent }} />
+      </div>
+    </div>
+  );
+}
+
+/** Full-width media block for the card view — aspect ratio adapts to the format. */
+function PostMediaBlock({ image, mediaType, channel }: { image: string | null; mediaType: string; channel: string }) {
+  const badge = formatBadge(mediaType);
+  const Badge = badge.icon;
+  const accent = channel === "Instagram" ? "#E1306C" : "#1877F2";
+  // Reels/IG video are vertical; everything else gets a landscape-ish frame.
+  const aspect = mediaType === "video" && channel === "Instagram" ? "9 / 16" : "16 / 10";
+  return (
+    <div style={{ position: "relative", width: "100%", aspectRatio: aspect, maxHeight: 200, borderRadius: 8, overflow: "hidden", marginBottom: 12, background: "linear-gradient(135deg, #0f172a, #1e293b)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {image ? (
+        <img src={image} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+      ) : (
+        <Badge style={{ width: 28, height: 28, color: "#475569" }} />
+      )}
+      {mediaType === "video" && image && (
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.2)" }}>
+          <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Play style={{ width: 18, height: 18, color: "#fff" }} />
+          </div>
+        </div>
+      )}
+      {/* Format pill */}
+      <div style={{ position: "absolute", top: 8, left: 8, display: "flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 20, background: "rgba(0,0,0,0.65)", border: `1px solid ${accent}55` }}>
+        <Badge style={{ width: 11, height: 11, color: accent }} />
+        <span style={{ fontSize: 9, fontWeight: 700, color: "#e2e8f0", letterSpacing: "0.04em" }}>{badge.label}</span>
+      </div>
+    </div>
+  );
+}
+
 /* ══════════════════════════════════════════════════════════
    TAB: POSTS
    ══════════════════════════════════════════════════════════ */
@@ -745,8 +814,20 @@ function TabPosts({ posts }: { posts: any[] }) {
                     onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(0,212,255,0.03)")}
                     onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
                   >
-                    <td style={{ padding: "12px 16px", fontSize: 12, color: "rgba(200,214,229,0.8)", maxWidth: 260 }}>
-                      {p.text}
+                    <td style={{ padding: "12px 16px", fontSize: 12, color: "rgba(200,214,229,0.8)", maxWidth: 300 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                        <PostMediaThumb image={p.image} mediaType={p.mediaType} channel={p.channel} />
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                            {p.text || <span style={{ color: "#64748b", fontStyle: "italic" }}>{formatBadge(p.mediaType).label}</span>}
+                          </div>
+                          {p.permalink && (
+                            <a href={p.permalink} target="_blank" rel="noopener noreferrer" style={{ fontSize: 10, color: "#00d4ff", textDecoration: "none", display: "inline-flex", alignItems: "center", gap: 3, marginTop: 2 }}>
+                              Ver publicación <ArrowUpRight style={{ width: 10, height: 10 }} />
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     </td>
                     <td style={{ padding: "12px 16px" }}>
                       <div className="flex items-center gap-2">
@@ -794,6 +875,7 @@ function TabPosts({ posts }: { posts: any[] }) {
             const ChannelIcon = ChannelIcons[p.channel] || ThumbsUp;
             return (
               <div key={p.id} className="glass-panel" style={{ padding: 18 }}>
+                <PostMediaBlock image={p.image} mediaType={p.mediaType} channel={p.channel} />
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <ChannelIcon
@@ -1491,8 +1573,32 @@ function TabReels({ filterQuery }: { filterQuery: string }) {
 /* ══════════════════════════════════════════════════════════
    TAB: CRECIMIENTO
    ══════════════════════════════════════════════════════════ */
+interface GrowthPoint { period: string; followers: number; gained: number }
+
 function TabCrecimiento({ filterQuery }: { filterQuery: string }) {
-  if (GROWTH_DATA.length === 0) {
+  const [series, setSeries] = useState<GrowthPoint[]>([]);
+  const [current, setCurrent] = useState(0);
+  const [apiTotalGained, setApiTotalGained] = useState(0);
+  const [loadingG, setLoadingG] = useState(true);
+
+  useEffect(() => {
+    setLoadingG(true);
+    fetch(`/api/analytics/growth${filterQuery}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setSeries(Array.isArray(data.series) ? data.series : []);
+        setCurrent(data.current || 0);
+        setApiTotalGained(data.totalGained || 0);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingG(false));
+  }, [filterQuery]);
+
+  if (loadingG) {
+    return <div style={{ display: "flex", justifyContent: "center", padding: 40 }}><Loader2 style={{ width: 24, height: 24, color: "#64748b", animation: "spin 1s linear infinite" }} /></div>;
+  }
+
+  if (series.length === 0) {
     return (
       <div style={{
         display: "flex", flexDirection: "column", alignItems: "center",
@@ -1502,13 +1608,17 @@ function TabCrecimiento({ filterQuery }: { filterQuery: string }) {
       }}>
         <BarChart2 style={{ width: 32, height: 32, color: "#334155" }} />
         <p style={{ fontSize: 13, color: "#64748b", textAlign: "center" }}>
-          Conecta tu cuenta en <strong style={{ color: "#00d4ff" }}>Integraciones</strong> para ver datos de crecimiento
+          Aún no hay datos de crecimiento de seguidores para este periodo. Meta expone
+          los cambios diarios de seguidores solo de los últimos ~30 días.
         </p>
       </div>
     );
   }
-  const totalGained = GROWTH_DATA.reduce((s, d) => s + d.gained, 0);
-  const growthRate = ((GROWTH_DATA[GROWTH_DATA.length - 1].followers - GROWTH_DATA[0].followers) / GROWTH_DATA[0].followers * 100).toFixed(1);
+
+  const GROWTH_DATA = series;
+  const totalGained = apiTotalGained || GROWTH_DATA.reduce((s, d) => s + d.gained, 0);
+  const firstFollowers = GROWTH_DATA[0].followers || 1;
+  const growthRate = (((GROWTH_DATA[GROWTH_DATA.length - 1].followers - GROWTH_DATA[0].followers) / firstFollowers) * 100).toFixed(1);
   const maxFollowers = Math.max(...GROWTH_DATA.map((d) => d.followers));
   const minFollowers = Math.min(...GROWTH_DATA.map((d) => d.followers));
   const range = maxFollowers - minFollowers || 1;
@@ -1525,14 +1635,14 @@ function TabCrecimiento({ filterQuery }: { filterQuery: string }) {
             </span>
           </div>
           <div className="kpi-value" style={{ color: "#00d4ff" }}>
-            {GROWTH_DATA[GROWTH_DATA.length - 1].followers.toLocaleString()}
+            {(current || GROWTH_DATA[GROWTH_DATA.length - 1].followers).toLocaleString()}
           </div>
         </div>
         <div className="kpi-card emerald">
           <div className="flex items-center gap-2 mb-2">
             <UserPlus style={{ width: 16, height: 16, color: "#06d6a0" }} />
             <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "#64748b" }}>
-              Ganados (6 meses)
+              Ganados (periodo)
             </span>
           </div>
           <div className="kpi-value" style={{ color: "#06d6a0" }}>
@@ -1654,8 +1764,8 @@ function TabCrecimiento({ filterQuery }: { filterQuery: string }) {
         <div style={{ padding: "20px 24px" }}>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
             {GROWTH_DATA.map((d) => {
-              const maxGained = Math.max(...GROWTH_DATA.map((g) => g.gained));
-              const barH = (d.gained / maxGained) * 80;
+              const maxGained = Math.max(...GROWTH_DATA.map((g) => g.gained), 1);
+              const barH = Math.max(0, (d.gained / maxGained) * 80);
               return (
                 <div key={d.period} className="flex flex-col items-center gap-2">
                   <span
