@@ -606,8 +606,8 @@ export default function OpsPage() {
   const fullCreate = async (data: any) => { try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => [...p, d.data]); setShowCreate(false); } } catch {} };
   const createRequest = async (data: any) => { try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => [...p, d.data]); setShowRequest(false); } else { alert(d.error || "Error al enviar solicitud"); } } catch (e: any) { alert("Error de red al enviar solicitud"); console.error("[OPS] createRequest error:", e); } };
   const fullUpdate = async (data: any) => { if (!editTask) return; if (data.status === "Done" && !canCloseTask(editTask)) { alert("Esta tarea requiere la aprobación de un líder del área antes de cerrarse."); return; } try { const r = await fetch(`/api/ops/${editTask.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => p.map(t => t.id === editTask.id ? d.data : t)); setEditTask(null); } } catch {} };
-  const patch = async (id: string, p: any) => { if (p.status === "Done") { const t = tasks.find(x => x.id === id) || tasks.flatMap(x => x.children || []).find(c => c.id === id); if (t && !canCloseTask(t)) { alert("Esta tarea requiere la aprobación de un líder del área antes de cerrarse."); return; } } setTasks(prev => prev.map(t => t.id === id ? { ...t, ...p } : t)); try { await fetch(`/api/ops/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }); } catch { fetch_(); } };
-  const del = async (id: string) => { if (!confirm("¿Eliminar?")) return; setTasks(p => p.filter(t => t.id !== id)); try { await fetch(`/api/ops/${id}`, { method: "DELETE" }); } catch { fetch_(); } };
+  const patch = async (id: string, p: any) => { if (p.status === "Done") { const t = tasks.find(x => x.id === id) || tasks.flatMap(x => x.children || []).find(c => c.id === id); if (t && !canCloseTask(t)) { alert("Esta tarea requiere la aprobación de un líder del área antes de cerrarse."); return; } } setTasks(prev => prev.map(t => t.id === id ? { ...t, ...p } : t)); try { const r = await fetch(`/api/ops/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }); if (r.status === 403) { const d = await r.json().catch(() => ({})); alert(d.error || "No tienes permisos para editar esta tarea."); fetch_(); } else if (!r.ok) { fetch_(); } } catch { fetch_(); } };
+  const del = async (id: string) => { if (!confirm("¿Eliminar esta tarea?")) return; setTasks(p => p.filter(t => t.id !== id)); try { const r = await fetch(`/api/ops/${id}`, { method: "DELETE" }); if (r.status === 403) { const d = await r.json().catch(() => ({})); alert(d.error || "No tienes permisos para eliminar esta tarea."); fetch_(); } else if (!r.ok) { fetch_(); } } catch { fetch_(); } };
 
   const cnt = (s: string) => tasks.filter(t => t.status === s).length;
   const overdue = tasks.filter(t => t.dueDate && t.status !== "Done" && new Date(t.dueDate) < new Date()).length;
@@ -811,7 +811,7 @@ export default function OpsPage() {
                     <div className="ops-table-row" style={{ display: "grid", gridTemplateColumns: "1fr 120px 110px 80px 90px 75px 36px", gap: 0, alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.025)" }}
                       onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                       <div style={{ padding: "6px 10px", minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}>
-                        {hasChildren ? <button onClick={() => setExpanded(p => ({ ...p, [task.id]: !p[task.id] }))} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#64748b", flexShrink: 0 }}>{isExpanded ? <ChevronDown style={{ width: 12, height: 12 }} /> : <ChevronRight style={{ width: 12, height: 12 }} />}</button> : <div style={{ width: 16 }} />}
+                        {hasChildren ? <button onClick={() => setExpanded(p => ({ ...p, [task.id]: !p[task.id] }))} aria-label={isExpanded ? 'Colapsar subtareas' : 'Expandir subtareas'} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#64748b", flexShrink: 0 }}>{isExpanded ? <ChevronDown style={{ width: 12, height: 12 }} /> : <ChevronRight style={{ width: 12, height: 12 }} />}</button> : <div style={{ width: 16 }} />}
                         <div style={{ minWidth: 0, flex: 1, cursor: "pointer" }} onClick={() => setEditTask(task)}>
                           <div style={{ padding: "4px 8px", fontSize: 13, color: "#e2e8f0" }}>{task.title}</div>
                           <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 8px", flexWrap: "wrap" }}>
@@ -846,7 +846,7 @@ export default function OpsPage() {
                       </div>
                       <div style={{ padding: "6px 4px", fontSize: 10, color: "rgba(148,163,184,0.65)", textAlign: "center" }}>{fmt(task.createdAt)}</div>
                       <div style={{ padding: "6px 4px", textAlign: "center" }}>
-                        <button onClick={() => del(task.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 3, color: "rgba(148,163,184,0.22)" }} onMouseEnter={e => e.currentTarget.style.color = "#e2445c"} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.22)"}><Trash2 style={{ width: 12, height: 12 }} /></button>
+                        <button onClick={() => del(task.id)} aria-label="Eliminar tarea" style={{ background: "none", border: "none", cursor: "pointer", padding: 3, color: "rgba(148,163,184,0.4)" }} onMouseEnter={e => e.currentTarget.style.color = "#e2445c"} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.4)"}><Trash2 style={{ width: 12, height: 12 }} /></button>
                       </div>
                     </div>
                     {/* Subitems */}
@@ -862,7 +862,7 @@ export default function OpsPage() {
                             </Dropdown>
                           </div>
                           <div /><div /><div />
-                          <div style={{ padding: "4px", textAlign: "center" }}><button onClick={() => del(sub.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 3, color: "rgba(148,163,184,0.18)" }} onMouseEnter={e => e.currentTarget.style.color = "#e2445c"} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.18)"}><Trash2 style={{ width: 11, height: 11 }} /></button></div>
+                          <div style={{ padding: "4px", textAlign: "center" }}><button onClick={() => del(sub.id)} aria-label="Eliminar subtarea" style={{ background: "none", border: "none", cursor: "pointer", padding: 3, color: "rgba(148,163,184,0.4)" }} onMouseEnter={e => e.currentTarget.style.color = "#e2445c"} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.4)"}><Trash2 style={{ width: 11, height: 11 }} /></button></div>
                         </div>
                       );
                     })}
@@ -900,7 +900,7 @@ export default function OpsPage() {
               <div key={g.key} style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 8, borderTop: `3px solid ${g.color}`, display: "flex", flexDirection: "column" }}>
                 <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13, fontWeight: 700, color: g.color }}>{g.label}</span><span style={{ fontSize: 10, color: "#64748b", background: "rgba(255,255,255,0.09)", padding: "1px 6px", borderRadius: 8 }}>{gt.length}</span></div>
-                  <button onClick={() => { setAddingIn(g.key); setNewTitle(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.65)", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = g.color} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.65)"}><Plus style={{ width: 14, height: 14 }} /></button>
+                  <button onClick={() => { setAddingIn(g.key); setNewTitle(""); }} aria-label="Agregar tarea" style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.65)", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = g.color} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.65)"}><Plus style={{ width: 14, height: 14 }} /></button>
                 </div>
                 <div style={{ padding: "0 10px 10px", display: "flex", flexDirection: "column", gap: 8, flex: 1, overflowY: "auto" }}>
                   {gt.map(t => <KanbanCard key={t.id} task={t} onEdit={setEditTask} />)}

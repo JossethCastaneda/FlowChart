@@ -15,7 +15,7 @@
     --background:      #030508;
     --foreground:      #dde6f0;           /* ↑ was #c8d6e5 */
     --text-secondary:  #94a3b8;
-    --text-muted:      #64748b;
+    --text-muted:      #7c8ba1;
     --cyan:            #00d4ff;
     --cyan-dim:        rgba(0,212,255,0.15);
     --red:             #ff2d55;
@@ -379,7 +379,7 @@ input:focus, select:focus, textarea:focus {
   box-shadow: 0 0 12px rgba(0,212,255,0.1);
 }
 input::placeholder, textarea::placeholder {
-  color: rgba(148,163,184,0.55);    /* ↑ was 0.45 */
+  color: rgba(148,163,184,0.7);    /* ↑ was 0.55 */
 }
 select option { background: #0a0e1a; color: #e2e8f0; }
 select option:disabled { color: rgba(148,163,184,0.55); }
@@ -490,3 +490,12 @@ select option:disabled { color: rgba(148,163,184,0.55); }
 }
 .sidebar-collapse-btn:hover { color: #e2e8f0; background: rgba(0,212,255,0.06); }
 .sidebar-collapsed .sidebar-collapse-btn { justify-content: center; padding: 10px 8px; }
+
+/* ─── Reduced Motion ─── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

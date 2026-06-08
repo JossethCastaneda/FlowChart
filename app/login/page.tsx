@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { SodareLogo } from "@/components/ui/SodareLogo";
@@ -38,7 +38,7 @@ export default function LoginPage() {
   const [status, setStatus] = useState<{
     type: "idle" | "connecting" | "success" | "error";
     message: string;
-  }>({ type: "idle", message: "Awaiting authentication..." });
+  }>({ type: "idle", message: "Esperando autenticación..." });
 
   useEffect(() => {
     let isActive = true;
@@ -81,14 +81,14 @@ export default function LoginPage() {
     setIsLoading(true);
     setStatus({
       type: "connecting",
-      message: "Establishing hyperspace connection...",
+      message: "Conectando...",
     });
     const { signIn } = await import("next-auth/react");
     try {
       await signIn("facebook", { callbackUrl: getSafeCallbackUrl() });
     } catch {
       setIsLoading(false);
-      setStatus({ type: "error", message: "⚠ Connection failed. Retry." });
+      setStatus({ type: "error", message: "⚠ Error de conexión. Reintentar." });
     }
   }
 
@@ -103,14 +103,14 @@ export default function LoginPage() {
     setIsLoading(true);
     setStatus({
       type: "connecting",
-      message: "Establishing hyperspace connection...",
+      message: "Conectando...",
     });
     const { signIn } = await import("next-auth/react");
     try {
       await signIn("google", { callbackUrl: getSafeCallbackUrl() });
     } catch {
       setIsLoading(false);
-      setStatus({ type: "error", message: "⚠ Connection failed. Retry." });
+      setStatus({ type: "error", message: "⚠ Error de conexión. Reintentar." });
     }
   }
 
@@ -121,7 +121,7 @@ export default function LoginPage() {
     }
     setIsLoading(true);
     setCredError("");
-    setStatus({ type: "connecting", message: "Authenticating..." });
+    setStatus({ type: "connecting", message: "Autenticando..." });
     const { signIn } = await import("next-auth/react");
     const result = await signIn("credentials", {
       email,
@@ -177,7 +177,7 @@ export default function LoginPage() {
       setIsLoading(false);
       setCredError("Cuenta creada. Inicia sesión.");
       setIsRegister(false);
-      setStatus({ type: "idle", message: "Awaiting authentication..." });
+      setStatus({ type: "idle", message: "Esperando autenticación..." });
       return;
     }
     setStatus({ type: "success", message: "Access granted" });
@@ -223,11 +223,11 @@ export default function LoginPage() {
               <span className="line-diamond">◆</span>
               <span className="line-segment" />
             </div>
-            <p className="logo-subtitle">MULTICHANNEL INTELLIGENCE</p>
+            <p className="logo-subtitle">INTELIGENCIA MULTICANAL</p>
           </div>
 
           {/* Tagline */}
-          <p className="tagline">Navigate the Marketing Galaxy</p>
+          <p className="tagline">Navega la galaxia del marketing</p>
 
           {/* Facebook button */}
           <button
@@ -245,15 +245,15 @@ export default function LoginPage() {
                   </svg>
                   <span>
                     {!providerStatusLoaded
-                      ? "CHECKING FACEBOOK"
+                      ? "VERIFICANDO FACEBOOK"
                       : hasFacebookProvider
-                        ? status.type === "error" ? "RETRY CONNECTION" : "CONNECT WITH FACEBOOK"
-                        : "FACEBOOK NOT CONFIGURED"}
+                        ? status.type === "error" ? "REINTENTAR CONEXIÓN" : "CONECTAR CON FACEBOOK"
+                        : "FACEBOOK NO CONFIGURADO"}
                   </span>
                 </>
               ) : (
                 <>
-                  <span>ESTABLISHING CONNECTION</span>
+                  <span>CONECTANDO</span>
                   <span className="loader-dots">
                     <i /><i /><i />
                   </span>
@@ -265,7 +265,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="divider-or">
             <span className="divider-line" />
-            <span className="divider-text">OR</span>
+            <span className="divider-text">O</span>
             <span className="divider-line" />
           </div>
 
@@ -288,15 +288,15 @@ export default function LoginPage() {
                   </svg>
                   <span>
                     {!providerStatusLoaded
-                      ? "CHECKING GOOGLE"
+                      ? "VERIFICANDO GOOGLE"
                       : hasGoogleProvider
-                        ? "CONNECT WITH GOOGLE"
-                        : "GOOGLE NOT CONFIGURED"}
+                        ? "CONECTAR CON GOOGLE"
+                        : "GOOGLE NO CONFIGURADO"}
                   </span>
                 </>
               ) : (
                 <>
-                  <span>ESTABLISHING CONNECTION</span>
+                  <span>CONECTANDO</span>
                   <span className="loader-dots">
                     <i /><i /><i />
                   </span>
@@ -308,7 +308,7 @@ export default function LoginPage() {
           {/* Divider */}
           <div className="divider-or">
             <span className="divider-line" />
-            <span className="divider-text">OR</span>
+            <span className="divider-text">O</span>
             <span className="divider-line" />
           </div>
 
@@ -324,7 +324,7 @@ export default function LoginPage() {
                 <svg viewBox="0 0 24 24" className="fb-icon" style={{ fill: "white" }}>
                   <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
                 </svg>
-                <span>LOGIN WITH EMAIL</span>
+                <span>INICIAR CON EMAIL</span>
               </div>
             </button>
           ) : (
@@ -342,7 +342,7 @@ export default function LoginPage() {
                     cursor: "pointer",
                   }}
                 >
-                  LOGIN
+                  INICIAR SESIÓN
                 </button>
                 <button
                   onClick={() => { setIsRegister(true); setCredError(""); }}
@@ -355,7 +355,7 @@ export default function LoginPage() {
                     cursor: "pointer",
                   }}
                 >
-                  REGISTER
+                  REGISTRARSE
                 </button>
               </div>
 
@@ -459,10 +459,10 @@ export default function LoginPage() {
                 <div className="fb-btn-bg" />
                 <div className="fb-btn-content">
                   {!isLoading ? (
-                    <span>{isRegister ? "CREATE ACCOUNT" : "LOGIN →"}</span>
+                    <span>{isRegister ? "CREAR CUENTA" : "INICIAR SESIÓN →"}</span>
                   ) : (
                     <>
-                      <span>{isRegister ? "CREATING ACCOUNT" : "AUTHENTICATING"}</span>
+                      <span>{isRegister ? "CREANDO CUENTA" : "AUTENTICANDO"}</span>
                       <span className="loader-dots"><i /><i /><i /></span>
                     </>
                   )}
@@ -494,7 +494,7 @@ export default function LoginPage() {
           </span>
           <span className="vf-line" />
         </div>
-        <p className="copyright">© 2025 Sodare · All Systems Operational</p>
+        <p className="copyright">© {new Date().getFullYear()} Sodare · All Systems Operational</p>
       </div>
     </div>
   );
