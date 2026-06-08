@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect, useCallback } from "react";
 import { AnalyticsFilters, type Platform } from "./AnalyticsFilters";
+import { ComparisonControl, compareLabel, type ComparisonState, type CompareMode } from "./ComparisonControl";
 
 import {
   TrendingUp,
@@ -42,7 +43,18 @@ const ChannelIcons: Record<string, React.ElementType> = {
 const TABS = ["Resumen", "Posts", "Audiencia", "Historias", "Reels", "Mejor Horario", "Crecimiento"] as const;
 type Tab = (typeof TABS)[number];
 
-const EMPTY_KPI = [
+type Kpi = {
+  label: string;
+  value: string;
+  change: string;
+  positive: boolean;
+  icon: React.ElementType;
+  color: string;
+  accent: string;
+  compareValue?: string; // e.g. "vs periodo anterior: 12,340"
+};
+
+const EMPTY_KPI: Kpi[] = [
   { label: "Alcance", value: "—", change: "—", positive: true, icon: Eye, color: "#00d4ff", accent: "cyan" },
   { label: "Engagement", value: "—", change: "—", positive: true, icon: Heart, color: "#f472b6", accent: "pink" },
   { label: "Seguidores", value: "—", change: "—", positive: true, icon: Users, color: "#06d6a0", accent: "emerald" },
@@ -87,7 +99,7 @@ function generateHeatmap(): number[][] {
 
 export function AnalyticsDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("Resumen");
-  const [kpis, setKpis] = useState(EMPTY_KPI);
+  const [kpis, setKpis] = useState<Kpi[]>(EMPTY_KPI);
   const [posts, setPosts] = useState<any[]>([]);
   const [audienceAge, setAudienceAge] = useState<any[]>([]);
   const [audienceGender, setAudienceGender] = useState<any[]>([]);
@@ -98,9 +110,18 @@ export function AnalyticsDashboard() {
   const [filterPlatform, setFilterPlatform] = useState<Platform>("all");
   const [filterAccountIds, setFilterAccountIds] = useState<string[]>([]);
 
+  // ── Period + comparison state ──
+  const [period, setPeriod] = useState(28);
+  const [compareMode, setCompareMode] = useState<CompareMode>("none");
+
   const handleFilterChange = useCallback((platform: Platform, selectedIds: string[]) => {
     setFilterPlatform(platform);
     setFilterAccountIds(selectedIds);
+  }, []);
+
+  const handleComparisonChange = useCallback((s: ComparisonState) => {
+    setPeriod(s.days);
+    setCompareMode(s.compare);
   }, []);
 
   const addDataNotice = useCallback((message: string) => {
@@ -124,18 +145,54 @@ export function AnalyticsDashboard() {
       const platformParam = filterPlatform !== "all" ? `&platform=${filterPlatform}` : "";
 
       try {
-        // Fetch KPIs
-        const kpiRes = await fetch(`/api/analytics/organic?days=30${pageIdParam}${platformParam}`);
+        // Fetch KPIs (with optional comparison window)
+        const compareParam = compareMode !== "none" ? `&compare=${compareMode}` : "";
+        const kpiRes = await fetch(`/api/analytics/organic?days=${period}${pageIdParam}${platformParam}${compareParam}`);
         if (kpiRes.ok) {
           const kpiData = await kpiRes.json();
           if (kpiData && !kpiData.error) {
+            const cmp = kpiData.comparison; // null unless comparison requested
+            const lbl = cmp ? compareLabel(cmp.mode) : "";
+            // When a comparison window is active, use the real period-over-period
+            // delta; otherwise fall back to the in-period trend.
+            const fmtChange = (delta: number) => `${delta > 0 ? "+" : ""}${delta}%`;
+            const fmtTrend = (t: number) => `${t > 0 ? "+" : ""}${(t || 0).toFixed(1)}%`;
+
             setKpis([
-              { label: "Alcance", value: (kpiData.reach || 0).toLocaleString(), change: `${kpiData.reachTrend > 0 ? "+" : ""}${(kpiData.reachTrend || 0).toFixed(1)}%`, positive: (kpiData.reachTrend || 0) >= 0, icon: Eye, color: "#00d4ff", accent: "cyan" },
-              { label: "Engagement", value: `${(kpiData.engagement || 0).toFixed(1)}%`, change: `${kpiData.engagementTrend > 0 ? "+" : ""}${(kpiData.engagementTrend || 0).toFixed(1)}%`, positive: (kpiData.engagementTrend || 0) >= 0, icon: Heart, color: "#f472b6", accent: "pink" },
-              { label: "Seguidores", value: (kpiData.followers || 0).toLocaleString(), change: `${kpiData.followersTrend > 0 ? "+" : ""}${(kpiData.followersTrend || 0).toFixed(1)}%`, positive: (kpiData.followersTrend || 0) >= 0, icon: Users, color: "#06d6a0", accent: "emerald" },
-              { label: "Impresiones", value: (kpiData.impressions || 0).toLocaleString(), change: `${kpiData.impressionsTrend > 0 ? "+" : ""}${(kpiData.impressionsTrend || 0).toFixed(1)}%`, positive: (kpiData.impressionsTrend || 0) >= 0, icon: BarChart2, color: "#7b61ff", accent: "purple" },
+              {
+                label: "Alcance",
+                value: (kpiData.reach || 0).toLocaleString(),
+                change: cmp ? fmtChange(cmp.deltas.reach) : fmtTrend(kpiData.reachTrend),
+                positive: cmp ? cmp.deltas.reach >= 0 : (kpiData.reachTrend || 0) >= 0,
+                icon: Eye, color: "#00d4ff", accent: "cyan",
+                compareValue: cmp ? `${lbl}: ${(cmp.reach || 0).toLocaleString()}` : undefined,
+              },
+              {
+                label: "Engagement",
+                value: `${(kpiData.engagement || 0).toFixed(1)}%`,
+                change: cmp ? fmtChange(cmp.deltas.engagement) : fmtTrend(kpiData.engagementTrend),
+                positive: cmp ? cmp.deltas.engagement >= 0 : (kpiData.engagementTrend || 0) >= 0,
+                icon: Heart, color: "#f472b6", accent: "pink",
+                compareValue: cmp ? `${lbl}: ${(cmp.engagement || 0).toFixed(1)}%` : undefined,
+              },
+              {
+                label: "Seguidores",
+                value: (kpiData.followers || 0).toLocaleString(),
+                change: fmtTrend(kpiData.followersTrend),
+                positive: (kpiData.followersTrend || 0) >= 0,
+                icon: Users, color: "#06d6a0", accent: "emerald",
+                // Followers is a live snapshot — Meta doesn't expose a historical
+                // total, so there is no period-over-period comparison for it.
+              },
+              {
+                label: "Impresiones",
+                value: (kpiData.impressions || 0).toLocaleString(),
+                change: cmp ? fmtChange(cmp.deltas.impressions) : fmtTrend(kpiData.impressionsTrend),
+                positive: cmp ? cmp.deltas.impressions >= 0 : (kpiData.impressionsTrend || 0) >= 0,
+                icon: BarChart2, color: "#7b61ff", accent: "purple",
+                compareValue: cmp ? `${lbl}: ${(cmp.impressions || 0).toLocaleString()}` : undefined,
+              },
             ]);
-            // Data loaded from API
           }
         }
       } catch {
@@ -191,7 +248,7 @@ export function AnalyticsDashboard() {
       }
     };
     fetchData();
-  }, [filterPlatform, filterAccountIds, filterPageIds, addDataNotice]);
+  }, [filterPlatform, filterAccountIds, filterPageIds, period, compareMode, addDataNotice]);
 
   // Filter posts by selected platform
   const filteredPosts = useMemo(() => {
@@ -213,7 +270,10 @@ export function AnalyticsDashboard() {
     <div className="space-y-4">
 
       {/* ─── FILTERS BAR ─── */}
-      <AnalyticsFilters onFilterChange={handleFilterChange} />
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", justifyContent: "space-between" }}>
+        <AnalyticsFilters onFilterChange={handleFilterChange} />
+        <ComparisonControl onChange={handleComparisonChange} />
+      </div>
 
       {dataNotices.length > 0 && (
         <div
@@ -486,7 +546,8 @@ function KpiCard({
   icon: Icon,
   color,
   accent,
-}: (typeof EMPTY_KPI)[number]) {
+  compareValue,
+}: Kpi) {
   const kpiClass = `kpi-card ${accent}`;
   return (
     <div className={kpiClass}>
@@ -525,6 +586,11 @@ function KpiCard({
         {value}
       </div>
       <div className="kpi-label">{label}</div>
+      {compareValue && (
+        <div style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", marginTop: 4 }}>
+          {compareValue}
+        </div>
+      )}
     </div>
   );
 }

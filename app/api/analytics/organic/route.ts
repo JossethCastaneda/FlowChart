@@ -42,6 +42,72 @@ async function processInChunks<T, R>(
   return results;
 }
 
+const DAY_MS = 24 * 60 * 60 * 1000;
+const fmtDate = (d: Date) => d.toISOString().split("T")[0];
+
+/** % change between a current and a previous value (rounded integer). */
+function pctChange(current: number, previous: number): number {
+  if (previous === 0) return current > 0 ? 100 : 0;
+  return Math.round(((current - previous) / previous) * 100);
+}
+
+/**
+ * Totals-only pass for a date window — used to compute the comparison period.
+ * Sums period metrics (reach / engagement / impressions) across pages.
+ * Followers are a live snapshot only, so they are intentionally excluded here.
+ */
+async function fetchPeriodTotals(
+  pages: any[],
+  token: string,
+  platformParam: string | null,
+  sinceStr: string,
+  untilStr: string
+): Promise<{ reach: number; engagement: number; impressions: number }> {
+  let reach = 0, engagement = 0, impressions = 0;
+
+  await processInChunks(pages, 5, async (page: any) => {
+    const pageToken = page.access_token || token;
+    const igAccountId = page.instagram_business_account?.id;
+
+    const fbUrl = platformParam !== "instagram"
+      ? metaUrl(`${page.id}/insights`, {
+          metric: "page_media_view,page_total_media_view_unique,page_post_engagements",
+          period: "day", since: sinceStr, until: untilStr,
+        })
+      : null;
+    const igUrl = igAccountId && platformParam !== "facebook"
+      ? metaUrl(`${igAccountId}/insights`, {
+          metric: "views,reach,total_interactions",
+          period: "day", since: sinceStr, until: untilStr,
+        })
+      : null;
+
+    const [fbR, igR] = await Promise.allSettled([
+      fbUrl ? metaFetch(fbUrl, pageToken).then((r) => (r.ok ? r.json() : null)) : Promise.resolve(null),
+      igUrl ? metaFetch(igUrl, token).then((r) => (r.ok ? r.json() : null)) : Promise.resolve(null),
+    ]);
+
+    const fbData = fbR.status === "fulfilled" && fbR.value?.data ? fbR.value.data : [];
+    const igData = igR.status === "fulfilled" && igR.value?.data ? igR.value.data : [];
+
+    const fbImp = findMetric(fbData, "page_media_view");
+    const fbReach = findMetric(fbData, "page_total_media_view_unique") || fbImp;
+    const fbEng = findMetric(fbData, "page_post_engagements");
+    reach += sumValues(fbReach?.values || []);
+    engagement += sumValues(fbEng?.values || []);
+    impressions += sumValues(fbImp?.values || []);
+
+    const igImp = findMetric(igData, "views") || findMetric(igData, "impressions");
+    const igReach = findMetric(igData, "reach");
+    const igEng = findMetric(igData, "total_interactions");
+    reach += sumValues(igReach?.values || []);
+    engagement += sumValues(igEng?.values || []);
+    impressions += sumValues(igImp?.values || []);
+  });
+
+  return { reach, engagement, impressions };
+}
+
 // ── Main handler ───────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
@@ -264,6 +330,37 @@ export async function GET(request: NextRequest) {
       ? parseFloat(((totalEngagement / totalReach) * 100).toFixed(2))
       : 0;
 
+    // ── Comparison period (period-over-period / year-over-year) ──────────────
+    // compare = "previous" (same-length window immediately before) | "prev_year"
+    const compare = request.nextUrl.searchParams.get("compare");
+    let comparison: any = null;
+    if (compare === "previous" || compare === "prev_year") {
+      let cmpSince: Date, cmpUntil: Date;
+      if (compare === "previous") {
+        cmpUntil = new Date(since.getTime() - DAY_MS);
+        cmpSince = new Date(cmpUntil.getTime() - (periodDays - 1) * DAY_MS);
+      } else {
+        cmpSince = new Date(since.getTime() - 365 * DAY_MS);
+        cmpUntil = new Date(now.getTime() - 365 * DAY_MS);
+      }
+      const cmp = await fetchPeriodTotals(
+        pagesToProcess, token, platformParam, fmtDate(cmpSince), fmtDate(cmpUntil)
+      );
+      const cmpEngRate = cmp.reach > 0 ? parseFloat(((cmp.engagement / cmp.reach) * 100).toFixed(2)) : 0;
+      comparison = {
+        mode: compare,
+        range: { since: fmtDate(cmpSince), until: fmtDate(cmpUntil) },
+        reach: cmp.reach,
+        engagement: cmpEngRate,
+        impressions: cmp.impressions,
+        deltas: {
+          reach: pctChange(totalReach, cmp.reach),
+          engagement: pctChange(engagementRate, cmpEngRate),
+          impressions: pctChange(totalImpressions, cmp.impressions),
+        },
+      };
+    }
+
     return NextResponse.json({
       reach: totalReach,
       engagement: engagementRate,        // % rate (e.g. 2.5)
@@ -274,6 +371,7 @@ export async function GET(request: NextRequest) {
       engagementTrend,
       followersTrend,
       impressionsTrend,
+      comparison,                         // null unless ?compare= is set
       pages: pageSummaries,
     });
   } catch (error: any) {
