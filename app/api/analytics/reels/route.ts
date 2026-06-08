@@ -101,24 +101,45 @@ export async function GET(req: NextRequest) {
           console.error(`[REELS] Error for ${igUserId}:`, data?.error?.message);
           return [];
         }
-        // Filter to only VIDEO (Reels) and normalize
+        // Filter to only VIDEO (Reels) and normalize.
+        // IMPORTANT: the frontend (TabReels / ReelData) reads metrics as
+        // TOP-LEVEL fields (reel.plays, reel.engagementRate, ...). Returning
+        // them nested under `insights` made reel.plays undefined and crashed
+        // the tab on `reel.plays.toLocaleString()`. Flatten + compute eng. rate.
         return (data.data || [])
           .filter((m: any) => m.media_type === "VIDEO")
           .map((reel: any) => {
             const insights: Record<string, number> = {};
             if (reel.insights?.data) {
               for (const metric of reel.insights.data) {
-                insights[metric.name] = metric.values?.[0]?.value || 0;
+                insights[metric.name] = Number(metric.values?.[0]?.value) || 0;
               }
             }
+            const plays = insights.views || insights.plays || 0;
+            const reach = insights.reach || 0;
+            const likes = insights.likes || 0;
+            const comments = insights.comments || 0;
+            const saved = insights.saved || 0;
+            const shares = insights.shares || 0;
+            const interactions = insights.total_interactions || (likes + comments + saved + shares);
+            const denominator = reach || plays;
+            const engagementRate = denominator > 0
+              ? parseFloat(((interactions / denominator) * 100).toFixed(2))
+              : 0;
             return {
               id: reel.id,
               timestamp: reel.timestamp,
               caption: reel.caption || "",
-              mediaUrl: reel.media_url,
-              thumbnailUrl: reel.thumbnail_url,
-              permalink: reel.permalink,
-              insights,
+              mediaUrl: reel.media_url || null,
+              thumbnailUrl: reel.thumbnail_url || reel.media_url || null,
+              permalink: reel.permalink || null,
+              plays,
+              reach,
+              likes,
+              comments,
+              saved,
+              shares,
+              engagementRate,
             };
           });
       })

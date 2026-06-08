@@ -5,12 +5,16 @@ import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
+type MediaFormat = "image" | "video" | "carousel" | "link" | "text";
+
 interface NormalizedPost {
   id: string;
   text: string;
   channel: "facebook" | "instagram";
   date: string;
   image: string | null;
+  mediaType: MediaFormat;   // format of the publication (adapt rendering per type)
+  permalink: string | null; // link to the original post
   reach: number;
   likes: number;
   comments: number;
@@ -104,6 +108,7 @@ export async function GET(request: NextRequest) {
         ? metaUrl(`${page.id}/published_posts`, {
             fields: [
               "id", "message", "created_time", "full_picture",
+              "permalink_url", "status_type", "attachments{media_type}",
               "shares",
               "likes.summary(true)",
               "comments.summary(true)",
@@ -118,6 +123,7 @@ export async function GET(request: NextRequest) {
         ? metaUrl(`${igAccountId}/media`, {
             fields: [
               "id", "caption", "timestamp", "media_url", "thumbnail_url",
+              "media_type", "permalink",
               "like_count", "comments_count",
               "insights.metric(views,reach,saved)",
             ].join(","),
@@ -158,12 +164,22 @@ export async function GET(request: NextRequest) {
           const shares = Number(post.shares?.count) || 0;
           const engagementAbs = engaged || (likes + comments + shares);
 
+          // Derive the publication format from attachments / status_type.
+          const fbAttType = post.attachments?.data?.[0]?.media_type as string | undefined;
+          let fbFormat: MediaFormat = "text";
+          if (fbAttType === "video" || post.status_type === "added_video") fbFormat = "video";
+          else if (fbAttType === "album") fbFormat = "carousel";
+          else if (fbAttType === "photo" || post.status_type === "added_photos" || post.full_picture) fbFormat = "image";
+          else if (fbAttType === "link" || fbAttType === "share") fbFormat = "link";
+
           allPosts.push({
             id: post.id,
             text: post.message || "",
             channel: "facebook",
             date: post.created_time,
             image: post.full_picture || null,
+            mediaType: fbFormat,
+            permalink: post.permalink_url || null,
             reach,
             likes,
             comments,
@@ -189,12 +205,20 @@ export async function GET(request: NextRequest) {
           const engagementAbs = likes + comments + saved;
           const denominator = reach || views;
 
+          // IG media_type: IMAGE | VIDEO | CAROUSEL_ALBUM
+          const igFormat: MediaFormat =
+            media.media_type === "VIDEO" ? "video" :
+            media.media_type === "CAROUSEL_ALBUM" ? "carousel" :
+            "image";
+
           allPosts.push({
             id: media.id,
             text: media.caption || "",
             channel: "instagram",
             date: media.timestamp,
             image: media.media_url || media.thumbnail_url || null,
+            mediaType: igFormat,
+            permalink: media.permalink || null,
             reach: reach || views,
             likes,
             comments,

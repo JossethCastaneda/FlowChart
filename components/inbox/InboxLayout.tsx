@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 import {
   Search, Send, X, ChevronRight, ChevronDown, ChevronUp, UserPlus, Tag, Clock,
@@ -476,12 +477,12 @@ function PostView({ conversation }: { conversation: Conversation }) {
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <Heart style={{ width: 14, height: 14, color: "#ef4444" }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{postData.likeCount.toLocaleString()}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{(postData.likeCount ?? 0).toLocaleString()}</span>
             <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>likes</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
             <MessageCircle style={{ width: 14, height: 14, color: "#00d4ff" }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{postData.commentsCount.toLocaleString()}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{(postData.commentsCount ?? 0).toLocaleString()}</span>
             <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>comentarios</span>
           </div>
           {(postData.shareCount || 0) > 0 && (
@@ -1234,17 +1235,29 @@ export function InboxLayout() {
           flex: 1, display: "flex", flexDirection: "column",
           minWidth: 0, background: "rgba(5,8,18,0.5)",
         }}>
-          {selected.platform === "fb_comment" || selected.platform === "ig_comment" || selected.platform === "instagram_comment" ? (
-            <PostView conversation={selected} />
-          ) : (
-            <ChatView
-              conversation={selected}
-              onSend={handleSendMessage}
-              onClose={handleCloseConversation}
-              onToggleProfile={() => setShowProfile(!showProfile)}
-              showProfile={showProfile}
-            />
-          )}
+          <ErrorBoundary
+            name="InboxConversation"
+            fallback={
+              <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40, textAlign: "center" }}>
+                <AlertCircle style={{ width: 28, height: 28, color: "#ef4444" }} />
+                <p style={{ fontSize: 13, color: "#94a3b8", maxWidth: 280 }}>
+                  No se pudo mostrar esta conversación. Selecciona otra en la lista.
+                </p>
+              </div>
+            }
+          >
+            {selected.platform === "fb_comment" || selected.platform === "ig_comment" || selected.platform === "instagram_comment" ? (
+              <PostView conversation={selected} />
+            ) : (
+              <ChatView
+                conversation={selected}
+                onSend={handleSendMessage}
+                onClose={handleCloseConversation}
+                onToggleProfile={() => setShowProfile(!showProfile)}
+                showProfile={showProfile}
+              />
+            )}
+          </ErrorBoundary>
         </div>
 
         {/* ═══ RIGHT — Contact Profile ═══ */}

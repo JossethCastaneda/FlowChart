@@ -97,19 +97,38 @@ export async function GET(req: NextRequest) {
           console.error(`[STORIES] Error for ${igUserId}:`, data?.error?.message);
           return [];
         }
+        // Normalize to the FLAT shape the frontend (TabHistorias / StoryData)
+        // reads as top-level fields. Returning metrics nested under `insights`
+        // left story.impressions undefined and crashed on `.toLocaleString()`.
         return (data.data || []).map((story: any) => {
           const insights: Record<string, number> = {};
           if (story.insights?.data) {
             for (const metric of story.insights.data) {
-              insights[metric.name] = metric.values?.[0]?.value || 0;
+              insights[metric.name] = Number(metric.values?.[0]?.value) || 0;
             }
           }
+          const impressions = insights.views || insights.impressions || 0;
+          const reach = insights.reach || 0;
+          const exits = insights.exits || 0;
+          const replies = insights.replies || 0;
+          const tapsForward = insights.taps_forward || 0;
+          const tapsBack = insights.taps_back || 0;
+          // Completion rate ≈ portion that did NOT exit early, clamped to 0–100.
+          const completionRate = impressions > 0
+            ? Math.max(0, Math.min(100, (1 - exits / impressions) * 100))
+            : 0;
           return {
             id: story.id,
             timestamp: story.timestamp,
-            mediaUrl: story.media_url,
-            mediaType: story.media_type,
-            insights,
+            mediaUrl: story.media_url || null,
+            mediaType: story.media_type || null,
+            impressions,
+            reach,
+            exits,
+            replies,
+            tapsForward,
+            tapsBack,
+            completionRate,
           };
         });
       })
