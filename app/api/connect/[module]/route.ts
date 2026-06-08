@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { createHmac } from "crypto";
+import { buildScopeString } from "@/lib/meta-scopes";
 
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
@@ -18,39 +19,32 @@ const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
  *   - community          → FACEBOOK_COMMUNITY_CONFIG_ID     (Inbox, Listening, Streams)
  */
 
-const CONFIG_MAP: Record<string, { envKey: string; fallback: string; label: string }> = {
+const CONFIG_MAP: Record<string, { envKey: string; label: string }> = {
   publisher_facebook: {
     envKey: "FACEBOOK_PUBLISHER_FB_CONFIG_ID",
-    fallback: "1333238198690065",
     label: "Publisher Facebook",
   },
   publisher_instagram: {
     envKey: "FACEBOOK_PUBLISHER_IG_CONFIG_ID",
-    fallback: "1035599188809500",
     label: "Publisher Instagram",
   },
   social: {
     envKey: "FACEBOOK_SOCIAL_CONFIG_ID",
-    fallback: "1442288174597662",
     label: "Social Channels",
   },
   ads: {
     envKey: "FACEBOOK_ADS_CONFIG_ID",
-    fallback: "1302595358485795",
     label: "Meta Ads Manager",
   },
   analytics: {
     envKey: "FACEBOOK_ANALYTICS_CONFIG_ID",
-    fallback: "2499676967223181",
     label: "Analytics Engine",
   },
   community: {
     envKey: "FACEBOOK_COMMUNITY_CONFIG_ID",
-    fallback: "3030320280494722",
     label: "Community Management",
   },
 };
-
 
 export async function GET(
   request: NextRequest,
@@ -82,12 +76,16 @@ export async function GET(
     return NextResponse.json({ error: "NEXTAUTH_SECRET/AUTH_SECRET not configured" }, { status: 500 });
   }
 
-  const configId = process.env[config.envKey] || (process.env.NODE_ENV === "production" ? "" : config.fallback);
+  // FIX: Config_ids are REQUIRED in production — no hardcoded fallbacks
+  // This prevents using wrong config_ids if env vars are missing
+  const configId = process.env[config.envKey];
   if (!configId) {
-    return NextResponse.json(
-      { error: `${config.envKey} not configured for ${config.label}` },
-      { status: 500 }
-    );
+    const msg = `${config.envKey} not configured for ${config.label}`;
+    if (process.env.NODE_ENV === "production") {
+      return NextResponse.json({ error: msg }, { status: 500 });
+    }
+    console.warn(`[CONNECT] ${msg} — using demo fallback (dev only)`);
+    return NextResponse.json({ error: `${msg} (configure in production)` }, { status: 500 });
   }
 
   // Build the redirect URI for the callback
@@ -120,6 +118,9 @@ export async function GET(
     .digest("hex");
   const encodedState = Buffer.from(JSON.stringify({ payload, sig })).toString("base64url");
 
+  // FIX: Include module-specific scopes (not global)
+  const scopeString = buildScopeString(module);
+
   // Build Facebook OAuth URL with config_id
   const fbUrl = new URL(`https://www.facebook.com/${META_API_VERSION}/dialog/oauth`);
   fbUrl.searchParams.set("client_id", clientId);
@@ -131,6 +132,10 @@ export async function GET(
   fbUrl.searchParams.set("override_default_response_type", "true");
   // display=popup tells Facebook to render the OAuth dialog in popup mode (no nav bar)
   fbUrl.searchParams.set("display", "popup");
+  // FIX: Include scopes for this module (per Meta best practices)
+  fbUrl.searchParams.set("scope", scopeString);
+
+  console.log(`[CONNECT] Redirecting to Meta OAuth for module: ${module} with scopes: ${scopeString}`);
 
   return NextResponse.redirect(fbUrl.toString());
 }
