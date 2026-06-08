@@ -256,7 +256,7 @@ export default function SettingsPage() {
 
       <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
         {/* ── Left nav: groups (menus) + sections (submenus) ── */}
-        <nav style={{ width: 220, flexShrink: 0, display: "flex", flexDirection: "column", gap: 18 }}>
+        <nav style={{ width: 220, flexShrink: 0, display: "flex", flexDirection: "column", gap: 18, position: "sticky", top: 0, alignSelf: "flex-start" }}>
           {visibleGroups.map((g) => (
             <div key={g.group}>
               <div style={{

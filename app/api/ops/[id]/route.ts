@@ -4,6 +4,7 @@ import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { notifyTaskAssigned } from "@/lib/notifications";
+import { updateAutoSLA } from "@/lib/sla-calculator";
 
 // PATCH /api/ops/[id] — update a task
 export async function PATCH(
@@ -43,6 +44,9 @@ export async function PATCH(
         ...(order !== undefined && { order }),
         ...(parentId !== undefined && { parentId }),
         ...(attachments !== undefined && { attachments }),
+        // Stamp closedAt when transitioning to Done; clear when leaving Done
+        ...(status === "Done" && task.status !== "Done" && { closedAt: new Date() }),
+        ...(status !== undefined && status !== "Done" && task.status === "Done" && { closedAt: null }),
       },
       include: { children: true },
     });
@@ -71,6 +75,13 @@ export async function PATCH(
         priority: updated.priority,
         dueDate: updated.dueDate?.toISOString() || null,
       }).catch(err => console.error("[OPS] Notification error:", err));
+    }
+
+    // Trigger auto-SLA recalculation when a task is closed
+    if (status === "Done" && task.status !== "Done" && task.targetAreaId) {
+      updateAutoSLA(task.targetAreaId, task.workspaceId).catch((err) =>
+        console.error("[OPS] Auto-SLA update error:", err)
+      );
     }
 
     return NextResponse.json({ data: updated });
