@@ -37,7 +37,7 @@ export async function GET(req: Request) {
 
     for (const project of projects) {
       try {
-        const metaChannel = project.channels.find((c) => {
+        const metaChannel = project.channels.find((c: any) => {
           const cfg = c.config as any;
           return cfg?.platformId === "meta" || c.type === "FACEBOOK";
         });
@@ -211,8 +211,8 @@ export async function GET(req: Request) {
         // FIX: members come from workspace.members, not project.members
         const workspaceMembers = project.workspace.members;
         const emails = workspaceMembers
-          .map((m) => m.user.email)
-          .filter((e): e is string => !!e);
+          .map((m: any) => m.user.email)
+          .filter((e: any): e is string => !!e);
 
         const customEmails = (project as any).alertEmails || [];
         const allEmails = [...new Set([...emails, ...customEmails])].filter(Boolean);
