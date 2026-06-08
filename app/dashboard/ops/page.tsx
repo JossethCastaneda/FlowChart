@@ -45,6 +45,7 @@ const GROUPS = [
 const STATUSES = Object.keys(STATUS_CFG);
 const PRIORITIES = Object.keys(PRIO_CFG);
 const TAG_PRESETS = ["Contenido", "Diseño", "Pauta", "Reportes", "Estrategia", "SEO", "CRM", "Social Media"];
+const GROUP_LABELS: Record<string, string> = { status: "Estado", assignee: "Responsable", priority: "Prioridad" };
 
 /* ═══ HELPERS ═══ */
 function sla(due: string | null, st: string) {
@@ -400,6 +401,25 @@ function CalendarView({ tasks, onEdit }: { tasks: Task[]; onEdit: (t: Task) => v
 }
 
 /* ═══ MAIN PAGE ═══ */
+function FilterChip({ label, value, active, children }: { label: string; value: string; active?: boolean; children: (close: () => void) => React.ReactNode }) {
+  return (
+    <Dropdown trigger={
+      <div style={{
+        display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 10px", borderRadius: 6, cursor: "pointer",
+        background: active ? "rgba(0,212,255,0.08)" : "rgba(255,255,255,0.03)",
+        border: `1px solid ${active ? "rgba(0,212,255,0.25)" : "rgba(255,255,255,0.06)"}`,
+        fontSize: 11, whiteSpace: "nowrap",
+      }}>
+        <span style={{ color: "#64748b" }}>{label}:</span>
+        <span style={{ fontWeight: 600, color: active ? "#00d4ff" : "#e2e8f0" }}>{value}</span>
+        <ChevronDown style={{ width: 12, height: 12, color: "#64748b" }} />
+      </div>
+    }>
+      {children}
+    </Dropdown>
+  );
+}
+
 export default function OpsPage() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [members, setMembers] = useState<Member[]>([]);
@@ -413,6 +433,11 @@ export default function OpsPage() {
   const [addingIn, setAddingIn] = useState<string | null>(null);
   const [addingSubIn, setAddingSubIn] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
+  // Monday/Jira-style grouping + quick filters (persisted per user).
+  const [groupBy, setGroupBy] = useState<"status" | "assignee" | "priority">("status");
+  const [fAssignee, setFAssignee] = useState("");
+  const [fPriority, setFPriority] = useState("");
+  const [fTag, setFTag] = useState("");
   const newRef = useRef<HTMLInputElement>(null);
   const subRef = useRef<HTMLInputElement>(null);
 
@@ -423,7 +448,27 @@ export default function OpsPage() {
   useEffect(() => { if (addingIn) newRef.current?.focus(); }, [addingIn]);
   useEffect(() => { if (addingSubIn) subRef.current?.focus(); }, [addingSubIn]);
 
+  // Restore + persist view/grouping/filters.
+  useEffect(() => {
+    try {
+      const r = localStorage.getItem("sodare:ops-prefs");
+      if (r) {
+        const p = JSON.parse(r);
+        if (p.view) setView(p.view);
+        if (p.groupBy) setGroupBy(p.groupBy);
+        if (typeof p.fAssignee === "string") setFAssignee(p.fAssignee);
+        if (typeof p.fPriority === "string") setFPriority(p.fPriority);
+        if (typeof p.fTag === "string") setFTag(p.fTag);
+      }
+    } catch { /* ignore */ }
+  }, []);
+  useEffect(() => {
+    try { localStorage.setItem("sodare:ops-prefs", JSON.stringify({ view, groupBy, fAssignee, fPriority, fTag })); } catch { /* ignore */ }
+  }, [view, groupBy, fAssignee, fPriority, fTag]);
+
   const create = async (status: string) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), status }) }); const d = await r.json(); if (r.ok) setTasks(p => [...p, d.data]); } catch {} setNewTitle(""); setAddingIn(null); };
+  // Create a task with group-aware defaults (so adding inside an assignee/priority group sets that field).
+  const createWith = async (defaults: any) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), status: "Backlog", ...defaults }) }); const d = await r.json(); if (r.ok) setTasks(p => [...p, d.data]); } catch {} setNewTitle(""); setAddingIn(null); };
   const createSub = async (parentId: string) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), parentId, status: "Backlog" }) }); const d = await r.json(); if (r.ok) setTasks(p => p.map(t => t.id === parentId ? { ...t, children: [...(t.children || []), d.data] } : t)); } catch {} setNewTitle(""); setAddingSubIn(null); };
   const fullCreate = async (data: any) => { try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => [...p, d.data]); setShowCreate(false); } } catch {} };
   const fullUpdate = async (data: any) => { if (!editTask) return; try { const r = await fetch(`/api/ops/${editTask.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => p.map(t => t.id === editTask.id ? d.data : t)); setEditTask(null); } } catch {} };
@@ -433,7 +478,33 @@ export default function OpsPage() {
   const cnt = (s: string) => tasks.filter(t => t.status === s).length;
   const overdue = tasks.filter(t => t.dueDate && t.status !== "Done" && new Date(t.dueDate) < new Date()).length;
   const done = cnt("Done"), total = tasks.length, pct = total > 0 ? Math.round((done / total) * 100) : 0;
-  const filtered = useMemo(() => { if (!search) return tasks; const q = search.toLowerCase(); return tasks.filter(t => t.title.toLowerCase().includes(q) || t.assignee?.toLowerCase().includes(q) || t.tags?.some(tg => tg.toLowerCase().includes(q))); }, [tasks, search]);
+  const filtered = useMemo(() => {
+    const q = search.toLowerCase();
+    return tasks.filter(t => {
+      if (search && !(t.title.toLowerCase().includes(q) || t.assignee?.toLowerCase().includes(q) || t.tags?.some(tg => tg.toLowerCase().includes(q)))) return false;
+      if (fAssignee && (t.assignee || "") !== fAssignee) return false;
+      if (fPriority && t.priority !== fPriority) return false;
+      if (fTag && !t.tags?.includes(fTag)) return false;
+      return true;
+    });
+  }, [tasks, search, fAssignee, fPriority, fTag]);
+
+  // Dynamic groups for the table view, driven by `groupBy`.
+  const dynamicGroups = useMemo(() => {
+    if (groupBy === "assignee") {
+      const names = Array.from(new Set(filtered.map(t => t.assignee || ""))).sort((a, b) => (a === "" ? 1 : b === "" ? -1 : a.localeCompare(b)));
+      if (!names.includes("")) names.push("");
+      return names.map(n => ({ key: n || "__none__", label: n || "Sin asignar", color: "#579bfc", match: (t: Task) => (t.assignee || "") === n, createDefaults: { assignee: n || null } }));
+    }
+    if (groupBy === "priority") {
+      return PRIORITIES.map(p => ({ key: p, label: PRIO_CFG[p].label, color: PRIO_CFG[p].c, match: (t: Task) => t.priority === p, createDefaults: { priority: p } }));
+    }
+    return GROUPS.map(g => ({ key: g.key, label: g.label, color: g.color, match: (t: Task) => t.status === g.key, createDefaults: { status: g.key } }));
+  }, [groupBy, filtered]);
+
+  // Available tags for the filter (presets + any in use).
+  const allTags = useMemo(() => Array.from(new Set([...TAG_PRESETS, ...tasks.flatMap(t => t.tags || [])])).sort(), [tasks]);
+  const filtersActive = !!(fAssignee || fPriority || fTag);
   const ch: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.09)" };
 
   return (
@@ -476,6 +547,42 @@ export default function OpsPage() {
         </div>
       </div>
 
+      {/* Filters + Group by (Monday/Jira-style) */}
+      {!loading && tasks.length > 0 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          {view === "table" && (
+            <FilterChip label="Agrupar por" value={GROUP_LABELS[groupBy]} active={groupBy !== "status"}>
+              {(close) => (["status", "assignee", "priority"] as const).map(k => (
+                <DropdownOption key={k} label={GROUP_LABELS[k]} active={groupBy === k} onClick={() => { setGroupBy(k); close(); }} />
+              ))}
+            </FilterChip>
+          )}
+          <FilterChip label="Responsable" value={fAssignee || "Todos"} active={!!fAssignee}>
+            {(close) => <>
+              <DropdownOption label="Todos" active={!fAssignee} onClick={() => { setFAssignee(""); close(); }} />
+              {members.map(m => <DropdownOption key={m.id} label={m.name} active={fAssignee === m.name} onClick={() => { setFAssignee(m.name); close(); }} />)}
+            </>}
+          </FilterChip>
+          <FilterChip label="Prioridad" value={fPriority ? PRIO_CFG[fPriority].label : "Todas"} active={!!fPriority}>
+            {(close) => <>
+              <DropdownOption label="Todas" active={!fPriority} onClick={() => { setFPriority(""); close(); }} />
+              {PRIORITIES.map(p => <DropdownOption key={p} label={PRIO_CFG[p].label} color={PRIO_CFG[p].c} active={fPriority === p} onClick={() => { setFPriority(p); close(); }} />)}
+            </>}
+          </FilterChip>
+          <FilterChip label="Etiqueta" value={fTag || "Todas"} active={!!fTag}>
+            {(close) => <>
+              <DropdownOption label="Todas" active={!fTag} onClick={() => { setFTag(""); close(); }} />
+              {allTags.map(t => <DropdownOption key={t} label={t} active={fTag === t} onClick={() => { setFTag(t); close(); }} />)}
+            </>}
+          </FilterChip>
+          {filtersActive && (
+            <button onClick={() => { setFAssignee(""); setFPriority(""); setFTag(""); }} style={{ fontSize: 11, color: "#94a3b8", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
+              Limpiar filtros
+            </button>
+          )}
+        </div>
+      )}
+
       {loading && (
         <div style={{ display: "flex", flexDirection: "column", gap: "10px", padding: "24px 0" }}>
           {[1, 2, 3, 4].map(i => (
@@ -490,8 +597,8 @@ export default function OpsPage() {
       )}
 
       {/* TABLE VIEW */}
-      {!loading && view === "table" && GROUPS.map(g => {
-        const gt = filtered.filter(t => t.status === g.key);
+      {!loading && view === "table" && dynamicGroups.map(g => {
+        const gt = filtered.filter(g.match);
         const coll = collapsed[g.key];
         const doneCount = gt.filter(t => t.status === "Done" || t.children?.every(c => c.status === "Done")).length;
         const progressPct = gt.length > 0 ? Math.round((doneCount / gt.length) * 100) : 0;
@@ -580,7 +687,7 @@ export default function OpsPage() {
               })}
               {addingIn === g.key ? (
                 <div style={{ padding: "8px 12px 8px 28px", borderTop: gt.length > 0 ? "1px solid rgba(255,255,255,0.025)" : "none", background: "rgba(255,255,255,0.04)" }}>
-                  <input ref={newRef} value={newTitle} onChange={e => setNewTitle(e.target.value)} onKeyDown={e => { if (e.key === "Enter") create(g.key); if (e.key === "Escape") { setAddingIn(null); setNewTitle(""); } }} onBlur={() => { if (newTitle.trim()) create(g.key); else { setAddingIn(null); setNewTitle(""); } }} placeholder="Nombre de la tarea..." style={{ width: "100%", background: "transparent", border: "1px solid rgba(0,212,255,0.15)", borderRadius: 3, padding: "6px 10px", color: "#e2e8f0", fontSize: 13, outline: "none" }} />
+                  <input ref={newRef} value={newTitle} onChange={e => setNewTitle(e.target.value)} onKeyDown={e => { if (e.key === "Enter") createWith(g.createDefaults); if (e.key === "Escape") { setAddingIn(null); setNewTitle(""); } }} onBlur={() => { if (newTitle.trim()) createWith(g.createDefaults); else { setAddingIn(null); setNewTitle(""); } }} placeholder="Nombre de la tarea..." style={{ width: "100%", background: "transparent", border: "1px solid rgba(0,212,255,0.15)", borderRadius: 3, padding: "6px 10px", color: "#e2e8f0", fontSize: 13, outline: "none" }} />
                 </div>
               ) : (
                 <div onClick={() => { setAddingIn(g.key); setNewTitle(""); }} style={{ padding: "10px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, color: "rgba(148,163,184,0.65)", fontSize: 12, borderTop: gt.length > 0 ? "1px solid rgba(255,255,255,0.04)" : "none" }}
