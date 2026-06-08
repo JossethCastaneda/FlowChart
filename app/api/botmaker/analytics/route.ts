@@ -1,19 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { getBotmakerToken, botmakerFetch, computeResultsMetrics, EMPTY_RESULTS_METRICS, type BmSession } from "@/lib/botmaker";
+import { getBotmakerToken, listSessions, computeResultsMetrics, EMPTY_RESULTS_METRICS } from "@/lib/botmaker";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
 /**
  * GET /api/botmaker/analytics?channelId=&from=&to=
- * Base conversational analytics for a project's BotMaker channel.
+ * Conversational analytics for a project's BotMaker channel, computed from
+ * GET /sessions (include-messages + include-events), filtered by channel.
  *
- * The session metrics math is final (computeResultsMetrics over the SESSION→
- * MESSAGE model). The only thing pending is the exact "List Sessions v2"
- * endpoint, which lives in the account's Swagger export — until it's wired,
- * this returns the (empty) metric scaffold + a connection status, so the UI
- * always renders the base analytics.
+ * NOTE: /sessions with include-messages/events adds BI-data-source cost on the
+ * BotMaker side, so we cap the window (default 30 days) and pages.
  */
 export async function GET(request: NextRequest) {
   const jwt = await getToken({ req: request, secret: AUTH_SECRET });
@@ -28,26 +26,33 @@ export async function GET(request: NextRequest) {
 
   const { searchParams } = new URL(request.url);
   const channelId = searchParams.get("channelId") || "";
+  const toParam = searchParams.get("to");
+  const fromParam = searchParams.get("from");
+  const to = toParam || new Date().toISOString();
+  const from = fromParam || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Verify the connection works (channels has a documented, stable contract).
-  let connected = false;
   try {
-    const ch = await botmakerFetch("/channels", token);
-    connected = ch.ok;
-  } catch { connected = false; }
-
-  // TODO(swagger): replace with the account's "List Sessions v2" endpoint, then:
-  //   const sessions = await fetchSessions(token, channelId, from, to);
-  //   return computeResultsMetrics(sessions);
-  const sessions: BmSession[] = [];
-  const metrics = computeResultsMetrics(sessions);
-
-  return NextResponse.json({
-    connected,
-    channelLinked: !!channelId,
-    dataSource: "pending_sessions_endpoint",
-    note: "Sube el Swagger exportado de tu cuenta BotMaker para enchufar el endpoint de sesiones; el cálculo de métricas ya está listo.",
-    metrics,
-    botErrors: [],
-  });
+    const sessions = await listSessions(token, from, to);
+    const metrics = computeResultsMetrics(sessions, channelId || undefined);
+    return NextResponse.json({
+      connected: true,
+      channelLinked: !!channelId,
+      dataSource: "sessions",
+      range: { from, to },
+      totalSessionsAnalyzed: sessions.length,
+      metrics,
+      botErrors: [],
+    });
+  } catch (err: any) {
+    console.error("[BOTMAKER/ANALYTICS]", err);
+    return NextResponse.json({
+      connected: true,
+      dataSource: "error",
+      error: err?.message || "Error al consultar BotMaker",
+      metrics: EMPTY_RESULTS_METRICS,
+      botErrors: [],
+    });
+  }
 }
+
+export const maxDuration = 30;
