@@ -23,6 +23,8 @@ interface Task {
   priority: string; status: string; dueDate: string | null; tags: string[];
   order: number; parentId: string | null; children: Task[]; createdAt: string;
   attachments?: Attachment[];
+  // Cross-area request (Capa 3)
+  targetAreaId?: string | null; requestType?: string | null; requesterId?: string | null;
 }
 
 /* ═══ CONFIG ═══ */
@@ -338,6 +340,83 @@ function CreateModal({ onClose, onSave, members }: { onClose: () => void; onSave
   );
 }
 
+/* ═══ REQUEST MODAL (solicitud entre áreas) ═══ */
+function RequestModal({ onClose, onSave, areas, members }: { onClose: () => void; onSave: (d: any) => void; areas: Area[]; members: Member[] }) {
+  const [form, setForm] = useState({ areaId: areas[0]?.id || "", typeId: "", title: "", description: "", priority: "P2", dueDate: "", assignee: "" });
+  const [saving, setSaving] = useState(false);
+  const set = (k: string, v: any) => setForm(p => ({ ...p, [k]: v }));
+  const area = areas.find(a => a.id === form.areaId) || null;
+  const type = area?.requestTypes.find(t => t.id === form.typeId) || null;
+  const slaH = type?.slaHours || area?.slaHours || 0;
+  const etaPreview = slaH > 0 ? etaDate(slaH) : null;
+  // Members that belong to the selected area (suggested assignees).
+  const areaMembers = area ? members.filter(m => area.memberIds.includes(m.id)) : [];
+
+  const submit = async () => {
+    if (!form.title.trim() || !area) return;
+    setSaving(true);
+    await onSave({
+      title: form.title.trim(),
+      description: form.description || null,
+      priority: form.priority,
+      status: "Backlog",
+      dueDate: form.dueDate || null,
+      targetAreaId: area.id,
+      requestType: type?.name || null,
+      assignee: form.assignee || null,
+    });
+    setSaving(false);
+  };
+
+  return createPortal(
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "rgba(0,0,0,0.8)", backdropFilter: "blur(6px)" }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "rgba(8,12,24,0.97)", border: `1px solid ${area ? `${area.color}40` : "rgba(0,212,255,0.12)"}`, borderRadius: 8, animation: "fadeInScale 0.25s ease-out" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid rgba(0,212,255,0.06)" }}>
+          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 12, fontWeight: 700, color: "#e2e8f0", letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: 8 }}><Send style={{ width: 14, height: 14, color: area?.color || "#00d4ff" }} /> NUEVA SOLICITUD</span>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
+        </div>
+        <div style={{ padding: 24, display: "grid", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div><label style={lbl}>Área destino *</label>
+              <select style={{ ...inp, cursor: "pointer" }} value={form.areaId} onChange={e => { set("areaId", e.target.value); set("typeId", ""); set("assignee", ""); }}>
+                {areas.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+              </select>
+            </div>
+            <div><label style={lbl}>Tipo de solicitud</label>
+              <select style={{ ...inp, cursor: "pointer" }} value={form.typeId} onChange={e => set("typeId", e.target.value)} disabled={!area || area.requestTypes.length === 0}>
+                <option value="">{area && area.requestTypes.length ? "Selecciona…" : "Sin tipos configurados"}</option>
+                {area?.requestTypes.map(t => <option key={t.id} value={t.id}>{t.name} ({t.slaHours}h)</option>)}
+              </select>
+            </div>
+          </div>
+          <div><label style={lbl}>Título *</label><input style={inp} placeholder="¿Qué necesitas?" value={form.title} onChange={e => set("title", e.target.value)} autoFocus /></div>
+          <div><label style={lbl}>Brief / contexto</label><textarea rows={3} style={{ ...inp, resize: "vertical" }} value={form.description} onChange={e => set("description", e.target.value)} placeholder="Detalles, referencias, links…" /></div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+            <div><label style={lbl}>Prioridad</label><select style={{ ...inp, cursor: "pointer" }} value={form.priority} onChange={e => set("priority", e.target.value)}>{PRIORITIES.map(p => <option key={p} value={p}>{PRIO_CFG[p].label}</option>)}</select></div>
+            <div><label style={lbl}>Asignar a</label>
+              <select style={{ ...inp, cursor: "pointer" }} value={form.assignee} onChange={e => set("assignee", e.target.value)}>
+                <option value="">Cola del área</option>
+                {areaMembers.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+              </select>
+            </div>
+            <div><label style={lbl}>Fecha límite</label><input type="date" style={{ ...inp, cursor: "pointer" }} value={form.dueDate} onChange={e => set("dueDate", e.target.value)} /></div>
+          </div>
+          {etaPreview && (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 6, background: "rgba(0,212,255,0.05)", border: "1px solid rgba(0,212,255,0.15)" }}>
+              <Clock style={{ width: 14, height: 14, color: "#00d4ff" }} />
+              <span style={{ fontSize: 12, color: "#94a3b8" }}>SLA base <strong style={{ color: "#e2e8f0" }}>{slaH}h</strong> · entrega aprox. <strong style={{ color: "#00d4ff" }}>{etaPreview.toLocaleDateString("es-MX", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</strong></span>
+            </div>
+          )}
+        </div>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 24px", borderTop: "1px solid rgba(0,212,255,0.06)" }}>
+          <button onClick={onClose} style={{ padding: "8px 16px", background: "transparent", border: "1px solid rgba(148,163,184,0.22)", color: "#64748b", cursor: "pointer", fontSize: 12, borderRadius: 3 }}>Cancelar</button>
+          <button onClick={submit} disabled={saving || !form.title.trim() || !area} className="btn-primary" style={{ padding: "8px 24px", opacity: saving || !form.title.trim() || !area ? 0.5 : 1 }}>{saving ? "Enviando..." : "Enviar solicitud"}</button>
+        </div>
+      </div>
+    </div>, document.body
+  );
+}
+
 /* ═══ KANBAN CARD ═══ */
 function KanbanCard({ task, onEdit }: { task: Task; onEdit: (t: Task) => void }) {
   const sl = sla(task.dueDate, task.status);
@@ -431,6 +510,7 @@ export default function OpsPage() {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showCreate, setShowCreate] = useState(false);
+  const [showRequest, setShowRequest] = useState(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
   const [addingIn, setAddingIn] = useState<string | null>(null);
   const [addingSubIn, setAddingSubIn] = useState<string | null>(null);
@@ -440,6 +520,7 @@ export default function OpsPage() {
   const [fAssignee, setFAssignee] = useState("");
   const [fPriority, setFPriority] = useState("");
   const [fTag, setFTag] = useState("");
+  const [fArea, setFArea] = useState(""); // filter by target area (incoming requests)
   const newRef = useRef<HTMLInputElement>(null);
   const subRef = useRef<HTMLInputElement>(null);
 
@@ -461,18 +542,20 @@ export default function OpsPage() {
         if (typeof p.fAssignee === "string") setFAssignee(p.fAssignee);
         if (typeof p.fPriority === "string") setFPriority(p.fPriority);
         if (typeof p.fTag === "string") setFTag(p.fTag);
+        if (typeof p.fArea === "string") setFArea(p.fArea);
       }
     } catch { /* ignore */ }
   }, []);
   useEffect(() => {
-    try { localStorage.setItem("sodare:ops-prefs", JSON.stringify({ view, groupBy, fAssignee, fPriority, fTag })); } catch { /* ignore */ }
-  }, [view, groupBy, fAssignee, fPriority, fTag]);
+    try { localStorage.setItem("sodare:ops-prefs", JSON.stringify({ view, groupBy, fAssignee, fPriority, fTag, fArea })); } catch { /* ignore */ }
+  }, [view, groupBy, fAssignee, fPriority, fTag, fArea]);
 
   const create = async (status: string) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), status }) }); const d = await r.json(); if (r.ok) setTasks(p => [...p, d.data]); } catch {} setNewTitle(""); setAddingIn(null); };
   // Create a task with group-aware defaults (so adding inside an assignee/priority group sets that field).
   const createWith = async (defaults: any) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), status: "Backlog", ...defaults }) }); const d = await r.json(); if (r.ok) setTasks(p => [...p, d.data]); } catch {} setNewTitle(""); setAddingIn(null); };
   const createSub = async (parentId: string) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), parentId, status: "Backlog" }) }); const d = await r.json(); if (r.ok) setTasks(p => p.map(t => t.id === parentId ? { ...t, children: [...(t.children || []), d.data] } : t)); } catch {} setNewTitle(""); setAddingSubIn(null); };
   const fullCreate = async (data: any) => { try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => [...p, d.data]); setShowCreate(false); } } catch {} };
+  const createRequest = async (data: any) => { try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => [...p, d.data]); setShowRequest(false); } } catch {} };
   const fullUpdate = async (data: any) => { if (!editTask) return; if (data.status === "Done" && !canCloseTask(editTask)) { alert("Esta tarea requiere la aprobación de un líder del área antes de cerrarse."); return; } try { const r = await fetch(`/api/ops/${editTask.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => p.map(t => t.id === editTask.id ? d.data : t)); setEditTask(null); } } catch {} };
   const patch = async (id: string, p: any) => { if (p.status === "Done") { const t = tasks.find(x => x.id === id) || tasks.flatMap(x => x.children || []).find(c => c.id === id); if (t && !canCloseTask(t)) { alert("Esta tarea requiere la aprobación de un líder del área antes de cerrarse."); return; } } setTasks(prev => prev.map(t => t.id === id ? { ...t, ...p } : t)); try { await fetch(`/api/ops/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) }); } catch { fetch_(); } };
   const del = async (id: string) => { if (!confirm("¿Eliminar?")) return; setTasks(p => p.filter(t => t.id !== id)); try { await fetch(`/api/ops/${id}`, { method: "DELETE" }); } catch { fetch_(); } };
@@ -487,9 +570,10 @@ export default function OpsPage() {
       if (fAssignee && (t.assignee || "") !== fAssignee) return false;
       if (fPriority && t.priority !== fPriority) return false;
       if (fTag && !t.tags?.includes(fTag)) return false;
+      if (fArea && t.targetAreaId !== fArea) return false;
       return true;
     });
-  }, [tasks, search, fAssignee, fPriority, fTag]);
+  }, [tasks, search, fAssignee, fPriority, fTag, fArea]);
 
   // Dynamic groups for the table view, driven by `groupBy`.
   const dynamicGroups = useMemo(() => {
@@ -506,7 +590,7 @@ export default function OpsPage() {
 
   // Available tags for the filter (presets + any in use).
   const allTags = useMemo(() => Array.from(new Set([...TAG_PRESETS, ...tasks.flatMap(t => t.tags || [])])).sort(), [tasks]);
-  const filtersActive = !!(fAssignee || fPriority || fTag);
+  const filtersActive = !!(fAssignee || fPriority || fTag || fArea);
   const ch: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.09)" };
 
   // ── Workflow: SLA/ETA + lead review (from Admin → Áreas y flujos) ──
@@ -522,28 +606,51 @@ export default function OpsPage() {
     const uid = memberIdByName[assignee];
     return uid ? findUserArea(config, uid) : null;
   }, [memberIdByName, config]);
-  // Workload-aware delivery ETA: counts the assignee's still-open tasks × area SLA.
+  // Workload-aware delivery ETA. For a request → target area + request-type SLA,
+  // based on that area's open request backlog. Otherwise → assignee's area SLA.
   const etaForTask = useCallback((task: Task): Date | null => {
+    if (task.status === "Done") return null;
+    if (task.targetAreaId) {
+      const ta = config.areas.find(a => a.id === task.targetAreaId);
+      if (ta) {
+        const rt = ta.requestTypes.find(t => t.id === task.requestType || t.name === task.requestType);
+        const sla = rt?.slaHours || ta.slaHours || 24;
+        const ahead = tasks.filter(t => t.id !== task.id && t.targetAreaId === task.targetAreaId && t.status !== "Done").length;
+        return etaDate((ahead + 1) * sla);
+      }
+    }
     const area = areaForAssignee(task.assignee);
-    if (!area || !task.assignee || task.status === "Done") return null;
+    if (!area || !task.assignee) return null;
     const ahead = tasks.filter(t => t.id !== task.id && (t.assignee || "") === task.assignee && t.status !== "Done").length;
     return etaDate(estimateEtaHours(ahead, area));
-  }, [areaForAssignee, tasks]);
-  // Lead-review gate: who may close (set Done) a task.
+  }, [config, areaForAssignee, tasks]);
+  // Lead-review gate: who may close (set Done). For requests, the target area's leads.
   const canCloseTask = useCallback((task: Task): boolean => {
     if (!config.requireLeadReview) return true;
-    const area = areaForAssignee(task.assignee);
+    const area = (task.targetAreaId ? config.areas.find(a => a.id === task.targetAreaId) : null) || areaForAssignee(task.assignee);
     if (!area) return true; // no area configured → no gating
     const myRole = members.find(m => m.id === currentUserId)?.role;
     if (myRole === "OWNER" || myRole === "ADMIN") return true;
     return area.leadIds.includes(currentUserId);
   }, [config, areaForAssignee, members, currentUserId]);
+  const areaName = useCallback((id?: string | null) => id ? (config.areas.find(a => a.id === id)?.name || null) : null, [config]);
+  const areaColor = useCallback((id?: string | null) => id ? (config.areas.find(a => a.id === id)?.color || "#64748b") : "#64748b", [config]);
 
   return (
     <div className="space-y-6">
       <PageHeader title="Marketing Ops" description="Gestión de tareas, workflows y operaciones del equipo."
         icon={<Users className="w-6 h-6" style={{ color: "#ff2d55" }} />}
-        action={<button className="btn-primary" onClick={() => setShowCreate(true)} style={{ display: "flex", alignItems: "center", gap: 6 }}><Plus style={{ width: 14, height: 14 }} /> Nueva Tarea</button>} />
+        action={
+          <div style={{ display: "flex", gap: 8 }}>
+            {config.areas.length > 0 && (
+              <button onClick={() => setShowRequest(true)} title="Solicitar a otra área (Diseño, Comunicación…)"
+                style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
+                <Send style={{ width: 14, height: 14 }} /> Solicitud
+              </button>
+            )}
+            <button className="btn-primary" onClick={() => setShowCreate(true)} style={{ display: "flex", alignItems: "center", gap: 6 }}><Plus style={{ width: 14, height: 14 }} /> Nueva Tarea</button>
+          </div>
+        } />
 
       {/* KPIs */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -607,8 +714,16 @@ export default function OpsPage() {
               {allTags.map(t => <DropdownOption key={t} label={t} active={fTag === t} onClick={() => { setFTag(t); close(); }} />)}
             </>}
           </FilterChip>
+          {config.areas.length > 0 && (
+            <FilterChip label="Solicitudes a" value={fArea ? (config.areas.find(a => a.id === fArea)?.name || "Área") : "Todas"} active={!!fArea}>
+              {(close) => <>
+                <DropdownOption label="Todas" active={!fArea} onClick={() => { setFArea(""); close(); }} />
+                {config.areas.map(a => <DropdownOption key={a.id} label={a.name} color={a.color} active={fArea === a.id} onClick={() => { setFArea(a.id); close(); }} />)}
+              </>}
+            </FilterChip>
+          )}
           {filtersActive && (
-            <button onClick={() => { setFAssignee(""); setFPriority(""); setFTag(""); }} style={{ fontSize: 11, color: "#94a3b8", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
+            <button onClick={() => { setFAssignee(""); setFPriority(""); setFTag(""); setFArea(""); }} style={{ fontSize: 11, color: "#94a3b8", background: "none", border: "none", cursor: "pointer", textDecoration: "underline", fontFamily: "inherit" }}>
               Limpiar filtros
             </button>
           )}
@@ -659,6 +774,7 @@ export default function OpsPage() {
                         <div style={{ minWidth: 0, flex: 1, cursor: "pointer" }} onClick={() => setEditTask(task)}>
                           <div style={{ padding: "4px 8px", fontSize: 13, color: "#e2e8f0" }}>{task.title}</div>
                           <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 8px", flexWrap: "wrap" }}>
+                            {task.targetAreaId && areaName(task.targetAreaId) && <span title={`Solicitud a ${areaName(task.targetAreaId)}`} style={{ fontSize: 8, fontWeight: 700, padding: "1px 6px", borderRadius: 2, background: `${areaColor(task.targetAreaId)}1f`, color: areaColor(task.targetAreaId), display: "inline-flex", alignItems: "center", gap: 2 }}><Send style={{ width: 8, height: 8 }} /> {areaName(task.targetAreaId)}{task.requestType ? ` · ${task.requestType}` : ""}</span>}
                             {task.tags?.map((t, j) => <span key={j} style={{ fontSize: 8, padding: "1px 5px", background: "rgba(123,97,255,0.08)", color: "rgba(123,97,255,0.5)", borderRadius: 2 }}>{t}</span>)}
                             {hasChildren && <span style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>{childDone}/{task.children.length} sub</span>}
                             {(() => { const eta = etaForTask(task); return eta ? <span title="Entrega estimada (según SLA del área y tareas abiertas)" style={{ fontSize: 8, padding: "1px 6px", background: "rgba(0,212,255,0.08)", color: "#00d4ff", borderRadius: 2, display: "inline-flex", alignItems: "center", gap: 2 }}><Clock style={{ width: 8, height: 8 }} /> ETA {eta.toLocaleDateString("es-MX", { day: "numeric", month: "short" })}</span> : null; })()}
@@ -760,6 +876,7 @@ export default function OpsPage() {
 
       {/* Modals */}
       {showCreate && <CreateModal onClose={() => setShowCreate(false)} onSave={fullCreate} members={members} />}
+      {showRequest && <RequestModal onClose={() => setShowRequest(false)} onSave={createRequest} areas={config.areas} members={members} />}
       {editTask && <TaskDetailModal task={editTask} onClose={() => setEditTask(null)} onSave={fullUpdate} members={members} onRefresh={() => { fetch_(); }} />}
     </div>
   );
