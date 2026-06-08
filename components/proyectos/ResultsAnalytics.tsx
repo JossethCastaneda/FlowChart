@@ -23,7 +23,9 @@ export function ResultsAnalytics({ project }: { project: Project }) {
   const [connected, setConnected] = useState<boolean | null>(null);
   const [channelId, setChannelId] = useState("");
   const [metrics, setMetrics] = useState<any>(null);
-  const [pending, setPending] = useState(false);
+  const [dataSource, setDataSource] = useState<string>("");
+  const [total, setTotal] = useState<number>(0);
+  const [errorMsg, setErrorMsg] = useState<string>("");
   const [botErrors, setBotErrors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,7 +54,9 @@ export function ResultsAnalytics({ project }: { project: Project }) {
       .then((r) => r.json())
       .then((d) => {
         setMetrics(d.metrics || null);
-        setPending(d.dataSource === "pending_sessions_endpoint");
+        setDataSource(d.dataSource || "");
+        setTotal(d.totalSessionsAnalyzed || 0);
+        setErrorMsg(d.dataSource === "error" ? (d.error || "Error al consultar BotMaker") : "");
         setBotErrors(d.botErrors || []);
         if (typeof d.connected === "boolean") setConnected(d.connected);
       })
@@ -75,10 +79,14 @@ export function ResultsAnalytics({ project }: { project: Project }) {
           <Plug style={{ width: 16, height: 16, color: "#fbbf24", flexShrink: 0 }} />
           <span style={{ fontSize: 12, color: "#fcd34d" }}>BotMaker no conectado. Configura el <strong>access-token</strong> de BotMaker (env <code>BOTMAKER_ACCESS_TOKEN</code> o Integraciones) para traer datos.</span>
         </div>
-      ) : pending ? (
-        <div style={{ display: "flex", gap: 10, alignItems: "center", padding: "12px 16px", borderRadius: 8, background: "rgba(0,212,255,0.05)", border: "1px solid rgba(0,212,255,0.15)" }}>
-          <AlertTriangle style={{ width: 16, height: 16, color: "#00d4ff", flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: "#94a3b8" }}>Conectado a BotMaker{channels.length ? ` · ${channels.length} canal(es)` : ""}. El cálculo de métricas está listo; falta enchufar el endpoint <strong>List Sessions</strong> (sube tu Swagger). Mientras, se muestra la estructura base.</span>
+      ) : errorMsg ? (
+        <div style={{ display: "flex", gap: 10, alignItems: "center", padding: "12px 16px", borderRadius: 8, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
+          <AlertTriangle style={{ width: 16, height: 16, color: "#f87171", flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: "#fca5a5" }}>{errorMsg}</span>
+        </div>
+      ) : dataSource === "sessions" ? (
+        <div style={{ fontSize: 11, color: "#64748b" }}>
+          {total.toLocaleString("es-MX")} sesiones analizadas · últimos 30 días{channels.length ? ` · ${channels.length} canal(es)` : ""}
         </div>
       ) : null}
 

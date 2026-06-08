@@ -48,28 +48,48 @@ export async function botmakerFetch(
 }
 
 // ── Session metrics ─────────────────────────────────────────────────────────
-// Computed from the BotMaker SESSION → MESSAGE[] model. The exact "List Sessions"
-// v2 endpoint lives in the account's Swagger export, so we normalize a generic
-// session shape and compute the metrics from it — once the endpoint is wired,
-// only the fetch changes, not the math.
+// Shapes match the account Swagger (GET /sessions → SessionsPage.items →
+// SessionResponse, with include-messages + include-events).
 
 export interface BmMessage {
-  fromCustomer?: boolean;     // user vs bot/agent
-  fromAgent?: boolean;        // human agent (when distinguishable)
-  type?: string;
-  message?: string;
+  from?: "bot" | "user" | "agent"; // who sent the message
   creationTime?: string | number;
-  timestamp?: string | number;
+  content?: { type?: string; text?: string };
 }
 export interface BmSession {
-  sessionId?: string;
-  contactId?: string;
-  chatChannelId?: string;
+  id?: string;
   creationTime?: string | number;
-  closeTime?: string | number;
-  endTime?: string | number;
-  typification?: string;       // tipificación / categorización
+  chat?: { chat?: { contactId?: string; channelId?: string }; lastUserMessageDatetime?: string };
   messages?: BmMessage[];
+  events?: { name?: string; creationTime?: string | number; info?: { typification?: string } }[];
+}
+
+/**
+ * GET /sessions, paginated (follows `nextPage`). Includes messages + events so
+ * we can compute response times and typifications. Capped to avoid BI-cost/
+ * timeout blowups (each page = up to 500 sessions; 5 req/s).
+ */
+export async function listSessions(
+  token: string,
+  fromISO: string,
+  toISO: string,
+  maxPages = 6
+): Promise<BmSession[]> {
+  const all: BmSession[] = [];
+  let next: string | null =
+    `/sessions?from=${encodeURIComponent(fromISO)}&to=${encodeURIComponent(toISO)}&include-messages=true&include-events=true`;
+  let pages = 0;
+  while (next && pages < maxPages) {
+    const res: Response = next.startsWith("http")
+      ? await fetch(next, { headers: { Accept: "application/json", "access-token": token } })
+      : await botmakerFetch(next, token);
+    if (!res.ok) break;
+    const data = await res.json();
+    if (Array.isArray(data.items)) all.push(...data.items);
+    next = data.nextPage || null;
+    pages++;
+  }
+  return all;
 }
 
 export interface ResultsMetrics {
@@ -94,8 +114,8 @@ const toMs = (v: any): number | null => {
   return isNaN(t) ? null : t;
 };
 
-/** Pure metric computation from a normalized list of sessions. */
-export function computeResultsMetrics(sessions: BmSession[]): ResultsMetrics {
+/** Pure metric computation from /sessions items (optionally filtered by channel). */
+export function computeResultsMetrics(sessions: BmSession[], channelId?: string): ResultsMetrics {
   const m: ResultsMetrics = {
     sessionsStarted: 0, uniqueSessions: 0,
     messagesByUser: 0, messagesByBot: 0, messagesByAgent: 0,
@@ -104,7 +124,10 @@ export function computeResultsMetrics(sessions: BmSession[]): ResultsMetrics {
     topTypifications: [], hourlyUniqueSessions: new Array(24).fill(0),
     topUserQuestions: [],
   };
-  if (!Array.isArray(sessions) || sessions.length === 0) return m;
+  const list = (Array.isArray(sessions) ? sessions : []).filter(
+    (s) => !channelId || s.chat?.chat?.channelId === channelId
+  );
+  if (list.length === 0) return m;
 
   const contacts = new Set<string>();
   const typ: Record<string, number> = {};
@@ -113,31 +136,36 @@ export function computeResultsMetrics(sessions: BmSession[]): ResultsMetrics {
   let botReplySum = 0, botReplyCount = 0;
   let userReplySum = 0, userReplyCount = 0;
 
-  for (const s of sessions) {
+  for (const s of list) {
     m.sessionsStarted++;
-    if (s.contactId) contacts.add(s.contactId);
+    const contact = s.chat?.chat?.contactId;
+    if (contact) contacts.add(contact);
 
     const start = toMs(s.creationTime);
-    const end = toMs(s.closeTime ?? s.endTime);
-    if (start != null && end != null && end >= start) { durationSum += end - start; durationCount++; }
+    // Session close + typification come from the conversation-close event.
+    const closeEv = (s.events || []).find((e) => e.name === "conversation-close");
+    const lastMsg = s.messages?.[s.messages.length - 1];
+    const close = toMs(closeEv?.creationTime) ?? toMs(lastMsg?.creationTime);
+    if (start != null && close != null && close >= start) { durationSum += close - start; durationCount++; }
     if (start != null) m.hourlyUniqueSessions[new Date(start).getHours()]++;
 
-    if (s.typification) typ[s.typification] = (typ[s.typification] || 0) + 1;
+    const typif = closeEv?.info?.typification;
+    if (typif) typ[typif] = (typ[typif] || 0) + 1;
 
-    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime ?? a.timestamp) || 0) - (toMs(b.creationTime ?? b.timestamp) || 0));
-    let lastUserAt: number | null = null, lastBotAt: number | null = null;
+    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    let lastUserAt: number | null = null, lastReplyAt: number | null = null;
     let firstUserText: string | null = null;
     for (const msg of msgs) {
-      const at = toMs(msg.creationTime ?? msg.timestamp);
-      if (msg.fromCustomer) {
+      const at = toMs(msg.creationTime);
+      if (msg.from === "user") {
         m.messagesByUser++;
-        if (!firstUserText && msg.message) firstUserText = msg.message.trim();
-        if (lastBotAt != null && at != null && at >= lastBotAt) { userReplySum += at - lastBotAt; userReplyCount++; }
+        if (!firstUserText && msg.content?.text) firstUserText = msg.content.text.trim();
+        if (lastReplyAt != null && at != null && at >= lastReplyAt) { userReplySum += at - lastReplyAt; userReplyCount++; }
         lastUserAt = at;
       } else {
-        if (msg.fromAgent) m.messagesByAgent++; else m.messagesByBot++;
+        if (msg.from === "agent") m.messagesByAgent++; else m.messagesByBot++;
         if (lastUserAt != null && at != null && at >= lastUserAt) { botReplySum += at - lastUserAt; botReplyCount++; }
-        lastBotAt = at;
+        lastReplyAt = at;
       }
     }
     if (firstUserText) {
