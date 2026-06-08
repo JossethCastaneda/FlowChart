@@ -128,7 +128,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                   style={{ width: 14, height: 14, borderRadius: "50%", background: c, border: area.color === c ? "2px solid #fff" : "2px solid transparent", cursor: canEdit ? "pointer" : "default" }} />
               ))}
             </div>
-            <input value={area.name} onChange={(e) => patchArea(area.id, { name: e.target.value })} disabled={!canEdit}
+            <input value={area.name} onChange={(e) => patchArea(area.id, { name: e.target.value })} disabled={!canEdit} aria-label="Nombre del área"
               style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#e2e8f0", fontSize: 14, fontWeight: 600 }} />
             <label style={{ fontSize: 11, color: "#64748b", display: "flex", alignItems: "center", gap: 4 }}>
               SLA
@@ -177,7 +177,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {area.requestTypes.map((t) => (
                   <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <input value={t.name} onChange={(e) => patchType(area.id, t.id, { name: e.target.value })} disabled={!canEdit}
+                    <input value={t.name} onChange={(e) => patchType(area.id, t.id, { name: e.target.value })} disabled={!canEdit} aria-label="Nombre del tipo de solicitud"
                       style={{ flex: 1, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 4, color: "#e2e8f0", fontSize: 12, padding: "5px 8px", outline: "none" }} />
                     <label style={{ fontSize: 11, color: "#64748b", display: "flex", alignItems: "center", gap: 4 }}>
                       <input type="number" min={1} value={t.slaHours} onChange={(e) => patchType(area.id, t.id, { slaHours: Number(e.target.value) || 1 })} disabled={!canEdit}
