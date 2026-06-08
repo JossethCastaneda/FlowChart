@@ -114,6 +114,16 @@ const toMs = (v: any): number | null => {
   return isNaN(t) ? null : t;
 };
 
+// BotMaker timestamps come in UTC; the user (CDMX) needs hour buckets in their
+// timezone. Override with APP_TIMEZONE if needed.
+const APP_TZ = process.env.APP_TIMEZONE || "America/Mexico_City";
+const hourFmt = new Intl.DateTimeFormat("en-US", { timeZone: APP_TZ, hour: "numeric", hour12: false, hourCycle: "h23" });
+/** Hour-of-day (0–23) of a UTC timestamp, in the app timezone (CDMX). */
+function hourInTz(ms: number): number {
+  const h = parseInt(hourFmt.format(new Date(ms)), 10);
+  return Number.isNaN(h) ? 0 : h % 24;
+}
+
 /** Pure metric computation from /sessions items (optionally filtered by channel). */
 export function computeResultsMetrics(sessions: BmSession[], channelId?: string): ResultsMetrics {
   const m: ResultsMetrics = {
@@ -147,7 +157,7 @@ export function computeResultsMetrics(sessions: BmSession[], channelId?: string)
     const lastMsg = s.messages?.[s.messages.length - 1];
     const close = toMs(closeEv?.creationTime) ?? toMs(lastMsg?.creationTime);
     if (start != null && close != null && close >= start) { durationSum += close - start; durationCount++; }
-    if (start != null) m.hourlyUniqueSessions[new Date(start).getHours()]++;
+    if (start != null) m.hourlyUniqueSessions[hourInTz(start)]++;
 
     const typif = closeEv?.info?.typification;
     if (typif) typ[typif] = (typ[typif] || 0) + 1;
