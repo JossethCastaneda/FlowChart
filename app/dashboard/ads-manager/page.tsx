@@ -8,6 +8,7 @@ import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, Chevr
 import DateRangePicker from "@/components/DateRangePicker";
 import { AccountSelector } from "@/components/ads-manager/AccountSelector";
 import { CreateCampaignModal } from "@/components/ads-manager/CreateCampaignModal";
+import { CreateAdSetModal } from "@/components/ads-manager/CreateAdSetModal";
 import { BreakdownSelector } from "@/components/ads-manager/BreakdownSelector";
 import { ColumnSelector } from "@/components/ads-manager/ColumnSelector";
 import { TableActionBar } from "@/components/ads-manager/TableActionBar";
@@ -122,6 +123,7 @@ function AdsManagerContent() {
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [loadingAccounts, setLoadingAccounts] = useState(true);
   const [showCreateCampaign, setShowCreateCampaign] = useState(false);
+  const [showCreateAdSet, setShowCreateAdSet] = useState(false);
 
   // Active level tab
   const [activeLevel, setActiveLevel] = useState<"campaigns" | "adsets" | "ads">("campaigns");
@@ -960,6 +962,17 @@ function AdsManagerContent() {
           </button>
         )}
 
+        {/* Create ad set — needs at least one campaign loaded */}
+        {!loadingAccounts && selectedAccountId && selectedAccountId !== "all" && campaigns.length > 0 && (
+          <button
+            onClick={() => setShowCreateAdSet(true)}
+            title="Crear un conjunto de anuncios (se crea en pausa)"
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(123,97,255,0.12)", border: "1px solid rgba(123,97,255,0.35)", color: "#a78bfa", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+          >
+            <Plus style={{ width: 14, height: 14 }} /> Crear conjunto
+          </button>
+        )}
+
         {/* Search Bar */}
         <div
           style={{
@@ -1335,6 +1348,21 @@ function AdsManagerContent() {
             setShowCreateCampaign(false);
             addToast("success", "✅ Campaña creada en pausa");
             setActiveLevel("campaigns");
+            fetchData();
+          }}
+        />
+      )}
+
+      {/* ── CREATE AD SET ── */}
+      {showCreateAdSet && selectedAccountId && selectedAccountId !== "all" && (
+        <CreateAdSetModal
+          adAccountId={selectedAccountId}
+          campaigns={campaigns.map((c: any) => ({ id: c.id, name: c.name, objective: c.objective }))}
+          onClose={() => setShowCreateAdSet(false)}
+          onCreated={() => {
+            setShowCreateAdSet(false);
+            addToast("success", "✅ Conjunto creado en pausa");
+            setActiveLevel("adsets");
             fetchData();
           }}
         />
