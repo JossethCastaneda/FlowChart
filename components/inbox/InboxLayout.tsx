@@ -8,8 +8,8 @@ import {
   Search, Send, X, ChevronRight, ChevronDown, ChevronUp, UserPlus, Tag, Clock,
   MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark,
   CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp,
-  Star, Bell, User, Phone, Mail, Globe, ExternalLink, Plus, Filter,
-  Archive, Inbox, Heart, Share2, Eye,
+  User, Globe, ExternalLink, Plus, Filter,
+  Heart, Share2,
 } from "lucide-react";
 
 // ═══════════════════════════════════════════════════════════════
@@ -591,14 +591,40 @@ export function InboxLayout() {
   const { data: session } = useSession();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
-  const [showProfile, setShowProfile] = useState(true);
+  // Contact panel is collapsed by default for a cleaner, message-first view.
+  // The preference is restored after mount to avoid a hydration mismatch.
+  const [showProfile, setShowProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [connectedPages, setConnectedPages] = useState<ConnectedPage[]>([]);
   const [selectedPage, setSelectedPage] = useState<ConnectedPage | null>(null);
   const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
   const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
+  const [queueMenuOpen, setQueueMenuOpen] = useState(false);
+  const queueRef = useRef<HTMLDivElement>(null);
   const currentAssignee = session?.user?.name || "Ana";
+
+  // Restore the contact-panel preference (client-only).
+  useEffect(() => {
+    try { setShowProfile(localStorage.getItem("sodare:inbox-profile") === "1"); } catch { /* ignore */ }
+  }, []);
+
+  const toggleProfile = () => {
+    setShowProfile((prev) => {
+      const next = !prev;
+      try { localStorage.setItem("sodare:inbox-profile", next ? "1" : "0"); } catch { /* ignore */ }
+      return next;
+    });
+  };
+
+  // Close the queue-filter dropdown on outside click.
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (queueRef.current && !queueRef.current.contains(e.target as Node)) setQueueMenuOpen(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   // Fetch connected pages
   useEffect(() => {
@@ -923,127 +949,134 @@ export function InboxLayout() {
         </div>
       )}
 
-      {/* ─── Channel Tabs ─── */}
+      {/* ─── Filters: channels + queue in a single, compact row ─── */}
       {conversations.length > 0 && initialFetchDone && (
         <div style={{
-          display: "flex", alignItems: "center", gap: 0,
+          display: "flex", alignItems: "center", gap: 8,
           borderBottom: "1px solid rgba(255,255,255,0.06)",
-          padding: "0 12px",
-          overflowX: "auto",
-          flexShrink: 0,
+          padding: "0 12px", flexShrink: 0,
         }}>
-          {CHANNEL_TABS.map(tab => {
-            const total = tab.key === "all"
-              ? conversations.length
-              : conversations.filter(c => tab.platforms.includes(c.platform)).length;
-            const unreadCount = tab.key === "all"
-              ? conversations.filter(c => c.unread).length
-              : conversations.filter(c => tab.platforms.includes(c.platform) && c.unread).length;
-            const isActive = channelFilter === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setChannelFilter(tab.key)}
-                style={{
-                  padding: "10px 14px",
-                  fontSize: 12, fontWeight: isActive ? 600 : 400,
-                  color: isActive ? tab.color : "#64748b",
-                  background: "transparent",
-                  border: "none",
-                  borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
-                  cursor: "pointer",
-                  transition: "all 0.15s",
-                  whiteSpace: "nowrap",
-                  fontFamily: "inherit",
-                  display: "flex", alignItems: "center", gap: 6,
-                  position: "relative",
-                }}
-                onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
-                onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "#64748b"; }}
-              >
-                {tab.label}
-                {total > 0 && (
-                  <span style={{
-                    minWidth: 18, height: 18, borderRadius: 9,
-                    background: unreadCount > 0
-                      ? (tab.key === "all" ? "#ef4444" : tab.color)
-                      : "rgba(148,163,184,0.22)",
-                    color: unreadCount > 0 ? "white" : "#94a3b8",
-                    fontSize: 10, fontWeight: 700,
-                    display: "inline-flex", alignItems: "center", justifyContent: "center",
-                    padding: "0 5px",
-                  }}>
-                    {unreadCount > 0 ? unreadCount : total}
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-      )}
-
-      {conversations.length > 0 && initialFetchDone && (
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            padding: "8px 12px",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
-            overflowX: "auto",
-            flexShrink: 0,
-            background: "rgba(255,255,255,0.02)",
-          }}
-        >
-          {QUEUE_TABS.map((tab) => {
-            const total = conversations.filter((c) => {
-              if (tab.key === "all") return true;
-              if (tab.key === "unassigned") return !c.assignedTo;
-              if (tab.key === "mine") return c.assignedTo === currentAssignee;
-              if (tab.key === "needs_reply") return !c.closed && c.unread;
-              if (tab.key === "done") return c.closed;
-              return true;
-            }).length;
-            const isActive = queueFilter === tab.key;
-            return (
-              <button
-                key={tab.key}
-                onClick={() => setQueueFilter(tab.key)}
-                style={{
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: 6,
-                  padding: "6px 10px",
-                  borderRadius: 999,
-                  border: `1px solid ${isActive ? `${tab.color}55` : "rgba(255,255,255,0.08)"}`,
-                  background: isActive ? `${tab.color}18` : "rgba(255,255,255,0.03)",
-                  color: isActive ? tab.color : "#94a3b8",
-                  fontSize: 11,
-                  fontWeight: 700,
-                  whiteSpace: "nowrap",
-                  cursor: "pointer",
-                }}
-              >
-                {tab.label}
-                <span
+          {/* Channel tabs */}
+          <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", flex: 1 }}>
+            {CHANNEL_TABS.map(tab => {
+              const total = tab.key === "all"
+                ? conversations.length
+                : conversations.filter(c => tab.platforms.includes(c.platform)).length;
+              const unreadCount = tab.key === "all"
+                ? conversations.filter(c => c.unread).length
+                : conversations.filter(c => tab.platforms.includes(c.platform) && c.unread).length;
+              const isActive = channelFilter === tab.key;
+              return (
+                <button
+                  key={tab.key}
+                  onClick={() => setChannelFilter(tab.key)}
                   style={{
-                    minWidth: 18,
-                    height: 18,
-                    borderRadius: 9,
-                    padding: "0 5px",
-                    display: "inline-flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: isActive ? `${tab.color}2b` : "rgba(148,163,184,0.16)",
-                    color: isActive ? tab.color : "#94a3b8",
-                    fontSize: 10,
+                    padding: "10px 14px",
+                    fontSize: 12, fontWeight: isActive ? 600 : 400,
+                    color: isActive ? tab.color : "#64748b",
+                    background: "transparent",
+                    border: "none",
+                    borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                    whiteSpace: "nowrap",
+                    fontFamily: "inherit",
+                    display: "flex", alignItems: "center", gap: 6,
+                    position: "relative",
+                  }}
+                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "#64748b"; }}
+                >
+                  {tab.label}
+                  {total > 0 && (
+                    <span style={{
+                      minWidth: 18, height: 18, borderRadius: 9,
+                      background: unreadCount > 0
+                        ? (tab.key === "all" ? "#ef4444" : tab.color)
+                        : "rgba(148,163,184,0.22)",
+                      color: unreadCount > 0 ? "white" : "#94a3b8",
+                      fontSize: 10, fontWeight: 700,
+                      display: "inline-flex", alignItems: "center", justifyContent: "center",
+                      padding: "0 5px",
+                    }}>
+                      {unreadCount > 0 ? unreadCount : total}
+                    </span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Queue filter — compact dropdown (was a full second row) */}
+          <div ref={queueRef} style={{ position: "relative", flexShrink: 0 }}>
+            {(() => {
+              const active = QUEUE_TABS.find(t => t.key === queueFilter) || QUEUE_TABS[0];
+              const filterActive = queueFilter !== "all";
+              return (
+                <button
+                  onClick={() => setQueueMenuOpen(o => !o)}
+                  title="Filtrar conversaciones"
+                  style={{
+                    display: "inline-flex", alignItems: "center", gap: 6,
+                    padding: "6px 10px", borderRadius: 8,
+                    border: `1px solid ${filterActive ? `${active.color}55` : "rgba(255,255,255,0.08)"}`,
+                    background: filterActive ? `${active.color}14` : "rgba(255,255,255,0.03)",
+                    color: filterActive ? active.color : "#94a3b8",
+                    fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                    whiteSpace: "nowrap",
                   }}
                 >
-                  {total}
-                </span>
-              </button>
-            );
-          })}
+                  <Filter style={{ width: 12, height: 12 }} />
+                  {active.label}
+                  <ChevronDown style={{ width: 12, height: 12, opacity: 0.7 }} />
+                </button>
+              );
+            })()}
+            {queueMenuOpen && (
+              <div style={{
+                position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 200,
+                background: "rgba(12,12,24,0.98)", border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: 10, zIndex: 50, overflow: "hidden",
+                boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+              }}>
+                {QUEUE_TABS.map((tab) => {
+                  const total = conversations.filter((c) => {
+                    if (tab.key === "all") return true;
+                    if (tab.key === "unassigned") return !c.assignedTo;
+                    if (tab.key === "mine") return c.assignedTo === currentAssignee;
+                    if (tab.key === "needs_reply") return !c.closed && c.unread;
+                    if (tab.key === "done") return c.closed;
+                    return true;
+                  }).length;
+                  const isActive = queueFilter === tab.key;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => { setQueueFilter(tab.key); setQueueMenuOpen(false); }}
+                      style={{
+                        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                        width: "100%", padding: "9px 14px",
+                        background: isActive ? `${tab.color}12` : "transparent",
+                        border: "none", borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        borderLeft: isActive ? `3px solid ${tab.color}` : "3px solid transparent",
+                        color: isActive ? tab.color : "#94a3b8",
+                        fontSize: 12, fontWeight: isActive ? 600 : 400,
+                        cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+                      }}
+                    >
+                      <span>{tab.label}</span>
+                      <span style={{
+                        minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px",
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        background: isActive ? `${tab.color}2b` : "rgba(148,163,184,0.16)",
+                        color: isActive ? tab.color : "#94a3b8", fontSize: 10, fontWeight: 700,
+                      }}>{total}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -1253,7 +1286,7 @@ export function InboxLayout() {
                 conversation={selected}
                 onSend={handleSendMessage}
                 onClose={handleCloseConversation}
-                onToggleProfile={() => setShowProfile(!showProfile)}
+                onToggleProfile={toggleProfile}
                 showProfile={showProfile}
               />
             )}
@@ -1274,7 +1307,7 @@ export function InboxLayout() {
               onAssign={handleAssign}
               onAddTag={handleAddTag}
               onRemoveTag={handleRemoveTag}
-              onClose={() => setShowProfile(false)}
+              onClose={toggleProfile}
             />
           </div>
         )}
@@ -1377,30 +1410,7 @@ function ChatView({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          {/* Action buttons */}
-          {[
-            { icon: Bell, tip: "Notificaciones" },
-            { icon: Star, tip: "Marcar" },
-            { icon: Archive, tip: "Archivar" },
-          ].map((btn, i) => (
-            <button
-              key={i}
-              title={btn.tip}
-              style={{
-                width: 32, height: 32,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                background: "transparent", border: "1px solid rgba(255,255,255,0.06)",
-                borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
-              }}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.09)"}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-            >
-              <btn.icon style={{ width: 14, height: 14, color: "#94a3b8" }} />
-            </button>
-          ))}
-
-          <div style={{ width: 1, height: 20, background: "rgba(255,255,255,0.06)", margin: "0 4px" }} />
-
+          {/* (Removed non-functional Notificaciones/Marcar/Archivar buttons for a cleaner header) */}
           <button
             onClick={onClose}
             style={{
@@ -1569,21 +1579,6 @@ function ChatView({
         flexShrink: 0,
         background: "rgba(255,255,255,0.015)",
       }}>
-        {/* Responding indicator */}
-        <div style={{
-          display: "flex", alignItems: "center", gap: 6,
-          marginBottom: 8, fontSize: 10, color: "rgba(148,163,184,0.65)",
-        }}>
-          <div style={{
-            width: 14, height: 14, borderRadius: "50%",
-            background: `${pc.color}15`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <pc.icon style={{ width: 8, height: 8, color: pc.color }} />
-          </div>
-          <span>Respondiendo en {pc.label}...</span>
-        </div>
-
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
           {/* Toolbar icons */}
           <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
