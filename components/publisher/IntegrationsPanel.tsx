@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Loader2, RefreshCw, Bell, CheckCircle2, Circle, AlertTriangle, ChevronRight } from "lucide-react";
+import { Loader2, RefreshCw, Bell, CheckCircle2, Circle, AlertTriangle, ChevronRight, X } from "lucide-react";
 
 interface ModuleStatus {
   connected: boolean;
@@ -82,6 +82,8 @@ export function IntegrationsPanel() {
   const [statuses, setStatuses] = useState<Record<string, ModuleStatus>>({});
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState<string | null>(null);
+  const [disconnecting, setDisconnecting] = useState<string | null>(null);
+  const [confirmUnlink, setConfirmUnlink] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
 
   const fetchStatus = useCallback(async () => {
@@ -104,6 +106,21 @@ export function IntegrationsPanel() {
     const poll = setInterval(() => {
       if (popup?.closed) { clearInterval(poll); setConnecting(null); fetchStatus(); }
     }, 800);
+  };
+
+  // Unlink — provider="all" revokes Meta access + removes every integration.
+  const handleDisconnect = async (provider: string) => {
+    setDisconnecting(provider);
+    try {
+      await fetch("/api/connect/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider }),
+      });
+    } catch { /* silent */ }
+    setDisconnecting(null);
+    setConfirmUnlink(false);
+    fetchStatus();
   };
 
   const connectedCount = Object.values(statuses).filter(s => s.connected).length;
@@ -264,6 +281,29 @@ export function IntegrationsPanel() {
                   }
                 </button>
 
+                {/* Disconnect a single module */}
+                {connected && (
+                  <button
+                    onClick={() => handleDisconnect(mod.key)}
+                    disabled={disconnecting === mod.key}
+                    title={`Desconectar ${mod.label}`}
+                    style={{
+                      padding: "5px 10px", borderRadius: 6, flexShrink: 0,
+                      background: "rgba(239,68,68,0.06)",
+                      border: "1px solid rgba(239,68,68,0.18)",
+                      color: "#f87171", fontSize: 10, fontWeight: 600,
+                      cursor: disconnecting === mod.key ? "wait" : "pointer",
+                      display: "flex", alignItems: "center", gap: 5,
+                      fontFamily: "inherit", transition: "all 0.15s",
+                      opacity: disconnecting === mod.key ? 0.6 : 1,
+                    }}
+                  >
+                    {disconnecting === mod.key
+                      ? <Loader2 style={{ width: 10, height: 10, animation: "int-spin 1s linear infinite" }} />
+                      : "Desconectar"}
+                  </button>
+                )}
+
                 {/* Expand toggle (only when connected + has pages) */}
                 {connected && pageCount > 0 && (
                   <button
@@ -322,6 +362,62 @@ export function IntegrationsPanel() {
 
       {/* ── Webhook row ─── */}
       <WebhookRow connectedCount={connectedCount} />
+
+      {/* ── Full unlink ─── */}
+      {connectedCount > 0 && (
+        confirmUnlink ? (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 12, padding: "11px 14px",
+            borderRadius: 8, border: "1px solid rgba(239,68,68,0.25)", background: "rgba(239,68,68,0.05)",
+          }}>
+            <AlertTriangle style={{ width: 15, height: 15, color: "#f87171", flexShrink: 0 }} />
+            <div style={{ flex: 1, fontSize: 11, color: "#fca5a5" }}>
+              Esto <strong>revoca el acceso de Sodare a Meta</strong> y desconecta todas las páginas y cuentas. Podrás volver a conectar cuando quieras.
+            </div>
+            <button
+              onClick={() => setConfirmUnlink(false)}
+              disabled={disconnecting === "all"}
+              style={{
+                padding: "5px 12px", borderRadius: 6, flexShrink: 0,
+                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+                color: "#94a3b8", fontSize: 10, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+              }}
+            >
+              Cancelar
+            </button>
+            <button
+              onClick={() => handleDisconnect("all")}
+              disabled={disconnecting === "all"}
+              style={{
+                padding: "5px 12px", borderRadius: 6, flexShrink: 0,
+                background: "rgba(239,68,68,0.9)", border: "none", color: "#fff",
+                fontSize: 10, fontWeight: 700, cursor: disconnecting === "all" ? "wait" : "pointer",
+                display: "flex", alignItems: "center", gap: 5, fontFamily: "inherit",
+              }}
+            >
+              {disconnecting === "all"
+                ? <Loader2 style={{ width: 10, height: 10, animation: "int-spin 1s linear infinite" }} />
+                : <><X style={{ width: 11, height: 11 }} /> Sí, desvincular</>}
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => setConfirmUnlink(true)}
+            style={{
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              padding: "9px 14px", borderRadius: 8,
+              background: "transparent", border: "1px solid rgba(239,68,68,0.18)",
+              color: "#f87171", fontSize: 11, fontWeight: 600, cursor: "pointer",
+              fontFamily: "inherit", transition: "all 0.15s",
+            }}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.06)"}
+            onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+          >
+            <X style={{ width: 13, height: 13 }} />
+            Desvincular cuenta de Meta
+          </button>
+        )
+      )}
 
       <style>{`
         @keyframes fade-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }

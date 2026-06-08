@@ -5,6 +5,7 @@ interface AdAccount {
   id: string;
   name: string;
   portfolio?: string;
+  spend?: number;
 }
 
 interface AccountSelectorProps {
@@ -13,12 +14,21 @@ interface AccountSelectorProps {
   onSelectAccount: (id: string) => void;
 }
 
+const fmtSpend = (v: number) =>
+  new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN", maximumFractionDigits: 0 }).format(v);
+
 export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }: AccountSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [selectedPortfolio, setSelectedPortfolio] = useState<string>("LID Marketing");
 
   const selectedAccount = accounts.find((a) => a.id === selectedAccountId);
+
+  // Highest-spend account in the current period (the default) — flagged in the list.
+  const topSpendId = accounts.reduce<{ id: string; spend: number }>(
+    (top, a) => ((a.spend || 0) > top.spend ? { id: a.id, spend: a.spend || 0 } : top),
+    { id: "", spend: 0 }
+  ).id;
 
   // Filter all accounts by search
   const filteredAccounts = accounts.filter((a) =>
@@ -279,11 +289,21 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                               <CreditCard className="w-4 h-4 text-slate-400" />
                             </div>
                             <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "4px" }}>
-                              <div style={{ fontWeight: 600, fontSize: "14px", color: isSelected ? "var(--cyan)" : "white", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
-                                {acc.name.split(" — ")[0]}
+                              <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
+                                <span style={{ fontWeight: 600, fontSize: "14px", color: isSelected ? "var(--cyan)" : "white", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                                  {acc.name.split(" — ")[0]}
+                                </span>
+                                {acc.id === topSpendId && (acc.spend || 0) > 0 && (
+                                  <span style={{ flexShrink: 0, fontSize: "9px", fontWeight: 700, color: "#10b981", background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)", borderRadius: "4px", padding: "1px 6px", letterSpacing: "0.04em" }}>
+                                    ★ MÁS GASTO
+                                  </span>
+                                )}
                               </div>
-                              <div style={{ fontSize: "12px", color: "#94a3b8", display: "flex", gap: "6px" }}>
-                                ID: <span style={{ color: "rgba(255,255,255,0.8)" }}>{acc.id.replace("act_", "")}</span>
+                              <div style={{ fontSize: "12px", color: "#94a3b8", display: "flex", gap: "10px", alignItems: "center" }}>
+                                <span>ID: <span style={{ color: "rgba(255,255,255,0.8)" }}>{acc.id.replace("act_", "")}</span></span>
+                                {(acc.spend || 0) > 0 && (
+                                  <span style={{ color: "rgba(255,255,255,0.6)" }}>Gasto: <span style={{ color: "#10b981", fontWeight: 600 }}>{fmtSpend(acc.spend || 0)}</span></span>
+                                )}
                               </div>
                             </div>
                           </div>
