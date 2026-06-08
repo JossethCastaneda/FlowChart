@@ -14,7 +14,8 @@ import { useSession } from "next-auth/react";
 import { parseWorkflow, findUserArea, estimateEtaHours, etaDate, type WorkflowConfig, type Area } from "@/lib/workflow-config";
 
 /* ═══ TYPES ═══ */
-interface Member { id: string; name: string; email: string | null; image: string | null; role: string }
+interface Member { id: string; name: string; email: string | null; image: string | null; role: string; activityStatus?: string }
+const STATUS_DOT: Record<string, string> = { disponible: "#00c875", ocupado: "#fdab3d", ausente: "#e2445c", offline: "#64748b" };
 interface Comment { id: string; userId: string; userName: string; userImage: string | null; content: string; createdAt: string }
 interface Activity { id: string; userName: string; action: string; field: string | null; oldValue: string | null; newValue: string | null; createdAt: string }
 interface Attachment { name: string; url: string; type: string; size: number; uploadedAt: string }
@@ -395,8 +396,12 @@ function RequestModal({ onClose, onSave, areas, members }: { onClose: () => void
             <div><label style={lbl}>Prioridad</label><select style={{ ...inp, cursor: "pointer" }} value={form.priority} onChange={e => set("priority", e.target.value)}>{PRIORITIES.map(p => <option key={p} value={p}>{PRIO_CFG[p].label}</option>)}</select></div>
             <div><label style={lbl}>Asignar a</label>
               <select style={{ ...inp, cursor: "pointer" }} value={form.assignee} onChange={e => set("assignee", e.target.value)}>
-                <option value="">Cola del área</option>
-                {areaMembers.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}
+                <option value="">⚡ Auto-asignar (recomendado)</option>
+                {areaMembers.map(m => {
+                  const sc = STATUS_DOT[m.activityStatus || "offline"] || "#64748b";
+                  const available = m.activityStatus === "disponible" || m.activityStatus === "ocupado";
+                  return <option key={m.id} value={m.name} disabled={!available}>{available ? "●" : "○"} {m.name} ({m.activityStatus || "offline"})</option>;
+                })}
               </select>
             </div>
             <div><label style={lbl}>Fecha límite</label><input type="date" style={{ ...inp, cursor: "pointer" }} value={form.dueDate} onChange={e => set("dueDate", e.target.value)} /></div>

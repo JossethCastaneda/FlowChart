@@ -4,6 +4,7 @@ import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { pickAssignee } from "@/lib/auto-assign";
 
 // GET /api/ops — list tasks + workspace members
 export async function GET() {
@@ -45,6 +46,8 @@ export async function GET() {
       email: m.user.email,
       image: m.user.image,
       role: m.role,
+      activityStatus: m.activityStatus || "disponible",
+      lastActiveAt: m.lastActiveAt || null,
     }));
 
     return NextResponse.json({ data: tasks, members: memberList });
@@ -94,12 +97,19 @@ export async function POST(req: NextRequest) {
     });
     const nextOrder = (lastTask?.order ?? -1) + 1;
 
+    // Cross-area request: auto-assign if no assignee specified.
+    let finalAssignee = assignee || null;
+    if (targetAreaId && !finalAssignee) {
+      const picked = await pickAssignee(targetAreaId, workspaceId);
+      if (picked) finalAssignee = picked.name;
+    }
+
     const task = await prisma.task.create({
       data: {
         workspaceId,
         title: title.trim(),
         description: description || null,
-        assignee: assignee || null,
+        assignee: finalAssignee,
         priority: priority || "P2",
         status: status || "Backlog",
         dueDate: dueDate ? new Date(dueDate) : null,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
@@ -73,6 +73,38 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     try { setIsEmbedded(window.self !== window.top); } catch { setIsEmbedded(true); }
   }, []);
+
+  // ── Activity status ──
+  const STATUS_OPTIONS = [
+    { key: "disponible", label: "Disponible", color: "#00c875" },
+    { key: "ocupado", label: "Ocupado", color: "#fdab3d" },
+    { key: "ausente", label: "Ausente", color: "#e2445c" },
+    { key: "offline", label: "Offline", color: "#64748b" },
+  ];
+  const [activityStatus, setActivityStatus] = useState("disponible");
+  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
+  const statusRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    fetch("/api/workspace/members/status")
+      .then(r => r.json())
+      .then(d => { if (d.activityStatus) setActivityStatus(d.activityStatus); })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (statusRef.current && !statusRef.current.contains(e.target as Node)) setStatusMenuOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+
+  const changeStatus = async (s: string) => {
+    setActivityStatus(s);
+    setStatusMenuOpen(false);
+    try { await fetch("/api/workspace/members/status", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: s }) }); } catch {}
+  };
+
+  const currentStatusCfg = STATUS_OPTIONS.find(s => s.key === activityStatus) || STATUS_OPTIONS[0];
 
   if (!pathname?.startsWith("/dashboard")) {
     return <>{children}</>;
@@ -184,13 +216,32 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         </button>
 
         {/* User section */}
-        <div className="user-chip">
-          <div className="user-avatar" style={{ overflow: "hidden" }}>
-            {session?.user?.image ? (
-              <img src={session.user.image} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            ) : (
-              <Users className="w-4 h-4 text-white" />
-            )}
+        <div className="user-chip" style={{ position: "relative" }}>
+          <div style={{ position: "relative" }}>
+            <div className="user-avatar" style={{ overflow: "hidden" }}>
+              {session?.user?.image ? (
+                <img src={session.user.image} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              ) : (
+                <Users className="w-4 h-4 text-white" />
+              )}
+            </div>
+            <div
+              ref={statusRef}
+              onClick={() => setStatusMenuOpen(!statusMenuOpen)}
+              title={`Estatus: ${currentStatusCfg.label}`}
+              style={{ position: "absolute", bottom: -1, right: -1, width: 12, height: 12, borderRadius: "50%", background: currentStatusCfg.color, border: "2px solid var(--background)", cursor: "pointer", zIndex: 2, transition: "background 0.2s" }}
+            >
+              {statusMenuOpen && (
+                <div style={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)", background: "rgba(10,15,30,0.97)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: 4, minWidth: 140, zIndex: 100, boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}>
+                  {STATUS_OPTIONS.map(s => (
+                    <button key={s.key} onClick={(e) => { e.stopPropagation(); changeStatus(s.key); }} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 10px", border: "none", cursor: "pointer", borderRadius: 4, background: activityStatus === s.key ? "rgba(255,255,255,0.08)" : "transparent", fontSize: 12, color: "#e2e8f0", fontFamily: "inherit" }}>
+                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
+                      {s.label}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
           <div className="flex-1 min-w-0 sidebar-hide-compact">
             <p style={{
@@ -203,8 +254,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             }}>
               {session?.user?.name || "Comandante"}
             </p>
-            <p style={{ fontSize: "10px", color: "#64748b", textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
-              {session?.user?.email || "vader@imperio.com"}
+            <p style={{ fontSize: "10px", color: currentStatusCfg.color, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+              {currentStatusCfg.label}
             </p>
           </div>
           <button

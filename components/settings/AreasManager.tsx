@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { Plus, Trash2, X, Star, Check, Loader2 } from "lucide-react";
 import { SUGGESTED_AREAS, type Area, type RequestType } from "@/lib/workflow-config";
 
-interface Member { id: string; name: string }
+interface Member { id: string; name: string; activityStatus?: string }
+
+const STATUS_COLORS: Record<string, string> = { disponible: "#00c875", ocupado: "#fdab3d", ausente: "#e2445c", offline: "#64748b" };
 
 const COLORS = ["#0081FB", "#f472b6", "#06d6a0", "#7b61ff", "#fb923c", "#00d4ff", "#e2445c", "#fdab3d"];
 const uid = () => Math.random().toString(36).slice(2, 9);
@@ -154,7 +156,8 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                         background: inArea ? `${area.color}18` : "rgba(255,255,255,0.03)",
                         border: `1px solid ${inArea ? `${area.color}45` : "rgba(255,255,255,0.08)"}`,
                         color: inArea ? "#e2e8f0" : "#94a3b8" }}>
-                        <button onClick={() => canEdit && toggleMember(area.id, m.id)} disabled={!canEdit} style={{ background: "none", border: "none", cursor: canEdit ? "pointer" : "default", color: "inherit", fontFamily: "inherit", fontSize: 12, padding: 0 }}>
+                        <button onClick={() => canEdit && toggleMember(area.id, m.id)} disabled={!canEdit} style={{ background: "none", border: "none", cursor: canEdit ? "pointer" : "default", color: "inherit", fontFamily: "inherit", fontSize: 12, padding: 0, display: "flex", alignItems: "center", gap: 4 }}>
+                          <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[m.activityStatus || "offline"] || "#64748b", flexShrink: 0 }} title={m.activityStatus || "offline"} />
                           {m.name}
                         </button>
                         {inArea && (

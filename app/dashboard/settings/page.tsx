@@ -482,7 +482,7 @@ export default function SettingsPage() {
                 </span>
               </div>
               <AreasManager
-                members={members.map((m: any) => ({ id: m.user.id, name: m.user.name || m.user.email || "Usuario" }))}
+                members={members.map((m: any) => ({ id: m.user.id, name: m.user.name || m.user.email || "Usuario", activityStatus: m.activityStatus || "offline" }))}
                 canEdit={isAdmin}
               />
             </div>
