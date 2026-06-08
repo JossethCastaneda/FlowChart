@@ -15,14 +15,15 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # 22+ — some deps (@prisma/streams-local, mixpart) require node >=22.
+          node-version: 22
           cache: npm
 
+      # `npm install` (not `npm ci`): the lockfile is written by npm 11 and is
+      # not strictly portable to the npm 10.x that ships with older Node. install
+      # reconciles it instead of failing. postinstall runs `prisma generate`.
       - name: Install dependencies
-        run: npm ci
-
-      - name: Generate Prisma client
-        run: npx prisma generate
+        run: npm install --no-audit --no-fund
 
       - name: Typecheck
         run: npx tsc --noEmit
