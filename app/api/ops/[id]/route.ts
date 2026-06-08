@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { notifyTaskAssigned } from "@/lib/notifications";
 import { updateAutoSLA } from "@/lib/sla-calculator";
+import { parseWorkflow, findUserArea, getPermissions } from "@/lib/workflow-config";
 
 // PATCH /api/ops/[id] — update a task
 export async function PATCH(
@@ -28,8 +29,28 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // ── Permission check: canEditTasks / canCloseTasks ──
+    const settings = await prisma.workspaceSettings.findUnique({ where: { workspaceId: task.workspaceId } });
+    const config = parseWorkflow(settings || {});
+    const member = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId: task.workspaceId, userId: session.user.id } },
+    });
+    // Check against the task's target area, or the user's own area
+    const permArea = task.targetAreaId
+      ? config.areas.find((a) => a.id === task.targetAreaId) || null
+      : findUserArea(config, session.user.id);
+    const perms = getPermissions(permArea, session.user.id, member?.role || "MEMBER");
+    if (!perms.canEditTasks) {
+      return NextResponse.json({ error: "No tienes permiso para editar tareas en esta área" }, { status: 403 });
+    }
+
     const body = await req.json();
     const { title, description, assignee, priority, status, dueDate, tags, order, parentId, attachments } = body;
+
+    // If transitioning to "Done", also require canCloseTasks permission
+    if (status === "Done" && task.status !== "Done" && !perms.canCloseTasks) {
+      return NextResponse.json({ error: "No tienes permiso para cerrar tareas en esta área" }, { status: 403 });
+    }
 
     const updated = await prisma.task.update({
       where: { id },
@@ -108,11 +129,24 @@ export async function DELETE(
       return NextResponse.json({ error: "Task no encontrada" }, { status: 404 });
     }
 
-    const hasAccess = await verifyWorkspaceAccess(
-      task.workspaceId, session.user.id, ["OWNER", "ADMIN"]
-    );
+    // First check basic workspace membership
+    const hasAccess = await verifyWorkspaceAccess(task.workspaceId, session.user.id);
     if (!hasAccess) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // ── Permission check: canEditTasks (or OWNER/ADMIN via getPermissions) ──
+    const delSettings = await prisma.workspaceSettings.findUnique({ where: { workspaceId: task.workspaceId } });
+    const delConfig = parseWorkflow(delSettings || {});
+    const delMember = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId: task.workspaceId, userId: session.user.id } },
+    });
+    const delPermArea = task.targetAreaId
+      ? delConfig.areas.find((a) => a.id === task.targetAreaId) || null
+      : findUserArea(delConfig, session.user.id);
+    const delPerms = getPermissions(delPermArea, session.user.id, delMember?.role || "MEMBER");
+    if (!delPerms.canEditTasks) {
+      return NextResponse.json({ error: "No tienes permiso para eliminar tareas en esta área" }, { status: 403 });
     }
 
     await prisma.task.delete({ where: { id } });

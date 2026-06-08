@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { pickAssignee } from "@/lib/auto-assign";
+import { parseWorkflow, findUserArea, getPermissions } from "@/lib/workflow-config";
 
 // GET /api/ops — list tasks + workspace members
 export async function GET() {
@@ -80,6 +81,22 @@ export async function POST(req: NextRequest) {
 
     if (!title || typeof title !== "string" || title.trim().length < 1) {
       return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
+    }
+
+    // ── Permission check: canCreateTasks ──
+    const settings = await prisma.workspaceSettings.findUnique({ where: { workspaceId } });
+    const config = parseWorkflow(settings || {});
+    const member = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+    });
+    // Determine the area to check permissions against: the target area (cross-area
+    // request) or the user's own area.
+    const permArea = targetAreaId
+      ? config.areas.find((a) => a.id === targetAreaId) || null
+      : findUserArea(config, session.user.id);
+    const perms = getPermissions(permArea, session.user.id, member?.role || "MEMBER");
+    if (!perms.canCreateTasks) {
+      return NextResponse.json({ error: "No tienes permiso para crear tareas en esta área" }, { status: 403 });
     }
 
     // If creating a subitem, verify parent exists

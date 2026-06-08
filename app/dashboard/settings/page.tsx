@@ -5,40 +5,42 @@ import { useSession } from "next-auth/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   Settings, Users, Mail, Trash2, Copy, CheckCircle, Clock, AlertTriangle,
-  Shield, User, Plug, CreditCard, Globe, ChevronRight,
+  Shield, User, Plug, CreditCard, Globe, ChevronRight, Lock, Layers,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { IntegrationsPanel } from "@/components/publisher/IntegrationsPanel";
 import { AreasManager } from "@/components/settings/AreasManager";
+import { PermissionsManager } from "@/components/settings/PermissionsManager";
 
 // ── Settings catalogue: groups (menus) → sections (submenus) ──
 // Single source of truth — add a section here and render it in the switch below.
-type SectionKey = "profile" | "preferences" | "general" | "team" | "areas" | "integrations" | "plan" | "danger";
+type SectionKey = "profile" | "preferences" | "general" | "team" | "areas" | "permisos" | "integrations" | "plan" | "danger";
 
 const SETTINGS_GROUPS: {
   group: string;
-  items: { key: SectionKey; label: string; icon: React.ElementType; roles?: string[] }[];
+  items: { key: SectionKey; label: string; icon: React.ElementType; roles?: string[]; desc?: string }[];
 }[] = [
   {
     group: "Cuenta",
     items: [
-      { key: "profile", label: "Perfil", icon: User },
-      { key: "preferences", label: "Preferencias", icon: Settings },
+      { key: "profile", label: "Perfil", icon: User, desc: "Tu información personal" },
+      { key: "preferences", label: "Preferencias", icon: Settings, desc: "Notificaciones y UI" },
     ],
   },
   {
     group: "Workspace",
     items: [
-      { key: "general", label: "General", icon: Globe },
-      { key: "team", label: "Equipo y roles", icon: Users, roles: ["OWNER", "ADMIN"] },
-      { key: "areas", label: "Áreas y flujos", icon: Users },
-      { key: "integrations", label: "Integraciones", icon: Plug },
-      { key: "plan", label: "Plan", icon: CreditCard },
+      { key: "general", label: "General", icon: Globe, desc: "Nombre y configuración" },
+      { key: "team", label: "Equipo y roles", icon: Users, roles: ["OWNER", "ADMIN"], desc: "Miembros e invitaciones" },
+      { key: "areas", label: "Áreas y flujos", icon: Layers, desc: "Departamentos y SLA" },
+      { key: "permisos", label: "Permisos", icon: Shield, roles: ["OWNER", "ADMIN"], desc: "Control de acceso por área" },
+      { key: "integrations", label: "Integraciones", icon: Plug, desc: "Conexiones externas" },
+      { key: "plan", label: "Plan", icon: CreditCard, desc: "Suscripción y facturación" },
     ],
   },
   {
     group: "Seguridad",
-    items: [{ key: "danger", label: "Zona peligrosa", icon: Shield, roles: ["OWNER"] }],
+    items: [{ key: "danger", label: "Zona peligrosa", icon: Shield, roles: ["OWNER"], desc: "Eliminar workspace" }],
   },
 ];
 
@@ -257,11 +259,13 @@ export default function SettingsPage() {
       <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
         {/* ── Left nav: groups (menus) + sections (submenus) ── */}
         <nav style={{ width: 220, flexShrink: 0, display: "flex", flexDirection: "column", gap: 18, position: "sticky", top: 0, alignSelf: "flex-start" }}>
-          {visibleGroups.map((g) => (
+          {visibleGroups.map((g, gi) => (
             <div key={g.group}>
+              {gi > 0 && <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "4px 10px 8px" }} />}
               <div style={{
-                fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase",
-                color: "rgba(148,163,184,0.55)", padding: "0 10px 6px",
+                fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase",
+                color: "rgba(148,163,184,0.45)", padding: "4px 12px 8px",
+                borderLeft: "2px solid rgba(0,212,255,0.15)", marginLeft: 4,
               }}>
                 {g.group}
               </div>
@@ -284,7 +288,10 @@ export default function SettingsPage() {
                       }}
                     >
                       <Icon style={{ width: 15, height: 15, color: active ? "#00d4ff" : "#64748b", flexShrink: 0 }} />
-                      <span style={{ flex: 1 }}>{it.label}</span>
+                      <div style={{ flex: 1 }}>
+                        <span>{it.label}</span>
+                        {(it as any).desc && <div style={{ fontSize: 10, color: "#4a5568", fontWeight: 400, marginTop: 1 }}>{(it as any).desc}</div>}
+                      </div>
                       {active && <ChevronRight style={{ width: 13, height: 13, color: "#00d4ff", opacity: 0.6 }} />}
                     </button>
                   );
@@ -488,7 +495,18 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* INTEGRACIONES */}
+          {/* PERMISOS */}
+          {activeSection === "permisos" && (
+            <div className="glass-panel" style={{ padding: 24 }}>
+              <div className="section-header" style={{ marginBottom: 16 }}>
+                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <Shield style={{ width: 14, height: 14, color: "#00d4ff" }} /> Permisos por área
+                </span>
+              </div>
+              <PermissionsManager />
+            </div>
+          )}
+
           {activeSection === "integrations" && (
             <div className="glass-panel" style={{ padding: 24 }}>
               <div className="section-header" style={{ marginBottom: 16 }}>
