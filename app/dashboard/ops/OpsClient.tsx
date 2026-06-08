@@ -530,12 +530,54 @@ export default function OpsPage() {
   const newRef = useRef<HTMLInputElement>(null);
   const subRef = useRef<HTMLInputElement>(null);
 
+  // ── Workflow: SLA/ETA + lead review (MUST be declared before filtered/canCloseTask) ──
+  const { data: session } = useSession();
+  const [config, setConfig] = useState<WorkflowConfig>({ areas: [], requireLeadReview: true });
+  useEffect(() => { fetch("/api/workspace/settings").then(r => r.json()).then(d => setConfig(parseWorkflow(d))).catch(() => {}); }, []);
+  const currentUserId = (session?.user as any)?.id || "";
+  const myArea = useMemo(() => findUserArea(config, currentUserId), [config, currentUserId]);
+  const memberIdByName = useMemo(() => { const m: Record<string, string> = {}; members.forEach(mm => { if (mm.name) m[mm.name] = mm.id; }); return m; }, [members]);
+  const areaForAssignee = useCallback((assignee?: string | null): Area | null => {
+    if (!assignee) return null;
+    const uid = memberIdByName[assignee];
+    return uid ? findUserArea(config, uid) : null;
+  }, [memberIdByName, config]);
+  const canCloseTask = useCallback((task: Task): boolean => {
+    const area = (task.targetAreaId ? config.areas.find(a => a.id === task.targetAreaId) : null) || areaForAssignee(task.assignee);
+    if (!area) return true;
+    const areaRequiresReview = (area as any).requireLeadReview ?? config.requireLeadReview;
+    if (!areaRequiresReview) return true;
+    const myRole = members.find(m => m.id === currentUserId)?.role;
+    if (myRole === "OWNER" || myRole === "ADMIN") return true;
+    return area.leadIds.includes(currentUserId);
+  }, [config, areaForAssignee, members, currentUserId]);
+  const etaForTask = useCallback((task: Task): Date | null => {
+    if (task.status === "Done") return null;
+    if (task.targetAreaId) {
+      const ta = config.areas.find(a => a.id === task.targetAreaId);
+      if (ta) {
+        const rt = ta.requestTypes.find(t => t.id === task.requestType || t.name === task.requestType);
+        const sla = rt?.slaHours || ta.slaHours || 24;
+        const ahead = tasks.filter(t => t.id !== task.id && t.targetAreaId === task.targetAreaId && t.status !== "Done").length;
+        return etaDate((ahead + 1) * sla);
+      }
+    }
+    const area = areaForAssignee(task.assignee);
+    if (!area || !task.assignee) return null;
+    const ahead = tasks.filter(t => t.id !== task.id && (t.assignee || "") === task.assignee && t.status !== "Done").length;
+    return etaDate(estimateEtaHours(ahead, area));
+  }, [config, areaForAssignee, tasks]);
+  const areaName = useCallback((id?: string | null) => id ? (config.areas.find(a => a.id === id)?.name || null) : null, [config]);
+  const areaColor = useCallback((id?: string | null) => id ? (config.areas.find(a => a.id === id)?.color || "#64748b") : "#64748b", [config]);
+  const pendingReviews = useMemo(() => tasks.filter(t => t.status === "Review" && myArea && (t.targetAreaId === myArea.id || (!t.targetAreaId && myArea.memberIds.some(mid => { const mm = members.find(m => m.id === mid); return mm?.name === t.assignee; })))).length, [tasks, myArea, members]);
+
   const fetch_ = useCallback(async () => {
     try { const r = await fetch("/api/ops"); const d = await r.json(); if (d.data) setTasks(d.data); if (d.members) setMembers(d.members); } catch (e) { console.error("[OPS]", e); } finally { setLoading(false); }
   }, []);
   useEffect(() => { fetch_(); }, [fetch_]);
   useEffect(() => { if (addingIn) newRef.current?.focus(); }, [addingIn]);
   useEffect(() => { if (addingSubIn) subRef.current?.focus(); }, [addingSubIn]);
+  useEffect(() => { if (myArea && viewArea === "__all__") setViewArea("__mine__"); }, [myArea]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Restore + persist view/grouping/filters.
   useEffect(() => {
@@ -557,7 +599,6 @@ export default function OpsPage() {
   }, [view, groupBy, fAssignee, fPriority, fTag, fArea]);
 
   const create = async (status: string) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), status }) }); const d = await r.json(); if (r.ok) setTasks(p => [...p, d.data]); } catch {} setNewTitle(""); setAddingIn(null); };
-  // Create a task with group-aware defaults (so adding inside an assignee/priority group sets that field).
   const createWith = async (defaults: any) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), status: "Backlog", ...defaults }) }); const d = await r.json(); if (r.ok) setTasks(p => [...p, d.data]); } catch {} setNewTitle(""); setAddingIn(null); };
   const createSub = async (parentId: string) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), parentId, status: "Backlog" }) }); const d = await r.json(); if (r.ok) setTasks(p => p.map(t => t.id === parentId ? { ...t, children: [...(t.children || []), d.data] } : t)); } catch {} setNewTitle(""); setAddingSubIn(null); };
   const fullCreate = async (data: any) => { try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) }); const d = await r.json(); if (r.ok) { setTasks(p => [...p, d.data]); setShowCreate(false); } } catch {} };
@@ -607,54 +648,7 @@ export default function OpsPage() {
   const filtersActive = !!(fAssignee || fPriority || fTag || fArea);
   const ch: React.CSSProperties = { fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.09)" };
 
-  // ── Workflow: SLA/ETA + lead review (from Admin → Áreas y flujos) ──
-  const { data: session } = useSession();
-  const [config, setConfig] = useState<WorkflowConfig>({ areas: [], requireLeadReview: true });
-  useEffect(() => { fetch("/api/workspace/settings").then(r => r.json()).then(d => setConfig(parseWorkflow(d))).catch(() => {}); }, []);
-  const currentUserId = (session?.user as any)?.id || "";
-  // Detect user's area and default viewArea to it.
-  const myArea = useMemo(() => findUserArea(config, currentUserId), [config, currentUserId]);
-  useEffect(() => { if (myArea && viewArea === "__all__") setViewArea("__mine__"); }, [myArea]); // eslint-disable-line react-hooks/exhaustive-deps
-  const pendingReviews = useMemo(() => tasks.filter(t => t.status === "Review" && myArea && (t.targetAreaId === myArea.id || (!t.targetAreaId && myArea.memberIds.some(mid => { const mm = members.find(m => m.id === mid); return mm?.name === t.assignee; })))).length, [tasks, myArea, members]);
-
-  // Tasks store the assignee as a NAME — map it to the member's userId.
-  const memberIdByName = useMemo(() => { const m: Record<string, string> = {}; members.forEach(mm => { if (mm.name) m[mm.name] = mm.id; }); return m; }, [members]);
-  const areaForAssignee = useCallback((assignee?: string | null): Area | null => {
-    if (!assignee) return null;
-    const uid = memberIdByName[assignee];
-    return uid ? findUserArea(config, uid) : null;
-  }, [memberIdByName, config]);
-  // Workload-aware delivery ETA. For a request → target area + request-type SLA,
-  // based on that area's open request backlog. Otherwise → assignee's area SLA.
-  const etaForTask = useCallback((task: Task): Date | null => {
-    if (task.status === "Done") return null;
-    if (task.targetAreaId) {
-      const ta = config.areas.find(a => a.id === task.targetAreaId);
-      if (ta) {
-        const rt = ta.requestTypes.find(t => t.id === task.requestType || t.name === task.requestType);
-        const sla = rt?.slaHours || ta.slaHours || 24;
-        const ahead = tasks.filter(t => t.id !== task.id && t.targetAreaId === task.targetAreaId && t.status !== "Done").length;
-        return etaDate((ahead + 1) * sla);
-      }
-    }
-    const area = areaForAssignee(task.assignee);
-    if (!area || !task.assignee) return null;
-    const ahead = tasks.filter(t => t.id !== task.id && (t.assignee || "") === task.assignee && t.status !== "Done").length;
-    return etaDate(estimateEtaHours(ahead, area));
-  }, [config, areaForAssignee, tasks]);
-  // Lead-review gate: who may close (set Done). Checks BOTH global and per-area flag.
-  const canCloseTask = useCallback((task: Task): boolean => {
-    const area = (task.targetAreaId ? config.areas.find(a => a.id === task.targetAreaId) : null) || areaForAssignee(task.assignee);
-    if (!area) return true; // no area configured → no gating
-    // Check per-area first, fallback to global
-    const areaRequiresReview = (area as any).requireLeadReview ?? config.requireLeadReview;
-    if (!areaRequiresReview) return true;
-    const myRole = members.find(m => m.id === currentUserId)?.role;
-    if (myRole === "OWNER" || myRole === "ADMIN") return true;
-    return area.leadIds.includes(currentUserId);
-  }, [config, areaForAssignee, members, currentUserId]);
-  const areaName = useCallback((id?: string | null) => id ? (config.areas.find(a => a.id === id)?.name || null) : null, [config]);
-  const areaColor = useCallback((id?: string | null) => id ? (config.areas.find(a => a.id === id)?.color || "#64748b") : "#64748b", [config]);
+  // (Workflow hooks already declared above filtered/canCloseTask — see top of component)
 
   return (
     <div className="space-y-6">

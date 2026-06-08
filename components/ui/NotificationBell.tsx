@@ -147,6 +147,7 @@ export function NotificationBell() {
         onMouseLeave={e => { if (unreadCount === 0) e.currentTarget.style.color = "rgba(148,163,184,0.65)"; }}
       >
         <Bell style={{ width: 18, height: 18 }} />
+        <span style={{ position: "absolute", width: 1, height: 1, padding: 0, margin: -1, overflow: "hidden", clip: "rect(0,0,0,0)", whiteSpace: "nowrap", border: 0 }}>Notificaciones</span>
         {unreadCount > 0 && (
           <span style={{
             position: "absolute", top: 0, right: 0, minWidth: 16, height: 16,
