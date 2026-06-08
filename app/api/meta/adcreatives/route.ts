@@ -240,7 +240,7 @@ export async function GET(req: NextRequest) {
   const videoIds = Array.from(videoIdSet);
   if (videoIds.length > 0) {
     // Meta supports batch ID lookups: /?ids=id1,id2&fields=source
-    const chunks = [];
+    const chunks: string[][] = [];
     for (let i = 0; i < videoIds.length; i += 50) {
       chunks.push(videoIds.slice(i, i + 50));
     }
