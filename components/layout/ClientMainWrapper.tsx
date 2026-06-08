@@ -111,7 +111,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       >
         {/* Logo */}
         <div className="sidebar-logo-row flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--border)" }}>
-          <Link href="/dashboard/resumen" className="flex items-center gap-3">
+          <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
             <SodareLogo size="sm" showText={!collapsed} />
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white">

@@ -100,7 +100,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
           <div style={{ fontSize: 13, color: "#e2e8f0", fontWeight: 500 }}>Revisión por líder obligatoria</div>
           <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Las tareas deben pasar por revisión de un líder antes de cerrarse.</div>
         </div>
-        <button onClick={() => { if (canEdit) { setRequireLeadReview((v) => !v); mark(); } }} disabled={!canEdit} role="switch" aria-checked={requireLeadReview}
+        <button onClick={() => { if (canEdit) { setRequireLeadReview((v) => !v); mark(); } }} disabled={!canEdit} role="switch" aria-checked={requireLeadReview} aria-label="Revisión por líder obligatoria"
           style={{ width: 40, height: 22, borderRadius: 11, flexShrink: 0, position: "relative", background: requireLeadReview ? "var(--cyan)" : "rgba(255,255,255,0.1)", border: "none", cursor: canEdit ? "pointer" : "default" }}>
           <span style={{ position: "absolute", top: 2, left: requireLeadReview ? 20 : 2, width: 18, height: 18, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
         </button>
