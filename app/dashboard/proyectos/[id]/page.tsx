@@ -17,6 +17,8 @@ import DateRangePicker from "@/components/DateRangePicker";
 import { CreativeCard, CreativeLightbox } from "@/components/CreativePreview";
 import { useInsightsStore } from "@/stores/insightsStore";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { ResultsAnalytics } from "@/components/proyectos/ResultsAnalytics";
+import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 
 /* ═══ TYPES ═══ */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; }
@@ -181,7 +183,7 @@ export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config">("resumen");
+  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config"|"resultados"|"trafico">("resumen");
   const [activePlatform, setActivePlatform] = useState("");
   const [insights, setInsights] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -510,6 +512,12 @@ export default function ProjectDashboardPage() {
           <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
           <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
           <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
+          {(!!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
+            <TabButton active={activeTab === "resultados"} label="Análisis de resultados" icon={<Activity style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
+          )}
+          {!!project.website && (
+            <TabButton active={activeTab === "trafico"} label="Análisis de tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
+          )}
           <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
@@ -1666,6 +1674,20 @@ export default function ProjectDashboardPage() {
         </ErrorBoundary>
       )}
 
+
+      {/* ═══ TAB: ANÁLISIS DE RESULTADOS (BotMaker) ═══ */}
+      {activeTab === "resultados" && (
+        <ErrorBoundary name="Tab Resultados">
+          <ResultsAnalytics project={project as any} />
+        </ErrorBoundary>
+      )}
+
+      {/* ═══ TAB: ANÁLISIS DE TRÁFICO (GA4) ═══ */}
+      {activeTab === "trafico" && (
+        <ErrorBoundary name="Tab Trafico">
+          <TrafficAnalytics project={project as any} />
+        </ErrorBoundary>
+      )}
 
       {/* ═══ TAB: CONFIGURACIÓN ═══ */}
       {activeTab === "config" && (
