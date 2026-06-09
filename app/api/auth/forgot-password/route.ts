@@ -35,6 +35,8 @@ export async function POST(req: NextRequest) {
     // Siempre devolver success (no revelar si el email existe)
     if (!user) {
       console.log("[FORGOT-PASSWORD] Email not found:", normalizedEmail);
+      // Equalize response timing to prevent email enumeration via timing analysis
+      await new Promise(r => setTimeout(r, 100 + Math.random() * 200));
       return NextResponse.json({ success: true });
     }
 

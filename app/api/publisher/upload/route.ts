@@ -58,8 +58,8 @@ export async function POST(req: NextRequest) {
     if (process.env.BLOB_READ_WRITE_TOKEN) {
       const { put } = await import("@vercel/blob");
       
-      // Ensure the file name has the correct extension so Vercel Blob saves it properly
-      let finalName = file.name || "upload";
+      // Sanitize the filename: strip path traversal chars, unicode, and limit length
+      let finalName = (file.name || "upload").replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 100);
       if (!finalName.includes(".")) {
         const extMatch = file.type.split("/")[1];
         let ext = extMatch || "bin";
