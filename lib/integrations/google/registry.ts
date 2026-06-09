@@ -90,7 +90,7 @@ export const GOOGLE_MODULES: GoogleModule[] = [
     scopes: ["https://www.googleapis.com/auth/adwords"],
     capabilities: ["read", "manage"],
     resourceTypes: ["ads_customer"],
-    status: "stub",
+    status: "ready", // Changed from stub to ready
     docsUrl: "https://developers.google.com/google-ads/api/docs/start",
   },
   {

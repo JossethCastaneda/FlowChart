@@ -25,6 +25,8 @@ interface AdsManagerTableProps {
   onRowClick?: (item: any) => void;
   breakdownData?: Record<string, any[]>;
   selectedBreakdown?: string;
+  emptyTitle?: string;
+  emptyDescription?: string;
 }
 
 // ── Number helpers ──────────────────────────────────────────────────────────
@@ -107,6 +109,8 @@ export function AdsManagerTable({
   onRowClick,
   breakdownData,
   selectedBreakdown,
+  emptyTitle,
+  emptyDescription,
 }: AdsManagerTableProps) {
   const isAllSelected = data.length > 0 && selectedIds.length === data.length;
 
@@ -581,8 +585,8 @@ export function AdsManagerTable({
                 <td colSpan={visibleColumns.length + 6} style={{ padding: 0 }}>
                   <EmptyState
                     icon={<Radar className="w-12 h-12" />}
-                    title="Señal Perdida"
-                    description="No se encontraron elementos. Selecciona una cuenta publicitaria y asegúrate de tener sincronizado el Holocrón."
+                    title={emptyTitle || "Señal Perdida"}
+                    description={emptyDescription || "No se encontraron elementos. Selecciona una cuenta publicitaria y asegúrate de tener sincronizado el Holocrón."}
                   />
                 </td>
               </tr>

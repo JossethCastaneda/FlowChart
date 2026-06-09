@@ -6,6 +6,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { encryptToken } from "@/lib/encryption";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { GOOGLE_MODULES, isModuleConnected } from "@/lib/integrations/google/registry";
 
 /**
  * GET: List all integrations for the active workspace.
@@ -52,7 +53,15 @@ export async function GET() {
 
     const data = integrations.map((intg) => {
       const creds = (intg.credentials as Record<string, any>) || {};
-      const connectedModules = creds.modules || [];
+      let connectedModules = creds.modules || [];
+      
+      if (intg.provider === "google") {
+        // Compute dynamically based on grantedScopes
+        connectedModules = GOOGLE_MODULES.filter((m) =>
+          isModuleConnected(m.id, creds.grantedScopes)
+        ).map((m) => m.id);
+      }
+      
       const resources = creds.resources || {};
 
       return {

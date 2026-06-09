@@ -1,10 +1,10 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useSession as useSessionHook } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, ChevronDown, CheckCircle, AlertTriangle } from "lucide-react";
+import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, ChevronDown, CheckCircle, AlertTriangle, Radar } from "lucide-react";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import { AccountSelector } from "@/components/ads-manager/AccountSelector";
 import { CreateCampaignModal } from "@/components/ads-manager/CreateCampaignModal";
@@ -37,6 +37,21 @@ import { RulesManagerModal } from "@/components/ads-manager/RulesManagerModal";
 import { ImportModal } from "@/components/ads-manager/ImportModal";
 import { useClipboardStore } from "@/stores/clipboardStore";
 import { calcROAS, isAdvantagePlus, findActionValue } from "@/lib/ads-metrics";
+
+const MetaIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+    <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+  </svg>
+);
+
+const GoogleIcon = () => (
+  <svg viewBox="0 0 24 24" width="16" height="16">
+    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
+    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
+    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+  </svg>
+);
 
 const DEFAULT_COLUMNS = [
   { key: "name", label: "Nombre" },
@@ -102,6 +117,29 @@ function AdsManagerContent() {
   // Meta Ads connection status
   const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
   const [justConnected, setJustConnected] = useState(false);
+
+  // Platform and Google integrations status
+  const [platform, setPlatform] = useState<"meta" | "google">("meta");
+  const [googleIntegration, setGoogleIntegration] = useState<any>(null);
+
+  useEffect(() => {
+    fetch("/api/workspace/integrations")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.data) {
+          const g = res.data.find((i: any) => i.provider === "google");
+          setGoogleIntegration(g || null);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const isGoogleAdsConnected = !!(
+    googleIntegration?.connected &&
+    googleIntegration?.connectedModules?.includes("google_ads") &&
+    googleIntegration?.resources?.google_ads?.customerId
+  );
+  const googleCustomerId = googleIntegration?.resources?.google_ads?.customerId || "";
 
   useEffect(() => {
     // Detect redirect back from OAuth callback
@@ -274,6 +312,59 @@ function AdsManagerContent() {
 
   // Fetch data on changes — supports single account or 'all' (multi-account merge)
   const fetchData = async () => {
+    if (platform === "google") {
+      setLoadingData(true);
+      setError(null);
+      let dateParams = "";
+      if (dateStart && dateEnd) {
+        dateParams = `?since=${dateStart}&until=${dateEnd}`;
+      } else if (datePreset && datePreset !== "custom") {
+        let sinceStr = "";
+        let untilStr = "";
+        const today = new Date();
+        if (datePreset === "today") {
+          sinceStr = today.toISOString().slice(0, 10);
+          untilStr = sinceStr;
+        } else if (datePreset === "yesterday") {
+          const y = new Date();
+          y.setDate(today.getDate() - 1);
+          sinceStr = y.toISOString().slice(0, 10);
+          untilStr = sinceStr;
+        } else if (datePreset === "last_7d") {
+          const d = new Date();
+          d.setDate(today.getDate() - 7);
+          sinceStr = d.toISOString().slice(0, 10);
+          untilStr = today.toISOString().slice(0, 10);
+        } else if (datePreset === "last_30d") {
+          const d = new Date();
+          d.setDate(today.getDate() - 30);
+          sinceStr = d.toISOString().slice(0, 10);
+          untilStr = today.toISOString().slice(0, 10);
+        }
+        
+        if (sinceStr && untilStr) {
+          dateParams = `?since=${sinceStr}&until=${untilStr}`;
+        }
+      }
+
+      try {
+        const res = await fetch(`/api/integrations/google/ads/campaigns${dateParams}`);
+        const json = await res.json();
+        if (json.error) throw new Error(json.error);
+        
+        setCampaigns(json.data || []);
+        setAdsets([]);
+        setAds([]);
+        setSelectedIds([]);
+        setLastSynced(new Date());
+      } catch (err: any) {
+        setError(err.message || "Error al sincronizar con Google Ads API");
+      } finally {
+        setLoadingData(false);
+      }
+      return;
+    }
+
     if (!selectedAccountId) return;
     setLoadingData(true);
     setError(null);
@@ -338,7 +429,7 @@ function AdsManagerContent() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedAccountId, activeLevel, datePreset, dateStart, dateEnd]);
+  }, [selectedAccountId, activeLevel, datePreset, dateStart, dateEnd, platform]);
 
   // Breakdown data state
   const [breakdownData, setBreakdownData] = useState<Record<string, any[]>>({});
@@ -390,6 +481,27 @@ function AdsManagerContent() {
     else if (activeLevel === "adsets") setAdsets(updateList(adsets));
     else if (activeLevel === "ads") setAds(updateList(ads));
 
+    if (platform === "google") {
+      try {
+        const res = await fetch("/api/integrations/google/ads/campaigns", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ campaignId: id, status }),
+        });
+        const data = await res.json();
+        if (data.success) {
+          return true;
+        }
+        setCampaigns(prevCampaigns);
+        addToast("error", `Error al cambiar estado en Google Ads: ${data.error || "Error desconocido"}`);
+        return false;
+      } catch (err) {
+        setCampaigns(prevCampaigns);
+        addToast("error", "Error de red al cambiar estado en Google Ads");
+        return false;
+      }
+    }
+
     try {
       const res = await fetch(`/api/meta/${activeLevel}`, {
         method: "POST",
@@ -422,6 +534,10 @@ function AdsManagerContent() {
 
   // Handle single name updates
   const handleUpdateName = async (id: string, name: string) => {
+    if (platform === "google") {
+      addToast("warning", "El cambio de nombre para campañas de Google Ads no está disponible desde esta vista");
+      return false;
+    }
     try {
       const res = await fetch(`/api/meta/${activeLevel}`, {
         method: "POST",
@@ -449,6 +565,10 @@ function AdsManagerContent() {
 
   // Handle budget updates
   const handleUpdateBudget = async (id: string, budget: number, type: "daily" | "lifetime") => {
+    if (platform === "google") {
+      addToast("warning", "La edición de presupuesto para campañas de Google Ads no está disponible desde esta vista");
+      return false;
+    }
     try {
       const res = await fetch(`/api/meta/${activeLevel}`, {
         method: "POST",
@@ -460,6 +580,7 @@ function AdsManagerContent() {
         }),
       });
       const data = await res.json();
+
       if (data.success) {
         const updateList = (list: any[]) =>
           list.map((item) =>
@@ -519,6 +640,41 @@ function AdsManagerContent() {
     const levelLabel = activeLevel === "campaigns" ? "campaña" : activeLevel === "adsets" ? "conjunto" : "anuncio";
     const n = ids.length;
     addToast("info", `Ejecutando ${action} en ${n} ${levelLabel}${n > 1 ? "s" : ""}...`);
+
+    if (platform === "google") {
+      if (action !== "activate" && action !== "pause") {
+        addToast("warning", `La acción ${action} no está disponible para Google Ads`);
+        return;
+      }
+      const newStatus = action === "activate" ? "ACTIVE" : "PAUSED";
+      try {
+        const results = await Promise.allSettled(
+          ids.map(async (id) => {
+            const res = await fetch("/api/integrations/google/ads/campaigns", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ campaignId: id, status: newStatus }),
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error || "Failed");
+            return id;
+          })
+        );
+        const successCount = results.filter((r) => r.status === "fulfilled").length;
+        const failCount = n - successCount;
+        if (failCount === 0) {
+          addToast("success", `✅ ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} actualizadas correctamente`);
+        } else {
+          addToast("warning", `✅ ${successCount} actualizadas. ${failCount} fallaron.`);
+        }
+        fetchData();
+        setSelectedIds([]);
+      } catch (err: any) {
+        addToast("error", `Error: ${err.message}`);
+      }
+      return;
+    }
+
     try {
       // Resolve the actual account ID (in multi-account mode, use the first selected item's _accountId)
       let resolvedAccountId = selectedAccountId;
@@ -855,11 +1011,96 @@ function AdsManagerContent() {
     }
   };
 
-  // Guard: si no hay cuentas de Meta Ads conectadas en el workspace
-  if (!loadingAccounts && accounts.length === 0) {
+  const renderHeader = () => (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12, flexWrap: "wrap", gap: 12 }}>
+      <PageHeader
+        title="Ads Manager"
+        description={platform === "meta" ? "Monitorea y optimiza tus campañas de Meta." : "Monitorea y optimiza tus campañas de Google Ads."}
+        icon={<Megaphone className="w-6 h-6" style={{ color: platform === "meta" ? "#0081FB" : "#60a5fa" }} />}
+      />
+      {/* Segmented Control for Platforms */}
+      <div style={{
+        display: "inline-flex",
+        padding: "3px",
+        borderRadius: "8px",
+        background: "rgba(15, 23, 42, 0.4)",
+        backdropFilter: "blur(12px)",
+        border: "1px solid rgba(255, 255, 255, 0.06)",
+        gap: 4
+      }}>
+        <button
+          onClick={() => setPlatform("meta")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "6px 12px",
+            fontSize: 11,
+            fontWeight: 600,
+            borderRadius: "6px",
+            color: platform === "meta" ? "#0081FB" : "#94a3b8",
+            background: platform === "meta" ? "rgba(0, 129, 251, 0.08)" : "transparent",
+            border: `1px solid ${platform === "meta" ? "rgba(0, 129, 251, 0.2)" : "transparent"}`,
+            cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          <MetaIcon />
+          Meta Ads
+        </button>
+        <button
+          onClick={() => setPlatform("google")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "6px 12px",
+            fontSize: 11,
+            fontWeight: 600,
+            borderRadius: "6px",
+            color: platform === "google" ? "#60a5fa" : "#94a3b8",
+            background: platform === "google" ? "rgba(66, 133, 244, 0.08)" : "transparent",
+            border: `1px solid ${platform === "google" ? "rgba(66, 133, 244, 0.2)" : "transparent"}`,
+            cursor: "pointer",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+          }}
+        >
+          <GoogleIcon />
+          Google Ads
+        </button>
+      </div>
+    </div>
+  );
+
+  // Guard: Google Ads not connected / configured
+  if (platform === "google" && !isGoogleAdsConnected) {
     return (
-      <div className="space-y-6">
-        <PageHeader title="Ads Manager" icon={<Megaphone className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
+      <div className="space-y-6" style={{ padding: isEmbedded ? "0" : "24px 28px" }}>
+        {renderHeader()}
+        <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
+          <Radar className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.65)" }} />
+          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "#64748b", textTransform: "uppercase", marginBottom: "8px" }}>
+            Conexión Google Ads requerida
+          </p>
+          <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.65)", marginBottom: "20px" }}>
+            Conecta tu cuenta de Google y configura tu Customer ID desde la pestaña del Google Hub en Integraciones para acceder a tus campañas de Google Ads.
+          </p>
+          <button
+            onClick={() => window.location.href = "/dashboard/integrations"}
+            className="btn-primary"
+          >
+            Ir a Integraciones
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Guard: si no hay cuentas de Meta Ads conectadas en el workspace
+  if (platform === "meta" && !loadingAccounts && accounts.length === 0) {
+    return (
+      <div className="space-y-6" style={{ padding: isEmbedded ? "0" : "24px 28px" }}>
+        {renderHeader()}
 
         {/* ── META ADS CONNECTION PANEL ── */}
         {justConnected ? (
@@ -924,6 +1165,13 @@ function AdsManagerContent() {
       padding: isEmbedded ? "0 4px" : "0",
       height: isEmbedded ? "100%" : "calc(100vh - 48px)"
     }}>
+      {/* ── HEADER & PLATFORM SWITCHER (for main dashboard) ── */}
+      {!isEmbedded && (
+        <div style={{ flexShrink: 0, padding: "12px 16px 0 16px" }}>
+          {renderHeader()}
+        </div>
+      )}
+
       {/* ── TOOLBAR (fixed top) ── */}
       <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", padding: isEmbedded ? "0 0 6px" : "6px 12px 0", gap: "4px", position: "relative", zIndex: 50, overflow: "visible" }}>
       
@@ -941,18 +1189,28 @@ function AdsManagerContent() {
           overflow: "visible",
         }}
       >
-        {loadingAccounts ? (
-            <div style={{ fontSize: "11px", color: "#64748b" }}>Cargando cuentas...</div>
-          ) : (
-            <AccountSelector
-              accounts={accounts}
-              selectedAccountId={selectedAccountId}
-              onSelectAccount={setSelectedAccountId}
-            />
-          )}
+        {platform === "google" ? (
+          <div style={{
+            display: "flex", alignItems: "center", gap: 8,
+            padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
+            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+            color: "#e2e8f0"
+          }}>
+            <GoogleIcon />
+            <span>Cuenta Google Ads: {googleCustomerId || "Conectada"}</span>
+          </div>
+        ) : loadingAccounts ? (
+          <div style={{ fontSize: "11px", color: "#64748b" }}>Cargando cuentas...</div>
+        ) : (
+          <AccountSelector
+            accounts={accounts}
+            selectedAccountId={selectedAccountId}
+            onSelectAccount={setSelectedAccountId}
+          />
+        )}
 
         {/* Create campaign — only for a specific account (not "Todas") */}
-        {!loadingAccounts && selectedAccountId && selectedAccountId !== "all" && (
+        {platform !== "google" && !loadingAccounts && selectedAccountId && selectedAccountId !== "all" && (
           <button
             onClick={() => setShowCreateCampaign(true)}
             title="Crear una campaña nueva (se crea en pausa)"
@@ -963,7 +1221,7 @@ function AdsManagerContent() {
         )}
 
         {/* Create ad set — needs at least one campaign loaded */}
-        {!loadingAccounts && selectedAccountId && selectedAccountId !== "all" && campaigns.length > 0 && (
+        {platform !== "google" && !loadingAccounts && selectedAccountId && selectedAccountId !== "all" && campaigns.length > 0 && (
           <button
             onClick={() => setShowCreateAdSet(true)}
             title="Crear un conjunto de anuncios (se crea en pausa)"
@@ -990,7 +1248,7 @@ function AdsManagerContent() {
           <Search className="w-3.5 h-3.5 text-slate-500" />
           <input
             type="text"
-            placeholder="Buscar por nombre o ID de campaña..."
+            placeholder={platform === "google" ? "Buscar por nombre o ID de campaña Google Ads..." : "Buscar por nombre o ID de campaña..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             style={{
@@ -1021,16 +1279,18 @@ function AdsManagerContent() {
             <RefreshCw className={`w-3 h-3 ${loadingData ? "animate-spin" : ""}`} />
             Sync
           </button>
-          <button
-            onClick={() => setAutoSync(!autoSync)}
-            title={autoSync ? "Auto-sync cada 30 min (activo)" : "Auto-sync desactivado"}
-            style={{
-              width: "7px", height: "7px", borderRadius: "50%",
-              background: autoSync ? "#34d399" : "rgba(148,163,184,0.65)",
-              border: "none", cursor: "pointer",
-              boxShadow: autoSync ? "0 0 6px rgba(52,211,153,0.4)" : "none",
-            }}
-          />
+          {platform !== "google" && (
+            <button
+              onClick={() => setAutoSync(!autoSync)}
+              title={autoSync ? "Auto-sync cada 30 min (activo)" : "Auto-sync desactivado"}
+              style={{
+                width: "7px", height: "7px", borderRadius: "50%",
+                background: autoSync ? "#34d399" : "rgba(148,163,184,0.65)",
+                border: "none", cursor: "pointer",
+                boxShadow: autoSync ? "0 0 6px rgba(52,211,153,0.4)" : "none",
+              }}
+            />
+          )}
           {!isEmbedded && (
             <DateRangePicker
               datePreset={datePreset}
@@ -1140,20 +1400,20 @@ function AdsManagerContent() {
         selectedIds={selectedIds}
         level={activeLevel}
         clipboardCount={clipboard.items.length}
-        onDuplicateQuick={handleDuplicateQuick}
+        onDuplicateQuick={platform === "google" ? () => addToast("warning", "Esta acción no está disponible para Google Ads") : handleDuplicateQuick}
         onCopy={handleCopy}
         onPaste={handlePaste}
         onShowClipboard={() => setShowClipboardModal(true)}
         onActivate={handleActivate}
         onDeactivate={handleDeactivate}
-        onBulkRename={() => setShowRenameModal(true)}
-        onSearchReplace={() => setShowRenameModal(true)}
-        onEditBudget={() => setShowBudgetModal(true)}
-        onEditSpendCap={() => setShowSpendCapModal(true)}
-        onDelete={handleDelete}
-        onCreateRule={() => setShowRulesBuilder(true)}
-        onManageRules={() => setShowRulesManager(true)}
-        onImportBulk={() => setShowImportModal(true)}
+        onBulkRename={platform === "google" ? () => addToast("warning", "Esta acción no está disponible para Google Ads") : () => setShowRenameModal(true)}
+        onSearchReplace={platform === "google" ? () => addToast("warning", "Esta acción no está disponible para Google Ads") : () => setShowRenameModal(true)}
+        onEditBudget={platform === "google" ? () => addToast("warning", "Esta acción no está disponible para Google Ads") : () => setShowBudgetModal(true)}
+        onEditSpendCap={platform === "google" ? () => addToast("warning", "Esta acción no está disponible para Google Ads") : () => setShowSpendCapModal(true)}
+        onDelete={platform === "google" ? () => addToast("warning", "Esta acción no está disponible para Google Ads") : handleDelete}
+        onCreateRule={platform === "google" ? () => addToast("warning", "Esta acción no está disponible para Google Ads") : () => setShowRulesBuilder(true)}
+        onManageRules={platform === "google" ? () => addToast("warning", "Esta acción no está disponible para Google Ads") : () => setShowRulesManager(true)}
+        onImportBulk={platform === "google" ? () => addToast("warning", "Esta acción no está disponible para Google Ads") : () => setShowImportModal(true)}
         onExportCSV={handleExportCSV}
         onExportExcel={handleExportExcel}
         onExportPDF={() => { window.print(); addToast("info", "PDF: usando impresión del navegador"); }}
@@ -1233,6 +1493,8 @@ function AdsManagerContent() {
           onRowClick={(item) => setDrawerItem(item)}
           breakdownData={breakdownData}
           selectedBreakdown={selectedBreakdown}
+          emptyTitle={platform === "google" && activeLevel !== "campaigns" ? "Próximamente" : undefined}
+          emptyDescription={platform === "google" && activeLevel !== "campaigns" ? `La cobertura de ${activeLevel === "adsets" ? "grupos de anuncios (Ad Groups)" : "anuncios (Ads)"} para Google Ads estará disponible en una versión futura. Por ahora, puedes gestionar todas tus campañas desde la pestaña de Campañas.` : undefined}
         />
       </div>
       )}
