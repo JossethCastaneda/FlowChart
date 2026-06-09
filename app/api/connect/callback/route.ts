@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
+import { validateModulePermissions } from "@/lib/meta-scopes";
 
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
@@ -14,6 +15,8 @@ const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
  * Query params from Facebook:
  *   - code: authorization code
  *   - state: base64url-encoded JSON { payload, sig } — HMAC-signed
+ * 
+ * FIX: Properly separate user access token vs page access token
  */
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
@@ -101,7 +104,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=token_exchange_failed`);
     }
 
-    let accessToken = tokenData.access_token;
+    let userAccessToken = tokenData.access_token;
 
     // 2. Exchange for long-lived token (~60 days)
     try {
@@ -109,35 +112,71 @@ export async function GET(request: NextRequest) {
       llUrl.searchParams.set("grant_type", "fb_exchange_token");
       llUrl.searchParams.set("client_id", clientId);
       llUrl.searchParams.set("client_secret", clientSecret);
-      llUrl.searchParams.set("fb_exchange_token", accessToken);
+      llUrl.searchParams.set("fb_exchange_token", userAccessToken);
 
       const llRes = await fetch(llUrl.toString());
       const llData = await llRes.json();
       if (llRes.ok && llData.access_token) {
-        accessToken = llData.access_token;
-        console.log(`[CONNECT CALLBACK] Long-lived token obtained for module: ${module}`);
+        userAccessToken = llData.access_token;
+        console.log(`[CONNECT CALLBACK] Long-lived user token obtained for module: ${module}`);
       }
     } catch (e) {
       console.warn("[CONNECT CALLBACK] Long-lived exchange failed, using short-lived:", e);
     }
 
-    // 3. Fetch connected pages to store their IDs and tokens
-    let pages: any[] = [];
+    // FIX: Use USER access token to fetch pages, then validate
+    // CRITICAL: Do NOT use page tokens for Graph API calls
+    let pages: Array<{
+      id: string;
+      name: string;
+      accessToken: string; // Page token (encrypted)
+      picture?: string | null;
+      instagramId?: string | null;
+    }> = [];
+    
+    let userScopes: string[] = [];
+    
     try {
+      // 3a. Validate user permissions first
+      const permissionsRes = await fetch(
+        `https://graph.facebook.com/${META_API_VERSION}/me/permissions`,
+        { headers: { Authorization: `Bearer ${userAccessToken}` } }
+      );
+      const permissionsData = await permissionsRes.json();
+      
+      if (permissionsRes.ok && permissionsData.data) {
+        userScopes = permissionsData.data
+          .filter((p: any) => p.status === "granted")
+          .map((p: any) => p.permission);
+        
+        // FIX: Validate permissions match module requirements
+        const validation = validateModulePermissions(module, userScopes);
+        if (!validation.valid) {
+          console.warn(`[CONNECT CALLBACK] ⚠️ Missing scopes for ${module}:`, validation.missing);
+          // Don't fail yet — proceed but log warning
+        }
+      }
+
+      // 3b. Fetch connected pages using USER token
       const pagesRes = await fetch(
         `https://graph.facebook.com/${META_API_VERSION}/me/accounts?fields=id,name,access_token,picture,instagram_business_account&limit=100`,
-        { headers: { Authorization: `Bearer ${accessToken}` } }
+        { headers: { Authorization: `Bearer ${userAccessToken}` } }
       );
       const pagesData = await pagesRes.json();
-      pages = (pagesData.data || []).map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        accessToken: encryptToken(p.access_token),
-        picture: p.picture?.data?.url || null,
-        instagramId: p.instagram_business_account?.id || null,
-      }));
+      
+      if (pagesRes.ok && pagesData.data) {
+        pages = pagesData.data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          accessToken: encryptToken(p.access_token), // Encrypt PAGE token for storage
+          picture: p.picture?.data?.url || null,
+          instagramId: p.instagram_business_account?.id || null,
+        }));
+        console.log(`[CONNECT CALLBACK] Fetched ${pages.length} pages with user token`);
+      }
     } catch (e) {
       console.warn("[CONNECT CALLBACK] Failed to fetch pages:", e);
+      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=fetch_pages_failed`);
     }
 
     // 4. Verify workspace membership using workspaceId from state
@@ -166,11 +205,13 @@ export async function GET(request: NextRequest) {
     }
 
     // 5. Store the token in the Integration table keyed by module
+    // FIX: Store USER access token (for Graph API), NOT page tokens
     const provider = `meta_${module}`; // e.g. "meta_social", "meta_analytics"
     const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
     
-    const encryptedAccessToken = encryptToken(accessToken);
+    const encryptedUserToken = encryptToken(userAccessToken);
 
+    // Store module-specific integration
     await prisma.integration.upsert({
       where: {
         workspaceId_provider: {
@@ -180,11 +221,12 @@ export async function GET(request: NextRequest) {
       },
       update: {
         credentials: {
-          accessToken: encryptedAccessToken,
-          pages,
+          accessToken: encryptedUserToken, // USER token
+          pages, // Page data (with encrypted page tokens)
           expiresAt,
           refreshedAt: new Date().toISOString(),
           module,
+          grantedScopes: userScopes, // Track what was actually granted
         },
         connected: true,
         connectedAt: new Date(),
@@ -194,11 +236,12 @@ export async function GET(request: NextRequest) {
         workspaceId: resolvedWorkspaceId,
         provider,
         credentials: {
-          accessToken: encryptedAccessToken,
+          accessToken: encryptedUserToken, // USER token
           pages,
           expiresAt,
           refreshedAt: new Date().toISOString(),
           module,
+          grantedScopes: userScopes,
         },
         connected: true,
         connectedAt: new Date(),
@@ -216,10 +259,11 @@ export async function GET(request: NextRequest) {
       },
       update: {
         credentials: {
-          accessToken: encryptedAccessToken,
+          accessToken: encryptedUserToken, // USER token
           pages,
           expiresAt,
           refreshedAt: new Date().toISOString(),
+          grantedScopes: userScopes,
         },
         connected: true,
         connectedAt: new Date(),
@@ -229,10 +273,11 @@ export async function GET(request: NextRequest) {
         workspaceId: resolvedWorkspaceId,
         provider: "meta",
         credentials: {
-          accessToken: encryptedAccessToken,
+          accessToken: encryptedUserToken, // USER token
           pages,
           expiresAt,
           refreshedAt: new Date().toISOString(),
+          grantedScopes: userScopes,
         },
         connected: true,
         connectedAt: new Date(),
@@ -249,5 +294,4 @@ export async function GET(request: NextRequest) {
     console.error("[CONNECT CALLBACK] Error:", err);
     return NextResponse.redirect(`${baseUrl}/connect/done?module=&error=server_error`);
   }
-
 }
