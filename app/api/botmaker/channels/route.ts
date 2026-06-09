@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { getBotmakerToken, botmakerFetch } from "@/lib/botmaker";
+import { getBotmakerConnection, botmakerFetch } from "@/lib/botmaker";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
-  const token = await getBotmakerToken(workspaceId);
-  if (!token) return NextResponse.json({ connected: false, channels: [] });
+  const conn = await getBotmakerConnection(workspaceId);
+  if (!conn) return NextResponse.json({ connected: false, channels: [] });
 
   try {
-    const res = await botmakerFetch("/channels", token);
+    const res = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
       return NextResponse.json({ connected: false, error: err?.errors?.[0]?.message || `BotMaker ${res.status}`, channels: [] }, { status: 200 });

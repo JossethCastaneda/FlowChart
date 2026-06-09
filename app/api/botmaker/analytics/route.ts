@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import {
-  getBotmakerToken,
+  getBotmakerConnection,
   botmakerFetch,
   listSessions,
   computeMetricsByChannel,
@@ -38,8 +38,8 @@ export async function GET(request: NextRequest) {
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
-  const token = await getBotmakerToken(workspaceId);
-  if (!token) {
+  const conn = await getBotmakerConnection(workspaceId);
+  if (!conn) {
     return NextResponse.json({
       connected: false,
       dataSource: "no_token",
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
     const channelPlatform = new Map<string, string>();
     let channels: { id: string; name: string; platform: string; active: boolean }[] = [];
     try {
-      const chRes = await botmakerFetch("/channels", token);
+      const chRes = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
       if (chRes.ok) {
         const chData = await chRes.json();
         const items = chData.items || chData || [];
@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     }
 
     // 2) Fetch sessions once, then group + compute metrics per channel + aggregate.
-    const sessions = await listSessions(token, from, to);
+    const sessions = await listSessions(conn.accessToken, from, to, 6, conn.baseUrl);
     const breakdown = computeMetricsByChannel(sessions, channelPlatform);
 
     // 3) Quality scoring — derived from the same sessions, zero extra cost.

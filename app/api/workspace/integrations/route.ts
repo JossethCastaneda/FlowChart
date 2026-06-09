@@ -84,13 +84,15 @@ export async function GET() {
 const ConnectSchema = z.object({
   provider: z.string().min(1, "provider requerido"),
   token: z.string().min(1, "token requerido"),
+  baseUrl: z.string().trim().max(500).optional(),
+  refreshToken: z.string().trim().max(4000).optional(),
 });
 
 export async function POST(req: NextRequest) {
   try {
     const result = await validateBody(req, ConnectSchema);
     if (!result.ok) return result.response;
-    const { provider, token } = result.data;
+    const { provider, token, baseUrl, refreshToken } = result.data;
 
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
@@ -116,11 +118,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Encrypt + upsert
-    const credentials = {
+    // Encrypt + upsert. Tokens are AES-256 encrypted; baseUrl is stored plain.
+    const credentials: Record<string, unknown> = {
       accessToken: encryptToken(token),
       connectedAt: new Date().toISOString(),
     };
+    if (baseUrl) credentials.baseUrl = baseUrl;
+    if (refreshToken) credentials.refreshToken = encryptToken(refreshToken);
 
     await prisma.integration.upsert({
       where: {
@@ -129,13 +133,13 @@ export async function POST(req: NextRequest) {
       create: {
         workspaceId,
         provider,
-        credentials,
+        credentials: credentials as any,
         connected: true,
         connectedAt: new Date(),
         connectedBy: session.user.id,
       },
       update: {
-        credentials,
+        credentials: credentials as any,
         connected: true,
         connectedAt: new Date(),
         connectedBy: session.user.id,

@@ -8,35 +8,55 @@ import { decryptToken } from "@/lib/encryption";
  */
 const BASE = "https://api.botmaker.com/v2.0";
 
+/** Normalize a user-entered BotMaker base URL (adds scheme, strips trailing slash). */
+export function normalizeBotmakerBase(raw?: string | null): string {
+  let b = (raw || "").trim();
+  if (!b) return BASE;
+  if (!/^https?:\/\//i.test(b)) b = "https://" + b;
+  return b.replace(/\/+$/, "");
+}
+
+export interface BotmakerConnection {
+  baseUrl: string;
+  accessToken: string;
+}
+
 /**
- * Resolve the BotMaker access-token for a workspace.
+ * Resolve the per-workspace BotMaker connection (base URL + access token).
+ * The user connects their OWN url + access/refresh token in Integraciones; the
+ * tokens are stored AES-256 encrypted in the Integration record.
  *
  * Priority:
  *   1. Encrypted Integration (provider "botmaker") for the workspace.
- *   2. env BOTMAKER_ACCESS_TOKEN — **development only**.
- *
- * In production the global env token is NOT used because it is shared
- * across all tenants, which would allow any authenticated user to read
- * conversations from other workspaces (cross-tenant data leak).
+ *   2. env BOTMAKER_ACCESS_TOKEN — **development only** (shared, not for tenants).
  */
-export async function getBotmakerToken(workspaceId: string): Promise<string | null> {
+export async function getBotmakerConnection(workspaceId: string): Promise<BotmakerConnection | null> {
   try {
     const integ = await prisma.integration.findUnique({
       where: { workspaceId_provider: { workspaceId, provider: "botmaker" } },
     });
     const creds = integ?.credentials as Record<string, unknown> | null;
     if (integ?.connected && creds?.accessToken) {
-      return decryptToken(creds.accessToken as string);
+      const accessToken = decryptToken(creds.accessToken as string);
+      if (accessToken) {
+        return { baseUrl: normalizeBotmakerBase(creds.baseUrl as string | undefined), accessToken };
+      }
     }
   } catch { /* ignore — fall through */ }
 
-  // Only fall back to the global env token in development.
-  // In production, each workspace must have its own Integration record.
-  if (process.env.NODE_ENV !== "production") {
-    return process.env.BOTMAKER_ACCESS_TOKEN || null;
+  // Dev-only global fallback. In production each workspace connects its own token.
+  if (process.env.NODE_ENV !== "production" && process.env.BOTMAKER_ACCESS_TOKEN) {
+    return {
+      baseUrl: normalizeBotmakerBase(process.env.BOTMAKER_BASE_URL),
+      accessToken: process.env.BOTMAKER_ACCESS_TOKEN,
+    };
   }
-
   return null;
+}
+
+/** Back-compat helper: just the access token. */
+export async function getBotmakerToken(workspaceId: string): Promise<string | null> {
+  return (await getBotmakerConnection(workspaceId))?.accessToken ?? null;
 }
 
 
@@ -45,9 +65,10 @@ export async function botmakerFetch(
   path: string,
   token: string,
   init: RequestInit = {},
-  retries = 2
+  retries = 2,
+  baseUrl: string = BASE
 ): Promise<Response> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${baseUrl}${path}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -58,7 +79,7 @@ export async function botmakerFetch(
   });
   if (res.status === 429 && retries > 0) {
     await new Promise((r) => setTimeout(r, (3 - retries) * 1200)); // exponential-ish backoff
-    return botmakerFetch(path, token, init, retries - 1);
+    return botmakerFetch(path, token, init, retries - 1, baseUrl);
   }
   return res;
 }
@@ -89,7 +110,8 @@ export async function listSessions(
   token: string,
   fromISO: string,
   toISO: string,
-  maxPages = 6
+  maxPages = 6,
+  baseUrl: string = BASE
 ): Promise<BmSession[]> {
   const all: BmSession[] = [];
   let next: string | null =
@@ -99,7 +121,7 @@ export async function listSessions(
     // Always route through botmakerFetch for consistent retry/headers.
     // If BotMaker returns a full URL as nextPage, extract the path.
     const path = next.startsWith("http") ? new URL(next).pathname + new URL(next).search : next;
-    const res = await botmakerFetch(path, token);
+    const res = await botmakerFetch(path, token, {}, 2, baseUrl);
     if (!res.ok) break;
     const data = await res.json();
     if (Array.isArray(data.items)) all.push(...data.items);

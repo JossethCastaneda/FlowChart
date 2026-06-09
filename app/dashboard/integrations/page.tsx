@@ -153,6 +153,7 @@ interface IntegrationData {
 
 export default function IntegrationsPage() {
   const [integrations, setIntegrations] = useState<IntegrationData[]>([]);
+  const [activeTab, setActiveTab] = useState<"general" | "google" | "meta">("general");
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [tokenModal, setTokenModal] = useState<{ provider: string; label: string } | null>(null);
@@ -246,10 +247,70 @@ export default function IntegrationsPage() {
         icon={<Settings size={20} style={{ color: "var(--cyan)" }} />}
       />
 
-      <MetaConnectionHealthCenter />
-      <GoogleHubCenter />
+      {/* Selector de pestañas */}
+      <div style={{
+        display: "flex",
+        gap: 8,
+        borderBottom: "1px solid rgba(255,255,255,0.08)",
+        paddingBottom: 4,
+        marginBottom: 8
+      }}>
+        <button
+          onClick={() => setActiveTab("general")}
+          style={{
+            padding: "8px 16px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: activeTab === "general" ? "var(--cyan)" : "#64748b",
+            borderBottom: activeTab === "general" ? "2px solid var(--cyan)" : "none",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 0.15s",
+          }}
+        >
+          Canales e Integraciones
+        </button>
+        <button
+          onClick={() => setActiveTab("google")}
+          style={{
+            padding: "8px 16px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: activeTab === "google" ? "#4285F4" : "#64748b",
+            borderBottom: activeTab === "google" ? "2px solid #4285F4" : "none",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 0.15s",
+          }}
+        >
+          Google Hub (Módulos)
+        </button>
+        <button
+          onClick={() => setActiveTab("meta")}
+          style={{
+            padding: "8px 16px",
+            fontSize: 13,
+            fontWeight: 600,
+            color: activeTab === "meta" ? "#0081FB" : "#64748b",
+            borderBottom: activeTab === "meta" ? "2px solid #0081FB" : "none",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            transition: "all 0.15s",
+          }}
+        >
+          Salud de Meta (Detalles)
+        </button>
+      </div>
 
-      {/* Publisher notice */}
+      {activeTab === "meta" && <MetaConnectionHealthCenter />}
+      {activeTab === "google" && <GoogleHubCenter />}
+
+      {activeTab === "general" && (
+        <>
+          {/* Publisher notice */}
       <button
         onClick={() => window.location.href = "/dashboard/publisher"}
         style={{
@@ -438,8 +499,10 @@ export default function IntegrationsPage() {
       <p style={{ fontSize: 11, color: "#334155", textAlign: "center", paddingBottom: 8 }}>
         API Keys, webhooks y configuración avanzada — próximamente
       </p>
+    </>
+  )}
 
-      {/* Token Modal */}
+  {/* Token Modal */}
       {tokenModal && (
         <div
           style={{
