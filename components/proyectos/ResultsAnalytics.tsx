@@ -1,10 +1,22 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { MessageSquare, Users, Bot, UserCog, Clock, Timer, Tag, BarChart3, HelpCircle, Bug, Loader2, Plug, AlertTriangle } from "lucide-react";
+import {
+  MessageSquare, Users, Bot, UserCog, Clock, Timer, Tag, BarChart3, HelpCircle, Bug,
+  Loader2, Plug, AlertTriangle, MessageCircle, Camera, ThumbsUp, Layers,
+  Target, Cpu, TrendingUp, Zap, CheckCircle2, XCircle, Info,
+} from "lucide-react";
 
-interface Project { whatsapp?: string[]; instagram?: string[]; fanpage?: string[] }
-interface Channel { id: string; name: string; platform: string; active: boolean }
+type TabKey = "all" | "whatsapp" | "messenger" | "instagram" | "facebook";
+
+// Order matters: "Todos" first, then the 4 product channels the user selects.
+const TABS: { key: TabKey; label: string; icon: any; color: string }[] = [
+  { key: "all", label: "Todos", icon: Layers, color: "#00d4ff" },
+  { key: "whatsapp", label: "WhatsApp", icon: MessageCircle, color: "#25d366" },
+  { key: "messenger", label: "Messenger", icon: MessageSquare, color: "#0084ff" },
+  { key: "instagram", label: "Instagram", icon: Camera, color: "#e1306c" },
+  { key: "facebook", label: "Facebook", icon: ThumbsUp, color: "#1877f2" },
+];
 
 const DAYS_HOURS = Array.from({ length: 24 }, (_, i) => i);
 
@@ -18,56 +30,48 @@ function fmtDuration(sec: number): string {
 }
 const n = (v: number) => (v ? v.toLocaleString("es-MX") : "—");
 
-export function ResultsAnalytics({ project }: { project: Project }) {
-  const [channels, setChannels] = useState<Channel[]>([]);
+export function ResultsAnalytics({ project }: { project?: { whatsapp?: string[]; instagram?: string[]; fanpage?: string[] } }) {
+  void project; // kept for call-site compatibility; the view now covers all channels.
+
+  const [data, setData] = useState<any>(null);
   const [connected, setConnected] = useState<boolean | null>(null);
-  const [channelId, setChannelId] = useState("");
-  const [metrics, setMetrics] = useState<any>(null);
-  const [dataSource, setDataSource] = useState<string>("");
-  const [total, setTotal] = useState<number>(0);
+  const [tab, setTab] = useState<TabKey>("all");
   const [errorMsg, setErrorMsg] = useState<string>("");
-  const [botErrors, setBotErrors] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load channels + auto-link to the project's WhatsApp/IG.
+  // Fetch ONCE: the API returns metrics for every channel + aggregate, so
+  // switching tabs is instant and costs no extra request.
   useEffect(() => {
-    fetch("/api/botmaker/channels")
+    let alive = true;
+    setLoading(true);
+    fetch("/api/botmaker/analytics")
       .then((r) => r.json())
       .then((d) => {
-        setConnected(!!d.connected);
-        const list: Channel[] = d.channels || [];
-        setChannels(list);
-        const wa = (project.whatsapp || []).map((w) => String(w).replace(/\D/g, ""));
-        const match = list.find((c) => wa.some((w) => w && (c.id?.includes(w) || c.name?.includes(w))))
-          || list.find((c) => c.platform === "whatsapp")
-          || list[0];
-        if (match) setChannelId(match.id);
+        if (!alive) return;
+        setData(d);
+        setConnected(typeof d.connected === "boolean" ? d.connected : true);
+        setErrorMsg(d.dataSource === "error" ? (d.error || "Error al consultar BotMaker") : "");
       })
-      .catch(() => setConnected(false));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      .catch((err) => {
+        if (!alive) return;
+        console.error("[ResultsAnalytics] fetch error:", err);
+        setErrorMsg("Error de red al consultar analíticas");
+        setConnected(false);
+      })
+      .finally(() => { if (alive) setLoading(false); });
+    return () => { alive = false; };
   }, []);
 
-  useEffect(() => {
-    setLoading(true);
-    const q = channelId ? `?channelId=${encodeURIComponent(channelId)}` : "";
-    fetch(`/api/botmaker/analytics${q}`)
-      .then((r) => r.json())
-      .then((d) => {
-        setMetrics(d.metrics || null);
-        setDataSource(d.dataSource || "");
-        setTotal(d.totalSessionsAnalyzed || 0);
-        setErrorMsg(d.dataSource === "error" ? (d.error || "Error al consultar BotMaker") : "");
-        setBotErrors(d.botErrors || []);
-        if (typeof d.connected === "boolean") setConnected(d.connected);
-      })
-      .catch((err) => { console.error("[ResultsAnalytics] fetch error:", err); setErrorMsg("Error de red al consultar analíticas"); })
-      .finally(() => setLoading(false));
-  }, [channelId]);
-
-  const m = metrics || {};
+  const counts = (data?.counts || {}) as Record<TabKey, number>;
+  const m = (tab === "all" ? data?.all : data?.byChannel?.[tab]) || {};
+  const total = counts[tab] || 0;
+  const botErrors: any[] = data?.botErrors || [];
+  const channels: any[] = data?.channels || [];
+  const leadQ = data?.leadQuality || null;
+  const botQ = data?.botQuality || null;
   const maxHourly = useMemo(() => Math.max(1, ...((m.hourlyUniqueSessions as number[]) || [0])), [m]);
 
-  if (loading && !metrics) {
+  if (loading && !data) {
     return <div style={{ display: "flex", justifyContent: "center", padding: 50 }}><Loader2 style={{ width: 24, height: 24, color: "#64748b", animation: "spin 1s linear infinite" }} /></div>;
   }
 
@@ -77,26 +81,56 @@ export function ResultsAnalytics({ project }: { project: Project }) {
       {connected === false ? (
         <div style={{ display: "flex", gap: 10, alignItems: "center", padding: "12px 16px", borderRadius: 8, background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)" }}>
           <Plug style={{ width: 16, height: 16, color: "#fbbf24", flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: "#fcd34d" }}>BotMaker no conectado. Conecta BotMaker desde la sección de <strong>Integraciones</strong> del workspace para ver analíticas conversacionales.</span>
+          <span style={{ fontSize: 12, color: "#fcd34d" }}>BotMaker no conectado. Conéctalo en <strong>Integraciones</strong> para ver el análisis por canal.</span>
         </div>
       ) : errorMsg ? (
         <div style={{ display: "flex", gap: 10, alignItems: "center", padding: "12px 16px", borderRadius: 8, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
           <AlertTriangle style={{ width: 16, height: 16, color: "#f87171", flexShrink: 0 }} />
           <span style={{ fontSize: 12, color: "#fca5a5" }}>{errorMsg}</span>
         </div>
-      ) : dataSource === "sessions" ? (
+      ) : data?.dataSource === "sessions" ? (
         <div style={{ fontSize: 11, color: "#64748b" }}>
-          {total.toLocaleString("es-MX")} sesiones analizadas · últimos 30 días{channels.length ? ` · ${channels.length} canal(es)` : ""}
+          {total.toLocaleString("es-MX")} sesiones · últimos 30 días{channels.length ? ` · ${channels.length} canal(es) conectados` : ""}
         </div>
       ) : null}
 
-      {/* Channel selector */}
-      {channels.length > 0 && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 11, color: "#64748b" }}>Canal:</span>
-          <select value={channelId} onChange={(e) => setChannelId(e.target.value)} aria-label="Seleccionar canal" style={{ fontSize: 12, padding: "5px 10px", borderRadius: 6, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", outline: "none", cursor: "pointer" }}>
-            {channels.map((c) => <option key={c.id} value={c.id}>{c.name} ({c.platform})</option>)}
-          </select>
+      {/* Channel tabs — WhatsApp · Messenger · Instagram · Facebook (+ Todos) */}
+      <div role="tablist" aria-label="Canales" style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {TABS.map((t) => {
+          const active = tab === t.key;
+          const c = counts[t.key] || 0;
+          const Icon = t.icon;
+          return (
+            <button
+              key={t.key}
+              role="tab"
+              aria-selected={active}
+              onClick={() => setTab(t.key)}
+              style={{
+                display: "flex", alignItems: "center", gap: 7, padding: "7px 12px", borderRadius: 8, cursor: "pointer",
+                fontSize: 12, fontWeight: 600,
+                color: active ? t.color : "#94a3b8",
+                background: active ? `${t.color}1a` : "rgba(255,255,255,0.03)",
+                border: `1px solid ${active ? `${t.color}66` : "rgba(255,255,255,0.08)"}`,
+                transition: "all .15s ease",
+              }}
+            >
+              <Icon style={{ width: 14, height: 14, color: active ? t.color : "#64748b" }} />
+              {t.label}
+              <span style={{
+                fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 999,
+                color: active ? t.color : "#64748b",
+                background: active ? `${t.color}26` : "rgba(255,255,255,0.05)",
+              }}>{c.toLocaleString("es-MX")}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Per-channel empty hint */}
+      {connected !== false && !errorMsg && tab !== "all" && total === 0 && (
+        <div style={{ fontSize: 12, color: "#64748b", padding: "8px 12px", borderRadius: 6, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+          Sin sesiones en {TABS.find((t) => t.key === tab)?.label} para el periodo.
         </div>
       )}
 
@@ -156,6 +190,18 @@ export function ResultsAnalytics({ project }: { project: Project }) {
           ) : <Empty label="Sin errores reportados" />}
         </Panel>
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* QUALITY SCORING SECTION                                    */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {(leadQ || botQ) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" style={{ marginTop: 8 }}>
+          {/* Lead Quality */}
+          {leadQ && <QualityPanel title="Calidad de Lead" icon={Target} data={leadQ} accentColor="#06d6a0" />}
+          {/* Bot Quality */}
+          {botQ && <QualityPanel title="Calidad del Bot" icon={Cpu} data={botQ} accentColor="#7b61ff" />}
+        </div>
+      )}
     </div>
   );
 }
@@ -202,4 +248,143 @@ function ListOrEmpty({ items, max, color }: { items: { label: string; count: num
 
 function Empty({ label = "Sin datos para el periodo" }: { label?: string }) {
   return <p style={{ fontSize: 12, color: "#475569", textAlign: "center", padding: "16px 0" }}>{label}</p>;
+}
+
+// ── Quality Panel with Radial Gauge ──────────────────────────────────────────
+
+const LEVEL_COLORS: Record<string, string> = {
+  excellent: "#06d6a0",
+  good: "#00d4ff",
+  fair: "#fbbf24",
+  poor: "#ef4444",
+};
+const LEVEL_LABELS: Record<string, string> = {
+  excellent: "Excelente",
+  good: "Bueno",
+  fair: "Regular",
+  poor: "Deficiente",
+};
+
+function QualityPanel({ title, icon: Icon, data, accentColor }: {
+  title: string;
+  icon: any;
+  data: { score: number; level: string; subMetrics: any[]; summary: string; recommendation: string };
+  accentColor: string;
+}) {
+  const levelColor = LEVEL_COLORS[data.level] || "#64748b";
+  const levelLabel = LEVEL_LABELS[data.level] || data.level;
+  const circumference = 2 * Math.PI * 42;
+  const offset = circumference - (data.score / 100) * circumference;
+
+  return (
+    <div className="glass-panel" style={{ padding: 0, overflow: "hidden" }}>
+      <div className="section-header">
+        <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Icon style={{ width: 14, height: 14, color: accentColor }} /> {title}
+        </span>
+        <span style={{
+          fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
+          color: levelColor, background: `${levelColor}1a`, border: `1px solid ${levelColor}44`,
+        }}>{levelLabel}</span>
+      </div>
+
+      <div style={{ padding: "20px 20px 16px", display: "flex", gap: 24, alignItems: "flex-start", flexWrap: "wrap" }}>
+        {/* Radial Gauge */}
+        <div style={{ position: "relative", width: 100, height: 100, flexShrink: 0 }}>
+          <svg width="100" height="100" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="42" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="6" />
+            <circle
+              cx="50" cy="50" r="42" fill="none"
+              stroke={levelColor}
+              strokeWidth="6"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              transform="rotate(-90 50 50)"
+              style={{ transition: "stroke-dashoffset 0.8s ease" }}
+            />
+          </svg>
+          <div style={{
+            position: "absolute", inset: 0, display: "flex", flexDirection: "column",
+            alignItems: "center", justifyContent: "center",
+          }}>
+            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 26, fontWeight: 800, color: levelColor, lineHeight: 1 }}>
+              {data.score}
+            </span>
+            <span style={{ fontSize: 8, color: "#64748b", fontWeight: 600, marginTop: 2 }}>/100</span>
+          </div>
+        </div>
+
+        {/* Sub-metrics */}
+        <div style={{ flex: 1, minWidth: 180, display: "flex", flexDirection: "column", gap: 10 }}>
+          {data.subMetrics.map((sm: any) => {
+            const pct = sm.max > 0 ? (sm.score / sm.max) * 100 : 0;
+            const barColor = pct >= 70 ? "#06d6a0" : pct >= 40 ? "#fbbf24" : "#ef4444";
+            return (
+              <div key={sm.key}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 3 }}>
+                  <span style={{ fontSize: 10, color: "#94a3b8", fontWeight: 600 }}>{sm.label}</span>
+                  <span style={{ fontSize: 10, color: barColor, fontWeight: 700 }}>
+                    {sm.raw}{sm.unit !== "ratio" ? sm.unit : "x"}
+                    <span style={{ color: "#475569", fontWeight: 400 }}> · {sm.score}/{sm.max}</span>
+                  </span>
+                </div>
+                <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{
+                    width: `${pct}%`, height: "100%", background: barColor,
+                    borderRadius: 2, transition: "width 0.6s ease",
+                  }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Summary + Recommendation */}
+      <div style={{ padding: "0 20px 16px", display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <Info style={{ width: 13, height: 13, color: "#64748b", flexShrink: 0, marginTop: 1 }} />
+          <span style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}>{data.summary}</span>
+        </div>
+        <div style={{
+          display: "flex", gap: 8, alignItems: "flex-start",
+          padding: "8px 12px", borderRadius: 6,
+          background: `${levelColor}08`, border: `1px solid ${levelColor}22`,
+        }}>
+          <TrendingUp style={{ width: 13, height: 13, color: levelColor, flexShrink: 0, marginTop: 1 }} />
+          <span style={{ fontSize: 11, color: levelColor, lineHeight: 1.5, fontWeight: 500 }}>{data.recommendation}</span>
+        </div>
+      </div>
+
+      {/* Sub-metric tips (expandable insights) */}
+      <div style={{ padding: "0 20px 16px" }}>
+        <details style={{ cursor: "pointer" }}>
+          <summary style={{ fontSize: 10, color: "#64748b", fontWeight: 600, padding: "4px 0", userSelect: "none" }}>
+            Ver insights detallados
+          </summary>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+            {data.subMetrics.map((sm: any) => {
+              const pct = sm.max > 0 ? (sm.score / sm.max) * 100 : 0;
+              const StatusIcon = pct >= 70 ? CheckCircle2 : pct >= 40 ? Zap : XCircle;
+              const statusColor = pct >= 70 ? "#06d6a0" : pct >= 40 ? "#fbbf24" : "#ef4444";
+              return (
+                <div key={sm.key} style={{
+                  display: "flex", gap: 8, alignItems: "flex-start",
+                  padding: "6px 10px", borderRadius: 4,
+                  background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)",
+                }}>
+                  <StatusIcon style={{ width: 12, height: 12, color: statusColor, flexShrink: 0, marginTop: 1 }} />
+                  <div>
+                    <span style={{ fontSize: 10, fontWeight: 600, color: "#cbd5e1" }}>{sm.label}:</span>
+                    <span style={{ fontSize: 10, color: "#94a3b8", marginLeft: 4 }}>{sm.tip}</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      </div>
+    </div>
+  );
 }

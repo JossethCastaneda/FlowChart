@@ -212,3 +212,439 @@ export function computeResultsMetrics(sessions: BmSession[], channelId?: string)
 }
 
 export const EMPTY_RESULTS_METRICS: ResultsMetrics = computeResultsMetrics([]);
+
+// ── Per-channel breakdown ────────────────────────────────────────────────────
+// The product surfaces 4 conversational channels. BotMaker exposes a free-form
+// `platform` per channel; we normalize it to one of these canonical buckets.
+export const CANONICAL_CHANNELS = ["whatsapp", "messenger", "instagram", "facebook"] as const;
+export type CanonicalChannel = (typeof CANONICAL_CHANNELS)[number];
+
+/** Normalize a BotMaker channel `platform` string into one of the 4 product channels. */
+export function canonicalPlatform(raw?: string | null): CanonicalChannel | null {
+  const p = (raw || "").toLowerCase();
+  if (!p) return null;
+  if (p.includes("whats") || p === "wa") return "whatsapp";
+  if (p.includes("insta") || p === "ig") return "instagram";
+  if (p.includes("messenger") || p.includes("messen")) return "messenger";
+  if (p.includes("facebook") || p === "fb") return "facebook";
+  return null;
+}
+
+export interface ChannelBreakdown {
+  all: ResultsMetrics;
+  byChannel: Record<CanonicalChannel, ResultsMetrics>;
+  counts: Record<CanonicalChannel | "all", number>;
+}
+
+/**
+ * Group sessions into the 4 product channels using a channelId→platform map,
+ * then compute metrics for each group plus the aggregate ("all"). Single pass
+ * of grouping; metrics are O(sessions) per bucket (≤ a few thousand sessions).
+ */
+export function computeMetricsByChannel(
+  sessions: BmSession[],
+  channelPlatform: Map<string, string>
+): ChannelBreakdown {
+  const list = Array.isArray(sessions) ? sessions : [];
+  const groups: Record<CanonicalChannel, BmSession[]> = {
+    whatsapp: [], messenger: [], instagram: [], facebook: [],
+  };
+  for (const s of list) {
+    const channelId = s.chat?.chat?.channelId;
+    const canon = canonicalPlatform(channelId ? channelPlatform.get(channelId) : null);
+    if (canon) groups[canon].push(s);
+  }
+  return {
+    all: computeResultsMetrics(list),
+    byChannel: {
+      whatsapp: computeResultsMetrics(groups.whatsapp),
+      messenger: computeResultsMetrics(groups.messenger),
+      instagram: computeResultsMetrics(groups.instagram),
+      facebook: computeResultsMetrics(groups.facebook),
+    },
+    counts: {
+      all: list.length,
+      whatsapp: groups.whatsapp.length,
+      messenger: groups.messenger.length,
+      instagram: groups.instagram.length,
+      facebook: groups.facebook.length,
+    },
+  };
+}
+
+/** Empty breakdown for the no-token / disconnected case. */
+export const EMPTY_CHANNEL_BREAKDOWN: ChannelBreakdown = computeMetricsByChannel([], new Map());
+
+// ── Lead Quality Scoring ─────────────────────────────────────────────────────
+// Measures how valuable / engaged the incoming leads are based purely on
+// conversational signal extracted from BotMaker sessions.
+
+export type QualityLevel = "excellent" | "good" | "fair" | "poor";
+
+export interface LeadQualitySubMetric {
+  key: string;
+  label: string;
+  score: number;   // earned points
+  max: number;     // max possible
+  raw: number;     // raw value (%, count, seconds)
+  unit: string;    // "%", "msgs", "s"
+  tip: string;     // actionable insight
+}
+
+export interface LeadQualityMetrics {
+  score: number;            // 0-100
+  level: QualityLevel;
+  subMetrics: LeadQualitySubMetric[];
+  summary: string;          // executive summary
+  recommendation: string;   // actionable next step
+}
+
+function qualityLevel(score: number): QualityLevel {
+  if (score >= 80) return "excellent";
+  if (score >= 60) return "good";
+  if (score >= 40) return "fair";
+  return "poor";
+}
+
+/** Compute Lead Quality from raw sessions. Single pass. */
+export function computeLeadQuality(sessions: BmSession[]): LeadQualityMetrics {
+  const list = Array.isArray(sessions) ? sessions : [];
+  if (list.length === 0) return emptyLeadQuality();
+
+  let totalUserMsgs = 0;
+  let totalUserResponseTime = 0;
+  let userResponseCount = 0;
+  let closedWithTyp = 0;
+  let multiTurnSessions = 0;
+  let clearIntentSessions = 0;
+
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort(
+      (a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0)
+    );
+
+    // Count user messages
+    let userMsgsInSession = 0;
+    let turns = 0;
+    let lastFrom: string | null = null;
+    let lastReplyAt: number | null = null;
+    let firstUserText: string | null = null;
+
+    for (const msg of msgs) {
+      const at = toMs(msg.creationTime);
+      if (msg.from === "user") {
+        userMsgsInSession++;
+        if (!firstUserText && msg.content?.text) firstUserText = msg.content.text.trim();
+        // User response time (time between bot/agent reply and user's next msg)
+        if (lastReplyAt != null && at != null && at >= lastReplyAt) {
+          totalUserResponseTime += at - lastReplyAt;
+          userResponseCount++;
+        }
+      } else {
+        lastReplyAt = toMs(msg.creationTime);
+      }
+      // Count turns (alternations)
+      if (msg.from && msg.from !== lastFrom) {
+        turns++;
+        lastFrom = msg.from;
+      }
+    }
+
+    totalUserMsgs += userMsgsInSession;
+
+    // Conversation completeness: has conversation-close with typification
+    const closeEv = (s.events || []).find((e) => e.name === "conversation-close");
+    if (closeEv?.info?.typification) closedWithTyp++;
+
+    // Multi-turn depth: ≥4 turns means real dialogue (user→bot→user→bot)
+    if (turns >= 4) multiTurnSessions++;
+
+    // Intent clarity: first user message has ≥3 words (not just "hola")
+    if (firstUserText) {
+      const wordCount = firstUserText.split(/\s+/).filter(Boolean).length;
+      if (wordCount >= 3) clearIntentSessions++;
+    }
+  }
+
+  const n = list.length;
+  const avgUserMsgs = totalUserMsgs / n;
+  const avgUserRespSec = userResponseCount > 0
+    ? Math.round(totalUserResponseTime / userResponseCount / 1000)
+    : 999;
+  const completionRate = (closedWithTyp / n) * 100;
+  const multiTurnRate = (multiTurnSessions / n) * 100;
+  const intentRate = (clearIntentSessions / n) * 100;
+
+  // --- Score each sub-metric ---
+  const sub: LeadQualitySubMetric[] = [];
+
+  // 1. Engagement Depth (0-25)
+  const engScore = avgUserMsgs >= 5 ? 25 : avgUserMsgs >= 3 ? 18 : avgUserMsgs >= 2 ? 10 : avgUserMsgs >= 1 ? 5 : 0;
+  sub.push({
+    key: "engagement", label: "Profundidad de Engagement",
+    score: engScore, max: 25, raw: Math.round(avgUserMsgs * 10) / 10, unit: "msgs/sesión",
+    tip: avgUserMsgs < 2 ? "Los leads abandonan rápido. Revisa el mensaje de bienvenida." : "Buen nivel de interacción.",
+  });
+
+  // 2. Response Velocity (0-20)
+  const velScore = avgUserRespSec < 30 ? 20 : avgUserRespSec < 60 ? 15 : avgUserRespSec < 120 ? 10 : avgUserRespSec < 300 ? 5 : 0;
+  sub.push({
+    key: "velocity", label: "Velocidad de Respuesta",
+    score: velScore, max: 20, raw: avgUserRespSec, unit: "s",
+    tip: avgUserRespSec > 120 ? "Leads tardan en responder — posible baja intención o mensajes confusos del bot." : "Respuesta rápida = alta intención.",
+  });
+
+  // 3. Conversation Completeness (0-25)
+  const compScore = completionRate >= 80 ? 25 : completionRate >= 60 ? 18 : completionRate >= 40 ? 10 : completionRate >= 20 ? 5 : 0;
+  sub.push({
+    key: "completeness", label: "Tasa de Cierre",
+    score: compScore, max: 25, raw: Math.round(completionRate), unit: "%",
+    tip: completionRate < 40 ? "Muchas conversaciones quedan abiertas sin resolución." : "Buen ratio de cierre.",
+  });
+
+  // 4. Multi-turn Depth (0-15)
+  const mtScore = multiTurnRate >= 70 ? 15 : multiTurnRate >= 50 ? 10 : multiTurnRate >= 30 ? 5 : 0;
+  sub.push({
+    key: "multiTurn", label: "Diálogo Multi-turno",
+    score: mtScore, max: 15, raw: Math.round(multiTurnRate), unit: "%",
+    tip: multiTurnRate < 30 ? "Mayoría son interacciones de 1-2 mensajes ('hola' → abandono)." : "Conversaciones con profundidad real.",
+  });
+
+  // 5. Intent Clarity (0-15)
+  const intScore = intentRate >= 60 ? 15 : intentRate >= 40 ? 10 : intentRate >= 20 ? 5 : 0;
+  sub.push({
+    key: "intent", label: "Claridad de Intención",
+    score: intScore, max: 15, raw: Math.round(intentRate), unit: "%",
+    tip: intentRate < 20 ? "Los leads llegan sin intención clara. El copy del anuncio puede no estar filtrando." : "Los leads llegan con preguntas específicas.",
+  });
+
+  const totalScore = sub.reduce((s, m) => s + m.score, 0);
+  const level = qualityLevel(totalScore);
+
+  const summaries: Record<QualityLevel, string> = {
+    excellent: "Leads de alta calidad: interactúan profundamente, responden rápido y cierran conversación.",
+    good: "Leads con buena intención. Hay oportunidad de mejorar la profundidad de conversación.",
+    fair: "Leads tibios: interacción superficial y baja tasa de cierre. Revisar segmentación.",
+    poor: "Leads de baja calidad: abandono temprano y poca interacción. Revisar copy y segmentación de campaña.",
+  };
+  const recs: Record<QualityLevel, string> = {
+    excellent: "Mantén la segmentación actual. Enfócate en escalar el presupuesto.",
+    good: "Optimiza el flujo del bot para profundizar conversaciones. Agrega preguntas de calificación.",
+    fair: "Revisa la segmentación de Meta Ads y el mensaje de bienvenida del bot. Filtra mejor la audiencia.",
+    poor: "Acción urgente: cambia la audiencia del anuncio y simplifica el flujo inicial del bot.",
+  };
+
+  return { score: totalScore, level, subMetrics: sub, summary: summaries[level], recommendation: recs[level] };
+}
+
+function emptyLeadQuality(): LeadQualityMetrics {
+  return {
+    score: 0, level: "poor",
+    subMetrics: [
+      { key: "engagement", label: "Profundidad de Engagement", score: 0, max: 25, raw: 0, unit: "msgs/sesión", tip: "Sin datos" },
+      { key: "velocity", label: "Velocidad de Respuesta", score: 0, max: 20, raw: 0, unit: "s", tip: "Sin datos" },
+      { key: "completeness", label: "Tasa de Cierre", score: 0, max: 25, raw: 0, unit: "%", tip: "Sin datos" },
+      { key: "multiTurn", label: "Diálogo Multi-turno", score: 0, max: 15, raw: 0, unit: "%", tip: "Sin datos" },
+      { key: "intent", label: "Claridad de Intención", score: 0, max: 15, raw: 0, unit: "%", tip: "Sin datos" },
+    ],
+    summary: "Sin datos suficientes para evaluar.",
+    recommendation: "Conecta BotMaker para comenzar a medir.",
+  };
+}
+
+export const EMPTY_LEAD_QUALITY: LeadQualityMetrics = emptyLeadQuality();
+
+// ── Bot Quality Scoring ──────────────────────────────────────────────────────
+// Measures how well the bot handles conversations: resolution, speed,
+// efficiency, and user satisfaction proxies.
+
+export interface BotQualitySubMetric {
+  key: string;
+  label: string;
+  score: number;
+  max: number;
+  raw: number;
+  unit: string;
+  tip: string;
+}
+
+export interface BotQualityMetrics {
+  score: number;
+  level: QualityLevel;
+  subMetrics: BotQualitySubMetric[];
+  summary: string;
+  recommendation: string;
+}
+
+/** Compute Bot Quality from raw sessions. Single pass. */
+export function computeBotQuality(sessions: BmSession[]): BotQualityMetrics {
+  const list = Array.isArray(sessions) ? sessions : [];
+  if (list.length === 0) return emptyBotQuality();
+
+  let closedResolved = 0;
+  let firstResponseSum = 0;
+  let firstResponseCount = 0;
+  let sessionsWithAgent = 0;
+  let totalBotMsgs = 0;
+  let totalUserMsgs = 0;
+  let dropOffSessions = 0;   // last msg is from bot (user never replied)
+  let reEngageSessions = 0;  // user sent msg after conversation-close
+
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort(
+      (a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0)
+    );
+    const events = s.events || [];
+    const closeEv = events.find((e) => e.name === "conversation-close");
+
+    // Resolution rate: closed with typification (not "abandon"/"no_response")
+    if (closeEv?.info?.typification) {
+      const typ = closeEv.info.typification.toLowerCase();
+      if (!typ.includes("abandon") && !typ.includes("no_resp")) {
+        closedResolved++;
+      }
+    }
+
+    // First response time: time between first user msg and first bot/agent reply
+    let firstUserAt: number | null = null;
+    let firstBotAt: number | null = null;
+    let hasAgent = false;
+    let botMsgs = 0;
+    let userMsgs = 0;
+
+    for (const msg of msgs) {
+      const at = toMs(msg.creationTime);
+      if (msg.from === "user") {
+        userMsgs++;
+        if (firstUserAt == null && at != null) firstUserAt = at;
+      } else {
+        if (msg.from === "agent") hasAgent = true;
+        botMsgs++;
+        if (firstBotAt == null && at != null && firstUserAt != null) firstBotAt = at;
+      }
+    }
+
+    if (firstUserAt != null && firstBotAt != null && firstBotAt >= firstUserAt) {
+      firstResponseSum += firstBotAt - firstUserAt;
+      firstResponseCount++;
+    }
+
+    if (hasAgent) sessionsWithAgent++;
+    totalBotMsgs += botMsgs;
+    totalUserMsgs += userMsgs;
+
+    // Drop-off: last message is from bot (user ghosted)
+    if (msgs.length > 0 && msgs[msgs.length - 1].from !== "user") {
+      dropOffSessions++;
+    }
+
+    // Re-engagement: user sent message after close event
+    if (closeEv) {
+      const closeAt = toMs(closeEv.creationTime);
+      if (closeAt != null) {
+        const postCloseUserMsg = msgs.find(
+          (msg) => msg.from === "user" && (toMs(msg.creationTime) || 0) > closeAt
+        );
+        if (postCloseUserMsg) reEngageSessions++;
+      }
+    }
+  }
+
+  const n = list.length;
+  const resolutionRate = (closedResolved / n) * 100;
+  const avgFirstRespSec = firstResponseCount > 0
+    ? Math.round(firstResponseSum / firstResponseCount / 1000)
+    : 999;
+  const escalationRate = (sessionsWithAgent / n) * 100;
+  const msgEfficiency = totalUserMsgs > 0 ? totalBotMsgs / totalUserMsgs : 999;
+  const dropOffRate = (dropOffSessions / n) * 100;
+  const reEngageRate = (reEngageSessions / n) * 100;
+
+  const sub: BotQualitySubMetric[] = [];
+
+  // 1. Resolution Rate (0-25)
+  const resScore = resolutionRate >= 85 ? 25 : resolutionRate >= 70 ? 18 : resolutionRate >= 50 ? 10 : resolutionRate >= 30 ? 5 : 0;
+  sub.push({
+    key: "resolution", label: "Tasa de Resolución",
+    score: resScore, max: 25, raw: Math.round(resolutionRate), unit: "%",
+    tip: resolutionRate < 50 ? "El bot no resuelve la mayoría de conversaciones. Revisa flujos de FAQ y tipificaciones." : "Buen ratio de resolución autónoma.",
+  });
+
+  // 2. First Response Time (0-20)
+  const frtScore = avgFirstRespSec <= 3 ? 20 : avgFirstRespSec <= 5 ? 15 : avgFirstRespSec <= 10 ? 10 : avgFirstRespSec <= 30 ? 5 : 0;
+  sub.push({
+    key: "firstResponse", label: "Primera Respuesta",
+    score: frtScore, max: 20, raw: avgFirstRespSec, unit: "s",
+    tip: avgFirstRespSec > 5 ? "Fuera del SLA de 3s de Meta. Revisa la latencia del webhook/NLU." : "Dentro del SLA de Meta — excelente.",
+  });
+
+  // 3. Escalation Rate (0-15) — lower is better
+  const escScore = escalationRate < 10 ? 15 : escalationRate < 20 ? 10 : escalationRate < 40 ? 5 : 0;
+  sub.push({
+    key: "escalation", label: "Tasa de Escalación",
+    score: escScore, max: 15, raw: Math.round(escalationRate), unit: "%",
+    tip: escalationRate > 40 ? "Alta dependencia de agentes humanos. Automatiza las FAQ más frecuentes." : "El bot maneja bien sin intervención humana.",
+  });
+
+  // 4. Message Efficiency (0-15) — lower ratio is better
+  const effRatio = Math.round(msgEfficiency * 10) / 10;
+  const effScore = msgEfficiency <= 1.5 ? 15 : msgEfficiency <= 2.0 ? 10 : msgEfficiency <= 3.0 ? 5 : 0;
+  sub.push({
+    key: "efficiency", label: "Eficiencia de Mensajes",
+    score: effScore, max: 15, raw: effRatio, unit: "ratio",
+    tip: msgEfficiency > 2.0 ? "El bot envía demasiados mensajes por respuesta del usuario. Simplifica flujos." : "Comunicación concisa y eficiente.",
+  });
+
+  // 5. Drop-off Rate (0-15) — lower is better
+  const dropScore = dropOffRate < 15 ? 15 : dropOffRate < 30 ? 10 : dropOffRate < 50 ? 5 : 0;
+  sub.push({
+    key: "dropOff", label: "Tasa de Abandono",
+    score: dropScore, max: 15, raw: Math.round(dropOffRate), unit: "%",
+    tip: dropOffRate > 30 ? "Muchos usuarios dejan de responder después del bot. El contenido puede no ser relevante." : "Bajo abandono — las respuestas del bot son relevantes.",
+  });
+
+  // 6. User Satisfaction Proxy (0-10)
+  const satScore = reEngageRate >= 20 ? 10 : reEngageRate >= 10 ? 7 : reEngageRate >= 5 ? 3 : 0;
+  sub.push({
+    key: "satisfaction", label: "Re-engagement (Satisfacción)",
+    score: satScore, max: 10, raw: Math.round(reEngageRate), unit: "%",
+    tip: reEngageRate < 5 ? "Pocos usuarios vuelven a escribir. Considera mensajes de seguimiento." : "Los usuarios regresan — buena señal de satisfacción.",
+  });
+
+  const totalScore = sub.reduce((s, m) => s + m.score, 0);
+  const level = qualityLevel(totalScore);
+
+  const summaries: Record<QualityLevel, string> = {
+    excellent: "Bot de alto rendimiento: resuelve rápido, escala poco y mantiene engagement.",
+    good: "Buen bot con áreas de mejora. La mayoría de conversaciones se resuelven.",
+    fair: "Bot funcional pero con gaps: alta escalación o abandono. Requiere optimización de flujos.",
+    poor: "Bot deficiente: alta escalación, lento y alto abandono. Requiere rediseño de flujos.",
+  };
+  const recs: Record<QualityLevel, string> = {
+    excellent: "Mantén los flujos actuales. Enfócate en expandir cobertura de intents.",
+    good: "Identifica los 3 flujos con más abandono y optimízalos. Agrega respuestas para preguntas frecuentes no cubiertas.",
+    fair: "Rediseña los flujos principales: simplifica, reduce pasos, y mejora las respuestas a FAQ.",
+    poor: "Acción urgente: audita el NLU, simplifica el flujo de bienvenida y automatiza las top 5 preguntas.",
+  };
+
+  return { score: totalScore, level, subMetrics: sub, summary: summaries[level], recommendation: recs[level] };
+}
+
+function emptyBotQuality(): BotQualityMetrics {
+  return {
+    score: 0, level: "poor",
+    subMetrics: [
+      { key: "resolution", label: "Tasa de Resolución", score: 0, max: 25, raw: 0, unit: "%", tip: "Sin datos" },
+      { key: "firstResponse", label: "Primera Respuesta", score: 0, max: 20, raw: 0, unit: "s", tip: "Sin datos" },
+      { key: "escalation", label: "Tasa de Escalación", score: 0, max: 15, raw: 0, unit: "%", tip: "Sin datos" },
+      { key: "efficiency", label: "Eficiencia de Mensajes", score: 0, max: 15, raw: 0, unit: "ratio", tip: "Sin datos" },
+      { key: "dropOff", label: "Tasa de Abandono", score: 0, max: 15, raw: 0, unit: "%", tip: "Sin datos" },
+      { key: "satisfaction", label: "Re-engagement (Satisfacción)", score: 0, max: 10, raw: 0, unit: "%", tip: "Sin datos" },
+    ],
+    summary: "Sin datos suficientes para evaluar.",
+    recommendation: "Conecta BotMaker para comenzar a medir.",
+  };
+}
+
+export const EMPTY_BOT_QUALITY: BotQualityMetrics = emptyBotQuality();
+
