@@ -13,6 +13,8 @@ import {
   EMPTY_LEAD_QUALITY,
   EMPTY_BOT_QUALITY,
   EMPTY_DIAGNOSTIC,
+  computeQualityByChannel,
+  EMPTY_QUALITY_BY_CHANNEL,
 } from "@/lib/botmaker";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
@@ -47,6 +49,7 @@ export async function GET(request: NextRequest) {
       leadQuality: EMPTY_LEAD_QUALITY,
       botQuality: EMPTY_BOT_QUALITY,
       diagnostic: EMPTY_DIAGNOSTIC,
+      qualityByChannel: EMPTY_QUALITY_BY_CHANNEL.byChannel,
       channels: [],
       botErrors: [],
     });
@@ -92,6 +95,10 @@ export async function GET(request: NextRequest) {
     // 4) Executive diagnostic — cross-metric intelligence (funnel + quadrant + actions).
     const diagnostic = computeExecutiveDiagnostic(sessions, leadQuality, botQuality);
 
+    // 5) Per-channel quality — same lenses scored per channel so each UI tab
+    //    shows ITS OWN lead/bot quality (not a blended account-wide number).
+    const qualityByChannel = computeQualityByChannel(sessions, channelPlatform).byChannel;
+
     return NextResponse.json({
       connected: true,
       dataSource: "sessions",
@@ -102,6 +109,7 @@ export async function GET(request: NextRequest) {
       leadQuality,
       botQuality,
       diagnostic,
+      qualityByChannel,
       channels,
       botErrors: [],
     });
@@ -117,6 +125,7 @@ export async function GET(request: NextRequest) {
       leadQuality: EMPTY_LEAD_QUALITY,
       botQuality: EMPTY_BOT_QUALITY,
       diagnostic: EMPTY_DIAGNOSTIC,
+      qualityByChannel: EMPTY_QUALITY_BY_CHANNEL.byChannel,
       channels: [],
       botErrors: [],
     });

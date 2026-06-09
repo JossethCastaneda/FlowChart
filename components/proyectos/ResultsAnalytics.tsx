@@ -68,9 +68,13 @@ export function ResultsAnalytics({ project }: { project?: { whatsapp?: string[];
   const total = counts[tab] || 0;
   const botErrors: any[] = data?.botErrors || [];
   const channels: any[] = data?.channels || [];
-  const leadQ = data?.leadQuality || null;
-  const botQ = data?.botQuality || null;
-  const diag = data?.diagnostic || null;
+  // Quality + diagnostic follow the active channel tab: "Todos" → aggregate,
+  // a specific channel → that channel's own lead/bot quality.
+  const activeQuality = tab === "all" ? null : data?.qualityByChannel?.[tab];
+  const leadQ = (tab === "all" ? data?.leadQuality : activeQuality?.leadQuality) || null;
+  const botQ = (tab === "all" ? data?.botQuality : activeQuality?.botQuality) || null;
+  const diag = (tab === "all" ? data?.diagnostic : activeQuality?.diagnostic) || null;
+  const tabLabel = TABS.find((t) => t.key === tab)?.label || "";
   const maxHourly = useMemo(() => Math.max(1, ...((m.hourlyUniqueSessions as number[]) || [0])), [m]);
 
   if (loading && !data) {
@@ -326,9 +330,9 @@ export function ResultsAnalytics({ project }: { project?: { whatsapp?: string[];
       {(leadQ || botQ) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4" style={{ marginTop: 8 }}>
           {/* Lead Quality */}
-          {leadQ && <QualityPanel title="Calidad de Lead" icon={Target} data={leadQ} accentColor="#06d6a0" />}
+          {leadQ && <QualityPanel title={`Calidad de Lead${tab !== "all" ? ` · ${tabLabel}` : ""}`} icon={Target} data={leadQ} accentColor="#06d6a0" />}
           {/* Bot Quality */}
-          {botQ && <QualityPanel title="Calidad del Bot" icon={Cpu} data={botQ} accentColor="#7b61ff" />}
+          {botQ && <QualityPanel title={`Calidad del Bot${tab !== "all" ? ` · ${tabLabel}` : ""}`} icon={Cpu} data={botQ} accentColor="#7b61ff" />}
         </div>
       )}
     </div>

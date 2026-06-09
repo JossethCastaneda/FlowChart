@@ -956,4 +956,73 @@ function emptyDiagnostic(): ExecutiveDiagnostic {
 
 export const EMPTY_DIAGNOSTIC: ExecutiveDiagnostic = emptyDiagnostic();
 
+// ── Quality by channel ───────────────────────────────────────────────────────
+// Lead + Bot quality and the executive diagnostic, broken down by the 4 product
+// channels so each tab in the UI reflects ITS OWN lead/bot quality — not a
+// blended account-wide number that hides per-channel differences.
+
+export interface ChannelQuality {
+  leadQuality: LeadQualityMetrics;
+  botQuality: BotQualityMetrics;
+  diagnostic: ExecutiveDiagnostic;
+}
+
+export interface QualityByChannel {
+  all: ChannelQuality;
+  byChannel: Record<CanonicalChannel, ChannelQuality>;
+}
+
+/** Score one group of sessions across all three quality lenses. */
+function qualityFor(sessions: BmSession[]): ChannelQuality {
+  const leadQuality = computeLeadQuality(sessions);
+  const botQuality = computeBotQuality(sessions);
+  const diagnostic = computeExecutiveDiagnostic(sessions, leadQuality, botQuality);
+  return { leadQuality, botQuality, diagnostic };
+}
+
+/**
+ * Group sessions by channel (same bucketing as computeMetricsByChannel) and
+ * score lead/bot quality + diagnostic for each channel plus the aggregate.
+ * O(sessions) grouping; scoring is linear per bucket.
+ */
+export function computeQualityByChannel(
+  sessions: BmSession[],
+  channelPlatform: Map<string, string>
+): QualityByChannel {
+  const list = Array.isArray(sessions) ? sessions : [];
+  const groups: Record<CanonicalChannel, BmSession[]> = {
+    whatsapp: [], messenger: [], instagram: [], facebook: [],
+  };
+  for (const s of list) {
+    const channelId = s.chat?.chat?.channelId;
+    const canon = canonicalPlatform(channelId ? channelPlatform.get(channelId) : null);
+    if (canon) groups[canon].push(s);
+  }
+  return {
+    all: qualityFor(list),
+    byChannel: {
+      whatsapp: qualityFor(groups.whatsapp),
+      messenger: qualityFor(groups.messenger),
+      instagram: qualityFor(groups.instagram),
+      facebook: qualityFor(groups.facebook),
+    },
+  };
+}
+
+const EMPTY_CHANNEL_QUALITY: ChannelQuality = {
+  leadQuality: EMPTY_LEAD_QUALITY,
+  botQuality: EMPTY_BOT_QUALITY,
+  diagnostic: EMPTY_DIAGNOSTIC,
+};
+
+export const EMPTY_QUALITY_BY_CHANNEL: QualityByChannel = {
+  all: EMPTY_CHANNEL_QUALITY,
+  byChannel: {
+    whatsapp: EMPTY_CHANNEL_QUALITY,
+    messenger: EMPTY_CHANNEL_QUALITY,
+    instagram: EMPTY_CHANNEL_QUALITY,
+    facebook: EMPTY_CHANNEL_QUALITY,
+  },
+};
+
 
