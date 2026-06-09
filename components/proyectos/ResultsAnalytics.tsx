@@ -5,6 +5,7 @@ import {
   MessageSquare, Users, Bot, UserCog, Clock, Timer, Tag, BarChart3, HelpCircle, Bug,
   Loader2, Plug, AlertTriangle, MessageCircle, Camera, ThumbsUp, Layers,
   Target, Cpu, TrendingUp, Zap, CheckCircle2, XCircle, Info,
+  Activity, ArrowRight, Crosshair,
 } from "lucide-react";
 
 type TabKey = "all" | "whatsapp" | "messenger" | "instagram" | "facebook";
@@ -69,6 +70,7 @@ export function ResultsAnalytics({ project }: { project?: { whatsapp?: string[];
   const channels: any[] = data?.channels || [];
   const leadQ = data?.leadQuality || null;
   const botQ = data?.botQuality || null;
+  const diag = data?.diagnostic || null;
   const maxHourly = useMemo(() => Math.max(1, ...((m.hourlyUniqueSessions as number[]) || [0])), [m]);
 
   if (loading && !data) {
@@ -190,6 +192,133 @@ export function ResultsAnalytics({ project }: { project?: { whatsapp?: string[];
           ) : <Empty label="Sin errores reportados" />}
         </Panel>
       </div>
+
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* EXECUTIVE DIAGNOSTIC (CDO "So What?" Layer)                */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {diag && diag.funnel?.[0]?.count > 0 && (
+        <>
+          {/* Headline + Quadrant Badge */}
+          <div className="glass-panel" style={{ padding: 0, overflow: "hidden" }}>
+            <div className="section-header">
+              <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Activity style={{ width: 14, height: 14, color: "#00d4ff" }} /> Diagnóstico Ejecutivo
+              </span>
+              <QuadrantBadge quadrant={diag.quadrant} label={diag.quadrantLabel} />
+            </div>
+            <div style={{ padding: "16px 20px" }}>
+              {/* Declarative headline */}
+              <p style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.5, marginBottom: 10 }}>
+                {diag.headline}
+              </p>
+              <p style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.6, marginBottom: 14 }}>
+                {diag.quadrantDiagnosis}
+              </p>
+
+              {/* Prescriptive actions */}
+              {diag.actions?.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: 1 }}>Acciones priorizadas</span>
+                  {diag.actions.map((a: any) => {
+                    const areaColors: Record<string, string> = { lead: "#06d6a0", bot: "#7b61ff", ops: "#fbbf24" };
+                    const areaLabels: Record<string, string> = { lead: "LEAD", bot: "BOT", ops: "OPS" };
+                    const ac = areaColors[a.area] || "#64748b";
+                    return (
+                      <div key={a.priority} style={{
+                        display: "flex", gap: 10, alignItems: "flex-start",
+                        padding: "10px 14px", borderRadius: 6,
+                        background: `${ac}08`, border: `1px solid ${ac}22`,
+                      }}>
+                        <span style={{
+                          fontSize: 9, fontWeight: 800, padding: "2px 8px", borderRadius: 999,
+                          color: ac, background: `${ac}1a`, border: `1px solid ${ac}44`,
+                          flexShrink: 0, marginTop: 1,
+                        }}>{areaLabels[a.area] || a.area}</span>
+                        <div style={{ flex: 1 }}>
+                          <p style={{ fontSize: 11, color: "#e2e8f0", fontWeight: 600, lineHeight: 1.4 }}>{a.action}</p>
+                          <p style={{ fontSize: 10, color: "#64748b", marginTop: 2, lineHeight: 1.4 }}>{a.impact}</p>
+                        </div>
+                        <span style={{ fontSize: 18, fontWeight: 800, color: `${ac}66`, flexShrink: 0, fontFamily: "'Orbitron',sans-serif" }}>
+                          #{a.priority}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Conversion Funnel */}
+          <div className="glass-panel" style={{ padding: 0 }}>
+            <div className="section-header">
+              <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Crosshair style={{ width: 14, height: 14, color: "#f472b6" }} /> Funnel de Conversión Conversacional
+              </span>
+              <span style={{ fontSize: 11, fontWeight: 700, color: diag.overallConversion >= 50 ? "#06d6a0" : diag.overallConversion >= 25 ? "#fbbf24" : "#ef4444" }}>
+                {diag.overallConversion}% conversión total
+              </span>
+            </div>
+            <div style={{ padding: "20px 20px 16px" }}>
+              <div style={{ display: "flex", alignItems: "stretch", gap: 0 }}>
+                {diag.funnel.map((stage: any, i: number) => {
+                  const isFirst = i === 0;
+                  const maxCount = diag.funnel[0].count || 1;
+                  const widthPct = (stage.count / maxCount) * 100;
+                  const barColor = isFirst ? "#00d4ff" : stage.rate >= 70 ? "#06d6a0" : stage.rate >= 40 ? "#fbbf24" : "#ef4444";
+                  return (
+                    <div key={stage.key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+                      {/* Count */}
+                      <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 18, fontWeight: 700, color: barColor }}>
+                        {stage.count.toLocaleString("es-MX")}
+                      </span>
+                      {/* Label */}
+                      <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 600, textAlign: "center", marginBottom: 6, lineHeight: 1.3 }}>
+                        {stage.label}
+                      </span>
+                      {/* Bar */}
+                      <div style={{ width: "100%", height: 8, background: "rgba(255,255,255,0.04)", borderRadius: 4, overflow: "hidden" }}>
+                        <div style={{
+                          width: `${widthPct}%`, height: "100%", background: barColor,
+                          borderRadius: 4, transition: "width 0.6s ease",
+                        }} />
+                      </div>
+                      {/* Rate badge */}
+                      {!isFirst && (
+                        <span style={{ fontSize: 9, fontWeight: 700, color: barColor, marginTop: 4 }}>
+                          {stage.rate}%
+                        </span>
+                      )}
+                      {/* Arrow between stages */}
+                      {i < diag.funnel.length - 1 && (
+                        <ArrowRight style={{
+                          position: "absolute", right: -8, top: 6,
+                          width: 14, height: 14, color: "#334155", zIndex: 1,
+                        }} />
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Bottleneck callout */}
+              {diag.bottleneck?.stage && (
+                <div style={{
+                  marginTop: 14, padding: "8px 12px", borderRadius: 6,
+                  background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)",
+                  display: "flex", gap: 8, alignItems: "flex-start",
+                }}>
+                  <AlertTriangle style={{ width: 12, height: 12, color: "#ef4444", flexShrink: 0, marginTop: 1 }} />
+                  <div>
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#fca5a5" }}>Cuello de botella: {diag.bottleneck.stage}</span>
+                    <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 2, lineHeight: 1.4 }}>{diag.bottleneck.insight}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* ═══════════════════════════════════════════════════════════ */}
       {/* QUALITY SCORING SECTION                                    */}
@@ -386,5 +515,21 @@ function QualityPanel({ title, icon: Icon, data, accentColor }: {
         </details>
       </div>
     </div>
+  );
+}
+
+function QuadrantBadge({ quadrant, label }: { quadrant: string; label: string }) {
+  const colors: Record<string, string> = {
+    "high-lead-high-bot": "#06d6a0",
+    "high-lead-low-bot": "#ef4444",
+    "low-lead-high-bot": "#fbbf24",
+    "low-lead-low-bot": "#ef4444",
+  };
+  const c = colors[quadrant] || "#64748b";
+  return (
+    <span style={{
+      fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 999,
+      color: c, background: `${c}1a`, border: `1px solid ${c}44`,
+    }}>{label}</span>
   );
 }

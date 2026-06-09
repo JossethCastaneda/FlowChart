@@ -648,3 +648,312 @@ function emptyBotQuality(): BotQualityMetrics {
 
 export const EMPTY_BOT_QUALITY: BotQualityMetrics = emptyBotQuality();
 
+// ── Executive Diagnostic (CDO "So What?" Layer) ──────────────────────────────
+// Cross-metric intelligence: combines Lead + Bot quality scores with raw
+// session data to produce funnel analysis, quadrant diagnosis, and prioritized
+// prescriptive actions. This is the "narrative layer" for C-level consumption.
+
+export interface FunnelStage {
+  key: string;
+  label: string;
+  count: number;
+  rate: number;     // % conversion from previous stage
+  dropOff: number;  // absolute drop from previous stage
+}
+
+export type Quadrant =
+  | "high-lead-high-bot"
+  | "high-lead-low-bot"
+  | "low-lead-high-bot"
+  | "low-lead-low-bot";
+
+export interface PrescriptiveAction {
+  priority: number;
+  action: string;
+  impact: string;
+  area: "lead" | "bot" | "ops";
+}
+
+export interface ExecutiveDiagnostic {
+  funnel: FunnelStage[];
+  overallConversion: number;       // resolved / sessions (%)
+  quadrant: Quadrant;
+  quadrantLabel: string;
+  quadrantDiagnosis: string;
+  headline: string;                // declarative headline ("El bot pierde 40% de leads...")
+  actions: PrescriptiveAction[];
+  bottleneck: { stage: string; dropOff: number; insight: string };
+}
+
+/** Compute the executive diagnostic from sessions + quality scores. */
+export function computeExecutiveDiagnostic(
+  sessions: BmSession[],
+  leadQ: LeadQualityMetrics,
+  botQ: BotQualityMetrics,
+): ExecutiveDiagnostic {
+  const list = Array.isArray(sessions) ? sessions : [];
+  if (list.length === 0) return emptyDiagnostic();
+
+  // ── Single pass: compute funnel counters ──
+  let engaged = 0;      // ≥2 user messages
+  let multiTurn = 0;    // ≥4 alternating turns
+  let resolved = 0;     // closed + typification (not abandon)
+
+  for (const s of list) {
+    const msgs = s.messages || [];
+    let userMsgs = 0;
+    let turns = 0;
+    let lastFrom: string | null = null;
+
+    for (const msg of msgs) {
+      if (msg.from === "user") userMsgs++;
+      if (msg.from && msg.from !== lastFrom) { turns++; lastFrom = msg.from; }
+    }
+
+    if (userMsgs >= 2) engaged++;
+    if (turns >= 4) multiTurn++;
+
+    const closeEv = (s.events || []).find((e) => e.name === "conversation-close");
+    if (closeEv?.info?.typification) {
+      const typ = closeEv.info.typification.toLowerCase();
+      if (!typ.includes("abandon") && !typ.includes("no_resp")) resolved++;
+    }
+  }
+
+  const total = list.length;
+
+  // ── Funnel stages ──
+  const stages: FunnelStage[] = [
+    { key: "sessions", label: "Sesiones", count: total, rate: 100, dropOff: 0 },
+    {
+      key: "engaged", label: "Engaged (≥2 msgs)",
+      count: engaged,
+      rate: total > 0 ? Math.round((engaged / total) * 100) : 0,
+      dropOff: total - engaged,
+    },
+    {
+      key: "multiTurn", label: "Multi-turno (≥4 turnos)",
+      count: multiTurn,
+      rate: engaged > 0 ? Math.round((multiTurn / engaged) * 100) : 0,
+      dropOff: engaged - multiTurn,
+    },
+    {
+      key: "resolved", label: "Resueltas",
+      count: resolved,
+      rate: multiTurn > 0 ? Math.round((resolved / multiTurn) * 100) : 0,
+      dropOff: multiTurn - resolved,
+    },
+  ];
+
+  const overallConversion = total > 0 ? Math.round((resolved / total) * 100) : 0;
+
+  // ── Quadrant diagnosis ──
+  const lScore = leadQ.score;
+  const bScore = botQ.score;
+  const threshold = 55; // ≥55 = "high"
+
+  const quadrant: Quadrant =
+    lScore >= threshold && bScore >= threshold ? "high-lead-high-bot" :
+    lScore >= threshold && bScore < threshold ? "high-lead-low-bot" :
+    lScore < threshold && bScore >= threshold ? "low-lead-high-bot" :
+    "low-lead-low-bot";
+
+  const quadrantMeta: Record<Quadrant, { label: string; diagnosis: string }> = {
+    "high-lead-high-bot": {
+      label: "Tráfico ✅ Bot ✅",
+      diagnosis: "Ecosistema saludable. Los leads son calificados y el bot los resuelve eficientemente. Enfócate en escalar volumen.",
+    },
+    "high-lead-low-bot": {
+      label: "Tráfico ✅ Bot ❌",
+      diagnosis: "El bot está matando leads buenos. Los usuarios llegan con intención clara pero el bot no resuelve. Prioridad: rediseñar flujos del bot.",
+    },
+    "low-lead-high-bot": {
+      label: "Tráfico ❌ Bot ✅",
+      diagnosis: "El bot funciona bien pero recibe tráfico de baja calidad. Prioridad: revisar segmentación de Meta Ads y el copy del anuncio.",
+    },
+    "low-lead-low-bot": {
+      label: "Tráfico ❌ Bot ❌",
+      diagnosis: "Crisis doble: el tráfico es malo y el bot no ayuda. Ataca ambos frentes: segmentación + rediseño de flujos conversacionales.",
+    },
+  };
+
+  // ── Bottleneck: biggest absolute drop-off ──
+  let bottleneck = { stage: "sessions", dropOff: 0, insight: "Sin datos suficientes." };
+  let maxDrop = 0;
+  for (let i = 1; i < stages.length; i++) {
+    if (stages[i].dropOff > maxDrop) {
+      maxDrop = stages[i].dropOff;
+      const pct = stages[i - 1].count > 0
+        ? Math.round((stages[i].dropOff / stages[i - 1].count) * 100)
+        : 0;
+      bottleneck = {
+        stage: stages[i].label,
+        dropOff: pct,
+        insight: buildBottleneckInsight(stages[i].key, pct),
+      };
+    }
+  }
+
+  // ── Headline ──
+  const headline = buildHeadline(quadrant, overallConversion, bottleneck, total);
+
+  // ── Prescriptive actions ──
+  const actions = buildActions(quadrant, leadQ, botQ, stages, bottleneck);
+
+  return {
+    funnel: stages,
+    overallConversion,
+    quadrant,
+    quadrantLabel: quadrantMeta[quadrant].label,
+    quadrantDiagnosis: quadrantMeta[quadrant].diagnosis,
+    headline,
+    actions,
+    bottleneck,
+  };
+}
+
+function buildBottleneckInsight(stageKey: string, dropPct: number): string {
+  switch (stageKey) {
+    case "engaged":
+      return `${dropPct}% de las sesiones mueren en el primer mensaje. El bot no engancha o el usuario no tenía intención real.`;
+    case "multiTurn":
+      return `${dropPct}% de los leads engaged no profundizan. El flujo del bot puede ser confuso o demasiado largo.`;
+    case "resolved":
+      return `${dropPct}% de las conversaciones profundas no cierran. El bot no tipifica correctamente o falta handoff a agente.`;
+    default:
+      return "Sin datos suficientes.";
+  }
+}
+
+function buildHeadline(
+  quadrant: Quadrant,
+  overallConversion: number,
+  bottleneck: { stage: string; dropOff: number },
+  totalSessions: number,
+): string {
+  if (totalSessions === 0) return "Sin sesiones suficientes para diagnosticar.";
+
+  switch (quadrant) {
+    case "high-lead-high-bot":
+      return `Conversión del ${overallConversion}% — ecosistema saludable con ${totalSessions.toLocaleString("es-MX")} sesiones.`;
+    case "high-lead-low-bot":
+      return `El bot pierde ${bottleneck.dropOff}% de leads calificados en "${bottleneck.stage}". Corrección urgente.`;
+    case "low-lead-high-bot":
+      return `Solo ${overallConversion}% de conversión: el tráfico llega sin intención. El bot no es el problema.`;
+    case "low-lead-low-bot":
+      return `Crisis: ${overallConversion}% de conversión sobre ${totalSessions.toLocaleString("es-MX")} sesiones. Tráfico malo + bot ineficiente.`;
+  }
+}
+
+function buildActions(
+  quadrant: Quadrant,
+  leadQ: LeadQualityMetrics,
+  botQ: BotQualityMetrics,
+  stages: FunnelStage[],
+  bottleneck: { stage: string; dropOff: number },
+): PrescriptiveAction[] {
+  const actions: PrescriptiveAction[] = [];
+
+  // Find weakest sub-metrics
+  const weakestLead = [...leadQ.subMetrics].sort((a, b) => (a.score / a.max) - (b.score / b.max))[0];
+  const weakestBot = [...botQ.subMetrics].sort((a, b) => (a.score / a.max) - (b.score / b.max))[0];
+
+  switch (quadrant) {
+    case "high-lead-low-bot":
+      actions.push({
+        priority: 1, area: "bot",
+        action: `Corregir "${weakestBot?.label}" del bot (${weakestBot?.raw}${weakestBot?.unit !== "ratio" ? weakestBot?.unit : "x"}) — es el sub-métrica más débil.`,
+        impact: `Mejorar podría recuperar hasta ${bottleneck.dropOff}% de leads perdidos.`,
+      });
+      actions.push({
+        priority: 2, area: "bot",
+        action: "Auditar los 3 flujos con más abandono en BotMaker. Simplificar pasos y agregar fallbacks.",
+        impact: "Reducción directa del drop-off en la etapa de resolución.",
+      });
+      actions.push({
+        priority: 3, area: "ops",
+        action: "Implementar alerta automática cuando la tasa de resolución baje del 50%.",
+        impact: "Detección temprana de degradación del bot.",
+      });
+      break;
+
+    case "low-lead-high-bot":
+      actions.push({
+        priority: 1, area: "lead",
+        action: `Mejorar "${weakestLead?.label}" (${weakestLead?.raw}${weakestLead?.unit !== "ratio" ? weakestLead?.unit : "x"}) — el eslabón más débil del tráfico.`,
+        impact: "Leads más calificados = mayor ROI en el mismo presupuesto.",
+      });
+      actions.push({
+        priority: 2, area: "lead",
+        action: "Revisar el copy y CTA del anuncio de Meta Ads. Filtrar mejor la audiencia con exclusiones.",
+        impact: "Reducir el % de sesiones de 1 solo mensaje (bajo engagement).",
+      });
+      actions.push({
+        priority: 3, area: "lead",
+        action: "Implementar pregunta de calificación en el primer turno del bot (ej: '¿En qué te puedo ayudar?').",
+        impact: "Separar curiosos de leads reales desde el primer contacto.",
+      });
+      break;
+
+    case "low-lead-low-bot":
+      actions.push({
+        priority: 1, area: "lead",
+        action: "URGENTE: Pausar la campaña actual y redefinir la audiencia de Meta Ads.",
+        impact: "Dejar de gastar presupuesto en tráfico que no convierte.",
+      });
+      actions.push({
+        priority: 2, area: "bot",
+        action: `Rediseñar el flujo de bienvenida del bot. "${weakestBot?.label}" es crítico (${weakestBot?.raw}${weakestBot?.unit !== "ratio" ? weakestBot?.unit : "x"}).`,
+        impact: "Recuperar conversiones perdidas en el engagement inicial.",
+      });
+      actions.push({
+        priority: 3, area: "ops",
+        action: "Activar handoff automático a agente humano en sesiones con >3 minutos sin resolución.",
+        impact: "Rescatar leads que el bot no puede resolver.",
+      });
+      break;
+
+    case "high-lead-high-bot":
+    default:
+      actions.push({
+        priority: 1, area: "ops",
+        action: `Escalar presupuesto de Meta Ads. Conversión actual (${stages[stages.length - 1]?.rate || 0}%) justifica más volumen.`,
+        impact: "Más sesiones al mismo ratio = crecimiento lineal.",
+      });
+      actions.push({
+        priority: 2, area: "bot",
+        action: `Optimizar "${weakestBot?.label}" para pasar de 'bueno' a 'excelente' (${weakestBot?.score}/${weakestBot?.max}).`,
+        impact: "Mejora marginal pero compuesta con más volumen.",
+      });
+      actions.push({
+        priority: 3, area: "lead",
+        action: "Documentar esta segmentación como 'audiencia dorada' y crear lookalikes en Meta.",
+        impact: "Replicar el perfil de lead que mejor convierte.",
+      });
+      break;
+  }
+
+  return actions;
+}
+
+function emptyDiagnostic(): ExecutiveDiagnostic {
+  return {
+    funnel: [
+      { key: "sessions", label: "Sesiones", count: 0, rate: 100, dropOff: 0 },
+      { key: "engaged", label: "Engaged (≥2 msgs)", count: 0, rate: 0, dropOff: 0 },
+      { key: "multiTurn", label: "Multi-turno (≥4 turnos)", count: 0, rate: 0, dropOff: 0 },
+      { key: "resolved", label: "Resueltas", count: 0, rate: 0, dropOff: 0 },
+    ],
+    overallConversion: 0,
+    quadrant: "low-lead-low-bot",
+    quadrantLabel: "Sin datos",
+    quadrantDiagnosis: "Conecta BotMaker para obtener el diagnóstico.",
+    headline: "Sin sesiones suficientes para diagnosticar.",
+    actions: [],
+    bottleneck: { stage: "", dropOff: 0, insight: "Sin datos." },
+  };
+}
+
+export const EMPTY_DIAGNOSTIC: ExecutiveDiagnostic = emptyDiagnostic();
+
+

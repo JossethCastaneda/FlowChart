@@ -8,9 +8,11 @@ import {
   computeMetricsByChannel,
   computeLeadQuality,
   computeBotQuality,
+  computeExecutiveDiagnostic,
   EMPTY_CHANNEL_BREAKDOWN,
   EMPTY_LEAD_QUALITY,
   EMPTY_BOT_QUALITY,
+  EMPTY_DIAGNOSTIC,
 } from "@/lib/botmaker";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
@@ -44,6 +46,7 @@ export async function GET(request: NextRequest) {
       counts: EMPTY_CHANNEL_BREAKDOWN.counts,
       leadQuality: EMPTY_LEAD_QUALITY,
       botQuality: EMPTY_BOT_QUALITY,
+      diagnostic: EMPTY_DIAGNOSTIC,
       channels: [],
       botErrors: [],
     });
@@ -86,6 +89,9 @@ export async function GET(request: NextRequest) {
     const leadQuality = computeLeadQuality(sessions);
     const botQuality = computeBotQuality(sessions);
 
+    // 4) Executive diagnostic — cross-metric intelligence (funnel + quadrant + actions).
+    const diagnostic = computeExecutiveDiagnostic(sessions, leadQuality, botQuality);
+
     return NextResponse.json({
       connected: true,
       dataSource: "sessions",
@@ -95,6 +101,7 @@ export async function GET(request: NextRequest) {
       counts: breakdown.counts,
       leadQuality,
       botQuality,
+      diagnostic,
       channels,
       botErrors: [],
     });
@@ -109,6 +116,7 @@ export async function GET(request: NextRequest) {
       counts: EMPTY_CHANNEL_BREAKDOWN.counts,
       leadQuality: EMPTY_LEAD_QUALITY,
       botQuality: EMPTY_BOT_QUALITY,
+      diagnostic: EMPTY_DIAGNOSTIC,
       channels: [],
       botErrors: [],
     });
