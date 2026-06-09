@@ -1,1 +1,35 @@
-import { NextResponse } from "next/server";\nimport prisma from "@/lib/prisma";\nimport { encryptToken } from "@/lib/encryption";\n\nexport async function GET(request: Request) {\n  const { searchParams } = new URL(request.url);\n  const token = searchParams.get("token");\n  const workspaceId = searchParams.get("workspaceId") || "cmpz2yimu0000a0ln9v6z03hy";\n\n  if (!token) return NextResponse.json({ error: "Falta el parmetro ?token= en la URL" });\n\n  try {\n    const encrypted = encryptToken(token);\n    await prisma.integration.upsert({\n      where: { workspaceId_provider: { workspaceId, provider: "botmaker" } },\n      update: {\n        connected: true,\n        credentials: { accessToken: encrypted }\n      },\n      create: {\n        workspaceId,\n        provider: "botmaker",\n        connected: true,\n        credentials: { accessToken: encrypted }\n      }\n    });\n    return NextResponse.json({ \n      success: true, \n      message: "Botmaker token encriptado y guardado correctamente en produccin!",\n      workspaceId\n    });\n  } catch (err: any) {\n    return NextResponse.json({ error: err.message });\n  }\n}
+import { NextResponse } from "next/server";
+import prisma from "@/lib/prisma";
+import { encryptToken } from "@/lib/encryption";
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const token = searchParams.get("token");
+  const workspaceId = searchParams.get("workspaceId") || "cmpz2yimu0000a0ln9v6z03hy";
+
+  if (!token) return NextResponse.json({ error: "Falta el parmetro ?token= en la URL" });
+
+  try {
+    const encrypted = encryptToken(token);
+    await prisma.integration.upsert({
+      where: { workspaceId_provider: { workspaceId, provider: "botmaker" } },
+      update: {
+        connected: true,
+        credentials: { accessToken: encrypted }
+      },
+      create: {
+        workspaceId,
+        provider: "botmaker",
+        connected: true,
+        credentials: { accessToken: encrypted }
+      }
+    });
+    return NextResponse.json({ 
+      success: true, 
+      message: "Botmaker token encriptado y guardado correctamente en produccion!",
+      workspaceId
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message });
+  }
+}
