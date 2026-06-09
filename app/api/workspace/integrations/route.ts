@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { encryptToken } from "@/lib/encryption";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
 
@@ -67,9 +68,86 @@ export async function GET() {
       data,
       userRole: membership.role,
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Error interno";
     console.error("[INTEGRATIONS] List error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+/**
+ * POST: Connect a token-based integration (e.g. BotMaker).
+ * Only OWNER/ADMIN can save tokens. The token is encrypted at rest.
+ *
+ * Body: { provider: string, token: string }
+ */
+const ConnectSchema = z.object({
+  provider: z.string().min(1, "provider requerido"),
+  token: z.string().min(1, "token requerido"),
+});
+
+export async function POST(req: NextRequest) {
+  try {
+    const result = await validateBody(req, ConnectSchema);
+    if (!result.ok) return result.response;
+    const { provider, token } = result.data;
+
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const workspaceId = await getActiveWorkspaceId(session.user.id);
+    if (!workspaceId) {
+      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
+    }
+
+    // RBAC: only OWNER or ADMIN
+    const membership = await prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: { workspaceId, userId: session.user.id },
+      },
+    });
+
+    if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {
+      return NextResponse.json(
+        { error: "Solo OWNER/ADMIN pueden conectar integraciones" },
+        { status: 403 }
+      );
+    }
+
+    // Encrypt + upsert
+    const credentials = {
+      accessToken: encryptToken(token),
+      connectedAt: new Date().toISOString(),
+    };
+
+    await prisma.integration.upsert({
+      where: {
+        workspaceId_provider: { workspaceId, provider },
+      },
+      create: {
+        workspaceId,
+        provider,
+        credentials,
+        connected: true,
+        connectedAt: new Date(),
+        connectedBy: session.user.id,
+      },
+      update: {
+        credentials,
+        connected: true,
+        connectedAt: new Date(),
+        connectedBy: session.user.id,
+      },
+    });
+
+    console.log(`[INTEGRATIONS] ✅ ${provider} connected by ${session.user.id} for workspace ${workspaceId}`);
+    return NextResponse.json({ success: true });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Error interno";
+    console.error("[INTEGRATIONS] Connect error:", err);
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -77,9 +155,11 @@ export async function GET() {
  * DELETE: Disconnect an integration.
  * Only OWNER or the user who connected can disconnect.
  */
+const DisconnectSchema = z.object({ provider: z.string().min(1, "provider requerido") });
+
 export async function DELETE(req: NextRequest) {
     try {
-          const result = await validateBody(req, RequestSchema);
+          const result = await validateBody(req, DisconnectSchema);
           if (!result.ok) return result.response;
           const { provider } = result.data;
           
@@ -144,10 +224,10 @@ export async function DELETE(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-    } catch (err: any) {
+    } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Error interno";
     console.error("[INTEGRATIONS] Disconnect error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
     }
 }
 
-let RequestSchema = z.object({ provider: z.string().min(1, "provider requerido") });

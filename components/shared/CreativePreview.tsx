@@ -75,15 +75,16 @@ const VideoPlayer = ({
   }, [autoPlay]);
 
   if (!src) {
-    // No video URL — show poster with play icon overlay
+    // No playable video source from Meta — show poster (contain) with a clear notice.
     return (
       <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <img src={poster} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <img src={poster} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }} />
         <div style={{
-          position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-          background: "rgba(0,0,0,0.3)",
+          position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: 6,
+          alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.35)",
         }}>
-          <Play style={{ width: compact ? 28 : 48, height: compact ? 28 : 48, color: "white", fill: "white", opacity: 0.8 }} />
+          <Play style={{ width: compact ? 22 : 36, height: compact ? 22 : 36, color: "white", fill: "white", opacity: 0.45 }} />
+          {!compact && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.7)" }}>Vista previa de video no disponible</span>}
         </div>
       </div>
     );
@@ -294,34 +295,15 @@ export const CreativeLightbox = ({
       <div
         onClick={e => e.stopPropagation()}
         style={{
+          position: "relative",
           background: "#0f1219", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12,
-          maxWidth: 960, width: "100%", maxHeight: "85vh", overflow: "hidden",
-          display: "flex", flexDirection: "row", animation: "slideUp 0.25s ease",
+          maxWidth: 460, width: "100%", maxHeight: "90vh", overflow: "auto",
+          display: "flex", flexDirection: "column", animation: "slideUp 0.25s ease",
           margin: "auto",
         }}
       >
-        {/* Left: Media */}
-        <div style={{
-          flex: "0 0 50%", maxWidth: 480, background: "#000", position: "relative",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          minHeight: 300, maxHeight: "85vh", overflow: "hidden",
-        }}>
-          {ad.format === "video" ? (
-            <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} autoPlay={!!ad.videoUrl} />
-          ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
-            <CarouselViewer items={ad.carouselItems} />
-          ) : ad.thumbnailUrl ? (
-            <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "contain" }} />
-          ) : (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: "100%", height: "100%" }}>
-              <Eye style={{ width: 48, height: 48, color: "rgba(148,163,184,0.65)" }} />
-            </div>
-          )}
-          <FormatBadge format={ad.format} />
-        </div>
-
-        {/* Right: Info + Preview */}
-        <div style={{ flex: 1, padding: "16px 20px", display: "flex", flexDirection: "column", overflow: "auto", maxHeight: "85vh" }}>
+        {/* Single column: feed-style preview (the ONLY media surface) + metrics */}
+        <div style={{ flex: 1, padding: "16px 16px", display: "flex", flexDirection: "column" }}>
           {/* Close */}
           <button onClick={onClose} style={{
             position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.1)",
@@ -372,15 +354,18 @@ export const CreativeLightbox = ({
               </div>
             )}
 
-            {/* Preview image/video — No fixed aspect ratio to prevent cropping */}
-            <div style={{ width: "100%", background: "#000", overflow: "hidden" }}>
+            {/* Preview image/video — single media surface, capped height */}
+            <div style={{ width: "100%", background: "#000", overflow: "hidden", position: "relative" }}>
               {ad.format === "video" ? (
-                <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} compact />
+                <div style={{ width: "100%", height: "min(56vh, 480px)", position: "relative", background: "#000" }}>
+                  <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} autoPlay={!!ad.videoUrl} />
+                </div>
               ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
-                <div style={{ aspectRatio: "1/1" }}><CarouselViewer items={ad.carouselItems} compact /></div>
+                <div style={{ aspectRatio: "1 / 1" }}><CarouselViewer items={ad.carouselItems} compact /></div>
               ) : ad.thumbnailUrl ? (
-                <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "auto", display: "block" }} />
+                <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "auto", maxHeight: "56vh", objectFit: "contain", display: "block", margin: "0 auto" }} />
               ) : null}
+              <FormatBadge format={ad.format} />
             </div>
 
             {/* Title + CTA */}

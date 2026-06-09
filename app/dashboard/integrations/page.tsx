@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Settings, CheckCircle, XCircle, Loader2, ChevronRight, Zap, BarChart2, Users, Megaphone, Eye, Pencil } from "lucide-react";
+import { Settings, CheckCircle, XCircle, Loader2, ChevronRight, Zap, BarChart2, Users, Megaphone, Eye, Pencil, MessageSquare, Key } from "lucide-react";
 import { openConnectPopup } from "@/lib/connect-popup";
 import { MetaConnectionHealthCenter } from "@/components/meta/MetaConnectionHealthCenter";
 
@@ -97,6 +97,8 @@ interface PlatformDef {
   iconBg: string;
   moduleUrl?: string;
   oauthProvider?: string;
+  /** For token-based integrations (like BotMaker) — shows a token input modal */
+  tokenProvider?: string;
   capabilities?: ("read" | "manage")[];
 }
 
@@ -139,6 +141,7 @@ const GROUPS: Array<{ label: string; icon: React.ReactNode; color: string; platf
     icon: <Users size={13} />,
     color: "#10B981",
     platforms: [
+      { provider: "botmaker", tokenProvider: "botmaker", name: "BotMaker", description: "Chatbots, WhatsApp API y analítica conversacional", Icon: () => <MessageSquare size={18} />, iconBg: "#1E40AF", capabilities: ["read"] as ("read" | "manage")[] },
       { provider: "hubspot", name: "HubSpot", description: "Email automation y CRM sync", Icon: HubSpotIcon, iconBg: "#FF5C35" },
       { provider: "ai_engine", name: "AI Engine", description: "Copy, creativos y predicción", Icon: () => <Zap size={18} />, iconBg: "#5B21B6" },
     ],
@@ -158,6 +161,9 @@ export default function IntegrationsPage() {
   const [integrations, setIntegrations] = useState<IntegrationData[]>([]);
   const [loading, setLoading] = useState(true);
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
+  const [tokenModal, setTokenModal] = useState<{ provider: string; label: string } | null>(null);
+  const [tokenInput, setTokenInput] = useState("");
+  const [tokenSaving, setTokenSaving] = useState(false);
 
   const loadIntegrations = useCallback(() => {
     setLoading(true);
@@ -202,8 +208,36 @@ export default function IntegrationsPage() {
     } else if (platform.oauthProvider) {
       // Generic OAuth flow — redirect to /api/oauth/[provider]/start
       window.location.href = `/api/oauth/${platform.oauthProvider}/start`;
+    } else if (platform.tokenProvider) {
+      // Token-based flow — show modal
+      setTokenInput("");
+      setTokenModal({ provider: platform.tokenProvider, label: platform.name });
     } else {
       alert("Próximamente");
+    }
+  }
+
+  async function handleTokenSave() {
+    if (!tokenModal || !tokenInput.trim()) return;
+    setTokenSaving(true);
+    try {
+      const res = await fetch("/api/workspace/integrations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: tokenModal.provider, token: tokenInput.trim() }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setTokenModal(null);
+        setTokenInput("");
+        loadIntegrations();
+      } else {
+        alert(data.error || "Error al guardar token");
+      }
+    } catch {
+      alert("Error de red");
+    } finally {
+      setTokenSaving(false);
     }
   }
 
@@ -406,6 +440,77 @@ export default function IntegrationsPage() {
       <p style={{ fontSize: 11, color: "#334155", textAlign: "center", paddingBottom: 8 }}>
         API Keys, webhooks y configuración avanzada — próximamente
       </p>
+
+      {/* Token Modal */}
+      {tokenModal && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}
+          onClick={() => setTokenModal(null)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 460, padding: 24, borderRadius: 12,
+              background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)",
+              display: "flex", flexDirection: "column", gap: 16,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <Key size={16} style={{ color: "#00d4ff" }} />
+              <h3 style={{ fontSize: 15, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>
+                Conectar {tokenModal.label}
+              </h3>
+            </div>
+            <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
+              Pega el access token de {tokenModal.label}. Se cifra con AES-256 antes de guardarse.
+            </p>
+            <textarea
+              value={tokenInput}
+              onChange={e => setTokenInput(e.target.value)}
+              placeholder="Pega el token aquí..."
+              autoFocus
+              rows={3}
+              style={{
+                width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 12,
+                fontFamily: "monospace", background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0",
+                resize: "none", outline: "none",
+              }}
+            />
+            <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+              <button
+                onClick={() => setTokenModal(null)}
+                style={{
+                  padding: "8px 16px", borderRadius: 6, fontSize: 12,
+                  background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
+                  color: "#94a3b8", cursor: "pointer",
+                }}
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={!tokenInput.trim() || tokenSaving}
+                onClick={handleTokenSave}
+                style={{
+                  padding: "8px 20px", borderRadius: 6, fontSize: 12, fontWeight: 600,
+                  background: tokenInput.trim() ? "rgba(0,212,255,0.15)" : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${tokenInput.trim() ? "rgba(0,212,255,0.3)" : "rgba(255,255,255,0.06)"}`,
+                  color: tokenInput.trim() ? "#00d4ff" : "#334155",
+                  cursor: tokenInput.trim() && !tokenSaving ? "pointer" : "not-allowed",
+                  display: "flex", alignItems: "center", gap: 6,
+                }}
+              >
+                {tokenSaving && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
+                Guardar y conectar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
