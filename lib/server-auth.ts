@@ -92,16 +92,9 @@ export async function getMetaAccessToken(
     // 3. Fallback: JWT token (owner who logged in with Facebook)
     const jwtAccessToken = (jwtToken?.accessToken as string) || null;
 
-    // AUTO-SYNC: If the owner has a Meta token in their JWT but it's NOT
-    // in the Integration table, save it now so all members can use it.
-    if (jwtAccessToken && workspaceId) {
-      try {
-        await saveMetaTokenToWorkspace(userId, jwtAccessToken);
-        console.log("[SERVER-AUTH] Auto-synced Meta token from JWT to Integration table");
-      } catch (syncErr) {
-        console.error("[SERVER-AUTH] Auto-sync failed:", syncErr);
-      }
-    }
+    // Token sync from JWT → Integration table happens explicitly in
+    // auth.config.ts JWT callback (on login), not on every API request.
+    // This avoids write-on-read side effects and potential race conditions.
 
     return jwtAccessToken;
   } catch (err) {

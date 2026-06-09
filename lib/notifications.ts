@@ -3,7 +3,11 @@ import { Resend } from "resend";
 import { getTaskAssignedEmailHtml, getSLAWarningEmailHtml } from "@/lib/email-templates";
 
 let _resend: Resend | null = null;
-function getResend() {
+function getResend(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    console.warn("[NOTIFICATIONS] RESEND_API_KEY not set — email sending disabled");
+    return null;
+  }
   if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
   return _resend;
 }
@@ -40,9 +44,11 @@ export async function createNotification({
   // 2. Send email if requested
   if (sendEmail && emailHtml) {
     try {
+      const resendClient = getResend();
+      if (!resendClient) return notification;
       const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
       if (user?.email) {
-        await getResend().emails.send({
+        await resendClient.emails.send({
           from: FROM_EMAIL,
           to: user.email,
           subject: emailSubject || `SODARE — ${title}`,
@@ -64,6 +70,7 @@ export async function notifyTaskAssigned({
   taskId,
   taskTitle,
   assigneeName,
+  assigneeUserId,
   assignerName,
   assignerUserId,
   priority,
@@ -72,21 +79,31 @@ export async function notifyTaskAssigned({
   taskId: string;
   taskTitle: string;
   assigneeName: string;
+  assigneeUserId?: string;
   assignerName: string;
   assignerUserId: string;
   priority: string;
   dueDate: string | null;
 }) {
-  // Find the user by name in the workspace
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { name: assigneeName },
-        { email: { startsWith: assigneeName } },
-      ],
-    },
-    select: { id: true, email: true },
-  });
+  // Prefer direct userId lookup; fall back to name search for backward compat
+  let user: { id: string; email: string | null } | null = null;
+  if (assigneeUserId) {
+    user = await prisma.user.findUnique({
+      where: { id: assigneeUserId },
+      select: { id: true, email: true },
+    });
+  }
+  if (!user) {
+    user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { name: assigneeName },
+          { email: { startsWith: assigneeName } },
+        ],
+      },
+      select: { id: true, email: true },
+    });
+  }
 
   if (!user || user.id === assignerUserId) return; // Don't notify yourself
 

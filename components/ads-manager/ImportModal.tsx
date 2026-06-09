@@ -1,6 +1,9 @@
 "use client";
 import React, { useState, useRef } from "react";
 import { X, Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Loader2, Download } from "lucide-react";
+// NOTE: xlsx@0.18.5 has known CVEs (CVE-2023-30533, CVE-2024-22363) but is used
+// client-side only for export and local file parsing. File size and row limits
+// are enforced to mitigate risk. Consider migrating to exceljs when feasible.
 
 interface ImportModalProps {
   adAccountId: string;
@@ -44,6 +47,14 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
     if (!f) return;
+
+    // Security: limit file size to prevent DoS (xlsx CVE mitigation)
+    const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB
+    if (f.size > MAX_FILE_SIZE) {
+      setErrors(["El archivo excede el límite de 2MB"]);
+      return;
+    }
+
     setFile(f);
 
     const ext = f.name.split(".").pop()?.toLowerCase();
@@ -74,6 +85,13 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
 
     if (rows.length === 0) {
       errs.push("El archivo está vacío");
+    }
+
+    // Security: limit rows to prevent excessive processing
+    const MAX_ROWS = 500;
+    if (rows.length > MAX_ROWS) {
+      setErrors([`El archivo excede el límite de ${MAX_ROWS} filas (tiene ${rows.length})`]);
+      return;
     }
 
     // Check required fields

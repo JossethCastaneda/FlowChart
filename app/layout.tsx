@@ -3,16 +3,17 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
+import { AuthProvider } from "@/components/layout/AuthProvider";
+import { SpeedInsights } from "@vercel/speed-insights/next";
+import { ToastContainer } from "@/components/ui/Toast";
+import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
 export const metadata: Metadata = {
-  title: "Sodare",
-  description: "An advanced CRM, Analytics and BotMaker operations platform.",
+  title: "Sodare — Inteligencia Multicanal",
+  description: "Plataforma avanzada de CRM, Analytics, Ads Manager y operaciones para agencias de marketing digital.",
 };
-
-import { AuthProvider } from "@/components/layout/AuthProvider";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 
 export default function RootLayout({
   children,
@@ -24,6 +25,8 @@ export default function RootLayout({
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
           <ClientMainWrapper>{children}</ClientMainWrapper>
+          <ToastContainer />
+          <ConfirmModalContainer />
         </AuthProvider>
         <SpeedInsights />
       </body>

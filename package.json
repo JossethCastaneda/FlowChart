@@ -4,7 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "prisma generate && node scripts/db-sync.mjs && next build",
+    "build": "prisma generate && next build",
+    "db:sync": "node scripts/db-sync.mjs",
+    "release": "node scripts/db-sync.mjs && prisma generate && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -30,7 +32,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.3.0",
-    "flags": "^4.0.6",
     "form-data": "^4.0.5",
     "framer-motion": "^12.40.0",
     "lucide-react": "^1.16.0",
@@ -43,7 +44,6 @@
     "recharts": "^3.8.1",
     "resend": "^6.12.4",
     "tailwind-merge": "^3.6.0",
-    "workflow": "^4.3.1",
     "xlsx": "^0.18.5",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"

@@ -258,7 +258,7 @@ export default function SettingsPage() {
 
       <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
         {/* ── Left nav: groups (menus) + sections (submenus) ── */}
-        <nav style={{ width: 220, flexShrink: 0, display: "flex", flexDirection: "column", gap: 18, position: "sticky", top: 0, alignSelf: "flex-start" }}>
+        <nav className="settings-nav" style={{ width: 220, flexShrink: 0, display: "flex", flexDirection: "column", gap: 18, position: "sticky", top: 0, alignSelf: "flex-start" }}>
           {visibleGroups.map((g, gi) => (
             <div key={g.group}>
               {gi > 0 && <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "4px 10px 8px" }} />}
@@ -302,7 +302,7 @@ export default function SettingsPage() {
         </nav>
 
         {/* ── Right content ── */}
-        <div style={{ flex: 1, minWidth: 320, display: "flex", flexDirection: "column", gap: 20 }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
 
           {/* PERFIL */}
           {activeSection === "profile" && (

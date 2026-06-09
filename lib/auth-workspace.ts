@@ -29,9 +29,12 @@ export async function verifyProjectAccess(
   userId: string,
   requiredRole: WorkspaceRole[] = ["OWNER", "ADMIN", "MEMBER"]
 ): Promise<boolean> {
-  const membership = await prisma.projectMember.findUnique({
-    where: { projectId_userId: { projectId, userId } },
+  const project = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { workspaceId: true },
   });
-  if (!membership) return false;
-  return requiredRole.includes(membership.role as WorkspaceRole);
+
+  if (!project) return false;
+
+  return verifyWorkspaceAccess(project.workspaceId, userId, requiredRole);
 }

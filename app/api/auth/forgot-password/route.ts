@@ -2,9 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import prisma from "@/lib/prisma";
 import { getBaseUrl } from "@/lib/get-base-url";
+import { rateLimit, getClientIP } from "@/lib/ratelimit";
 
 export async function POST(req: NextRequest) {
   try {
+    // Rate limit: 3 attempts per 15 minutes per IP
+    const ip = getClientIP(req);
+    const { ok } = rateLimit(`forgot:${ip}`, 3, 15 * 60 * 1000);
+    if (!ok) {
+      return NextResponse.json(
+        { error: "Demasiados intentos. Intenta en 15 minutos." },
+        { status: 429 }
+      );
+    }
+
     const { email } = await req.json();
 
     if (!email || !email.includes("@")) {

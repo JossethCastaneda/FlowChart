@@ -9,35 +9,9 @@ import {
   apiNotFound,
   apiServerError,
 } from "@/lib/api-response";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 
 type RouteContext = { params: Promise<{ id: string }> };
-
-// ---------------------------------------------------------------------------
-// Helper: verify the user can access a project (via workspace membership)
-// ---------------------------------------------------------------------------
-async function verifyProjectAccess(projectId: string, userId: string) {
-  const project = await prisma.project.findUnique({
-    where: { id: projectId },
-    include: { channels: true },
-  });
-
-  if (!project) return { project: null, authorized: false, notFound: true };
-
-  const membership = await prisma.workspaceMember.findUnique({
-    where: {
-      workspaceId_userId: {
-        workspaceId: project.workspaceId,
-        userId,
-      },
-    },
-  });
-
-  return {
-    project,
-    authorized: !!membership,
-    notFound: false,
-  };
-}
 
 // ---------------------------------------------------------------------------
 // GET /api/projects/[id] — get a single project
@@ -53,12 +27,15 @@ export async function GET(
     }
 
     const { id } = await context.params;
-    const { project, authorized, notFound } = await verifyProjectAccess(
-      id,
-      session.user.id
-    );
+    
+    const project = await prisma.project.findUnique({
+      where: { id },
+      include: { channels: true },
+    });
 
-    if (notFound) return apiNotFound("Proyecto no encontrado");
+    if (!project) return apiNotFound("Proyecto no encontrado");
+
+    const authorized = await verifyWorkspaceAccess(project.workspaceId, session.user.id);
     if (!authorized) return apiForbidden("No tienes acceso a este proyecto");
 
     return apiSuccess(project);
@@ -81,12 +58,14 @@ export async function PUT(
     }
 
     const { id } = await context.params;
-    const { project, authorized, notFound } = await verifyProjectAccess(
-      id,
-      session.user.id
-    );
+    
+    const project = await prisma.project.findUnique({
+      where: { id },
+    });
 
-    if (notFound) return apiNotFound("Proyecto no encontrado");
+    if (!project) return apiNotFound("Proyecto no encontrado");
+
+    const authorized = await verifyWorkspaceAccess(project.workspaceId, session.user.id);
     if (!authorized) return apiForbidden("No tienes acceso a este proyecto");
 
     const body = await request.json();
@@ -167,26 +146,16 @@ export async function DELETE(
     }
 
     const { id } = await context.params;
-    const { project, authorized, notFound } = await verifyProjectAccess(
-      id,
-      session.user.id
-    );
+    
+    const project = await prisma.project.findUnique({
+      where: { id },
+    });
 
-    if (notFound) return apiNotFound("Proyecto no encontrado");
-    if (!authorized) return apiForbidden("No tienes acceso a este proyecto");
+    if (!project) return apiNotFound("Proyecto no encontrado");
 
     // Only OWNER/ADMIN can delete projects
-    const membership = await prisma.workspaceMember.findUnique({
-      where: {
-        workspaceId_userId: {
-          workspaceId: project!.workspaceId,
-          userId: session.user.id,
-        },
-      },
-    });
-    if (membership?.role === "MEMBER") {
-      return apiForbidden("Solo OWNER o ADMIN pueden eliminar proyectos");
-    }
+    const authorized = await verifyWorkspaceAccess(project.workspaceId, session.user.id, ["OWNER", "ADMIN"]);
+    if (!authorized) return apiForbidden("Solo OWNER o ADMIN pueden eliminar proyectos");
 
     // Cascade delete handles channels, briefs, members, etc.
     await prisma.project.delete({ where: { id } });

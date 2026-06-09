@@ -41,7 +41,7 @@ console.log(`[db-sync] target database host: ${host}`);
 // Remove it first: idempotent and safe — it's Neon demo data referenced by
 // nothing in our schema.
 try {
-  const client = new Client({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
+  const client = new Client({ connectionString: dbUrl, ssl: true });
   await client.connect();
   const found = await client.query(
     "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'playing_with_neon'"

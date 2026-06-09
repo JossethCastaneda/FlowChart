@@ -148,8 +148,15 @@ export function frequencyAlertLevel(freq: number): "none" | "warning" | "critica
 }
 
 // ── Advantage+ Detection ────────────────────────────────────────────────────
+/** Detect Advantage+ campaigns via smart_promotion_type or naming conventions */
 export function isAdvantagePlus(row: any): boolean {
-  return row.buying_type === "RESERVED" || row.objective === "OUTCOME_APP_PROMOTION";
+  // Meta Advantage+ campaigns use smart_promotion_type field
+  if (row.smart_promotion_type === "SMART_APP_PROMOTION" ||
+      row.smart_promotion_type === "SMART_SHOPPING") return true;
+  // Fallback: check campaign name for common A+ patterns
+  const name = (row.name || "").toLowerCase();
+  return name.includes("advantage+") || name.includes("advantage plus") ||
+         name.includes("asc") || row.buying_type === "AUCTION" && row.is_budget_schedule_enabled;
 }
 
 // ── Stardate formatter ──────────────────────────────────────────────────────
