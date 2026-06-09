@@ -3,23 +3,22 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { ACTIVE_WORKSPACE_COOKIE } from "@/lib/active-workspace";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 export async function POST(req: NextRequest) {
-  try {
+    try {
+          const result = await validateBody(req, RequestSchema);
+          if (!result.ok) return result.response;
+          const { workspaceId } = result.data;
+          
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json().catch(() => null);
-    if (!body?.workspaceId || typeof body.workspaceId !== "string") {
-      return NextResponse.json(
-        { error: "Missing workspaceId" },
-        { status: 400 }
-      );
-    }
 
-    const { workspaceId } = body;
+
 
     // Verificar que el usuario pertenece a ese workspace
     const membership = await prisma.workspaceMember.findUnique({
@@ -58,11 +57,13 @@ export async function POST(req: NextRequest) {
     });
 
     return response;
-  } catch (err: any) {
+    } catch (err: any) {
     console.error("[WORKSPACE SWITCH] Error:", err);
     return NextResponse.json(
       { error: "Error al cambiar workspace" },
       { status: 500 }
     );
-  }
+    }
 }
+
+let RequestSchema = z.object({ workspaceId: z.string().min(1, "Workspace ID required") });

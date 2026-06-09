@@ -3,12 +3,18 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ workspaceId: string }> }
 ) {
-  try {
+    try {
+          const result = await validateBody(req, RequestSchema);
+          if (!result.ok) return result.response;
+          const { userId, role } = result.data;
+          
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -23,7 +29,7 @@ export async function PATCH(
         { status: 403 }
       );
     }
-    const { userId, role } = await req.json();
+
     if (!userId || !role) {
       return NextResponse.json(
         { error: "userId y role son requeridos" },
@@ -72,11 +78,13 @@ export async function PATCH(
       },
     });
     return NextResponse.json({ data: updated });
-  } catch (err: any) {
+    } catch (err: any) {
     console.error("[MEMBERS] Role change error:", err);
     return NextResponse.json(
       { error: err?.message || "Error interno" },
       { status: 500 }
     );
-  }
+    }
 }
+
+let RequestSchema = z.object({ userId: z.string().min(1), role: z.enum(["OWNER", "ADMIN", "MEMBER"]) });

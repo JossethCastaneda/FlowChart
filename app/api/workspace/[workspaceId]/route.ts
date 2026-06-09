@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 export async function GET(
   _req: NextRequest,
@@ -51,7 +53,11 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ workspaceId: string }> }
 ) {
-  try {
+    try {
+          const result = await validateBody(req, RequestSchema);
+          if (!result.ok) return result.response;
+          const { name } = result.data;
+          
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -67,8 +73,8 @@ export async function PATCH(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const body = await req.json();
-    const { name } = body;
+
+
 
     if (!name || typeof name !== "string" || name.trim().length < 2) {
       return NextResponse.json({ error: "Nombre inválido" }, { status: 400 });
@@ -80,13 +86,13 @@ export async function PATCH(
     });
 
     return NextResponse.json({ data: updated });
-  } catch (err: any) {
+    } catch (err: any) {
     console.error("[WORKSPACE PATCH] Error:", err);
     return NextResponse.json(
       { error: "Error al actualizar workspace" },
       { status: 500 }
     );
-  }
+    }
 }
 
 export async function DELETE(
@@ -119,3 +125,5 @@ export async function DELETE(
     );
   }
 }
+
+let RequestSchema = z.object({ name: z.string().min(1, "Name required") });

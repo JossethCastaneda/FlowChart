@@ -4,6 +4,13 @@ import prisma from "@/lib/prisma";
 import { getBaseUrl } from "@/lib/get-base-url";
 import { rateLimit, getClientIP } from "@/lib/ratelimit";
 
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
+
+const ForgotPasswordSchema = z.object({
+  email: z.string().email("Email inválido").max(255).transform((e) => e.toLowerCase().trim()),
+});
+
 export async function POST(req: NextRequest) {
   try {
     // Rate limit: 3 attempts per 15 minutes per IP
@@ -16,16 +23,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { email } = await req.json();
-
-    if (!email || !email.includes("@")) {
-      return NextResponse.json(
-        { error: "Email inválido" },
-        { status: 400 }
-      );
-    }
-
-    const normalizedEmail = email.toLowerCase().trim();
+    const result = await validateBody(req, ForgotPasswordSchema);
+    if (!result.ok) return result.response;
+    const { email: normalizedEmail } = result.data;
 
     // Buscar usuario
     const user = await prisma.user.findUnique({

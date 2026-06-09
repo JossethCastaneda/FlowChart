@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 /**
  * GET: List all integrations for the active workspace.
@@ -76,13 +78,17 @@ export async function GET() {
  * Only OWNER or the user who connected can disconnect.
  */
 export async function DELETE(req: NextRequest) {
-  try {
+    try {
+          const result = await validateBody(req, RequestSchema);
+          if (!result.ok) return result.response;
+          const { provider } = result.data;
+          
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { provider } = await req.json();
+
     if (!provider) {
       return NextResponse.json({ error: "provider requerido" }, { status: 400 });
     }
@@ -138,8 +144,10 @@ export async function DELETE(req: NextRequest) {
     });
 
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+    } catch (err: any) {
     console.error("[INTEGRATIONS] Disconnect error:", err);
     return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-  }
+    }
 }
+
+let RequestSchema = z.object({ provider: z.string().min(1, "provider requerido") });

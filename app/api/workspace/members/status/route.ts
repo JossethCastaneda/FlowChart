@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 const VALID_STATUSES = ["disponible", "ocupado", "ausente", "offline"];
 
@@ -11,7 +13,11 @@ const VALID_STATUSES = ["disponible", "ocupado", "ausente", "offline"];
  * Allows a user to update their own activity status within their active workspace.
  */
 export async function PUT(req: NextRequest) {
-  try {
+    try {
+          const result = await validateBody(req, RequestSchema);
+          if (!result.ok) return result.response;
+          const { status } = result.data;
+          
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,8 +28,8 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
     }
 
-    const body = await req.json();
-    const { status } = body;
+
+
 
     if (!status || !VALID_STATUSES.includes(status)) {
       return NextResponse.json(
@@ -46,10 +52,10 @@ export async function PUT(req: NextRequest) {
       activityStatus: updated.activityStatus,
       lastActiveAt: updated.lastActiveAt,
     });
-  } catch (err: any) {
+    } catch (err: any) {
     console.error("[MEMBER_STATUS] PUT error:", err);
     return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-  }
+    }
 }
 
 /**
@@ -85,3 +91,5 @@ export async function GET() {
     return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
   }
 }
+
+let RequestSchema = z.object({ status: z.enum(["ONLINE", "OFFLINE", "AWAY", "BUSY", "DO_NOT_DISTURB"]) });

@@ -5,6 +5,8 @@ import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import crypto from "crypto";
 import { getBaseUrl } from "@/lib/get-base-url";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 export async function GET(
   _req: NextRequest,
@@ -41,7 +43,11 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ workspaceId: string }> }
 ) {
-  try {
+    try {
+          const result = await validateBody(req, RequestSchema);
+          if (!result.ok) return result.response;
+          const { email, role } = result.data;
+          
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -53,7 +59,7 @@ export async function POST(
     if (!hasAccess) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    const { email, role = "MEMBER" } = await req.json();
+
     if (!email || !email.includes("@")) {
       return NextResponse.json({ error: "Email inválido" }, { status: 400 });
     }
@@ -167,8 +173,10 @@ export async function POST(
         workspaceName: invite.workspace.name,
       },
     }, { status: 201 });
-  } catch (err: any) {
+    } catch (err: any) {
     console.error("[INVITE] Create error:", err);
     return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-  }
+    }
 }
+
+let RequestSchema = z.object({ email: z.string().email("Email inválido"), role: z.enum(["OWNER", "ADMIN", "MEMBER"]).default("MEMBER") });

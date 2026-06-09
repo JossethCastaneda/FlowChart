@@ -3,6 +3,14 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { rateLimit, getClientIP } from "@/lib/ratelimit";
 
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
+
+const ResetPasswordSchema = z.object({
+  token: z.string().min(1, "Token requerido"),
+  password: z.string().min(8, "La contraseña debe tener al menos 8 caracteres").max(128),
+});
+
 export async function POST(req: NextRequest) {
   try {
     // Rate limit: 5 attempts per 15 minutes per IP
@@ -15,21 +23,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { token, password } = await req.json();
-
-    if (!token || !password) {
-      return NextResponse.json(
-        { error: "Token y contraseña requeridos" },
-        { status: 400 }
-      );
-    }
-
-    if (password.length < 8) {
-      return NextResponse.json(
-        { error: "La contraseña debe tener al menos 8 caracteres" },
-        { status: 400 }
-      );
-    }
+    const validationResult = await validateBody(req, ResetPasswordSchema);
+    if (!validationResult.ok) return validationResult.response;
+    const { token, password } = validationResult.data;
 
     // Wrap in transaction to prevent race conditions (two requests using same token)
     const result = await prisma.$transaction(async (tx) => {

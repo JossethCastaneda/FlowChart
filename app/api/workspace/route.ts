@@ -6,6 +6,8 @@ import {
   getActiveWorkspaceId,
   ACTIVE_WORKSPACE_COOKIE,
 } from "@/lib/active-workspace";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 function generateSlug(name: string): string {
   return name
@@ -66,14 +68,18 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  try {
+    try {
+          const result = await validateBody(req, RequestSchema);
+          if (!result.ok) return result.response;
+          const { name } = result.data;
+          
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const body = await req.json();
-    const { name } = body;
+
+
 
     if (!name || typeof name !== "string" || name.trim().length < 2) {
       return NextResponse.json(
@@ -114,11 +120,13 @@ export async function POST(req: NextRequest) {
     console.log("[WORKSPACE] Created successfully:", workspace.id);
 
     return NextResponse.json({ data: workspace }, { status: 201 });
-  } catch (err: any) {
+    } catch (err: any) {
     console.error("[WORKSPACE] Error creating workspace:", err);
     return NextResponse.json(
       { error: "Error interno al crear workspace" },
       { status: 500 }
     );
-  }
+    }
 }
+
+let RequestSchema = z.object({ name: z.string().min(2, "Name required") });

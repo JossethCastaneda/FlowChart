@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 export async function GET(
   _req: NextRequest,
@@ -38,7 +40,11 @@ export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ workspaceId: string }> }
 ) {
-  try {
+    try {
+          const result = await validateBody(req, RequestSchema);
+          if (!result.ok) return result.response;
+          const { userId } = result.data;
+          
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -50,7 +56,7 @@ export async function DELETE(
     if (!hasAccess) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
-    const { userId } = await req.json();
+
     if (!userId) {
       return NextResponse.json({ error: "Missing userId" }, { status: 400 });
     }
@@ -89,8 +95,10 @@ export async function DELETE(
       where: { workspaceId_userId: { workspaceId, userId } },
     });
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+    } catch (err: any) {
     console.error("[MEMBERS] Delete error:", err);
     return NextResponse.json({ error: "Error al eliminar miembro" }, { status: 500 });
-  }
+    }
 }
+
+let RequestSchema = z.object({ userId: z.string().min(1, "Missing userId") });
