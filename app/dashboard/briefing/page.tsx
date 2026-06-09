@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useCallback } from "react";
 import { GridFormData, FileInputData, ContentGridData, Post, VideoDetails } from "./types";
@@ -147,13 +147,9 @@ export default function BriefingPage() {
     setIsLoading(true); setError(null); setGridData(null);
 
     try {
-      // 1. Fetch the secure Gemini API Key from our own token endpoint
-      const tokenRes = await fetch("/api/gridia/token");
-      if (!tokenRes.ok) throw new Error("No se pudo obtener el token de API");
-      const { token } = await tokenRes.json();
-
-      // 2. Fetch directly from Google Gemini API (bypassing Vercel's 4.5MB payload limit)
-      const data = await generateContentGridClient(formData, token);
+      // Calls the server-side proxy at POST /api/gridia.
+      // The Gemini API key is never exposed to the browser.
+      const data = await generateContentGridClient(formData);
       setGridData(data);
     } catch (err: unknown) { setError(err instanceof Error ? err.message : "Error desconocido"); }
     finally { setIsLoading(false); }

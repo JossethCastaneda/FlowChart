@@ -13,8 +13,8 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ComposedChart, Line, PieChart, Pie, Cell, Legend, BarChart, Bar, ReferenceLine
 } from "recharts";
-import DateRangePicker from "@/components/DateRangePicker";
-import { CreativeCard, CreativeLightbox } from "@/components/CreativePreview";
+import DateRangePicker from "@/components/ui/DateRangePicker";
+import { CreativeCard, CreativeLightbox } from "@/components/shared/CreativePreview";
 import { useInsightsStore } from "@/stores/insightsStore";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { ResultsAnalytics } from "@/components/proyectos/ResultsAnalytics";

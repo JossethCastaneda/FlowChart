@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { StatusToggle } from "./StatusToggle";
 import { InlineEditor } from "./InlineEditor";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -443,7 +443,7 @@ export function AdsManagerTable({
     >
       <div
         className="custom-scrollbar"
-        style={{ flex: 1, overflowX: "auto", overflowY: "auto", minHeight: 0, minWidth: 0 }}
+        style={{ flex: 1, overflowX: "auto", overflowY: "auto", minHeight: 0, minWidth: 0, WebkitOverflowScrolling: "touch" }}
       >
         <table
           style={{

@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { publishScheduledPost } from "@/app/workflows/scheduled-posts";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 // GET /api/publisher/posts — list posts for workspace
 export async function GET(req: NextRequest) {
@@ -64,7 +65,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const body = await req.json();
+    const _validate = await validateBody(req, z.object({ content: z.any().optional(), channels: z.any().optional(), mediaUrls: z.any().optional(), scheduledAt: z.any().optional(), status: z.any().optional(), type: z.any().optional(), hashtags: z.any().optional(), projectId: z.any().optional(), pageName: z.any().optional(), pageId: z.any().optional() }));
+          if (!_validate.ok) return _validate.response;
+          const body = _validate.data;
     const {
       content,
       channels,
@@ -111,15 +114,7 @@ export async function POST(req: NextRequest) {
     if (validStatus === "Scheduled" && scheduledAt) {
       // INICIO INTEGRACION WORKFLOW:
       // Programamos el post de manera durable
-      try {
-        await publishScheduledPost({
-          postId: post.id,
-          workspaceId,
-          scheduledAt: new Date(scheduledAt)
-        });
-      } catch (err) {
-        console.error("Error triggering scheduled post workflow:", err);
-      }
+      // (The Vercel cron job handles picking up Scheduled posts and publishing them)
     }
 
     return NextResponse.json({ post }, { status: 201 });

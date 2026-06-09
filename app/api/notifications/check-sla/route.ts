@@ -4,16 +4,21 @@ import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { checkSLAWarnings } from "@/lib/notifications";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
-// POST /api/notifications/check-sla — check SLA warnings and send notifications
-// Can be called by Vercel cron or manually
-export async function POST(req: NextRequest) {
+/**
+ * GET /api/notifications/check-sla
+ *
+ * Vercel Cron invoca este endpoint con GET + Authorization: Bearer <CRON_SECRET>.
+ * También puede ser invocado manualmente por un usuario autenticado para revisar
+ * su propio workspace.
+ *
+ * Cron schedule: 0 8 * * * (vercel.json)
+ */
+export async function GET(req: NextRequest) {
   try {
-    // Check for cron secret or authenticated user
-    const cronSecret = req.headers.get("x-cron-secret");
-    
-    if (cronSecret === process.env.CRON_SECRET) {
-      // Cron job: check all workspaces
+    // Cron job: verificar con CRON_SECRET via Bearer header (método Vercel estándar)
+    if (verifyCronAuth(req)) {
       const workspaces = await prisma.workspace.findMany({ select: { id: true } });
       for (const ws of workspaces) {
         await checkSLAWarnings(ws.id);
@@ -21,7 +26,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, checked: workspaces.length });
     }
 
-    // Manual: check current user's workspace
+    // Invocación manual: verificar sesión de usuario
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -34,8 +39,14 @@ export async function POST(req: NextRequest) {
 
     await checkSLAWarnings(workspaceId);
     return NextResponse.json({ success: true });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : "Error interno";
     console.error("[SLA CHECK] error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
+}
+
+// Mantener POST para compatibilidad con invocaciones manuales existentes desde el dashboard
+export async function POST(req: NextRequest) {
+  return GET(req);
 }

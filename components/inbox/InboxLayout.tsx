@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -240,19 +240,20 @@ export function InboxLayout() {
     return true;
   });
 
-  // Selected must be from filtered list — fallback to first filtered if not found
-  const selected = filtered.find(c => c.id === selectedId) || filtered[0] || null;
+  // Selected must be from filtered list — fallback to first filtered if not found (only on desktop)
+  const isDesktop = typeof window !== "undefined" ? window.innerWidth >= 768 : true;
+  const selected = filtered.find(c => c.id === selectedId) || (isDesktop ? filtered[0] : null) || null;
 
-  // Auto-select first filtered conversation when channelFilter changes
+  // Auto-select first filtered conversation when channelFilter changes (only on desktop)
   useEffect(() => {
-    if (filtered.length > 0 && !filtered.find(c => c.id === selectedId)) {
+    if (isDesktop && filtered.length > 0 && !filtered.find(c => c.id === selectedId)) {
       setSelectedId(filtered[0].id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelFilter, queueFilter]);
 
   const handleSendMessage = (text: string) => {
-    if (!text.trim()) return;
+    if (!text.trim() || !selected) return;
     const newMsg: Message = {
       id: `${selected.id}_${Date.now()}`,
       text: text.trim(),
@@ -269,12 +270,14 @@ export function InboxLayout() {
   };
 
   const handleCloseConversation = () => {
+    if (!selected) return;
     setConversations(prev =>
       prev.map(c => (c.id === selected.id ? { ...c, closed: !c.closed } : c))
     );
   };
 
   const handleAssign = (member: string) => {
+    if (!selected) return;
     setConversations(prev =>
       prev.map(c =>
         c.id === selected.id
@@ -285,7 +288,7 @@ export function InboxLayout() {
   };
 
   const handleAddTag = (tag: string) => {
-    if (!tag.trim()) return;
+    if (!tag.trim() || !selected) return;
     setConversations(prev =>
       prev.map(c =>
         c.id === selected.id && !c.tags.includes(tag.trim())
@@ -296,6 +299,7 @@ export function InboxLayout() {
   };
 
   const handleRemoveTag = (tag: string) => {
+    if (!selected) return;
     setConversations(prev =>
       prev.map(c =>
         c.id === selected.id
@@ -543,23 +547,18 @@ export function InboxLayout() {
         </div>
       )}
 
-      {conversations.length > 0 && !selected && initialFetchDone && (
+      {conversations.length > 0 && filtered.length === 0 && initialFetchDone && (
         <div style={{ padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
           No hay conversaciones en esta vista. Cambia el filtro de cola o canal para revisar otros mensajes.
         </div>
       )}
 
       {/* ─── 3-Panel Layout ─── */}
-      {conversations.length > 0 && selected && (
+      {conversations.length > 0 && filtered.length > 0 && (
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
 
         {/* ═══ LEFT — Conversation List ═══ */}
-        <div style={{
-          width: 300, minWidth: 300,
-          display: "flex", flexDirection: "column",
-          borderRight: "1px solid rgba(255,255,255,0.06)",
-          background: "rgba(255,255,255,0.03)",
-        }}>
+        <div className={`w-full md:w-[300px] md:min-w-[300px] flex-col border-r border-white/5 bg-white/5 ${selected ? 'hidden md:flex' : 'flex'}`}>
           {/* Page Selector */}
           {connectedPages.length > 0 && (
             <div style={{ padding: "10px 12px 6px", borderBottom: "1px solid rgba(255,255,255,0.09)" }}>
@@ -727,10 +726,7 @@ export function InboxLayout() {
         </div>
 
         {/* ═══ CENTER — Chat View / Post View ═══ */}
-        <div style={{
-          flex: 1, display: "flex", flexDirection: "column",
-          minWidth: 0, background: "rgba(5,8,18,0.5)",
-        }}>
+        <div className={`flex-1 flex-col min-w-0 bg-[#05081280] ${selected ? 'flex' : 'hidden md:flex'}`}>
           <ErrorBoundary
             name="InboxConversation"
             fallback={
@@ -742,8 +738,13 @@ export function InboxLayout() {
               </div>
             }
           >
-            {selected.platform === "fb_comment" || selected.platform === "ig_comment" || selected.platform === "instagram_comment" ? (
-              <PostView conversation={selected} />
+            {!selected ? (
+              <div className="hidden md:flex flex-col flex-1 items-center justify-center gap-3 p-10 text-center">
+                <MessageSquare className="w-8 h-8 text-slate-500" />
+                <p className="text-sm text-slate-400">Selecciona una conversación para ver los detalles</p>
+              </div>
+            ) : selected.platform === "fb_comment" || selected.platform === "ig_comment" || selected.platform === "instagram_comment" ? (
+              <PostView conversation={selected} onBack={() => setSelectedId("")} />
             ) : (
               <ChatView
                 conversation={selected}
@@ -751,20 +752,15 @@ export function InboxLayout() {
                 onClose={handleCloseConversation}
                 onToggleProfile={toggleProfile}
                 showProfile={showProfile}
+                onBack={() => setSelectedId("")}
               />
             )}
           </ErrorBoundary>
         </div>
 
         {/* ═══ RIGHT — Contact Profile ═══ */}
-        {showProfile && (
-          <div style={{
-            width: 280, minWidth: 280,
-            display: "flex", flexDirection: "column",
-            borderLeft: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(255,255,255,0.03)",
-            overflow: "hidden",
-          }}>
+        {showProfile && selected && (
+          <div className="absolute inset-y-0 right-0 z-20 w-[280px] md:static md:w-[280px] md:min-w-[280px] bg-[#0A0E17] md:bg-white/5 border-l border-white/5 shadow-2xl md:shadow-none flex flex-col" style={{ overflow: "hidden" }}>
             <ContactProfile
               conversation={selected}
               onAssign={handleAssign}

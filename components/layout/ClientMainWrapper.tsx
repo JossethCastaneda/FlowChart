@@ -6,6 +6,7 @@ import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { SodareLogo } from "@/components/ui/SodareLogo";
 import { NotificationBell } from "@/components/ui/NotificationBell";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -273,7 +274,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {/* ─── Main Content ─── */}
       <main className="flex-1 flex flex-col min-w-0 relative z-[1]">
         {/* Mobile header */}
-        <header className="lg:hidden flex items-center justify-between px-5 py-4"
+        <header className="lg:hidden flex items-center justify-between px-5 py-4 z-10"
           style={{
             background: "rgba(5,8,18,0.9)",
             backdropFilter: "blur(20px)",
@@ -285,11 +286,11 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <NotificationBell />
-            <button onClick={() => setSidebarOpen(true)} className="text-slate-400 hover:text-white">
-              <Menu className="w-5 h-5" />
-            </button>
           </div>
         </header>
+
+        {/* Mobile Bottom Navigation */}
+        <MobileBottomNav onOpenMenu={() => setSidebarOpen(true)} />
 
         {/* Desktop top bar */}
         <div className="hidden lg:flex items-center justify-end px-4 py-2" style={{
@@ -301,7 +302,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Page content */}
-        <div className="flex-1 overflow-y-auto" style={{ display: "flex", flexDirection: "column" }}>
+        <div className="flex-1 overflow-y-auto pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" style={{ display: "flex", flexDirection: "column" }}>
           <div className="page-content page-enter" key={pathname} style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
             {children}
           </div>

@@ -4,6 +4,8 @@ import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 interface Params { params: Promise<{ id: string }> }
 
@@ -70,7 +72,9 @@ export async function PUT(req: NextRequest, { params }: Params) {
       );
     }
 
-    const body = await req.json();
+    const _validate = await validateBody(req, z.any());
+          if (!_validate.ok) return _validate.response;
+          const body = _validate.data;
     const updateData: any = {};
 
     if (body.content !== undefined) updateData.content = body.content;

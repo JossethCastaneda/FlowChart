@@ -1,14 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { sendAlertEmail } from "@/lib/email";
 import { getBaseUrl } from "@/lib/get-base-url";
+import { decryptToken } from "@/lib/encryption";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 // Vercel Cron: called at 9:00, 12:00, 16:00, 18:00 CST (15:00, 18:00, 22:00, 00:00 UTC)
-// Authorization via CRON_SECRET
-export async function GET(req: Request) {
-  // Verify cron secret (required in ALL environments to avoid accidental triggers)
-  const authHeader = req.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+// Authorization via CRON_SECRET (Bearer header — Vercel standard)
+export async function GET(req: NextRequest) {
+  if (!verifyCronAuth(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -59,8 +59,16 @@ export async function GET(req: Request) {
           },
         });
 
-        const token = (integration?.credentials as any)?.accessToken;
-        if (!token) continue;
+        // Decrypt the stored token — credentials are encrypted at rest with AES-256-GCM.
+        // Without decryptToken() the raw "enc:..." string would be sent to Meta, which
+        // causes a silent auth failure on every Graph API call.
+        const rawToken = (integration?.credentials as any)?.accessToken;
+        if (!rawToken) continue;
+        const token = decryptToken(rawToken);
+        if (!token || token.startsWith("enc:")) {
+          console.error(`[ALERTS] Failed to decrypt token for workspace ${project.workspaceId}`);
+          continue;
+        }
 
         // FIX: use Bearer Authorization header — NEVER put token in URL
         const adAccountId = cfg.adAccounts[0].startsWith("act_")

@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { publishInstagramVideo } from "@/app/workflows/instagram";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 const META_VERSION = process.env.META_API_VERSION || "v25.0";
 
@@ -371,14 +372,8 @@ export async function POST(req: NextRequest) {
                   // El workflow espera hasta que Meta lo procese y lo publica.
                   // Retornamos INMEDIATAMENTE — el workflow se ejecuta en background.
                   try {
-                    await publishInstagramVideo({
-                      postId,
-                      containerId: containerData.id,   // ← Container YA creado
-                      igUserId,
-                      pageToken,
-                      pageName: targetPage.name,
-                      pageId: targetPage.id,
-                    });
+                    // TODO: Implement background polling for Instagram Videos since Upstash was removed
+
 
                     // Actualizar FB si se publicó también ahí
                     if (Object.keys(externalIds).length > 0) {

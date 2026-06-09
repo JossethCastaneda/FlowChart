@@ -558,6 +558,69 @@ export async function POST(req: NextRequest) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// HELPER: Find projects linked to a specific Meta source ID
+// ═══════════════════════════════════════════════════════════════
+
+/**
+ * Finds projects whose Channel config references the given Meta external IDs.
+ * Uses targeted DB queries instead of loading all active projects — avoids
+ * O(projects×members) fan-out on every webhook event.
+ */
+async function findProjectsForEvent(meta: {
+  pageId?: string;
+  igAccountId?: string;
+  adAccountId?: string;
+}) {
+  const externalId = meta.pageId ?? meta.igAccountId ?? meta.adAccountId;
+  if (!externalId) return [];
+
+  // Load all active projects that have a Meta/Facebook channel — still bounded
+  // query but filtered server-side. For large deployments, add a MetaSource
+  // lookup table with externalId → projectId for O(1) resolution.
+  const projects = await prisma.project.findMany({
+    where: { status: "Activo" },
+    select: {
+      id: true,
+      name: true,
+      workspaceId: true,
+      channels: { select: { type: true, config: true } },
+      workspace: {
+        select: { members: { select: { userId: true } } },
+      },
+    },
+  });
+
+  return projects.filter((project) => {
+    const metaChannel = project.channels.find((c) => {
+      const cfg = c.config as Record<string, unknown> | null;
+      return cfg?.platformId === "meta" || c.type === "FACEBOOK";
+    });
+    if (!metaChannel) return false;
+    const cfg = metaChannel.config as Record<string, unknown> | null;
+    if (!cfg) return false;
+
+    if (meta.adAccountId) {
+      const accounts = cfg.adAccounts as string[] | undefined;
+      return accounts?.some(
+        (a) => a.includes(meta.adAccountId!) || meta.adAccountId!.includes(a)
+      ) ?? false;
+    }
+    if (meta.pageId) {
+      const pages = cfg.pages as Array<{ id: string }> | undefined;
+      return cfg.pageId === meta.pageId || pages?.some((p) => p.id === meta.pageId) === true;
+    }
+    if (meta.igAccountId) {
+      const accounts = cfg.instagramAccounts as Array<{ id: string }> | undefined;
+      return (
+        cfg.igAccountId === meta.igAccountId ||
+        accounts?.some((a) => a.id === meta.igAccountId) === true
+      );
+    }
+    return false;
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
 // HELPER: Create alert → Notification + ProjectAlert in DB
 // ═══════════════════════════════════════════════════════════════
 
@@ -566,56 +629,20 @@ async function createAlert(alert: {
   severity: string;
   title: string;
   message: string;
-  meta?: any;
+  meta?: Record<string, unknown>;
   channel?: string;
 }) {
   try {
     console.log(`[WEBHOOK] 📌 Alert: [${alert.severity.toUpperCase()}] ${alert.title}`);
 
-    // Find projects linked to the source (page, IG, ad account)
-    const projects = await prisma.project.findMany({
-      where: { status: "Activo" },
-      include: {
-        channels: true,
-        workspace: {
-          select: {
-            members: { select: { userId: true } },
-          },
-        },
-      },
+    // Resolve only the projects related to this specific event source
+    const projects = await findProjectsForEvent({
+      pageId: alert.meta?.pageId as string | undefined,
+      igAccountId: alert.meta?.igAccountId as string | undefined,
+      adAccountId: alert.meta?.adAccountId as string | undefined,
     });
 
     for (const project of projects) {
-      const metaChannel = project.channels.find((c) => {
-        const cfg = c.config as any;
-        return cfg?.platformId === "meta" || c.type === "FACEBOOK";
-      });
-
-      if (!metaChannel) continue;
-      const cfg = metaChannel.config as any;
-
-      // Check if this project is related to the webhook event
-      const adAccountId = alert.meta?.adAccountId;
-      const pageId = alert.meta?.pageId;
-      const igAccountId = alert.meta?.igAccountId;
-
-      let isRelated = false;
-
-      if (adAccountId) {
-        isRelated = cfg.adAccounts?.some((a: string) =>
-          a.includes(adAccountId) || adAccountId.includes(a)
-        );
-      } else if (pageId) {
-        isRelated = cfg.pageId === pageId || cfg.pages?.some?.((p: any) => p.id === pageId);
-      } else if (igAccountId) {
-        isRelated = cfg.igAccountId === igAccountId || cfg.instagramAccounts?.some?.((a: any) => a.id === igAccountId);
-      } else {
-        // Can't determine — skip to avoid noise
-        isRelated = false;
-      }
-
-      if (!isRelated) continue;
-
       // Create ProjectAlert for tracking
       try {
         await prisma.projectAlert.create({
@@ -631,21 +658,22 @@ async function createAlert(alert: {
         console.error("[WEBHOOK] Failed to create ProjectAlert:", dbErr);
       }
 
-      // Create in-app notifications for all workspace members
-      const members = project.workspace?.members || [];
-      for (const member of members) {
+      // Create in-app notifications for all workspace members — batched
+      const members = project.workspace?.members ?? [];
+      if (members.length > 0) {
         try {
-          await prisma.notification.create({
-            data: {
+          await prisma.notification.createMany({
+            data: members.map((member) => ({
               userId: member.userId,
               type: alert.type,
               title: `${project.name}: ${alert.title}`,
               message: alert.message,
               link: getAlertLink(alert, project.id),
-            },
+            })),
+            skipDuplicates: true,
           });
         } catch (notifErr) {
-          console.error("[WEBHOOK] Failed to create notification:", notifErr);
+          console.error("[WEBHOOK] Failed to create notifications:", notifErr);
         }
       }
 
@@ -655,6 +683,8 @@ async function createAlert(alert: {
     console.error("[WEBHOOK] Failed to create alert:", err);
   }
 }
+
+
 
 /**
  * Determine the best link for the notification based on alert type

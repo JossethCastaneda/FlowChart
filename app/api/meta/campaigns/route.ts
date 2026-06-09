@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 export async function GET(req: NextRequest) {
   // Token with multi-module fallback
@@ -140,7 +142,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const body = await req.json();
+    const _validate = await validateBody(req, z.object({ campaignId: z.any().optional(), status: z.any().optional(), name: z.any().optional(), daily_budget: z.any().optional(), lifetime_budget: z.any().optional(), bid_strategy: z.any().optional(), special_ad_categories: z.any().optional(), confirmed_by_user: z.any().optional() }));
+          if (!_validate.ok) return _validate.response;
+          const body = _validate.data;
     const { campaignId, status, name, daily_budget, lifetime_budget, bid_strategy, special_ad_categories, confirmed_by_user } = body;
     
     if (confirmed_by_user !== true) {

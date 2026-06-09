@@ -4,6 +4,8 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 import { decryptToken } from "@/lib/encryption";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -40,7 +42,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
+    const _validate = await validateBody(req, z.object({ mediaId: z.any().optional(), comment: z.any().optional(), pageToken: z.any().optional() }));
+          if (!_validate.ok) return _validate.response;
+          const body = _validate.data;
     const { mediaId, comment, pageToken: encryptedPageToken } = body;
 
     if (!mediaId || !comment) {

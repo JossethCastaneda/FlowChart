@@ -1,17 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
-import { GoogleGenAI, Type } from "@google/genai";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
+import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { rateLimit, getClientIP } from "@/lib/ratelimit";
+import { z } from "zod";
 
-/* ═══ TYPES ═══ */
-interface FileInputData { mimeType: string; data: string; }
-interface GridFormData {
-  client: string; brandFiles: FileInputData[]; offer: string;
-  month: string; postCount: number; focus: string[];
-  formats: string; comments?: string;
-}
+/**
+ * POST /api/gridia
+ *
+ * Server-side proxy for Google Gemini API (GridIA feature).
+ * The GEMINI_API_KEY NEVER leaves the server. The client only
+ * sends form data; this route builds the prompt and calls Gemini.
+ *
+ * Security:
+ * - Requires authenticated session
+ * - Requires active workspace membership
+ * - Rate limited to 10 requests per minute per user
+ * - Input validated with Zod
+ */
 
-/* ═══ CONSTANTS ═══ */
 const VIDEO_AI_TOOLS = [
   { name: "Seedance 1.0 Pro", credits: 250 },
   { name: "Seedance 1.0 Lite", credits: 200 },
@@ -33,43 +40,61 @@ const VIDEO_AI_TOOLS = [
   { name: "PixVerse 4.5", credits: 825 },
 ];
 
-/* ═══ SCHEMA ═══ */
-const schema = {
-  type: Type.OBJECT,
+export const GRID_SCHEMA = {
+  type: "OBJECT",
   properties: {
     posts: {
-      type: Type.ARRAY,
+      type: "ARRAY",
       items: {
-        type: Type.OBJECT,
+        type: "OBJECT",
         properties: {
-          dia: { type: Type.INTEGER, description: "Day of the month for posting." },
-          ideaPrincipal: { type: Type.STRING },
-          enfoquePublicacion: { type: Type.STRING, description: "Inbound Marketing Stage (Attract, Convert, Close, Delight)." },
-          copyIn: { type: Type.STRING, description: "Short, impactful headline. Maximum 5 words. MUST NOT contain the brand name." },
-          copyOut: { type: Type.STRING, description: "Main body text. Maximum 2 paragraphs. MUST NOT contain the brand name." },
-          explicacionArte: { type: Type.STRING },
-          formatoArte: { type: Type.STRING, enum: ["Imagen", "Video"] },
-          masterPromptMidjourney: { type: Type.STRING },
+          dia: { type: "INTEGER", description: "Day of the month for posting." },
+          ideaPrincipal: { type: "STRING" },
+          enfoquePublicacion: {
+            type: "STRING",
+            description: "Inbound Marketing Stage (Attract, Convert, Close, Delight).",
+          },
+          copyIn: {
+            type: "STRING",
+            description: "Short, impactful headline. Maximum 5 words. MUST NOT contain the brand name.",
+          },
+          copyOut: {
+            type: "STRING",
+            description: "Main body text. Maximum 2 paragraphs. MUST NOT contain the brand name.",
+          },
+          explicacionArte: { type: "STRING" },
+          formatoArte: { type: "STRING", enum: ["Imagen", "Video"] },
+          masterPromptMidjourney: { type: "STRING" },
           videoDetails: {
-            type: Type.OBJECT,
+            type: "OBJECT",
             properties: {
-              numEscenas: { type: Type.INTEGER },
-              videoAITool: { type: Type.STRING },
-              promptsEscenasMidjourney: { type: Type.ARRAY, items: { type: Type.STRING } },
-              promptsVideoAI: { type: Type.ARRAY, items: { type: Type.STRING } },
+              numEscenas: { type: "INTEGER" },
+              videoAITool: { type: "STRING" },
+              promptsEscenasMidjourney: { type: "ARRAY", items: { type: "STRING" } },
+              promptsVideoAI: { type: "ARRAY", items: { type: "STRING" } },
             },
           },
-          pasoAPaso: { type: Type.STRING },
+          pasoAPaso: { type: "STRING" },
         },
-        required: ["dia", "ideaPrincipal", "enfoquePublicacion", "copyIn", "copyOut", "explicacionArte", "formatoArte", "masterPromptMidjourney", "pasoAPaso"],
+        required: [
+          "dia",
+          "ideaPrincipal",
+          "enfoquePublicacion",
+          "copyIn",
+          "copyOut",
+          "explicacionArte",
+          "formatoArte",
+          "masterPromptMidjourney",
+          "pasoAPaso",
+        ],
       },
     },
     creditos: {
-      type: Type.OBJECT,
+      type: "OBJECT",
       properties: {
-        min: { type: Type.INTEGER },
-        max: { type: Type.INTEGER },
-        summary: { type: Type.STRING },
+        min: { type: "INTEGER" },
+        max: { type: "INTEGER" },
+        summary: { type: "STRING" },
       },
       required: ["min", "max", "summary"],
     },
@@ -77,11 +102,25 @@ const schema = {
   required: ["posts", "creditos"],
 };
 
-/* ═══ PROMPT BUILDER ═══ */
-function buildPromptParts(formData: GridFormData) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const parts: any[] = [];
+const BrandFileSchema = z.object({
+  mimeType: z.string(),
+  data: z.string(),
+});
 
+const BodySchema = z.object({
+  client: z.string().trim().min(1).max(200),
+  offer: z.string().trim().min(1).max(2000),
+  month: z.string().trim().min(1).max(50),
+  postCount: z.number().int().min(1).max(60),
+  focus: z.array(z.string().max(100)).max(20),
+  formats: z.string().trim().max(200),
+  comments: z.string().max(5000).optional(),
+  brandFiles: z.array(BrandFileSchema).max(5).default([]),
+});
+
+type GridFormData = z.infer<typeof BodySchema>;
+
+function buildGridPrompt(formData: GridFormData): string {
   let brandGuidelines = `
 - **Client Name:** ${formData.client}
 - **Brand Scouting:** Based on the client name, perform a brief online scouting of the brand to understand its core business, audience, and current voice.
@@ -93,7 +132,7 @@ function buildPromptParts(formData: GridFormData) {
     brandGuidelines += `\n- **Default Bait Brand Voice & Tone:** Modern, accessible, friendly, and empowering. It avoids technical jargon. The tone is optimistic, energetic, and focuses on the value of staying connected without breaking the bank. It's for everyone, from students to entrepreneurs. Key themes are freedom, possibility, and smart savings.`;
   }
 
-  const promptText = `
+  return `
 You are a world-class Content Grid Architect named 'GridIA'. Your expertise spans Marketing, Communication, Advertising, Journalism, and Digital Media. You specialize in creating omnichannel content strategies for Facebook, Instagram, TikTok, and LinkedIn, with a sharp focus on performance, brand safety, and Inbound Marketing. You are a master of SEO, Content Strategy, creative for Paid Media, and applying AI (Gemini-first) for content generation. Your process is meticulous, translating business objectives into content pillars, ideating from outlines to A/B test variants, and creating detailed briefs for designers and video editors.
 
 Your task is to generate a complete, professional content grid based on the following parameters. You MUST analyze any provided files (brandbook, voice/tone manual) to ensure the output is perfectly aligned with the client's brand.
@@ -133,59 +172,100 @@ For each post:
 
 Your output must be professional, strategic, and ready for a high-performance marketing team to execute.
 `;
-  parts.push({ text: promptText });
-
-  formData.brandFiles.forEach((file) => {
-    parts.push({ inlineData: { mimeType: file.mimeType, data: file.data } });
-  });
-
-  return parts;
 }
 
-/* ═══ API HANDLER ═══ */
 export async function POST(req: NextRequest) {
+  // 1. Auth check
+  const session = await getServerSession(authOptions);
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
+  }
+
+  // 2. Workspace membership check
+  const workspaceId = await getActiveWorkspaceId(session.user.id);
+  if (!workspaceId) {
+    return NextResponse.json({ error: "Sin workspace activo" }, { status: 400 });
+  }
+
+  // 3. Rate limit — 10 requests per minute per user
+  const ip = getClientIP(req);
+  const { ok } = rateLimit(`gridia:${session.user.id}:${ip}`, 10, 60_000);
+  if (!ok) {
+    return NextResponse.json({ error: "Demasiadas solicitudes. Intenta en un momento." }, { status: 429 });
+  }
+
+  // 4. Validate input
+  let rawBody: unknown;
   try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    rawBody = await req.json();
+  } catch {
+    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+  }
+  const parsed = BodySchema.safeParse(rawBody);
+  if (!parsed.success) {
+    const msg = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
+    return NextResponse.json({ error: `Datos inválidos: ${msg}` }, { status: 422 });
+  }
 
-    const apiKey = process.env.GEMINI_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: "GEMINI_API_KEY not configured" }, { status: 500 });
-    }
+  // 5. API key — stays server-side only
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    console.error("[GridIA] GEMINI_API_KEY not configured");
+    return NextResponse.json({ error: "IA no configurada en el servidor" }, { status: 500 });
+  }
 
-    const body = (await req.json()) as GridFormData;
-    if (!body.client || !body.month || !body.postCount || body.postCount < 1 || body.postCount > 60) {
-      return NextResponse.json({ error: "Invalid input: client, month, postCount (1-60) required" }, { status: 400 });
-    }
-    if (body.brandFiles && body.brandFiles.length > 5) {
-      return NextResponse.json({ error: "Maximum 5 brand files allowed" }, { status: 400 });
-    }
-    const ai = new GoogleGenAI({ apiKey });
-    const contentParts = buildPromptParts(body);
+  // 6. Build request to Gemini
+  const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [
+    { text: buildGridPrompt(parsed.data) },
+  ];
+  for (const file of parsed.data.brandFiles) {
+    parts.push({ inlineData: { mimeType: file.mimeType, data: file.data } });
+  }
 
-    const response = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: { parts: contentParts },
-      config: {
-        responseMimeType: "application/json",
-        responseSchema: schema,
-        temperature: 0.7,
-      },
-    });
+  const geminiBody = {
+    contents: [{ parts }],
+    generationConfig: {
+      temperature: 0.7,
+      responseMimeType: "application/json",
+      responseSchema: GRID_SCHEMA,
+    },
+  };
 
-    const jsonText = (response.text ?? "").trim();
-    const parsedData = JSON.parse(jsonText);
+  // 7. Call Gemini — server to server, key never exposed to client
+  let geminiRes: Response;
+  try {
+    geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(geminiBody),
+      }
+    );
+  } catch (err) {
+    console.error("[GridIA] Network error calling Gemini:", err);
+    return NextResponse.json({ error: "Error de conexión con el servicio de IA" }, { status: 502 });
+  }
 
-    if (!parsedData.posts || !parsedData.creditos) {
-      return NextResponse.json({ error: "Invalid JSON structure from Gemini" }, { status: 500 });
-    }
+  if (!geminiRes.ok) {
+    const errData = await geminiRes.json().catch(() => ({}));
+    console.error("[GridIA] Gemini API error:", errData?.error?.message || geminiRes.status);
+    return NextResponse.json({ error: "Error del servicio de IA. Intenta de nuevo." }, { status: 502 });
+  }
 
-    return NextResponse.json(parsedData);
-  } catch (err: unknown) {
-    console.error("GridIA API error:", err);
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+  const geminiData = await geminiRes.json();
+  const jsonText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!jsonText) {
+    console.error("[GridIA] Empty response from Gemini");
+    return NextResponse.json({ error: "Respuesta inválida del servicio de IA" }, { status: 502 });
+  }
+
+  try {
+    const result = JSON.parse(jsonText);
+    return NextResponse.json(result);
+  } catch {
+    console.error("[GridIA] Failed to parse Gemini JSON response");
+    return NextResponse.json({ error: "Respuesta de IA con formato inválido" }, { status: 502 });
   }
 }

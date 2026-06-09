@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import "@/styles/animations.css";
@@ -9,6 +9,15 @@ import { ToastContainer } from "@/components/ui/Toast";
 import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+
+export const viewport: Viewport = {
+  themeColor: "#050812",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
+};
 
 export const metadata: Metadata = {
   title: "Sodare — Inteligencia Multicanal",

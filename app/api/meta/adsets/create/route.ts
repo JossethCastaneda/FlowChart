@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 /**
  * POST /api/meta/adsets/create — create a NEW ad set under a campaign.
@@ -23,7 +25,9 @@ export async function POST(req: NextRequest) {
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const body = await req.json();
+    const _validate = await validateBody(req, z.object({ adAccountId: z.any().optional(), campaignId: z.any().optional(), objective: z.any().optional(), name: z.any().optional(), dailyBudget: z.any().optional(), countries: z.any().optional(), ageMin: z.any().optional(), ageMax: z.any().optional(), genders: z.any().optional(), confirmed_by_user: z.any().optional() }));
+          if (!_validate.ok) return _validate.response;
+          const body = _validate.data;
     let { adAccountId } = body;
     const { campaignId, objective, name, dailyBudget, countries, ageMin, ageMax, genders, confirmed_by_user } = body;
 

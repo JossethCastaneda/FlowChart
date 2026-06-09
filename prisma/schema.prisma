@@ -571,3 +571,21 @@ model StreamColumn {
   @@index([boardId])
 }
 
+// ------------------------------------------------------
+// META DATA DELETION REQUESTS (GDPR compliance)
+// ------------------------------------------------------
+// Tracks user data deletion requests received via Meta's
+// Data Deletion Callback. Each request must be acknowledged
+// and the data deleted asynchronously.
+
+model DataDeletionRequest {
+  id               String   @id @default(cuid())
+  confirmationCode String   @unique @default(cuid())
+  metaUserId       String   // Facebook user_id from signed_request
+  status           String   @default("pending") // pending | processing | completed | failed
+  requestedAt      DateTime @default(now())
+  completedAt      DateTime?
+
+  @@index([metaUserId])
+  @@index([status])
+}

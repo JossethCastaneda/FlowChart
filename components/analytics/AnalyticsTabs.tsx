@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Eye, Heart, Users, BarChart2, ArrowUpRight, ArrowDownRight, MessageCircle, Share2, Grid3X3, List, ChevronUp, ChevronDown, Camera, ThumbsUp, Clock, UserPlus, Activity, Info, Play, Bookmark, Film, Star, Loader2, Check } from "lucide-react";
 import { seededRand, generateHeatmap, ChannelIcons, TABS, Tab, Kpi, EMPTY_KPI, AUDIENCE_DEVICE, DAYS, HOURS } from "./shared";
 
@@ -26,7 +27,12 @@ export function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any
             : "Señal débil. El Imperio está ganando terreno.";
     const scoreColor = overall >= 80 ? "#06d6a0" : overall >= 60 ? "#00d4ff" : overall >= 40 ? "#f59e0b" : "#e2445c";
     return (
-    <div className="space-y-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ staggerChildren: 0.1, duration: 0.3 }}
+      className="space-y-6"
+    >
       {/* Social Performance Score */}
       <div className="glass-panel" style={{ padding: 0 }}>
         <div className="section-header">
@@ -194,7 +200,7 @@ export function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any
           ))}
         </div>
       </div>
-    </div>
+    </motion.div>
     );
 }
 

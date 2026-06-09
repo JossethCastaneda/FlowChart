@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 // POST — Update a rule
 export async function POST(req: NextRequest, { params }: { params: Promise<{ ruleId: string }> }) {
@@ -11,7 +13,9 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ rul
   const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0";
 
   try {
-    const body = await req.json();
+    const _validate = await validateBody(req, z.any());
+          if (!_validate.ok) return _validate.response;
+          const body = _validate.data;
     const url = `https://graph.facebook.com/${version}/${ruleId}`;
     const res = await metaFetch(url, token, {
       method: "POST",

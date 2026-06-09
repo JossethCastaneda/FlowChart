@@ -1,4 +1,4 @@
-import { Search, Send, X, ChevronRight, ChevronDown, ChevronUp, UserPlus, Tag, Clock, MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark, CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Plus, Filter, Heart, Share2 } from "lucide-react";
+import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, UserPlus, Tag, Clock, MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark, CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Plus, Filter, Heart, Share2 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message, PostComment, PostData, Conversation, ConnectedPage, Platform, ChannelFilter, QueueFilter } from "./types";
@@ -242,7 +242,7 @@ export function PageSelector({
     );
 }
 
-export function PostView({ conversation }: { conversation: Conversation }) {
+export function PostView({ conversation, onBack }: { conversation: Conversation; onBack?: () => void }) {
     const postData = (conversation as any)?._postData as PostData | null;
     const pc = getPlatformConfig(conversation.platform);
     if (!postData) {
@@ -262,6 +262,11 @@ export function PostView({ conversation }: { conversation: Conversation }) {
         borderBottom: "1px solid rgba(255,255,255,0.06)",
         display: "flex", alignItems: "center", gap: 10,
       }}>
+        {onBack && (
+          <button onClick={onBack} className="md:hidden text-slate-400 hover:text-white mr-2">
+            <ChevronLeft style={{ width: 20, height: 20 }} />
+          </button>
+        )}
         <div style={{
           width: 32, height: 32, borderRadius: "50%",
           background: pc.color, display: "flex", alignItems: "center", justifyContent: "center",
@@ -430,12 +435,14 @@ export function ChatView({
       onClose,
       onToggleProfile,
       showProfile,
+      onBack,
     }: {
           conversation: Conversation;
           onSend: (text: string) => void;
           onClose: () => void;
           onToggleProfile: () => void;
           showProfile: boolean;
+          onBack?: () => void;
         }) {
     const [input, setInput] = useState("");
     const [showReplies, setShowReplies] = useState(false);
@@ -468,6 +475,11 @@ export function ChatView({
         flexShrink: 0, background: "rgba(255,255,255,0.015)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          {onBack && (
+            <button onClick={onBack} className="md:hidden text-slate-400 hover:text-white mr-1">
+              <ChevronLeft style={{ width: 20, height: 20 }} />
+            </button>
+          )}
           {/* Avatar */}
           <div style={{
             width: 36, height: 36, borderRadius: "50%",

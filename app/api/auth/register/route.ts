@@ -34,19 +34,19 @@ export async function POST(req: NextRequest) {
     });
 
     if (existing) {
-      if (existing.password) {
-        // Already has password → don't allow re-registration
-        return NextResponse.json(
-          { error: "Este email ya está registrado" },
-          { status: 409 }
-        );
-      }
-      // Exists but without password (OAuth or invite) → set password
-      const hashedPassword = await bcrypt.hash(password, 12);
-      await prisma.user.update({
-        where: { id: existing.id },
-        data: { password: hashedPassword, name },
-      });
+      // Account already exists (with or without password).
+      // We NEVER allow setting a password on an existing account via /register
+      // without email verification — doing so would allow an attacker to
+      // pre-takeover OAuth/invite accounts by knowing only the email address.
+      // Both branches return 409 with the same message to avoid enumeration.
+      return NextResponse.json(
+        {
+          error:
+            "Este email ya está registrado. Si accediste con Google o Facebook, " +
+            "inicia sesión con ese método o usa '¿Olvidaste tu contraseña?' para establecer una contraseña.",
+        },
+        { status: 409 }
+      );
     } else {
       // New user
       const hashedPassword = await bcrypt.hash(password, 12);

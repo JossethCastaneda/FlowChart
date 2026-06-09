@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 const RULE_FIELDS = "name,status,evaluation_spec,execution_spec,schedule_spec,entity_type,filter_spec";
 
@@ -39,7 +41,9 @@ export async function POST(req: NextRequest) {
   const version = META_API_VERSION;
 
   try {
-    const body = await req.json();
+    const _validate = await validateBody(req, z.object({ adAccountId: z.any().optional(), name: z.any().optional(), evaluation_spec: z.any().optional(), execution_spec: z.any().optional(), schedule_spec: z.any().optional(), entity_type: z.any().optional(), filter_spec: z.any().optional() }));
+          if (!_validate.ok) return _validate.response;
+          const body = _validate.data;
     const { adAccountId, name, evaluation_spec, execution_spec, schedule_spec, entity_type, filter_spec } = body;
 
     if (!adAccountId || !name) {

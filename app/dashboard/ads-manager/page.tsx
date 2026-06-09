@@ -5,7 +5,7 @@ import { useSession as useSessionHook } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, ChevronDown, CheckCircle, AlertTriangle } from "lucide-react";
-import DateRangePicker from "@/components/DateRangePicker";
+import DateRangePicker from "@/components/ui/DateRangePicker";
 import { AccountSelector } from "@/components/ads-manager/AccountSelector";
 import { CreateCampaignModal } from "@/components/ads-manager/CreateCampaignModal";
 import { CreateAdSetModal } from "@/components/ads-manager/CreateAdSetModal";

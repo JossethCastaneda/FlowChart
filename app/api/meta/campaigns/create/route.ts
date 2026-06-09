@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
+import { z } from "zod";
+import { validateBody } from "@/lib/validate";
 
 /**
  * POST /api/meta/campaigns/create — create a NEW campaign.
@@ -31,7 +33,9 @@ export async function POST(req: NextRequest) {
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const body = await req.json();
+    const _validate = await validateBody(req, z.object({ adAccountId: z.any().optional(), name: z.any().optional(), objective: z.any().optional(), special_ad_categories: z.any().optional(), buying_type: z.any().optional(), daily_budget: z.any().optional(), lifetime_budget: z.any().optional(), bid_strategy: z.any().optional(), confirmed_by_user: z.any().optional() }));
+          if (!_validate.ok) return _validate.response;
+          const body = _validate.data;
     let { adAccountId } = body;
     const { name, objective, special_ad_categories, buying_type, daily_budget, lifetime_budget, bid_strategy, confirmed_by_user } = body;
 
