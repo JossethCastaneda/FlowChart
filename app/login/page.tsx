@@ -43,6 +43,29 @@ export default function LoginPage() {
   useEffect(() => {
     let isActive = true;
 
+    // Detect OAuth errors from NextAuth redirect (e.g., ?error=OAuthCallback)
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const oauthError = params.get("error");
+      if (oauthError) {
+        const errorMessages: Record<string, string> = {
+          OAuthCallback: "Error al conectar con el proveedor. Verifica que las credenciales estén correctas.",
+          OAuthSignin: "No se pudo iniciar la autenticación con el proveedor.",
+          OAuthAccountNotLinked: "Este email ya está vinculado a otro método de inicio de sesión.",
+          AccessDenied: "Acceso denegado. No tienes permisos para acceder.",
+          Verification: "El enlace de verificación ha expirado o ya fue utilizado.",
+          Configuration: "Error de configuración del servidor de autenticación.",
+          Default: `Error de autenticación: ${oauthError}`,
+        };
+        setStatus({
+          type: "error",
+          message: errorMessages[oauthError] || errorMessages.Default,
+        });
+        // Clean the URL to avoid showing the error on refresh
+        window.history.replaceState({}, "", "/login");
+      }
+    }
+
     async function loadProviders() {
       try {
         const res = await fetch("/api/auth/providers");
