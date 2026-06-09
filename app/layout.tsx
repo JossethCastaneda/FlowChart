@@ -5,8 +5,12 @@ import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
 import { AuthProvider } from "@/components/layout/AuthProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { ToastContainer } from "@/components/ui/Toast";
 import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
+
+const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
+const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -38,6 +42,8 @@ export default function RootLayout({
           <ConfirmModalContainer />
         </AuthProvider>
         <SpeedInsights />
+        {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
+        {GA4_ID && <GoogleAnalytics gaId={GA4_ID} />}
       </body>
     </html>
   );
