@@ -14,20 +14,20 @@ export async function GET() {
       const res = await fetch(`https://graph.facebook.com/v19.0/oauth/access_token?client_id=${clientId}&client_secret=${clientSecret}&grant_type=client_credentials`);
       const data = await res.json();
       if (res.ok && data.access_token) {
-        secretStatus = "? V�LIDO (ID y Secret coinciden)";
+        secretStatus = "✅ VÁLIDO (ID y Secret coinciden)";
       } else {
-        secretStatus = "? INV�LIDO";
+        secretStatus = "❌ INVÁLIDO";
         metaError = data.error?.message || JSON.stringify(data);
       }
     } else {
-      secretStatus = "?? Faltan variables (ID o Secret)";
+      secretStatus = "⚠️ Faltan variables (ID o Secret)";
     }
 
     return NextResponse.json({
       "1. Variables configuradas": {
         FACEBOOK_CLIENT_ID: clientId ? "Configurado (***" + clientId.slice(-4) + ")" : "Falta",
         FACEBOOK_CLIENT_SECRET: clientSecret ? "Configurado (***" + clientSecret.slice(-4) + ")" : "Falta",
-        NEXTAUTH_URL: nextAuthUrl || "?? NO CONFIGURADO (Cr�tico para callback)",
+        NEXTAUTH_URL: nextAuthUrl || "⚠️ NO CONFIGURADO (Crítico para callback)",
         FACEBOOK_LOGIN_CONFIG_ID: configId || "Usando default: 2028091691078800"
       },
       "2. Test de Credenciales en Meta": secretStatus,
@@ -37,4 +37,3 @@ export async function GET() {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
-
