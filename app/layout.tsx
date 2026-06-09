@@ -8,6 +8,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { ToastContainer } from "@/components/ui/Toast";
 import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
+import { getBaseUrl } from "@/lib/get-base-url";
 
 const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
@@ -24,6 +25,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getBaseUrl()),
   title: "Sodare — Inteligencia Multicanal",
   description: "Plataforma avanzada de CRM, Analytics, Ads Manager y operaciones para agencias de marketing digital.",
 };
