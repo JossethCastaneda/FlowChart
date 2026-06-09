@@ -77,7 +77,7 @@ export function ResultsAnalytics({ project }: { project: Project }) {
       {connected === false ? (
         <div style={{ display: "flex", gap: 10, alignItems: "center", padding: "12px 16px", borderRadius: 8, background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)" }}>
           <Plug style={{ width: 16, height: 16, color: "#fbbf24", flexShrink: 0 }} />
-          <span style={{ fontSize: 12, color: "#fcd34d" }}>BotMaker no conectado. Configura el <strong>access-token</strong> de BotMaker (env <code>BOTMAKER_ACCESS_TOKEN</code> o Integraciones) para traer datos.</span>
+          <span style={{ fontSize: 12, color: "#fcd34d" }}>BotMaker no conectado. Conecta BotMaker desde la sección de <strong>Integraciones</strong> del workspace para ver analíticas conversacionales.</span>
         </div>
       ) : errorMsg ? (
         <div style={{ display: "flex", gap: 10, alignItems: "center", padding: "12px 16px", borderRadius: 8, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>

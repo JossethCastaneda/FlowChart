@@ -167,7 +167,6 @@ model Project {
   workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   members       ProjectMember[]
   channels      Channel[]
-  botmaker      BotMakerConfig?
   briefs        Brief[]
   alerts        ProjectAlert[]
   alertsEnabled Boolean  @default(true)
@@ -197,15 +196,6 @@ model Channel {
   projectId String
   name      String
   type      String   // FACEBOOK, INSTAGRAM, WHATSAPP, etc.
-  config    Json?
-  
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-}
-
-model BotMakerConfig {
-  id        String   @id @default(cuid())
-  projectId String   @unique
-  apiKey    String
   config    Json?
   
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)

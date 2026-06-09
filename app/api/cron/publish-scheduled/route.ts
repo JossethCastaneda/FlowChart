@@ -2,21 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { metaFetch } from "@/lib/server-auth";
 import { decryptToken } from "@/lib/encryption";
+import { verifyCronAuth } from "@/lib/cron-auth";
 
 const META_VERSION = process.env.META_API_VERSION || "v25.0";
-
-/**
- * Shared auth check for GET (Vercel Cron) and POST (Vercel Workflow).
- */
-function verifyCronAuth(req: NextRequest): boolean {
-  const authHeader = req.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-  if (!cronSecret) {
-    if (process.env.NODE_ENV === "production") return false;
-    return true; // No secret configured — dev mode only
-  }
-  return authHeader === `Bearer ${cronSecret}`;
-}
 
 /**
  * POST /api/cron/publish-scheduled

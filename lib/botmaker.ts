@@ -10,19 +10,35 @@ const BASE = "https://api.botmaker.com/v2.0";
 
 /**
  * Resolve the BotMaker access-token for a workspace.
- * Priority: encrypted Integration (provider "botmaker") → env BOTMAKER_ACCESS_TOKEN.
- * Never hard-code the token.
+ *
+ * Priority:
+ *   1. Encrypted Integration (provider "botmaker") for the workspace.
+ *   2. env BOTMAKER_ACCESS_TOKEN — **development only**.
+ *
+ * In production the global env token is NOT used because it is shared
+ * across all tenants, which would allow any authenticated user to read
+ * conversations from other workspaces (cross-tenant data leak).
  */
 export async function getBotmakerToken(workspaceId: string): Promise<string | null> {
   try {
     const integ = await prisma.integration.findUnique({
       where: { workspaceId_provider: { workspaceId, provider: "botmaker" } },
     });
-    const creds = integ?.credentials as any;
-    if (integ?.connected && creds?.accessToken) return decryptToken(creds.accessToken);
-  } catch { /* ignore — fall back to env */ }
-  return process.env.BOTMAKER_ACCESS_TOKEN || null;
+    const creds = integ?.credentials as Record<string, unknown> | null;
+    if (integ?.connected && creds?.accessToken) {
+      return decryptToken(creds.accessToken as string);
+    }
+  } catch { /* ignore — fall through */ }
+
+  // Only fall back to the global env token in development.
+  // In production, each workspace must have its own Integration record.
+  if (process.env.NODE_ENV !== "production") {
+    return process.env.BOTMAKER_ACCESS_TOKEN || null;
+  }
+
+  return null;
 }
+
 
 /** Fetch a BotMaker path with the access-token header + basic 429 backoff. */
 export async function botmakerFetch(
