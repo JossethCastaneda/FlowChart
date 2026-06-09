@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -22,7 +22,7 @@ import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 
 /* ═══ TYPES ═══ */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; }
-interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"; createdAt: string; }
+interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN ÓRBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; }
 
 
 const PLATFORMS = [
@@ -199,6 +199,7 @@ export default function ProjectDashboardPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editForm, setEditForm] = useState<Partial<Project>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+  const [activeIntegrations, setActiveIntegrations] = useState<{id: string, provider: string}[]>([]);
 
   // Load project from API
   useEffect(() => {
@@ -224,6 +225,8 @@ export default function ProjectDashboardPage() {
             geo: raw.geo || "",
             status: raw.status || "Draft",
             createdAt: raw.createdAt || "",
+            crmIntegrationId: raw.crmIntegrationId || null,
+            crmType: raw.crmType || null,
           };
           setProject(mapped);
           setEditForm(mapped);
@@ -238,12 +241,13 @@ export default function ProjectDashboardPage() {
     loadProject();
   }, [params.id, router]);
 
-  // Load account names + pages
+  // Load account names + pages + integrations
   useEffect(() => {
     fetch("/api/meta/adaccounts").then(r => r.json()).then(d => {
       if (d.data) { const n: Record<string, string> = {}; d.data.forEach((a: any) => { n[a.id] = a.name?.split(" — ")[0] || a.id; }); setAccountNames(n); }
     }).catch(() => {});
     fetch("/api/meta/pages").then(r => r.json()).then(d => { if (d.data) setMetaPages(d.data); }).catch(() => {});
+    fetch("/api/workspace/integrations").then(r => r.json()).then(d => { if (d.data) setActiveIntegrations(d.data.filter((i: any) => i.connected)); }).catch(() => {});
   }, []);
 
   // Load insights — cache-first with background revalidation
@@ -1720,6 +1724,36 @@ export default function ProjectDashboardPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div><p style={labelStyle}>Fecha Inicio</p>{isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "#e2e8f0" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString() : "—"}</p>}</div>
                 <div><p style={labelStyle}>Fecha Fin</p>{isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "#e2e8f0" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString() : "—"}</p>}</div>
+              </div>
+              <div>
+                <p style={labelStyle}>Plataforma Analítica (Bot)</p>
+                {isEditing ? (
+                  <select
+                    value={editForm.crmIntegrationId || ""}
+                    onChange={e => {
+                      const sel = e.target.value;
+                      const intg = activeIntegrations.find(i => i.id === sel);
+                      setEditForm(prev => ({ ...prev, crmIntegrationId: sel || null, crmType: intg ? intg.provider : null }));
+                    }}
+                    style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}
+                  >
+                    <option value="">Ninguna</option>
+                    {activeIntegrations.filter(i => ["botmaker", "custom_crm", "hubspot"].includes(i.provider)).map(i => (
+                      <option key={i.id} value={i.id}>
+                        {i.provider === "botmaker" ? "BotMaker" : i.provider === "custom_crm" ? "CRM Custom (vía API)" : i.provider}
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <p style={{ fontSize: 13, color: project.crmIntegrationId ? "#00d4ff" : "#e2e8f0" }}>
+                    {project.crmIntegrationId 
+                      ? (() => {
+                          const i = activeIntegrations.find(a => a.id === project.crmIntegrationId);
+                          return i ? (i.provider === "botmaker" ? "BotMaker" : i.provider === "custom_crm" ? "CRM Custom (vía API)" : i.provider) : "Conectado";
+                        })()
+                      : "—"}
+                  </p>
+                )}
               </div>
             </div>
           </div>

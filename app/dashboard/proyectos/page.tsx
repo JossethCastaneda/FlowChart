@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
@@ -46,6 +46,8 @@ interface Project {
   workspaceId?: string;
   createdAt: string;
   updatedAt?: string;
+  crmIntegrationId?: string | null;
+  crmType?: string | null;
 }
 
 interface MetaPage {
@@ -524,6 +526,7 @@ function ProyectosContent() {
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; right: number }>({ top: 0, right: 0 });
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [activeIntegrations, setActiveIntegrations] = useState<{id: string, provider: string}[]>([]);
 
   // Meta Ads connection status
   const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
@@ -573,6 +576,16 @@ function ProyectosContent() {
     } catch (err) { console.error("Failed to fetch meta pages", err); }
   }, []);
 
+  const fetchIntegrations = useCallback(async () => {
+    try {
+      const res = await fetch("/api/workspace/integrations");
+      if (res.ok) {
+        const json = await res.json();
+        if (json.data) setActiveIntegrations(json.data.filter((i: any) => i.connected));
+      }
+    } catch (err) { console.error("Failed to fetch integrations", err); }
+  }, []);
+
   const loadProjects = useCallback(async () => {
     setLoading(true);
     const data = await fetchProjectsFromAPI();
@@ -584,12 +597,14 @@ function ProyectosContent() {
     loadProjects();
     fetchMetaAccounts();
     fetchMetaPages();
+    fetchIntegrations();
     const interval = setInterval(() => {
       fetchMetaAccounts();
       fetchMetaPages();
+      fetchIntegrations();
     }, 5 * 60 * 1000);
     return () => clearInterval(interval);
-  }, [loadProjects, fetchMetaAccounts, fetchMetaPages]);
+  }, [loadProjects, fetchMetaAccounts, fetchMetaPages, fetchIntegrations]);
 
   // Transform ChannelConfig[] to DB Channel format for API
   function channelsToApi(channels: ChannelConfig[]) {
@@ -857,6 +872,7 @@ function ProyectosContent() {
           initial={editingProject || EMPTY_PROJECT}
           adAccountsByPlatform={adAccounts}
           metaPages={metaPages}
+          activeIntegrations={activeIntegrations}
           onClose={() => { setModalMode("closed"); setEditingId(null); }}
           onSave={editingId ? handleUpdate : handleCreate}
         />
@@ -869,11 +885,12 @@ function ProyectosContent() {
    MODAL
    ═══════════════════════════════════════ */
 
-function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose, onSave }: {
+function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIntegrations, onClose, onSave }: {
   mode: "create" | "edit" | "view";
   initial: Omit<Project, "id" | "createdAt">;
   adAccountsByPlatform: Record<string, { id: string; name: string; portfolio?: string }[]>;
   metaPages: MetaPage[];
+  activeIntegrations: {id: string, provider: string}[];
   onClose: () => void;
   onSave: (d: Omit<Project, "id" | "createdAt">) => void;
 }) {
@@ -993,8 +1010,25 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, onClose,
                 ro={ro} 
               />
             } />
-            {/* Vacío para mantener el grid parejo, o se puede reacomodar */}
-            <div />
+            <Field l="Plataforma Analítica (Bot)" el={
+              <select 
+                value={form.crmIntegrationId || ""} 
+                onChange={e => {
+                  const sel = e.target.value;
+                  const intg = activeIntegrations.find(i => i.id === sel);
+                  setForm(prev => ({ ...prev, crmIntegrationId: sel || null, crmType: intg ? intg.provider : null }));
+                }}
+                disabled={ro}
+                style={{ ...inp, appearance: "auto" }}
+              >
+                <option value="">Ninguna</option>
+                {activeIntegrations.filter(i => ["botmaker", "custom_crm", "hubspot"].includes(i.provider)).map(i => (
+                  <option key={i.id} value={i.id}>
+                    {i.provider === "botmaker" ? "BotMaker" : i.provider === "custom_crm" ? "CRM Custom (vía API)" : i.provider}
+                  </option>
+                ))}
+              </select>
+            } />
           </Row>
 
           {/* ── Redes ── */}

@@ -86,8 +86,9 @@ export async function PUT(
       "persona",
       "geo",
       "status",
-      "dateStart",
       "dateEnd",
+      "crmIntegrationId",
+      "crmType",
     ] as const;
 
     const sanitized: Record<string, unknown> = {};

@@ -2,9 +2,11 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Settings, CheckCircle, XCircle, Loader2, ChevronRight, Zap, BarChart2, Users, Megaphone, Eye, Pencil, MessageSquare, Key } from "lucide-react";
+import { Settings, CheckCircle, XCircle, Loader2, ChevronRight, Zap, BarChart2, Users, Megaphone, Eye, Pencil, MessageSquare, Key, Database } from "lucide-react";
 import { openConnectPopup } from "@/lib/connect-popup";
 import { MetaConnectionHealthCenter } from "@/components/meta/MetaConnectionHealthCenter";
+import { GoogleHubCenter } from "@/components/integrations/GoogleHubCenter";
+import { CustomCrmModal } from "@/components/integrations/CustomCrmModal";
 
 /* ─── Icons ─── */
 const MetaIcon = () => (
@@ -99,6 +101,7 @@ interface PlatformDef {
   oauthProvider?: string;
   /** For token-based integrations (like BotMaker) — shows a token input modal */
   tokenProvider?: string;
+  customCrmProvider?: boolean;
   capabilities?: ("read" | "manage")[];
 }
 
@@ -111,16 +114,6 @@ const GROUPS: Array<{ label: string; icon: React.ReactNode; color: string; platf
       { provider: "meta_ads", moduleUrl: "ads", name: "Ads Manager", description: "Campañas, audiencias y presupuestos", Icon: MetaIcon, iconBg: "#0064E0", capabilities: ["read", "manage"] as ("read" | "manage")[] },
       { provider: "meta_analytics", moduleUrl: "analytics", name: "Analytics Engine", description: "Insights orgánicos y de pago", Icon: MetaIcon, iconBg: "#0064E0", capabilities: ["read"] as ("read" | "manage")[] },
       { provider: "meta_community", moduleUrl: "community", name: "Community Management", description: "Inbox, Listening y Streams", Icon: MetaIcon, iconBg: "#0064E0", capabilities: ["read", "manage"] as ("read" | "manage")[] },
-    ],
-  },
-  {
-    label: "Google",
-    icon: <BarChart2 size={13} />,
-    color: "#4285F4",
-    platforms: [
-      { provider: "google_ads", oauthProvider: "google_ads", name: "Google Ads", description: "Search, Display, YouTube, PMax", Icon: GoogleIcon, iconBg: "#185ABC", capabilities: ["read", "manage"] as ("read" | "manage")[] },
-      { provider: "google_analytics", oauthProvider: "google_analytics", name: "GA4 Analytics", description: "Eventos, conversiones y atribución", Icon: GA4Icon, iconBg: "#E37400", capabilities: ["read"] as ("read" | "manage")[] },
-      { provider: "google_bigquery", oauthProvider: "google_bigquery", name: "BigQuery", description: "Consultas SQL sobre datos de clientes", Icon: BigQueryIcon, iconBg: "#4386FA", capabilities: ["read"] as ("read" | "manage")[] },
     ],
   },
   {
@@ -142,6 +135,7 @@ const GROUPS: Array<{ label: string; icon: React.ReactNode; color: string; platf
     color: "#10B981",
     platforms: [
       { provider: "botmaker", tokenProvider: "botmaker", name: "BotMaker", description: "Chatbots, WhatsApp API y analítica conversacional", Icon: () => <MessageSquare size={18} />, iconBg: "#1E40AF", capabilities: ["read"] as ("read" | "manage")[] },
+      { provider: "custom_crm", customCrmProvider: true, name: "CRM Custom (vía API)", description: "Conecta tu propio CRM o Endpoint para tracking de bots", Icon: () => <Database size={18} />, iconBg: "#10B981", capabilities: ["read", "manage"] as ("read" | "manage")[] },
       { provider: "hubspot", name: "HubSpot", description: "Email automation y CRM sync", Icon: HubSpotIcon, iconBg: "#FF5C35" },
       { provider: "ai_engine", name: "AI Engine", description: "Copy, creativos y predicción", Icon: () => <Zap size={18} />, iconBg: "#5B21B6" },
     ],
@@ -164,6 +158,7 @@ export default function IntegrationsPage() {
   const [tokenModal, setTokenModal] = useState<{ provider: string; label: string } | null>(null);
   const [tokenInput, setTokenInput] = useState("");
   const [tokenSaving, setTokenSaving] = useState(false);
+  const [crmModalOpen, setCrmModalOpen] = useState(false);
 
   const loadIntegrations = useCallback(() => {
     setLoading(true);
@@ -212,6 +207,8 @@ export default function IntegrationsPage() {
       // Token-based flow — show modal
       setTokenInput("");
       setTokenModal({ provider: platform.tokenProvider, label: platform.name });
+    } else if (platform.customCrmProvider) {
+      setCrmModalOpen(true);
     } else {
       alert("Próximamente");
     }
@@ -250,6 +247,7 @@ export default function IntegrationsPage() {
       />
 
       <MetaConnectionHealthCenter />
+      <GoogleHubCenter />
 
       {/* Publisher notice */}
       <button
@@ -510,6 +508,17 @@ export default function IntegrationsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Custom CRM Modal */}
+      {crmModalOpen && (
+        <CustomCrmModal 
+          onClose={() => setCrmModalOpen(false)}
+          onSuccess={() => {
+            setCrmModalOpen(false);
+            loadIntegrations();
+          }}
+        />
       )}
     </div>
   );

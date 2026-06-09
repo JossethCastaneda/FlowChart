@@ -103,6 +103,8 @@ export async function POST(request: NextRequest) {
       status,
       dateStart,
       dateEnd,
+      crmIntegrationId,
+      crmType,
       channels,
     } = body;
 
@@ -124,6 +126,8 @@ export async function POST(request: NextRequest) {
           ...(status !== undefined && { status }),
           ...(dateStart !== undefined && { dateStart }),
           ...(dateEnd !== undefined && { dateEnd }),
+          ...(crmIntegrationId !== undefined && { crmIntegrationId }),
+          ...(crmType !== undefined && { crmType }),
         },
       });
 

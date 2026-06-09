@@ -171,6 +171,8 @@ model Project {
   alerts        ProjectAlert[]
   alertsEnabled Boolean  @default(true)
   alertEmails   String[]
+  crmIntegrationId String? // Which integration provides analytics
+  crmType          String? // custom_crm, botmaker, etc.
 }
 
 model ProjectMember {
