@@ -158,6 +158,8 @@ export default function IntegrationsPage() {
   const [disconnecting, setDisconnecting] = useState<string | null>(null);
   const [tokenModal, setTokenModal] = useState<{ provider: string; label: string } | null>(null);
   const [tokenInput, setTokenInput] = useState("");
+  const [connBaseUrl, setConnBaseUrl] = useState("");
+  const [connRefresh, setConnRefresh] = useState("");
   const [tokenSaving, setTokenSaving] = useState(false);
   const [crmModalOpen, setCrmModalOpen] = useState(false);
 
@@ -205,8 +207,10 @@ export default function IntegrationsPage() {
       // Generic OAuth flow — redirect to /api/oauth/[provider]/start
       window.location.href = `/api/oauth/${platform.oauthProvider}/start`;
     } else if (platform.tokenProvider) {
-      // Token-based flow — show modal
+      // Token-based flow — show modal (URL + access token + refresh token)
       setTokenInput("");
+      setConnBaseUrl("");
+      setConnRefresh("");
       setTokenModal({ provider: platform.tokenProvider, label: platform.name });
     } else if (platform.customCrmProvider) {
       setCrmModalOpen(true);
@@ -222,7 +226,12 @@ export default function IntegrationsPage() {
       const res = await fetch("/api/workspace/integrations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider: tokenModal.provider, token: tokenInput.trim() }),
+        body: JSON.stringify({
+          provider: tokenModal.provider,
+          token: tokenInput.trim(),
+          baseUrl: connBaseUrl.trim() || undefined,
+          refreshToken: connRefresh.trim() || undefined,
+        }),
       });
       const data = await res.json();
       if (data.success) {
@@ -527,21 +536,60 @@ export default function IntegrationsPage() {
               </h3>
             </div>
             <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
-              Pega el access token de {tokenModal.label}. Se cifra con AES-256 antes de guardarse.
+              Conecta tu cuenta de {tokenModal.label}. Los tokens se cifran con AES-256 antes de guardarse.
             </p>
-            <textarea
-              value={tokenInput}
-              onChange={e => setTokenInput(e.target.value)}
-              placeholder="Pega el token aquí..."
-              autoFocus
-              rows={3}
-              style={{
-                width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 12,
-                fontFamily: "monospace", background: "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0",
-                resize: "none", outline: "none",
-              }}
-            />
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <label style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>
+                URL del API <span style={{ color: "#475569", fontWeight: 400 }}>· opcional</span>
+              </label>
+              <input
+                value={connBaseUrl}
+                onChange={e => setConnBaseUrl(e.target.value)}
+                placeholder="https://api.botmaker.com/v2.0"
+                style={{
+                  width: "100%", padding: "9px 12px", borderRadius: 8, fontSize: 12,
+                  fontFamily: "monospace", background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0",
+                  outline: "none", boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <label style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>Access token</label>
+              <textarea
+                value={tokenInput}
+                onChange={e => setTokenInput(e.target.value)}
+                placeholder="Pega el access token aquí..."
+                autoFocus
+                rows={2}
+                style={{
+                  width: "100%", padding: "9px 12px", borderRadius: 8, fontSize: 12,
+                  fontFamily: "monospace", background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0",
+                  resize: "none", outline: "none", boxSizing: "border-box",
+                }}
+              />
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+              <label style={{ fontSize: 11, color: "#94a3b8", fontWeight: 600 }}>
+                Refresh token <span style={{ color: "#475569", fontWeight: 400 }}>· opcional</span>
+              </label>
+              <textarea
+                value={connRefresh}
+                onChange={e => setConnRefresh(e.target.value)}
+                placeholder="Pega el refresh token aquí..."
+                rows={2}
+                style={{
+                  width: "100%", padding: "9px 12px", borderRadius: 8, fontSize: 12,
+                  fontFamily: "monospace", background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0",
+                  resize: "none", outline: "none", boxSizing: "border-box",
+                }}
+              />
+            </div>
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
               <button
                 onClick={() => setTokenModal(null)}
