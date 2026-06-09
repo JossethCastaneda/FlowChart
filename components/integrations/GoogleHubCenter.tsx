@@ -1,13 +1,33 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { CheckCircle, XCircle, Loader2, Settings, ExternalLink, RefreshCw } from "lucide-react";
+import { CheckCircle, XCircle, Loader2, Settings, ExternalLink, RefreshCw, BarChart2, Tag, Save, AlertCircle } from "lucide-react";
 import { GOOGLE_MODULES, GoogleModule } from "@/lib/integrations/google/registry";
 
 export function GoogleHubCenter() {
   const [googleState, setGoogleState] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [connectingModule, setConnectingModule] = useState<string | null>(null);
+  
+  // Resource configuration state
+  const [activeConfigMod, setActiveConfigMod] = useState<string | null>(null);
+  const [loadingResources, setLoadingResources] = useState(false);
+  const [savingResources, setSavingResources] = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
+  
+  // GA4 & GSC dropdown options
+  const [ga4Props, setGa4Props] = useState<any[]>([]);
+  const [gscSites, setGscSites] = useState<any[]>([]);
+  
+  // GTM dropdown options
+  const [gtmAccounts, setGtmAccounts] = useState<any[]>([]);
+  const [gtmContainers, setGtmContainers] = useState<any[]>([]);
+
+  // Selected config values
+  const [selectedGa4, setSelectedGa4] = useState("");
+  const [selectedGsc, setSelectedGsc] = useState("");
+  const [selectedGtmAcc, setSelectedGtmAcc] = useState("");
+  const [selectedGtmCont, setSelectedGtmCont] = useState("");
 
   const loadGoogleIntegration = useCallback(() => {
     setLoading(true);
@@ -25,22 +45,13 @@ export function GoogleHubCenter() {
 
   useEffect(() => { loadGoogleIntegration(); }, [loadGoogleIntegration]);
 
-  // A module is considered connected if it was requested in lastRequestedModules (or if its scopes are present, but for UI simplicity we use credentials)
   const isModuleConnected = (mod: GoogleModule) => {
     if (!googleState?.connected) return false;
-    // We don't send raw credentials to the client for security, but the backend 
-    // API might not be sending 'lastRequestedModules'. 
-    // Let's assume the backend will need an update to send connectedModules.
-    // We will check googleState.connectedModules
     return googleState.connectedModules?.includes(mod.id);
   };
 
   const handleConnectModule = (mod: GoogleModule) => {
     setConnectingModule(mod.id);
-    // Redirect to the incremental OAuth flow, asking for this module
-    // If the user already has other modules connected, we should include them so we don't lose them!
-    // But our start route already includes all requested modules + include_granted_scopes=true.
-    // To ensure we keep existing ones, we can just pass the current module, and Google will append it to granted scopes.
     window.location.href = `/api/oauth/google/start?modules=${mod.id}`;
   };
 
@@ -54,6 +65,126 @@ export function GoogleHubCenter() {
     });
     setGoogleState(null);
     setConnectingModule(null);
+    setActiveConfigMod(null);
+  };
+
+  // Open resource configuration and load data
+  const handleOpenConfig = async (modId: string) => {
+    setActiveConfigMod(modId);
+    setLoadingResources(true);
+    setErrorMsg("");
+    
+    // Set initial values if already configured
+    const currentConfig = googleState?.resources?.[modId] || {};
+    
+    if (modId === "page_analytics") {
+      setSelectedGa4(currentConfig.ga4PropertyId || "");
+      setSelectedGsc(currentConfig.gscSiteUrl || "");
+      
+      try {
+        const [ga4Res, gscRes] = await Promise.all([
+          fetch("/api/integrations/google/resources/ga4").then(r => r.json()),
+          fetch("/api/integrations/google/resources/gsc").then(r => r.json())
+        ]);
+        
+        if (ga4Res.error) throw new Error(ga4Res.error);
+        if (gscRes.error) throw new Error(gscRes.error);
+        
+        setGa4Props(ga4Res.properties || []);
+        setGscSites(ga4Res.properties?.length ? gscRes.sites || [] : []);
+      } catch (err: any) {
+        setErrorMsg(err.message || "Error al cargar recursos de Google Analytics / Search Console.");
+      }
+    } else if (modId === "tag_tracking") {
+      setSelectedGtmAcc(currentConfig.accountId || "");
+      setSelectedGtmCont(currentConfig.containerId || "");
+      
+      try {
+        const gtmRes = await fetch("/api/integrations/google/resources/gtm").then(r => r.json());
+        if (gtmRes.error) throw new Error(gtmRes.error);
+        setGtmAccounts(gtmRes.accounts || []);
+        
+        if (currentConfig.accountId) {
+          const contRes = await fetch(`/api/integrations/google/resources/gtm?accountId=${currentConfig.accountId}`).then(r => r.json());
+          setGtmContainers(contRes.containers || []);
+        }
+      } catch (err: any) {
+        setErrorMsg(err.message || "Error al cargar cuentas de Google Tag Manager.");
+      }
+    }
+    
+    setLoadingResources(false);
+  };
+
+  // Fetch containers when account is selected
+  const handleGtmAccountChange = async (accId: string) => {
+    setSelectedGtmAcc(accId);
+    setSelectedGtmCont("");
+    setGtmContainers([]);
+    if (!accId) return;
+    
+    setLoadingResources(true);
+    try {
+      const res = await fetch(`/api/integrations/google/resources/gtm?accountId=${accId}`).then(r => r.json());
+      setGtmContainers(res.containers || []);
+    } catch {
+      setErrorMsg("Error al obtener los contenedores para la cuenta seleccionada.");
+    } finally {
+      setLoadingResources(false);
+    }
+  };
+
+  // Save selected resources
+  const handleSaveConfig = async (modId: string) => {
+    setSavingResources(true);
+    setErrorMsg("");
+    
+    try {
+      if (modId === "page_analytics") {
+        if (!selectedGa4 || !selectedGsc) {
+          throw new Error("Por favor, selecciona tanto la propiedad de GA4 como el sitio de Search Console.");
+        }
+        
+        const [ga4Save, gscSave] = await Promise.all([
+          fetch("/api/integrations/google/resources/ga4", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ propertyId: selectedGa4 })
+          }).then(r => r.json()),
+          fetch("/api/integrations/google/resources/gsc", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ siteUrl: selectedGsc })
+          }).then(r => r.json())
+        ]);
+        
+        if (!ga4Save.success || !gscSave.success) {
+          throw new Error("Error al guardar la configuración de recursos.");
+        }
+      } else if (modId === "tag_tracking") {
+        if (!selectedGtmAcc || !selectedGtmCont) {
+          throw new Error("Por favor, selecciona tanto la cuenta como el contenedor de Google Tag Manager.");
+        }
+        
+        const saveRes = await fetch("/api/integrations/google/resources/gtm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accountId: selectedGtmAcc, containerId: selectedGtmCont })
+        }).then(r => r.json());
+        
+        if (!saveRes.success) {
+          throw new Error("Error al guardar la configuración del contenedor GTM.");
+        }
+      }
+      
+      // Reload state and close config panel
+      setActiveConfigMod(null);
+      loadGoogleIntegration();
+    } catch (err: any) {
+      setErrorMsg(err.message || "Ocurrió un error al guardar la configuración.");
+    } finally {
+      setSavingResources(false);
+    }
   };
 
   if (loading) {
@@ -88,7 +219,7 @@ export function GoogleHubCenter() {
         <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>Google Hub Comercial</h2>
           <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, marginTop: 2 }}>
-            Autenticación incremental. Solicita solo los permisos que necesitas para cada módulo.
+            Autenticación incremental. Configura propiedades, sitios y contenedores de forma modular.
           </p>
         </div>
         {isAnyConnected && (
@@ -113,68 +244,255 @@ export function GoogleHubCenter() {
         {GOOGLE_MODULES.map((mod, idx) => {
           const connected = isModuleConnected(mod);
           const isConnecting = connectingModule === mod.id;
+          const isConfiguring = activeConfigMod === mod.id;
           
+          const currentConfig = googleState?.resources?.[mod.id] || {};
+          const isConfigured = mod.id === "page_analytics"
+            ? (currentConfig.ga4PropertyId && currentConfig.gscSiteUrl)
+            : (currentConfig.accountId && currentConfig.containerId);
+
           return (
             <div key={mod.id} style={{
-              display: "flex", alignItems: "center", gap: 16,
+              display: "flex", flexDirection: "column", gap: 12,
               padding: "16px 20px",
               borderBottom: idx < GOOGLE_MODULES.length - 1 ? "1px solid rgba(255,255,255,0.06)" : "none",
             }}>
-              <div style={{ flex: 1 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                  <h3 style={{ fontSize: 14, fontWeight: 600, color: "#f8fafc", margin: 0 }}>{mod.label}</h3>
-                  {mod.status === "stub" && (
-                    <span style={{ fontSize: 9, background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, color: "#94a3b8" }}>
-                      PRÓXIMAMENTE
-                    </span>
-                  )}
+              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 600, color: "#f8fafc", margin: 0 }}>{mod.label}</h3>
+                    {mod.status === "stub" && (
+                      <span style={{ fontSize: 9, background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, color: "#94a3b8" }}>
+                        PRÓXIMAMENTE
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{mod.description}</p>
+                  <p style={{ fontSize: 10, color: "#475569", margin: 0, marginTop: 4, fontFamily: "monospace" }}>
+                    APIs: {mod.apis.join(", ")}
+                  </p>
                 </div>
-                <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>{mod.description}</p>
-                <p style={{ fontSize: 10, color: "#475569", margin: 0, marginTop: 6, fontFamily: "monospace" }}>
-                  APIs: {mod.apis.join(", ")}
-                </p>
-                
-                {connected && mod.status !== "stub" && (
-                  <div style={{ marginTop: 12, padding: "8px 12px", background: "rgba(0,0,0,0.2)", borderRadius: 6, border: "1px solid rgba(255,255,255,0.05)" }}>
-                    <p style={{ fontSize: 11, color: "#94a3b8", margin: 0 }}>Recurso configurado para este workspace:</p>
-                    {/* The resource selector component should go here, but for now we just show a placeholder / settings link */}
-                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 6 }}>
-                      <Settings size={12} style={{ color: "#38bdf8" }} />
-                      <span style={{ fontSize: 12, color: "#38bdf8", cursor: "pointer" }}>Configurar recurso...</span>
+
+                {/* Action Button */}
+                {connected ? (
+                  <div style={{ display: "flex", gap: 8 }}>
+                    {mod.status !== "stub" && (
+                      <button
+                        onClick={() => isConfiguring ? setActiveConfigMod(null) : handleOpenConfig(mod.id)}
+                        disabled={loadingResources}
+                        style={{
+                          padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                          background: isConfiguring ? "rgba(255,255,255,0.05)" : "rgba(56, 189, 248, 0.1)",
+                          border: `1px solid ${isConfiguring ? "rgba(255,255,255,0.1)" : "rgba(56, 189, 248, 0.2)"}`,
+                          color: isConfiguring ? "#cbd5e1" : "#38bdf8", cursor: "pointer",
+                          display: "flex", alignItems: "center", gap: 5,
+                        }}
+                      >
+                        <Settings size={12} />
+                        {isConfiguring ? "Cerrar" : "Configurar"}
+                      </button>
+                    )}
+                    <div style={{
+                      display: "flex", alignItems: "center", gap: 6,
+                      padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                      background: isConfigured ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)",
+                      border: `1px solid ${isConfigured ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}`,
+                      color: isConfigured ? "#10b981" : "#f59e0b",
+                    }}>
+                      <CheckCircle size={12} />
+                      {isConfigured ? "Configurado" : "Sin recursos"}
                     </div>
                   </div>
+                ) : mod.status === "stub" ? (
+                  <div style={{ padding: "6px 12px", fontSize: 11, color: "#475569", fontWeight: 600 }}>
+                    En desarrollo
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleConnectModule(mod)}
+                    disabled={isConnecting || connectingModule === "disconnecting"}
+                    style={{
+                      padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                      background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.2)",
+                      color: "#38bdf8", cursor: "pointer", transition: "all 0.15s",
+                      display: "flex", alignItems: "center", gap: 6,
+                    }}
+                  >
+                    {isConnecting ? <Loader2 size={12} className="animate-spin" /> : <ExternalLink size={12} />}
+                    Añadir Módulo
+                  </button>
                 )}
               </div>
 
-              {/* Action Button */}
-              {connected ? (
+              {/* Resource config panel */}
+              {connected && isConfiguring && (
                 <div style={{
-                  display: "flex", alignItems: "center", gap: 6,
-                  padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                  background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)",
-                  color: "#10b981",
+                  marginTop: 8, padding: "16px", background: "rgba(0,0,0,0.25)",
+                  borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)",
+                  display: "flex", flexDirection: "column", gap: 14
                 }}>
-                  <CheckCircle size={12} />
-                  Módulo Activo
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <Settings size={14} style={{ color: "#38bdf8" }} />
+                    <span style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>Configurar recursos requeridos:</span>
+                  </div>
+
+                  {loadingResources ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 0" }}>
+                      <Loader2 size={14} className="animate-spin text-sky-400" />
+                      <span style={{ fontSize: 12, color: "#64748b" }}>Cargando tus recursos de Google...</span>
+                    </div>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                      {/* error message */}
+                      {errorMsg && (
+                        <div style={{
+                          display: "flex", alignItems: "center", gap: 8, padding: "8px 12px",
+                          background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)",
+                          borderRadius: 6, color: "#f87171", fontSize: 11
+                        }}>
+                          <AlertCircle size={12} />
+                          <span>{errorMsg}</span>
+                        </div>
+                      )}
+
+                      {mod.id === "page_analytics" && (
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                          <div>
+                            <label style={{ display: "block", fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>Propiedad GA4</label>
+                            <select
+                              value={selectedGa4}
+                              onChange={e => setSelectedGa4(e.target.value)}
+                              style={{
+                                width: "100%", padding: "8px", borderRadius: 6, fontSize: 12,
+                                background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", color: "#f1f5f9"
+                              }}
+                            >
+                              <option value="">-- Selecciona Propiedad --</option>
+                              {ga4Props.map(p => (
+                                <option key={p.id} value={p.id}>{p.displayName}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{ display: "block", fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>Sitio Search Console</label>
+                            <select
+                              value={selectedGsc}
+                              onChange={e => setSelectedGsc(e.target.value)}
+                              style={{
+                                width: "100%", padding: "8px", borderRadius: 6, fontSize: 12,
+                                background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", color: "#f1f5f9"
+                              }}
+                            >
+                              <option value="">-- Selecciona Sitio --</option>
+                              {gscSites.map(s => (
+                                <option key={s.id} value={s.id}>{s.name} ({s.permissionLevel})</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      )}
+
+                      {mod.id === "tag_tracking" && (
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                          <div>
+                            <label style={{ display: "block", fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>Cuenta GTM</label>
+                            <select
+                              value={selectedGtmAcc}
+                              onChange={e => handleGtmAccountChange(e.target.value)}
+                              style={{
+                                width: "100%", padding: "8px", borderRadius: 6, fontSize: 12,
+                                background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", color: "#f1f5f9"
+                              }}
+                            >
+                              <option value="">-- Selecciona Cuenta --</option>
+                              {gtmAccounts.map(a => (
+                                <option key={a.accountId} value={a.accountId}>{a.name}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label style={{ display: "block", fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>Contenedor GTM</label>
+                            <select
+                              value={selectedGtmCont}
+                              disabled={!selectedGtmAcc}
+                              onChange={e => setSelectedGtmCont(e.target.value)}
+                              style={{
+                                width: "100%", padding: "8px", borderRadius: 6, fontSize: 12,
+                                background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", color: "#f1f5f9",
+                                opacity: selectedGtmAcc ? 1 : 0.5
+                              }}
+                            >
+                              <option value="">-- Selecciona Contenedor --</option>
+                              {gtmContainers.map(c => (
+                                <option key={c.containerId} value={c.containerId}>{c.name} ({c.publicId})</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Action buttons */}
+                      <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 4 }}>
+                        <button
+                          onClick={() => setActiveConfigMod(null)}
+                          style={{
+                            padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                            background: "transparent", border: "1px solid rgba(255,255,255,0.08)", color: "#94a3b8",
+                            cursor: "pointer"
+                          }}
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={() => handleSaveConfig(mod.id)}
+                          disabled={savingResources}
+                          style={{
+                            padding: "6px 16px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                            background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "#10b981",
+                            cursor: "pointer", display: "flex", alignItems: "center", gap: 5
+                          }}
+                        >
+                          {savingResources ? <Loader2 size={12} className="animate-spin" /> : <Save size={12} />}
+                          Guardar Recursos
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ) : mod.status === "stub" ? (
-                <div style={{ padding: "6px 12px", fontSize: 11, color: "#475569", fontWeight: 600 }}>
-                  En desarrollo
+              )}
+
+              {/* Display Configured values summary */}
+              {connected && isConfigured && !isConfiguring && (
+                <div style={{
+                  padding: "10px 14px", background: "rgba(255,255,255,0.02)",
+                  borderRadius: 6, border: "1px solid rgba(255,255,255,0.04)",
+                  fontSize: 11, color: "#64748b", display: "flex", flexDirection: "column", gap: 4
+                }}>
+                  {mod.id === "page_analytics" && (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Propiedad GA4 conectada:</span>
+                        <span style={{ color: "#94a3b8", fontFamily: "monospace" }}>{currentConfig.ga4PropertyId}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Sitio Search Console:</span>
+                        <span style={{ color: "#94a3b8" }}>{currentConfig.gscSiteUrl}</span>
+                      </div>
+                    </>
+                  )}
+                  {mod.id === "tag_tracking" && (
+                    <>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Cuenta GTM:</span>
+                        <span style={{ color: "#94a3b8", fontFamily: "monospace" }}>{currentConfig.accountId}</span>
+                      </div>
+                      <div style={{ display: "flex", justifyContent: "space-between" }}>
+                        <span>Contenedor GTM:</span>
+                        <span style={{ color: "#94a3b8", fontFamily: "monospace" }}>{currentConfig.containerId}</span>
+                      </div>
+                    </>
+                  )}
                 </div>
-              ) : (
-                <button
-                  onClick={() => handleConnectModule(mod)}
-                  disabled={isConnecting || connectingModule === "disconnecting"}
-                  style={{
-                    padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                    background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.2)",
-                    color: "#38bdf8", cursor: "pointer", transition: "all 0.15s",
-                    display: "flex", alignItems: "center", gap: 6,
-                  }}
-                >
-                  {isConnecting ? <Loader2 size={12} className="animate-spin" /> : <ExternalLink size={12} />}
-                  Añadir Módulo
-                </button>
               )}
             </div>
           );

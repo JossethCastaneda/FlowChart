@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Settings, CheckCircle, XCircle, Loader2, ChevronRight, Zap, BarChart2, Users, Megaphone, Eye, Pencil, MessageSquare, Key, Database } from "lucide-react";
+import { Settings, CheckCircle, XCircle, Loader2, ChevronRight, Zap, BarChart2, Users, Megaphone, Eye, Pencil, MessageSquare, Key, Database, Grid, Activity, Globe } from "lucide-react";
 import { openConnectPopup } from "@/lib/connect-popup";
 import { MetaConnectionHealthCenter } from "@/components/meta/MetaConnectionHealthCenter";
 import { GoogleHubCenter } from "@/components/integrations/GoogleHubCenter";
@@ -256,60 +256,76 @@ export default function IntegrationsPage() {
         icon={<Settings size={20} style={{ color: "var(--cyan)" }} />}
       />
 
-      {/* Selector de pestañas */}
+      {/* Selector de pestañas de alta estética */}
       <div style={{
-        display: "flex",
-        gap: 8,
-        borderBottom: "1px solid rgba(255,255,255,0.08)",
-        paddingBottom: 4,
+        display: "inline-flex",
+        alignSelf: "flex-start",
+        padding: "4px",
+        borderRadius: "10px",
+        background: "rgba(15, 23, 42, 0.4)",
+        backdropFilter: "blur(12px)",
+        border: "1px solid rgba(255, 255, 255, 0.06)",
+        gap: 4,
         marginBottom: 8
       }}>
         <button
           onClick={() => setActiveTab("general")}
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
             padding: "8px 16px",
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 600,
-            color: activeTab === "general" ? "var(--cyan)" : "#64748b",
-            borderBottom: activeTab === "general" ? "2px solid var(--cyan)" : "none",
-            background: "none",
-            border: "none",
+            borderRadius: "8px",
+            color: activeTab === "general" ? "var(--cyan)" : "#94a3b8",
+            background: activeTab === "general" ? "rgba(255, 255, 255, 0.05)" : "transparent",
+            border: activeTab === "general" ? "1px solid rgba(255, 255, 255, 0.08)" : "1px solid transparent",
             cursor: "pointer",
-            transition: "all 0.15s",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
+          <Grid size={14} style={{ color: activeTab === "general" ? "var(--cyan)" : "#64748b" }} />
           Canales e Integraciones
         </button>
         <button
           onClick={() => setActiveTab("google")}
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
             padding: "8px 16px",
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 600,
-            color: activeTab === "google" ? "#4285F4" : "#64748b",
-            borderBottom: activeTab === "google" ? "2px solid #4285F4" : "none",
-            background: "none",
-            border: "none",
+            borderRadius: "8px",
+            color: activeTab === "google" ? "#60a5fa" : "#94a3b8",
+            background: activeTab === "google" ? "rgba(66, 133, 244, 0.08)" : "transparent",
+            border: activeTab === "google" ? "1px solid rgba(66, 133, 244, 0.2)" : "1px solid transparent",
             cursor: "pointer",
-            transition: "all 0.15s",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
+          <Globe size={14} style={{ color: activeTab === "google" ? "#60a5fa" : "#64748b" }} />
           Google Hub (Módulos)
         </button>
         <button
           onClick={() => setActiveTab("meta")}
           style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
             padding: "8px 16px",
-            fontSize: 13,
+            fontSize: 12,
             fontWeight: 600,
-            color: activeTab === "meta" ? "#0081FB" : "#64748b",
-            borderBottom: activeTab === "meta" ? "2px solid #0081FB" : "none",
-            background: "none",
-            border: "none",
+            borderRadius: "8px",
+            color: activeTab === "meta" ? "#3b82f6" : "#94a3b8",
+            background: activeTab === "meta" ? "rgba(0, 129, 251, 0.08)" : "transparent",
+            border: activeTab === "meta" ? "1px solid rgba(0, 129, 251, 0.2)" : "1px solid transparent",
             cursor: "pointer",
-            transition: "all 0.15s",
+            transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
           }}
         >
+          <Activity size={14} style={{ color: activeTab === "meta" ? "#3b82f6" : "#64748b" }} />
           Salud de Meta (Detalles)
         </button>
       </div>

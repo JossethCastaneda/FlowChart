@@ -46,23 +46,31 @@ export async function GET() {
         connectedUser: {
           select: { id: true, name: true, image: true },
         },
-        // NEVER select credentials — contains access tokens
+        credentials: true,
       },
     });
 
-    const data = integrations.map((intg) => ({
-      id: intg.id,
-      provider: intg.provider,
-      connected: intg.connected,
-      connectedAt: intg.connectedAt,
-      connectedBy: intg.connectedUser
-        ? { id: intg.connectedUser.id, name: intg.connectedUser.name, image: intg.connectedUser.image }
-        : null,
-      // Permission: can disconnect if user is OWNER, or is the one who connected
-      canDisconnect:
-        membership.role === "OWNER" ||
-        intg.connectedBy === session.user.id,
-    }));
+    const data = integrations.map((intg) => {
+      const creds = (intg.credentials as Record<string, any>) || {};
+      const connectedModules = creds.modules || [];
+      const resources = creds.resources || {};
+
+      return {
+        id: intg.id,
+        provider: intg.provider,
+        connected: intg.connected,
+        connectedAt: intg.connectedAt,
+        connectedBy: intg.connectedUser
+          ? { id: intg.connectedUser.id, name: intg.connectedUser.name, image: intg.connectedUser.image }
+          : null,
+        // Permission: can disconnect if user is OWNER, or is the one who connected
+        canDisconnect:
+          membership.role === "OWNER" ||
+          intg.connectedBy === session.user.id,
+        connectedModules,
+        resources,
+      };
+    });
 
     return NextResponse.json({
       data,
