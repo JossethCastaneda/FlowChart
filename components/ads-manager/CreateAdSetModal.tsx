@@ -34,6 +34,8 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
   const [ageMin, setAgeMin] = useState("18");
   const [ageMax, setAgeMax] = useState("65");
   const [gender, setGender] = useState<"all" | "male" | "female">("all");
+  const [advantageAudience, setAdvantageAudience] = useState(true);
+  const [advantagePlacements, setAdvantagePlacements] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -44,7 +46,8 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
     if (!campaign) { setError("Selecciona una campaña."); return; }
     if (!objSupported) { setError("El objetivo de esta campaña requiere configuración extra (píxel/formulario). Créalo en Meta."); return; }
     if (!name.trim()) { setError("Escribe un nombre para el conjunto."); return; }
-    if (!dailyBudget || Number(dailyBudget) <= 0) { setError("Indica un presupuesto diario."); return; }
+    // Budget is optional if the parent campaign is using Campaign Budget Optimization (CBO)
+    // We just warn or let the API handle the validation error.
     setSaving(true);
     setError("");
     try {
@@ -61,6 +64,8 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           ageMin: Number(ageMin) || 18,
           ageMax: Number(ageMax) || 65,
           genders: gender === "male" ? [1] : gender === "female" ? [2] : [],
+          advantageAudience,
+          advantagePlacements,
           confirmed_by_user: true,
         }),
       });
@@ -110,7 +115,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div>
-              <label style={lbl}>Presupuesto diario (MXN) *</label>
+              <label style={lbl}>Presupuesto diario (MXN) <span style={{fontWeight: "normal", color: "#64748b"}}>(Opcional con CBO)</span></label>
               <input style={inp} type="number" min={1} value={dailyBudget} onChange={(e) => setDailyBudget(e.target.value)} placeholder="Ej. 200" />
             </div>
             <div>
@@ -132,6 +137,23 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
             </div>
           </div>
 
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 4 }}>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#e2e8f0", cursor: "pointer", background: "rgba(255,255,255,0.03)", padding: "10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
+              <input type="checkbox" checked={advantageAudience} onChange={(e) => setAdvantageAudience(e.target.checked)} style={{ width: 16, height: 16, accentColor: "#7b61ff" }} />
+              <div>
+                <div style={{ fontWeight: 600 }}>Advantage+ Audience</div>
+                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>Recomendado por Meta</div>
+              </div>
+            </label>
+            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "#e2e8f0", cursor: "pointer", background: "rgba(255,255,255,0.03)", padding: "10px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.08)" }}>
+              <input type="checkbox" checked={advantagePlacements} onChange={(e) => setAdvantagePlacements(e.target.checked)} style={{ width: 16, height: 16, accentColor: "#7b61ff" }} />
+              <div>
+                <div style={{ fontWeight: 600 }}>Advantage+ Placements</div>
+                <div style={{ fontSize: 10, color: "#94a3b8", marginTop: 2 }}>Todas las ubicaciones automáticas</div>
+              </div>
+            </label>
+          </div>
+
           <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.18)" }}>
             <PauseCircle style={{ width: 16, height: 16, color: "#fbbf24", flexShrink: 0, marginTop: 1 }} />
             <div style={{ fontSize: 11, color: "#fcd34d" }}>
@@ -149,7 +171,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 22px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
           <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid rgba(148,163,184,0.25)", color: "#94a3b8", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>Cancelar</button>
-          <button onClick={submit} disabled={saving || !objSupported || !name.trim() || !dailyBudget} className="btn-primary" style={{ padding: "9px 22px", opacity: saving || !objSupported || !name.trim() || !dailyBudget ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 7 }}>
+          <button onClick={submit} disabled={saving || !objSupported || !name.trim()} className="btn-primary" style={{ padding: "9px 22px", opacity: saving || !objSupported || !name.trim() ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 7 }}>
             {saving ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <PauseCircle style={{ width: 14, height: 14 }} />}
             Crear en pausa
           </button>
