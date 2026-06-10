@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN;
 
@@ -563,8 +564,11 @@ export async function POST(req: NextRequest) {
 
 /**
  * Finds projects whose Channel config references the given Meta external IDs.
- * Uses targeted DB queries instead of loading all active projects — avoids
- * O(projects×members) fan-out on every webhook event.
+ *
+ * Fast path: lookup indexado en MetaSource (externalId → projectId).
+ * Slow path (solo si el cache no tiene la fuente): scan de proyectos activos,
+ * y los matches se escriben a MetaSource para que el siguiente evento de la
+ * misma fuente se resuelva con un solo query.
  */
 async function findProjectsForEvent(meta: {
   pageId?: string;
@@ -574,9 +578,32 @@ async function findProjectsForEvent(meta: {
   const externalId = meta.pageId ?? meta.igAccountId ?? meta.adAccountId;
   if (!externalId) return [];
 
-  // Load all active projects that have a Meta/Facebook channel — still bounded
-  // query but filtered server-side. For large deployments, add a MetaSource
-  // lookup table with externalId → projectId for O(1) resolution.
+  const normalizedId = externalId.replace(/^act_/, "");
+  const kind = meta.pageId ? "page" : meta.igAccountId ? "instagram" : "ad_account";
+
+  // ── Fast path: MetaSource cache ──
+  const sources = await prisma.metaSource.findMany({
+    where: { externalId: { in: [externalId, normalizedId] } },
+    select: { projectId: true },
+  });
+  if (sources.length > 0) {
+    return prisma.project.findMany({
+      where: {
+        id: { in: sources.map((s) => s.projectId) },
+        status: "Activo",
+      },
+      select: {
+        id: true,
+        name: true,
+        workspaceId: true,
+        workspace: {
+          select: { members: { select: { userId: true } } },
+        },
+      },
+    });
+  }
+
+  // ── Slow path: scan de proyectos activos con canal Meta ──
   const projects = await prisma.project.findMany({
     where: { status: "Activo" },
     select: {
@@ -590,7 +617,7 @@ async function findProjectsForEvent(meta: {
     },
   });
 
-  return projects.filter((project) => {
+  const matched = projects.filter((project) => {
     const metaChannel = project.channels.find((c) => {
       const cfg = c.config as Record<string, unknown> | null;
       return cfg?.platformId === "meta" || c.type === "FACEBOOK";
@@ -618,6 +645,24 @@ async function findProjectsForEvent(meta: {
     }
     return false;
   });
+
+  // Poblar el cache para resolver futuros eventos de esta fuente en O(1).
+  if (matched.length > 0) {
+    try {
+      await prisma.metaSource.createMany({
+        data: matched.map((p) => ({
+          externalId: normalizedId,
+          kind,
+          projectId: p.id,
+        })),
+        skipDuplicates: true,
+      });
+    } catch (cacheErr) {
+      logger.warn("MetaSource cache write failed", { externalId: normalizedId, error: cacheErr });
+    }
+  }
+
+  return matched;
 }
 
 // ═══════════════════════════════════════════════════════════════

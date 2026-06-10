@@ -37,6 +37,11 @@ export function apiNotFound(message = "No encontrado") {
 }
 
 export function apiServerError(error: unknown) {
-  const message = error instanceof Error ? error.message : "Error interno del servidor";
+  // Nunca exponer detalles internos (mensajes de Prisma, stack traces, hosts)
+  // al cliente en producción; el detalle queda en los logs del servidor.
+  const message =
+    process.env.NODE_ENV !== "production" && error instanceof Error
+      ? error.message
+      : "Error interno del servidor";
   return apiError(message, "INTERNAL_ERROR", 500);
 }

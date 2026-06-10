@@ -233,6 +233,15 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
+    // Política de Google: revocar el grant en Google antes de borrar
+    // las credenciales locales (best-effort — el wipe local siempre ocurre).
+    if (provider === "google" || provider.startsWith("google_")) {
+      const { revokeGoogleToken } = await import("@/lib/integrations/google/oauth");
+      await revokeGoogleToken(
+        integration.credentials as import("@/lib/integrations/google/oauth").GoogleCredentials
+      );
+    }
+
     // Disconnect: clear credentials, set connected = false
     await prisma.integration.update({
       where: { id: integration.id },

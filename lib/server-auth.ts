@@ -2,7 +2,7 @@ import { getToken } from "next-auth/jwt";
 import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { encryptToken, decryptToken } from "@/lib/encryption";
+import { decryptToken } from "@/lib/encryption";
 
 /** Centralized Meta Graph API version — use this everywhere, never hardcode */
 export const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
@@ -89,82 +89,14 @@ export async function getMetaAccessToken(
       }
     }
 
-    // 3. Fallback: JWT token (owner who logged in with Facebook)
-    const jwtAccessToken = (jwtToken?.accessToken as string) || null;
-
-    // Token sync from JWT → Integration table happens explicitly in
-    // auth.config.ts JWT callback (on login), not on every API request.
-    // This avoids write-on-read side effects and potential race conditions.
-
-    return jwtAccessToken;
+    // SIN fallback al token de login: el JWT solo identifica al usuario
+    // (modelo comercial — login ≠ activos). Si no hay Integration conectada
+    // para el módulo, el caller debe pedir conectar la sección en
+    // Integraciones (api/connect/[module]).
+    return null;
   } catch (err) {
     console.error("[SERVER-AUTH] getMetaAccessToken error:", err);
     return null;
-  }
-}
-
-
-
-/**
- * Save Meta access token to the workspace Integration table.
- * W8 FIX: Scoped to the ACTIVE workspace only (not all workspaces).
- * Called from auth.config.ts when owner logs in with Facebook.
- */
-export async function saveMetaTokenToWorkspace(
-  userId: string,
-  accessToken: string,
-  targetWorkspaceId?: string
-): Promise<void> {
-  try {
-    // W8 FIX: Only save to the active workspace, not all workspaces
-    const workspaceId = targetWorkspaceId || await getActiveWorkspaceId(userId);
-    if (!workspaceId) {
-      console.warn("[SERVER-AUTH] saveMetaTokenToWorkspace: no active workspace found");
-      return;
-    }
-
-    // Verify user has permission in this workspace
-    const membership = await prisma.workspaceMember.findFirst({
-      where: {
-        userId,
-        workspaceId,
-        role: { in: ["OWNER", "ADMIN"] },
-      },
-    });
-
-    if (!membership) {
-      console.warn("[SERVER-AUTH] saveMetaTokenToWorkspace: user is not OWNER/ADMIN in workspace");
-      return;
-    }
-
-    // Long-lived tokens last ~60 days
-    const expiresAt = new Date(Date.now() + 60 * 24 * 60 * 60 * 1000).toISOString();
-    const encryptedToken = encryptToken(accessToken);
-
-    await prisma.integration.upsert({
-      where: {
-        workspaceId_provider: {
-          workspaceId,
-          provider: "meta",
-        },
-      },
-      update: {
-        credentials: { accessToken: encryptedToken, expiresAt, refreshedAt: new Date().toISOString() },
-        connected: true,
-        connectedAt: new Date(),
-        connectedBy: userId,
-      },
-      create: {
-        workspaceId,
-        provider: "meta",
-        credentials: { accessToken: encryptedToken, expiresAt, refreshedAt: new Date().toISOString() },
-        connected: true,
-        connectedAt: new Date(),
-        connectedBy: userId,
-      },
-    });
-  } catch (err) {
-    console.error("[SERVER-AUTH] saveMetaTokenToWorkspace error:", err);
   }
 }
 

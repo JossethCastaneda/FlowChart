@@ -270,13 +270,13 @@ export default function LoginPage() {
                     {!providerStatusLoaded
                       ? "VERIFICANDO FACEBOOK"
                       : hasFacebookProvider
-                        ? status.type === "error" ? "REINTENTAR CONEXIÓN" : "CONECTAR CON FACEBOOK"
+                        ? status.type === "error" ? "REINTENTAR" : "INICIAR SESIÓN CON FACEBOOK"
                         : "FACEBOOK NO CONFIGURADO"}
                   </span>
                 </>
               ) : (
                 <>
-                  <span>CONECTANDO</span>
+                  <span>INICIANDO SESIÓN</span>
                   <span className="loader-dots">
                     <i /><i /><i />
                   </span>
@@ -313,13 +313,13 @@ export default function LoginPage() {
                     {!providerStatusLoaded
                       ? "VERIFICANDO GOOGLE"
                       : hasGoogleProvider
-                        ? "CONECTAR CON GOOGLE"
+                        ? "INICIAR SESIÓN CON GOOGLE"
                         : "GOOGLE NO CONFIGURADO"}
                   </span>
                 </>
               ) : (
                 <>
-                  <span>CONECTANDO</span>
+                  <span>INICIANDO SESIÓN</span>
                   <span className="loader-dots">
                     <i /><i /><i />
                   </span>

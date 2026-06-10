@@ -58,11 +58,26 @@ providers.push(
       email: { label: "Email", type: "email" },
       password: { label: "Password", type: "password" },
     },
-    async authorize(credentials) {
+    async authorize(credentials, req) {
       if (!credentials?.email || !credentials?.password) return null;
+
+      // Throttling de fuerza bruta: por IP (global) y por IP+email (dirigido).
+      const { rateLimit } = await import("@/lib/ratelimit");
+      const ip =
+        (req?.headers?.["x-forwarded-for"] as string | undefined)
+          ?.split(",")[0]
+          ?.trim() || "unknown";
+      const email = credentials.email.toLowerCase();
+      const perIp = rateLimit(`login:ip:${ip}`, 30, 5 * 60_000);
+      const perTarget = rateLimit(`login:${ip}:${email}`, 10, 5 * 60_000);
+      if (!perIp.ok || !perTarget.ok) {
+        console.warn(`[AUTH] Login rate limit exceeded for ${ip}`);
+        return null;
+      }
+
       const { default: prisma } = await import("@/lib/prisma");
       const user = await prisma.user.findUnique({
-        where: { email: credentials.email.toLowerCase() },
+        where: { email },
       });
       if (!user?.password) return null;
       const valid = await bcrypt.compare(credentials.password, user.password);
@@ -130,43 +145,12 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (account) {
-        if (account.provider === "facebook" && account.access_token) {
-          // Exchange short-lived token (~1hr) for long-lived token (~60 days)
-          let longLivedToken = account.access_token;
-          try {
-            const exchangeUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
-            exchangeUrl.searchParams.set("grant_type", "fb_exchange_token");
-            exchangeUrl.searchParams.set("client_id", process.env.FACEBOOK_CLIENT_ID || "");
-            exchangeUrl.searchParams.set("client_secret", process.env.FACEBOOK_CLIENT_SECRET || "");
-            exchangeUrl.searchParams.set("fb_exchange_token", account.access_token);
-
-            const exchangeRes = await fetch(exchangeUrl.toString());
-            const exchangeData = await exchangeRes.json();
-            if (exchangeRes.ok && exchangeData.access_token) {
-              longLivedToken = exchangeData.access_token;
-              console.log("[AUTH] Exchanged for long-lived token (60d)");
-            } else {
-              console.warn("[AUTH] Token exchange failed, using short-lived:", exchangeData?.error?.message);
-            }
-          } catch (exchangeErr) {
-            console.error("[AUTH] Token exchange error:", exchangeErr);
-          }
-
-          token.accessToken = longLivedToken;
-          // Save token to Integration table so ALL workspace members
-          // can use Meta APIs (not just the owner)
-          if (token.sub) {
-            try {
-              const { saveMetaTokenToWorkspace } =
-                await import("@/lib/server-auth");
-              await saveMetaTokenToWorkspace(
-                token.sub, longLivedToken
-              );
-            } catch (err) {
-              console.error("[AUTH] Save Meta token failed:", err);
-            }
-          }
-        }
+        // SEPARACIÓN LOGIN ↔ ACTIVOS (modelo comercial):
+        // Iniciar sesión con Facebook/Google es SOLO identidad (email, perfil).
+        // El token de login NUNCA se guarda como integración del workspace ni
+        // en el JWT. Conectar activos (páginas, ads, analytics…) se hace
+        // sección por sección desde Integraciones, con su propio OAuth y
+        // consentimiento explícito (api/connect/[module] y oauth/google/start).
         token.provider = account.provider;
       }
 

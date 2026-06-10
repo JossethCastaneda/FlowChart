@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import prisma from "@/lib/prisma";
 import { verifySignedRequest } from "@/lib/meta-signed-request";
+import { deleteMetaDataForUser } from "@/lib/meta-data-deletion";
 
 /**
  * Meta Data Deletion Request Callback
@@ -16,9 +17,9 @@ import { verifySignedRequest } from "@/lib/meta-signed-request";
  * Compliance:
  * - Verifies HMAC signed_request from Meta
  * - Persists the deletion request to DataDeletionRequest table
+ * - Executes the deletion immediately (tokens + Facebook account link) via
+ *   lib/meta-data-deletion; failures stay "failed" for manual follow-up
  * - Returns the confirmation code so the user can track status
- * - Actual data deletion should be handled asynchronously (e.g., a cron job
- *   that processes pending requests and deletes tokens, cached insights, etc.)
  */
 
 const APP_URL = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://sodare.xyz";
@@ -48,7 +49,6 @@ export async function POST(req: NextRequest) {
     }
 
     // Persist the deletion request for compliance tracking
-    // The actual deletion is processed asynchronously
     try {
       const deletionRequest = await prisma.dataDeletionRequest.create({
         data: {
@@ -58,9 +58,24 @@ export async function POST(req: NextRequest) {
         },
       });
       confirmationCode = deletionRequest.confirmationCode;
-      console.log(
-        `[Meta Data Deletion] ✅ Persisted request for user ${metaUserId}, code: ${confirmationCode}`
-      );
+
+      // Ejecutar el borrado REAL de inmediato: tokens de integraciones Meta
+      // autorizadas por el usuario + vínculo OAuth con Facebook. Si falla,
+      // la solicitud queda "failed" para reproceso/seguimiento manual.
+      if (metaUserId !== "unknown") {
+        try {
+          await deleteMetaDataForUser(metaUserId);
+          await prisma.dataDeletionRequest.update({
+            where: { confirmationCode },
+            data: { status: "completed", completedAt: new Date() },
+          });
+        } catch (deletionErr) {
+          console.error("[Meta Data Deletion] Deletion processing failed:", deletionErr);
+          await prisma.dataDeletionRequest
+            .update({ where: { confirmationCode }, data: { status: "failed" } })
+            .catch(() => {});
+        }
+      }
     } catch (dbErr) {
       console.error("[Meta Data Deletion] Failed to persist deletion request:", dbErr);
       // Still respond to Meta with a code — we log for manual follow-up
