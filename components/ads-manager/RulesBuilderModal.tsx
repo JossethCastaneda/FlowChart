@@ -12,8 +12,11 @@ interface Condition {
   field: string;
   operator: string;
   value: string;
-  window: string;
 }
+
+// Monetary metrics: the Automated Rules API expects values in cents
+// (account minor units). CTR/frequency/counts are plain numbers.
+const MONETARY_METRICS = new Set(["spent", "cpm", "cpc", "cost_per"]);
 
 const METRICS = [
   { value: "spent", label: "Gasto" },
@@ -33,32 +36,32 @@ const OPERATORS = [
   { value: "GREATER_THAN", label: "Mayor que" },
   { value: "LESS_THAN", label: "Menor que" },
   { value: "EQUAL", label: "Igual a" },
-  { value: "IN_RANGE", label: "En rango" },
-  { value: "NOT_IN_RANGE", label: "Fuera de rango" },
 ];
 
+// Valid `time_preset` filter values in the Automated Rules API.
 const TIME_WINDOWS = [
-  { value: "1", label: "Hoy" },
-  { value: "3", label: "Últimos 3 días" },
-  { value: "7", label: "Últimos 7 días" },
-  { value: "14", label: "Últimos 14 días" },
-  { value: "28", label: "Últimos 28 días" },
-  { value: "lifetime", label: "Vigencia de la campaña" },
+  { value: "TODAY", label: "Hoy" },
+  { value: "LAST_3_DAYS", label: "Últimos 3 días" },
+  { value: "LAST_7_DAYS", label: "Últimos 7 días" },
+  { value: "LAST_14_DAYS", label: "Últimos 14 días" },
+  { value: "LAST_28_DAYS", label: "Últimos 28 días" },
+  { value: "LIFETIME", label: "Vigencia de la campaña" },
 ];
 
+// Valid `execution_type` values (PAUSE_CAMPAIGN / SEND_NOTIFICATION no existen en la API).
 const ACTIONS = [
-  { value: "PAUSE_CAMPAIGN", label: "Pausar campaña" },
-  { value: "UNPAUSE_CAMPAIGN", label: "Activar campaña" },
+  { value: "PAUSE", label: "Pausar" },
+  { value: "UNPAUSE", label: "Activar" },
   { value: "CHANGE_BUDGET", label: "Ajustar presupuesto" },
   { value: "CHANGE_BID", label: "Ajustar puja" },
-  { value: "SEND_NOTIFICATION", label: "Solo notificar" },
+  { value: "NOTIFICATION", label: "Solo notificar" },
 ];
 
+// Valid `schedule_type` values: DAILY, HOURLY, SEMI_HOURLY, CUSTOM.
 const FREQUENCIES = [
   { value: "DAILY", label: "Diario" },
-  { value: "SEMI_DAILY", label: "Cada 12h" },
   { value: "HOURLY", label: "Cada hora" },
-  { value: "WEEKLY", label: "Semanal" },
+  { value: "SEMI_HOURLY", label: "Cada 30 min" },
 ];
 
 export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuilderModalProps) {
@@ -71,9 +74,10 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
   const [entityType, setEntityType] = useState<"CAMPAIGN" | "ADSET" | "AD">("CAMPAIGN");
   const [frequency, setFrequency] = useState("DAILY");
 
-  // Step 2 — Conditions
+  // Step 2 — Conditions (the API supports ONE time window per rule)
+  const [timeWindow, setTimeWindow] = useState("LAST_7_DAYS");
   const [conditions, setConditions] = useState<Condition[]>([
-    { field: "spent", operator: "GREATER_THAN", value: "", window: "7" },
+    { field: "spent", operator: "GREATER_THAN", value: "" },
   ]);
 
   // Step 3 — Action
@@ -84,7 +88,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
   const [notifyEmail, setNotifyEmail] = useState(true);
 
   const addCondition = () => {
-    setConditions([...conditions, { field: "cpc", operator: "GREATER_THAN", value: "", window: "7" }]);
+    setConditions([...conditions, { field: "cpc", operator: "GREATER_THAN", value: "" }]);
   };
 
   const removeCondition = (idx: number) => {
@@ -104,23 +108,34 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
 
     setLoading(true);
     try {
+      // Official format: entity_type and time_preset are FILTERS (field/value/
+      // operator triplets), and monetary metric values go in cents.
       const evaluation_spec = {
         evaluation_type: "SCHEDULE",
-        filters: conditions.map((c) => ({
-          field: c.field,
-          operator: c.operator,
-          value: parseFloat(c.value) || c.value,
-          ...(c.window !== "lifetime" ? { time_preset: `LAST_${c.window}_DAYS` } : {}),
-        })),
+        filters: [
+          { field: "entity_type", value: entityType, operator: "EQUAL" },
+          { field: "time_preset", value: timeWindow, operator: "EQUAL" },
+          ...conditions.map((c) => {
+            const isMonetary = MONETARY_METRICS.has(c.field) || c.field.startsWith("cost_per_action_type");
+            const num = parseFloat(c.value);
+            return {
+              field: c.field,
+              operator: c.operator,
+              value: Number.isFinite(num) ? (isMonetary ? Math.round(num * 100) : num) : c.value,
+            };
+          }),
+        ],
       };
 
+      // CHANGE_BUDGET uses change_spec: { amount (signed %), unit }.
+      const adjustment = parseFloat(budgetAdjustment) || 10;
       const execution_spec = {
         execution_type: action,
         ...(action === "CHANGE_BUDGET" ? {
           execution_options: [{
-            field: "daily_budget",
-            operator: budgetAdjustment.startsWith("+") ? "INCREASE_BY" : "DECREASE_BY",
-            value: Math.abs(parseFloat(budgetAdjustment) || 10),
+            field: "change_spec",
+            value: { amount: adjustment, unit: "PERCENTAGE" },
+            operator: "EQUAL",
           }],
         } : {}),
       };
@@ -219,6 +234,12 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
 
           {step === 2 && (
             <>
+              <div style={{ marginBottom: "14px" }}>
+                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Ventana de tiempo (aplica a todas las condiciones)</label>
+                <select value={timeWindow} onChange={(e) => setTimeWindow(e.target.value)} style={selectStyle}>
+                  {TIME_WINDOWS.map((w) => <option key={w.value} value={w.value}>{w.label}</option>)}
+                </select>
+              </div>
               {conditions.map((cond, idx) => (
                 <div key={idx} style={{ display: "flex", gap: "6px", marginBottom: "10px", alignItems: "flex-end" }}>
                   <div style={{ flex: 2 }}>
@@ -236,12 +257,6 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
                   <div style={{ flex: 1 }}>
                     <label style={{ fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" }}>Valor</label>
                     <input type="number" value={cond.value} onChange={(e) => updateCondition(idx, "value", e.target.value)} style={{ ...inputStyle, fontSize: "11px" }} placeholder="0" />
-                  </div>
-                  <div style={{ flex: 1.5 }}>
-                    <label style={{ fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" }}>Ventana</label>
-                    <select value={cond.window} onChange={(e) => updateCondition(idx, "window", e.target.value)} style={{ ...selectStyle, fontSize: "11px" }}>
-                      {TIME_WINDOWS.map((w) => <option key={w.value} value={w.value}>{w.label}</option>)}
-                    </select>
                   </div>
                   <button onClick={() => removeCondition(idx)} disabled={conditions.length <= 1} style={{ background: "none", border: "none", color: conditions.length > 1 ? "#ef4444" : "rgba(148,163,184,0.65)", cursor: "pointer", padding: "8px", flexShrink: 0 }}>
                     <Trash2 className="w-3.5 h-3.5" />
@@ -287,9 +302,11 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
                     <div key={i} style={{ paddingLeft: "12px", fontSize: "10px" }}>
                       {i > 0 && <span style={{ color: "var(--cyan)", fontWeight: 600 }}>AND </span>}
                       {METRICS.find((m) => m.value === c.field)?.label} {OPERATORS.find((o) => o.value === c.operator)?.label} {c.value}
-                      {c.window !== "lifetime" && ` (últimos ${c.window} días)`}
                     </div>
                   ))}
+                  <div style={{ paddingLeft: "12px", fontSize: "10px" }}>
+                    Ventana: {TIME_WINDOWS.find((w) => w.value === timeWindow)?.label}
+                  </div>
                   <div><strong style={{ color: "white" }}>Acción:</strong> {ACTIONS.find((a) => a.value === action)?.label}</div>
                   {action === "CHANGE_BUDGET" && <div style={{ paddingLeft: "12px", fontSize: "10px" }}>Ajuste: {budgetAdjustment}%</div>}
                 </div>

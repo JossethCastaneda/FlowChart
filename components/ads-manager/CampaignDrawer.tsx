@@ -78,10 +78,12 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
   useEffect(() => {
     if (breakdownTab === "time") return;
     setLoadingBreakdown(true);
+    // Keys must match BREAKDOWN_MAP in /api/meta/breakdowns — the route
+    // translates them to the raw Meta breakdown parameters.
     const breakdownMap: Record<string, string> = {
-      age_gender: "age,gender",
-      platform: "publisher_platform",
-      device: "impression_device",
+      age_gender: "age_gender",
+      platform: "platform",
+      device: "conversion_device",
     };
     fetch(`/api/meta/breakdowns?id=${item.id}&breakdown=${breakdownMap[breakdownTab]}`)
       .then(res => res.json())

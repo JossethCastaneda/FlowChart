@@ -133,6 +133,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       status: failCount === 0 ? "success" : successCount === 0 ? "error" : "partial",
+      // Contract used by the Ads Manager UI (toasts + counts)
+      success: successCount > 0,
+      successCount,
+      failCount,
+      results: processedResults,
+      error: successCount === 0 ? (processedResults[0] as any)?.error || (processedResults[0] as any)?.data?.error?.message || "Todas las operaciones fallaron" : undefined,
       operation: action,
       object_type: level || "unknown",
       ad_account_id: adAccountId,

@@ -110,8 +110,9 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
 export function calcHookRate(ins: any): number {
   const impressions = ins.impressions || 0;
   if (impressions === 0) return 0;
-  // video_p25_watched_actions is the closest to "3-second views"
-  const video3s = findActionValue(ins.video_p25_watched_actions || ins.actions, "video_view");
+  // Real 3-second views; fall back to p25 only if the field is absent.
+  const video3s = findActionValue(ins.video_3_sec_watched_actions, "video_view")
+    || findActionValue(ins.video_p25_watched_actions, "video_view");
   if (video3s > 0) return (video3s / impressions) * 100;
   return 0;
 }
@@ -148,15 +149,18 @@ export function frequencyAlertLevel(freq: number): "none" | "warning" | "critica
 }
 
 // ── Advantage+ Detection ────────────────────────────────────────────────────
-/** Detect Advantage+ campaigns via smart_promotion_type or naming conventions */
+/** Detect Advantage+ campaigns via smart_promotion_type (fetched from the API)
+ *  with a conservative name fallback for accounts that label them manually. */
 export function isAdvantagePlus(row: any): boolean {
-  // Meta Advantage+ campaigns use smart_promotion_type field
+  // Authoritative signal: Meta marks Advantage+ campaigns with smart_promotion_type
   if (row.smart_promotion_type === "SMART_APP_PROMOTION" ||
-      row.smart_promotion_type === "SMART_SHOPPING") return true;
-  // Fallback: check campaign name for common A+ patterns
+      row.smart_promotion_type === "SMART_SHOPPING" ||
+      row.smart_promotion_type === "AUTOMATED_SHOPPING_ADS") return true;
+  // Name fallback: explicit labels only ("asc" must be a standalone word, not
+  // a substring — "cascada"/"mascotas" are not Advantage+ campaigns).
   const name = (row.name || "").toLowerCase();
   return name.includes("advantage+") || name.includes("advantage plus") ||
-         name.includes("asc") || row.buying_type === "AUCTION" && row.is_budget_schedule_enabled;
+         /(^|[^a-z])asc([^a-z]|$)/.test(name);
 }
 
 // ── Stardate formatter ──────────────────────────────────────────────────────

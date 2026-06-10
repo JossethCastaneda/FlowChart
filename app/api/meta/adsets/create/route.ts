@@ -55,9 +55,10 @@ export async function POST(req: NextRequest) {
     // genders: [1]=male, [2]=female. Omit for "all".
     if (Array.isArray(genders) && genders.length === 1) targeting.genders = genders;
 
-    if (advantageAudience) {
-      targeting.advantage_audience = { audience_type: "FLEXIBLE" };
-    }
+    // Advantage+ Audience — official Marketing API format. Meta requires the
+    // flag to be declared explicitly inside targeting.targeting_automation:
+    // 1 = audience as suggestion (Advantage+), 0 = hard constraints.
+    targeting.targeting_automation = { advantage_audience: advantageAudience ? 1 : 0 };
 
     const payload: Record<string, any> = {
       campaign_id: campaignId,

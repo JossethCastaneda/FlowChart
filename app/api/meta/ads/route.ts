@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
     const ads = adsJson.data || [];
 
     // 2. Fetch insights
-    const insightsFields = "ad_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,quality_ranking,engagement_rate_ranking,conversion_rate_ranking,action_values,purchase_roas,video_p25_watched_actions,video_p100_watched_actions";
+    const insightsFields = "ad_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,quality_ranking,engagement_rate_ranking,conversion_rate_ranking,action_values,purchase_roas,video_p25_watched_actions,video_p100_watched_actions,video_3_sec_watched_actions,video_thruplay_watched_actions,outbound_clicks";
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=ad&fields=${insightsFields}&limit=150`;
     
     const insightsRes = await metaFetch(insightsUrl, token);
@@ -79,6 +79,9 @@ export async function GET(req: NextRequest) {
           purchase_roas: insight.purchase_roas || [],
           video_p25_watched_actions: insight.video_p25_watched_actions || [],
           video_p100_watched_actions: insight.video_p100_watched_actions || [],
+          video_3_sec_watched_actions: insight.video_3_sec_watched_actions || [],
+          video_thruplay_watched_actions: insight.video_thruplay_watched_actions || [],
+          outbound_clicks: insight.outbound_clicks || [],
           quality_ranking: insight.quality_ranking || "",
           engagement_rate_ranking: insight.engagement_rate_ranking || "",
           conversion_rate_ranking: insight.conversion_rate_ranking || "",
@@ -183,6 +186,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       status: "success",
+      success: true,
       object_id: adId,
       operation: status !== undefined ? (status === "PAUSED" ? "pause" : "activate") : "update",
       preflight_checks: { token_scopes_ok: true },

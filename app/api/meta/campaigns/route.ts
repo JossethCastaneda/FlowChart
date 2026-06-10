@@ -38,7 +38,7 @@ export async function GET(req: NextRequest) {
 
   try {
     // 1. Fetch campaigns details
-    const fields = "id,name,status,effective_status,objective,daily_budget,lifetime_budget,budget_remaining,bid_strategy,special_ad_categories,buying_type,start_time,stop_time,created_time,updated_time";
+    const fields = "id,name,status,effective_status,objective,daily_budget,lifetime_budget,budget_remaining,bid_strategy,special_ad_categories,buying_type,smart_promotion_type,start_time,stop_time,created_time,updated_time";
     const campaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/campaigns?fields=${fields}&limit=150`;
     
     const campaignsRes = await metaFetch(campaignsUrl, token);
@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
     const campaigns = campaignsJson.data || [];
 
     // 2. Fetch insights — MP-0 FIX: surface errors instead of silent zeros
-    const insightsFields = "campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions";
+    const insightsFields = "campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_3_sec_watched_actions,video_thruplay_watched_actions,outbound_clicks";
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=campaign&fields=${insightsFields}&limit=150`;
     
     const insightsRes = await metaFetch(insightsUrl, token);
@@ -105,6 +105,9 @@ export async function GET(req: NextRequest) {
           video_p50_watched_actions: insight.video_p50_watched_actions || [],
           video_p75_watched_actions: insight.video_p75_watched_actions || [],
           video_p100_watched_actions: insight.video_p100_watched_actions || [],
+          video_3_sec_watched_actions: insight.video_3_sec_watched_actions || [],
+          video_thruplay_watched_actions: insight.video_thruplay_watched_actions || [],
+          outbound_clicks: insight.outbound_clicks || [],
         }
       };
     });
@@ -189,6 +192,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       status: "success",
+      success: true,
       object_id: campaignId,
       operation: status !== undefined ? (status === "PAUSED" ? "pause" : "activate") : "update",
       preflight_checks: { token_scopes_ok: true },
