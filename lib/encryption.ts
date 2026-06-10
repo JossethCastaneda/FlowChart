@@ -50,15 +50,12 @@ export function encryptToken(text: string | null | undefined): string {
 export function decryptToken(encryptedText: string | null | undefined): string {
   if (!encryptedText) return "";
   
-  // Backward compatibility: if it doesn't look like our encrypted format, return as-is.
-  // En producción esto NO debería ocurrir tras correr `npm run db:reencrypt`;
-  // el warn permite detectar credenciales aún sin cifrar y programar el corte
-  // definitivo de este fallback.
+  // The fallback to plain text is now removed for full security compliance.
+  // We throw an error if we encounter unencrypted tokens.
   if (!encryptedText.startsWith("enc:")) {
-    if (process.env.NODE_ENV === "production") {
-      console.warn("[ENCRYPTION] Plaintext credential encountered — run db:reencrypt and remove this fallback.");
-    }
-    return encryptedText;
+    const msg = "[ENCRYPTION] Plaintext credential encountered! Rejecting to decrypt/use unencrypted token.";
+    console.error(msg);
+    throw new Error(msg);
   }
 
   if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 64) {
