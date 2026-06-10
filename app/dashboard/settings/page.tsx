@@ -5,12 +5,13 @@ import { useSession, signIn } from "next-auth/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   Settings, Users, Mail, Trash2, Copy, CheckCircle, Clock, AlertTriangle,
-  Shield, User, Plug, CreditCard, Globe, ChevronRight, Lock, Layers,
+  Shield, User, Plug, CreditCard, Globe, ChevronRight, Lock, Layers, Eye, Pencil,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { IntegrationsPanel } from "@/components/publisher/IntegrationsPanel";
 import { AreasManager } from "@/components/settings/AreasManager";
 import { PermissionsManager } from "@/components/settings/PermissionsManager";
+import { MemberPermissionsModal, type MemberPermissions } from "@/components/settings/MemberPermissionsModal";
 
 // ── Settings catalogue: groups (menus) → sections (submenus) ──
 // Single source of truth — add a section here and render it in the switch below.
@@ -73,6 +74,7 @@ export default function SettingsPage() {
   const [inviteRole, setInviteRole] = useState("MEMBER");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [editingPermsFor, setEditingPermsFor] = useState<{ id: string; name: string; perms: MemberPermissions | null } | null>(null);
   const [lastInviteUrl, setLastInviteUrl] = useState("");
   const [emailSent, setEmailSent] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -213,6 +215,28 @@ export default function SettingsPage() {
     if (!res.ok) { alert(data.error || "Error al cambiar rol"); return; }
     fetchData(workspaceId);
   }
+
+  const handleSavePerms = async (userId: string, perms: MemberPermissions | null) => {
+    try {
+      const res = await fetch(`/api/workspace/${workspaceId}/members/permissions`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, permissions: perms }),
+      });
+      if (res.ok) {
+        setMembers((prev) =>
+          prev.map((m) => (m.user.id === userId ? { ...m, permissions: perms } : m))
+        );
+        setEditingPermsFor(null);
+      } else {
+        const d = await res.json();
+        alert(d.error || "No se pudo actualizar los permisos");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error al actualizar permisos");
+    }
+  };
 
   async function handleRenameWorkspace() {
     if (!workspaceName || workspaceName.trim().length < 2) { alert("El nombre debe tener al menos 2 caracteres"); return; }
@@ -574,6 +598,15 @@ export default function SettingsPage() {
                         <span className="text-[10px] font-semibold text-white font-display tracking-widest" style={{ color: roleBadgeColor[m.role] || "white" }}>{m.role}</span>
                         {m.role !== "OWNER" && m.user.id !== session?.user?.id && (
                           <div className="flex items-center gap-2">
+                            {isAdmin && (
+                              <button
+                                onClick={() => setEditingPermsFor({ id: m.user.id, name: m.user.name || "Usuario", perms: m.permissions || null })}
+                                className="bg-[rgba(0,212,255,0.03)] border border-[rgba(0,212,255,0.1)] cursor-pointer text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)] p-1.5 rounded transition-colors"
+                                title="Permisos granulares"
+                              >
+                                <Shield className="w-3.5 h-3.5" />
+                              </button>
+                            )}
                             <select value={m.role} onChange={(e) => handleRoleChange(m.user.id, e.target.value)} className="bg-[rgba(0,212,255,0.03)] border border-[rgba(0,212,255,0.1)] text-slate-200 text-[10px] px-1.5 py-1 cursor-pointer outline-none rounded">
                               <option value="MEMBER">MEMBER</option>
                               <option value="ADMIN">ADMIN</option>
@@ -717,6 +750,16 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      {editingPermsFor && (
+        <MemberPermissionsModal
+          memberId={editingPermsFor.id}
+          memberName={editingPermsFor.name}
+          initialPerms={editingPermsFor.perms}
+          onClose={() => setEditingPermsFor(null)}
+          onSave={handleSavePerms}
+        />
+      )}
     </div>
   );
 }
