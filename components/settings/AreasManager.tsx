@@ -147,14 +147,15 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
       </p>
 
       {/* Require lead review — global */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, padding: "12px 14px", borderRadius: 8, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3 md:p-4 rounded-lg bg-white/5 border border-white/5">
         <div>
-          <div style={{ fontSize: 13, color: "#e2e8f0", fontWeight: 500 }}>Revisión por líder obligatoria</div>
-          <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>Las tareas deben pasar por revisión de un líder antes de cerrarse.</div>
+          <div className="text-[13px] text-slate-200 font-medium">Revisión por líder obligatoria</div>
+          <div className="text-[11px] text-slate-500 mt-0.5">Las tareas deben pasar por revisión de un líder antes de cerrarse.</div>
         </div>
         <button onClick={() => { if (canEdit) { setRequireLeadReview((v) => !v); mark(); } }} disabled={!canEdit} role="switch" aria-checked={requireLeadReview} aria-label="Revisión por líder obligatoria"
-          style={{ width: 40, height: 22, borderRadius: 11, flexShrink: 0, position: "relative", background: requireLeadReview ? "var(--cyan)" : "rgba(255,255,255,0.1)", border: "none", cursor: canEdit ? "pointer" : "default" }}>
-          <span style={{ position: "absolute", top: 2, left: requireLeadReview ? 20 : 2, width: 18, height: 18, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+          className="w-10 h-5.5 rounded-full shrink-0 relative transition-colors duration-200"
+          style={{ background: requireLeadReview ? "var(--cyan)" : "rgba(255,255,255,0.1)", cursor: canEdit ? "pointer" : "default" }}>
+          <span className="absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white transition-all duration-200" style={{ left: requireLeadReview ? 20 : 2 }} />
         </button>
       </div>
 
@@ -180,31 +181,38 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
               {/* ── Collapsed header (always visible) ── */}
               <div
                 onClick={() => toggleExpand(area.id)}
-                style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", cursor: "pointer", userSelect: "none" }}
+                className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-2.5 p-3 md:p-3.5 cursor-pointer select-none"
               >
-                {isOpen
-                  ? <ChevronDown style={{ width: 14, height: 14, color: area.color, flexShrink: 0, transition: "transform 0.2s" }} />
-                  : <ChevronRight style={{ width: 14, height: 14, color: area.color, flexShrink: 0, transition: "transform 0.2s" }} />}
-                <div style={{ display: "flex", gap: 3 }}>
-                  {COLORS.map((c) => (
-                    <span key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c, border: area.color === c ? "2px solid #fff" : "2px solid transparent", display: "inline-block" }} />
-                  ))}
-                </div>
-                <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: "#e2e8f0", textTransform: "uppercase", letterSpacing: "0.05em" }}>{area.name}</span>
-                {/* Collapsed summary chips */}
-                {!isOpen && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 10, color: "#64748b", background: "rgba(255,255,255,0.04)", padding: "2px 8px", borderRadius: 10 }}>{area.memberIds.length} miembros</span>
-                    <span style={{ fontSize: 10, color: "#64748b", background: "rgba(255,255,255,0.04)", padding: "2px 8px", borderRadius: 10 }}>{area.requestTypes.length} tipos</span>
-                    <span style={{ fontSize: 10, color: "#64748b" }}>SLA {area.slaHours}h</span>
+                <div className="flex items-center gap-2.5 w-full sm:w-auto overflow-hidden">
+                  {isOpen
+                    ? <ChevronDown style={{ width: 14, height: 14, color: area.color, flexShrink: 0, transition: "transform 0.2s" }} />
+                    : <ChevronRight style={{ width: 14, height: 14, color: area.color, flexShrink: 0, transition: "transform 0.2s" }} />}
+                  <div className="hidden md:flex gap-0.5">
+                    {COLORS.map((c) => (
+                      <span key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c, border: area.color === c ? "2px solid #fff" : "2px solid transparent", display: "inline-block" }} />
+                    ))}
                   </div>
-                )}
-                <label style={{ fontSize: 11, color: "#64748b", display: "flex", alignItems: "center", gap: 4 }} onClick={(e) => e.stopPropagation()}>
-                  SLA
-                  <input type="number" min={1} value={area.slaHours} onChange={(e) => patchArea(area.id, { slaHours: Number(e.target.value) || 1 })} disabled={!canEdit}
-                    style={{ width: 52, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 4, color: "#e2e8f0", fontSize: 12, padding: "3px 6px", outline: "none" }} /> h
-                </label>
-                {canEdit && <button onClick={(e) => { e.stopPropagation(); removeArea(area.id); }} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(239,68,68,0.6)" }} title="Eliminar área"><Trash2 style={{ width: 15, height: 15 }} /></button>}
+                  <span className="flex-1 text-[13px] font-semibold text-slate-200 uppercase tracking-widest truncate">{area.name}</span>
+                </div>
+
+                <div className="flex items-center gap-2 ml-6 sm:ml-0 w-full sm:w-auto overflow-x-auto scrollbar-hide pb-1 sm:pb-0 shrink-0">
+                  {/* Collapsed summary chips */}
+                  {!isOpen && (
+                    <div className="flex items-center gap-2 shrink-0">
+                      <span className="text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded-full whitespace-nowrap">{area.memberIds.length} miembros</span>
+                      <span className="text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded-full whitespace-nowrap">{area.requestTypes.length} tipos</span>
+                      <span className="text-[10px] text-slate-500 whitespace-nowrap">SLA {area.slaHours}h</span>
+                    </div>
+                  )}
+                  {isOpen && (
+                    <label className="text-[11px] text-slate-500 flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                      SLA
+                      <input type="number" min={1} value={area.slaHours} onChange={(e) => patchArea(area.id, { slaHours: Number(e.target.value) || 1 })} disabled={!canEdit}
+                        className="w-[52px] bg-black/20 border border-white/10 rounded text-slate-200 text-xs px-1.5 py-0.5 outline-none" /> h
+                    </label>
+                  )}
+                  {canEdit && <button onClick={(e) => { e.stopPropagation(); removeArea(area.id); }} className="bg-transparent border-none cursor-pointer text-red-500/60 hover:text-red-500 ml-auto sm:ml-2" title="Eliminar área"><Trash2 className="w-4 h-4" /></button>}
+                </div>
               </div>
 
               {/* ── Expanded content ── */}
@@ -254,14 +262,15 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: 8 }}>Tipos de solicitud</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {area.requestTypes.map((t) => (
-                        <div key={t.id} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div key={t.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 p-2 sm:p-0 bg-white/5 sm:bg-transparent rounded-md border border-white/5 sm:border-none">
                           <input value={t.name} onChange={(e) => patchType(area.id, t.id, { name: e.target.value })} disabled={!canEdit} aria-label="Nombre del tipo de solicitud"
-                            style={{ flex: 1, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 4, color: "#e2e8f0", fontSize: 12, padding: "5px 8px", outline: "none" }} />
-                          <label style={{ fontSize: 11, color: "#64748b", display: "flex", alignItems: "center", gap: 4 }}>
+                            className="flex-1 min-w-[120px] bg-black/20 border border-white/10 rounded text-slate-200 text-xs px-2 py-1.5 outline-none" />
+                          <label className="text-[11px] text-slate-500 flex items-center gap-1.5 shrink-0">
+                            SLA
                             <input type="number" min={1} value={t.slaHours} onChange={(e) => patchType(area.id, t.id, { slaHours: Number(e.target.value) || 1 })} disabled={!canEdit}
-                              style={{ width: 52, background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 4, color: "#e2e8f0", fontSize: 12, padding: "3px 6px", outline: "none" }} /> h
+                              className="w-[52px] bg-black/20 border border-white/10 rounded text-slate-200 text-xs px-1.5 py-1 outline-none" /> h
                           </label>
-                          {canEdit && <button onClick={() => removeType(area.id, t.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.4)" }}><X style={{ width: 13, height: 13 }} /></button>}
+                          {canEdit && <button onClick={() => removeType(area.id, t.id)} className="bg-transparent border-none cursor-pointer text-slate-500 hover:text-red-500 shrink-0"><X className="w-4 h-4" /></button>}
                         </div>
                       ))}
                       {canEdit && <button onClick={() => addType(area.id)} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#00d4ff", background: "none", border: "none", cursor: "pointer", padding: 0 }}><Plus style={{ width: 12, height: 12 }} /> Tipo de solicitud</button>}
@@ -270,13 +279,13 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
 
                   {/* ── Permissions (granular) ── */}
                   <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
-                      <Shield style={{ width: 12, height: 12 }} /> Permisos
+                    <div className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 flex items-center gap-1.5">
+                      <Shield className="w-3 h-3" /> Permisos
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                       {/* Members perms */}
-                      <div style={{ padding: 10, borderRadius: 6, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                        <div style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", marginBottom: 8 }}>Miembros del área</div>
+                      <div className="p-3 rounded-md bg-white/5 border border-white/5">
+                        <div className="text-[11px] font-semibold text-slate-400 mb-2">Miembros del área</div>
                         {Object.entries(PERM_LABELS).map(([key, { label }]) => {
                           const val = areaPerms.members?.[key] ?? DEFAULT_PERMS[key as keyof typeof DEFAULT_PERMS];
                           return (
@@ -285,8 +294,8 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                         })}
                       </div>
                       {/* External perms */}
-                      <div style={{ padding: 10, borderRadius: 6, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                        <div style={{ fontSize: 11, fontWeight: 600, color: "#94a3b8", marginBottom: 8 }}>Usuarios externos</div>
+                      <div className="p-3 rounded-md bg-white/5 border border-white/5">
+                        <div className="text-[11px] font-semibold text-slate-400 mb-2">Usuarios externos</div>
                         {Object.entries(PERM_LABELS).map(([key, { label }]) => {
                           const val = areaPerms.external?.[key] ?? EXTERNAL_PERMS[key as keyof typeof EXTERNAL_PERMS];
                           return (

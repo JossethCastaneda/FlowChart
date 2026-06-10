@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -213,43 +213,44 @@ export default function ResumenPage() {
                 <Link key={pc.id} href={`/dashboard/proyectos/${pc.id}`} style={{ textDecoration: "none" }}>
                   <div className="glass-panel" style={{ padding: 0, overflow: "hidden", cursor: "pointer", transition: "border-color 0.2s" }}>
                     {/* Single row: Name + all metrics */}
-                    <div style={{ display: "flex", alignItems: "stretch" }}>
+                    <div className="flex flex-col lg:flex-row items-stretch">
                       {/* Left: Project name + badge */}
-                      <div style={{ minWidth: 160, maxWidth: 200, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.09)", flexShrink: 0 }}>
-                        <h3 style={{ fontSize: 12, fontWeight: 700, color: "white", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pc.alias}</h3>
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
-                          <span style={{
-                            fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 3, letterSpacing: "0.05em",
+                      <div className="w-full lg:w-48 p-3 lg:p-3.5 flex flex-row lg:flex-col justify-between lg:justify-center items-center lg:items-start border-b lg:border-b-0 lg:border-r border-white/10 shrink-0 bg-white/[0.02]">
+                        <h3 className="text-xs font-bold text-white m-0 whitespace-nowrap overflow-hidden text-ellipsis">{pc.alias}</h3>
+                        <div className="flex items-center gap-1.5 mt-0 lg:mt-1">
+                          <span className="text-[8px] font-bold px-1.5 py-0.5 rounded tracking-wider" style={{
                             color: cColor, background: `${cColor}12`, border: `1px solid ${cColor}25`,
                           }}>{pc.hasData ? pct(pc.cumplimiento) : "—"}</span>
                         </div>
                       </div>
 
                       {!pc.hasData ? (
-                        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", color: "rgba(148,163,184,0.65)", fontSize: 10 }}>
+                        <div className="flex-1 flex items-center justify-center p-3 text-[10px] text-slate-400/65">
                           Sin datos de Meta
                         </div>
                       ) : (
                         /* Right: Metrics in horizontal flow */
-                        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(11, 1fr)", alignItems: "center", padding: "8px 0" }}>
-                          {([
-                            ["Presupuesto", fmtMXN0(pc.budgetTotal), "#00d4ff"],
-                            ["Pres. al día", fmtMXN0(pc.budgetToDate), "#00d4ff"],
-                            ["Gasto", fmtMXN0(pc.spendToDate), sColor],
-                            ["Gasto %", pct(pc.spendPct), sColor],
-                            ["Meta Mes", Math.round(pc.goalMonth).toLocaleString(), "#7b61ff"],
-                            ["Meta Día", Math.round(pc.goalToDate).toLocaleString(), "#7b61ff"],
-                            ["Resultados", pc.results.toLocaleString(), rColor],
-                            ["Res. %", pct(pc.resultsPct), rColor],
-                            ["CPR Meta", pc.cprProjected > 0 ? fmtMXN(pc.cprProjected) : "—", "#fdab3d"],
-                            ["CPR Actual", pc.cprActual > 0 ? fmtMXN(pc.cprActual) : "—", cColor],
-                            ["Cumpl.", pct(pc.cumplimiento), cColor],
-                          ] as [string, string, string][]).map(([label, value, color], i) => (
-                            <div key={i} style={{ textAlign: "center", padding: "0 4px" }}>
-                              <p style={{ fontSize: 7, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 2px", whiteSpace: "nowrap" }}>{label}</p>
-                              <p style={{ fontSize: i >= 10 ? 12 : 10.5, fontWeight: i >= 10 ? 800 : 600, color, margin: 0, fontFamily: i >= 10 ? "'Orbitron',sans-serif" : "inherit", whiteSpace: "nowrap" }}>{value}</p>
-                            </div>
-                          ))}
+                        <div className="flex-1 overflow-x-auto scrollbar-hide p-3 lg:p-2">
+                          <div className="min-w-max grid grid-cols-11 gap-4 lg:gap-0 items-center">
+                            {([
+                              ["Presupuesto", fmtMXN0(pc.budgetTotal), "#00d4ff"],
+                              ["Pres. al día", fmtMXN0(pc.budgetToDate), "#00d4ff"],
+                              ["Gasto", fmtMXN0(pc.spendToDate), sColor],
+                              ["Gasto %", pct(pc.spendPct), sColor],
+                              ["Meta Mes", Math.round(pc.goalMonth).toLocaleString(), "#7b61ff"],
+                              ["Meta Día", Math.round(pc.goalToDate).toLocaleString(), "#7b61ff"],
+                              ["Resultados", pc.results.toLocaleString(), rColor],
+                              ["Res. %", pct(pc.resultsPct), rColor],
+                              ["CPR Meta", pc.cprProjected > 0 ? fmtMXN(pc.cprProjected) : "—", "#fdab3d"],
+                              ["CPR Actual", pc.cprActual > 0 ? fmtMXN(pc.cprActual) : "—", cColor],
+                              ["Cumpl.", pct(pc.cumplimiento), cColor],
+                            ] as [string, string, string][]).map(([label, value, color], i) => (
+                              <div key={i} className="text-center px-1">
+                                <p className="text-[8px] text-slate-500 uppercase tracking-widest mb-0.5 whitespace-nowrap">{label}</p>
+                                <p className={`text-[11px] lg:text-[12px] font-bold m-0 whitespace-nowrap ${i >= 10 ? 'font-display' : ''}`} style={{ color }}>{value}</p>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
