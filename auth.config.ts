@@ -103,28 +103,35 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     async jwt({ token, account, user, trigger }) {
       if (user) {
-        token.sub = user.id;
-        try {
-          const { default: prisma } =
-            await import("@/lib/prisma");
-          // CRÍTICO: Upsert del usuario en Neon
-          // (FK constraint fix para WorkspaceMember.create)
-          await prisma.user.upsert({
-            where: { id: user.id },
-            update: {
-              name: user.name ?? undefined,
-              email: user.email ?? undefined,
-              image: user.image ?? undefined,
-            },
-            create: {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              image: user.image,
-            },
-          });
-        } catch (err) {
-          console.error("[AUTH jwt callback] upsert error:", err);
+        // Detect account linking: if token already has a sub (from existing session)
+        // and it differs from the incoming OAuth user.id, we are linking!
+        const isLinking = token.sub && token.sub !== user.id;
+
+        if (!isLinking) {
+          token.sub = user.id;
+          try {
+            const { default: prisma } =
+              await import("@/lib/prisma");
+            // CRÍTICO: Upsert del usuario en Neon
+            await prisma.user.upsert({
+              where: { id: user.id },
+              update: {
+                name: user.name ?? undefined,
+                email: user.email ?? undefined,
+                image: user.image ?? undefined,
+              },
+              create: {
+                id: user.id,
+                name: user.name,
+                email: user.email,
+                image: user.image,
+              },
+            });
+          } catch (err) {
+            console.error("[AUTH jwt callback] upsert error:", err);
+          }
+        } else {
+          console.log("[AUTH] Linking new account to existing session:", token.sub);
         }
       }
 
