@@ -40,15 +40,22 @@ console.log(`[db-sync] target database host: ${host}`);
 // and aborts the ENTIRE sync (so legitimate additive changes never apply).
 // Remove it first: idempotent and safe — it's Neon demo data referenced by
 // nothing in our schema.
+// Drop stale tables that are not in our Prisma schema but exist in the DB,
+// which cause Prisma to abort the entire sync with "data loss" warnings.
+// This is idempotent and safe — these tables are not referenced by any code.
+const STALE_TABLES = ["playing_with_neon", "BestTimeCache"];
 try {
   const client = new Client({ connectionString: dbUrl, ssl: true });
   await client.connect();
-  const found = await client.query(
-    "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'playing_with_neon'"
-  );
-  if (found.rowCount) {
-    await client.query('DROP TABLE IF EXISTS "playing_with_neon" CASCADE;');
-    console.log("[db-sync] removed Neon starter table 'playing_with_neon'");
+  for (const table of STALE_TABLES) {
+    const found = await client.query(
+      "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = $1",
+      [table]
+    );
+    if (found.rowCount) {
+      await client.query(`DROP TABLE IF EXISTS "${table}" CASCADE;`);
+      console.log(`[db-sync] removed stale table '${table}'`);
+    }
   }
   await client.end();
 } catch (e) {
