@@ -200,7 +200,7 @@ export function AnalyticsDashboard() {
     if (filterPlatform === "all") return posts;
     const platformMap: Record<string, string> = { facebook: "Facebook", instagram: "Instagram" };
     const target = platformMap[filterPlatform] || "";
-    return posts.filter((p) => p.channel === target);
+    return posts.filter((p: any) => p.channel === target);
   }, [posts, filterPlatform]);
 
   // Build query string for sub-tabs
