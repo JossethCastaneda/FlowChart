@@ -124,17 +124,35 @@ export const authOptions: NextAuthOptions = {
         if (!isLinking) {
           try {
             const { default: prisma } = await import("@/lib/prisma");
-            
-            // 1. First, try to find an existing user by email
-            // This prevents Unique Constraint Failed errors if the user already signed up with Credentials
+
             let dbUser;
-            if (user.email) {
+
+            // 1. If we have an OAuth account, look up by providerAccountId first.
+            //    This prevents creating duplicate users for OAuth providers that
+            //    don't return an email (e.g. Facebook without email permission).
+            if (account?.provider && account?.providerAccountId) {
+              const existingAccount = await prisma.account.findUnique({
+                where: {
+                  provider_providerAccountId: {
+                    provider: account.provider,
+                    providerAccountId: account.providerAccountId,
+                  },
+                },
+                include: { user: true },
+              });
+              if (existingAccount) {
+                dbUser = existingAccount.user;
+              }
+            }
+
+            // 2. If not found by OAuth account, try to find by email
+            if (!dbUser && user.email) {
               dbUser = await prisma.user.findUnique({
-                where: { email: user.email }
+                where: { email: user.email },
               });
             }
 
-            // 2. If no user exists, create one
+            // 3. If no user exists, create one
             if (!dbUser) {
               dbUser = await prisma.user.create({
                 data: {
@@ -144,7 +162,7 @@ export const authOptions: NextAuthOptions = {
                 }
               });
             } else {
-              // 3. If exists, just update name/image if they are missing
+              // 4. Update name/image if they are missing
               dbUser = await prisma.user.update({
                 where: { id: dbUser.id },
                 data: {
