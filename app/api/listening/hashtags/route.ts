@@ -28,33 +28,18 @@ export async function GET(request: NextRequest) {
     const igId = page.instagram_business_account.id;
     const pageToken = page.access_token || token;
 
-    // Check cache for hashtag ID
-    let cached = await prisma.hashtagCache.findUnique({
-      where: { workspaceId_hashtag: { workspaceId, hashtag: q } },
-    });
-    let hashtagId = cached?.igHashtagId;
-
-    if (!hashtagId || (cached && new Date(cached.expiresAt) < new Date())) {
-      // Search for hashtag ID
-      const searchRes = await metaFetch(
-        metaUrl("ig_hashtag_search", { user_id: igId, q }),
-        pageToken
-      );
-      if (!searchRes.ok) {
-        const err = await searchRes.json();
-        return NextResponse.json({ posts: [], error: err.error?.message || "Hashtag search failed. Verify instagram_manage_hashtags permission." });
-      }
-      const searchData = await searchRes.json();
-      hashtagId = searchData.data?.[0]?.id;
-      if (!hashtagId) return NextResponse.json({ posts: [], error: "Hashtag not found" });
-
-      // Cache for 7 days
-      await prisma.hashtagCache.upsert({
-        where: { workspaceId_hashtag: { workspaceId, hashtag: q } },
-        update: { igHashtagId: hashtagId, expiresAt: new Date(Date.now() + 7 * 86400000) },
-        create: { workspaceId, hashtag: q, igHashtagId: hashtagId, expiresAt: new Date(Date.now() + 7 * 86400000) },
-      });
+    // Search for hashtag ID dynamically (stateless)
+    const searchRes = await metaFetch(
+      metaUrl("ig_hashtag_search", { user_id: igId, q }),
+      pageToken
+    );
+    if (!searchRes.ok) {
+      const err = await searchRes.json();
+      return NextResponse.json({ posts: [], error: err.error?.message || "Hashtag search failed. Verify instagram_manage_hashtags permission." });
     }
+    const searchData = await searchRes.json();
+    const hashtagId = searchData.data?.[0]?.id;
+    if (!hashtagId) return NextResponse.json({ posts: [], error: "Hashtag not found" });
 
     // Get recent media for hashtag
     const mediaRes = await metaFetch(

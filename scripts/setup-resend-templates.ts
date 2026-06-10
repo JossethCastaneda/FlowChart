@@ -1,9 +1,8 @@
-/**
- * Script para crear templates de email en Resend.
- * Ejecutar una sola vez: npx ts-node scripts/setup-resend-templates.ts
- * 
- * Requiere: RESEND_API_KEY en .env o como variable de entorno
- */
+import * as dotenv from 'dotenv';
+import path from 'path';
+
+// Cargar .env.local
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
 
@@ -17,70 +16,316 @@ const headers = {
   Authorization: `Bearer ${RESEND_API_KEY}`,
 };
 
+// ─────────────────────────────────────────────────
+// HTML BASE GENERATOR (100% Sodare Theme, Light/Dark)
+// ─────────────────────────────────────────────────
+
+function baseWrapper(content: string): string {
+  return `
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
+  <meta name="supported-color-schemes" content="light dark">
+  <style>
+    /* Base Resets */
+    body { font-family: 'Segoe UI', Arial, Helvetica, sans-serif; -webkit-font-smoothing: antialiased; margin: 0; padding: 0; }
+    table { border-collapse: collapse; mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+    
+    /* Dark Mode Overrides */
+    @media (prefers-color-scheme: dark) {
+      .bg-body { background-color: #000000 !important; }
+      .bg-card { 
+        background: linear-gradient(180deg,#060c1a 0%,#030508 100%) !important; 
+        border: 1px solid rgba(0,240,255,0.12) !important;
+        box-shadow: 0 0 60px rgba(0,240,255,0.06), 0 0 120px rgba(0,128,255,0.03) !important;
+      }
+      .bg-inner-card {
+        background: linear-gradient(135deg,rgba(0,20,40,0.8),rgba(0,10,25,0.6)) !important;
+        border: 1px solid rgba(0,240,255,0.1) !important;
+        box-shadow: 0 4px 24px rgba(0,0,0,0.3) !important;
+      }
+      .bg-banner { background: linear-gradient(135deg,rgba(0,240,255,0.04),rgba(0,128,255,0.02)) !important; border: 1px solid rgba(0,240,255,0.12) !important; }
+      
+      .text-main { color: #f0f4f8 !important; }
+      .text-muted { color: #94a3b8 !important; }
+      .text-accent { color: #00f0ff !important; }
+      
+      .logo-emblem { background: linear-gradient(135deg,#040a18,#0a1628) !important; border-color: #00f0ff !important; color: #00f0ff !important; box-shadow: 0 0 30px rgba(0,240,255,0.25),inset 0 0 20px rgba(0,240,255,0.05) !important; }
+      .logo-text { color: #f0f4f8 !important; text-shadow: 0 0 20px rgba(0,240,255,0.3),0 0 40px rgba(0,240,255,0.1) !important; }
+      
+      .border-line { background: linear-gradient(90deg,transparent,rgba(0,240,255,0.08),transparent) !important; }
+      .footer-text { color: rgba(148,163,184,0.5) !important; }
+    }
+  </style>
+  <!--[if mso]>
+  <style>body{font-family:Arial,sans-serif!important;}</style>
+  <![endif]-->
+</head>
+<body class="bg-body" style="margin:0;padding:0;background-color:#f8fafc;font-family:'Segoe UI',Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
+  <!-- Preheader -->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
+    SODARE — Sistema Operativo de Marketing Digital
+  </div>
+
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="background-color:#f8fafc;">
+    <tr>
+      <td align="center" style="padding:24px 16px;">
+        <!-- Main container -->
+        <table width="100%" style="max-width:580px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.05);" cellpadding="0" cellspacing="0" border="0" class="bg-card">
+          <!-- TOP ACCENT BAR -->
+          <tr>
+            <td style="height:4px;background:linear-gradient(90deg,#0080ff,#00f0ff,#00f0ff,#0080ff);"></td>
+          </tr>
+
+          <!-- LOGO SECTION -->
+          <tr>
+            <td align="center" style="padding:40px 40px 28px;">
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto 20px;">
+                <tr>
+                  <td class="logo-emblem" style="width:60px;height:60px;background-color:#f1f5f9;border:2px solid #cbd5e1;text-align:center;vertical-align:middle;font-family:'Courier New',Consolas,monospace;font-size:32px;font-weight:900;color:#0f172a;border-radius:6px;">S</td>
+                </tr>
+              </table>
+
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                <tr>
+                  <td class="logo-text" style="font-family:'Courier New',Consolas,monospace;font-size:28px;font-weight:900;letter-spacing:10px;color:#0f172a;padding-bottom:12px;">SODARE</td>
+                </tr>
+              </table>
+
+              <table width="220" cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
+                <tr>
+                  <td class="border-line" style="height:1px;background-color:#cbd5e1;"></td>
+                  <td width="12" align="center" style="padding:0 4px;">
+                    <div style="width:6px;height:6px;background-color:#0080ff;border-radius:1px;transform:rotate(45deg);"></div>
+                  </td>
+                  <td class="border-line" style="height:1px;background-color:#cbd5e1;"></td>
+                </tr>
+              </table>
+
+              <table cellpadding="0" cellspacing="0" border="0" style="margin:10px auto 0;">
+                <tr>
+                  <td class="text-muted" style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:4px;color:#64748b;">MULTICHANNEL INTELLIGENCE</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- SCAN LINE -->
+          <tr>
+            <td style="padding:0 32px;">
+              <div class="border-line" style="height:1px;background-color:#f1f5f9;"></div>
+            </td>
+          </tr>
+
+          <!-- CONTENT -->
+          <tr>
+            <td style="padding:28px 36px 36px;">
+              ${content}
+            </td>
+          </tr>
+
+          <!-- FOOTER -->
+          <tr>
+            <td style="padding:0 36px;">
+              <div class="border-line" style="height:1px;background-color:#f1f5f9;"></div>
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="padding:24px 36px 28px;">
+              <p class="footer-text" style="margin:0;font-family:'Courier New',monospace;font-size:9px;color:#94a3b8;letter-spacing:3px;">
+                SODARE
+              </p>
+              <p class="footer-text" style="margin:4px 0 0;font-family:'Courier New',monospace;font-size:8px;color:#94a3b8;letter-spacing:2px;">
+                SISTEMA OPERATIVO DE MARKETING DIGITAL
+              </p>
+            </td>
+          </tr>
+
+          <!-- BOTTOM ACCENT -->
+          <tr>
+            <td style="height:2px;background:linear-gradient(90deg,transparent,rgba(0,128,255,0.3),transparent);"></td>
+          </tr>
+        </table>
+
+        <!-- Security disclaimer -->
+        <table width="100%" style="max-width:580px;" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td align="center" style="padding:16px 0 0;">
+              <p class="footer-text" style="margin:0;font-family:'Courier New',monospace;font-size:8px;color:#94a3b8;letter-spacing:2px;">
+                COMUNICACION SEGURA &#8226; NO REENVIAR
+              </p>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>`;
+}
+
+function getInviteEmailHtmlHandlebars(): string {
+  const content = `
+    <!-- Mission briefing banner -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-banner" style="background-color:#f1f5f9;border:1px solid #e2e8f0;border-radius:4px;margin-bottom:24px;">
+      <tr>
+        <td style="padding:18px 22px;">
+          <p class="text-muted" style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:9px;color:#64748b;letter-spacing:4px;">
+            TRANSMISION ENTRANTE
+          </p>
+          <p class="text-main" style="margin:0;font-size:15px;color:#0f172a;line-height:1.6;">
+            <strong class="text-accent" style="color:#0080ff;">{{{INVITER_NAME}}}</strong> te ha invitado a unirte al equipo
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Workspace info card -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-inner-card" style="background-color:#ffffff;border:1px solid #e2e8f0;border-left:3px solid #0080ff;border-radius:0 4px 4px 0;margin-bottom:28px;">
+      <tr>
+        <td style="padding:24px;">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td class="border-line" style="padding-bottom:16px;border-bottom:1px solid #f1f5f9;">
+                <p class="text-muted" style="margin:0 0 4px;font-family:'Courier New',monospace;font-size:8px;color:#94a3b8;letter-spacing:3px;">
+                  WORKSPACE
+                </p>
+                <p class="text-main" style="margin:0;font-size:22px;font-weight:800;color:#0f172a;letter-spacing:1px;">
+                  {{{WORKSPACE_NAME}}}
+                </p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding-top:16px;">
+                <p class="text-muted" style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:8px;color:#94a3b8;letter-spacing:3px;">
+                  ROL ASIGNADO
+                </p>
+                <table cellpadding="0" cellspacing="0" border="0">
+                  <tr>
+                    <td style="font-family:'Courier New',monospace;font-size:11px;font-weight:800;color:#0080ff;background-color:#eff6ff;border:1px solid #bfdbfe;padding:5px 14px;border-radius:3px;letter-spacing:3px;">
+                      {{{ROLE}}}
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <!-- CTA Button -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding:4px 0 32px;">
+          <table cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="background:linear-gradient(135deg,#00e0ff,#0080ff);border-radius:4px;box-shadow:0 4px 16px rgba(0,128,255,0.3);">
+                <a href="{{{INVITE_URL}}}" target="_blank" style="display:inline-block;padding:16px 48px;font-family:'Courier New',monospace;font-size:13px;font-weight:900;color:#ffffff;text-decoration:none;letter-spacing:3px;">ACEPTAR MISION &#8594;</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Fallback URL -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding:0 0 20px;">
+          <p class="text-muted" style="margin:0 0 6px;font-family:'Segoe UI',sans-serif;font-size:11px;color:#64748b;">
+            Si el botón no funciona, copia este enlace:
+          </p>
+          <p style="margin:0;font-family:'Courier New',monospace;font-size:10px;color:#0080ff;word-break:break-all;">
+            {{{INVITE_URL}}}
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Expiry -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding:0 0 20px;">
+          <div class="border-line" style="height:1px;background-color:#e2e8f0;margin-bottom:16px;"></div>
+          <p class="text-muted" style="margin:0;font-family:'Courier New',monospace;font-size:9px;color:#94a3b8;letter-spacing:2px;">
+            &#9202; TRANSMISION EXPIRA EN 7 DIAS
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+  return baseWrapper(content);
+}
+
+function getPasswordResetEmailHtmlHandlebars(): string {
+  const content = `
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-banner" style="background-color:#fef2f2;border:1px solid #fecaca;border-radius:4px;margin-bottom:24px;">
+      <tr>
+        <td style="padding:18px 22px;">
+          <p style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:9px;color:#dc2626;letter-spacing:4px;">
+            ALERTA DE SEGURIDAD
+          </p>
+          <p class="text-main" style="margin:0;font-size:15px;color:#0f172a;line-height:1.6;">
+            Solicitud de restablecimiento de contraseña
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-inner-card" style="background-color:#ffffff;border:1px solid #e2e8f0;border-left:3px solid #ef4444;border-radius:0 4px 4px 0;margin-bottom:28px;">
+      <tr>
+        <td style="padding:24px;">
+          <p class="text-main" style="margin:0 0 8px;font-size:14px;color:#0f172a;line-height:1.7;">
+            Hola <strong>{{{NAME}}}</strong>,
+          </p>
+          <p class="text-muted" style="margin:0;font-size:13px;color:#64748b;line-height:1.7;">
+            Recibimos una solicitud para restablecer la contraseña de tu cuenta en SODARE. Haz clic en el botón de abajo para continuar.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding:4px 0 32px;">
+          <table cellpadding="0" cellspacing="0" border="0">
+            <tr>
+              <td style="background:linear-gradient(135deg,#ff2d55,#ff6b35);border-radius:4px;">
+                <a href="{{{RESET_URL}}}" target="_blank" style="display:inline-block;padding:16px 48px;font-family:'Courier New',monospace;font-size:13px;font-weight:900;color:#ffffff;text-decoration:none;letter-spacing:3px;">RESTABLECER ACCESO &#8594;</a>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Fallback URL -->
+    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+      <tr>
+        <td align="center" style="padding:0 0 20px;">
+          <p class="text-muted" style="margin:0 0 6px;font-family:'Segoe UI',sans-serif;font-size:11px;color:#64748b;">
+            Si el botón no funciona, copia este enlace:
+          </p>
+          <p style="margin:0;font-family:'Courier New',monospace;font-size:10px;color:#0080ff;word-break:break-all;">
+            {{{RESET_URL}}}
+          </p>
+        </td>
+      </tr>
+    </table>
+  `;
+
+  return baseWrapper(content);
+}
+
 const templates = [
   {
     name: "sodare-password-reset",
     subject: "Recuperar contraseña — SODARE",
-    html: `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0; padding:0; background:#0a0a0a; font-family:Arial, Helvetica, sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a; padding:40px 20px;">
-    <tr><td align="center">
-      <table width="480" cellpadding="0" cellspacing="0" style="background:linear-gradient(145deg, #0f172a, #030508); border:1px solid rgba(0,240,255,0.12); border-radius:16px; overflow:hidden;">
-        
-        <!-- Header -->
-        <tr><td style="padding:32px 32px 0; text-align:center;">
-          <div style="font-size:28px; font-weight:800; letter-spacing:3px;">
-            <span style="color:#00f0ff;">⚡</span>
-            <span style="color:#e2e8f0;"> SODARE</span>
-          </div>
-          <div style="width:60px; height:2px; background:linear-gradient(90deg, #00f0ff, #0080ff); margin:16px auto 0;"></div>
-        </td></tr>
-
-        <!-- Body -->
-        <tr><td style="padding:32px;">
-          <p style="color:#94a3b8; font-size:15px; line-height:1.6; margin:0 0 8px;">
-            Hola <strong style="color:#e2e8f0;">{{{NAME}}}</strong>,
-          </p>
-          <p style="color:#94a3b8; font-size:15px; line-height:1.6; margin:0 0 24px;">
-            Recibimos una solicitud para restablecer la contraseña de tu cuenta.
-          </p>
-
-          <!-- CTA Button -->
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr><td align="center" style="padding:8px 0 24px;">
-              <a href="{{{RESET_URL}}}" style="display:inline-block; padding:14px 32px; background:linear-gradient(135deg, #00f0ff, #0080ff); color:#030508; font-weight:700; font-size:14px; text-decoration:none; border-radius:8px; letter-spacing:1px;">
-                RESTABLECER CONTRASEÑA →
-              </a>
-            </td></tr>
-          </table>
-
-          <p style="color:#64748b; font-size:13px; line-height:1.5; margin:0 0 16px;">
-            Si no solicitaste este cambio, puedes ignorar este email. Tu contraseña no será modificada.
-          </p>
-
-          <!-- Fallback URL -->
-          <div style="background:rgba(0,240,255,0.04); border:1px solid rgba(0,240,255,0.08); border-radius:8px; padding:12px 16px; margin-top:16px;">
-            <p style="color:#475569; font-size:11px; margin:0 0 4px;">Si el botón no funciona, copia este enlace:</p>
-            <p style="color:#00f0ff; font-size:11px; word-break:break-all; margin:0;">{{{RESET_URL}}}</p>
-          </div>
-        </td></tr>
-
-        <!-- Footer -->
-        <tr><td style="padding:0 32px 32px; border-top:1px solid rgba(100,116,139,0.1); padding-top:24px;">
-          <p style="color:#334155; font-size:11px; text-align:center; margin:0; line-height:1.5;">
-            Este enlace expira en 1 hora.<br/>
-            © SODARE — Marketing Intelligence Platform
-          </p>
-        </td></tr>
-
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim(),
+    html: getPasswordResetEmailHtmlHandlebars(),
     variables: [
       { key: "NAME", type: "string", fallbackValue: "usuario" },
       { key: "RESET_URL", type: "string", fallbackValue: "https://sodare.xyz/reset-password/token" },
@@ -89,63 +334,7 @@ const templates = [
   {
     name: "sodare-workspace-invite",
     subject: "Te invitaron a {{{WORKSPACE_NAME}}} — SODARE",
-    html: `
-<!DOCTYPE html>
-<html>
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="margin:0; padding:0; background:#0a0a0a; font-family:Arial, Helvetica, sans-serif;">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0a; padding:40px 20px;">
-    <tr><td align="center">
-      <table width="480" cellpadding="0" cellspacing="0" style="background:linear-gradient(145deg, #0f172a, #030508); border:1px solid rgba(0,240,255,0.12); border-radius:16px; overflow:hidden;">
-        
-        <!-- Header -->
-        <tr><td style="padding:32px 32px 0; text-align:center;">
-          <div style="font-size:28px; font-weight:800; letter-spacing:3px;">
-            <span style="color:#00f0ff;">⚡</span>
-            <span style="color:#e2e8f0;"> SODARE</span>
-          </div>
-          <div style="width:60px; height:2px; background:linear-gradient(90deg, #00f0ff, #0080ff); margin:16px auto 0;"></div>
-        </td></tr>
-
-        <!-- Body -->
-        <tr><td style="padding:32px;">
-          <p style="color:#94a3b8; font-size:15px; line-height:1.6; margin:0 0 8px;">
-            Hola,
-          </p>
-          <p style="color:#94a3b8; font-size:15px; line-height:1.6; margin:0 0 24px;">
-            <strong style="color:#e2e8f0;">{{{INVITER_NAME}}}</strong> te ha invitado a unirte al workspace 
-            <strong style="color:#00f0ff;">{{{WORKSPACE_NAME}}}</strong> con el rol de 
-            <strong style="color:#e2e8f0;">{{{ROLE}}}</strong>.
-          </p>
-
-          <!-- CTA Button -->
-          <table width="100%" cellpadding="0" cellspacing="0">
-            <tr><td align="center" style="padding:8px 0 24px;">
-              <a href="{{{INVITE_URL}}}" style="display:inline-block; padding:14px 32px; background:linear-gradient(135deg, #00f0ff, #0080ff); color:#030508; font-weight:700; font-size:14px; text-decoration:none; border-radius:8px; letter-spacing:1px;">
-                ACEPTAR INVITACIÓN →
-              </a>
-            </td></tr>
-          </table>
-
-          <div style="background:rgba(0,240,255,0.04); border:1px solid rgba(0,240,255,0.08); border-radius:8px; padding:12px 16px;">
-            <p style="color:#475569; font-size:11px; margin:0 0 4px;">Si el botón no funciona, copia este enlace:</p>
-            <p style="color:#00f0ff; font-size:11px; word-break:break-all; margin:0;">{{{INVITE_URL}}}</p>
-          </div>
-        </td></tr>
-
-        <!-- Footer -->
-        <tr><td style="padding:0 32px 32px; border-top:1px solid rgba(100,116,139,0.1); padding-top:24px;">
-          <p style="color:#334155; font-size:11px; text-align:center; margin:0; line-height:1.5;">
-            Esta invitación expira en 7 días.<br/>
-            © SODARE — Marketing Intelligence Platform
-          </p>
-        </td></tr>
-
-      </table>
-    </td></tr>
-  </table>
-</body>
-</html>`.trim(),
+    html: getInviteEmailHtmlHandlebars(),
     variables: [
       { key: "INVITER_NAME", type: "string", fallbackValue: "Un administrador" },
       { key: "WORKSPACE_NAME", type: "string", fallbackValue: "Workspace" },
@@ -157,6 +346,8 @@ const templates = [
 
 async function main() {
   console.log("🚀 Creando templates en Resend...\n");
+
+  let ids: Record<string, string> = {};
 
   for (const tpl of templates) {
     try {
@@ -174,6 +365,9 @@ async function main() {
       }
 
       console.log(`✅ ${tpl.name} → ID: ${data.id}`);
+      
+      if (tpl.name === "sodare-password-reset") ids.RESET = data.id;
+      if (tpl.name === "sodare-workspace-invite") ids.INVITE = data.id;
 
       // Publicar template
       const pubRes = await fetch(`https://api.resend.com/templates/${data.id}/publish`, {
@@ -189,9 +383,38 @@ async function main() {
     }
   }
 
-  console.log("\n🎯 Guarda los IDs arriba y agrégalos como variables de entorno:");
-  console.log("   RESEND_TEMPLATE_PASSWORD_RESET = <id>");
-  console.log("   RESEND_TEMPLATE_WORKSPACE_INVITE = <id>");
+  console.log("\n🎯 Templates sincronizados. Actualizando .env.local...");
+  
+  const fs = await import('fs');
+  const envPath = path.resolve(process.cwd(), '.env.local');
+  if (fs.existsSync(envPath)) {
+    let envContent = fs.readFileSync(envPath, 'utf8');
+    
+    // Replace or add RESET
+    if (ids.RESET) {
+      if (envContent.includes('RESEND_TEMPLATE_PASSWORD_RESET=')) {
+        envContent = envContent.replace(/RESEND_TEMPLATE_PASSWORD_RESET=.*/g, `RESEND_TEMPLATE_PASSWORD_RESET=${ids.RESET}`);
+      } else {
+        envContent += `\nRESEND_TEMPLATE_PASSWORD_RESET=${ids.RESET}`;
+      }
+    }
+    
+    // Replace or add INVITE
+    if (ids.INVITE) {
+      if (envContent.includes('RESEND_TEMPLATE_WORKSPACE_INVITE=')) {
+        envContent = envContent.replace(/RESEND_TEMPLATE_WORKSPACE_INVITE=.*/g, `RESEND_TEMPLATE_WORKSPACE_INVITE=${ids.INVITE}`);
+      } else {
+        envContent += `\nRESEND_TEMPLATE_WORKSPACE_INVITE=${ids.INVITE}`;
+      }
+    }
+    
+    fs.writeFileSync(envPath, envContent);
+    console.log("✅ .env.local actualizado con éxito.");
+  } else {
+    console.log("⚠️ No se encontró .env.local para auto-actualizar. Configura estas variables:");
+    console.log(`   RESEND_TEMPLATE_PASSWORD_RESET=${ids.RESET || '<id>'}`);
+    console.log(`   RESEND_TEMPLATE_WORKSPACE_INVITE=${ids.INVITE || '<id>'}`);
+  }
 }
 
 main();

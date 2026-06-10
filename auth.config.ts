@@ -100,6 +100,19 @@ export const authOptions: NextAuthOptions = {
 
   session: { strategy: "jwt" },
 
+  cookies: {
+    sessionToken: {
+      name: `__Secure-next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: true,
+        domain: ".sodare.xyz", // Permite compartir la sesión con subdominios
+      },
+    },
+  },
+
   callbacks: {
     async jwt({ token, account, user, trigger }) {
       if (user) {

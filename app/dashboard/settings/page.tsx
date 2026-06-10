@@ -304,8 +304,27 @@ export default function SettingsPage() {
       <div className="space-y-6">
         <PageHeader title="Admin" description="Configuración de tu cuenta y workspace."
           icon={<Settings className="w-6 h-6" style={{ color: "#00d4ff" }} />} />
-        <div style={{ textAlign: "center", padding: "48px", color: "rgba(148,163,184,0.65)", fontSize: "12px" }}>
-          Cargando...
+        
+        <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start animate-pulse">
+          <div className="w-full lg:w-56 shrink-0 flex flex-col gap-6">
+            <div>
+              <div className="h-2 w-16 bg-slate-800 rounded mb-4 ml-4"></div>
+              <div className="h-10 w-full bg-slate-800/50 rounded-lg mb-2"></div>
+              <div className="h-10 w-full bg-slate-800/50 rounded-lg mb-2"></div>
+            </div>
+            <div>
+              <div className="h-2 w-20 bg-slate-800 rounded mb-4 ml-4"></div>
+              <div className="h-10 w-full bg-slate-800/50 rounded-lg mb-2"></div>
+            </div>
+          </div>
+          <div className="flex-1 w-full glass-panel p-6">
+            <div className="h-5 w-32 bg-slate-800 rounded mb-6"></div>
+            <div className="space-y-4">
+              <div className="h-10 w-full bg-slate-800/40 rounded"></div>
+              <div className="h-10 w-full bg-slate-800/40 rounded"></div>
+              <div className="h-10 w-full bg-slate-800/40 rounded"></div>
+            </div>
+          </div>
         </div>
       </div>
     );
