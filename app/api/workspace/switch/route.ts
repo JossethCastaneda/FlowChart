@@ -54,6 +54,7 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 365, // 1 año
       path: "/",
+      domain: process.env.NODE_ENV === "production" ? ".sodare.xyz" : undefined,
     });
 
     return response;

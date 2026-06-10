@@ -88,6 +88,12 @@ export default function SettingsPage() {
   const [profileData, setProfileData] = useState<{ id: string, name: string, email: string, image: string, providers: string[] } | null>(null);
   const [profileName, setProfileName] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordMsg, setPasswordMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const router = useRouter();
 
   // Restore section + preferences (client-only).
@@ -284,6 +290,31 @@ export default function SettingsPage() {
     setSavingProfile(false);
   }
 
+  async function handleChangePassword() {
+    setPasswordMsg(null);
+    if (!currentPassword) { setPasswordMsg({ ok: false, text: "Ingresa tu contraseña actual" }); return; }
+    if (newPassword.length < 8) { setPasswordMsg({ ok: false, text: "La nueva contraseña debe tener al menos 8 caracteres" }); return; }
+    if (newPassword !== confirmPassword) { setPasswordMsg({ ok: false, text: "Las contraseñas no coinciden" }); return; }
+    setChangingPassword(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordMsg({ ok: false, text: data.error || "Error al cambiar contraseña" });
+      } else {
+        setPasswordMsg({ ok: true, text: "Contraseña actualizada correctamente" });
+        setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+      }
+    } catch {
+      setPasswordMsg({ ok: false, text: "Error de red. Intenta de nuevo." });
+    }
+    setChangingPassword(false);
+  }
+
   const isAdmin = userRole === "OWNER" || userRole === "ADMIN";
 
   // Build the visible nav (role-gated) and keep the active section valid.
@@ -475,6 +506,65 @@ export default function SettingsPage() {
                         <button onClick={() => signIn("facebook")} className="btn-primary text-xs !py-1.5 !px-3">Vincular</button>
                       )}
                     </div>
+                  </div>
+                </div>
+              )}
+
+              {/* CAMBIO DE CONTRASEÑA */}
+              {profileData && profileData.providers.includes("email") && (
+                <div className="glass-panel p-4 md:p-6">
+                  <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                    <span className="section-title flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-[#00d4ff]" /> Cambiar contraseña
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-3 max-w-md">
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1.5">Contraseña actual</label>
+                      <input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        style={inp}
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1.5">Nueva contraseña</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        style={inp}
+                        placeholder="Mínimo 8 caracteres"
+                        autoComplete="new-password"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1.5">Confirmar nueva contraseña</label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        style={inp}
+                        placeholder="Repite la nueva contraseña"
+                        autoComplete="new-password"
+                      />
+                    </div>
+                    {passwordMsg && (
+                      <p className={`text-xs px-3 py-2 rounded ${passwordMsg.ok ? "text-emerald-400 bg-emerald-400/10" : "text-red-400 bg-red-400/10"}`}>
+                        {passwordMsg.text}
+                      </p>
+                    )}
+                    <button
+                      onClick={handleChangePassword}
+                      disabled={changingPassword}
+                      className="btn-primary w-full sm:w-auto self-start"
+                      style={{ opacity: changingPassword ? 0.6 : 1 }}
+                    >
+                      {changingPassword ? "Actualizando..." : "Cambiar contraseña"}
+                    </button>
                   </div>
                 </div>
               )}

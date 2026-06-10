@@ -58,6 +58,7 @@ model User {
   capturista    Capturista?
   integrations  Integration[]     @relation("UserIntegrations")
   notifications Notification[]
+  sentInvites   WorkspaceInvite[] @relation("SentInvites")
 }
 
 model VerificationToken {
@@ -134,15 +135,18 @@ model WorkspaceMember {
 }
 
 model WorkspaceInvite {
-  id          String    @id @default(cuid())
-  workspaceId String
-  email       String
-  token       String    @unique
-  role        String    @default("MEMBER")
-  expires     DateTime
-  acceptedAt  DateTime?
+  id           String    @id @default(cuid())
+  workspaceId  String
+  email        String
+  token        String    @unique
+  role         String    @default("MEMBER")
+  expires      DateTime
+  acceptedAt   DateTime?
+  createdAt    DateTime  @default(now())
+  invitedById  String?
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy   User?     @relation("SentInvites", fields: [invitedById], references: [id], onDelete: SetNull)
 }
 
 // ------------------------------------------------------

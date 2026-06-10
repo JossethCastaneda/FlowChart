@@ -56,3 +56,4 @@ proxy.ts.bak
 
 # Local editor/agent artifacts
 .claude/
+.env*
