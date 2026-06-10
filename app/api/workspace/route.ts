@@ -112,14 +112,11 @@ export async function POST(req: NextRequest) {
           },
         },
       },
-      include: {
-        members: true,
-      },
     });
 
     console.log("[WORKSPACE] Created successfully:", workspace.id);
 
-    return NextResponse.json({ data: workspace }, { status: 201 });
+    return NextResponse.json({ data: { id: workspace.id, name: workspace.name, slug: workspace.slug } }, { status: 201 });
     } catch (err: any) {
     console.error("[WORKSPACE] Error creating workspace:", err);
     return NextResponse.json(

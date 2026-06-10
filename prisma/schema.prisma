@@ -420,6 +420,7 @@ model InboxConversation {
   platform      String   // "facebook_messenger", "instagram_dm", "instagram_comment"
   externalId    String   // Conversation ID from Meta
   pageId        String?  // Facebook Page ID or IG user ID
+  igId          String?  // Legacy Instagram user ID (kept for backwards compat)
   contactName   String?
   contactAvatar String?
   lastMessage   String?
