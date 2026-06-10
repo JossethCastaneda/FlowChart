@@ -92,4 +92,4 @@ export async function GET() {
   }
 }
 
-let RequestSchema = z.object({ status: z.enum(["ONLINE", "OFFLINE", "AWAY", "BUSY", "DO_NOT_DISTURB"]) });
+const RequestSchema = z.object({ status: z.enum(["disponible", "ocupado", "ausente", "offline"]) });
