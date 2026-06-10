@@ -3,6 +3,8 @@ import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
+
+export const dynamic = "force-dynamic";
 import {
   apiSuccess,
   apiUnauthorized,

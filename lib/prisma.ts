@@ -33,7 +33,7 @@ function createMissingDatabaseClient(): PrismaClient {
 }
 
 function createPrismaClient(): PrismaClient {
-  let connectionString = process.env.DATABASE_URL;
+  let connectionString = process.env.DATABASE_URL || process.env.STORAGE_DATABASE_URL;
 
   if (!connectionString) {
     console.warn("[Prisma] DATABASE_URL not set - database queries will fail if executed");
