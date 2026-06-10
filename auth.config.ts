@@ -22,13 +22,15 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
       authorization: {
         url: `https://www.facebook.com/${META_API_VERSION}/dialog/oauth`,
         params: {
-          // Sodare — User Login (basic login only)
           // Config ID 2028091691078800 must be set in Facebook App to request email,public_profile only.
           config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID
             || "2028091691078800",
           auth_type: "rerequest",
           // Explicitly restrict scope to minimum — no ads_read, no pages_manage_posts, etc.
           scope: "email,public_profile",
+          // override_default_response_type is required by Meta to honor config_id
+          override_default_response_type: "true",
+          display: "popup",
         },
       },
     })
