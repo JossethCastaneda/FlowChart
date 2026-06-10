@@ -1,6 +1,8 @@
 // Shared types + helpers for the agency workflow (áreas, líderes, SLA).
 // The config lives in WorkspaceSettings.areas (JSON) so each team edits its own.
 
+import { z } from "zod";
+
 export interface RequestType {
   id: string;
   name: string;
@@ -8,27 +10,30 @@ export interface RequestType {
 }
 
 export interface AreaPermissions {
-  canViewTasks: boolean;
-  canCreateTasks: boolean;
-  canEditTasks: boolean;
-  canCloseTasks: boolean;
-  canViewAnalytics: boolean;
+  canAccessOps: boolean;
+  canAccessPublisher: boolean;
+  canAccessInbox: boolean;
+  canAccessAds: boolean;
+  canAccessAnalytics: boolean;
+  canAccessBriefing: boolean;
 }
 
 export const DEFAULT_MEMBER_PERMS: AreaPermissions = {
-  canViewTasks: true,
-  canCreateTasks: true,
-  canEditTasks: true,
-  canCloseTasks: false,
-  canViewAnalytics: true,
+  canAccessOps: true,
+  canAccessPublisher: true,
+  canAccessInbox: true,
+  canAccessAds: true,
+  canAccessAnalytics: true,
+  canAccessBriefing: true,
 };
 
 export const DEFAULT_EXTERNAL_PERMS: AreaPermissions = {
-  canViewTasks: false,
-  canCreateTasks: true,  // can send requests to the area
-  canEditTasks: false,
-  canCloseTasks: false,
-  canViewAnalytics: false,
+  canAccessOps: true,      // They might need to request tasks
+  canAccessPublisher: false,
+  canAccessInbox: false,
+  canAccessAds: false,
+  canAccessAnalytics: false,
+  canAccessBriefing: false,
 };
 
 export interface Area {
@@ -93,38 +98,103 @@ export const SUGGESTED_AREAS: Omit<Area, "leadIds" | "memberIds">[] = [
   },
 ];
 
-function parsePerms(raw: any, defaults: AreaPermissions): AreaPermissions {
-  if (!raw || typeof raw !== "object") return { ...defaults };
+// ── Validación estricta para ESCRITURAS (PUT /api/workspace/settings) ──
+// parseWorkflow() sigue siendo el normalizador tolerante para LECTURAS
+// (filas históricas pueden tener formas viejas); pero lo que se guarda
+// nuevo debe cumplir este esquema en lugar de coercionarse en silencio.
+
+const AreaPermissionsSchema = z.object({
+  canAccessOps: z.boolean(),
+  canAccessPublisher: z.boolean(),
+  canAccessInbox: z.boolean(),
+  canAccessAds: z.boolean(),
+  canAccessAnalytics: z.boolean(),
+  canAccessBriefing: z.boolean(),
+});
+
+const RequestTypeSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1),
+  slaHours: z.number().positive().max(24 * 90),
+});
+
+export const AreaSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(1).max(120),
+  color: z.string().max(32),
+  slaHours: z.number().positive().max(24 * 90),
+  leadIds: z.array(z.string()),
+  memberIds: z.array(z.string()),
+  requestTypes: z.array(RequestTypeSchema),
+  permissions: z
+    .object({
+      members: AreaPermissionsSchema,
+      external: AreaPermissionsSchema,
+    })
+    .optional(),
+  requireLeadReview: z.boolean().optional(),
+  slaMode: z.string().optional(),
+});
+
+export const WorkflowConfigSchema = z.object({
+  areas: z.array(AreaSchema).max(100),
+  requireLeadReview: z.boolean().optional().default(true),
+});
+
+// ── Branding por workspace (personalización comercial) ──
+export const BrandingSchema = z.object({
+  displayName: z.string().max(120).optional(),
+  logoUrl: z.string().url().max(500).optional().or(z.literal("")),
+  accentColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/, "Color en formato #RRGGBB")
+    .optional(),
+});
+
+export type WorkspaceBranding = z.infer<typeof BrandingSchema>;
+
+function parsePerms(input: unknown, defaults: AreaPermissions): AreaPermissions {
+  if (!input || typeof input !== "object") return { ...defaults };
+  const raw = input as Record<string, unknown>;
   return {
-    canViewTasks: typeof raw.canViewTasks === "boolean" ? raw.canViewTasks : defaults.canViewTasks,
-    canCreateTasks: typeof raw.canCreateTasks === "boolean" ? raw.canCreateTasks : defaults.canCreateTasks,
-    canEditTasks: typeof raw.canEditTasks === "boolean" ? raw.canEditTasks : defaults.canEditTasks,
-    canCloseTasks: typeof raw.canCloseTasks === "boolean" ? raw.canCloseTasks : defaults.canCloseTasks,
-    canViewAnalytics: typeof raw.canViewAnalytics === "boolean" ? raw.canViewAnalytics : defaults.canViewAnalytics,
+    canAccessOps: typeof raw.canAccessOps === "boolean" ? raw.canAccessOps : defaults.canAccessOps,
+    canAccessPublisher: typeof raw.canAccessPublisher === "boolean" ? raw.canAccessPublisher : defaults.canAccessPublisher,
+    canAccessInbox: typeof raw.canAccessInbox === "boolean" ? raw.canAccessInbox : defaults.canAccessInbox,
+    canAccessAds: typeof raw.canAccessAds === "boolean" ? raw.canAccessAds : defaults.canAccessAds,
+    canAccessAnalytics: typeof raw.canAccessAnalytics === "boolean" ? raw.canAccessAnalytics : defaults.canAccessAnalytics,
+    canAccessBriefing: typeof raw.canAccessBriefing === "boolean" ? raw.canAccessBriefing : defaults.canAccessBriefing,
   };
 }
 
 /** Normalize raw JSON into a safe WorkflowConfig. */
-export function parseWorkflow(raw: any): WorkflowConfig {
+export function parseWorkflow(input: unknown): WorkflowConfig {
+  const raw = (input ?? {}) as { areas?: unknown; requireLeadReview?: unknown };
   const areas: Area[] = Array.isArray(raw?.areas)
-    ? raw.areas.map((a: any) => ({
-        id: String(a.id || ""),
-        name: String(a.name || ""),
-        color: String(a.color || "#64748b"),
-        slaHours: Number(a.slaHours) || 24,
-        leadIds: Array.isArray(a.leadIds) ? a.leadIds.map(String) : [],
-        memberIds: Array.isArray(a.memberIds) ? a.memberIds.map(String) : [],
-        requestTypes: Array.isArray(a.requestTypes)
-          ? a.requestTypes.map((t: any) => ({ id: String(t.id || ""), name: String(t.name || ""), slaHours: Number(t.slaHours) || 24 }))
-          : [],
-        // Preserve granular permissions (previously dropped!)
-        permissions: a.permissions ? {
-          members: parsePerms(a.permissions.members, DEFAULT_MEMBER_PERMS),
-          external: parsePerms(a.permissions.external, DEFAULT_EXTERNAL_PERMS),
-        } : undefined,
-        requireLeadReview: typeof a.requireLeadReview === "boolean" ? a.requireLeadReview : undefined,
-        slaMode: typeof a.slaMode === "string" ? a.slaMode : undefined,
-      }))
+    ? raw.areas.map((item: unknown) => {
+        const a = (item ?? {}) as Record<string, unknown>;
+        const perms = a.permissions as { members?: unknown; external?: unknown } | undefined;
+        return {
+          id: String(a.id || ""),
+          name: String(a.name || ""),
+          color: String(a.color || "#64748b"),
+          slaHours: Number(a.slaHours) || 24,
+          leadIds: Array.isArray(a.leadIds) ? a.leadIds.map(String) : [],
+          memberIds: Array.isArray(a.memberIds) ? a.memberIds.map(String) : [],
+          requestTypes: Array.isArray(a.requestTypes)
+            ? a.requestTypes.map((t: unknown) => {
+                const rt = (t ?? {}) as Record<string, unknown>;
+                return { id: String(rt.id || ""), name: String(rt.name || ""), slaHours: Number(rt.slaHours) || 24 };
+              })
+            : [],
+          // Preserve granular permissions (previously dropped!)
+          permissions: perms ? {
+            members: parsePerms(perms.members, DEFAULT_MEMBER_PERMS),
+            external: parsePerms(perms.external, DEFAULT_EXTERNAL_PERMS),
+          } : undefined,
+          requireLeadReview: typeof a.requireLeadReview === "boolean" ? a.requireLeadReview : undefined,
+          slaMode: typeof a.slaMode === "string" ? a.slaMode : undefined,
+        };
+      })
     : [];
   return { areas, requireLeadReview: raw?.requireLeadReview !== false };
 }
@@ -154,15 +224,15 @@ export function getPermissions(
 ): AreaPermissions {
   // Full access for admins
   if (userRole === "OWNER" || userRole === "ADMIN") {
-    return { canViewTasks: true, canCreateTasks: true, canEditTasks: true, canCloseTasks: true, canViewAnalytics: true };
+    return { canAccessOps: true, canAccessPublisher: true, canAccessInbox: true, canAccessAds: true, canAccessAnalytics: true, canAccessBriefing: true };
   }
   // No area configured → full access (no restrictions without area config)
   if (!area) {
-    return { ...DEFAULT_MEMBER_PERMS, canCloseTasks: true };
+    return { ...DEFAULT_MEMBER_PERMS };
   }
   // Leads get full access to their area
   if (area.leadIds.includes(userId)) {
-    return { canViewTasks: true, canCreateTasks: true, canEditTasks: true, canCloseTasks: true, canViewAnalytics: true };
+    return { canAccessOps: true, canAccessPublisher: true, canAccessInbox: true, canAccessAds: true, canAccessAnalytics: true, canAccessBriefing: true };
   }
   // Members of the area
   if (area.memberIds.includes(userId)) {

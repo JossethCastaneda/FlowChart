@@ -8,9 +8,14 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { ToastContainer } from "@/components/ui/Toast";
 import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
+import { getBaseUrl } from "@/lib/get-base-url";
 
-const GTM_ID = process.env.NEXT_PUBLIC_GTM_ID;
-const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+// Solo inyectar los tags si el ID tiene el formato real (GTM-XXXX / G-XXXX);
+// así un placeholder en Vercel no genera scripts rotos en producción.
+const rawGtmId = process.env.NEXT_PUBLIC_GTM_ID;
+const rawGa4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+const GTM_ID = rawGtmId?.startsWith("GTM-") ? rawGtmId : undefined;
+const GA4_ID = rawGa4Id?.startsWith("G-") ? rawGa4Id : undefined;
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 
@@ -24,6 +29,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL(getBaseUrl()),
   title: "Sodare — Inteligencia Multicanal",
   description: "Plataforma avanzada de CRM, Analytics, Ads Manager y operaciones para agencias de marketing digital.",
 };

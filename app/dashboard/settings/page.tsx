@@ -256,20 +256,22 @@ export default function SettingsPage() {
         icon={<Settings className="w-6 h-6" style={{ color: "#00d4ff" }} />}
       />
 
-      <div style={{ display: "flex", gap: 20, alignItems: "flex-start", flexWrap: "wrap" }}>
+      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
         {/* ── Left nav: groups (menus) + sections (submenus) ── */}
-        <nav className="settings-nav" style={{ width: 220, flexShrink: 0, display: "flex", flexDirection: "column", gap: 18, position: "sticky", top: 0, alignSelf: "flex-start" }}>
+        <nav className="w-full lg:w-56 shrink-0 flex flex-row lg:flex-col gap-2 lg:gap-6 sticky top-0 z-10 lg:z-auto bg-[var(--background)] lg:bg-transparent pb-3 pt-2 lg:p-0 border-b border-[var(--border)] lg:border-none overflow-x-auto scrollbar-hide">
           {visibleGroups.map((g, gi) => (
-            <div key={g.group}>
-              {gi > 0 && <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "4px 10px 8px" }} />}
-              <div style={{
-                fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase",
-                color: "rgba(148,163,184,0.45)", padding: "4px 12px 8px",
-                borderLeft: "2px solid rgba(0,212,255,0.15)", marginLeft: 4,
-              }}>
-                {g.group}
+            <div key={g.group} className="flex flex-row lg:flex-col items-center lg:items-stretch gap-2">
+              <div className="hidden lg:block">
+                {gi > 0 && <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "4px 10px 8px" }} />}
+                <div style={{
+                  fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase",
+                  color: "rgba(148,163,184,0.45)", padding: "4px 12px 8px",
+                  borderLeft: "2px solid rgba(0,212,255,0.15)", marginLeft: 4,
+                }}>
+                  {g.group}
+                </div>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <div className="flex flex-row lg:flex-col gap-2">
                 {g.items.map((it) => {
                   const active = activeSection === it.key;
                   const Icon = it.icon;
@@ -277,22 +279,18 @@ export default function SettingsPage() {
                     <button
                       key={it.key}
                       onClick={() => selectSection(it.key)}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 10, width: "100%",
-                        padding: "9px 12px", borderRadius: 8,
-                        background: active ? "rgba(0,212,255,0.08)" : "transparent",
-                        border: active ? "1px solid rgba(0,212,255,0.18)" : "1px solid transparent",
-                        color: active ? "#e2e8f0" : "#94a3b8",
-                        fontSize: 13, fontWeight: active ? 600 : 400,
-                        cursor: "pointer", textAlign: "left", fontFamily: "inherit", transition: "all 0.15s",
-                      }}
+                      className={`flex items-center gap-2 lg:gap-3 px-3 py-2 lg:py-2.5 rounded-lg border transition-all text-sm lg:text-[13px] whitespace-nowrap lg:whitespace-normal
+                        ${active 
+                          ? "bg-[rgba(0,212,255,0.08)] border-[rgba(0,212,255,0.18)] text-slate-200 font-semibold" 
+                          : "bg-transparent border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-300"}`}
+                      style={{ textAlign: "left" }}
                     >
-                      <Icon style={{ width: 15, height: 15, color: active ? "#00d4ff" : "#64748b", flexShrink: 0 }} />
-                      <div style={{ flex: 1 }}>
+                      <Icon className={`w-4 h-4 lg:w-[15px] lg:h-[15px] shrink-0 ${active ? "text-[#00d4ff]" : "text-slate-500"}`} />
+                      <div className="flex-1">
                         <span>{it.label}</span>
-                        {(it as any).desc && <div style={{ fontSize: 10, color: "#4a5568", fontWeight: 400, marginTop: 1 }}>{(it as any).desc}</div>}
+                        {(it as any).desc && <div className="hidden lg:block text-[10px] text-slate-500 font-normal mt-0.5">{(it as any).desc}</div>}
                       </div>
-                      {active && <ChevronRight style={{ width: 13, height: 13, color: "#00d4ff", opacity: 0.6 }} />}
+                      {active && <ChevronRight className="hidden lg:block w-3 h-3 text-[#00d4ff] opacity-60" />}
                     </button>
                   );
                 })}
@@ -302,28 +300,28 @@ export default function SettingsPage() {
         </nav>
 
         {/* ── Right content ── */}
-        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", gap: 20 }}>
+        <div className="flex-1 min-w-0 flex flex-col gap-6 w-full">
 
           {/* PERFIL */}
           {activeSection === "profile" && (
-            <div className="glass-panel" style={{ padding: 24 }}>
-              <div className="section-header" style={{ marginBottom: 20 }}>
-                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <User style={{ width: 14, height: 14, color: "#00d4ff" }} /> Perfil
+            <div className="glass-panel p-4 md:p-6">
+              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                <span className="section-title flex items-center gap-2">
+                  <User className="w-4 h-4 text-[#00d4ff]" /> Perfil
                 </span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                 {session?.user?.image ? (
-                  <img src={session.user.image} alt="" style={{ width: 56, height: 56, borderRadius: "50%", border: "1px solid rgba(0,212,255,0.2)" }} />
+                  <img src={session.user.image} alt="" className="w-14 h-14 rounded-full border border-[rgba(0,212,255,0.2)]" />
                 ) : (
-                  <div style={{ width: 56, height: 56, borderRadius: "50%", background: "rgba(0,212,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Orbitron', sans-serif", fontSize: 18, color: "#00d4ff" }}>
+                  <div className="w-14 h-14 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center font-display text-lg text-[#00d4ff]">
                     {(session?.user?.name || "U")[0].toUpperCase()}
                   </div>
                 )}
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 600, color: "#e2e8f0" }}>{session?.user?.name || "Sin nombre"}</div>
-                  <div style={{ fontSize: 12, color: "#64748b" }}>{session?.user?.email}</div>
-                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>Rol en este workspace: <strong style={{ color: roleBadgeColor[userRole] || "#e2e8f0" }}>{userRole || "—"}</strong></div>
+                  <div className="text-[15px] font-semibold text-slate-200">{session?.user?.name || "Sin nombre"}</div>
+                  <div className="text-xs text-slate-500">{session?.user?.email}</div>
+                  <div className="text-[11px] text-slate-400 mt-1">Rol en este workspace: <strong style={{ color: roleBadgeColor[userRole] || "#e2e8f0" }}>{userRole || "—"}</strong></div>
                 </div>
               </div>
             </div>
@@ -331,13 +329,13 @@ export default function SettingsPage() {
 
           {/* PREFERENCIAS */}
           {activeSection === "preferences" && (
-            <div className="glass-panel" style={{ padding: 24 }}>
-              <div className="section-header" style={{ marginBottom: 8 }}>
-                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Settings style={{ width: 14, height: 14, color: "#00d4ff" }} /> Preferencias
+            <div className="glass-panel p-4 md:p-6">
+              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-2">
+                <span className="section-title flex items-center gap-2">
+                  <Settings className="w-4 h-4 text-[#00d4ff]" /> Preferencias
                 </span>
               </div>
-              <p style={{ fontSize: 12, color: "#64748b", marginBottom: 16 }}>Estas preferencias se guardan en este navegador.</p>
+              <p className="text-xs text-slate-500 mb-4">Estas preferencias se guardan en este navegador.</p>
               <PrefToggle label="Notificaciones por email" desc="Recibir avisos de actividad y menciones por correo." checked={prefs.emailNotifications} onChange={(v) => setPref("emailNotifications", v)} />
               <PrefToggle label="Alertas de SLA" desc="Avisos cuando una tarea se acerca a su fecha límite." checked={prefs.slaAlerts} onChange={(v) => setPref("slaAlerts", v)} />
               <PrefToggle label="Reducir movimiento" desc="Minimiza animaciones del fondo y transiciones." checked={prefs.reduceMotion} onChange={(v) => setPref("reduceMotion", v)} />
@@ -347,25 +345,25 @@ export default function SettingsPage() {
 
           {/* GENERAL (workspace) */}
           {activeSection === "general" && (
-            <div className="glass-panel" style={{ padding: 24 }}>
-              <div className="section-header" style={{ marginBottom: 20 }}>
-                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Globe style={{ width: 14, height: 14, color: "#00d4ff" }} /> General
+            <div className="glass-panel p-4 md:p-6">
+              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                <span className="section-title flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-[#00d4ff]" /> General
                 </span>
               </div>
-              <label style={{ fontSize: 11, color: "#64748b", display: "block", marginBottom: 6 }}>Nombre del workspace</label>
-              <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
-                <input type="text" value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} disabled={!isAdmin} style={{ ...inp, flex: 1, minWidth: 200, opacity: isAdmin ? 1 : 0.6 }} />
-                {isAdmin && <button onClick={handleRenameWorkspace} className="btn-primary">Guardar</button>}
+              <label className="text-[11px] text-slate-500 block mb-1.5">Nombre del workspace</label>
+              <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                <input type="text" value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} disabled={!isAdmin} className="flex-1 w-full" style={{ ...inp, opacity: isAdmin ? 1 : 0.6 }} />
+                {isAdmin && <button onClick={handleRenameWorkspace} className="btn-primary w-full sm:w-auto">Guardar</button>}
               </div>
-              <div style={{ display: "flex", gap: 24, flexWrap: "wrap" }}>
+              <div className="flex flex-col sm:flex-row gap-6">
                 <div>
-                  <div style={{ fontSize: 11, color: "#64748b" }}>Slug</div>
-                  <div style={{ fontSize: 13, color: "#e2e8f0", fontFamily: "monospace" }}>{workspaceSlug || "—"}</div>
+                  <div className="text-[11px] text-slate-500">Slug</div>
+                  <div className="text-[13px] text-slate-200 font-mono mt-1 bg-black/20 px-3 py-1.5 rounded">{workspaceSlug || "—"}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: 11, color: "#64748b" }}>Plan</div>
-                  <div style={{ fontSize: 13, color: "#e2e8f0", textTransform: "capitalize" }}>{workspacePlan}</div>
+                  <div className="text-[11px] text-slate-500">Plan</div>
+                  <div className="text-[13px] text-slate-200 capitalize mt-1 bg-black/20 px-3 py-1.5 rounded">{workspacePlan}</div>
                 </div>
               </div>
             </div>
@@ -374,40 +372,42 @@ export default function SettingsPage() {
           {/* EQUIPO Y ROLES */}
           {activeSection === "team" && isAdmin && (
             <>
-              <div className="glass-panel" style={{ padding: 24 }}>
-                <div className="section-header" style={{ marginBottom: 20 }}>
-                  <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Mail style={{ width: 14, height: 14, color: "#00d4ff" }} /> Invitar al equipo
+              <div className="glass-panel p-4 md:p-6">
+                <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                  <span className="section-title flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-[#00d4ff]" /> Invitar al equipo
                   </span>
                 </div>
-                <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+                <div className="flex flex-col sm:flex-row gap-3">
                   <input type="email" placeholder="email@empresa.com" value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleInvite()}
-                    style={{ ...inp, flex: 1, minWidth: 200 }} />
-                  <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} style={{ ...inp, width: 140, appearance: "none", cursor: "pointer" }}>
-                    <option value="MEMBER">Miembro</option>
-                    <option value="ADMIN">Admin</option>
-                  </select>
-                  <button onClick={handleInvite} disabled={sending} className="btn-primary" style={{ opacity: sending ? 0.6 : 1 }}>
-                    {sending ? "Enviando..." : "Invitar →"}
-                  </button>
+                    className="flex-1 w-full" style={inp} />
+                  <div className="flex gap-3 w-full sm:w-auto">
+                    <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className="w-1/2 sm:w-[140px] appearance-none cursor-pointer" style={inp}>
+                      <option value="MEMBER">Miembro</option>
+                      <option value="ADMIN">Admin</option>
+                    </select>
+                    <button onClick={handleInvite} disabled={sending} className="btn-primary flex-1 sm:flex-none" style={{ opacity: sending ? 0.6 : 1 }}>
+                      {sending ? "Enviando..." : "Invitar →"}
+                    </button>
+                  </div>
                 </div>
-                {error && <p style={{ fontSize: 12, color: "var(--red)", marginTop: 8 }}>{error}</p>}
+                {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
                 {emailSent && (
-                  <div style={{ marginTop: 16, padding: 12, background: "rgba(6,214,160,0.05)", border: "1px solid rgba(6,214,160,0.2)" }}>
-                    <p style={{ fontSize: 13, color: "#06d6a0", display: "flex", alignItems: "center", gap: 8 }}>
-                      <CheckCircle style={{ width: 16, height: 16 }} /> Invitación enviada por email. Expira en 7 días.
+                  <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded">
+                    <p className="text-[13px] text-emerald-400 flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4" /> Invitación enviada por email. Expira en 7 días.
                     </p>
                   </div>
                 )}
                 {!emailSent && lastInviteUrl && (
-                  <div style={{ marginTop: 16, padding: 12, background: "rgba(6,214,160,0.05)", border: "1px solid rgba(6,214,160,0.2)" }}>
-                    <p style={{ fontSize: 11, color: "#64748b", marginBottom: 6, fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>ENLACE DE INVITACIÓN GENERADO</p>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <code style={{ flex: 1, fontSize: 11, color: "#06d6a0", wordBreak: "break-all", background: "rgba(6,214,160,0.05)", padding: "6px 8px" }}>{lastInviteUrl}</code>
-                      <button onClick={handleCopyUrl} style={{ padding: "6px 12px", background: "transparent", border: "1px solid rgba(6,214,160,0.3)", color: "#06d6a0", cursor: "pointer", fontSize: 11, whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 4 }}>
-                        {copied ? <><CheckCircle style={{ width: 12, height: 12 }} /> Copiado</> : <><Copy style={{ width: 12, height: 12 }} /> Copiar</>}
+                  <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded overflow-hidden">
+                    <p className="text-[11px] text-slate-500 mb-1.5 font-display tracking-widest">ENLACE DE INVITACIÓN GENERADO</p>
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                      <code className="w-full sm:flex-1 text-[11px] text-emerald-400 break-all bg-emerald-500/5 px-2 py-1.5 rounded">{lastInviteUrl}</code>
+                      <button onClick={handleCopyUrl} className="px-3 py-1.5 bg-transparent border border-emerald-500/30 text-emerald-400 rounded cursor-pointer text-[11px] whitespace-nowrap flex items-center gap-1 w-full sm:w-auto justify-center">
+                        {copied ? <><CheckCircle className="w-3 h-3" /> Copiado</> : <><Copy className="w-3 h-3" /> Copiar</>}
                       </button>
                     </div>
                   </div>
@@ -415,77 +415,81 @@ export default function SettingsPage() {
               </div>
 
               {invites.length > 0 && (
-                <div className="glass-panel" style={{ padding: 24 }}>
-                  <div className="section-header" style={{ marginBottom: 16 }}>
-                    <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <Clock style={{ width: 14, height: 14, color: "var(--amber)" }} /> Invitaciones pendientes
+                <div className="glass-panel p-4 md:p-6">
+                  <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 flex justify-between items-center">
+                    <span className="section-title flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-amber-500" /> Invitaciones pendientes
                     </span>
                     <span className="badge badge-amber">{invites.length}</span>
                   </div>
-                  {invites.map((inv: any) => (
-                    <div key={inv.id} className="data-row">
-                      <div>
-                        <p style={{ fontSize: 13, color: "#e2e8f0" }}>{inv.email}</p>
-                        <p style={{ fontSize: 11, color: "#64748b" }}>Rol: {inv.role} · Expira: {new Date(inv.expires).toLocaleDateString("es-MX")}</p>
+                  <div className="flex flex-col gap-2">
+                    {invites.map((inv: any) => (
+                      <div key={inv.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-white/5 border border-white/5">
+                        <div>
+                          <p className="text-[13px] text-slate-200 truncate max-w-[200px] sm:max-w-none">{inv.email}</p>
+                          <p className="text-[11px] text-slate-500">Rol: {inv.role} · Expira: {new Date(inv.expires).toLocaleDateString("es-MX")}</p>
+                        </div>
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                          <span className="badge badge-amber">Pendiente</span>
+                          <button onClick={() => handleCancelInvite(inv.id)} className="bg-red-500/10 border border-red-500/30 rounded-md text-red-500 text-[11px] px-2.5 py-1 cursor-pointer whitespace-nowrap">Cancelar</button>
+                        </div>
                       </div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span className="badge badge-amber">Pendiente</span>
-                        <button onClick={() => handleCancelInvite(inv.id)} style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", borderRadius: 6, color: "#ef4444", fontSize: 11, padding: "4px 10px", cursor: "pointer" }}>Cancelar</button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="glass-panel p-4 md:p-6">
+                <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 flex justify-between items-center">
+                  <span className="section-title flex items-center gap-2">
+                    <Users className="w-4 h-4 text-[#00d4ff]" /> Equipo actual
+                  </span>
+                  <span className="badge badge-cyan">{members.length}</span>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {members.map((m: any) => (
+                    <div key={m.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
+                        {m.user.image ? (
+                          <img src={m.user.image} alt={m.user.name || ""} className="w-8 h-8 rounded-full border border-[rgba(0,212,255,0.2)] shrink-0" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center font-display text-[11px] text-[#00d4ff] shrink-0">
+                            {(m.user.name || "U")[0].toUpperCase()}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-[13px] text-slate-200 font-medium truncate">{m.user.name || "Sin nombre"}</p>
+                          <p className="text-[11px] text-slate-500 truncate">{m.user.email}</p>
+                        </div>
+                      </div>
+                      <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+                        <span className="text-[10px] font-semibold text-white font-display tracking-widest" style={{ color: roleBadgeColor[m.role] || "white" }}>{m.role}</span>
+                        {m.role !== "OWNER" && m.user.id !== session?.user?.id && (
+                          <div className="flex items-center gap-2">
+                            <select value={m.role} onChange={(e) => handleRoleChange(m.user.id, e.target.value)} className="bg-[rgba(0,212,255,0.03)] border border-[rgba(0,212,255,0.1)] text-slate-200 text-[10px] px-1.5 py-1 cursor-pointer outline-none rounded">
+                              <option value="MEMBER">MEMBER</option>
+                              <option value="ADMIN">ADMIN</option>
+                              <option value="OWNER">OWNER</option>
+                            </select>
+                            <button onClick={() => handleRemoveMember(m.user.id)} className="bg-transparent border-none cursor-pointer p-1 text-red-500/50 hover:text-red-500 transition-colors" title="Remover miembro">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}
                 </div>
-              )}
-
-              <div className="glass-panel" style={{ padding: 24 }}>
-                <div className="section-header" style={{ marginBottom: 16 }}>
-                  <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <Users style={{ width: 14, height: 14, color: "var(--cyan)" }} /> Equipo actual
-                  </span>
-                  <span className="badge badge-cyan">{members.length}</span>
-                </div>
-                {members.map((m: any) => (
-                  <div key={m.id} className="data-row">
-                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                      {m.user.image ? (
-                        <img src={m.user.image} alt={m.user.name || ""} style={{ width: 32, height: 32, borderRadius: "50%", border: "1px solid rgba(0,212,255,0.2)" }} />
-                      ) : (
-                        <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,212,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Orbitron', sans-serif", fontSize: 11, color: "#00d4ff" }}>
-                          {(m.user.name || "U")[0].toUpperCase()}
-                        </div>
-                      )}
-                      <div>
-                        <p style={{ fontSize: 13, color: "#e2e8f0", fontWeight: 500 }}>{m.user.name || "Sin nombre"}</p>
-                        <p style={{ fontSize: 11, color: "#64748b" }}>{m.user.email}</p>
-                      </div>
-                    </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span style={{ fontSize: 10, fontWeight: 600, color: roleBadgeColor[m.role] || "white", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>{m.role}</span>
-                      {m.role !== "OWNER" && m.user.id !== session?.user?.id && (
-                        <>
-                          <button onClick={() => handleRemoveMember(m.user.id)} style={{ background: "none", border: "none", cursor: "pointer", padding: 4, color: "rgba(255,45,85,0.5)" }} title="Remover miembro">
-                            <Trash2 style={{ width: 14, height: 14 }} />
-                          </button>
-                          <select value={m.role} onChange={(e) => handleRoleChange(m.user.id, e.target.value)} style={{ background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.1)", color: "#e2e8f0", fontSize: 10, padding: "2px 6px", cursor: "pointer", outline: "none" }}>
-                            <option value="MEMBER">MEMBER</option>
-                            <option value="ADMIN">ADMIN</option>
-                            <option value="OWNER">OWNER</option>
-                          </select>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                ))}
               </div>
             </>
           )}
 
           {/* ÁREAS Y FLUJOS */}
           {activeSection === "areas" && (
-            <div className="glass-panel" style={{ padding: 24 }}>
-              <div className="section-header" style={{ marginBottom: 16 }}>
-                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Users style={{ width: 14, height: 14, color: "#00d4ff" }} /> Áreas y flujos
+            <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
+              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
+                <span className="section-title flex items-center gap-2">
+                  <Users className="w-4 h-4 text-[#00d4ff]" /> Áreas y flujos
                 </span>
               </div>
               <AreasManager
@@ -497,10 +501,10 @@ export default function SettingsPage() {
 
           {/* PERMISOS */}
           {activeSection === "permisos" && (
-            <div className="glass-panel" style={{ padding: 24 }}>
-              <div className="section-header" style={{ marginBottom: 16 }}>
-                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Shield style={{ width: 14, height: 14, color: "#00d4ff" }} /> Permisos por área
+            <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
+              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
+                <span className="section-title flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-[#00d4ff]" /> Permisos por área
                 </span>
               </div>
               <PermissionsManager />
@@ -508,10 +512,10 @@ export default function SettingsPage() {
           )}
 
           {activeSection === "integrations" && (
-            <div className="glass-panel" style={{ padding: 24 }}>
-              <div className="section-header" style={{ marginBottom: 16 }}>
-                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Plug style={{ width: 14, height: 14, color: "#00d4ff" }} /> Integraciones
+            <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
+              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
+                <span className="section-title flex items-center gap-2">
+                  <Plug className="w-4 h-4 text-[#00d4ff]" /> Integraciones
                 </span>
               </div>
               <IntegrationsPanel />
@@ -520,40 +524,40 @@ export default function SettingsPage() {
 
           {/* PLAN */}
           {activeSection === "plan" && (
-            <div className="glass-panel" style={{ padding: 24 }}>
-              <div className="section-header" style={{ marginBottom: 20 }}>
-                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <CreditCard style={{ width: 14, height: 14, color: "#00d4ff" }} /> Plan
+            <div className="glass-panel p-4 md:p-6">
+              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                <span className="section-title flex items-center gap-2">
+                  <CreditCard className="w-4 h-4 text-[#00d4ff]" /> Plan
                 </span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", borderRadius: 8, background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.12)" }}>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-[rgba(0,212,255,0.04)] border border-[rgba(0,212,255,0.12)] gap-4 sm:gap-0">
                 <div>
-                  <div style={{ fontSize: 11, color: "#64748b" }}>Plan actual</div>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: "#e2e8f0", textTransform: "capitalize" }}>{workspacePlan}</div>
+                  <div className="text-[11px] text-slate-500">Plan actual</div>
+                  <div className="text-lg font-bold text-slate-200 capitalize">{workspacePlan}</div>
                 </div>
                 {workspacePlan === "free" && isAdmin && (
-                  <button className="btn-primary" disabled title="Próximamente" style={{ opacity: 0.6, cursor: "not-allowed" }}>Mejorar plan (pronto)</button>
+                  <button className="btn-primary w-full sm:w-auto opacity-60 cursor-not-allowed" disabled title="Próximamente">Mejorar plan (pronto)</button>
                 )}
               </div>
-              <p style={{ fontSize: 11, color: "#64748b", marginTop: 12 }}>Free · Pro · Agency. La gestión de planes y facturación llegará pronto.</p>
+              <p className="text-[11px] text-slate-500 mt-3">Free · Pro · Agency. La gestión de planes y facturación llegará pronto.</p>
             </div>
           )}
 
           {/* ZONA PELIGROSA */}
           {activeSection === "danger" && userRole === "OWNER" && (
-            <div className="glass-panel" style={{ padding: 24, borderColor: "rgba(255,45,85,0.15)" }}>
-              <div className="section-header" style={{ marginBottom: 16 }}>
-                <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <Shield style={{ width: 14, height: 14, color: "var(--red)" }} /> Zona peligrosa
+            <div className="glass-panel p-4 md:p-6 border-[rgba(255,45,85,0.15)]">
+              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4">
+                <span className="section-title flex items-center gap-2 text-red-500">
+                  <Shield className="w-4 h-4 text-red-500" /> Zona peligrosa
                 </span>
               </div>
-              <div style={{ padding: 12, background: "rgba(255,45,85,0.03)", border: "1px solid rgba(255,45,85,0.15)" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                  <AlertTriangle style={{ width: 14, height: 14, color: "#ff2d55" }} />
-                  <span style={{ fontSize: 11, color: "#ff2d55", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>ELIMINAR WORKSPACE</span>
+              <div className="p-3 bg-red-500/5 border border-red-500/15 rounded">
+                <div className="flex items-center gap-2 mb-2">
+                  <AlertTriangle className="w-4 h-4 text-red-500" />
+                  <span className="text-[11px] text-red-500 font-display tracking-widest">ELIMINAR WORKSPACE</span>
                 </div>
-                <p style={{ fontSize: 12, color: "#64748b", marginBottom: 12 }}>Borra todos los proyectos, miembros e invitaciones. Esta acción no se puede deshacer.</p>
-                <button onClick={handleDeleteWorkspace} style={{ padding: "8px 16px", background: "rgba(255,45,85,0.1)", border: "1px solid rgba(255,45,85,0.3)", color: "#ff2d55", cursor: "pointer", fontSize: 11, fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>
+                <p className="text-xs text-slate-500 mb-4">Borra todos los proyectos, miembros e invitaciones. Esta acción no se puede deshacer.</p>
+                <button onClick={handleDeleteWorkspace} className="w-full sm:w-auto px-4 py-2 bg-red-500/10 border border-red-500/30 text-red-500 cursor-pointer text-[11px] font-display tracking-widest rounded hover:bg-red-500/20 transition-colors">
                   ELIMINAR WORKSPACE
                 </button>
               </div>

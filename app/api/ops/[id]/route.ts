@@ -40,15 +40,15 @@ export async function PATCH(
       ? config.areas.find((a) => a.id === task.targetAreaId) || null
       : findUserArea(config, session.user.id);
     const perms = getPermissions(permArea, session.user.id, member?.role || "MEMBER");
-    if (!perms.canEditTasks) {
+    if (!perms.canAccessOps) {
       return NextResponse.json({ error: "No tienes permiso para editar tareas en esta área" }, { status: 403 });
     }
 
     const body = await req.json();
     const { title, description, assignee, priority, status, dueDate, tags, order, parentId, attachments } = body;
 
-    // If transitioning to "Done", also require canCloseTasks permission
-    if (status === "Done" && task.status !== "Done" && !perms.canCloseTasks) {
+    // If transitioning to "Done", also require canAccessOps permission
+    if (status === "Done" && task.status !== "Done" && !perms.canAccessOps) {
       return NextResponse.json({ error: "No tienes permiso para cerrar tareas en esta área" }, { status: 403 });
     }
 
@@ -145,7 +145,7 @@ export async function DELETE(
       ? delConfig.areas.find((a) => a.id === task.targetAreaId) || null
       : findUserArea(delConfig, session.user.id);
     const delPerms = getPermissions(delPermArea, session.user.id, delMember?.role || "MEMBER");
-    if (!delPerms.canEditTasks) {
+    if (!delPerms.canAccessOps) {
       return NextResponse.json({ error: "No tienes permiso para eliminar tareas en esta área" }, { status: 403 });
     }
 

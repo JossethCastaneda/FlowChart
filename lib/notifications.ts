@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { Resend } from "resend";
 import { getTaskAssignedEmailHtml, getSLAWarningEmailHtml } from "@/lib/email-templates";
+import { getBaseUrl } from "@/lib/get-base-url";
 
 let _resend: Resend | null = null;
 function getResend(): Resend | null {
@@ -12,7 +13,7 @@ function getResend(): Resend | null {
   return _resend;
 }
 const FROM_EMAIL = process.env.EMAIL_FROM || "SODARE <noreply@sodare.xyz>";
-const BASE_URL = process.env.NEXTAUTH_URL || "https://sodare.xyz";
+const BASE_URL = getBaseUrl();
 
 /**
  * Create an in-app notification + optionally send email + browser push

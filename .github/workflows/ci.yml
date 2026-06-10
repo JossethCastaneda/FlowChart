@@ -31,6 +31,16 @@ jobs:
       - name: Test
         run: npm test
 
+      # next build atrapa errores que tsc no ve (route types de Next 16,
+      # páginas que consultan DB en build). Antes solo se descubrían al
+      # deployar en Vercel. Envs dummy: ninguna página debe tocar la DB
+      # durante el build (las páginas de datos son force-dynamic).
+      - name: Build (Next.js)
+        run: npx next build
+        env:
+          NEXTAUTH_SECRET: ci-only-dummy-secret
+          ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+
       # Lint is advisory for now — the codebase has a large backlog of
       # pre-existing @typescript-eslint/no-explicit-any errors. Surfaced
       # here without failing the build; tighten once the backlog is cleared.

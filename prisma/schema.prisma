@@ -108,6 +108,9 @@ model WorkspaceSettings {
   workspaceId       String   @unique
   areas             Json     @default("[]")
   requireLeadReview Boolean  @default(true)
+  // Branding por workspace: { logoUrl?, accentColor?, displayName? }
+  // Validado con BrandingSchema (lib/workflow-config.ts) al escribir.
+  branding          Json     @default("{}")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
@@ -169,10 +172,29 @@ model Project {
   channels      Channel[]
   briefs        Brief[]
   alerts        ProjectAlert[]
+  metaSources   MetaSource[]
   alertsEnabled Boolean  @default(true)
   alertEmails   String[]
   crmIntegrationId String? // Which integration provides analytics
   crmType          String? // custom_crm, botmaker, etc.
+}
+
+// Cache de resolución para webhooks de Meta: externalId (pageId / igAccountId /
+// adAccountId sin prefijo "act_") → projectId. Permite resolver el proyecto de
+// un evento con un lookup indexado en lugar de escanear todos los proyectos.
+// Se puebla automáticamente la primera vez que un evento se resuelve por scan.
+model MetaSource {
+  id         String   @id @default(cuid())
+  externalId String   // pageId | igAccountId | adAccountId (normalizado)
+  kind       String   // "page" | "instagram" | "ad_account"
+  projectId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([externalId, projectId])
+  @@index([externalId])
 }
 
 model ProjectMember {

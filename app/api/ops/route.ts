@@ -95,7 +95,7 @@ export async function POST(req: NextRequest) {
       ? config.areas.find((a) => a.id === targetAreaId) || null
       : findUserArea(config, session.user.id);
     const perms = getPermissions(permArea, session.user.id, member?.role || "MEMBER");
-    if (!perms.canCreateTasks) {
+    if (!perms.canAccessOps) {
       return NextResponse.json({ error: "No tienes permiso para crear tareas en esta área" }, { status: 403 });
     }
 

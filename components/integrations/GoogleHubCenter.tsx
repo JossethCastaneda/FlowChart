@@ -23,11 +23,15 @@ export function GoogleHubCenter() {
   const [gtmAccounts, setGtmAccounts] = useState<any[]>([]);
   const [gtmContainers, setGtmContainers] = useState<any[]>([]);
 
+  // Google Ads dropdown options
+  const [adsCustomers, setAdsCustomers] = useState<any[]>([]);
+
   // Selected config values
   const [selectedGa4, setSelectedGa4] = useState("");
   const [selectedGsc, setSelectedGsc] = useState("");
   const [selectedGtmAcc, setSelectedGtmAcc] = useState("");
   const [selectedGtmCont, setSelectedGtmCont] = useState("");
+  const [selectedAdsCust, setSelectedAdsCust] = useState("");
 
   const loadGoogleIntegration = useCallback(() => {
     setLoading(true);
@@ -111,6 +115,16 @@ export function GoogleHubCenter() {
       } catch (err: any) {
         setErrorMsg(err.message || "Error al cargar cuentas de Google Tag Manager.");
       }
+    } else if (modId === "google_ads") {
+      setSelectedAdsCust(currentConfig.customerId || "");
+      
+      try {
+        const adsRes = await fetch("/api/integrations/google/resources/ads").then(r => r.json());
+        if (adsRes.error) throw new Error(adsRes.error);
+        setAdsCustomers(adsRes.customers || []);
+      } catch (err: any) {
+        setErrorMsg(err.message || "Error al cargar cuentas de Google Ads.");
+      }
     }
     
     setLoadingResources(false);
@@ -174,6 +188,20 @@ export function GoogleHubCenter() {
         
         if (!saveRes.success) {
           throw new Error("Error al guardar la configuración del contenedor GTM.");
+        }
+      } else if (modId === "google_ads") {
+        if (!selectedAdsCust) {
+          throw new Error("Por favor, selecciona una cuenta de Google Ads.");
+        }
+        
+        const saveRes = await fetch("/api/integrations/google/resources/ads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ customerId: selectedAdsCust })
+        }).then(r => r.json());
+        
+        if (!saveRes.success) {
+          throw new Error("Error al guardar la cuenta de Google Ads.");
         }
       }
       
@@ -249,7 +277,9 @@ export function GoogleHubCenter() {
           const currentConfig = googleState?.resources?.[mod.id] || {};
           const isConfigured = mod.id === "page_analytics"
             ? (currentConfig.ga4PropertyId && currentConfig.gscSiteUrl)
-            : (currentConfig.accountId && currentConfig.containerId);
+            : mod.id === "tag_tracking"
+            ? (currentConfig.accountId && currentConfig.containerId)
+            : !!currentConfig.customerId; // Google Ads check
 
           return (
             <div key={mod.id} style={{
@@ -431,6 +461,25 @@ export function GoogleHubCenter() {
                         </div>
                       )}
 
+                      {mod.id === "google_ads" && (
+                        <div>
+                          <label style={{ display: "block", fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>Cuenta de Google Ads (Customer ID)</label>
+                          <select
+                            value={selectedAdsCust}
+                            onChange={e => setSelectedAdsCust(e.target.value)}
+                            style={{
+                              width: "100%", padding: "8px", borderRadius: 6, fontSize: 12,
+                              background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", color: "#f1f5f9"
+                            }}
+                          >
+                            <option value="">-- Selecciona Cuenta --</option>
+                            {adsCustomers.map(a => (
+                              <option key={a.id} value={a.id}>{a.displayName}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
                       {/* Action buttons */}
                       <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 4 }}>
                         <button
@@ -491,6 +540,12 @@ export function GoogleHubCenter() {
                         <span style={{ color: "#94a3b8", fontFamily: "monospace" }}>{currentConfig.containerId}</span>
                       </div>
                     </>
+                  )}
+                  {mod.id === "google_ads" && (
+                    <div style={{ display: "flex", justifyContent: "space-between" }}>
+                      <span>Cuenta Google Ads (Customer ID):</span>
+                      <span style={{ color: "#94a3b8", fontFamily: "monospace" }}>{currentConfig.customerId}</span>
+                    </div>
                   )}
                 </div>
               )}

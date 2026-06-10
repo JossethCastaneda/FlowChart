@@ -1,155 +1,128 @@
-import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
+import { z } from "zod";
+import { withAuth } from "@/lib/api-handler";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import {
-  apiSuccess,
-  apiUnauthorized,
-  apiForbidden,
-  apiError,
-  apiServerError,
-} from "@/lib/api-response";
+import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiForbidden, apiError } from "@/lib/api-response";
+
+export const dynamic = "force-dynamic";
 
 // ---------------------------------------------------------------------------
 // GET /api/projects — list all projects the user has access to
 // ---------------------------------------------------------------------------
-export async function GET() {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return apiUnauthorized();
-    }
-
-    // Filtrar por workspace ACTIVO (no todos los workspaces)
-    const activeWorkspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!activeWorkspaceId) {
-      return apiSuccess([]);
-    }
-
-    const projects = await prisma.project.findMany({
-      where: { workspaceId: activeWorkspaceId },
-      include: { channels: true },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return apiSuccess(projects);
-  } catch (error) {
-    return apiServerError(error);
+export const GET = withAuth(async (_req, ctx) => {
+  // Filtrar por workspace ACTIVO (no todos los workspaces)
+  const activeWorkspaceId = await getActiveWorkspaceId(ctx.userId);
+  if (!activeWorkspaceId) {
+    return apiSuccess([]);
   }
-}
+
+  const projects = await prisma.project.findMany({
+    where: { workspaceId: activeWorkspaceId },
+    include: { channels: true },
+    orderBy: { createdAt: "desc" },
+  });
+
+  return apiSuccess(projects);
+});
 
 // ---------------------------------------------------------------------------
 // POST /api/projects — create a new project
 // ---------------------------------------------------------------------------
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return apiUnauthorized();
-    }
+const ChannelSchema = z.object({
+  name: z.string().min(1),
+  type: z.string().min(1),
+  config: z.record(z.string(), z.unknown()).nullish(),
+});
 
-    const body = await request.json();
+const CreateProjectSchema = z.object({
+  name: z.string().min(1, "El campo 'name' es obligatorio"),
+  workspaceId: z.string().optional(),
+  alias: z.string().nullish(),
+  client: z.string().nullish(),
+  vertical: z.string().nullish(),
+  // En el modelo Prisma estos tres son String[] (múltiples cuentas por proyecto)
+  fanpage: z.array(z.string()).optional(),
+  instagram: z.array(z.string()).optional(),
+  whatsapp: z.array(z.string()).optional(),
+  website: z.string().nullish(),
+  persona: z.string().nullish(),
+  geo: z.string().nullish(),
+  status: z.string().optional(),
+  // dateStart/dateEnd se almacenan como String en el modelo
+  dateStart: z.string().nullish(),
+  dateEnd: z.string().nullish(),
+  crmIntegrationId: z.string().nullish(),
+  crmType: z.string().nullish(),
+  channels: z.array(ChannelSchema).optional(),
+});
 
-    // Validate required fields
-    const { name } = body;
-    let { workspaceId } = body;
+export const POST = withAuth(async (req, ctx) => {
+  const result = await validateBody(req, CreateProjectSchema);
+  if (!result.ok) return result.response;
+  const { name, channels, ...fields } = result.data;
 
-    if (!name) {
-      return apiError(
-        "El campo 'name' es obligatorio",
-        "VALIDATION_ERROR",
-        400
-      );
-    }
+  // Infer workspaceId from active workspace if not provided
+  const workspaceId =
+    fields.workspaceId ?? (await getActiveWorkspaceId(ctx.userId));
+  if (!workspaceId) {
+    return apiError("No tienes un workspace activo", "VALIDATION_ERROR", 400);
+  }
 
-    // Infer workspaceId from active workspace if not provided
-    if (!workspaceId) {
-      workspaceId = await getActiveWorkspaceId(session.user.id);
-    }
-    if (!workspaceId) {
-      return apiError(
-        "No tienes un workspace activo",
-        "VALIDATION_ERROR",
-        400
-      );
-    }
+  // Verify the user is a member of the target workspace
+  const membership = await prisma.workspaceMember.findUnique({
+    where: {
+      workspaceId_userId: { workspaceId, userId: ctx.userId },
+    },
+  });
+  if (!membership) {
+    return apiForbidden("No tienes acceso a este workspace");
+  }
 
-    // Verify the user is a member of the target workspace
-    const membership = await prisma.workspaceMember.findUnique({
-      where: {
-        workspaceId_userId: {
-          workspaceId,
-          userId: session.user.id,
-        },
+  const {
+    alias, client, vertical, fanpage, instagram, whatsapp, website,
+    persona, geo, status, dateStart, dateEnd, crmIntegrationId, crmType,
+  } = fields;
+
+  // FIX: use $transaction — project + channels must succeed or fail together
+  const projectWithChannels = await prisma.$transaction(async (tx) => {
+    const project = await tx.project.create({
+      data: {
+        name,
+        workspaceId,
+        ...(alias !== undefined && { alias }),
+        ...(client !== undefined && { client }),
+        ...(vertical !== undefined && { vertical }),
+        ...(fanpage !== undefined && { fanpage }),
+        ...(instagram !== undefined && { instagram }),
+        ...(whatsapp !== undefined && { whatsapp }),
+        ...(website !== undefined && { website }),
+        ...(persona !== undefined && { persona }),
+        ...(geo !== undefined && { geo }),
+        ...(status !== undefined && { status }),
+        ...(dateStart !== undefined && { dateStart }),
+        ...(dateEnd !== undefined && { dateEnd }),
+        ...(crmIntegrationId !== undefined && { crmIntegrationId }),
+        ...(crmType !== undefined && { crmType }),
       },
     });
 
-    if (!membership) {
-      return apiForbidden("No tienes acceso a este workspace");
+    if (channels && channels.length > 0) {
+      await tx.channel.createMany({
+        data: channels.map((c) => ({
+          name: c.name,
+          type: c.type,
+          config: (c.config ?? undefined) as object | undefined,
+          projectId: project.id,
+        })),
+      });
     }
 
-    // Extract optional fields
-    const {
-      alias,
-      client,
-      vertical,
-      fanpage,
-      instagram,
-      whatsapp,
-      website,
-      persona,
-      geo,
-      status,
-      dateStart,
-      dateEnd,
-      crmIntegrationId,
-      crmType,
-      channels,
-    } = body;
-
-    // FIX: use $transaction — project + channels must succeed or fail together
-    const projectWithChannels = await prisma.$transaction(async (tx) => {
-      const project = await tx.project.create({
-        data: {
-          name,
-          workspaceId,
-          ...(alias !== undefined && { alias }),
-          ...(client !== undefined && { client }),
-          ...(vertical !== undefined && { vertical }),
-          ...(fanpage !== undefined && { fanpage }),
-          ...(instagram !== undefined && { instagram }),
-          ...(whatsapp !== undefined && { whatsapp }),
-          ...(website !== undefined && { website }),
-          ...(persona !== undefined && { persona }),
-          ...(geo !== undefined && { geo }),
-          ...(status !== undefined && { status }),
-          ...(dateStart !== undefined && { dateStart }),
-          ...(dateEnd !== undefined && { dateEnd }),
-          ...(crmIntegrationId !== undefined && { crmIntegrationId }),
-          ...(crmType !== undefined && { crmType }),
-        },
-      });
-
-      if (Array.isArray(channels) && channels.length > 0) {
-        await tx.channel.createMany({
-          data: channels.map((c: { name: string; type: string; config?: any }) => ({
-            name: c.name,
-            type: c.type,
-            config: c.config ?? null,
-            projectId: project.id,
-          })),
-        });
-      }
-
-      return tx.project.findUnique({
-        where: { id: project.id },
-        include: { channels: true },
-      });
+    return tx.project.findUnique({
+      where: { id: project.id },
+      include: { channels: true },
     });
+  });
 
-    return apiSuccess(projectWithChannels, 201);
-  } catch (error) {
-    return apiServerError(error);
-  }
-}
+  return apiSuccess(projectWithChannels, 201);
+});

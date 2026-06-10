@@ -99,7 +99,7 @@ export async function PUT(
     }
 
     // Update project fields
-    const updatedProject = await prisma.project.update({
+    await prisma.project.update({
       where: { id },
       data: sanitized,
     });
@@ -110,14 +110,18 @@ export async function PUT(
         await tx.channel.deleteMany({ where: { projectId: id } });
         if (channels.length > 0) {
           await tx.channel.createMany({
-            data: channels.map((c: { name: string; type: string; config?: any }) => ({
+            data: channels.map((c: { name: string; type: string; config?: object | null }) => ({
               name: c.name,
               type: c.type,
-              config: c.config ?? null,
+              config: (c.config ?? undefined) as object | undefined,
               projectId: id,
             })),
           });
         }
+        // Los canales determinan qué fuentes Meta (pageId/igAccountId/adAccountId)
+        // mapean a este proyecto: invalidar el cache de webhooks para que se
+        // repueble con la nueva configuración.
+        await tx.metaSource.deleteMany({ where: { projectId: id } });
       });
     }
 

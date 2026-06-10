@@ -111,7 +111,45 @@ export default function AvisoDePrivacidad() {
 
           <section>
             <h2 style={{ fontSize: "18px", color: "#ffffff", fontWeight: 600, marginBottom: "12px" }}>
-              5. Contacto
+              5. Uso de datos de Google (Divulgación de Uso Limitado)
+            </h2>
+            <p style={{ marginBottom: "12px" }}>
+              El uso que SODARE hace de la información recibida de las APIs de Google se adhiere a la{" "}
+              <a
+                href="https://developers.google.com/terms/api-services-user-data-policy"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#00d4ff", textDecoration: "underline" }}
+              >
+                Política de Datos de Usuario de los Servicios API de Google
+              </a>
+              , incluidos los requisitos de Uso Limitado (Limited Use).
+            </p>
+            <p style={{ marginBottom: "12px" }}>
+              En concreto: (a) solo usamos los datos de Google para mostrar tus métricas y recursos dentro de
+              SODARE cuando tú conectas cada módulo de forma explícita; (b) no transferimos esos datos a
+              terceros salvo cuando sea necesario para operar el servicio, por requerimiento legal o con tu
+              consentimiento; (c) no usamos esos datos para publicidad; y (d) ningún humano lee esos datos,
+              salvo con tu consentimiento explícito, por motivos de seguridad o para cumplir la ley.
+            </p>
+            <p>
+              Puedes revocar el acceso de SODARE a tu cuenta de Google en cualquier momento desde la sección
+              de Integraciones de la app (lo que también revoca el permiso ante Google) o directamente en{" "}
+              <a
+                href="https://myaccount.google.com/permissions"
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ color: "#00d4ff", textDecoration: "underline" }}
+              >
+                los permisos de tu cuenta de Google
+              </a>
+              .
+            </p>
+          </section>
+
+          <section>
+            <h2 style={{ fontSize: "18px", color: "#ffffff", fontWeight: 600, marginBottom: "12px" }}>
+              6. Contacto
             </h2>
             <p>
               Si tienes alguna duda o comentario sobre este Aviso de Privacidad o deseas ejercer tus derechos ARCO, por favor contáctanos vía correo electrónico a:{" "}

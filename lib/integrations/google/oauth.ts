@@ -89,3 +89,29 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
     return null;
   }
 }
+
+/**
+ * Revoca el grant de OAuth en Google (política de Google: al desconectar,
+ * la app debe revocar los tokens, no solo borrarlos de su DB).
+ * Revocar el refresh token invalida todo el grant. Best-effort: si Google
+ * falla, el caller debe continuar borrando las credenciales locales.
+ */
+export async function revokeGoogleToken(creds: GoogleCredentials | null | undefined): Promise<boolean> {
+  const token = decryptToken(creds?.refreshToken) || decryptToken(creds?.accessToken);
+  if (!token) return false;
+
+  try {
+    const res = await fetch("https://oauth2.googleapis.com/revoke", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: new URLSearchParams({ token }),
+    });
+    if (!res.ok) {
+      console.warn(`[OAUTH GOOGLE] Token revoke returned ${res.status} (continuing with local wipe)`);
+    }
+    return res.ok;
+  } catch (err) {
+    console.warn("[OAUTH GOOGLE] Token revoke failed (continuing with local wipe):", err);
+    return false;
+  }
+}
