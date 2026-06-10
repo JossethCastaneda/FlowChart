@@ -14,7 +14,8 @@ const nextConfig: NextConfig = {
   async rewrites() {
     // Si la variable está definida, mandamos todas las peticiones /api a dev.sodare.xyz (Backend)
     // El frontend actúa como proxy transparente
-    if (process.env.NEXT_PUBLIC_API_URL) {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/^\uFEFF/, ""); // Remove BOM if present
+    if (apiUrl && apiUrl.startsWith("http")) {
       return [
         {
           source: '/api/:path*',
@@ -24,7 +25,7 @@ const nextConfig: NextConfig = {
               value: 'dev.sodare.xyz',
             },
           ],
-          destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
+          destination: `${apiUrl}/api/:path*`,
         },
       ];
     }
