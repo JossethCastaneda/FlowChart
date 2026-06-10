@@ -429,7 +429,13 @@ function KanbanCard({ task, onEdit }: { task: Task; onEdit: (t: Task) => void })
   const childDone = task.children?.filter(c => c.status === "Done").length || 0;
   const childTotal = task.children?.length || 0;
   return (
-    <div onClick={() => onEdit(task)} style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, padding: "12px 14px", cursor: "pointer", transition: "all 0.15s", borderLeft: `3px solid ${pri.c}` }}
+    <div
+      draggable
+      onDragStart={(e) => {
+        e.dataTransfer.setData("text/plain", task.id);
+        e.dataTransfer.effectAllowed = "move";
+      }}
+      onClick={() => onEdit(task)} style={{ background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, padding: "12px 14px", cursor: "grab", transition: "all 0.15s", borderLeft: `3px solid ${pri.c}` }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; e.currentTarget.style.background = "rgba(255,255,255,0.09)"; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.06)"; e.currentTarget.style.background = "rgba(255,255,255,0.025)"; }}>
       <p style={{ fontSize: 13, fontWeight: 500, color: "#e2e8f0", marginBottom: 8, lineHeight: 1.4 }}>{task.title}</p>
@@ -444,47 +450,7 @@ function KanbanCard({ task, onEdit }: { task: Task; onEdit: (t: Task) => void })
   );
 }
 
-/* ═══ CALENDAR VIEW ═══ */
-function CalendarView({ tasks, onEdit }: { tasks: Task[]; onEdit: (t: Task) => void }) {
-  const [month, setMonth] = useState(() => { const n = new Date(); return new Date(n.getFullYear(), n.getMonth(), 1); });
-  const year = month.getFullYear(), mo = month.getMonth();
-  const daysInMonth = new Date(year, mo + 1, 0).getDate();
-  const firstDay = new Date(year, mo, 1).getDay();
-  const cells: (number | null)[] = [...Array(firstDay).fill(null), ...Array.from({ length: daysInMonth }, (_, i) => i + 1)];
-  const padEnd = 7 - (cells.length % 7); if (padEnd < 7) cells.push(...Array(padEnd).fill(null));
-  const monthName = month.toLocaleDateString("es-MX", { month: "long", year: "numeric" });
-  const today = new Date(); const isToday = (d: number) => d === today.getDate() && mo === today.getMonth() && year === today.getFullYear();
-
-  const byDate: Record<number, Task[]> = {};
-  tasks.forEach(t => { if (t.dueDate) { const d = new Date(t.dueDate); if (d.getMonth() === mo && d.getFullYear() === year) { const day = d.getDate(); if (!byDate[day]) byDate[day] = []; byDate[day].push(t); } } });
-
-  return (
-    <div style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 8, overflow: "hidden" }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.09)" }}>
-        <button onClick={() => setMonth(new Date(year, mo - 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: 4 }}><ChevronLeft style={{ width: 16, height: 16 }} /></button>
-        <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 13, fontWeight: 700, color: "#e2e8f0", letterSpacing: "0.1em", textTransform: "capitalize" }}>{monthName}</span>
-        <button onClick={() => setMonth(new Date(year, mo + 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: 4 }}><ChevronRight style={{ width: 16, height: 16 }} /></button>
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
-        {["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"].map(d => <div key={d} style={{ padding: "8px 4px", textAlign: "center", fontSize: 9, fontWeight: 600, color: "rgba(148,163,184,0.65)", borderBottom: "1px solid rgba(255,255,255,0.03)", letterSpacing: "0.1em" }}>{d}</div>)}
-        {cells.map((day, i) => {
-          const dt = day ? byDate[day] : undefined;
-          return (
-            <div key={i} style={{ minHeight: 80, padding: "4px 6px", borderBottom: "1px solid rgba(255,255,255,0.04)", borderRight: i % 7 !== 6 ? "1px solid rgba(255,255,255,0.04)" : "none", background: isToday(day!) ? "rgba(0,212,255,0.03)" : "transparent" }}>
-              {day && <>
-                <div style={{ fontSize: 11, fontWeight: isToday(day) ? 700 : 400, color: isToday(day) ? "#00d4ff" : "#64748b", marginBottom: 4 }}>{day}</div>
-                {dt?.slice(0, 3).map(t => (
-                  <div key={t.id} onClick={() => onEdit(t)} style={{ fontSize: 9, padding: "2px 4px", marginBottom: 2, borderRadius: 2, background: STATUS_CFG[t.status]?.bg || "#c4c4c4", color: "#fff", cursor: "pointer", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontWeight: 600 }}>{t.title}</div>
-                ))}
-                {dt && dt.length > 3 && <div style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>+{dt.length - 3} más</div>}
-              </>}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
+/* Removed Calendar View */
 
 /* ═══ MAIN PAGE ═══ */
 function FilterChip({ label, value, active, children }: { label: string; value: string; active?: boolean; children: (close: () => void) => React.ReactNode }) {
@@ -511,9 +477,6 @@ export default function OpsPage() {
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [view, setView] = useState<"table" | "kanban" | "calendar">("table");
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [showCreate, setShowCreate] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
   const [editTask, setEditTask] = useState<Task | null>(null);
@@ -581,13 +544,12 @@ export default function OpsPage() {
   useEffect(() => { if (addingSubIn) subRef.current?.focus(); }, [addingSubIn]);
   useEffect(() => { if (myArea && viewArea === "__all__") setViewArea("__mine__"); }, [myArea]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Restore + persist view/grouping/filters.
+  // Restore + persist grouping/filters.
   useEffect(() => {
     try {
       const r = localStorage.getItem("sodare:ops-prefs");
       if (r) {
         const p = JSON.parse(r);
-        if (p.view) setView(p.view);
         if (p.groupBy) setGroupBy(p.groupBy);
         if (typeof p.fAssignee === "string") setFAssignee(p.fAssignee);
         if (typeof p.fPriority === "string") setFPriority(p.fPriority);
@@ -597,8 +559,8 @@ export default function OpsPage() {
     } catch { /* ignore */ }
   }, []);
   useEffect(() => {
-    try { localStorage.setItem("sodare:ops-prefs", JSON.stringify({ view, groupBy, fAssignee, fPriority, fTag, fArea })); } catch { /* ignore */ }
-  }, [view, groupBy, fAssignee, fPriority, fTag, fArea]);
+    try { localStorage.setItem("sodare:ops-prefs", JSON.stringify({ groupBy, fAssignee, fPriority, fTag, fArea })); } catch { /* ignore */ }
+  }, [groupBy, fAssignee, fPriority, fTag, fArea]);
 
   const create = async (status: string) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), status }) }); const d = await r.json(); if (r.ok) setTasks(p => [...p, d.data]); } catch {} setNewTitle(""); setAddingIn(null); };
   const createWith = async (defaults: any) => { if (!newTitle.trim()) return; try { const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: newTitle.trim(), status: "Backlog", ...defaults }) }); const d = await r.json(); if (r.ok) setTasks(p => [...p, d.data]); } catch {} setNewTitle(""); setAddingIn(null); };
@@ -717,26 +679,16 @@ export default function OpsPage() {
           <Search style={{ width: 14, height: 14, color: "rgba(148,163,184,0.65)" }} />
           <input type="text" placeholder="Buscar tareas..." value={search} onChange={e => setSearch(e.target.value)} style={{ background: "transparent", border: "none", outline: "none", color: "#e2e8f0", fontSize: 13, width: "100%" }} />
         </div>
-        <div style={{ display: "flex", gap: 4 }}>
-          {(["table", "kanban", "calendar"] as const).map(v => (
-            <button key={v} onClick={() => setView(v)} style={{ padding: "6px 10px", background: view === v ? "rgba(0,212,255,0.1)" : "transparent", border: `1px solid ${view === v ? "rgba(0,212,255,0.25)" : "rgba(255,255,255,0.06)"}`, borderRadius: 4, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: view === v ? "#00d4ff" : "#64748b", fontSize: 11, fontWeight: 600 }}>
-              {v === "table" ? <List style={{ width: 13, height: 13 }} /> : v === "kanban" ? <LayoutGrid style={{ width: 13, height: 13 }} /> : <CalendarIcon style={{ width: 13, height: 13 }} />}
-              {v === "table" ? "Tabla" : v === "kanban" ? "Kanban" : "Calendario"}
-            </button>
-          ))}
-        </div>
       </div>
 
       {/* Filters + Group by (Monday/Jira-style) */}
       {!loading && tasks.length > 0 && (
         <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          {view === "table" && (
-            <FilterChip label="Agrupar por" value={GROUP_LABELS[groupBy]} active={groupBy !== "status"}>
-              {(close) => (["status", "assignee", "priority"] as const).map(k => (
-                <DropdownOption key={k} label={GROUP_LABELS[k]} active={groupBy === k} onClick={() => { setGroupBy(k); close(); }} />
-              ))}
-            </FilterChip>
-          )}
+          <FilterChip label="Agrupar por" value={GROUP_LABELS[groupBy]} active={groupBy !== "status"}>
+            {(close) => (["status", "assignee", "priority"] as const).map(k => (
+              <DropdownOption key={k} label={GROUP_LABELS[k]} active={groupBy === k} onClick={() => { setGroupBy(k); close(); }} />
+            ))}
+          </FilterChip>
           <FilterChip label="Responsable" value={fAssignee || "Todos"} active={!!fAssignee}>
             {(close) => <>
               <DropdownOption label="Todos" active={!fAssignee} onClick={() => { setFAssignee(""); close(); }} />
@@ -784,136 +736,42 @@ export default function OpsPage() {
         </div>
       )}
 
-      {/* TABLE VIEW */}
-      {!loading && view === "table" && dynamicGroups.map(g => {
-        const gt = filtered.filter(g.match);
-        const coll = collapsed[g.key];
-        const doneCount = gt.filter(t => t.status === "Done" || t.children?.every(c => c.status === "Done")).length;
-        const progressPct = gt.length > 0 ? Math.round((doneCount / gt.length) * 100) : 0;
-        return (
-          <div key={g.key} style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 8, overflow: "hidden" }}>
-            <div onClick={() => setCollapsed(p => ({ ...p, [g.key]: !p[g.key] }))} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", cursor: "pointer", borderLeft: `4px solid ${g.color}`, background: "rgba(255,255,255,0.04)" }}
-              onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.09)"} onMouseLeave={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"}>
-              {coll ? <ChevronRight style={{ width: 16, height: 16, color: g.color }} /> : <ChevronDown style={{ width: 16, height: 16, color: g.color }} />}
-              <span style={{ fontSize: 14, fontWeight: 700, color: g.color }}>{g.label}</span>
-              <span style={{ fontSize: 11, color: "#64748b", background: "rgba(255,255,255,0.09)", padding: "1px 8px", borderRadius: 10 }}>{gt.length}</span>
-              {gt.length > 0 && <div style={{ flex: 1, maxWidth: 120, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, overflow: "hidden", marginLeft: 8 }}><div style={{ height: "100%", width: `${progressPct}%`, background: g.color, borderRadius: 2, transition: "width 0.3s" }} /></div>}
-              {gt.length > 0 && <span style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>{progressPct}%</span>}
-            </div>
-            {!coll && <div style={{ borderLeft: `4px solid ${g.color}` }}>
-              {gt.length > 0 && <div className="ops-table-header" style={{ display: "grid", gridTemplateColumns: "1fr 120px 110px 80px 90px 75px 36px", gap: 0, borderBottom: "1px solid rgba(255,255,255,0.09)" }}>
-                <div style={ch}>Tarea</div><div style={{ ...ch, textAlign: "center" }}>Persona</div><div style={{ ...ch, textAlign: "center" }}>Estado</div><div style={{ ...ch, textAlign: "center" }}>Prioridad</div><div style={{ ...ch, textAlign: "center" }}>SLA</div><div style={{ ...ch, textAlign: "center" }}>Fecha</div><div style={ch}></div>
-              </div>}
-              {gt.map(task => {
-                const sl = sla(task.dueDate, task.status); const hasChildren = task.children?.length > 0; const isExpanded = expanded[task.id]; const childDone = task.children?.filter(c => c.status === "Done").length || 0;
-                return (
-                  <div key={task.id}>
-                    <div className="ops-table-row" style={{ display: "grid", gridTemplateColumns: "1fr 120px 110px 80px 90px 75px 36px", gap: 0, alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.025)" }}
-                      onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.04)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                      <div style={{ padding: "6px 10px", minWidth: 0, display: "flex", alignItems: "center", gap: 6 }}>
-                        {hasChildren ? <button onClick={() => setExpanded(p => ({ ...p, [task.id]: !p[task.id] }))} aria-label={isExpanded ? 'Colapsar subtareas' : 'Expandir subtareas'} style={{ background: "none", border: "none", cursor: "pointer", padding: 2, color: "#64748b", flexShrink: 0 }}>{isExpanded ? <ChevronDown style={{ width: 12, height: 12 }} /> : <ChevronRight style={{ width: 12, height: 12 }} />}</button> : <div style={{ width: 16 }} />}
-                        <div style={{ minWidth: 0, flex: 1, cursor: "pointer" }} onClick={() => setEditTask(task)}>
-                          <div style={{ padding: "4px 8px", fontSize: 13, color: "#e2e8f0" }}>{task.title}</div>
-                          <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 8px", flexWrap: "wrap" }}>
-                            {task.targetAreaId && areaName(task.targetAreaId) && <span title={`Solicitud a ${areaName(task.targetAreaId)}`} style={{ fontSize: 8, fontWeight: 700, padding: "1px 6px", borderRadius: 2, background: `${areaColor(task.targetAreaId)}1f`, color: areaColor(task.targetAreaId), display: "inline-flex", alignItems: "center", gap: 2 }}><Send style={{ width: 8, height: 8 }} /> {areaName(task.targetAreaId)}{task.requestType ? ` · ${task.requestType}` : ""}</span>}
-                            {task.tags?.map((t, j) => <span key={j} style={{ fontSize: 8, padding: "1px 5px", background: "rgba(123,97,255,0.08)", color: "rgba(123,97,255,0.5)", borderRadius: 2 }}>{t}</span>)}
-                            {hasChildren && <span style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>{childDone}/{task.children.length} sub</span>}
-                            {(() => { const eta = etaForTask(task); return eta ? <span title="Entrega estimada (según SLA del área y tareas abiertas)" style={{ fontSize: 8, padding: "1px 6px", background: "rgba(0,212,255,0.08)", color: "#00d4ff", borderRadius: 2, display: "inline-flex", alignItems: "center", gap: 2 }}><Clock style={{ width: 8, height: 8 }} /> ETA {eta.toLocaleDateString("es-MX", { day: "numeric", month: "short" })}</span> : null; })()}
-                            {config.requireLeadReview && task.status === "Review" && !!areaForAssignee(task.assignee) && <span title="Pendiente de aprobación de un líder del área" style={{ fontSize: 8, padding: "1px 6px", background: "rgba(251,191,36,0.1)", color: "#fbbf24", borderRadius: 2 }}>★ revisión líder</span>}
-                          </div>
-                        </div>
-                      </div>
-                      <div style={{ padding: "6px 4px", display: "flex", justifyContent: "center" }}>
-                        <Dropdown trigger={<span style={{ fontSize: 12, color: task.assignee ? "#e2e8f0" : "rgba(148,163,184,0.65)", cursor: "pointer", padding: "4px 8px" }}>{task.assignee || "—"}</span>}>
-                          {(close) => <>{[{ name: "", label: "Sin asignar" }, ...members.map(m => ({ name: m.name, label: m.name }))].map(m => <DropdownOption key={m.name} label={m.label} active={task.assignee === m.name} onClick={() => { patch(task.id, { assignee: m.name || null }); close(); }} />)}</>}
-                        </Dropdown>
-                      </div>
-                      <div style={{ padding: "6px 4px", display: "flex", justifyContent: "center" }}>
-                        <Dropdown trigger={<Pill label={STATUS_CFG[task.status]?.label || task.status} bg={STATUS_CFG[task.status]?.bg || "#c4c4c4"} color={STATUS_CFG[task.status]?.c || "#fff"} />}>
-                          {(close) => <>{STATUSES.map(s => <DropdownOption key={s} label={STATUS_CFG[s].label} color={STATUS_CFG[s].bg} active={task.status === s} onClick={() => { patch(task.id, { status: s }); close(); }} />)}</>}
-                        </Dropdown>
-                      </div>
-                      <div style={{ padding: "6px 4px", display: "flex", justifyContent: "center" }}>
-                        <Dropdown trigger={<Pill label={PRIO_CFG[task.priority]?.label || task.priority} bg={PRIO_CFG[task.priority]?.bg || ""} color={PRIO_CFG[task.priority]?.c || "#c4c4c4"} />}>
-                          {(close) => <>{PRIORITIES.map(p => <DropdownOption key={p} label={PRIO_CFG[p].label} color={PRIO_CFG[p].c} active={task.priority === p} onClick={() => { patch(task.id, { priority: p }); close(); }} />)}</>}
-                        </Dropdown>
-                      </div>
-                      <div style={{ padding: "6px 4px", display: "flex", justifyContent: "center" }}>
-                        {sl.i !== "none" ? <div style={{ display: "flex", alignItems: "center", gap: 3, padding: "3px 6px", background: sl.bg, borderRadius: 3 }}>
-                          {sl.i === "late" && <AlertTriangle style={{ width: 9, height: 9, color: sl.c }} />}{sl.i === "warn" && <Clock style={{ width: 9, height: 9, color: sl.c }} />}{sl.i === "ok" && <CheckCircle2 style={{ width: 9, height: 9, color: sl.c }} />}
-                          <span style={{ fontSize: 9, color: sl.c, fontWeight: 600, whiteSpace: "nowrap" }}>{sl.l}</span>
-                        </div> : <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>—</span>}
-                      </div>
-                      <div style={{ padding: "6px 4px", fontSize: 10, color: "rgba(148,163,184,0.65)", textAlign: "center" }}>{fmt(task.createdAt)}</div>
-                      <div style={{ padding: "6px 4px", textAlign: "center" }}>
-                        <button onClick={() => del(task.id)} aria-label="Eliminar tarea" style={{ background: "none", border: "none", cursor: "pointer", padding: 3, color: "rgba(148,163,184,0.4)" }} onMouseEnter={e => e.currentTarget.style.color = "#e2445c"} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.4)"}><Trash2 style={{ width: 12, height: 12 }} /></button>
-                      </div>
-                    </div>
-                    {/* Subitems */}
-                    {isExpanded && task.children?.map(sub => {
-                      const ssl = sla(sub.dueDate, sub.status);
-                      return (
-                        <div key={sub.id} className="ops-table-row" style={{ display: "grid", gridTemplateColumns: "1fr 120px 110px 80px 90px 75px 36px", gap: 0, alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.015)", background: "rgba(255,255,255,0.03)" }}>
-                          <div style={{ padding: "4px 10px 4px 42px", minWidth: 0 }}><EditableCell value={sub.title} onSave={v => patch(sub.id, { title: v })} /></div>
-                          <div style={{ padding: "4px", display: "flex", justifyContent: "center" }}><span style={{ fontSize: 11, color: "rgba(148,163,184,0.65)" }}>{sub.assignee || "—"}</span></div>
-                          <div style={{ padding: "4px", display: "flex", justifyContent: "center" }}>
-                            <Dropdown trigger={<Pill label={STATUS_CFG[sub.status]?.label || sub.status} bg={STATUS_CFG[sub.status]?.bg || "#c4c4c4"} color={STATUS_CFG[sub.status]?.c || "#fff"} />}>
-                              {(close) => <>{STATUSES.map(s => <DropdownOption key={s} label={STATUS_CFG[s].label} color={STATUS_CFG[s].bg} active={sub.status === s} onClick={() => { patch(sub.id, { status: s }); close(); setTasks(p => p.map(t => t.id === task.id ? { ...t, children: t.children.map(c => c.id === sub.id ? { ...c, status: s } : c) } : t)); }} />)}</>}
-                            </Dropdown>
-                          </div>
-                          <div /><div /><div />
-                          <div style={{ padding: "4px", textAlign: "center" }}><button onClick={() => del(sub.id)} aria-label="Eliminar subtarea" style={{ background: "none", border: "none", cursor: "pointer", padding: 3, color: "rgba(148,163,184,0.4)" }} onMouseEnter={e => e.currentTarget.style.color = "#e2445c"} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.4)"}><Trash2 style={{ width: 11, height: 11 }} /></button></div>
-                        </div>
-                      );
-                    })}
-                    {isExpanded && (addingSubIn === task.id ? (
-                      <div style={{ padding: "6px 10px 6px 42px", background: "rgba(255,255,255,0.03)" }}>
-                        <input ref={subRef} value={newTitle} onChange={e => setNewTitle(e.target.value)} onKeyDown={e => { if (e.key === "Enter") createSub(task.id); if (e.key === "Escape") { setAddingSubIn(null); setNewTitle(""); } }} onBlur={() => { if (newTitle.trim()) createSub(task.id); else { setAddingSubIn(null); setNewTitle(""); } }} placeholder="Agregar subtarea..." style={{ width: "60%", background: "transparent", border: "1px solid rgba(0,212,255,0.12)", borderRadius: 3, padding: "4px 8px", color: "#e2e8f0", fontSize: 12, outline: "none" }} />
-                      </div>
-                    ) : (
-                      <div onClick={() => { setAddingSubIn(task.id); setNewTitle(""); }} style={{ padding: "6px 10px 6px 42px", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, color: "rgba(148,163,184,0.65)", fontSize: 11 }} onMouseEnter={e => e.currentTarget.style.color = "#00d4ff"} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.65)"}><Plus style={{ width: 11, height: 11 }} /> Subtarea</div>
-                    ))}
-                  </div>
-                );
-              })}
-              {addingIn === g.key ? (
-                <div style={{ padding: "8px 12px 8px 28px", borderTop: gt.length > 0 ? "1px solid rgba(255,255,255,0.025)" : "none", background: "rgba(255,255,255,0.04)" }}>
-                  <input ref={newRef} value={newTitle} onChange={e => setNewTitle(e.target.value)} onKeyDown={e => { if (e.key === "Enter") createWith(g.createDefaults); if (e.key === "Escape") { setAddingIn(null); setNewTitle(""); } }} onBlur={() => { if (newTitle.trim()) createWith(g.createDefaults); else { setAddingIn(null); setNewTitle(""); } }} placeholder="Nombre de la tarea..." style={{ width: "100%", background: "transparent", border: "1px solid rgba(0,212,255,0.15)", borderRadius: 3, padding: "6px 10px", color: "#e2e8f0", fontSize: 13, outline: "none" }} />
-                </div>
-              ) : (
-                <div onClick={() => { setAddingIn(g.key); setNewTitle(""); }} style={{ padding: "10px 20px", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, color: "rgba(148,163,184,0.65)", fontSize: 12, borderTop: gt.length > 0 ? "1px solid rgba(255,255,255,0.04)" : "none" }}
-                  onMouseEnter={e => { e.currentTarget.style.color = g.color; e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }} onMouseLeave={e => { e.currentTarget.style.color = "rgba(148,163,184,0.65)"; e.currentTarget.style.background = "transparent"; }}>
-                  <Plus style={{ width: 13, height: 13 }} /> Agregar tarea
-                </div>
-              )}
-            </div>}
-          </div>
-        );
-      })}
-
       {/* KANBAN VIEW */}
-      {!loading && view === "kanban" && (
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${GROUPS.length}, 1fr)`, gap: 12, minHeight: 400 }}>
-          {GROUPS.map(g => {
-            const gt = filtered.filter(t => t.status === g.key);
+      {!loading && (
+        <div style={{ display: "grid", gridTemplateColumns: `repeat(${dynamicGroups.length}, 1fr)`, gap: 12, minHeight: 400, overflowX: "auto", paddingBottom: 16 }}>
+          {dynamicGroups.map(g => {
+            const gt = filtered.filter(g.match);
             return (
-              <div key={g.key} style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 8, borderTop: `3px solid ${g.color}`, display: "flex", flexDirection: "column" }}>
+              <div
+                key={g.key}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.style.background = "rgba(255,255,255,0.05)";
+                }}
+                onDragLeave={(e) => {
+                  e.currentTarget.style.background = "rgba(255,255,255,0.015)";
+                }}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  e.currentTarget.style.background = "rgba(255,255,255,0.015)";
+                  const taskId = e.dataTransfer.getData("text/plain");
+                  if (taskId) patch(taskId, g.createDefaults);
+                }}
+                style={{ background: "rgba(255,255,255,0.015)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 8, borderTop: `3px solid ${g.color}`, display: "flex", flexDirection: "column", minWidth: 280 }}
+              >
                 <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}><span style={{ fontSize: 13, fontWeight: 700, color: g.color }}>{g.label}</span><span style={{ fontSize: 10, color: "#64748b", background: "rgba(255,255,255,0.09)", padding: "1px 6px", borderRadius: 8 }}>{gt.length}</span></div>
                   <button onClick={() => { setAddingIn(g.key); setNewTitle(""); }} aria-label="Agregar tarea" style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.65)", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = g.color} onMouseLeave={e => e.currentTarget.style.color = "rgba(148,163,184,0.65)"}><Plus style={{ width: 14, height: 14 }} /></button>
                 </div>
                 <div style={{ padding: "0 10px 10px", display: "flex", flexDirection: "column", gap: 8, flex: 1, overflowY: "auto" }}>
                   {gt.map(t => <KanbanCard key={t.id} task={t} onEdit={setEditTask} />)}
-                  {addingIn === g.key && <input ref={newRef} value={newTitle} onChange={e => setNewTitle(e.target.value)} onKeyDown={e => { if (e.key === "Enter") create(g.key); if (e.key === "Escape") { setAddingIn(null); setNewTitle(""); } }} onBlur={() => { if (newTitle.trim()) create(g.key); else { setAddingIn(null); setNewTitle(""); } }} placeholder="Nombre..." style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 4, padding: "8px 10px", color: "#e2e8f0", fontSize: 12, outline: "none" }} />}
+                  {addingIn === g.key && <input ref={newRef} value={newTitle} onChange={e => setNewTitle(e.target.value)} onKeyDown={e => { if (e.key === "Enter") createWith(g.createDefaults); if (e.key === "Escape") { setAddingIn(null); setNewTitle(""); } }} onBlur={() => { if (newTitle.trim()) createWith(g.createDefaults); else { setAddingIn(null); setNewTitle(""); } }} placeholder="Nombre..." style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 4, padding: "8px 10px", color: "#e2e8f0", fontSize: 12, outline: "none" }} />}
                 </div>
               </div>
             );
           })}
         </div>
       )}
-
-      {/* CALENDAR VIEW */}
-      {!loading && view === "calendar" && <CalendarView tasks={filtered} onEdit={setEditTask} />}
 
       {/* Modals */}
       {showCreate && <CreateModal onClose={() => setShowCreate(false)} onSave={fullCreate} members={members} />}

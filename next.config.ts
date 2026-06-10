@@ -1,11 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  typescript: {
-    // Build succeeds at runtime — strict inference errors (never[], implicit any)
-    // are not actual bugs. Fix gradually without blocking deploys.
-    ignoreBuildErrors: true,
-  },
+  // strict type checking is now enforced on build.
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.fbcdn.net" },

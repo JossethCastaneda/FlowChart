@@ -11,29 +11,35 @@ export interface RequestType {
 
 export interface AreaPermissions {
   canAccessOps: boolean;
+  canEditOps: boolean;
   canAccessPublisher: boolean;
+  canEditPublisher: boolean;
   canAccessInbox: boolean;
+  canEditInbox: boolean;
   canAccessAds: boolean;
+  canEditAds: boolean;
   canAccessAnalytics: boolean;
+  canEditAnalytics: boolean;
   canAccessBriefing: boolean;
+  canEditBriefing: boolean;
 }
 
 export const DEFAULT_MEMBER_PERMS: AreaPermissions = {
-  canAccessOps: true,
-  canAccessPublisher: true,
-  canAccessInbox: true,
-  canAccessAds: true,
-  canAccessAnalytics: true,
-  canAccessBriefing: true,
+  canAccessOps: true, canEditOps: true,
+  canAccessPublisher: true, canEditPublisher: true,
+  canAccessInbox: true, canEditInbox: true,
+  canAccessAds: true, canEditAds: true,
+  canAccessAnalytics: true, canEditAnalytics: true,
+  canAccessBriefing: true, canEditBriefing: true,
 };
 
 export const DEFAULT_EXTERNAL_PERMS: AreaPermissions = {
-  canAccessOps: true,      // They might need to request tasks
-  canAccessPublisher: false,
-  canAccessInbox: false,
-  canAccessAds: false,
-  canAccessAnalytics: false,
-  canAccessBriefing: false,
+  canAccessOps: true, canEditOps: false,      // They might need to request tasks
+  canAccessPublisher: false, canEditPublisher: false,
+  canAccessInbox: false, canEditInbox: false,
+  canAccessAds: false, canEditAds: false,
+  canAccessAnalytics: false, canEditAnalytics: false,
+  canAccessBriefing: false, canEditBriefing: false,
 };
 
 export interface Area {
@@ -104,12 +110,12 @@ export const SUGGESTED_AREAS: Omit<Area, "leadIds" | "memberIds">[] = [
 // nuevo debe cumplir este esquema en lugar de coercionarse en silencio.
 
 const AreaPermissionsSchema = z.object({
-  canAccessOps: z.boolean(),
-  canAccessPublisher: z.boolean(),
-  canAccessInbox: z.boolean(),
-  canAccessAds: z.boolean(),
-  canAccessAnalytics: z.boolean(),
-  canAccessBriefing: z.boolean(),
+  canAccessOps: z.boolean(), canEditOps: z.boolean().optional().default(false),
+  canAccessPublisher: z.boolean(), canEditPublisher: z.boolean().optional().default(false),
+  canAccessInbox: z.boolean(), canEditInbox: z.boolean().optional().default(false),
+  canAccessAds: z.boolean(), canEditAds: z.boolean().optional().default(false),
+  canAccessAnalytics: z.boolean(), canEditAnalytics: z.boolean().optional().default(false),
+  canAccessBriefing: z.boolean(), canEditBriefing: z.boolean().optional().default(false),
 });
 
 const RequestTypeSchema = z.object({
@@ -153,16 +159,22 @@ export const BrandingSchema = z.object({
 
 export type WorkspaceBranding = z.infer<typeof BrandingSchema>;
 
-function parsePerms(input: unknown, defaults: AreaPermissions): AreaPermissions {
+export function parsePerms(input: unknown, defaults: AreaPermissions): AreaPermissions {
   if (!input || typeof input !== "object") return { ...defaults };
   const raw = input as Record<string, unknown>;
   return {
     canAccessOps: typeof raw.canAccessOps === "boolean" ? raw.canAccessOps : defaults.canAccessOps,
+    canEditOps: typeof raw.canEditOps === "boolean" ? raw.canEditOps : (typeof raw.canAccessOps === "boolean" ? raw.canAccessOps : defaults.canEditOps),
     canAccessPublisher: typeof raw.canAccessPublisher === "boolean" ? raw.canAccessPublisher : defaults.canAccessPublisher,
+    canEditPublisher: typeof raw.canEditPublisher === "boolean" ? raw.canEditPublisher : (typeof raw.canAccessPublisher === "boolean" ? raw.canAccessPublisher : defaults.canEditPublisher),
     canAccessInbox: typeof raw.canAccessInbox === "boolean" ? raw.canAccessInbox : defaults.canAccessInbox,
+    canEditInbox: typeof raw.canEditInbox === "boolean" ? raw.canEditInbox : (typeof raw.canAccessInbox === "boolean" ? raw.canAccessInbox : defaults.canEditInbox),
     canAccessAds: typeof raw.canAccessAds === "boolean" ? raw.canAccessAds : defaults.canAccessAds,
+    canEditAds: typeof raw.canEditAds === "boolean" ? raw.canEditAds : (typeof raw.canAccessAds === "boolean" ? raw.canAccessAds : defaults.canEditAds),
     canAccessAnalytics: typeof raw.canAccessAnalytics === "boolean" ? raw.canAccessAnalytics : defaults.canAccessAnalytics,
+    canEditAnalytics: typeof raw.canEditAnalytics === "boolean" ? raw.canEditAnalytics : (typeof raw.canAccessAnalytics === "boolean" ? raw.canAccessAnalytics : defaults.canEditAnalytics),
     canAccessBriefing: typeof raw.canAccessBriefing === "boolean" ? raw.canAccessBriefing : defaults.canAccessBriefing,
+    canEditBriefing: typeof raw.canEditBriefing === "boolean" ? raw.canEditBriefing : (typeof raw.canAccessBriefing === "boolean" ? raw.canAccessBriefing : defaults.canEditBriefing),
   };
 }
 
@@ -221,10 +233,21 @@ export function getPermissions(
   area: Area | null,
   userId: string,
   userRole: string, // workspace-level role: OWNER, ADMIN, MEMBER
+  memberPerms?: AreaPermissions | null // granular overrides for this specific member
 ): AreaPermissions {
+  // OWNER is always god-mode
+  if (userRole === "OWNER") {
+    return { ...DEFAULT_MEMBER_PERMS };
+  }
+
+  // If this user has granular permissions defined, they override Area logic and ADMIN defaults
+  if (memberPerms) {
+    return { ...memberPerms };
+  }
+
   // Full access for admins
-  if (userRole === "OWNER" || userRole === "ADMIN") {
-    return { canAccessOps: true, canAccessPublisher: true, canAccessInbox: true, canAccessAds: true, canAccessAnalytics: true, canAccessBriefing: true };
+  if (userRole === "ADMIN") {
+    return { ...DEFAULT_MEMBER_PERMS };
   }
   // No area configured → full access (no restrictions without area config)
   if (!area) {
@@ -232,7 +255,7 @@ export function getPermissions(
   }
   // Leads get full access to their area
   if (area.leadIds.includes(userId)) {
-    return { canAccessOps: true, canAccessPublisher: true, canAccessInbox: true, canAccessAds: true, canAccessAnalytics: true, canAccessBriefing: true };
+    return { ...DEFAULT_MEMBER_PERMS };
   }
   // Members of the area
   if (area.memberIds.includes(userId)) {

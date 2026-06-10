@@ -82,8 +82,8 @@ export async function POST(req: NextRequest) {
     const body = JSON.parse(rawBody);
     const object = body.object; // "page", "instagram", "ad_account", "whatsapp_business_account"
 
-
-    console.log(`[WEBHOOK] 📨 Event received — object: ${object}, entries: ${body.entry?.length || 0}`);
+    // No loguear el body completo para evitar fugas de PII en Vercel Logs
+    logger.info("Webhook received", { object, entries: body.entry?.length || 0 });
 
     if (!body.entry?.length) {
       return NextResponse.json({ received: true });

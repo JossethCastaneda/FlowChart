@@ -133,6 +133,46 @@ export async function notifyTaskAssigned({
 }
 
 /**
+ * Notify when a task status changes
+ */
+export async function notifyTaskStatusChanged({
+  taskId,
+  taskTitle,
+  assigneeName,
+  updaterName,
+  updaterUserId,
+  newStatus,
+}: {
+  taskId: string;
+  taskTitle: string;
+  assigneeName: string;
+  updaterName: string;
+  updaterUserId: string;
+  newStatus: string;
+}) {
+  const user = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { name: assigneeName },
+        { email: { startsWith: assigneeName } },
+      ],
+    },
+    select: { id: true, email: true },
+  });
+
+  if (!user || user.id === updaterUserId) return; // Don't notify yourself
+
+  await createNotification({
+    userId: user.id,
+    type: "status_changed",
+    title: "Estado de tarea actualizado",
+    message: `${updaterName} movió la tarea "${taskTitle}" a ${newStatus}`,
+    link: "/dashboard/ops",
+    sendEmail: false, // In-app notification only for status changes
+  });
+}
+
+/**
  * Check SLA and send warnings for tasks due within 24h
  * Called by cron or on page load
  */

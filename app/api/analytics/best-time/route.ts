@@ -51,26 +51,6 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // ── Check BestTimeCache ──
-    const cached = await prisma.bestTimeCache.findUnique({
-      where: { workspaceId },
-    });
-
-    if (cached) {
-      const ageMs = Date.now() - new Date(cached.generatedAt).getTime();
-      const twentyFourHoursMs = 24 * 60 * 60 * 1000;
-
-      if (ageMs < twentyFourHoursMs) {
-        const cd = cached.data as any;
-        return NextResponse.json({
-          slots: cd.slots || [],
-          topSlots: cd.topSlots || [],
-          cached: true,
-          generatedAt: cached.generatedAt,
-        });
-      }
-    }
-
     // ── Resolve igUserId from Integration credentials ──
     const integration = await prisma.integration.findFirst({
       where: {
@@ -200,21 +180,7 @@ export async function GET(req: NextRequest) {
       label: `${DAY_LABELS[s.day]} ${String(s.hour).padStart(2, "0")}:00`,
     }));
 
-    // ── Save to BestTimeCache ──
     const now = new Date();
-    await prisma.bestTimeCache.upsert({
-      where: { workspaceId },
-      update: {
-        data: { slots, topSlots } as unknown as any,
-        generatedAt: now,
-      },
-      create: {
-        workspaceId,
-        data: { slots, topSlots } as unknown as any,
-        generatedAt: now,
-      },
-    });
-
     return NextResponse.json({
       slots,
       topSlots,

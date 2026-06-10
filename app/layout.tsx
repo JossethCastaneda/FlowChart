@@ -4,6 +4,7 @@ import "./globals.css";
 import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
 import { AuthProvider } from "@/components/layout/AuthProvider";
+import { QueryProvider } from "@/components/layout/QueryProvider";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { ToastContainer } from "@/components/ui/Toast";
@@ -43,7 +44,9 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
-          <ClientMainWrapper>{children}</ClientMainWrapper>
+          <QueryProvider>
+            <ClientMainWrapper>{children}</ClientMainWrapper>
+          </QueryProvider>
           <ToastContainer />
           <ConfirmModalContainer />
         </AuthProvider>

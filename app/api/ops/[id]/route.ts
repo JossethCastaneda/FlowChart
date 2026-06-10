@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
-import { notifyTaskAssigned } from "@/lib/notifications";
+import { notifyTaskAssigned, notifyTaskStatusChanged } from "@/lib/notifications";
 import { updateAutoSLA } from "@/lib/sla-calculator";
 import { parseWorkflow, findUserArea, getPermissions } from "@/lib/workflow-config";
 
@@ -45,7 +45,22 @@ export async function PATCH(
     }
 
     const body = await req.json();
-    const { title, description, assignee, priority, status, dueDate, tags, order, parentId, attachments } = body;
+    let { title, description, assignee, priority, status, dueDate, tags, order, parentId, attachments } = body;
+
+    // Auto-reassign to Area Lead if moving to Review by non-lead
+    if (status === "Review" && task.status !== "Review") {
+      const isLead = permArea?.leadIds.includes(session.user.id) || member?.role === "OWNER" || member?.role === "ADMIN";
+      if (!isLead && permArea && permArea.leadIds.length > 0) {
+        // Find the lead user member to get their name
+        const leadMember = await prisma.workspaceMember.findFirst({
+          where: { workspaceId: task.workspaceId, userId: permArea.leadIds[0] },
+          include: { user: true }
+        });
+        if (leadMember?.user?.name) {
+          assignee = leadMember.user.name;
+        }
+      }
+    }
 
     // If transitioning to "Done", also require canAccessOps permission
     if (status === "Done" && task.status !== "Done" && !perms.canAccessOps) {
@@ -96,6 +111,16 @@ export async function PATCH(
         priority: updated.priority,
         dueDate: updated.dueDate?.toISOString() || null,
       }).catch(err => console.error("[OPS] Notification error:", err));
+    } else if (status !== undefined && status !== task.status && updated.assignee) {
+      // Send notification if status changed and it wasn't a reassignment
+      notifyTaskStatusChanged({
+        taskId: updated.id,
+        taskTitle: updated.title,
+        assigneeName: updated.assignee,
+        updaterName: session.user?.name || session.user?.email || "Alguien",
+        updaterUserId: session.user.id,
+        newStatus: updated.status,
+      }).catch(err => console.error("[OPS] Status Notification error:", err));
     }
 
     // Trigger auto-SLA recalculation when a task is closed

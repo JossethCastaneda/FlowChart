@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { AnalyticsFilters, type Platform } from "./AnalyticsFilters";
 import { ComparisonControl, compareLabel, type ComparisonState, type CompareMode } from "./ComparisonControl";
 
@@ -46,11 +47,6 @@ import { TabResumen, TabPosts, TabAudiencia, TabMejorHorario, TabHistorias, TabR
 
 export function AnalyticsDashboard() {
   const [activeTab, setActiveTab] = useState<Tab>("Resumen");
-  const [kpis, setKpis] = useState<Kpi[]>(EMPTY_KPI);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [audienceAge, setAudienceAge] = useState<any[]>([]);
-  const [audienceGender, setAudienceGender] = useState<any[]>([]);
-  const [audienceLocation, setAudienceLocation] = useState<any[]>([]);
   const [dataNotices, setDataNotices] = useState<string[]>([]);
 
   // ── Filter state ──
@@ -80,129 +76,131 @@ export function AnalyticsDashboard() {
     return filterAccountIds.map((id) => id.replace(/^(fb_|ig_)/, ""));
   }, [filterAccountIds]);
 
-  // Fetch real organic KPIs
-  useEffect(() => {
-    // Skip initial render before filters load
-    if (filterAccountIds.length === 0) return;
-
-    const fetchData = async () => {
-      setDataNotices([]);
-      // Build page ID query string for server-side filtering
+  // ── Query: KPIs ──
+  const { data: organicData, isLoading: isLoadingKpis } = useQuery({
+    queryKey: ["analytics", "organic", period, filterPageIds, filterPlatform, compareMode],
+    queryFn: async () => {
       const pageIdParam = filterPageIds.length > 0 ? `&pageIds=${filterPageIds.join(",")}` : "";
       const platformParam = filterPlatform !== "all" ? `&platform=${filterPlatform}` : "";
+      const compareParam = compareMode !== "none" ? `&compare=${compareMode}` : "";
+      
+      const res = await fetch(`/api/analytics/organic?days=${period}${pageIdParam}${platformParam}${compareParam}`);
+      if (!res.ok) throw new Error("Failed to fetch organic KPIs");
+      return res.json();
+    },
+    enabled: filterAccountIds.length > 0,
+    staleTime: 1000 * 60 * 5, // 5 min cache
+  });
 
-      try {
-        // Fetch KPIs (with optional comparison window)
-        const compareParam = compareMode !== "none" ? `&compare=${compareMode}` : "";
-        const kpiRes = await fetch(`/api/analytics/organic?days=${period}${pageIdParam}${platformParam}${compareParam}`);
-        if (kpiRes.ok) {
-          const kpiData = await kpiRes.json();
-          if (kpiData && !kpiData.error) {
-            const cmp = kpiData.comparison; // null unless comparison requested
-            const lbl = cmp ? compareLabel(cmp.mode) : "";
-            // When a comparison window is active, use the real period-over-period
-            // delta; otherwise fall back to the in-period trend.
-            const fmtChange = (delta: number) => `${delta > 0 ? "+" : ""}${delta}%`;
-            const fmtTrend = (t: number) => `${t > 0 ? "+" : ""}${(t || 0).toFixed(1)}%`;
+  // ── Query: Posts ──
+  const { data: postData, isLoading: isLoadingPosts } = useQuery({
+    queryKey: ["analytics", "posts", filterPageIds, filterPlatform],
+    queryFn: async () => {
+      const pageIdParam = filterPageIds.length > 0 ? `&pageIds=${filterPageIds.join(",")}` : "";
+      const platformParam = filterPlatform !== "all" ? `&platform=${filterPlatform}` : "";
+      
+      const res = await fetch(`/api/analytics/posts?limit=25${pageIdParam}${platformParam}`);
+      if (!res.ok) throw new Error("Failed to fetch posts");
+      return res.json();
+    },
+    enabled: filterAccountIds.length > 0,
+    staleTime: 1000 * 60 * 5,
+  });
 
-            setKpis([
-              {
-                label: "Alcance",
-                value: (kpiData.reach || 0).toLocaleString(),
-                change: cmp ? fmtChange(cmp.deltas.reach) : fmtTrend(kpiData.reachTrend),
-                positive: cmp ? cmp.deltas.reach >= 0 : (kpiData.reachTrend || 0) >= 0,
-                icon: Eye, color: "#00d4ff", accent: "cyan",
-                compareValue: cmp ? `${lbl}: ${(cmp.reach || 0).toLocaleString()}` : undefined,
-              },
-              {
-                label: "Engagement",
-                value: `${(kpiData.engagement || 0).toFixed(1)}%`,
-                change: cmp ? fmtChange(cmp.deltas.engagement) : fmtTrend(kpiData.engagementTrend),
-                positive: cmp ? cmp.deltas.engagement >= 0 : (kpiData.engagementTrend || 0) >= 0,
-                icon: Heart, color: "#f472b6", accent: "pink",
-                compareValue: cmp ? `${lbl}: ${(cmp.engagement || 0).toFixed(1)}%` : undefined,
-              },
-              {
-                label: "Seguidores",
-                value: (kpiData.followers || 0).toLocaleString(),
-                change: fmtTrend(kpiData.followersTrend),
-                positive: (kpiData.followersTrend || 0) >= 0,
-                icon: Users, color: "#06d6a0", accent: "emerald",
-                // Followers is a live snapshot — Meta doesn't expose a historical
-                // total, so there is no period-over-period comparison for it.
-              },
-              {
-                label: "Impresiones",
-                value: (kpiData.impressions || 0).toLocaleString(),
-                change: cmp ? fmtChange(cmp.deltas.impressions) : fmtTrend(kpiData.impressionsTrend),
-                positive: cmp ? cmp.deltas.impressions >= 0 : (kpiData.impressionsTrend || 0) >= 0,
-                icon: BarChart2, color: "#7b61ff", accent: "purple",
-                compareValue: cmp ? `${lbl}: ${(cmp.impressions || 0).toLocaleString()}` : undefined,
-              },
-            ]);
-          }
-        }
-      } catch {
-        addDataNotice("No se pudieron actualizar KPIs organicos. El resto del reporte puede estar parcial.");
-      }
+  // ── Query: Audience ──
+  const { data: audienceData, isLoading: isLoadingAudience } = useQuery({
+    queryKey: ["analytics", "audience", filterPageIds, filterPlatform],
+    queryFn: async () => {
+      const pageIdParam = filterPageIds.length > 0 ? `pageIds=${filterPageIds.join(",")}` : "";
+      const platformParam = filterPlatform !== "all" ? `platform=${filterPlatform}` : "";
+      const params = [pageIdParam, platformParam].filter(Boolean).join("&");
+      const queryStr = params ? `?${params}` : "";
+      
+      const res = await fetch(`/api/analytics/audience${queryStr}`);
+      if (!res.ok) throw new Error("Failed to fetch audience");
+      return res.json();
+    },
+    enabled: filterAccountIds.length > 0,
+    staleTime: 1000 * 60 * 60, // Audience data is more stable, cache for 1 hour
+  });
 
-      try {
-        // Fetch posts
-        const postRes = await fetch(`/api/analytics/posts?limit=25${pageIdParam}${platformParam}`);
-        if (postRes.ok) {
-          const postData = await postRes.json();
-          if (postData.posts?.length) {
-            setPosts(postData.posts.map((p: any, i: number) => ({
-              id: p.id || i + 1,
-              text: p.text || "",
-              // Route returns lowercase ("facebook"/"instagram"); normalize to the
-              // capitalized form the icons and platform filter expect.
-              channel: p.channel === "instagram" ? "Instagram" : "Facebook",
-              date: p.date ? new Date(p.date).toLocaleDateString("es-MX", { day: "numeric", month: "short" }) : "",
-              image: p.image || null,
-              mediaType: p.mediaType || "text",
-              permalink: p.permalink || null,
-              reach: p.reach || 0,
-              likes: p.likes || 0,
-              comments: p.comments || 0,
-              shares: p.shares || 0,
-              engagement: p.engagementRate || 0,
-            })));
-          }
-        }
-      } catch {
-        addDataNotice("No se pudieron cargar posts recientes desde Meta.");
-      }
+  // ── Mapped KPIs ──
+  const kpis = useMemo<Kpi[]>(() => {
+    if (!organicData || organicData.error) return EMPTY_KPI;
+    const cmp = organicData.comparison;
+    const lbl = cmp ? compareLabel(cmp.mode) : "";
+    const fmtChange = (delta: number) => `${delta > 0 ? "+" : ""}${delta}%`;
+    const fmtTrend = (t: number) => `${t > 0 ? "+" : ""}${(t || 0).toFixed(1)}%`;
 
-      try {
-        // Fetch audience
-        const audParams: string[] = [];
-        if (filterPageIds.length > 0) audParams.push(`pageIds=${filterPageIds.join(",")}`);
-        if (filterPlatform !== "all") audParams.push(`platform=${filterPlatform}`);
-        const audQueryStr = audParams.length > 0 ? `?${audParams.join("&")}` : "";
-        const audRes = await fetch(`/api/analytics/audience${audQueryStr}`);
-        if (audRes.ok) {
-          const audData = await audRes.json();
-          if (audData.age?.length) setAudienceAge(audData.age);
-          if (audData.gender?.length) {
-            const colors = ["#f472b6", "#00d4ff", "#7b61ff"];
-            setAudienceGender(audData.gender.map((g: any, i: number) => ({ ...g, color: colors[i] || "#94a3b8" })));
-          }
-          if (audData.location?.length) setAudienceLocation(audData.location);
-        }
-      } catch {
-        addDataNotice("No se pudieron cargar datos de audiencia. Revisa permisos de insights.");
-      }
-    };
-    fetchData();
-  }, [filterPlatform, filterAccountIds, filterPageIds, period, compareMode, addDataNotice]);
+    return [
+      {
+        label: "Alcance",
+        value: (organicData.reach || 0).toLocaleString(),
+        change: cmp ? fmtChange(cmp.deltas.reach) : fmtTrend(organicData.reachTrend),
+        positive: cmp ? cmp.deltas.reach >= 0 : (organicData.reachTrend || 0) >= 0,
+        icon: Eye, color: "#00d4ff", accent: "cyan",
+        compareValue: cmp ? `${lbl}: ${(cmp.reach || 0).toLocaleString()}` : undefined,
+      },
+      {
+        label: "Engagement",
+        value: `${(organicData.engagement || 0).toFixed(1)}%`,
+        change: cmp ? fmtChange(cmp.deltas.engagement) : fmtTrend(organicData.engagementTrend),
+        positive: cmp ? cmp.deltas.engagement >= 0 : (organicData.engagementTrend || 0) >= 0,
+        icon: Heart, color: "#f472b6", accent: "pink",
+        compareValue: cmp ? `${lbl}: ${(cmp.engagement || 0).toFixed(1)}%` : undefined,
+      },
+      {
+        label: "Seguidores",
+        value: (organicData.followers || 0).toLocaleString(),
+        change: fmtTrend(organicData.followersTrend),
+        positive: (organicData.followersTrend || 0) >= 0,
+        icon: Users, color: "#06d6a0", accent: "emerald",
+      },
+      {
+        label: "Impresiones",
+        value: (organicData.impressions || 0).toLocaleString(),
+        change: cmp ? fmtChange(cmp.deltas.impressions) : fmtTrend(organicData.impressionsTrend),
+        positive: cmp ? cmp.deltas.impressions >= 0 : (organicData.impressionsTrend || 0) >= 0,
+        icon: BarChart2, color: "#7b61ff", accent: "purple",
+        compareValue: cmp ? `${lbl}: ${(cmp.impressions || 0).toLocaleString()}` : undefined,
+      },
+    ];
+  }, [organicData]);
+
+  // ── Mapped Posts ──
+  const posts = useMemo(() => {
+    if (!postData?.posts) return [];
+    return postData.posts.map((p: any, i: number) => ({
+      id: p.id || i + 1,
+      text: p.text || "",
+      channel: p.channel === "instagram" ? "Instagram" : "Facebook",
+      date: p.date ? new Date(p.date).toLocaleDateString("es-MX", { day: "numeric", month: "short" }) : "",
+      image: p.image || null,
+      mediaType: p.mediaType || "text",
+      permalink: p.permalink || null,
+      reach: p.reach || 0,
+      likes: p.likes || 0,
+      comments: p.comments || 0,
+      shares: p.shares || 0,
+      engagement: p.engagementRate || 0,
+    }));
+  }, [postData]);
+
+  // ── Mapped Audience ──
+  const audienceAge = audienceData?.age || [];
+  const audienceGender = useMemo(() => {
+    if (!audienceData?.gender) return [];
+    const colors = ["#f472b6", "#00d4ff", "#7b61ff"];
+    return audienceData.gender.map((g: any, i: number) => ({ ...g, color: colors[i] || "#94a3b8" }));
+  }, [audienceData]);
+  const audienceLocation = audienceData?.location || [];
 
   // Filter posts by selected platform
   const filteredPosts = useMemo(() => {
     if (filterPlatform === "all") return posts;
     const platformMap: Record<string, string> = { facebook: "Facebook", instagram: "Instagram" };
     const target = platformMap[filterPlatform] || "";
-    return posts.filter((p) => p.channel === target);
+    return posts.filter((p: any) => p.channel === target);
   }, [posts, filterPlatform]);
 
   // Build query string for sub-tabs
@@ -213,16 +211,26 @@ export function AnalyticsDashboard() {
     return params.length > 0 ? `?${params.join("&")}` : "";
   }, [filterPageIds, filterPlatform]);
 
+  const isLoading = isLoadingKpis || isLoadingPosts || isLoadingAudience;
+
   return (
     <div className="space-y-4">
-
       {/* ─── FILTERS BAR ─── */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", justifyContent: "space-between" }}>
         <AnalyticsFilters onFilterChange={handleFilterChange} />
         <ComparisonControl onChange={handleComparisonChange} />
       </div>
 
-      {dataNotices.length > 0 && (
+      {isLoading && (
+        <div className="flex items-center justify-center p-12 glass-panel">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
+            <p className="text-slate-400 text-sm animate-pulse">Consultando APIs de Meta en tiempo real...</p>
+          </div>
+        </div>
+      )}
+
+      {!isLoading && dataNotices.length > 0 && (
         <div
           style={{
             display: "flex",

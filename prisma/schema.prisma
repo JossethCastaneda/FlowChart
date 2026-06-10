@@ -124,6 +124,7 @@ model WorkspaceMember {
   role            String   @default("MEMBER") // OWNER, ADMIN, MEMBER
   activityStatus  String   @default("disponible") // disponible | ocupado | ausente | offline
   lastActiveAt    DateTime @default(now())
+  permissions     Json?    // Module-level granular permissions (overrides area defaults)
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -489,15 +490,6 @@ model DmAutomationRule {
   @@index([workspaceId, active])
 }
 
-model BestTimeCache {
-  id          String   @id @default(cuid())
-  workspaceId String   @unique
-  data        Json     // { slots: [{day, hour, avgImpressions}], generatedAt }
-  generatedAt DateTime
-
-  @@index([workspaceId])
-}
-
 model TrackedKeyword {
   id          String   @id @default(cuid())
   workspaceId String
@@ -508,15 +500,6 @@ model TrackedKeyword {
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   @@unique([workspaceId, query])
   @@index([workspaceId])
-}
-
-model HashtagCache {
-  id          String   @id @default(cuid())
-  workspaceId String
-  hashtag     String
-  igHashtagId String
-  expiresAt   DateTime
-  @@unique([workspaceId, hashtag])
 }
 
 // ------------------------------------------------------

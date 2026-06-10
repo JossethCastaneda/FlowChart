@@ -22,13 +22,15 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
       authorization: {
         url: `https://www.facebook.com/${META_API_VERSION}/dialog/oauth`,
         params: {
-          // Sodare — User Login (basic login only)
           // Config ID 2028091691078800 must be set in Facebook App to request email,public_profile only.
           config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID
             || "2028091691078800",
           auth_type: "rerequest",
           // Explicitly restrict scope to minimum — no ads_read, no pages_manage_posts, etc.
           scope: "email,public_profile",
+          // override_default_response_type is required by Meta to honor config_id
+          override_default_response_type: "true",
+          display: "popup",
         },
       },
     })
@@ -98,31 +100,67 @@ export const authOptions: NextAuthOptions = {
 
   session: { strategy: "jwt" },
 
+  cookies: {
+    sessionToken: {
+      name: `__Secure-next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: "lax",
+        path: "/",
+        secure: true,
+        domain: ".sodare.xyz", // Permite compartir la sesión con subdominios
+      },
+    },
+  },
+
   callbacks: {
     async jwt({ token, account, user, trigger }) {
       if (user) {
-        token.sub = user.id;
-        try {
-          const { default: prisma } =
-            await import("@/lib/prisma");
-          // CRÍTICO: Upsert del usuario en Neon
-          // (FK constraint fix para WorkspaceMember.create)
-          await prisma.user.upsert({
-            where: { id: user.id },
-            update: {
-              name: user.name ?? undefined,
-              email: user.email ?? undefined,
-              image: user.image ?? undefined,
-            },
-            create: {
-              id: user.id,
-              name: user.name,
-              email: user.email,
-              image: user.image,
-            },
-          });
-        } catch (err) {
-          console.error("[AUTH jwt callback] upsert error:", err);
+        // Detect account linking: if token already has a sub (from existing session)
+        // and it differs from the incoming OAuth user.id, we are linking!
+        // Note: For OAuth, user.id is the provider's ID (e.g. Google ID), while token.sub is our CUID.
+        const isLinking = token.sub && token.sub !== user.id;
+
+        if (!isLinking) {
+          try {
+            const { default: prisma } = await import("@/lib/prisma");
+            
+            // 1. First, try to find an existing user by email
+            // This prevents Unique Constraint Failed errors if the user already signed up with Credentials
+            let dbUser;
+            if (user.email) {
+              dbUser = await prisma.user.findUnique({
+                where: { email: user.email }
+              });
+            }
+
+            // 2. If no user exists, create one
+            if (!dbUser) {
+              dbUser = await prisma.user.create({
+                data: {
+                  name: user.name,
+                  email: user.email,
+                  image: user.image,
+                }
+              });
+            } else {
+              // 3. If exists, just update name/image if they are missing
+              dbUser = await prisma.user.update({
+                where: { id: dbUser.id },
+                data: {
+                  name: dbUser.name || user.name || undefined,
+                  image: dbUser.image || user.image || undefined,
+                }
+              });
+            }
+
+            token.sub = dbUser.id;
+          } catch (err) {
+            console.error("[AUTH jwt callback] user creation error:", err);
+            token.sub = user.id; // Fallback
+          }
+        } else {
+          console.log("[AUTH] Linking new account to existing session:", token.sub);
         }
       }
 
@@ -152,6 +190,32 @@ export const authOptions: NextAuthOptions = {
         // sección por sección desde Integraciones, con su propio OAuth y
         // consentimiento explícito (api/connect/[module] y oauth/google/start).
         token.provider = account.provider;
+
+        // Guardar la cuenta vinculada para la vista de Perfil
+        if (token.sub && account.provider !== "credentials") {
+          try {
+            const { default: prisma } = await import("@/lib/prisma");
+            await prisma.account.upsert({
+              where: {
+                provider_providerAccountId: {
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                },
+              },
+              update: {
+                userId: token.sub as string,
+              },
+              create: {
+                userId: token.sub as string,
+                type: account.type || "oauth",
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+              },
+            });
+          } catch (err) {
+            console.error("[AUTH jwt callback] account upsert error:", err);
+          }
+        }
       }
 
       return token;
