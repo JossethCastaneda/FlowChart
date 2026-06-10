@@ -105,30 +105,46 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         // Detect account linking: if token already has a sub (from existing session)
         // and it differs from the incoming OAuth user.id, we are linking!
+        // Note: For OAuth, user.id is the provider's ID (e.g. Google ID), while token.sub is our CUID.
         const isLinking = token.sub && token.sub !== user.id;
 
         if (!isLinking) {
-          token.sub = user.id;
           try {
-            const { default: prisma } =
-              await import("@/lib/prisma");
-            // CRÍTICO: Upsert del usuario en Neon
-            await prisma.user.upsert({
-              where: { id: user.id },
-              update: {
-                name: user.name ?? undefined,
-                email: user.email ?? undefined,
-                image: user.image ?? undefined,
-              },
-              create: {
-                id: user.id,
-                name: user.name,
-                email: user.email,
-                image: user.image,
-              },
-            });
+            const { default: prisma } = await import("@/lib/prisma");
+            
+            // 1. First, try to find an existing user by email
+            // This prevents Unique Constraint Failed errors if the user already signed up with Credentials
+            let dbUser;
+            if (user.email) {
+              dbUser = await prisma.user.findUnique({
+                where: { email: user.email }
+              });
+            }
+
+            // 2. If no user exists, create one
+            if (!dbUser) {
+              dbUser = await prisma.user.create({
+                data: {
+                  name: user.name,
+                  email: user.email,
+                  image: user.image,
+                }
+              });
+            } else {
+              // 3. If exists, just update name/image if they are missing
+              dbUser = await prisma.user.update({
+                where: { id: dbUser.id },
+                data: {
+                  name: dbUser.name || user.name || undefined,
+                  image: dbUser.image || user.image || undefined,
+                }
+              });
+            }
+
+            token.sub = dbUser.id;
           } catch (err) {
-            console.error("[AUTH jwt callback] upsert error:", err);
+            console.error("[AUTH jwt callback] user creation error:", err);
+            token.sub = user.id; // Fallback
           }
         } else {
           console.log("[AUTH] Linking new account to existing session:", token.sub);

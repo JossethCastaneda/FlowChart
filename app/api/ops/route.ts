@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { pickAssignee } from "@/lib/auto-assign";
-import { parseWorkflow, findUserArea, getPermissions } from "@/lib/workflow-config";
+import { parseWorkflow, findUserArea, getPermissions, estimateEtaHours, etaDate } from "@/lib/workflow-config";
 
 // GET /api/ops — list tasks + workspace members
 export async function GET() {
@@ -121,6 +121,40 @@ export async function POST(req: NextRequest) {
       if (picked) finalAssignee = picked.name;
     }
 
+    // Auto-calculate SLA / dueDate if not provided
+    let finalDueDate = dueDate ? new Date(dueDate) : null;
+    if (!finalDueDate && (targetAreaId || finalAssignee)) {
+      let areaForSla = targetAreaId ? config.areas.find((a) => a.id === targetAreaId) : null;
+      if (!areaForSla && finalAssignee) {
+        const assigneeMember = await prisma.workspaceMember.findFirst({
+          where: { workspaceId, user: { name: finalAssignee } },
+          select: { userId: true },
+        });
+        if (assigneeMember) {
+          areaForSla = findUserArea(config, assigneeMember.userId) || null;
+        }
+      }
+
+      if (areaForSla) {
+        const ahead = await prisma.task.count({
+          where: {
+            workspaceId,
+            status: { not: "Done" },
+            ...(targetAreaId ? { targetAreaId } : { assignee: finalAssignee }),
+          },
+        });
+        
+        let sla = areaForSla.slaHours || 24;
+        if (targetAreaId && requestType) {
+          const rt = areaForSla.requestTypes.find((t) => t.id === requestType || t.name === requestType);
+          if (rt?.slaHours) sla = rt.slaHours;
+        }
+
+        const hours = targetAreaId ? (ahead + 1) * sla : estimateEtaHours(ahead, areaForSla);
+        finalDueDate = etaDate(hours);
+      }
+    }
+
     const task = await prisma.task.create({
       data: {
         workspaceId,
@@ -129,7 +163,7 @@ export async function POST(req: NextRequest) {
         assignee: finalAssignee,
         priority: priority || "P2",
         status: status || "Backlog",
-        dueDate: dueDate ? new Date(dueDate) : null,
+        dueDate: finalDueDate,
         tags: tags || [],
         order: nextOrder,
         projectId: projectId || null,

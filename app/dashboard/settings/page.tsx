@@ -139,13 +139,16 @@ export default function SettingsPage() {
     fetch("/api/workspace")
       .then((r) => r.json())
       .then((data) => {
-        if (data.data?.[0]) {
+        if (data.data && data.data.length > 0) {
           const ws = data.data[0];
           setWorkspaceId(ws.id);
           setWorkspaceName(ws.name || "");
           setWorkspaceSlug(ws.slug || "");
           setWorkspacePlan(ws.plan || "free");
           fetchData(ws.id);
+        } else {
+          // Si no tiene workspaces (por ejemplo, fue eliminado o removido), forzamos a onboarding
+          router.push("/onboarding");
         }
         setLoading(false);
       });
