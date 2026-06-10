@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useSession } from "next-auth/react";
+import { useSession, signIn } from "next-auth/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   Settings, Users, Mail, Trash2, Copy, CheckCircle, Clock, AlertTriangle,
@@ -83,6 +83,9 @@ export default function SettingsPage() {
   const [userRole, setUserRole] = useState<string>("");
   const [activeSection, setActiveSection] = useState<SectionKey>("general");
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
+  const [profileData, setProfileData] = useState<{ id: string, name: string, email: string, image: string, providers: string[] } | null>(null);
+  const [profileName, setProfileName] = useState("");
+  const [savingProfile, setSavingProfile] = useState(false);
   const router = useRouter();
 
   // Restore section + preferences (client-only).
@@ -143,6 +146,15 @@ export default function SettingsPage() {
           fetchData(ws.id);
         }
         setLoading(false);
+      });
+      
+    fetch("/api/user/profile")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.data) {
+          setProfileData(data.data);
+          setProfileName(data.data.profile.name || "");
+        }
       });
   }, [fetchData]);
 
@@ -219,6 +231,30 @@ export default function SettingsPage() {
     const res = await fetch(`/api/workspace/${workspaceId}`, { method: "DELETE" });
     if (!res.ok) { const data = await res.json(); alert(data.error || "Error al eliminar"); return; }
     router.push("/onboarding");
+  }
+
+  async function handleSaveProfile() {
+    if (!profileName.trim()) {
+      alert("El nombre no puede estar vacío");
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const res = await fetch("/api/user/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: profileName }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        alert(data.error || "Error al actualizar perfil");
+      } else {
+        alert("Perfil actualizado correctamente. Los cambios se reflejarán completamente al recargar.");
+      }
+    } catch (err) {
+      alert("Error de red al actualizar perfil");
+    }
+    setSavingProfile(false);
   }
 
   const isAdmin = userRole === "OWNER" || userRole === "ADMIN";
@@ -304,26 +340,98 @@ export default function SettingsPage() {
 
           {/* PERFIL */}
           {activeSection === "profile" && (
-            <div className="glass-panel p-4 md:p-6">
-              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
-                <span className="section-title flex items-center gap-2">
-                  <User className="w-4 h-4 text-[#00d4ff]" /> Perfil
-                </span>
-              </div>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                {session?.user?.image ? (
-                  <img src={session.user.image} alt="" className="w-14 h-14 rounded-full border border-[rgba(0,212,255,0.2)]" />
-                ) : (
-                  <div className="w-14 h-14 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center font-display text-lg text-[#00d4ff]">
-                    {(session?.user?.name || "U")[0].toUpperCase()}
+            <div className="flex flex-col gap-6">
+              <div className="glass-panel p-4 md:p-6">
+                <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                  <span className="section-title flex items-center gap-2">
+                    <User className="w-4 h-4 text-[#00d4ff]" /> Perfil
+                  </span>
+                </div>
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-6">
+                  {session?.user?.image ? (
+                    <img src={session.user.image} alt="" className="w-14 h-14 rounded-full border border-[rgba(0,212,255,0.2)]" />
+                  ) : (
+                    <div className="w-14 h-14 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center font-display text-lg text-[#00d4ff]">
+                      {(session?.user?.name || "U")[0].toUpperCase()}
+                    </div>
+                  )}
+                  <div>
+                    <div className="text-[15px] font-semibold text-slate-200">{session?.user?.name || "Sin nombre"}</div>
+                    <div className="text-xs text-slate-500">{session?.user?.email}</div>
+                    <div className="text-[11px] text-slate-400 mt-1">Rol en este workspace: <strong style={{ color: roleBadgeColor[userRole] || "#e2e8f0" }}>{userRole || "—"}</strong></div>
                   </div>
-                )}
-                <div>
-                  <div className="text-[15px] font-semibold text-slate-200">{session?.user?.name || "Sin nombre"}</div>
-                  <div className="text-xs text-slate-500">{session?.user?.email}</div>
-                  <div className="text-[11px] text-slate-400 mt-1">Rol en este workspace: <strong style={{ color: roleBadgeColor[userRole] || "#e2e8f0" }}>{userRole || "—"}</strong></div>
+                </div>
+
+                <label className="text-[11px] text-slate-500 block mb-1.5">Nombre de visualización</label>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input type="text" value={profileName} onChange={(e) => setProfileName(e.target.value)} className="flex-1 w-full" style={inp} placeholder="Tu nombre" />
+                  <button onClick={handleSaveProfile} disabled={savingProfile} className="btn-primary w-full sm:w-auto" style={{ opacity: savingProfile ? 0.6 : 1 }}>
+                    {savingProfile ? "Guardando..." : "Guardar cambios"}
+                  </button>
                 </div>
               </div>
+
+              {/* CUENTAS VINCULADAS */}
+              {profileData && (
+                <div className="glass-panel p-4 md:p-6">
+                  <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                    <span className="section-title flex items-center gap-2">
+                      <Plug className="w-4 h-4 text-[#00d4ff]" /> Cuentas vinculadas para inicio de sesión
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-4">Vincular tus cuentas te permitirá iniciar sesión rápidamente con cualquiera de ellas.</p>
+                  
+                  <div className="flex flex-col gap-3">
+                    {/* Email */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <Mail className="w-5 h-5 text-slate-400" />
+                        <div>
+                          <p className="text-[13px] text-slate-200 font-medium">Correo Electrónico</p>
+                          <p className="text-[11px] text-slate-500">{session?.user?.email}</p>
+                        </div>
+                      </div>
+                      {profileData.providers.includes("email") ? (
+                        <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">Conectado</span>
+                      ) : (
+                        <span className="text-[11px] font-semibold text-slate-400 bg-slate-400/10 px-2 py-1 rounded">Sin contraseña</span>
+                      )}
+                    </div>
+
+                    {/* Google */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+                        <div>
+                          <p className="text-[13px] text-slate-200 font-medium">Google</p>
+                          <p className="text-[11px] text-slate-500">Inicia sesión con Google</p>
+                        </div>
+                      </div>
+                      {profileData.providers.includes("google") ? (
+                        <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">Conectado</span>
+                      ) : (
+                        <button onClick={() => signIn("google")} className="btn-primary text-xs !py-1.5 !px-3">Vincular</button>
+                      )}
+                    </div>
+
+                    {/* Facebook */}
+                    <div className="flex items-center justify-between p-3 rounded-lg bg-white/5 border border-white/5">
+                      <div className="flex items-center gap-3">
+                        <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.469h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.469h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+                        <div>
+                          <p className="text-[13px] text-slate-200 font-medium">Facebook</p>
+                          <p className="text-[11px] text-slate-500">Inicia sesión con Facebook</p>
+                        </div>
+                      </div>
+                      {profileData.providers.includes("facebook") ? (
+                        <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-400/10 px-2 py-1 rounded">Conectado</span>
+                      ) : (
+                        <button onClick={() => signIn("facebook")} className="btn-primary text-xs !py-1.5 !px-3">Vincular</button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -486,16 +594,60 @@ export default function SettingsPage() {
 
           {/* ÁREAS Y FLUJOS */}
           {activeSection === "areas" && (
-            <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
-              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
-                <span className="section-title flex items-center gap-2">
-                  <Users className="w-4 h-4 text-[#00d4ff]" /> Áreas y flujos
-                </span>
+            <div className="flex flex-col gap-6">
+              {isAdmin && (
+                <div className="glass-panel p-4 md:p-6">
+                  <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                    <span className="section-title flex items-center gap-2">
+                      <Mail className="w-4 h-4 text-[#00d4ff]" /> Invitar al equipo
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 mb-4">Invita a miembros a tu workspace para luego asignarlos a tus áreas y flujos.</p>
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input type="email" placeholder="email@empresa.com" value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handleInvite()}
+                      className="flex-1 w-full" style={inp} />
+                    <div className="flex gap-3 w-full sm:w-auto">
+                      <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className="w-1/2 sm:w-[140px] appearance-none cursor-pointer" style={inp}>
+                        <option value="MEMBER">Miembro</option>
+                        <option value="ADMIN">Admin</option>
+                      </select>
+                      <button onClick={handleInvite} disabled={sending} className="btn-primary flex-1 sm:flex-none" style={{ opacity: sending ? 0.6 : 1 }}>
+                        {sending ? "Enviando..." : "Invitar →"}
+                      </button>
+                    </div>
+                  </div>
+                  {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+                  {emailSent && (
+                    <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded">
+                      <p className="text-[13px] text-emerald-400 flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" /> Invitación enviada por email. Expira en 7 días.
+                      </p>
+                    </div>
+                  )}
+                  {!emailSent && lastInviteUrl && (
+                    <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded overflow-hidden">
+                      <p className="text-[11px] text-slate-500 mb-1.5 font-display tracking-widest">ENLACE DE INVITACIÓN GENERADO</p>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                        <code className="w-full sm:flex-1 text-[11px] text-emerald-400 break-all bg-emerald-500/5 px-2 py-1.5 rounded">{lastInviteUrl}</code>
+                        <button onClick={handleCopyUrl} className="px-3 py-1.5 bg-transparent border border-emerald-500/30 text-emerald-400 rounded cursor-pointer text-[11px] whitespace-nowrap flex items-center gap-1 w-full sm:w-auto justify-center">
+                          {copied ? <><CheckCircle className="w-3 h-3" /> Copiado</> : <><Copy className="w-3 h-3" /> Copiar</>}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
+                <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
+                  <span className="section-title flex items-center gap-2">
+                    <Users className="w-4 h-4 text-[#00d4ff]" /> Áreas y flujos
+                  </span>
+                </div>
+                <AreasManager members={members.map((m: any) => ({ id: m.user.id, name: m.user.name || "Sin nombre", activityStatus: m.activityStatus }))} canEdit={isAdmin} />
               </div>
-              <AreasManager
-                members={members.map((m: any) => ({ id: m.user.id, name: m.user.name || m.user.email || "Usuario", activityStatus: m.activityStatus || "offline" }))}
-                canEdit={isAdmin}
-              />
             </div>
           )}
 

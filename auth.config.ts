@@ -152,6 +152,32 @@ export const authOptions: NextAuthOptions = {
         // sección por sección desde Integraciones, con su propio OAuth y
         // consentimiento explícito (api/connect/[module] y oauth/google/start).
         token.provider = account.provider;
+
+        // Guardar la cuenta vinculada para la vista de Perfil
+        if (token.sub && account.provider !== "credentials") {
+          try {
+            const { default: prisma } = await import("@/lib/prisma");
+            await prisma.account.upsert({
+              where: {
+                provider_providerAccountId: {
+                  provider: account.provider,
+                  providerAccountId: account.providerAccountId,
+                },
+              },
+              update: {
+                userId: token.sub as string,
+              },
+              create: {
+                userId: token.sub as string,
+                type: account.type || "oauth",
+                provider: account.provider,
+                providerAccountId: account.providerAccountId,
+              },
+            });
+          } catch (err) {
+            console.error("[AUTH jwt callback] account upsert error:", err);
+          }
+        }
       }
 
       return token;
