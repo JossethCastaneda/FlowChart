@@ -210,14 +210,6 @@ export function TableActionBar({
           <Trash2 className="w-3.5 h-3.5" />
         </button>
 
-        <button style={buttonStyle}>
-          <FlaskConical className="w-3.5 h-3.5" /> Prueba A/B
-        </button>
-
-        <button style={iconButtonStyle}>
-          <Tag className="w-3.5 h-3.5" />
-        </button>
-
         {/* ── MÁS ── */}
         <div style={{ position: "relative" }}>
           <button style={buttonStyle} onClick={() => toggleMenu("mas")}>

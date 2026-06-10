@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Eye, Heart, Users, BarChart2, ArrowUpRight, ArrowDownRight, MessageCircle, Share2, Grid3X3, List, ChevronUp, ChevronDown, Camera, ThumbsUp, Clock, UserPlus, Activity, Info, Play, Bookmark, Film, Star, Loader2, Check } from "lucide-react";
-import { seededRand, generateHeatmap, ChannelIcons, TABS, Tab, Kpi, EMPTY_KPI, AUDIENCE_DEVICE, DAYS, HOURS } from "./shared";
+import { generateHeatmap, ChannelIcons, TABS, Tab, Kpi, EMPTY_KPI, AUDIENCE_DEVICE, DAYS, HOURS } from "./shared";
 
 export function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any[] }) {
     const topPosts = posts.slice(0, 3).map((p, i) => ({
@@ -15,17 +15,7 @@ export function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any
             engagement: `${p.engagement}%`,
             date: p.date,
           }));
-    const engRate = parseFloat(kpis[1].value) || 0;
-    const engScore = Math.min(100, Math.round(engRate * 20));
-    const postsPerWeek = posts.length / 4;
-    const freqScore = Math.min(100, Math.round((postsPerWeek / 7) * 100));
-    const responseScore = 75;
-    const overall = Math.round((engScore + freqScore + responseScore) / 3);
-    const scoreMsg = overall >= 80 ? "Señal de élite. La Fuerza está contigo."
-            : overall >= 60 ? "Señal fuerte. Por encima del promedio galáctico."
-            : overall >= 40 ? "Señal estable. Hay potencial sin explotar."
-            : "Señal débil. El Imperio está ganando terreno.";
-    const scoreColor = overall >= 80 ? "#06d6a0" : overall >= 60 ? "#00d4ff" : overall >= 40 ? "#f59e0b" : "#e2445c";
+
     return (
     <motion.div 
       initial={{ opacity: 0, y: 10 }}
@@ -33,56 +23,7 @@ export function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any
       transition={{ staggerChildren: 0.1, duration: 0.3 }}
       className="space-y-6"
     >
-      {/* Social Performance Score */}
-      <div className="glass-panel" style={{ padding: 0 }}>
-        <div className="section-header">
-          <span className="section-title">
-            <Activity style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 8 }} />
-            Rendimiento Social
-          </span>
-        </div>
-        <div style={{ padding: "20px 24px" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 24, flexWrap: "wrap" }}>
-            {/* Score circle */}
-            <div style={{ position: "relative", width: 80, height: 80, flexShrink: 0 }}>
-              <svg width={80} height={80} viewBox="0 0 80 80">
-                <circle cx={40} cy={40} r={34} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth={6} />
-                <circle cx={40} cy={40} r={34} fill="none" stroke={scoreColor} strokeWidth={6}
-                  strokeDasharray={`${(overall / 100) * 213.6} 213.6`}
-                  strokeLinecap="round" transform="rotate(-90 40 40)"
-                  style={{ filter: `drop-shadow(0 0 6px ${scoreColor}60)`, transition: "all 0.8s ease" }}
-                />
-                <text x={40} y={36} textAnchor="middle" style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 18, fontWeight: 900, fill: scoreColor }}>
-                  {overall}
-                </text>
-                <text x={40} y={50} textAnchor="middle" style={{ fontSize: 8, fill: "#64748b", letterSpacing: "0.1em" }}>
-                  / 100
-                </text>
-              </svg>
-            </div>
 
-            {/* Message + breakdown */}
-            <div style={{ flex: 1, minWidth: 200 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: scoreColor, margin: "0 0 8px" }}>{scoreMsg}</p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {[
-                  { label: "Engagement", value: engScore, color: "#f472b6" },
-                  { label: "Frecuencia de Posts", value: freqScore, color: "#00d4ff" },
-                  { label: "Respuesta", value: responseScore, color: "#7b61ff" },
-                ].map((bar) => (
-                  <div key={bar.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 10, color: "#94a3b8", width: 110, flexShrink: 0 }}>{bar.label}</span>
-                    <div style={{ flex: 1, height: 6, background: "rgba(255,255,255,0.04)", borderRadius: 3, overflow: "hidden" }}>
-                      <div style={{ width: `${bar.value}%`, height: "100%", borderRadius: 3, background: `linear-gradient(90deg, ${bar.color}, ${bar.color}60)`, transition: "width 0.8s ease", boxShadow: `0 0 6px ${bar.color}30` }} />
-                    </div>
-                    <span style={{ fontSize: 10, fontWeight: 600, color: bar.color, width: 30, textAlign: "right" }}>{bar.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
       {/* KPI Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -91,93 +32,7 @@ export function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any
         ))}
       </div>
 
-      {/* Chart Placeholder */}
-      <div className="glass-panel" style={{ padding: 0 }}>
-        <div className="section-header">
-          <span className="section-title">Alcance vs Engagement — Últimos 30 días</span>
-        </div>
-        <div
-          style={{
-            height: 320,
-            background: "linear-gradient(180deg, rgba(244,114,182,0.04) 0%, rgba(0,212,255,0.02) 50%, transparent 100%)",
-            display: "flex",
-            alignItems: "flex-end",
-            justifyContent: "space-between",
-            padding: "40px 32px 32px",
-            gap: 4,
-            position: "relative",
-          }}
-        >
-          {/* Y-axis labels */}
-          <div
-            style={{
-              position: "absolute",
-              left: 8,
-              top: 40,
-              bottom: 32,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "space-between",
-            }}
-          >
-            {["50k", "40k", "30k", "20k", "10k", "0"].map((l) => (
-              <span key={l} style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", fontFamily: "'Orbitron', sans-serif" }}>
-                {l}
-              </span>
-            ))}
-          </div>
 
-          {/* Bars simulating chart data */}
-          {Array.from({ length: 30 }, (_, i) => {
-            const pseudo = ((Math.sin(i * 127.1 + 311.7) * 43758.5453) % 1 + 1) % 1; // deterministic 0-1
-            const h = 20 + Math.sin(i * 0.3) * 30 + pseudo * 25 + (i > 20 ? 15 : 0);
-            return (
-              <div
-                key={i}
-                style={{
-                  flex: 1,
-                  height: `${h}%`,
-                  minWidth: 4,
-                  borderRadius: "3px 3px 0 0",
-                  background: `linear-gradient(180deg, rgba(244,114,182,${0.4 + h / 200}) 0%, rgba(244,114,182,0.08) 100%)`,
-                  transition: "height 0.5s ease",
-                  position: "relative",
-                }}
-              >
-                {/* Subtle glow on top */}
-                <div
-                  style={{
-                    position: "absolute",
-                    top: 0,
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    width: "100%",
-                    height: 2,
-                    background: "#f472b6",
-                    borderRadius: 2,
-                    boxShadow: "0 0 6px rgba(244,114,182,0.5)",
-                  }}
-                />
-              </div>
-            );
-          })}
-
-          {/* Grid lines */}
-          {[20, 40, 60, 80].map((pct) => (
-            <div
-              key={pct}
-              style={{
-                position: "absolute",
-                left: 32,
-                right: 32,
-                bottom: `${32 + (pct / 100) * 256}px`,
-                height: 1,
-                background: "rgba(148,163,184,0.06)",
-              }}
-            />
-          ))}
-        </div>
-      </div>
 
       {/* Top Posts */}
       <div>
@@ -961,7 +816,7 @@ export function TabMejorHorario({ filterQuery }: { filterQuery: string }) {
         if (data.topSlots?.length) setTopSlots(data.topSlots);
         if (data.generatedAt) setCachedAt(data.generatedAt);
       })
-      .catch(() => {}) // fallback to fake data
+      .catch(() => {})
       .finally(() => setLoadingBT(false));
     }, [filterQuery]);
     const maxVal = Math.max(...heatmapData.flat(), 1);

@@ -78,14 +78,15 @@ export async function GET(
 
   // FIX: Config_ids are REQUIRED in production — no hardcoded fallbacks
   // This prevents using wrong config_ids if env vars are missing
-  const configId = process.env[config.envKey];
+  let configId = process.env[config.envKey];
   if (!configId) {
     const msg = `${config.envKey} not configured for ${config.label}`;
     if (process.env.NODE_ENV === "production") {
       return NextResponse.json({ error: msg }, { status: 500 });
     }
     console.warn(`[CONNECT] ${msg} — using demo fallback (dev only)`);
-    return NextResponse.json({ error: `${msg} (configure in production)` }, { status: 500 });
+    // Fallback config ID for development testing (requires user to be added to Meta App)
+    configId = "1234567890";
   }
 
   // Build the redirect URI for the callback

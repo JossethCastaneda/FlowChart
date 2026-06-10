@@ -32,7 +32,7 @@ import {
   Loader2,
   Check,
 } from "lucide-react";
-import { seededRand, generateHeatmap, ChannelIcons, TABS, Tab, Kpi, EMPTY_KPI, AUDIENCE_DEVICE, DAYS, HOURS } from "./shared";
+import { generateHeatmap, ChannelIcons, TABS, Tab, Kpi, EMPTY_KPI, AUDIENCE_DEVICE, DAYS, HOURS } from "./shared";
 import { TabResumen, TabPosts, TabAudiencia, TabMejorHorario, TabHistorias, TabReels, TabCrecimiento } from "./AnalyticsTabs";
 
 // Channel icon lookup (lucide-react has no brand icons)

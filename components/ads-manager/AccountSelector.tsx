@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { ChevronDown, Search, Folder, CreditCard, ChevronRight, Settings } from "lucide-react";
 
 interface AdAccount {
@@ -162,7 +162,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                 <div style={{ overflowY: "auto", flex: 1, padding: "0 8px" }} className="custom-scrollbar">
                   {Object.entries(portfolios).map(([portName, items]) => {
                     const isSelected = selectedPortfolio === portName;
-                    // Mock colors based on name for realism
+                    // Generate colors based on name
                     const initial = portName.charAt(0).toUpperCase();
                     const bgColors = ["#10b981", "#f59e0b", "#f97316", "#8b5cf6", "#e2e8f0"];
                     const bgColor = portName.includes("LID") ? bgColors[0] : portName.includes("A") ? bgColors[1] : portName.includes("B") ? bgColors[2] : bgColors[4];

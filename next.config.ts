@@ -22,6 +22,12 @@ const nextConfig: NextConfig = {
       return [
         {
           source: '/api/:path*',
+          missing: [
+            {
+              type: 'host',
+              value: 'dev.sodare.xyz',
+            },
+          ],
           destination: `${process.env.NEXT_PUBLIC_API_URL}/api/:path*`,
         },
       ];

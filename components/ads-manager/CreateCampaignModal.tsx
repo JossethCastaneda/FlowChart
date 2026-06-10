@@ -141,7 +141,7 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
           <div>
             <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#94a3b8", cursor: "pointer" }}>
               <input type="checkbox" checked={cbo} onChange={(e) => setCbo(e.target.checked)} />
-              Presupuesto a nivel campaña (CBO)
+              Presupuesto de la campaña Advantage+
             </label>
             {cbo && (
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 8 }}>
