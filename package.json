@@ -28,6 +28,7 @@
     "@tanstack/react-query-devtools": "^5.101.0",
     "@vercel/blob": "^2.4.0",
     "@vercel/speed-insights": "^2.0.0",
+    "ai": "^6.0.199",
     "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
@@ -44,6 +45,7 @@
     "recharts": "^3.8.1",
     "resend": "^6.12.4",
     "tailwind-merge": "^3.6.0",
+    "workflow": "^4.3.1",
     "xlsx": "^0.18.5",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
