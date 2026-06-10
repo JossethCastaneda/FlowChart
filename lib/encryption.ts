@@ -44,8 +44,8 @@ export function encryptToken(text: string | null | undefined): string {
 
 /**
  * Decrypts a token encrypted with encryptToken().
- * If the text does not start with "enc:", it's assumed to be plain text and is returned as-is
- * (this ensures backward compatibility with older unencrypted tokens).
+ * Throws if the value does not start with "enc:" — plaintext credentials are
+ * never accepted; legacy unencrypted tokens must be re-connected by the user.
  */
 export function decryptToken(encryptedText: string | null | undefined): string {
   if (!encryptedText) return "";
