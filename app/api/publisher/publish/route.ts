@@ -368,38 +368,47 @@ export async function POST(req: NextRequest) {
                 errors.push(`Instagram: ${containerData?.error?.message || "Error creando container"}`);
               } else {
                 if (isVideo) {
-                  // El container ya está creado, pasarlo al workflow para el polling durable
-                  // El workflow espera hasta que Meta lo procese y lo publica.
-                  // Retornamos INMEDIATAMENTE — el workflow se ejecuta en background.
-                  try {
-                    // TODO: Implement background polling for Instagram Videos since Upstash was removed
-
-
-                    // Actualizar FB si se publicó también ahí
-                    if (Object.keys(externalIds).length > 0) {
-                      await prisma.scheduledPost.update({
-                        where: { id: postId },
-                        data: {
-                          externalIds,
-                          publishedAt: new Date(),
-                          status: "Published",
-                          pageName: targetPage.name,
-                          pageId: targetPage.id,
-                          error: errors.length > 0 ? errors.join(" | ") : null,
-                        },
-                      });
+                  // Polling para esperar a que el video esté listo antes de publicar
+                  let isReady = false;
+                  const maxAttempts = 10; // 10 intentos x 5 segundos = 50s total
+                  
+                  for (let i = 0; i < maxAttempts; i++) {
+                    const statusRes = await fetch(
+                      `https://graph.facebook.com/${META_VERSION}/${containerData.id}?fields=status_code`,
+                      { headers: { Authorization: `Bearer ${pageToken}` } }
+                    );
+                    const statusData = await statusRes.json();
+                    
+                    if (statusData?.status_code === "FINISHED") {
+                      isReady = true;
+                      break;
+                    } else if (statusData?.status_code === "ERROR") {
+                      errors.push(`Instagram video processing error: ${statusData.status_message || "Unknown error"}`);
+                      break;
                     }
-
-                    return NextResponse.json({
-                      success: true,
-                      status: "Processing",
-                      message: "El video de Instagram se está procesando y publicando en segundo plano.",
-                      warnings: errors.length > 0 ? errors : undefined,
-                    });
-                  } catch (err: any) {
-                    errors.push(`Instagram Workflow trigger error: ${err.message}`);
+                    
+                    // Wait 5 seconds
+                    await new Promise(r => setTimeout(r, 5000));
                   }
 
+                  if (isReady) {
+                    const publishRes = await fetch(
+                      `https://graph.facebook.com/${META_VERSION}/${igUserId}/media_publish`,
+                      {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", Authorization: `Bearer ${pageToken}` },
+                        body: JSON.stringify({ creation_id: containerData.id }),
+                      }
+                    );
+                    const publishData = await publishRes.json();
+                    if (publishRes.ok && publishData.id) {
+                      externalIds.instagram = publishData.id;
+                    } else {
+                      errors.push(`Instagram video publish error: ${publishData?.error?.message || "Error"}`);
+                    }
+                  } else if (!errors.some(e => e.includes("Instagram video"))) {
+                    errors.push("Instagram: El video tardó demasiado en procesarse. Es posible que se publique en unos minutos.");
+                  }
                 } else {
                   // Es imagen, publicar directo:
                   const publishRes = await fetch(
