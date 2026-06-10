@@ -8,27 +8,30 @@ export interface RequestType {
 }
 
 export interface AreaPermissions {
-  canViewTasks: boolean;
-  canCreateTasks: boolean;
-  canEditTasks: boolean;
-  canCloseTasks: boolean;
-  canViewAnalytics: boolean;
+  canAccessOps: boolean;
+  canAccessPublisher: boolean;
+  canAccessInbox: boolean;
+  canAccessAds: boolean;
+  canAccessAnalytics: boolean;
+  canAccessBriefing: boolean;
 }
 
 export const DEFAULT_MEMBER_PERMS: AreaPermissions = {
-  canViewTasks: true,
-  canCreateTasks: true,
-  canEditTasks: true,
-  canCloseTasks: false,
-  canViewAnalytics: true,
+  canAccessOps: true,
+  canAccessPublisher: true,
+  canAccessInbox: true,
+  canAccessAds: true,
+  canAccessAnalytics: true,
+  canAccessBriefing: true,
 };
 
 export const DEFAULT_EXTERNAL_PERMS: AreaPermissions = {
-  canViewTasks: false,
-  canCreateTasks: true,  // can send requests to the area
-  canEditTasks: false,
-  canCloseTasks: false,
-  canViewAnalytics: false,
+  canAccessOps: true,      // They might need to request tasks
+  canAccessPublisher: false,
+  canAccessInbox: false,
+  canAccessAds: false,
+  canAccessAnalytics: false,
+  canAccessBriefing: false,
 };
 
 export interface Area {
@@ -96,11 +99,12 @@ export const SUGGESTED_AREAS: Omit<Area, "leadIds" | "memberIds">[] = [
 function parsePerms(raw: any, defaults: AreaPermissions): AreaPermissions {
   if (!raw || typeof raw !== "object") return { ...defaults };
   return {
-    canViewTasks: typeof raw.canViewTasks === "boolean" ? raw.canViewTasks : defaults.canViewTasks,
-    canCreateTasks: typeof raw.canCreateTasks === "boolean" ? raw.canCreateTasks : defaults.canCreateTasks,
-    canEditTasks: typeof raw.canEditTasks === "boolean" ? raw.canEditTasks : defaults.canEditTasks,
-    canCloseTasks: typeof raw.canCloseTasks === "boolean" ? raw.canCloseTasks : defaults.canCloseTasks,
-    canViewAnalytics: typeof raw.canViewAnalytics === "boolean" ? raw.canViewAnalytics : defaults.canViewAnalytics,
+    canAccessOps: typeof raw.canAccessOps === "boolean" ? raw.canAccessOps : defaults.canAccessOps,
+    canAccessPublisher: typeof raw.canAccessPublisher === "boolean" ? raw.canAccessPublisher : defaults.canAccessPublisher,
+    canAccessInbox: typeof raw.canAccessInbox === "boolean" ? raw.canAccessInbox : defaults.canAccessInbox,
+    canAccessAds: typeof raw.canAccessAds === "boolean" ? raw.canAccessAds : defaults.canAccessAds,
+    canAccessAnalytics: typeof raw.canAccessAnalytics === "boolean" ? raw.canAccessAnalytics : defaults.canAccessAnalytics,
+    canAccessBriefing: typeof raw.canAccessBriefing === "boolean" ? raw.canAccessBriefing : defaults.canAccessBriefing,
   };
 }
 
@@ -154,15 +158,15 @@ export function getPermissions(
 ): AreaPermissions {
   // Full access for admins
   if (userRole === "OWNER" || userRole === "ADMIN") {
-    return { canViewTasks: true, canCreateTasks: true, canEditTasks: true, canCloseTasks: true, canViewAnalytics: true };
+    return { canAccessOps: true, canAccessPublisher: true, canAccessInbox: true, canAccessAds: true, canAccessAnalytics: true, canAccessBriefing: true };
   }
   // No area configured → full access (no restrictions without area config)
   if (!area) {
-    return { ...DEFAULT_MEMBER_PERMS, canCloseTasks: true };
+    return { ...DEFAULT_MEMBER_PERMS };
   }
   // Leads get full access to their area
   if (area.leadIds.includes(userId)) {
-    return { canViewTasks: true, canCreateTasks: true, canEditTasks: true, canCloseTasks: true, canViewAnalytics: true };
+    return { canAccessOps: true, canAccessPublisher: true, canAccessInbox: true, canAccessAds: true, canAccessAnalytics: true, canAccessBriefing: true };
   }
   // Members of the area
   if (area.memberIds.includes(userId)) {

@@ -658,16 +658,16 @@ export default function OpsPage() {
         icon={<Users className="w-6 h-6" style={{ color: "#ff2d55" }} />}
         action={
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            {!myPerms.canEditTasks && !myPerms.canCreateTasks && (
+            {!myPerms.canAccessOps && (
               <span style={{ fontSize: 10, fontWeight: 600, color: "#fdab3d", background: "rgba(253,171,61,0.1)", padding: "4px 10px", borderRadius: 4, letterSpacing: "0.05em" }}>SOLO LECTURA</span>
             )}
-            {config.areas.length > 0 && myPerms.canCreateTasks && (
+            {config.areas.length > 0 && myPerms.canAccessOps && (
               <button onClick={() => setShowRequest(true)} title="Solicitar a otra área (Diseño, Comunicación…)"
                 style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit" }}>
                 <Send style={{ width: 14, height: 14 }} /> Solicitud
               </button>
             )}
-            {myPerms.canCreateTasks && <button className="btn-primary" onClick={() => setShowCreate(true)} style={{ display: "flex", alignItems: "center", gap: 6 }}><Plus style={{ width: 14, height: 14 }} /> Nueva Tarea</button>}
+            {myPerms.canAccessOps && <button className="btn-primary" onClick={() => setShowCreate(true)} style={{ display: "flex", alignItems: "center", gap: 6 }}><Plus style={{ width: 14, height: 14 }} /> Nueva Tarea</button>}
           </div>
         } />
 

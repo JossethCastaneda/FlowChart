@@ -16,11 +16,12 @@ const DEFAULT_PERMS = DEFAULT_MEMBER_PERMS;
 const EXTERNAL_PERMS = DEFAULT_EXTERNAL_PERMS;
 
 const PERM_LABELS: Record<string, { label: string; icon: React.ElementType }> = {
-  canViewTasks: { label: "Ver tareas", icon: Eye },
-  canCreateTasks: { label: "Crear tareas", icon: Plus },
-  canEditTasks: { label: "Editar tareas", icon: Pencil },
-  canCloseTasks: { label: "Cerrar tareas", icon: Check },
-  canViewAnalytics: { label: "Ver analytics", icon: Eye },
+  canAccessOps: { label: "Ops (Gestión)", icon: Check },
+  canAccessPublisher: { label: "Publisher", icon: Check },
+  canAccessInbox: { label: "Inbox", icon: Check },
+  canAccessAds: { label: "Ads Manager", icon: Check },
+  canAccessAnalytics: { label: "Analytics", icon: Check },
+  canAccessBriefing: { label: "Briefing", icon: Check },
 };
 
 export function AreasManager({ members, canEdit }: { members: Member[]; canEdit: boolean }) {

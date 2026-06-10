@@ -1,15 +1,16 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Shield, Check, Loader2, Eye, Plus, Pencil, Lock } from "lucide-react";
+import { Shield, Check, Loader2, Zap, Calendar, MessageCircle, Megaphone, BarChart3, Target, Lock } from "lucide-react";
 import { DEFAULT_MEMBER_PERMS, DEFAULT_EXTERNAL_PERMS, type Area, type AreaPermissions } from "@/lib/workflow-config";
 
 const PERM_KEYS: { key: keyof AreaPermissions; label: string; desc: string; icon: React.ElementType }[] = [
-  { key: "canViewTasks", label: "Ver tareas", desc: "Visualizar tareas del área", icon: Eye },
-  { key: "canCreateTasks", label: "Crear tareas", desc: "Crear nuevas tareas o solicitudes", icon: Plus },
-  { key: "canEditTasks", label: "Editar tareas", desc: "Modificar estado, asignado, prioridad", icon: Pencil },
-  { key: "canCloseTasks", label: "Cerrar tareas", desc: "Marcar tareas como completadas", icon: Check },
-  { key: "canViewAnalytics", label: "Ver analytics", desc: "Acceder a métricas del área", icon: Eye },
+  { key: "canAccessOps", label: "Ops (Gestión)", desc: "Acceso al módulo de Tareas y SLA", icon: Zap },
+  { key: "canAccessPublisher", label: "Publisher", desc: "Planificador de contenido", icon: Calendar },
+  { key: "canAccessInbox", label: "Inbox", desc: "Gestor de mensajes y comentarios", icon: MessageCircle },
+  { key: "canAccessAds", label: "Ads Manager", desc: "Gestión de pauta publicitaria", icon: Megaphone },
+  { key: "canAccessAnalytics", label: "Analytics", desc: "Métricas y reportes", icon: BarChart3 },
+  { key: "canAccessBriefing", label: "Briefing", desc: "Documentos estratégicos", icon: Target },
 ];
 
 export function PermissionsManager() {
@@ -71,7 +72,7 @@ export function PermissionsManager() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
-        Controla qué pueden hacer los <strong>miembros</strong> de cada área y qué pueden hacer los <strong>usuarios externos</strong> (de otras áreas) con respecto a cada departamento.
+        Controla a qué <strong>módulos</strong> pueden acceder los <strong>miembros</strong> de cada área y los <strong>usuarios externos</strong>.
       </p>
 
       {/* Info box: Leads + OWNER/ADMIN always have full access */}
