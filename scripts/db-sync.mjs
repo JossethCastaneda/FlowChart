@@ -7,6 +7,12 @@ import pg from "pg";
 
 const { Client } = pg;
 
+// Permite validar `next build` localmente sin tocar ninguna base de datos.
+if (process.env.SKIP_DB_SYNC === "1") {
+  console.log("[db-sync] SKIP_DB_SYNC=1 — skipping db push.");
+  process.exit(0);
+}
+
 // Resolve the database URL the same way prisma.config.ts does. Prefer a direct
 // (unpooled) connection for DDL; fall back to the pooled URL.
 const dbUrl =

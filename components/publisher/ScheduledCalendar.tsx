@@ -227,7 +227,7 @@ export function ScheduledCalendar() {
       setBoostResults((prev) => ({ ...prev, [boostTarget.id]: result }));
     }
     setBoostTarget(null);
-    setBanner({ type: "success", message: "⚡ Boost lanzado. Campaña activa en Meta Ads Manager." });
+    setBanner({ type: "success", message: "⚡ Boost creado EN PAUSA. Actívalo desde el Ads Manager cuando estés listo — no gasta hasta entonces." });
   };
 
   /* ── Post card (list view + day detail) ────────────────── */

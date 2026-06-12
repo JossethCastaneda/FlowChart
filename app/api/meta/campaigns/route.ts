@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
-import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { CampaignUpdateSchema } from "@/lib/ads-schemas";
 
 export async function GET(req: NextRequest) {
   // Token with multi-module fallback
@@ -145,21 +145,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const _validate = await validateBody(req, z.object({ campaignId: z.any().optional(), status: z.any().optional(), name: z.any().optional(), daily_budget: z.any().optional(), lifetime_budget: z.any().optional(), bid_strategy: z.any().optional(), special_ad_categories: z.any().optional(), confirmed_by_user: z.any().optional() }));
-          if (!_validate.ok) return _validate.response;
-          const body = _validate.data;
-    const { campaignId, status, name, daily_budget, lifetime_budget, bid_strategy, special_ad_categories, confirmed_by_user } = body;
-    
-    if (confirmed_by_user !== true) {
-      return NextResponse.json({
-        status: "blocked",
-        blocked_reason: "Requiere confirmación explícita del usuario para ejecutar esta acción de escritura."
-      }, { status: 400 });
-    }
-
-    if (!campaignId) {
-      return NextResponse.json({ status: "error", error: "Missing campaignId" }, { status: 400 });
-    }
+    const _validate = await validateBody(req, CampaignUpdateSchema);
+    if (!_validate.ok) return _validate.response;
+    const { campaignId, status, name, daily_budget, lifetime_budget, bid_strategy, special_ad_categories } = _validate.data;
 
     const token = accessToken;
     const version = META_API_VERSION;

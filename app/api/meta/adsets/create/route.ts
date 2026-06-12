@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
-import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { AdsetCreateSchema } from "@/lib/ads-schemas";
 
 /**
  * POST /api/meta/adsets/create — create a NEW ad set under a campaign.
@@ -25,16 +25,11 @@ export async function POST(req: NextRequest) {
   if (!accessToken) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    const _validate = await validateBody(req, z.object({ adAccountId: z.any().optional(), campaignId: z.any().optional(), objective: z.any().optional(), name: z.any().optional(), dailyBudget: z.any().optional(), countries: z.any().optional(), ageMin: z.any().optional(), ageMax: z.any().optional(), genders: z.any().optional(), advantageAudience: z.any().optional(), advantagePlacements: z.any().optional(), confirmed_by_user: z.any().optional() }));
-          if (!_validate.ok) return _validate.response;
-          const body = _validate.data;
-    let { adAccountId } = body;
-    const { campaignId, objective, name, dailyBudget, countries, ageMin, ageMax, genders, advantageAudience, advantagePlacements, confirmed_by_user } = body;
+    const _validate = await validateBody(req, AdsetCreateSchema);
+    if (!_validate.ok) return _validate.response;
+    let { adAccountId } = _validate.data;
+    const { campaignId, objective, name, dailyBudget, countries, ageMin, ageMax, genders, advantageAudience, advantagePlacements } = _validate.data;
 
-    if (confirmed_by_user !== true) return NextResponse.json({ status: "blocked", blocked_reason: "Requiere confirmación explícita del usuario." }, { status: 400 });
-    if (!adAccountId) return NextResponse.json({ status: "error", error: "Falta la cuenta publicitaria." }, { status: 400 });
-    if (!campaignId) return NextResponse.json({ status: "error", error: "Falta la campaña." }, { status: 400 });
-    if (!name || !String(name).trim()) return NextResponse.json({ status: "error", error: "Falta el nombre del conjunto." }, { status: 400 });
     const map = OBJ_MAP[objective];
     if (!map) {
       return NextResponse.json({ status: "error", error: "Este objetivo requiere configurar píxel, formulario o app. Créalo en Meta, o usa Tráfico, Reconocimiento o Interacción." }, { status: 400 });

@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
-import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { AdUpdateSchema } from "@/lib/ads-schemas";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "ads");
@@ -118,21 +118,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const _validate = await validateBody(req, z.object({ adId: z.any().optional(), adAccountId: z.any().optional(), status: z.any().optional(), name: z.any().optional(), creative: z.any().optional(), confirmed_by_user: z.any().optional() }));
-          if (!_validate.ok) return _validate.response;
-          const body = _validate.data;
-    const { adId, adAccountId, status, name, creative, confirmed_by_user } = body;
-    
-    if (confirmed_by_user !== true) {
-      return NextResponse.json({
-        status: "blocked",
-        blocked_reason: "Requiere confirmación explícita del usuario para ejecutar esta acción de escritura."
-      }, { status: 400 });
-    }
-
-    if (!adId) {
-      return NextResponse.json({ status: "error", error: "Missing adId" }, { status: 400 });
-    }
+    const _validate = await validateBody(req, AdUpdateSchema);
+    if (!_validate.ok) return _validate.response;
+    const { adId, adAccountId, status, name, creative } = _validate.data;
 
     const token = accessToken;
     const version = META_API_VERSION;

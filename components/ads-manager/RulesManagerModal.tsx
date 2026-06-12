@@ -47,7 +47,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
       await fetch(`/api/meta/rules/${rule.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({ status: newStatus, confirmed_by_user: true }),
       });
       setRules(rules.map((r) => r.id === rule.id ? { ...r, status: newStatus } : r));
     } catch {} finally {
@@ -59,7 +59,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
     if (!confirm("¿Eliminar esta regla?")) return;
     setActionLoading(ruleId);
     try {
-      await fetch(`/api/meta/rules/${ruleId}`, { method: "DELETE" });
+      await fetch(`/api/meta/rules/${ruleId}?confirmed_by_user=true`, { method: "DELETE" });
       setRules(rules.filter((r) => r.id !== ruleId));
     } catch {} finally {
       setActionLoading(null);

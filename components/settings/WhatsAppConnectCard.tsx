@@ -5,8 +5,10 @@ import { Loader2, CheckCircle2, Circle, X, Phone, RefreshCw } from "lucide-react
 
 // Los tipos de Window.FB viven en types/facebook-sdk.d.ts
 
-const APP_ID    = process.env.NEXT_PUBLIC_META_APP_ID                    || "1145688207386567";
-const CONFIG_ID = process.env.NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID || "1033923712495963";
+// Sin fallbacks hardcodeados: la configuración vive en Vercel. Si falta un
+// env, el botón de conexión muestra un error claro en lugar de usar IDs viejos.
+const APP_ID    = process.env.NEXT_PUBLIC_META_APP_ID || "";
+const CONFIG_ID = process.env.NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID || "";
 
 // ── Load FB SDK once ──────────────────────────────────────────────────────────
 
@@ -116,6 +118,12 @@ export function WhatsAppConnectCard() {
       return;
     }
     setError(null);
+
+    if (!APP_ID || !CONFIG_ID) {
+      setError("Conexión de WhatsApp no configurada en este entorno (faltan NEXT_PUBLIC_META_APP_ID / NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID).");
+      return;
+    }
+
     setConnecting(true);
 
     // Build pre-fill setup object

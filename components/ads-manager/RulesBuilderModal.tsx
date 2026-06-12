@@ -81,7 +81,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
   ]);
 
   // Step 3 — Action
-  const [action, setAction] = useState("PAUSE_CAMPAIGN");
+  const [action, setAction] = useState("PAUSE");
   const [budgetAdjustment, setBudgetAdjustment] = useState<string>("+10");
 
   // Step 4 — Review
@@ -150,10 +150,11 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
         body: JSON.stringify({
           adAccountId,
           name,
-          entity_type: entityType,
           evaluation_spec,
           execution_spec,
           schedule_spec,
+          // El clic en "Crear regla" del paso de revisión es la confirmación.
+          confirmed_by_user: true,
         }),
       });
 

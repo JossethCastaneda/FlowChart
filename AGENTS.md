@@ -6,7 +6,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 ## Database topology — READ THIS before touching the DB
 
-- **Production DB:** Neon project `sodare-prod` → host `ep-jolly-surf-…-pooler.c-8.us-east-1.aws.neon.tech`, database `neondb`. Vercel injects it as `DATABASE_URL` (and the Neon integration's `STORAGE_*` vars) at build & runtime. It is the **only** real database.
+- ⚠️ **ESTADO REAL (verificado 2026-06-15):** el `DATABASE_URL` de **Production en Vercel apunta a `ep-long-unit…c-7`** (proyecto Neon separado) desde ~2026-06-06 — los datos vivos de la app están AHÍ, no en `ep-jolly-surf`. El proyecto `sodare-prod` (`ep-jolly-surf…c-8`) tiene los datos previos al 6 de junio. Pendiente de decisión humana: migrar datos c-7→c-8 y reapuntar Vercel, o adoptar c-7 como producción oficial. NO cambiar envs de Production sin esa decisión.
+- **Diseño original:** Neon project `sodare-prod` → host `ep-jolly-surf-…-pooler.c-8.us-east-1.aws.neon.tech`, database `neondb`. Vercel injects it as `DATABASE_URL` (and the Neon integration's `STORAGE_*` vars) at build & runtime.
 - **Your local `.env` is NOT production.** Point `DATABASE_URL` at a **Neon dev branch** of `sodare-prod` (Neon console → Branches → create from `production`). Never point it at production directly, and never at an orphan database from another account/integration.
 - **Why this matters:** a wrong `DATABASE_URL` fails silently. `prisma db push` will happily report *"already in sync"* against the wrong database while production stays untouched — which looks like "the save is broken" in the app. The build now logs the target host (`[db-sync] target database host: …`); if it isn't the `c-8`/`ep-jolly-surf` host, the env is wrong.
 - `prisma.config.ts` resolves the URL with `STORAGE_*` fallbacks; `lib/prisma.ts` (runtime) reads `DATABASE_URL` only. Keep both pointing at the same DB.

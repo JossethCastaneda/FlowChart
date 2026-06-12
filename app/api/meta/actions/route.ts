@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
-import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { BulkActionSchema } from "@/lib/ads-schemas";
 
 export async function POST(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "ads");
@@ -11,21 +11,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const _validate = await validateBody(req, z.object({ action: z.any().optional(), ids: z.any().optional(), level: z.any().optional(), adAccountId: z.any().optional(), updates: z.any().optional(), confirmed_by_user: z.any().optional() }));
-          if (!_validate.ok) return _validate.response;
-          const body = _validate.data;
-    const { action, ids, level, adAccountId, updates, confirmed_by_user } = body;
-    
-    if (confirmed_by_user !== true) {
-      return NextResponse.json({
-        status: "blocked",
-        blocked_reason: "Requiere confirmación explícita del usuario para ejecutar acciones en lote."
-      }, { status: 400 });
-    }
-
-    if (!action || !ids || !Array.isArray(ids) || ids.length === 0) {
-      return NextResponse.json({ status: "error", error: "Missing required fields" }, { status: 400 });
-    }
+    const _validate = await validateBody(req, BulkActionSchema);
+    if (!_validate.ok) return _validate.response;
+    const { action, ids, level, adAccountId, updates } = _validate.data;
 
     const token = accessToken;
     const version = META_API_VERSION;
@@ -95,7 +83,7 @@ export async function POST(req: NextRequest) {
 
           } else if (action === "budget_update") {
             const update = updates?.[index];
-            if (!update) return { id, success: false, error: "Missing budget update" };
+            if (!update?.budget) return { id, success: false, error: "Missing budget update" };
             const budgetField = update.type === "lifetime" ? "lifetime_budget" : "daily_budget";
             const budgetCentavos = Math.round(update.budget * 100);
             const res = await metaFetch(baseUrl, token, {

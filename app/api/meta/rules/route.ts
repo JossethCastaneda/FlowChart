@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
-import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { RuleCreateSchema } from "@/lib/ads-schemas";
 
 // Only real AdRule fields — entity_type/filter_spec are not readable fields
 // and make the whole request fail with (#100) nonexisting field.
@@ -43,14 +43,11 @@ export async function POST(req: NextRequest) {
   const version = META_API_VERSION;
 
   try {
-    const _validate = await validateBody(req, z.object({ adAccountId: z.any().optional(), name: z.any().optional(), evaluation_spec: z.any().optional(), execution_spec: z.any().optional(), schedule_spec: z.any().optional(), entity_type: z.any().optional(), filter_spec: z.any().optional() }));
-          if (!_validate.ok) return _validate.response;
-          const body = _validate.data;
-    const { adAccountId, name, evaluation_spec, execution_spec, schedule_spec, entity_type, filter_spec } = body;
-
-    if (!adAccountId || !name) {
-      return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
-    }
+    // Crear una regla automática es una escritura con efectos sobre gasto
+    // (puede pausar/activar/ajustar presupuesto): schema estricto + confirmación.
+    const _validate = await validateBody(req, RuleCreateSchema);
+    if (!_validate.ok) return _validate.response;
+    const { adAccountId, name, evaluation_spec, execution_spec, schedule_spec, filter_spec } = _validate.data;
 
   // FIX: guard against double act_ prefix (act_act_XXXXX)
   const accountId = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;

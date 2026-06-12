@@ -30,7 +30,7 @@ const MODULE_CONFIG: Record<string, { label: string; color: string; description:
     label: "Community Management",
     color: "#a855f7",
     description: "Inbox, mensajes, menciones y monitoreo social",
-    permissions: ["pages_messaging", "instagram_manage_messages", "read_page_mailboxes", "instagram_manage_comments"],
+    permissions: ["pages_messaging", "instagram_manage_messages", "instagram_manage_comments"],
   },
 };
 

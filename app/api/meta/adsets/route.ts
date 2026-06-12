@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
-import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { AdsetUpdateSchema } from "@/lib/ads-schemas";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "ads");
@@ -114,25 +114,13 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const _validate = await validateBody(req, z.object({ adsetId: z.any().optional(), status: z.any().optional(), name: z.any().optional(), daily_budget: z.any().optional(), lifetime_budget: z.any().optional(), bid_amount: z.any().optional(), bid_strategy: z.any().optional(), optimization_goal: z.any().optional(), start_time: z.any().optional(), end_time: z.any().optional(), targeting: z.any().optional(), confirmed_by_user: z.any().optional() }));
-          if (!_validate.ok) return _validate.response;
-          const body = _validate.data;
+    const _validate = await validateBody(req, AdsetUpdateSchema);
+    if (!_validate.ok) return _validate.response;
     const {
       adsetId, status, name,
       daily_budget, lifetime_budget, bid_amount, bid_strategy,
-      optimization_goal, start_time, end_time, targeting, confirmed_by_user
-    } = body;
-
-    if (confirmed_by_user !== true) {
-      return NextResponse.json({
-        status: "blocked",
-        blocked_reason: "Requiere confirmación explícita del usuario para ejecutar esta acción de escritura."
-      }, { status: 400 });
-    }
-
-    if (!adsetId) {
-      return NextResponse.json({ status: "error", error: "Missing adsetId" }, { status: 400 });
-    }
+      optimization_goal, start_time, end_time, targeting,
+    } = _validate.data;
 
     const token = accessToken;
     const version = META_API_VERSION;

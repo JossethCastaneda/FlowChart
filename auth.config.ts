@@ -22,9 +22,10 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
       authorization: {
         url: `https://www.facebook.com/${META_API_VERSION}/dialog/oauth`,
         params: {
-          // Config ID 1411857837384012 must be set in Facebook App to request email,public_profile only.
-          config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID
-            || "1411857837384012",
+          // FACEBOOK_LOGIN_CONFIG_ID must point to a Meta config that requests
+          // email,public_profile only. No hardcoded fallback: if the env is
+          // missing the param goes empty and Meta rejects the dialog visibly.
+          config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID || "",
           auth_type: "rerequest",
           // Explicitly restrict scope to minimum — no ads_read, no pages_manage_posts, etc.
           scope: "email,public_profile",
@@ -99,33 +100,44 @@ providers.push(
       accessToken: { type: "text" },
     },
     async authorize(credentials) {
-      console.log("[AUTH facebook-sdk] Authorize called. Token present:", Boolean(credentials?.accessToken));
       if (!credentials?.accessToken) {
-        console.error("[AUTH facebook-sdk] Error: No access token provided.");
+        console.error("[AUTH facebook-sdk] No access token provided.");
         return null;
       }
       try {
-        const tokenExcerpt = credentials.accessToken.substring(0, 15) + "...";
-        console.log(`[AUTH facebook-sdk] Fetching profile from Meta with token: ${tokenExcerpt}`);
-        
-        // 1. Validar token con Meta y obtener perfil
+        // 1. Validar token con Meta y obtener perfil.
+        // Token SOLO por header (nunca en query string: las URLs terminan en
+        // logs de proxies/CDN) y versión de API fijada server-side.
         const res = await fetch(
-          `https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=${encodeURIComponent(credentials.accessToken)}`,
-          { signal: AbortSignal.timeout(6000) },
+          `https://graph.facebook.com/${META_API_VERSION}/me?fields=id,name,email,picture.type(large)`,
+          {
+            headers: { Authorization: `Bearer ${credentials.accessToken}` },
+            signal: AbortSignal.timeout(6000),
+          },
         );
-        
-        console.log("[AUTH facebook-sdk] Meta response status:", res.status);
+
         const fbUser = await res.json();
-        
+
         if (!fbUser?.id || fbUser.error) {
-          console.error("[AUTH facebook-sdk] Meta API validation failed. Response:", JSON.stringify(fbUser));
-          if (fbUser?.error?.code === 4 || fbUser?.error?.message?.toLowerCase().includes("request limit")) {
+          // Sin volcar la respuesta completa (puede traer datos del usuario):
+          // solo código/tipo del error de Meta.
+          console.error(
+            "[AUTH facebook-sdk] Meta validation failed.",
+            "status:", res.status,
+            "code:", fbUser?.error?.code ?? null,
+            "subcode:", fbUser?.error?.error_subcode ?? null,
+          );
+          // Códigos de throttling de Meta: 4 (app), 17 (usuario), 32 (page), 613 (custom)
+          const rateLimitCodes = [4, 17, 32, 613];
+          if (
+            rateLimitCodes.includes(fbUser?.error?.code) ||
+            fbUser?.error?.message?.toLowerCase().includes("request limit")
+          ) {
             throw new Error("MetaRateLimit");
           }
           return null;
         }
 
-        console.log(`[AUTH facebook-sdk] Meta user validated: ID=${fbUser.id}, Email=${fbUser.email}, Name=${fbUser.name}`);
         const { default: prisma } = await import("@/lib/prisma");
 
         // 2. Buscar por cuenta de Facebook vinculada
@@ -140,12 +152,10 @@ providers.push(
         });
 
         let dbUser = existingAccount?.user ?? null;
-        console.log("[AUTH facebook-sdk] Existing account found in DB:", Boolean(existingAccount), "Associated user:", dbUser?.id);
 
-        // 3. Si no existe cuenta, buscar por email
+        // 3. Si no existe cuenta, buscar por email (sin loguear el email — PII)
         if (!dbUser && fbUser.email) {
           dbUser = await prisma.user.findUnique({ where: { email: fbUser.email } }) ?? null;
-          console.log("[AUTH facebook-sdk] User lookup by email:", fbUser.email, "Found user:", dbUser?.id);
         }
 
         // 4. Crear usuario si no existe
@@ -157,7 +167,6 @@ providers.push(
               image: fbUser.picture?.data?.url ?? null,
             },
           });
-          console.log("[AUTH facebook-sdk] Created new user in DB:", dbUser.id);
         } else {
           // Completar campos vacíos
           dbUser = await prisma.user.update({
@@ -167,7 +176,6 @@ providers.push(
               image: dbUser.image ?? fbUser.picture?.data?.url ?? undefined,
             },
           });
-          console.log("[AUTH facebook-sdk] Updated existing user in DB:", dbUser.id);
         }
 
         // 5. Garantizar que el Account record de Facebook exista
@@ -187,10 +195,9 @@ providers.push(
               providerAccountId: fbUser.id,
             },
           });
-          console.log("[AUTH facebook-sdk] Upserted Account record for provider: facebook");
         }
 
-        console.log("[AUTH facebook-sdk] Authorization successful for CUID:", dbUser.id);
+        console.log("[AUTH facebook-sdk] Authorization successful for user:", dbUser.id);
         return {
           id: dbUser.id, // CUID de nuestra DB (no el ID de Facebook)
           name: dbUser.name,
@@ -198,7 +205,13 @@ providers.push(
           image: dbUser.image,
         };
       } catch (err) {
-        console.error("[AUTH facebook-sdk] Unexpected Error in authorize:", err);
+        // Propagar el rate limit de Meta para que la UI muestre el mensaje
+        // específico (signIn → result.error === "MetaRateLimit"). Antes este
+        // catch lo convertía en null y el usuario veía un error genérico.
+        if (err instanceof Error && err.message === "MetaRateLimit") {
+          throw err;
+        }
+        console.error("[AUTH facebook-sdk] Unexpected error in authorize:", err);
         return null;
       }
     },

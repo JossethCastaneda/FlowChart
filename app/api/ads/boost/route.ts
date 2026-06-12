@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
-import { decryptToken } from "@/lib/encryption";
-
-const META_V = process.env.META_API_VERSION || "v25.0";
+import { validateBody } from "@/lib/validate";
+import { BoostSchema } from "@/lib/ads-schemas";
 
 /**
  * POST /api/ads/boost
@@ -13,15 +12,14 @@ const META_V = process.env.META_API_VERSION || "v25.0";
  * Creates a boosted post via Facebook Ads API.
  * Three-step flow: Campaign → Ad Set → Ad.
  *
- * Body:
- *   postId:        string   — The Facebook post ID to boost
- *   adAccountId:   string   — Ad account ID (without "act_" prefix)
- *   budgetCents:   number   — Daily budget in cents
- *   durationDays:  number   — Number of days to run the boost
- *   countries:     string[] — ISO 3166-1 alpha-2 country codes for targeting
- *   pageId:        string   — Facebook Page ID
- *   pageToken:     string   — Encrypted page access token
+ * SAFETY:
+ * - Todo se crea en PAUSED: el boost NO gasta hasta que el usuario lo active
+ *   explícitamente desde el Ads Manager.
+ * - El page token NUNCA viene del cliente: se resuelve server-side desde la
+ *   integración del workspace (Graph /{pageId}?fields=access_token).
+ * - Gated por confirmed_by_user, como toda escritura de Ads.
  */
+
 export async function POST(req: NextRequest) {
   try {
     // ── Auth checks ──
@@ -44,34 +42,28 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const {
-      postId,
-      adAccountId,
-      budgetCents,
-      durationDays,
-      countries,
-      pageId,
-      pageToken: encryptedPageToken,
-    } = body;
+    const _validate = await validateBody(req, BoostSchema);
+    if (!_validate.ok) return _validate.response;
+    const { postId, adAccountId, budgetCents, durationDays, countries, pageId } = _validate.data;
 
-    if (!postId || !adAccountId || !budgetCents || !durationDays || !pageId) {
-      return NextResponse.json(
-        { error: "postId, adAccountId, budgetCents, durationDays y pageId son requeridos" },
-        { status: 400 }
+    // ── Resolver page token SERVER-SIDE (necesario para boostear posts de
+    // página). Si no se puede, se usa el token de Ads del workspace. ──
+    let adsToken = token;
+    try {
+      const pageRes = await metaFetch(
+        `https://graph.facebook.com/${META_API_VERSION}/${pageId}?fields=access_token`,
+        token
       );
+      const pageData = await pageRes.json();
+      if (pageRes.ok && typeof pageData?.access_token === "string") {
+        adsToken = pageData.access_token;
+      }
+    } catch {
+      // El token de Ads del workspace sigue siendo un camino válido.
     }
 
-    if (!countries || !Array.isArray(countries) || countries.length === 0) {
-      return NextResponse.json(
-        { error: "countries debe ser un array con al menos un país" },
-        { status: 400 }
-      );
-    }
-
-    // Use ads token for API calls; decrypt pageToken for creative object_story_id
-    const adsToken = decryptToken(encryptedPageToken) || token;
-    const actId = `act_${adAccountId}`;
+    const actId = adAccountId.startsWith("act_") ? adAccountId : `act_${adAccountId}`;
+    const normalizedCountries = countries.map((c) => c.toUpperCase());
 
     // ── Timestamps ──
     const now = new Date();
@@ -80,17 +72,17 @@ export async function POST(req: NextRequest) {
     const boostName = `Boost_${postId}_${now.toISOString().slice(0, 10)}`;
 
     // ═══════════════════════════════════════════
-    // Step 1: Create Campaign
+    // Step 1: Create Campaign (PAUSED)
     // ═══════════════════════════════════════════
     const campaignRes = await metaFetch(
-      `https://graph.facebook.com/${META_V}/${actId}/campaigns`,
+      `https://graph.facebook.com/${META_API_VERSION}/${actId}/campaigns`,
       adsToken,
       {
         method: "POST",
         body: JSON.stringify({
           name: `${boostName}_Campaign`,
           objective: "OUTCOME_ENGAGEMENT",
-          status: "ACTIVE",
+          status: "PAUSED",
           special_ad_categories: [],
         }),
       }
@@ -109,10 +101,10 @@ export async function POST(req: NextRequest) {
     const campaignId = campaignData.id;
 
     // ═══════════════════════════════════════════
-    // Step 2: Create Ad Set
+    // Step 2: Create Ad Set (PAUSED)
     // ═══════════════════════════════════════════
     const adsetRes = await metaFetch(
-      `https://graph.facebook.com/${META_V}/${actId}/adsets`,
+      `https://graph.facebook.com/${META_API_VERSION}/${actId}/adsets`,
       adsToken,
       {
         method: "POST",
@@ -124,13 +116,15 @@ export async function POST(req: NextRequest) {
           optimization_goal: "POST_ENGAGEMENT",
           targeting: {
             geo_locations: {
-              countries,
+              countries: normalizedCountries,
             },
+            // Advantage+: declarar explícitamente la automatización de audiencia
+            targeting_automation: { advantage_audience: 1 },
           },
           start_time: startTime,
           end_time: endTime,
           bid_strategy: "LOWEST_COST_WITHOUT_CAP",
-          status: "ACTIVE",
+          status: "PAUSED",
         }),
       }
     );
@@ -148,19 +142,19 @@ export async function POST(req: NextRequest) {
     const adsetId = adsetData.id;
 
     // ═══════════════════════════════════════════
-    // Step 3: Create Ad
+    // Step 3: Create Ad (PAUSED)
     // ═══════════════════════════════════════════
     const objectStoryId = `${pageId}_${postId}`;
 
     const adRes = await metaFetch(
-      `https://graph.facebook.com/${META_V}/${actId}/ads`,
+      `https://graph.facebook.com/${META_API_VERSION}/${actId}/ads`,
       adsToken,
       {
         method: "POST",
         body: JSON.stringify({
           adset_id: adsetId,
           name: `${boostName}_Ad`,
-          status: "ACTIVE",
+          status: "PAUSED",
           creative: {
             object_story_id: objectStoryId,
           },
@@ -180,9 +174,10 @@ export async function POST(req: NextRequest) {
 
     const adId = adData.id;
 
-    console.log(`[BOOST] ✅ Boost created: campaign=${campaignId} adset=${adsetId} ad=${adId}`);
+    console.log(`[BOOST] Boost created PAUSED: campaign=${campaignId} adset=${adsetId} ad=${adId}`);
     return NextResponse.json({
       success: true,
+      created_paused: true,
       campaignId,
       adsetId,
       adId,

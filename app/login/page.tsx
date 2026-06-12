@@ -85,14 +85,20 @@ export default function LoginPage() {
     loadProviders();
 
     // ── Cargar FB SDK ──────────────────────────────────────────
-    const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID || "1145688207386567";
+    // Sin fallback hardcodeado: si falta el env, no se carga el SDK y el
+    // botón usa el flujo redirect de NextAuth (que valida config en servidor).
+    const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID;
+    if (!APP_ID) {
+      console.error("[LOGIN] NEXT_PUBLIC_META_APP_ID no configurado — SDK de Facebook deshabilitado, se usará redirect OAuth.");
+      return () => { isActive = false; };
+    }
 
     const initSdk = () => {
       window.FB!.init({
         appId:   APP_ID,
         cookie:  true,
         xfbml:   false,
-        version: "v25.0",
+        version: process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0",
       });
       window.FB!.AppEvents.logPageView();
       if (isActive) setFbReady(true);
@@ -158,8 +164,11 @@ export default function LoginPage() {
       return;
     }
 
-    // Si el SDK está listo, usar popup (mejor UX — sin redirect)
-    if (fbReady && window.FB) {
+    // Si el SDK está listo, usar popup (mejor UX — sin redirect).
+    // config_id es OBLIGATORIO para apps Business; sin el env no hay popup
+    // (sin fallback hardcodeado) y se usa el redirect de NextAuth.
+    const LOGIN_CONFIG_ID = process.env.NEXT_PUBLIC_FACEBOOK_LOGIN_CONFIG_ID;
+    if (fbReady && window.FB && LOGIN_CONFIG_ID) {
       setIsLoading(true);
       setStatus({ type: "connecting", message: "Abriendo Facebook..." });
       window.FB!.login(
@@ -172,9 +181,7 @@ export default function LoginPage() {
           }
         },
         {
-          // config_id es OBLIGATORIO para apps de tipo Business en Meta.
-          // Define los permisos (email, public_profile) configurados en el portal de Meta.
-          config_id: process.env.NEXT_PUBLIC_FACEBOOK_LOGIN_CONFIG_ID || "1411857837384012",
+          config_id: LOGIN_CONFIG_ID,
           auth_type: "rerequest",
         }
       );
