@@ -119,6 +119,9 @@ providers.push(
         
         if (!fbUser?.id || fbUser.error) {
           console.error("[AUTH facebook-sdk] Meta API validation failed. Response:", JSON.stringify(fbUser));
+          if (fbUser?.error?.code === 4 || fbUser?.error?.message?.toLowerCase().includes("request limit")) {
+            throw new Error("MetaRateLimit");
+          }
           return null;
         }
 

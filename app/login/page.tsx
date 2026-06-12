@@ -129,10 +129,15 @@ export default function LoginPage() {
     console.log("[FB LOGIN] NextAuth signIn result:", JSON.stringify(result));
     if (!result?.ok || result?.error) {
       setIsLoading(false);
-      const errorMsg = result?.error ? ` (${result.error})` : "";
+      let errorMsg = "";
+      if (result?.error === "MetaRateLimit") {
+        errorMsg = " (Límite de peticiones de Meta alcanzado. Espera 60 minutos sin reintentar para permitir que se restablezca)";
+      } else {
+        errorMsg = result?.error ? ` (${result.error})` : `. Intenta de nuevo`;
+      }
       setStatus({ 
         type: "error", 
-        message: `Error al autenticar con Facebook${errorMsg}. Intenta de nuevo.` 
+        message: `Error al autenticar con Facebook${errorMsg}.` 
       });
       return;
     }
