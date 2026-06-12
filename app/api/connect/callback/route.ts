@@ -214,9 +214,10 @@ export async function GET(request: NextRequest) {
     // Store module-specific integration
     await prisma.integration.upsert({
       where: {
-        workspaceId_provider: {
+        workspaceId_provider_userId: {
           workspaceId: resolvedWorkspaceId,
           provider,
+          userId: "workspace",
         },
       },
       update: {
@@ -252,9 +253,10 @@ export async function GET(request: NextRequest) {
     // Also update the generic "meta" integration so all modules can use it as fallback
     await prisma.integration.upsert({
       where: {
-        workspaceId_provider: {
+        workspaceId_provider_userId: {
           workspaceId: resolvedWorkspaceId,
           provider: "meta",
+          userId: "workspace",
         },
       },
       update: {

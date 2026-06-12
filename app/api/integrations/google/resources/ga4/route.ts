@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
   if (!propertyId) return NextResponse.json({ error: "Missing propertyId" }, { status: 400 });
 
   const integration = await prisma.integration.findUnique({
-    where: { workspaceId_provider: { workspaceId, provider: "google" } },
+    where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
   });
 
   if (!integration) {

@@ -145,7 +145,7 @@ export async function POST(req: NextRequest) {
 
     await prisma.integration.upsert({
       where: {
-        workspaceId_provider: { workspaceId, provider },
+        workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" },
       },
       create: {
         workspaceId,
@@ -213,7 +213,7 @@ export async function DELETE(req: NextRequest) {
     // Find the integration
     const integration = await prisma.integration.findUnique({
       where: {
-        workspaceId_provider: { workspaceId, provider },
+        workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" },
       },
     });
 

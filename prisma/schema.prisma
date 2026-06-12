@@ -356,18 +356,26 @@ model ScheduledPost {
 model Integration {
   id            String    @id @default(cuid())
   workspaceId   String
-  provider      String    // "meta", "google_ads", "tiktok", "whatsapp"
-  credentials   Json      // Encrypted with AES-256
+  provider      String    // "meta_ads", "meta_community", "google", etc.
+  /// "workspace" → workspace-level integration (OWNER/ADMIN shared, e.g. meta_ads, google)
+  /// userId     → user-level integration (each member connects their own account independently)
+  userId        String    @default("workspace")
+  credentials   Json      // Encrypted with AES-256 (encryptToken/decryptToken)
   connected     Boolean   @default(false)
   connectedAt   DateTime?
-  connectedBy   String?   // userId of who connected this integration
+  connectedBy   String?   // userId of who first connected this integration
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   connectedUser User?     @relation("UserIntegrations", fields: [connectedBy], references: [id], onDelete: SetNull)
 
-  @@unique([workspaceId, provider])
+  // Unique per (workspace, provider, userId):
+  //   - Workspace-shared: userId="workspace" → only one per workspace+provider
+  //   - User-level: userId=actualUserId → one per user per workspace+provider
+  @@unique([workspaceId, provider, userId])
+  @@index([workspaceId, userId])
+  @@index([workspaceId, provider])
 }
 
 // ------------------------------------------------------

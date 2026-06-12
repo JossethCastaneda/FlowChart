@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 
   // 3. Integration token in DB
   const integration = await prisma.integration.findUnique({
-    where: { workspaceId_provider: { workspaceId, provider: "meta" } },
+    where: { workspaceId_provider_userId: { workspaceId, provider: "meta", userId: "workspace" } },
   });
   if (!integration) {
     results.integration_db = { ok: false, detail: "No existe registro 'meta' en la tabla Integration" };

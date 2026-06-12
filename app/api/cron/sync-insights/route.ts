@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
       // Upsert into InsightsCache
       // TODO: Uncomment when InsightsCache model is added via db push
       // await prisma.insightsCache.upsert({
-      //   where: { workspaceId_provider: { workspaceId: integ.workspaceId, provider: integ.provider } },
+      //   where: { workspaceId_provider_userId: { workspaceId: integ.workspaceId, provider: integ.provider, userId: "workspace" } },
       //   create: { workspaceId: integ.workspaceId, provider: integ.provider, data: insights as any, fetchedAt: new Date() },
       //   update: { data: insights as any, fetchedAt: new Date() },
       // });

@@ -96,9 +96,10 @@ async function publishSinglePost(
     // Get workspace Meta token
     const integration = await prisma.integration.findUnique({
       where: {
-        workspaceId_provider: {
+        workspaceId_provider_userId: {
           workspaceId: post.workspaceId,
           provider: "meta",
+          userId: "workspace",
         },
       },
     });

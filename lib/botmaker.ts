@@ -33,7 +33,7 @@ export interface BotmakerConnection {
 export async function getBotmakerConnection(workspaceId: string): Promise<BotmakerConnection | null> {
   try {
     const integ = await prisma.integration.findUnique({
-      where: { workspaceId_provider: { workspaceId, provider: "botmaker" } },
+      where: { workspaceId_provider_userId: { workspaceId, provider: "botmaker", userId: "workspace" } },
     });
     const creds = integ?.credentials as Record<string, unknown> | null;
     if (integ?.connected && creds?.accessToken) {

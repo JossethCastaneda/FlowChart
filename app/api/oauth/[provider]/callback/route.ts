@@ -139,7 +139,7 @@ export async function GET(
 
     await prisma.integration.upsert({
       where: {
-        workspaceId_provider: { workspaceId, provider },
+        workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" },
       },
       create: {
         workspaceId,

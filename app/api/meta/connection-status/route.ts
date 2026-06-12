@@ -65,10 +65,10 @@ export async function GET(req: NextRequest) {
     const moduleIntegration = provider === "meta"
       ? null
       : await prisma.integration.findUnique({
-          where: { workspaceId_provider: { workspaceId, provider } },
+          where: { workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" } },
         });
     const genericIntegration = await prisma.integration.findUnique({
-      where: { workspaceId_provider: { workspaceId, provider: "meta" } },
+      where: { workspaceId_provider_userId: { workspaceId, provider: "meta", userId: "workspace" } },
     });
     const integration = moduleIntegration || genericIntegration;
     const providerUsed = integration?.provider || null;
