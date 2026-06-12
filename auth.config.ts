@@ -229,18 +229,20 @@ export const authOptions: NextAuthOptions = {
 
   session: { strategy: "jwt" },
 
-  cookies: {
-    sessionToken: {
-      name: `__Secure-next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-        domain: ".sodare.xyz", // Permite compartir la sesión con subdominios
-      },
-    },
-  },
+  cookies: (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes("localhost") && process.env.NEXTAUTH_URL.includes("sodare.xyz"))
+    ? {
+        sessionToken: {
+          name: `__Secure-next-auth.session-token`,
+          options: {
+            httpOnly: true,
+            sameSite: "lax",
+            path: "/",
+            secure: true,
+            domain: ".sodare.xyz", // Permite compartir la sesión con subdominios en producción
+          },
+        },
+      }
+    : undefined, // NextAuth manejará automáticamente las cookies adecuadas para localhost o ramas de preview/staging
 
   callbacks: {
     async jwt({ token, account, user, trigger }) {
