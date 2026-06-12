@@ -28,6 +28,7 @@ const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; platform
   { key: "instagram", label: "Instagram", color: "#E1306C", platforms: ["ig_dm"] },
   { key: "fb_comment", label: "Comentarios de Facebook", color: "#1877F2", platforms: ["fb_comment"] },
   { key: "ig_comment", label: "Comentarios de Instagram", color: "#F77737", platforms: ["ig_comment", "instagram_comment"] },
+  { key: "whatsapp", label: "WhatsApp", color: "#25D366", platforms: ["whatsapp"] },
 ];
 
 const QUEUE_TABS: { key: QueueFilter; label: string; color: string }[] = [
@@ -142,6 +143,7 @@ export function InboxLayout() {
                 ig_comment: "ig_comment",
                 instagram_comment: "instagram_comment",
                 facebook_comment: "fb_comment",
+                whatsapp: "whatsapp",
               };
               return {
                 id: c.id,
@@ -155,6 +157,8 @@ export function InboxLayout() {
                 assignedTo: null,
                 tags: [],
                 messages: [],
+                pageId: c.pageId,
+                contactId: c.contactId,
                 _pageId: c.pageId,
                 _pageName: c.pageName,
                 _postData: c._postData || null,
@@ -252,7 +256,7 @@ export function InboxLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [channelFilter, queueFilter]);
 
-  const handleSendMessage = (text: string) => {
+  const handleSendMessage = async (text: string) => {
     if (!text.trim() || !selected) return;
     const newMsg: Message = {
       id: `${selected.id}_${Date.now()}`,
@@ -260,6 +264,8 @@ export function InboxLayout() {
       incoming: false,
       timestamp: new Date(),
     };
+    
+    // Optimistic Update
     setConversations(prev =>
       prev.map(c =>
         c.id === selected.id
@@ -267,6 +273,31 @@ export function InboxLayout() {
           : c
       )
     );
+
+    try {
+      const pageId = (selected as any)._pageId || selected.pageId || "";
+      const recipientId = selected.contactId || selected.id.replace("igc_", "").replace("fbc_", "");
+
+      const res = await fetch("/api/inbox/messages", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          conversationId: selected.id,
+          pageId,
+          recipientId,
+          message: text.trim(),
+          platform: selected.platform,
+        }),
+      });
+
+      if (!res.ok) {
+        console.error("[INBOX] Error al enviar mensaje:", await res.text());
+      }
+    } catch (err) {
+      console.error("[INBOX] Error de red al enviar mensaje:", err);
+    }
   };
 
   const handleCloseConversation = () => {
