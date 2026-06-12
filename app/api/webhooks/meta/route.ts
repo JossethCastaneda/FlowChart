@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
 
 const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN;
 
@@ -479,6 +480,29 @@ export async function POST(req: NextRequest) {
             for (const waMsg of value?.messages || []) {
               const msgType = waMsg.type; // text, image, video, audio, document, sticker, location, contacts, interactive
               const textBody = waMsg.text?.body || waMsg.caption || `[${msgType}]`;
+              const phoneNumberId = value?.metadata?.phone_number_id;
+
+              // ── Upsert en Inbox si el número está registrado en WaPhoneSource ──
+              if (phoneNumberId) {
+                try {
+                  const resolved = await resolveWorkspaceFromPhone(phoneNumberId);
+                  if (resolved) {
+                    const contact = value?.contacts?.find((c: { wa_id: string }) => c.wa_id === waMsg.from);
+                    const contactName = contact?.profile?.name ?? waMsg.from;
+                    const timestamp = new Date(parseInt(waMsg.timestamp, 10) * 1000);
+                    const conversation = await prisma.inboxConversation.upsert({
+                      where: { workspaceId_externalId: { workspaceId: resolved.workspaceId, externalId: `wa_${waMsg.from}` } },
+                      update: { lastMessage: textBody.slice(0, 255), lastMessageAt: timestamp, unread: true, contactName, updatedAt: new Date() },
+                      create: { workspaceId: resolved.workspaceId, platform: "whatsapp", externalId: `wa_${waMsg.from}`, pageId: phoneNumberId, contactName, lastMessage: textBody.slice(0, 255), lastMessageAt: timestamp, unread: true, status: "open", tags: [] },
+                    });
+                    await prisma.inboxMessage.create({
+                      data: { conversationId: conversation.id, externalId: waMsg.id, content: textBody, sender: "user", senderName: contactName, createdAt: timestamp },
+                    });
+                  }
+                } catch (inboxErr) {
+                  logger.warn("[WEBHOOK] Error upserting WA inbox", { phoneNumberId, error: inboxErr });
+                }
+              }
 
               await createAlert({
                 type: "whatsapp_message",
@@ -486,7 +510,7 @@ export async function POST(req: NextRequest) {
                 title: "💬 Mensaje — WhatsApp",
                 message: `De ${waMsg.from}: "${textBody.slice(0, 120)}"`,
                 meta: {
-                  phoneNumberId: value?.metadata?.phone_number_id,
+                  phoneNumberId,
                   displayPhone: value?.metadata?.display_phone_number,
                   from: waMsg.from,
                   messageId: waMsg.id,

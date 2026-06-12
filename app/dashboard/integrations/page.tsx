@@ -8,6 +8,7 @@ import { MetaConnectionHealthCenter } from "@/components/meta/MetaConnectionHeal
 import { GoogleHubCenter } from "@/components/integrations/GoogleHubCenter";
 import { CustomCrmModal } from "@/components/integrations/CustomCrmModal";
 import { CariConnectModal } from "@/components/integrations/CariConnectModal";
+import { WhatsAppConnectCard } from "@/components/settings/WhatsAppConnectCard";
 
 /* ─── Icons ─── */
 const MetaIcon = () => (
@@ -167,6 +168,7 @@ export default function IntegrationsPage() {
   const [tokenSaving, setTokenSaving] = useState(false);
   const [crmModalOpen, setCrmModalOpen] = useState(false);
   const [cariModalOpen, setCariModalOpen] = useState(false);
+  const [waModalOpen, setWaModalOpen] = useState(false);
 
   const loadIntegrations = useCallback(() => {
     setLoading(true);
@@ -221,6 +223,8 @@ export default function IntegrationsPage() {
       setCrmModalOpen(true);
     } else if (platform.cariProvider) {
       setCariModalOpen(true);
+    } else if (platform.provider === "whatsapp") {
+      setWaModalOpen(true);
     } else {
       alert("Próximamente");
     }
@@ -653,6 +657,41 @@ export default function IntegrationsPage() {
             loadIntegrations();
           }}
         />
+      )}
+
+      {/* WhatsApp Business Modal */}
+      {waModalOpen && (
+        <div
+          style={{
+            position: "fixed", inset: 0, zIndex: 1000,
+            background: "rgba(0,0,0,0.65)", backdropFilter: "blur(6px)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            padding: "0 16px",
+          }}
+          onClick={() => setWaModalOpen(false)}
+        >
+          <div
+            onClick={e => e.stopPropagation()}
+            style={{
+              width: "100%", maxWidth: 480, padding: 24, borderRadius: 14,
+              background: "#0f172a", border: "1px solid rgba(37,211,102,0.15)",
+              display: "flex", flexDirection: "column", gap: 16,
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+              <span style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0" }}>
+                WhatsApp Business
+              </span>
+              <button
+                onClick={() => setWaModalOpen(false)}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", padding: 4 }}
+              >
+                ✕
+              </button>
+            </div>
+            <WhatsAppConnectCard />
+          </div>
+        </div>
       )}
 
       {/* Cari AI Modal */}

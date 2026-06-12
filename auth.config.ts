@@ -22,9 +22,9 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
       authorization: {
         url: `https://www.facebook.com/${META_API_VERSION}/dialog/oauth`,
         params: {
-          // Config ID 2028091691078800 must be set in Facebook App to request email,public_profile only.
+          // Config ID 1411857837384012 must be set in Facebook App to request email,public_profile only.
           config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID
-            || "2028091691078800",
+            || "1411857837384012",
           auth_type: "rerequest",
           // Explicitly restrict scope to minimum — no ads_read, no pages_manage_posts, etc.
           scope: "email,public_profile",
@@ -85,6 +85,119 @@ providers.push(
       const valid = await bcrypt.compare(credentials.password, user.password);
       if (!valid) return null;
       return { id: user.id, name: user.name, email: user.email, image: user.image };
+    },
+  })
+);
+
+// Facebook SDK — valida el accessToken client-side con la Graph API
+// y crea/vincula el usuario en DB. Usado por el popup de FB.login() en /login.
+providers.push(
+  CredentialsProvider({
+    id: "facebook-sdk",
+    name: "Facebook SDK",
+    credentials: {
+      accessToken: { type: "text" },
+    },
+    async authorize(credentials) {
+      console.log("[AUTH facebook-sdk] Authorize called. Token present:", Boolean(credentials?.accessToken));
+      if (!credentials?.accessToken) {
+        console.error("[AUTH facebook-sdk] Error: No access token provided.");
+        return null;
+      }
+      try {
+        const tokenExcerpt = credentials.accessToken.substring(0, 15) + "...";
+        console.log(`[AUTH facebook-sdk] Fetching profile from Meta with token: ${tokenExcerpt}`);
+        
+        // 1. Validar token con Meta y obtener perfil
+        const res = await fetch(
+          `https://graph.facebook.com/me?fields=id,name,email,picture.type(large)&access_token=${encodeURIComponent(credentials.accessToken)}`,
+          { signal: AbortSignal.timeout(6000) },
+        );
+        
+        console.log("[AUTH facebook-sdk] Meta response status:", res.status);
+        const fbUser = await res.json();
+        
+        if (!fbUser?.id || fbUser.error) {
+          console.error("[AUTH facebook-sdk] Meta API validation failed. Response:", JSON.stringify(fbUser));
+          return null;
+        }
+
+        console.log(`[AUTH facebook-sdk] Meta user validated: ID=${fbUser.id}, Email=${fbUser.email}, Name=${fbUser.name}`);
+        const { default: prisma } = await import("@/lib/prisma");
+
+        // 2. Buscar por cuenta de Facebook vinculada
+        const existingAccount = await prisma.account.findUnique({
+          where: {
+            provider_providerAccountId: {
+              provider: "facebook",
+              providerAccountId: fbUser.id,
+            },
+          },
+          include: { user: true },
+        });
+
+        let dbUser = existingAccount?.user ?? null;
+        console.log("[AUTH facebook-sdk] Existing account found in DB:", Boolean(existingAccount), "Associated user:", dbUser?.id);
+
+        // 3. Si no existe cuenta, buscar por email
+        if (!dbUser && fbUser.email) {
+          dbUser = await prisma.user.findUnique({ where: { email: fbUser.email } }) ?? null;
+          console.log("[AUTH facebook-sdk] User lookup by email:", fbUser.email, "Found user:", dbUser?.id);
+        }
+
+        // 4. Crear usuario si no existe
+        if (!dbUser) {
+          dbUser = await prisma.user.create({
+            data: {
+              name: fbUser.name ?? null,
+              email: fbUser.email ?? null,
+              image: fbUser.picture?.data?.url ?? null,
+            },
+          });
+          console.log("[AUTH facebook-sdk] Created new user in DB:", dbUser.id);
+        } else {
+          // Completar campos vacíos
+          dbUser = await prisma.user.update({
+            where: { id: dbUser.id },
+            data: {
+              name: dbUser.name ?? fbUser.name ?? undefined,
+              image: dbUser.image ?? fbUser.picture?.data?.url ?? undefined,
+            },
+          });
+          console.log("[AUTH facebook-sdk] Updated existing user in DB:", dbUser.id);
+        }
+
+        // 5. Garantizar que el Account record de Facebook exista
+        if (!existingAccount) {
+          await prisma.account.upsert({
+            where: {
+              provider_providerAccountId: {
+                provider: "facebook",
+                providerAccountId: fbUser.id,
+              },
+            },
+            update: { userId: dbUser.id },
+            create: {
+              userId: dbUser.id,
+              type: "oauth",
+              provider: "facebook",
+              providerAccountId: fbUser.id,
+            },
+          });
+          console.log("[AUTH facebook-sdk] Upserted Account record for provider: facebook");
+        }
+
+        console.log("[AUTH facebook-sdk] Authorization successful for CUID:", dbUser.id);
+        return {
+          id: dbUser.id, // CUID de nuestra DB (no el ID de Facebook)
+          name: dbUser.name,
+          email: dbUser.email,
+          image: dbUser.image,
+        };
+      } catch (err) {
+        console.error("[AUTH facebook-sdk] Unexpected Error in authorize:", err);
+        return null;
+      }
     },
   })
 );
@@ -210,7 +323,7 @@ export const authOptions: NextAuthOptions = {
         token.provider = account.provider;
 
         // Guardar la cuenta vinculada para la vista de Perfil
-        if (token.sub && account.provider !== "credentials") {
+        if (token.sub && account.type !== "credentials") {
           try {
             const { default: prisma } = await import("@/lib/prisma");
             await prisma.account.upsert({

@@ -69,10 +69,34 @@ export async function GET(request: NextRequest) {
     genericTokenExpiresSoon = genericDaysUntilExpiry <= 7;
   }
 
+  // ── WhatsApp Business status ─────────────────────────────────────────────────
+  const waIntegration = await prisma.integration.findFirst({
+    where: { workspaceId, provider: "whatsapp_business" },
+    select: { connected: true, connectedAt: true, credentials: true },
+  });
+  const waCreds = waIntegration?.credentials as Record<string, string> | null;
+
+  // Get the WaPhoneSource for the display number
+  const waPhone = waCreds?.phoneNumberId
+    ? await prisma.waPhoneSource.findUnique({
+        where: { phoneNumberId: waCreds.phoneNumberId },
+        select: { phoneNumberId: true },
+      })
+    : null;
+
   return NextResponse.json({
-    modules,
+    modules: {
+      ...modules,
+      whatsapp_business: {
+        connected: waIntegration?.connected ?? false,
+        connectedAt: waIntegration?.connectedAt?.toISOString() || null,
+        phoneNumber: waPhone?.phoneNumberId ?? waCreds?.phoneNumberId ?? null,
+        wabaId: waCreds?.wabaId ?? null,
+        pages: [],
+      },
+    },
     pages: genericPages,
-    hasAnyConnection: integrations.some((i) => i.connected),
+    hasAnyConnection: integrations.some((i) => i.connected) || (waIntegration?.connected ?? false),
     tokenExpiresSoon: genericTokenExpiresSoon,
     daysUntilExpiry: genericDaysUntilExpiry,
   });

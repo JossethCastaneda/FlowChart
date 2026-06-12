@@ -57,6 +57,22 @@ try {
       console.log(`[db-sync] removed stale table '${table}'`);
     }
   }
+  // Remove duplicate Integration rows that would block the unique constraint
+  // on (workspaceId, provider, userId) — keep newest row per group.
+  await client.query(`
+    DELETE FROM "Integration"
+    WHERE id IN (
+      SELECT id FROM (
+        SELECT id,
+               ROW_NUMBER() OVER (
+                 PARTITION BY "workspaceId", "provider", "userId"
+                 ORDER BY "createdAt" DESC NULLS LAST
+               ) as rn
+        FROM "Integration"
+      ) ranked
+      WHERE rn > 1
+    )
+  `);
   await client.end();
 } catch (e) {
   console.warn("[db-sync] pre-sync cleanup skipped (non-fatal):", e?.message || String(e));

@@ -131,7 +131,57 @@ Tokens se cifran con **AES-256-GCM** vía `lib/encryption.ts` y se almacenan **p
 
 ---
 
-## Variables Comunes (ya configuradas)
+### 9. WhatsApp Business Cloud API (Meta)
+
+A diferencia de los demás módulos de Meta (que usan OAuth con `config_id`), WhatsApp Business usa un **System User Token permanente** generado desde Meta Business Manager.
+
+| Campo | Valor |
+|---|---|
+| **Portal** | [Meta Business Manager](https://business.facebook.com) → Configuración → Usuarios del sistema |
+| **Token** | System User Token (permanente — no expira como el token de usuario) |
+| **Endpoint** | `POST /api/connect/whatsapp` |
+| **Webhook URL** | `https://TU_DOMINIO/api/webhooks/whatsapp` |
+| **Webhook Verify Token** | `WHATSAPP_WEBHOOK_VERIFY_TOKEN` (string aleatorio) |
+
+#### Variables de entorno requeridas
+
+| Variable | Propósito |
+|---|---|
+| `WHATSAPP_APP_SECRET` | App Secret de la Meta App (para verificar HMAC del webhook) |
+| `WHATSAPP_WEBHOOK_VERIFY_TOKEN` | Token de verificación del webhook (string aleatorio, el mismo que pones en Meta) |
+
+> **Nota:** `accessToken`, `phoneNumberId` y `wabaId` se guardan **por workspace** en la tabla `Integration` (cifrados con AES-256-GCM), nunca en variables de entorno globales.
+
+#### Pasos de setup
+
+1. **Crear/verificar Business Portfolio** en [Meta Business Manager](https://business.facebook.com)
+2. En la Meta App → Producto: WhatsApp → Añadir número de teléfono de prueba
+3. **Crear System User** en Business Manager → Usuarios del sistema → Generar Token
+4. Configurar el **Webhook** en la consola de Meta:
+   - URL: `https://TU_DOMINIO/api/webhooks/whatsapp`
+   - Verify Token: el valor de `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
+   - Suscribir al campo: `messages`
+5. Conectar desde el Dashboard de Sodare → Integraciones → WhatsApp Business, o via API:
+   ```bash
+   curl -X POST https://TU_DOMINIO/api/connect/whatsapp \
+     -H "Cookie: next-auth.session-token=..." \
+     -H "Content-Type: application/json" \
+     -d '{ "accessToken": "...", "phoneNumberId": "...", "wabaId": "..." }'
+   ```
+
+#### Desarrollo local con ngrok
+
+```bash
+# 1. Instalar ngrok y exponer el puerto local
+ngrok http 3000
+
+# 2. Usar la URL de ngrok como webhook en Meta Developer Portal
+# ej. https://abc123.ngrok-free.app/api/webhooks/whatsapp
+```
+
+---
+
+
 
 | Variable | Propósito |
 |---|---|

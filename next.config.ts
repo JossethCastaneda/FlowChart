@@ -59,12 +59,14 @@ const nextConfig: NextConfig = {
               "default-src 'self'",
               // 'unsafe-eval' SOLO en dev: React dev mode lo necesita para
               // reconstruir callstacks; en producción queda bloqueado.
-              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com`,
+              `script-src 'self' 'unsafe-inline'${process.env.NODE_ENV !== "production" ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://www.google-analytics.com https://www.googleadservices.com https://connect.facebook.net https://www.facebook.com`,
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
-              "img-src 'self' data: blob: https://*.fbcdn.net https://*.xx.fbcdn.net https://graph.facebook.com https://platform-lookaside.fbsbx.com https://*.cdninstagram.com https://www.googletagmanager.com https://www.google-analytics.com",
-              "connect-src 'self' https://dev.sodare.xyz https://sodare.xyz https://graph.facebook.com https://*.facebook.com https://api.resend.com https://vitals.vercel-insights.com https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com https://stats.g.doubleclick.net",
+              "img-src 'self' data: blob: https://*.fbcdn.net https://*.xx.fbcdn.net https://graph.facebook.com https://platform-lookaside.fbsbx.com https://*.cdninstagram.com https://www.googletagmanager.com https://www.google-analytics.com https://static.xx.fbcdn.net",
+              "connect-src 'self' https://dev.sodare.xyz https://sodare.xyz https://graph.facebook.com https://*.facebook.com https://*.facebook.net https://api.resend.com https://vitals.vercel-insights.com https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com https://stats.g.doubleclick.net",
               "media-src 'self' blob: https://*.fbcdn.net https://*.cdninstagram.com",
+              // frame-src: permite el popup/iframe del login de Facebook
+              "frame-src https://www.facebook.com https://staticxx.facebook.com https://web.facebook.com",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
