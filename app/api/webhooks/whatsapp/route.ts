@@ -31,7 +31,10 @@ import {
 } from "@/lib/whatsapp";
 
 const VERIFY_TOKEN = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN;
-const APP_SECRET   = process.env.WHATSAPP_APP_SECRET;
+const rawSecret    = process.env.WHATSAPP_APP_SECRET;
+const APP_SECRET   = (rawSecret && rawSecret !== "PENDIENTE_OBTENER_DE_META_APP_SETTINGS")
+  ? rawSecret
+  : process.env.FACEBOOK_CLIENT_SECRET;
 
 // ─── GET — Verificación de webhook ───────────────────────────────────────────
 
@@ -64,7 +67,7 @@ export async function POST(req: NextRequest) {
     const signature = req.headers.get("x-hub-signature-256");
 
     if (!APP_SECRET) {
-      logger.error("[WA Webhook] WHATSAPP_APP_SECRET no configurado");
+      logger.error("[WA Webhook] WHATSAPP_APP_SECRET o FACEBOOK_CLIENT_SECRET no configurado");
       return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
     }
 
