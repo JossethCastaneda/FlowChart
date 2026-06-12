@@ -7,6 +7,7 @@ import { openConnectPopup } from "@/lib/connect-popup";
 import { MetaConnectionHealthCenter } from "@/components/meta/MetaConnectionHealthCenter";
 import { GoogleHubCenter } from "@/components/integrations/GoogleHubCenter";
 import { CustomCrmModal } from "@/components/integrations/CustomCrmModal";
+import { CariConnectModal } from "@/components/integrations/CariConnectModal";
 
 /* ─── Icons ─── */
 const MetaIcon = () => (
@@ -102,6 +103,8 @@ interface PlatformDef {
   /** For token-based integrations (like BotMaker) — shows a token input modal */
   tokenProvider?: string;
   customCrmProvider?: boolean;
+  /** Cari AI — modal propio con una credencial por grupo de reportes */
+  cariProvider?: boolean;
   capabilities?: ("read" | "manage")[];
 }
 
@@ -135,6 +138,7 @@ const GROUPS: Array<{ label: string; icon: React.ReactNode; color: string; platf
     color: "#10B981",
     platforms: [
       { provider: "botmaker", tokenProvider: "botmaker", name: "BotMaker", description: "Chatbots, WhatsApp API y analítica conversacional", Icon: () => <MessageSquare size={18} />, iconBg: "#1E40AF", capabilities: ["read"] as ("read" | "manage")[] },
+      { provider: "cari", cariProvider: true, name: "Cari AI", description: "Report API: conversaciones, servicio, agentes y clientes", Icon: () => <Database size={18} />, iconBg: "#0B7A5C", capabilities: ["read"] as ("read" | "manage")[] },
       { provider: "custom_crm", customCrmProvider: true, name: "CRM Custom (vía API)", description: "Conecta tu propio CRM o Endpoint para tracking de bots", Icon: () => <Database size={18} />, iconBg: "#10B981", capabilities: ["read", "manage"] as ("read" | "manage")[] },
       { provider: "hubspot", name: "HubSpot", description: "Email automation y CRM sync", Icon: HubSpotIcon, iconBg: "#FF5C35" },
       { provider: "ai_engine", name: "AI Engine", description: "Copy, creativos y predicción", Icon: () => <Zap size={18} />, iconBg: "#5B21B6" },
@@ -162,6 +166,7 @@ export default function IntegrationsPage() {
   const [connRefresh, setConnRefresh] = useState("");
   const [tokenSaving, setTokenSaving] = useState(false);
   const [crmModalOpen, setCrmModalOpen] = useState(false);
+  const [cariModalOpen, setCariModalOpen] = useState(false);
 
   const loadIntegrations = useCallback(() => {
     setLoading(true);
@@ -214,6 +219,8 @@ export default function IntegrationsPage() {
       setTokenModal({ provider: platform.tokenProvider, label: platform.name });
     } else if (platform.customCrmProvider) {
       setCrmModalOpen(true);
+    } else if (platform.cariProvider) {
+      setCariModalOpen(true);
     } else {
       alert("Próximamente");
     }
@@ -639,10 +646,21 @@ export default function IntegrationsPage() {
 
       {/* Custom CRM Modal */}
       {crmModalOpen && (
-        <CustomCrmModal 
+        <CustomCrmModal
           onClose={() => setCrmModalOpen(false)}
           onSuccess={() => {
             setCrmModalOpen(false);
+            loadIntegrations();
+          }}
+        />
+      )}
+
+      {/* Cari AI Modal */}
+      {cariModalOpen && (
+        <CariConnectModal
+          onClose={() => setCariModalOpen(false)}
+          onSuccess={() => {
+            setCariModalOpen(false);
             loadIntegrations();
           }}
         />

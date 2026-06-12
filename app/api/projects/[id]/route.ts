@@ -89,6 +89,7 @@ export async function PUT(
       "dateEnd",
       "crmIntegrationId",
       "crmType",
+      "crmIntegrationIds",
     ] as const;
 
     const sanitized: Record<string, unknown> = {};
@@ -96,6 +97,10 @@ export async function PUT(
       if (field in updateData) {
         sanitized[field] = updateData[field];
       }
+    }
+    // crmIntegrationIds debe ser siempre un arreglo de strings
+    if ("crmIntegrationIds" in sanitized && !Array.isArray(sanitized.crmIntegrationIds)) {
+      delete sanitized.crmIntegrationIds;
     }
 
     // Update project fields

@@ -92,6 +92,7 @@ model Workspace {
   streamBoards    StreamBoard[]
   trackedKeywords TrackedKeyword[]
   settings        WorkspaceSettings?
+  waPhoneSources  WaPhoneSource[]
 }
 
 // ------------------------------------------------------
@@ -178,10 +179,15 @@ model Project {
   briefs        Brief[]
   alerts        ProjectAlert[]
   metaSources   MetaSource[]
+  waPhoneSources WaPhoneSource[]
   alertsEnabled Boolean  @default(true)
   alertEmails   String[]
-  crmIntegrationId String? // Which integration provides analytics
+  crmIntegrationId String? // Legacy: single analytics integration (kept for back-compat)
   crmType          String? // custom_crm, botmaker, etc.
+  /// CRMs conectados al proyecto (ids de Integration). Un proyecto puede enviar
+  /// tráfico a varias herramientas (ej. botmaker + cari) y el análisis de
+  /// resultados se segmenta por cada una de forma independiente.
+  crmIntegrationIds String[] @default([])
 }
 
 // Cache de resolución para webhooks de Meta: externalId (pageId / igAccountId /
@@ -200,6 +206,24 @@ model MetaSource {
 
   @@unique([externalId, projectId])
   @@index([externalId])
+}
+
+// Cache de resolución para webhooks de WhatsApp Cloud API:
+// phoneNumberId (Meta) → workspaceId + projectId opcional.
+// Se puebla al conectar un número en /api/connect/whatsapp y permite
+// resolver el workspace de cada evento entrante en O(1).
+model WaPhoneSource {
+  id            String   @id @default(cuid())
+  phoneNumberId String   @unique  // WhatsApp Phone Number ID de Meta
+  workspaceId   String
+  projectId     String?  // proyecto asociado (opcional, si el número es por proyecto)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  @@index([phoneNumberId])
 }
 
 model ProjectMember {
