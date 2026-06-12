@@ -130,7 +130,7 @@ const GROUPS: Array<{ label: string; icon: React.ReactNode; color: string; platf
       // { provider: "pinterest_ads", oauthProvider: "pinterest_ads", name: "Pinterest Ads", description: "Promoted Pins y Shopping", Icon: PinterestIcon, iconBg: "#E60023", capabilities: ["read"] as ("read" | "manage")[] },
       // { provider: "snapchat_ads", oauthProvider: "snapchat_ads", name: "Snapchat Ads", description: "Snap Ads, Stories y AR Lenses", Icon: SnapchatIcon, iconBg: "#FFFC00", capabilities: ["read"] as ("read" | "manage")[] },
       // { provider: "x_ads", oauthProvider: "x_ads", name: "X (Twitter) Ads", description: "Promoted Tweets y Trends", Icon: XIcon, iconBg: "#000000", capabilities: ["read"] as ("read" | "manage")[] },
-      { provider: "whatsapp", name: "WhatsApp Business", description: "API Cloud, plantillas y webhooks", Icon: WhatsAppIcon, iconBg: "#075E54" },
+      { provider: "whatsapp_business", name: "WhatsApp Business", description: "API Cloud, plantillas y webhooks", Icon: WhatsAppIcon, iconBg: "#075E54" },
     ],
   },
   {
@@ -223,7 +223,7 @@ export default function IntegrationsPage() {
       setCrmModalOpen(true);
     } else if (platform.cariProvider) {
       setCariModalOpen(true);
-    } else if (platform.provider === "whatsapp") {
+    } else if (platform.provider === "whatsapp_business") {
       setWaModalOpen(true);
     } else {
       alert("Próximamente");
@@ -673,9 +673,16 @@ export default function IntegrationsPage() {
           <div
             onClick={e => e.stopPropagation()}
             style={{
-              width: "100%", maxWidth: 480, padding: 24, borderRadius: 14,
-              background: "#0f172a", border: "1px solid rgba(37,211,102,0.15)",
-              display: "flex", flexDirection: "column", gap: 16,
+              width: "100%",
+              maxWidth: getState("whatsapp_business")?.connected ? 720 : 480,
+              padding: 24,
+              borderRadius: 14,
+              background: "#0f172a",
+              border: "1px solid rgba(37,211,102,0.15)",
+              display: "flex",
+              flexDirection: "column",
+              gap: 16,
+              transition: "max-width 0.3s ease",
             }}
           >
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
