@@ -41,7 +41,18 @@ type Handler<C> = (req: NextRequest, ctx: C) => Promise<Response>;
 export function withAuth(handler: Handler<AuthContext>) {
   return async (req: NextRequest, routeCtx?: RouteContext): Promise<Response> => {
     try {
-      const session = await getServerSession(authOptions);
+      let session;
+      try {
+        session = await getServerSession(authOptions);
+      } catch (sessionError) {
+        // getServerSession can throw if NEXTAUTH_SECRET is wrong, JWT is malformed,
+        // or cookie cannot be verified. Treat as unauthenticated (not server error).
+        logger.warn("getServerSession error — treating as unauthenticated", {
+          url: req.nextUrl?.pathname,
+          error: sessionError instanceof Error ? sessionError.message : String(sessionError),
+        });
+        return apiUnauthorized("Sesión inválida. Por favor vuelve a iniciar sesión.");
+      }
       if (!session?.user?.id) return apiUnauthorized();
       return await handler(req, {
         userId: session.user.id,
@@ -53,6 +64,7 @@ export function withAuth(handler: Handler<AuthContext>) {
     }
   };
 }
+
 
 /** Requiere sesión + workspace activo (membresía verificada en getActiveWorkspaceId). */
 export function withWorkspace(handler: Handler<WorkspaceContext>) {
