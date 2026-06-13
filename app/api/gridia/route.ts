@@ -1,6 +1,5 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { rateLimit, getClientIP } from "@/lib/ratelimit";
 import { z } from "zod";
@@ -176,7 +175,7 @@ Your output must be professional, strategic, and ready for a high-performance ma
 
 export async function POST(req: NextRequest) {
   // 1. Auth check
-  const session = await getServerSession(authOptions);
+  const session = await safeGetSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "No autorizado" }, { status: 401 });
   }

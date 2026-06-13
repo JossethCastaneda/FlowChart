@@ -1,7 +1,6 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { META_API_VERSION } from "@/lib/server-auth";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { encryptToken, decryptToken } from "@/lib/encryption";
@@ -138,7 +137,7 @@ async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshR
  */
 export async function POST() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await safeGetSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

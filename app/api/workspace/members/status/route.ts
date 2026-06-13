@@ -1,6 +1,5 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { z } from "zod";
@@ -19,7 +18,7 @@ export async function PUT(req: NextRequest) {
           if (!result.ok) return result.response;
           const { status } = result.data;
           
-    const session = await getServerSession(authOptions);
+    const session = await safeGetSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -65,7 +64,7 @@ export async function PUT(req: NextRequest) {
  */
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await safeGetSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

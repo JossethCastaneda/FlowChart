@@ -1,6 +1,5 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
@@ -23,7 +22,7 @@ export async function GET(req: NextRequest) {
   const results: Record<string, { ok: boolean; detail: string }> = {};
 
   // 1. Session
-  const session = await getServerSession(authOptions);
+  const session = await safeGetSession();
   if (!session?.user?.id) {
     results.session = { ok: false, detail: "No hay sesión activa" };
     return NextResponse.json({ results, ready: false });

@@ -1,6 +1,5 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { z } from "zod";
@@ -30,7 +29,7 @@ export async function PATCH(
   { params }: { params: Promise<{ workspaceId: string }> }
 ) {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await safeGetSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

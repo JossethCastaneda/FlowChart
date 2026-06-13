@@ -1,6 +1,5 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
@@ -9,7 +8,7 @@ import { apiSuccess, apiUnauthorized, apiServerError, apiNotFound } from "@/lib/
 export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await safeGetSession();
   if (!session?.user?.id) {
     return apiUnauthorized();
   }
@@ -60,7 +59,7 @@ const UpdateProfileSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await safeGetSession();
   if (!session?.user?.id) {
     return apiUnauthorized();
   }

@@ -1,6 +1,5 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import bcrypt from "bcryptjs";
 import { z } from "zod";
@@ -19,7 +18,7 @@ const ChangePasswordSchema = z.object({
  * - Si el usuario es OAuth-only (sin password), rechaza con instrucciones.
  */
 export async function POST(req: NextRequest) {
-  const session = await getServerSession(authOptions);
+  const session = await safeGetSession();
   if (!session?.user?.id) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }
