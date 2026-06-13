@@ -518,7 +518,7 @@ export default function ProjectDashboardPage() {
           <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
           <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
           {(!!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
-            <TabButton active={activeTab === "resultados"} label="Análisis de resultados" icon={<Activity style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
+            <TabButton active={activeTab === "resultados"} label="Resultados por fuente" icon={<Activity style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
           )}
           {!!project.website && (
             <TabButton active={activeTab === "trafico"} label="Análisis de tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
@@ -531,9 +531,9 @@ export default function ProjectDashboardPage() {
               background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", color: "#00d4ff",
               borderRadius: 4, cursor: "pointer", letterSpacing: "0.03em",
             }}
-            title="Módulo avanzado: KPIs conversacionales, funnels, ROI y calidad del bot acotados al proyecto"
+            title="KPIs conversacionales, funnels, ROI y calidad del bot acotados a este proyecto"
           >
-            <BarChart2 style={{ width: 13, height: 13 }} /> Análisis avanzado
+            <BarChart2 style={{ width: 13, height: 13 }} /> Análisis de Resultados
           </button>
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>

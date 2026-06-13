@@ -54,23 +54,7 @@ export default async function ProjectAnalisisResultadosPage({
     </div>
   );
 
-  // 1) Sin proveedor analítico (bot) conectado → no hay datos posibles.
-  if (scope.providers.length === 0) {
-    return (
-      <div className="space-y-6">
-        {header}
-        <EmptyConfig
-          icon={<PlugZap className="w-12 h-12" />}
-          title="Sin plataforma analítica conectada"
-          description="Este proyecto no tiene una plataforma de bot (Botmaker / Cari AI) conectada. Conéctala en la configuración del proyecto para ver el análisis de resultados."
-          ctaLabel="Configurar plataforma del proyecto"
-          ctaHref={backHref}
-        />
-      </div>
-    );
-  }
-
-  // 2) Sin canales configurados → empty state con CTA para configurarlos.
+  // Estado 1) Proyecto sin canales configurados.
   if (scope.channels.length === 0) {
     return (
       <div className="space-y-6">
@@ -78,20 +62,51 @@ export default async function ProjectAnalisisResultadosPage({
         <EmptyConfig
           icon={<MessageSquareShare className="w-12 h-12" />}
           title="Sin canales configurados"
-          description="Agrega al menos un canal (WhatsApp, Instagram o Facebook/Messenger) en la configuración del proyecto para segmentar el análisis por canal."
-          ctaLabel="Configurar canales del proyecto"
+          description="Este proyecto aún no tiene canales configurados para analizar resultados."
+          ctaLabel="Configurar canales"
           ctaHref={backHref}
         />
       </div>
     );
   }
 
+  // Estado 2) Canales configurados pero sin integraciones de analytics activas.
+  if (scope.providers.length === 0) {
+    return (
+      <div className="space-y-6">
+        {header}
+        <EmptyConfig
+          icon={<PlugZap className="w-12 h-12" />}
+          title="Sin integraciones de analytics"
+          description="Este proyecto tiene canales configurados, pero aún no hay integraciones de analytics activas."
+          ctaLabel="Configurar integración"
+          ctaHref={backHref}
+        />
+      </div>
+    );
+  }
+
+  // Estado 5) Error de permisos.
+  const permissionDenied = (
+    <div className="space-y-6">
+      {header}
+      <EmptyConfig
+        icon={<PlugZap className="w-12 h-12" />}
+        title="Acceso denegado"
+        description="No tienes permisos para ver el análisis de este proyecto."
+        ctaLabel="Volver al proyecto"
+        ctaHref={backHref}
+      />
+    </div>
+  );
+
   return (
-    <PermissionGuard permKey="canAccessAnalytics">
+    <PermissionGuard permKey="canAccessAnalytics" fallback={permissionDenied}>
       <div className="space-y-6">
         {header}
         <AdvancedAnalyticsDashboard
           projectId={scope.projectId}
+          clientId={scope.clientId}
           availableChannels={scope.channels}
           availableProviders={scope.providers}
         />

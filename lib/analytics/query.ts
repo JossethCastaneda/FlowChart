@@ -1,5 +1,5 @@
 import { Prisma } from "@prisma/client";
-import type { ProjectScope } from "./project-scope";
+import type { ProjectScope, CanonicalChannel } from "./project-scope";
 
 // ============================================================================
 // Filtros globales + construcción de WHERE multi-tenant (spec §17, §36).
@@ -18,6 +18,7 @@ export interface AnalyticsFilters {
   campaignId?: string;
   serviceId?: string;
   queueName?: string;
+  skillName?: string;
   outcome?: string;
   resolvedBy?: string;
   status?: string;
@@ -51,6 +52,7 @@ export function parseFilters(sp: URLSearchParams): AnalyticsFilters {
     campaignId: pick(sp, "campaignId"),
     serviceId: pick(sp, "serviceId"),
     queueName: pick(sp, "queueName"),
+    skillName: pick(sp, "skillName") || pick(sp, "skill"),
     outcome: pick(sp, "outcome"),
     resolvedBy: pick(sp, "resolvedBy"),
     status: pick(sp, "status"),
@@ -86,17 +88,59 @@ export function buildConversationWhere(
     where.channel = { in: scope.channels };
   }
   if (f.provider && (!scope || scope.providers.includes(f.provider))) where.provider = f.provider;
-  if (f.channel && (!scope || scope.channels.includes(f.channel))) where.channel = f.channel;
+  if (f.channel && (!scope || (scope.channels as readonly string[]).includes(f.channel))) where.channel = f.channel;
   if (f.botId) where.botId = f.botId;
   if (f.agentId) where.agentId = f.agentId;
   if (f.campaignId) where.campaignId = f.campaignId;
   if (f.serviceId) where.serviceId = f.serviceId;
   if (f.queueName) where.queueName = f.queueName;
+  if (f.skillName) where.skillName = f.skillName;
   if (f.outcome) where.outcome = f.outcome;
   if (f.resolvedBy) where.resolvedBy = f.resolvedBy;
   if (f.status) where.status = f.status;
   if (f.tag) where.tags = { has: f.tag };
   return where;
+}
+
+export interface ProjectAnalyticsWhereArgs {
+  /** Workspace del contexto autenticado (sesión). Único origen válido. */
+  workspaceId: string;
+  /** Proyecto de la ruta YA validado (pertenece al workspace). */
+  projectId: string;
+  /** Cliente del proyecto si el modelo lo relacionara. En este repo el cliente
+   *  es un campo string del proyecto (no entidad), así que es informativo. */
+  clientId?: string | null;
+  /** Canales canónicos configurados en el proyecto (whitelist). */
+  allowedChannels: string[];
+  /** Proveedores normalizados del proyecto (whitelist). */
+  allowedProviders?: string[];
+  /** Filtros ya parseados (rango de fechas + dimensiones). */
+  filters: AnalyticsFilters;
+}
+
+/**
+ * Builder común de WHERE para la analítica acotada a un proyecto. Centraliza el
+ * scoping para que rutas globales y rutas anidadas usen la misma lógica:
+ *
+ *   - fija `workspaceId` desde el contexto autenticado (nunca del query);
+ *   - el `projectId`/`clientId` son entradas YA validadas de la ruta, nunca del
+ *     query (no se leen aquí parámetros de URL);
+ *   - restringe `channel IN allowedChannels` y `provider IN allowedProviders`
+ *     (intersecta cualquier filtro pedido; lo fuera de whitelist se ignora);
+ *   - aplica el rango de fechas y valida el resto de filtros vía `buildConversationWhere`.
+ *
+ * Nota: `NormalizedConversation` no tiene columna `projectId`/`clientId`; el
+ * acotamiento por proyecto se materializa vía workspace + proveedores + canales.
+ */
+export function buildProjectAnalyticsWhere(
+  args: ProjectAnalyticsWhereArgs
+): Prisma.NormalizedConversationWhereInput {
+  const scope: ProjectScope = {
+    projectId: args.projectId,
+    providers: args.allowedProviders ?? [],
+    channels: args.allowedChannels as CanonicalChannel[],
+  };
+  return buildConversationWhere(args.workspaceId, args.filters, scope);
 }
 
 /** Restringe un WHERE de NormalizedMessage al alcance del proyecto (por provider). */

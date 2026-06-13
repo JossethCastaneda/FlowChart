@@ -45,15 +45,19 @@ export function usePermissions() {
 export function PermissionGuard({
   permKey,
   children,
+  fallback,
 }: {
   permKey: keyof AreaPermissions;
   children: React.ReactNode;
+  /** Mensaje/UI a mostrar cuando falta el permiso (por defecto "Acceso denegado"). */
+  fallback?: React.ReactNode;
 }) {
   const { perms, loading } = usePermissions();
 
   if (loading) return null;
 
   if (!perms[permKey]) {
+    if (fallback !== undefined) return <>{fallback}</>;
     return (
       <div style={{ padding: 40, textAlign: "center" }}>
         <h2 style={{ fontSize: 20, color: "#e2e8f0", marginBottom: 10 }}>Acceso denegado</h2>

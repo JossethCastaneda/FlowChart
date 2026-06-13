@@ -298,7 +298,10 @@ Se reutiliza el módulo global de Análisis de Resultados (`AdvancedAnalyticsDas
 `NormalizedConversation` se aísla por `workspaceId` y **no tiene `projectId`** (el modelo real no lo incluye). El alcance por proyecto se construye con dos dimensiones que sí existen:
 
 1. **Proveedores (bot) configurados** — `Project.crmIntegrationIds` (fallback al legacy `crmIntegrationId`) → `Integration.provider` → proveedor normalizado. Mapa: `botmaker→botmaker`, `cari|cari_ai→cari_ai`. Proveedores sin adaptador analítico se descartan.
-2. **Canales configurados** — derivados de las cuentas sociales del proyecto: `whatsapp[]→whatsapp`, `instagram[]→instagram`, `fanpage[]→facebook + messenger`. Solo aparecen los canales realmente configurados; si un canal no está configurado **no es opción en el selector ni contamina KPIs**.
+2. **Canales configurados** — leídos de la configuración real del proyecto (filas `Channel` + cuentas sociales `whatsapp[]/instagram[]/fanpage[]`) y normalizados a forma canónica. **Esta vista solo admite 4 canales**: `whatsapp`, `instagram`, `facebook`, `messenger` (`type CanonicalChannel`). Cualquier canal que el proveedor reporte fuera de ese set (webchat, telegram, sms, o plataformas de ads como META/GOOGLE/TIKTOK) se **excluye**. No se asume que todos existen ni se hardcodea que están activos: solo aparecen los realmente configurados, y un canal no configurado **no es opción en el selector ni contamina KPIs**.
+
+   - **`normalizeChannelName(providerChannel): CanonicalChannel | null`** mapea aliases de proveedor al canal canónico (devuelve `null` si no soportado). Aliases soportados: WhatsApp (`whatsapp`, `whats_app`, `wa`, `waba`, `whatsapp_business`), Instagram (`instagram`, `instagram_dm`, `instagram_direct`, `ig`, `ig_dm`), Facebook (`facebook`, `facebook_page`, `facebook_comments`, `fb`, `fb_page`), Messenger (`messenger`, `facebook_messenger`, `fb_messenger`, `meta_messenger`). La comparación normaliza mayúsculas, espacios y separadores.
+   - **`getConfiguredProjectChannels(projectId, workspaceId)`** (reusable, verifica ownership) devuelve los `CanonicalChannel[]` activos del proyecto; lo consumen tanto la API como la vista.
 
 El WHERE aplica **siempre** `provider IN scope.providers` y `channel IN scope.channels` (incluso con lista vacía → 0 filas: un proyecto sin proveedor o sin canales nunca filtra datos de otros proyectos). Un `provider`/`channel` pedido por query solo se respeta si está dentro del alcance; si no, se ignora y se mantiene la restricción del proyecto (defensa contra lectura de canales no configurados).
 
@@ -309,31 +312,110 @@ El WHERE aplica **siempre** `provider IN scope.providers` y `channel IN scope.ch
   - sin proveedor (bot) conectado → empty state con CTA a la configuración del proyecto;
   - sin canales configurados → empty state con CTA para configurar canales;
   - con alcance válido → `AdvancedAnalyticsDashboard` acotado, dentro de `PermissionGuard(canAccessAnalytics)`.
-- **MOD** `app/dashboard/proyectos/[id]/page.tsx`: botón "Análisis avanzado" en la barra de pestañas que navega a la ruta nueva.
+- **MOD** `app/dashboard/proyectos/[id]/page.tsx`: ítem de navegación **"Análisis de Resultados"** en la barra de pestañas del detalle que navega a la ruta nueva. La pestaña inline preexistente (vista simple por fuente CRM vía `/api/projects/[id]/results`) se renombró a **"Resultados por fuente"** para evitar la colisión de nombres (mismo comportamiento, solo cambia la etiqueta; no rompe navegación).
 
 ### 13.3 Bot-only ≠ resuelto, adaptadores y modelo normalizado
 Se preservan intactos: la separación bot-only vs resuelto-por-bot, la arquitectura por adaptadores y el modelo normalizado. El dashboard de proyecto consume **las mismas** rutas/KPIs que el global; solo cambia el alcance del WHERE.
 
-### 13.4 Filtros
-El dashboard de proyecto ofrece los mismos filtros (rango de fechas, plataforma/proveedor, canal, outcome; y por proveedor/agente/cola/skill/campaña/servicio/tag a través de la query compartida `parseFilters`/`buildConversationWhere`), pero **plataforma y canal solo listan lo configurado en el proyecto**.
+### 13.4 Filtros globales
+El dashboard (global y de proyecto) expone **todos** los filtros: rango de fechas, canal, proveedor/plataforma, bot, campaña, servicio, agente, cola, skill, tag, outcome, estado, resuelto por, y **comparar con periodo anterior**. Selects para los enumerados (outcome/estado/resuelto-por) y campos de texto (confirman en Enter/blur) para las dimensiones de alta cardinalidad (bot/campaña/servicio/agente/cola/skill/tag). Solo se envían los filtros activos; `"all"`/`""` se omiten y el backend los ignora (`parseFilters` + `buildConversationWhere`). Se agregó `skillName` al pipeline de filtros.
+
+**Regla clave del selector de canal:** en modo proyecto **solo lista los canales configurados** (de `getConfiguredProjectChannels`). Si el proyecto tiene WhatsApp + Instagram, el selector muestra únicamente "Todos", WhatsApp e Instagram — nunca Facebook ni Messenger. Si el usuario manipula la URL (`channel=facebook` sin estar configurado), el backend **lo ignora** y mantiene `channel IN <configurados>`: nunca devuelve datos de canales no permitidos (cubierto por test). Igual defensa para `provider`.
+
+**Comparar con periodo anterior:** el toggle envía `compare=1`; la ruta `overview` calcula los KPIs de cabecera del periodo inmediatamente anterior (mismo span) bajo **el mismo alcance de proyecto** y devuelve `comparison.previous` + `comparison.deltas`. `TabResumen` muestra el delta vs periodo anterior en el subtítulo de cada KPI.
 
 ### 13.5 Archivos creados / modificados
-- **NEW** `lib/analytics/project-scope.ts` — helpers puros (client-safe, sin prisma): `deriveProjectChannels`, `deriveNormalizedProviders`, `INTEGRATION_TO_NORMALIZED_PROVIDER`, `CHANNEL_LABELS`, `PROVIDER_LABELS`, tipo `ProjectScope`.
-- **NEW** `lib/analytics/project-scope.server.ts` — `resolveProjectScope`/`resolveProjectScopeView` (verifican `project.workspaceId === ctx.workspaceId`) y `scopeFromRequest` (alcance opcional desde `projectId` del query; 404 si el proyecto no es del workspace).
+- **NEW** `lib/analytics/project-scope.ts` — helpers puros (client-safe, sin prisma): tipo `CanonicalChannel` y `SUPPORTED_CHANNELS`, `CHANNEL_ALIASES`, **`normalizeChannelName`**, **`collectProjectChannels`** (lee filas Channel + cuentas sociales y normaliza), `deriveProjectChannels` (alias retrocompatible), `deriveNormalizedProviders`, `INTEGRATION_TO_NORMALIZED_PROVIDER`, `CHANNEL_LABELS`, `PROVIDER_LABELS`, tipo `ProjectScope`.
+- **NEW** `lib/analytics/project-scope.server.ts` — **`getConfiguredProjectChannels(projectId, workspaceId)`** (reusable), `resolveProjectScope`/`resolveProjectScopeView` (verifican `project.workspaceId === ctx.workspaceId`) y `scopeFromRequest` (alcance opcional desde `projectId` del query; 404 si el proyecto no es del workspace).
 - **MOD** `lib/analytics/query.ts` — `buildConversationWhere(workspaceId, filters, scope?)` aplica `provider IN`/`channel IN` con intersección de filtros; nuevo helper `applyScopeToMessageWhere` (acota mensajes por proveedor).
 - **MOD** rutas API (alcance opcional `projectId`, ownership validado): `overview`, `operations`, `conversations`, `agents`, `campaigns`, `services`, `funnels`, `bot-quality`, `roi`, `data-quality`, `export` (registra `projectId` en el audit log), `audit-logs` (filtra por `resourceId = projectId`).
 - **MOD** `components/analytics-v2/AdvancedAnalyticsDashboard.tsx` — props `projectId`/`availableChannels`/`availableProviders`; thread de `projectId` en la query; selectores de plataforma/canal restringidos.
 - **NEW** `app/dashboard/proyectos/[id]/analisis-resultados/page.tsx`.
 - **MOD** `app/dashboard/proyectos/[id]/page.tsx` — enlace al módulo avanzado.
-- **NEW** `tests/analytics-project-scope.test.ts` — 14 tests: derivación de canales/proveedores, scoping por proyecto, intersección de filtros (canal/proveedor fuera de alcance se ignora), proyecto sin canales/proveedor → `IN []`, aislamiento multi-tenant (`workspaceId` del contexto, nunca del query).
+- **NEW** `tests/analytics-project-scope.test.ts` — 24 tests: `normalizeChannelName` (aliases por canal + exclusión de no soportados), `collectProjectChannels` (lee filas Channel + cuentas, dedup, orden canónico), derivación de proveedores, scoping por proyecto, intersección de filtros (canal/proveedor fuera de alcance se ignora), proyecto sin canales/proveedor → `IN []`, aislamiento multi-tenant (`workspaceId` del contexto, nunca del query).
 
 ### 13.6 Pendientes reales (no inventados)
 - `projectId` a nivel fila en `NormalizedConversation` + poblarlo en ingesta (resolución por `MetaSource`/`WaPhoneSource`/canal) + backfill, para aislamiento exacto entre proyectos del mismo workspace y mismo proveedor/canal.
 - Mapeo de canal en mensajes: `NormalizedMessage` no tiene `channel`; el scoping de mensajes (bot-quality) es por proveedor. Añadir canal al mensaje permitiría acotar fallback intents por canal.
 
+### 13.8 Auditoría de seguridad / scoping obligatorio
+
+Todos los endpoints que consume la sección aplican scoping de forma obligatoria. `projectId` se **transporta** por query pero **nunca se confía ciegamente**: nace del `[id]` de la ruta (la página lo resuelve y valida en servidor) y **se re-valida en cada llamada** contra el `workspaceId` de la sesión. La ubicación en URL (path vs query) no es la frontera de seguridad — la validación sí lo es.
+
+| # | Validación requerida | Punto de aplicación |
+|---|---|---|
+| 1 | Usuario ∈ workspace/tenant | `withWorkspace`/`getActiveWorkspaceId` → membresía verificada; `workspaceId` desde la sesión. |
+| 2 | Proyecto ∈ workspace/tenant | `resolveProjectScope` = `project.findFirst({ where:{ id, workspaceId } })`; si no, `null` → la ruta responde **404**. |
+| 3 | Permiso para ver el proyecto | Modelo real del repo: ver proyecto = membresía del workspace (`verifyProjectAccess` resuelve el workspace del proyecto y verifica membresía; no hay ACL por proyecto). Ya cubierto por #1+#2. UI bajo `PermissionGuard(canAccessAnalytics)`. |
+| 4 | Integración ∈ proyecto/cliente | `resolveProjectProviders`: ids tomados de `project.crmIntegrationIds` **e** `integration.findMany({ where:{ id:{in}, workspaceId } })`. Una integración ajena al proyecto o a otro workspace se descarta. |
+| 5 | Canal configurado en el proyecto | `getConfiguredProjectChannels` → `channel IN <configurados>`; un canal no configurado se ignora. |
+| 6 | Datos ∈ mismo project/workspace | `buildConversationWhere` fija `workspaceId` (sesión) + `provider IN` + `channel IN`. Listas vacías → 0 filas. |
+
+**Nunca se permite (probado en `tests/analytics-project-security.test.ts`, prisma mockeado):**
+- *Otro proyecto/workspace por cambiar `projectId`*: `findFirst{id,workspaceId}` ⇒ proyecto de otro workspace → `null` → 404. (Dentro del mismo workspace, ver cualquier proyecto está permitido por diseño del repo.)
+- *`workspaceId` por query para saltar aislamiento*: `parseFilters` no lo lee y `buildConversationWhere` fija el de la sesión; test confirma que `findFirst` usa el workspace de la sesión, no `EVIL_TENANT`.
+- *Canales no configurados*: excluidos por `channel IN` + `normalizeChannelName`.
+- *Integraciones de otro cliente*: `findMany` filtra por ids del proyecto + workspace.
+- *Exportar fuera del proyecto*: `export` usa `scopeFromRequest` + `buildConversationWhere(scope)` y registra `projectId` en el audit log.
+
+> **Endpoints scoped (todos vía `scopeFromRequest`):** `overview`, `operations`, `conversations`, `agents`, `campaigns`, `services`, `funnels`, `bot-quality`, `roi`, `data-quality`, `export`, `audit-logs`. Si `projectId` es inválido/ajeno → 404 (no datos). Sin `projectId` → alcance global (comportamiento intacto del módulo global).
+
+> **Límite real (documentado):** el aislamiento fila-a-fila entre dos proyectos del *mismo* workspace con *idéntico* proveedor y canales requeriría `projectId` en `NormalizedConversation` (ver §13.6); hoy el scoping es por workspace + proveedor + canal, que es el máximo que soporta el modelo.
+
+### 13.9 Rutas anidadas por proyecto (projectId desde el path)
+
+Se agregaron rutas canónicas bajo `app/api/projects/[id]/analytics/*` (convención `[id]` del repo) donde **`projectId` proviene de la ruta**, no del query:
+
+```
+GET /api/projects/[id]/analytics/overview
+GET /api/projects/[id]/analytics/operations
+GET /api/projects/[id]/analytics/conversations
+GET /api/projects/[id]/analytics/conversations/[conversationId]
+GET /api/projects/[id]/analytics/agents
+GET /api/projects/[id]/analytics/campaigns
+GET /api/projects/[id]/analytics/services
+GET /api/projects/[id]/analytics/funnels
+GET /api/projects/[id]/analytics/bot-quality
+GET /api/projects/[id]/analytics/roi
+GET /api/projects/[id]/analytics/data-quality
+GET /api/projects/[id]/analytics/audit-logs
+GET /api/projects/[id]/analytics/export
+GET /api/projects/[id]/analytics/configured-channels
+```
+
+**Sin duplicar lógica:** las 12 rutas de métrica **delegan** en el handler global homónimo vía `forwardScoped(globalGET, req, id)` (`lib/analytics/forward-scoped.ts`), que fija `projectId` desde el path y **elimina** cualquier `projectId`/`workspaceId`/`clientId` del query antes de reenviar. El handler global revalida ownership (404 si el proyecto no es del workspace). Dos handlers propios: `configured-channels` (devuelve `resolveProjectScope` → canales+proveedores configurados) y `conversations/[conversationId]` (detalle acotado a workspace+proveedor+canal del proyecto, PII enmascarada, sin texto crudo).
+
+**Builder común** `buildProjectAnalyticsWhere({ workspaceId, projectId, clientId, allowedChannels, allowedProviders, filters })` (`lib/analytics/query.ts`): fija `workspaceId` (sesión), toma `projectId`/`clientId` ya validados de la ruta (no del query), restringe `channel IN allowedChannels` y `provider IN allowedProviders`, aplica rango de fechas y valida filtros — envolviendo el primitivo `buildConversationWhere` (única fuente del WHERE). `clientId` es informativo: en este repo el cliente es un campo string del proyecto, no una entidad relacional.
+
+La vista de proyecto (`AdvancedAnalyticsDashboard`) ahora apunta a estas rutas anidadas (`base = /api/projects/<id>/analytics`); el módulo global sigue usando `/api/analytics/*`.
+
+### 13.10 Tabs / vistas reutilizables + contexto de alcance
+
+La sección de proyecto incluye las **11 tabs** (Resumen, Operación, Conversaciones, Agentes, Campañas, Servicios, Funnels, Calidad del Bot, ROI, Calidad de Datos, Auditoría) renderizadas por el shell reutilizado — no se duplican componentes.
+
+**Superficie reutilizable** (`components/analytics-v2/views.tsx`): aliases de los componentes ya existentes del módulo global, con los nombres solicitados (sin duplicar lógica):
+
+| Nombre público | Implementación |
+|---|---|
+| `AnalyticsDashboardShell` | `AdvancedAnalyticsDashboard` |
+| `AnalyticsOverview` | `TabResumen` |
+| `AnalyticsOperations` | `TabOperation` |
+| `AnalyticsConversationsTable` | `TabConversations` |
+| `AnalyticsAgentsView` | `TabAgents` |
+| `AnalyticsCampaignsView` | `TabCampaigns` |
+| `AnalyticsServicesView` | `TabServices` |
+| `AnalyticsFunnelsView` | `TabFunnels` |
+| `AnalyticsBotQualityView` | `TabQuality` |
+| `AnalyticsRoiView` | `TabRoi` |
+| `AnalyticsDataQualityView` | `TabDataQuality` |
+| `AnalyticsAuditLogsView` | `TabAudit` |
+
+**Contexto de alcance** (`components/analytics-v2/AnalyticsScopeContext.tsx`): `AnalyticsScopeProvider`/`useAnalyticsScope()` exponen `{ scope: "global"|"project", projectId, clientId, allowedChannels, allowedProviders, base }`. El shell envuelve su render en el provider, calculando `scope="project"` cuando recibe `projectId` (y `clientId` del proyecto, vía `resolveProjectScopeView`). Las vistas pueden leer el contexto sin recibir props por toda la jerarquía. La página de proyecto pasa `clientId={scope.clientId}` al shell.
+
 ### 13.7 Verificación
 | Comando | Resultado |
 |---|---|
 | `npx tsc --noEmit` | ✅ **0 errores** |
-| `npx vitest run` | ✅ **132 tests / 18 archivos** (incluye `analytics-project-scope` con 14 tests) |
+| `npx vitest run` | ✅ **153 tests / 19 archivos** (incluye `analytics-project-scope` 29 + `analytics-project-security` 6, prisma mockeado) |
+| `SKIP_DB_SYNC=1 next build` (rutas anidadas) | ✅ 14 rutas `/api/projects/[id]/analytics/*` registradas |
 | `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** (ruta `/dashboard/proyectos/[id]/analisis-resultados` registrada) |

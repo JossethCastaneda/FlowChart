@@ -1,11 +1,39 @@
 import prisma from "@/lib/prisma";
 import {
   ProjectScope,
-  deriveProjectChannels,
+  CanonicalChannel,
+  collectProjectChannels,
   deriveNormalizedProviders,
 } from "./project-scope";
 
 export type { ProjectScope };
+
+/**
+ * Devuelve SOLO los canales canónicos realmente configurados/activos para un
+ * proyecto, verificando ANTES la propiedad multi-tenant (el proyecto debe ser
+ * del `workspaceId`). Lee la configuración real (filas Channel + cuentas
+ * sociales) y la normaliza con `normalizeChannelName`; lo no soportado se
+ * excluye. Devuelve `[]` si el proyecto no existe, no es del workspace, o no
+ * tiene canales soportados configurados.
+ *
+ * Función reusable: la consume tanto la API como la vista del proyecto.
+ */
+export async function getConfiguredProjectChannels(
+  projectId: string,
+  workspaceId: string
+): Promise<CanonicalChannel[]> {
+  const project = await prisma.project.findFirst({
+    where: { id: projectId, workspaceId },
+    select: {
+      whatsapp: true,
+      instagram: true,
+      fanpage: true,
+      channels: { select: { type: true } },
+    },
+  });
+  if (!project) return [];
+  return collectProjectChannels(project);
+}
 
 /**
  * Resuelve el alcance analítico de un proyecto verificando ANTES la propiedad
@@ -26,38 +54,25 @@ export async function resolveProjectScope(
       whatsapp: true,
       instagram: true,
       fanpage: true,
+      channels: { select: { type: true } },
       crmIntegrationId: true,
       crmIntegrationIds: true,
     },
   });
   if (!project) return null;
 
-  const ids =
-    project.crmIntegrationIds.length > 0
-      ? project.crmIntegrationIds
-      : project.crmIntegrationId
-        ? [project.crmIntegrationId]
-        : [];
-
-  // Las integraciones también se acotan por workspace: defensa adicional contra
-  // ids inyectados que pertenezcan a otro tenant.
-  const integrations = ids.length
-    ? await prisma.integration.findMany({
-        where: { id: { in: ids }, workspaceId },
-        select: { provider: true },
-      })
-    : [];
-
   return {
     projectId: project.id,
-    providers: deriveNormalizedProviders(integrations.map((i) => i.provider)),
-    channels: deriveProjectChannels(project),
+    providers: await resolveProjectProviders(workspaceId, project),
+    channels: collectProjectChannels(project),
   };
 }
 
 export interface ProjectScopeView extends ProjectScope {
   name: string;
   alias: string | null;
+  /** Cliente del proyecto (campo string del proyecto; no entidad relacional). */
+  clientId: string | null;
 }
 
 /**
@@ -74,15 +89,32 @@ export async function resolveProjectScopeView(
       id: true,
       name: true,
       alias: true,
+      client: true,
       whatsapp: true,
       instagram: true,
       fanpage: true,
+      channels: { select: { type: true } },
       crmIntegrationId: true,
       crmIntegrationIds: true,
     },
   });
   if (!project) return null;
 
+  return {
+    projectId: project.id,
+    name: project.name,
+    alias: project.alias,
+    clientId: project.client,
+    providers: await resolveProjectProviders(workspaceId, project),
+    channels: collectProjectChannels(project),
+  };
+}
+
+/** Resuelve los proveedores normalizados del proyecto desde sus integraciones CRM. */
+async function resolveProjectProviders(
+  workspaceId: string,
+  project: { crmIntegrationId: string | null; crmIntegrationIds: string[] }
+): Promise<string[]> {
   const ids =
     project.crmIntegrationIds.length > 0
       ? project.crmIntegrationIds
@@ -90,6 +122,8 @@ export async function resolveProjectScopeView(
         ? [project.crmIntegrationId]
         : [];
 
+  // Las integraciones también se acotan por workspace: defensa adicional contra
+  // ids inyectados que pertenezcan a otro tenant.
   const integrations = ids.length
     ? await prisma.integration.findMany({
         where: { id: { in: ids }, workspaceId },
@@ -97,13 +131,7 @@ export async function resolveProjectScopeView(
       })
     : [];
 
-  return {
-    projectId: project.id,
-    name: project.name,
-    alias: project.alias,
-    providers: deriveNormalizedProviders(integrations.map((i) => i.provider)),
-    channels: deriveProjectChannels(project),
-  };
+  return deriveNormalizedProviders(integrations.map((i) => i.provider));
 }
 
 export type ScopeResolution =

@@ -54,25 +54,33 @@ const fmtSec = (s: number | null | undefined) => (s == null ? "—" : `${Math.ro
 const pct = (n: number | null | undefined) => (n == null ? "—" : `${n.toFixed(1)}%`);
 
 // ── Resumen (spec §18) ───────────────────────────────────────────────────────
-export function TabResumen({ query }: { query: string }) {
+export function TabResumen({ query, base = "/api/analytics" }: { query: string; base?: string }) {
+  type Kpis = { totalConversations: number; containmentRate: number; handoffRate: number; avgCsat: number | null; avgFrtSeconds: number; avgAhtSeconds: number; estimatedRoiSaved: number };
   type Overview = {
-    kpis: { totalConversations: number; containmentRate: number; handoffRate: number; avgCsat: number | null; avgFrtSeconds: number; avgAhtSeconds: number; estimatedRoiSaved: number };
+    kpis: Kpis;
     charts: { topChannels: { name: string; count: number }[]; trends: { date: string; total: number; botResolved: number; handoffs: number }[] };
+    comparison?: { previous: Kpis; deltas: Record<string, number> } | null;
   };
-  const { data, loading, error } = useAnalyticsData<Overview>("/api/analytics/overview", query);
+  const { data, loading, error } = useAnalyticsData<Overview>(`${base}/overview`, query);
   if (loading && !data) return <State kind="loading" />;
   if (error) return <State kind="error" msg={error} />;
   if (!data || data.kpis.totalConversations === 0) return <State kind="empty" />;
   const k = data.kpis;
+  const d = data.comparison?.deltas;
+  // Delta vs periodo anterior como subtítulo (signo + unidad). Solo si compare=1.
+  const deltaNum = (key: string) => (d ? `${d[key] >= 0 ? "▲ +" : "▼ "}${Math.round(d[key]).toLocaleString()} vs periodo ant.` : undefined);
+  const deltaPp = (key: string) => (d ? `${d[key] >= 0 ? "▲ +" : "▼ "}${d[key].toFixed(1)} pp vs ant.` : undefined);
+  const deltaPt = (key: string) => (d ? `${d[key] >= 0 ? "▲ +" : "▼ "}${d[key].toFixed(1)} vs ant.` : undefined);
+  const deltaMoney = (key: string) => (d ? `${d[key] >= 0 ? "▲ +$" : "▼ -$"}${Math.abs(Math.round(d[key])).toLocaleString()} vs ant.` : undefined);
   return (
     <div className="space-y-6">
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
-        <KpiTooltipCard title="Conversaciones" value={k.totalConversations.toLocaleString()} icon={MessageSquare} color="#3b82f6" />
-        <KpiTooltipCard title="Contención real" value={pct(k.containmentRate)} icon={Bot} color="#10b981" formulaDef="Resueltas por bot / cerradas" trafficLight={{ value: k.containmentRate, thresholds: { good: 70, warning: 50 }, isHigherBetter: true }} />
-        <KpiTooltipCard title="Escalamiento" value={pct(k.handoffRate)} icon={User} color="#f59e0b" trafficLight={{ value: k.handoffRate, thresholds: { good: 15, warning: 30 }, isHigherBetter: false }} />
-        <KpiTooltipCard title="CSAT" value={k.avgCsat ? k.avgCsat.toFixed(1) : "N/A"} icon={ShieldCheck} color="#06b6d4" trafficLight={{ value: k.avgCsat || 0, thresholds: { good: 4.2, warning: 3.8 }, isHigherBetter: true }} />
-        <KpiTooltipCard title="FRT" value={fmtSec(k.avgFrtSeconds)} icon={Clock} color="#8b5cf6" />
-        <KpiTooltipCard title="ROI estimado" value={`$${Math.round(k.estimatedRoiSaved).toLocaleString()}`} icon={DollarSign} color="#10b981" />
+        <KpiTooltipCard title="Conversaciones" value={k.totalConversations.toLocaleString()} sub={deltaNum("totalConversations")} icon={MessageSquare} color="#3b82f6" />
+        <KpiTooltipCard title="Contención real" value={pct(k.containmentRate)} sub={deltaPp("containmentRate")} icon={Bot} color="#10b981" formulaDef="Resueltas por bot / cerradas" trafficLight={{ value: k.containmentRate, thresholds: { good: 70, warning: 50 }, isHigherBetter: true }} />
+        <KpiTooltipCard title="Escalamiento" value={pct(k.handoffRate)} sub={deltaPp("handoffRate")} icon={User} color="#f59e0b" trafficLight={{ value: k.handoffRate, thresholds: { good: 15, warning: 30 }, isHigherBetter: false }} />
+        <KpiTooltipCard title="CSAT" value={k.avgCsat ? k.avgCsat.toFixed(1) : "N/A"} sub={deltaPt("avgCsat")} icon={ShieldCheck} color="#06b6d4" trafficLight={{ value: k.avgCsat || 0, thresholds: { good: 4.2, warning: 3.8 }, isHigherBetter: true }} />
+        <KpiTooltipCard title="FRT" value={fmtSec(k.avgFrtSeconds)} sub={deltaNum("avgFrtSeconds")} icon={Clock} color="#8b5cf6" />
+        <KpiTooltipCard title="ROI estimado" value={`$${Math.round(k.estimatedRoiSaved).toLocaleString()}`} sub={deltaMoney("estimatedRoiSaved")} icon={DollarSign} color="#10b981" />
       </div>
       <div style={card}>
         <h3 className="text-white text-sm font-bold mb-4">Evolución diaria (Bot vs Agente)</h3>
@@ -96,9 +104,9 @@ export function TabResumen({ query }: { query: string }) {
 }
 
 // ── Conversaciones (spec §20) ────────────────────────────────────────────────
-export function TabConversations({ query }: { query: string }) {
+export function TabConversations({ query, base = "/api/analytics" }: { query: string; base?: string }) {
   type Resp = { conversations: Record<string, unknown>[]; pagination: { total: number } };
-  const { data, loading, error } = useAnalyticsData<Resp>("/api/analytics/conversations", query);
+  const { data, loading, error } = useAnalyticsData<Resp>(`${base}/conversations`, query);
   if (loading && !data) return <State kind="loading" />;
   if (error) return <State kind="error" msg={error} />;
   if (!data || data.conversations.length === 0) return <State kind="empty" />;
@@ -124,9 +132,9 @@ export function TabConversations({ query }: { query: string }) {
 }
 
 // ── Agentes (spec §21) ───────────────────────────────────────────────────────
-export function TabAgents({ query }: { query: string }) {
+export function TabAgents({ query, base = "/api/analytics" }: { query: string; base?: string }) {
   type Resp = { agents: Record<string, unknown>[] };
-  const { data, loading, error } = useAnalyticsData<Resp>("/api/analytics/agents", query);
+  const { data, loading, error } = useAnalyticsData<Resp>(`${base}/agents`, query);
   if (loading && !data) return <State kind="loading" />;
   if (error) return <State kind="error" msg={error} />;
   if (!data || data.agents.length === 0) return <State kind="empty" />;
@@ -147,9 +155,9 @@ export function TabAgents({ query }: { query: string }) {
 }
 
 // ── Campañas (spec §22) ──────────────────────────────────────────────────────
-export function TabCampaigns({ query }: { query: string }) {
+export function TabCampaigns({ query, base = "/api/analytics" }: { query: string; base?: string }) {
   type Resp = { campaigns: Record<string, unknown>[] };
-  const { data, loading, error } = useAnalyticsData<Resp>("/api/analytics/campaigns", query);
+  const { data, loading, error } = useAnalyticsData<Resp>(`${base}/campaigns`, query);
   if (loading && !data) return <State kind="loading" />;
   if (error) return <State kind="error" msg={error} />;
   if (!data || data.campaigns.length === 0) return <State kind="empty" />;
@@ -168,9 +176,9 @@ export function TabCampaigns({ query }: { query: string }) {
 }
 
 // ── Servicios (spec §23) ─────────────────────────────────────────────────────
-export function TabServices({ query }: { query: string }) {
+export function TabServices({ query, base = "/api/analytics" }: { query: string; base?: string }) {
   type Resp = { services: Record<string, unknown>[] };
-  const { data, loading, error } = useAnalyticsData<Resp>("/api/analytics/services", query);
+  const { data, loading, error } = useAnalyticsData<Resp>(`${base}/services`, query);
   if (loading && !data) return <State kind="loading" />;
   if (error) return <State kind="error" msg={error} />;
   if (!data || data.services.length === 0) return <State kind="empty" />;
@@ -190,9 +198,9 @@ export function TabServices({ query }: { query: string }) {
 }
 
 // ── Funnels (spec §24) ───────────────────────────────────────────────────────
-export function TabFunnels({ query }: { query: string }) {
+export function TabFunnels({ query, base = "/api/analytics" }: { query: string; base?: string }) {
   type Resp = { steps: { name: string; count: number; conversionFromPrev: number }[] };
-  const { data, loading, error } = useAnalyticsData<Resp>("/api/analytics/funnels", query);
+  const { data, loading, error } = useAnalyticsData<Resp>(`${base}/funnels`, query);
   if (loading && !data) return <State kind="loading" />;
   if (error) return <State kind="error" msg={error} />;
   if (!data || data.steps.length === 0) return <State kind="empty" />;
@@ -215,9 +223,9 @@ export function TabFunnels({ query }: { query: string }) {
 }
 
 // ── Calidad de datos (spec §27) ──────────────────────────────────────────────
-export function TabDataQuality({ query }: { query: string }) {
+export function TabDataQuality({ query, base = "/api/analytics" }: { query: string; base?: string }) {
   type Resp = { summary: { total: number; bySeverity: { info: number; warning: number; critical: number } }; issues: Record<string, unknown>[] };
-  const { data, loading, error } = useAnalyticsData<Resp>("/api/analytics/data-quality", query);
+  const { data, loading, error } = useAnalyticsData<Resp>(`${base}/data-quality`, query);
   if (loading && !data) return <State kind="loading" />;
   if (error) return <State kind="error" msg={error} />;
   if (!data) return <State kind="empty" />;
@@ -245,9 +253,9 @@ export function TabDataQuality({ query }: { query: string }) {
 }
 
 // ── Auditoría (spec §31) ─────────────────────────────────────────────────────
-export function TabAudit({ query }: { query: string }) {
+export function TabAudit({ query, base = "/api/analytics" }: { query: string; base?: string }) {
   type Resp = { logs: Record<string, unknown>[]; pagination: { total: number } };
-  const { data, loading, error } = useAnalyticsData<Resp>("/api/analytics/audit-logs", query);
+  const { data, loading, error } = useAnalyticsData<Resp>(`${base}/audit-logs`, query);
   if (loading && !data) return <State kind="loading" />;
   if (error) return <State kind="error" msg={error} />;
   if (!data || data.logs.length === 0) return <State kind="empty" />;
