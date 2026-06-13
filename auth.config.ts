@@ -287,14 +287,27 @@ export const authOptions: NextAuthOptions = {
               }
             }
 
-            // 2. If not found by OAuth account, try to find by email
-            if (!dbUser && user.email) {
-              dbUser = await prisma.user.findUnique({
-                where: { email: user.email },
+            // 2. Look up by user.id directly in DB BEFORE falling through to email/create.
+            //    This handles:
+            //    a) CredentialsProvider (facebook-sdk) that resolves the DB user and returns
+            //       user.id = the actual User.id (covers legacy users whose id is their FB numeric ID)
+            //    b) Any OAuth flow where the returned user.id already exists in our DB
+            if (!dbUser && user.id) {
+              const byId = await prisma.user.findUnique({
+                where: { id: user.id },
               });
+              if (byId) dbUser = byId;
             }
 
-            // 3. If no user exists, create one
+            // 3. If not found by id, try by email
+            if (!dbUser && user.email) {
+              const byEmail = await prisma.user.findUnique({
+                where: { email: user.email },
+              });
+              if (byEmail) dbUser = byEmail;
+            }
+
+            // 4. If still no user, create one
             if (!dbUser) {
               dbUser = await prisma.user.create({
                 data: {
@@ -304,7 +317,7 @@ export const authOptions: NextAuthOptions = {
                 }
               });
             } else {
-              // 4. Update name/image if they are missing
+              // 5. Update name/image if they are missing
               dbUser = await prisma.user.update({
                 where: { id: dbUser.id },
                 data: {
