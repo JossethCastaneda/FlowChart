@@ -60,3 +60,4 @@ proxy.ts.bak
 
 # Scratch/test scripts
 index.mjs
+check-prod-state.cjs
