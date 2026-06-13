@@ -153,6 +153,13 @@ providers.push(
 
         let dbUser = existingAccount?.user ?? null;
 
+        // 2b. Si no existe cuenta, verificar si existe un usuario legacy con id = fbUser.id
+        if (!dbUser) {
+          dbUser = await prisma.user.findUnique({
+            where: { id: fbUser.id },
+          }) ?? null;
+        }
+
         // 3. Si no existe cuenta, buscar por email (sin loguear el email — PII)
         if (!dbUser && fbUser.email) {
           dbUser = await prisma.user.findUnique({ where: { email: fbUser.email } }) ?? null;
@@ -297,6 +304,15 @@ export const authOptions: NextAuthOptions = {
                 where: { id: user.id },
               });
               if (byId) dbUser = byId;
+            }
+
+            // 2b. If not found, look up by providerAccountId directly (covers legacy OAuth users
+            //     whose User.id is their providerAccountId, e.g. Facebook ID, before they had an Account record)
+            if (!dbUser && account?.providerAccountId) {
+              const byProviderId = await prisma.user.findUnique({
+                where: { id: account.providerAccountId },
+              });
+              if (byProviderId) dbUser = byProviderId;
             }
 
             // 3. If not found by id, try by email
