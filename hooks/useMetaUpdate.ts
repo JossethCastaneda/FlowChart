@@ -26,12 +26,14 @@ export function useMetaUpdate() {
       const res = await fetch("/api/meta/campaigns", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ campaignId, ...fields }),
+        // confirmed_by_user: the user just clicked "Guardar" in the edit modal —
+        // without this flag the API rejects every write with status "blocked".
+        body: JSON.stringify({ campaignId, ...fields, confirmed_by_user: true }),
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error || "Error al actualizar campaña");
-        return { success: false, error: json.error };
+        setError(json.user_message || json.error || json.blocked_reason || "Error al actualizar campaña");
+        return { success: false, error: json.user_message || json.error || json.blocked_reason };
       }
       return { success: true };
     } catch (e: any) {
@@ -63,12 +65,12 @@ export function useMetaUpdate() {
       const res = await fetch("/api/meta/adsets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adsetId, ...fields }),
+        body: JSON.stringify({ adsetId, ...fields, confirmed_by_user: true }),
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error || "Error al actualizar conjunto");
-        return { success: false, error: json.error };
+        setError(json.user_message || json.error || json.blocked_reason || "Error al actualizar conjunto");
+        return { success: false, error: json.user_message || json.error || json.blocked_reason };
       }
       return { success: true };
     } catch (e: any) {
@@ -94,12 +96,12 @@ export function useMetaUpdate() {
       const res = await fetch("/api/meta/ads", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adId, ...fields }),
+        body: JSON.stringify({ adId, ...fields, confirmed_by_user: true }),
       });
       const json = await res.json();
       if (!res.ok) {
-        setError(json.error || "Error al actualizar anuncio");
-        return { success: false, error: json.error };
+        setError(json.user_message || json.error || json.blocked_reason || "Error al actualizar anuncio");
+        return { success: false, error: json.user_message || json.error || json.blocked_reason };
       }
       return { success: true };
     } catch (e: any) {

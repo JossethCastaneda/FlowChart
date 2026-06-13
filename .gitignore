@@ -56,3 +56,7 @@ proxy.ts.bak
 
 # Local editor/agent artifacts
 .claude/
+.env*
+
+# Scratch/test scripts
+index.mjs

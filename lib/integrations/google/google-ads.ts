@@ -5,7 +5,7 @@ const GOOGLE_ADS_API_VERSION = "v19";
 
 export async function getAdsCampaigns(workspaceId: string, since?: string, until?: string) {
   const integration = await prisma.integration.findUnique({
-    where: { workspaceId_provider: { workspaceId, provider: "google" } },
+    where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
   });
 
   if (!integration || !integration.connected) {
@@ -103,7 +103,7 @@ export async function getAdsCampaigns(workspaceId: string, since?: string, until
  */
 export async function updateCampaignStatus(workspaceId: string, campaignId: string, status: "ENABLED" | "PAUSED") {
   const integration = await prisma.integration.findUnique({
-    where: { workspaceId_provider: { workspaceId, provider: "google" } },
+    where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
   });
 
   if (!integration || !integration.connected) {

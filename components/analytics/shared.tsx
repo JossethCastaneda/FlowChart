@@ -5,7 +5,7 @@ export const ChannelIcons: Record<string, React.ElementType> = {
       Instagram: Camera,
       Facebook: ThumbsUp,
     };
-export const TABS = ["Resumen", "Posts", "Audiencia", "Historias", "Reels", "Mejor Horario", "Crecimiento"] as const;
+export const TABS = ["Resumen", "Posts", "Audiencia", "Historias", "Reels", "Mejor Horario", "Crecimiento", "Configuración"] as const;
 
 export type Tab = (typeof TABS)[number];
 export type Kpi = {
@@ -25,7 +25,7 @@ export const EMPTY_KPI: Kpi[] = [
       { label: "Seguidores", value: "—", change: "—", positive: true, icon: Users, color: "#06d6a0", accent: "emerald" },
       { label: "Impresiones", value: "—", change: "—", positive: true, icon: BarChart2, color: "#7b61ff", accent: "purple" },
     ];
-export const AUDIENCE_DEVICE: { label: string; pct: number; color: string }[] = [];
+
 export const DAYS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 export const HOURS = Array.from({ length: 24 }, (_, i) => i);
 

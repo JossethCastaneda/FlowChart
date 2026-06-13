@@ -7,6 +7,12 @@ import pg from "pg";
 
 const { Client } = pg;
 
+// Permite validar `next build` localmente sin tocar ninguna base de datos.
+if (process.env.SKIP_DB_SYNC === "1") {
+  console.log("[db-sync] SKIP_DB_SYNC=1 — skipping db push.");
+  process.exit(0);
+}
+
 // Resolve the database URL the same way prisma.config.ts does. Prefer a direct
 // (unpooled) connection for DDL; fall back to the pooled URL.
 const dbUrl =
@@ -40,16 +46,39 @@ console.log(`[db-sync] target database host: ${host}`);
 // and aborts the ENTIRE sync (so legitimate additive changes never apply).
 // Remove it first: idempotent and safe — it's Neon demo data referenced by
 // nothing in our schema.
+// Drop stale tables that are not in our Prisma schema but exist in the DB,
+// which cause Prisma to abort the entire sync with "data loss" warnings.
+// This is idempotent and safe — these tables are not referenced by any code.
+const STALE_TABLES = ["playing_with_neon", "BestTimeCache", "BotMakerConfig", "HashtagCache"];
 try {
   const client = new Client({ connectionString: dbUrl, ssl: true });
   await client.connect();
-  const found = await client.query(
-    "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'playing_with_neon'"
-  );
-  if (found.rowCount) {
-    await client.query('DROP TABLE IF EXISTS "playing_with_neon" CASCADE;');
-    console.log("[db-sync] removed Neon starter table 'playing_with_neon'");
+  for (const table of STALE_TABLES) {
+    const found = await client.query(
+      "SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = $1",
+      [table]
+    );
+    if (found.rowCount) {
+      await client.query(`DROP TABLE IF EXISTS "${table}" CASCADE;`);
+      console.log(`[db-sync] removed stale table '${table}'`);
+    }
   }
+  // Remove duplicate Integration rows that would block the unique constraint
+  // on (workspaceId, provider, userId) — keep newest row per group.
+  await client.query(`
+    DELETE FROM "Integration"
+    WHERE id IN (
+      SELECT id FROM (
+        SELECT id,
+               ROW_NUMBER() OVER (
+                 PARTITION BY "workspaceId", "provider", "userId"
+                 ORDER BY "createdAt" DESC NULLS LAST
+               ) as rn
+        FROM "Integration"
+      ) ranked
+      WHERE rn > 1
+    )
+  `);
   await client.end();
 } catch (e) {
   console.warn("[db-sync] pre-sync cleanup skipped (non-fatal):", e?.message || String(e));

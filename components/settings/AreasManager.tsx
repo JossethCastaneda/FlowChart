@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Plus, Trash2, X, Star, Check, Loader2, ChevronDown, ChevronRight, Shield, Eye, EyeOff, Pencil } from "lucide-react";
-import { SUGGESTED_AREAS, DEFAULT_MEMBER_PERMS, DEFAULT_EXTERNAL_PERMS, type Area, type RequestType } from "@/lib/workflow-config";
+import { Plus, Trash2, X, Star, Check, Loader2, ChevronDown, ChevronRight } from "lucide-react";
+import { SUGGESTED_AREAS, DEFAULT_MEMBER_PERMS, DEFAULT_EXTERNAL_PERMS, DEFAULT_LEADER_PERMS, type Area, type RequestType } from "@/lib/workflow-config";
 
 interface Member { id: string; name: string; activityStatus?: string }
 
@@ -11,18 +11,9 @@ const STATUS_COLORS: Record<string, string> = { disponible: "#00c875", ocupado: 
 const COLORS = ["#0081FB", "#f472b6", "#06d6a0", "#7b61ff", "#fb923c", "#00d4ff", "#e2445c", "#fdab3d"];
 const uid = () => Math.random().toString(36).slice(2, 9);
 
-/* ── Permission defaults (imported from workflow-config) ── */
+/* ── Permission defaults ── */
 const DEFAULT_PERMS = DEFAULT_MEMBER_PERMS;
 const EXTERNAL_PERMS = DEFAULT_EXTERNAL_PERMS;
-
-const PERM_LABELS: Record<string, { label: string; icon: React.ElementType }> = {
-  canAccessOps: { label: "Ops (Gestión)", icon: Check },
-  canAccessPublisher: { label: "Publisher", icon: Check },
-  canAccessInbox: { label: "Inbox", icon: Check },
-  canAccessAds: { label: "Ads Manager", icon: Check },
-  canAccessAnalytics: { label: "Analytics", icon: Check },
-  canAccessBriefing: { label: "Briefing", icon: Check },
-};
 
 export function AreasManager({ members, canEdit }: { members: Member[]; canEdit: boolean }) {
   const [areas, setAreas] = useState<Area[]>([]);
@@ -69,7 +60,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
       id: newId, name: "Nueva área", color: COLORS[prev.length % COLORS.length],
       slaHours: 24, slaMode: "manual", leadIds: [], memberIds: [], requestTypes: [],
       requireLeadReview: true,
-      permissions: { members: { ...DEFAULT_PERMS }, external: { ...EXTERNAL_PERMS } },
+      permissions: { leaders: { ...DEFAULT_LEADER_PERMS }, members: { ...DEFAULT_PERMS }, external: { ...EXTERNAL_PERMS } },
     } as any]);
     setExpanded(new Set([newId]));
     mark();
@@ -80,7 +71,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
       ...a, leadIds: [], memberIds: [],
       requestTypes: a.requestTypes.map((t) => ({ ...t })),
       requireLeadReview: true, slaMode: "manual",
-      permissions: { members: { ...DEFAULT_PERMS }, external: { ...EXTERNAL_PERMS } },
+      permissions: { leaders: { ...DEFAULT_LEADER_PERMS }, members: { ...DEFAULT_PERMS }, external: { ...EXTERNAL_PERMS } },
     }));
     setAreas(seeded as any);
     setExpanded(new Set([seeded[0]?.id]));
@@ -115,13 +106,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
   const removeType = (areaId: string, typeId: string) => {
     setAreas((prev) => prev.map((a) => a.id === areaId ? { ...a, requestTypes: a.requestTypes.filter((t) => t.id !== typeId) } : a)); mark();
   };
-  const patchPerm = (areaId: string, scope: "members" | "external", key: string, val: boolean) => {
-    setAreas((prev) => prev.map((a) => {
-      if (a.id !== areaId) return a;
-      const perms = (a as any).permissions || { members: { ...DEFAULT_PERMS }, external: { ...EXTERNAL_PERMS } };
-      return { ...a, permissions: { ...perms, [scope]: { ...perms[scope], [key]: val } } };
-    })); mark();
-  };
+
 
   const save = async () => {
     setSaving(true);
@@ -173,10 +158,9 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
       )}
 
       {/* ── Scrollable area list ── */}
-      <div style={{ maxHeight: "60vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingRight: 4 }}>
+      <div style={{ maxHeight: "60vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 10, paddingRight: 4, scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.06) transparent" }}>
         {areas.map((area) => {
           const isOpen = expanded.has(area.id);
-          const areaPerms = (area as any).permissions || { members: { ...DEFAULT_PERMS }, external: { ...EXTERNAL_PERMS } };
           return (
             <div key={area.id} style={{ borderRadius: 10, border: `1px solid ${area.color}33`, background: `${area.color}06`, overflow: "hidden", transition: "all 0.2s" }}>
               {/* ── Collapsed header (always visible) ── */}
@@ -216,9 +200,9 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                 </div>
               </div>
 
-              {/* ── Expanded content ── */}
+              {/* ── Expanded content (internal scroll) ── */}
               {isOpen && (
-                <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 14, borderTop: "1px solid rgba(255,255,255,0.05)", animation: "fadeIn 0.2s ease-out" }}>
+                <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 14, borderTop: "1px solid rgba(255,255,255,0.05)", animation: "fadeIn 0.2s ease-out", maxHeight: 340, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.06) transparent" }}>
                   {/* Name edit */}
                   <div style={{ paddingTop: 10 }}>
                     <input value={area.name} onChange={(e) => patchArea(area.id, { name: e.target.value })} disabled={!canEdit} aria-label="Nombre del área"
@@ -278,34 +262,6 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                     </div>
                   </div>
 
-                  {/* ── Permissions (granular) ── */}
-                  <div>
-                    <div className="text-[10px] font-bold tracking-widest uppercase text-slate-500 mb-2.5 flex items-center gap-1.5">
-                      <Shield className="w-3 h-3" /> Permisos
-                    </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                      {/* Members perms */}
-                      <div className="p-3 rounded-md bg-white/5 border border-white/5">
-                        <div className="text-[11px] font-semibold text-slate-400 mb-2">Miembros del área</div>
-                        {Object.entries(PERM_LABELS).map(([key, { label }]) => {
-                          const val = areaPerms.members?.[key] ?? DEFAULT_PERMS[key as keyof typeof DEFAULT_PERMS];
-                          return (
-                            <PermToggle key={key} label={label} checked={val} onChange={(v) => patchPerm(area.id, "members", key, v)} canEdit={canEdit} />
-                          );
-                        })}
-                      </div>
-                      {/* External perms */}
-                      <div className="p-3 rounded-md bg-white/5 border border-white/5">
-                        <div className="text-[11px] font-semibold text-slate-400 mb-2">Usuarios externos</div>
-                        {Object.entries(PERM_LABELS).map(([key, { label }]) => {
-                          const val = areaPerms.external?.[key] ?? EXTERNAL_PERMS[key as keyof typeof EXTERNAL_PERMS];
-                          return (
-                            <PermToggle key={key} label={label} checked={val} onChange={(v) => patchPerm(area.id, "external", key, v)} canEdit={canEdit} />
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
                 </div>
               )}
             </div>
@@ -329,24 +285,6 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
   );
 }
 
-/* ── Permission toggle ── */
-function PermToggle({ label, checked, onChange, canEdit }: { label: string; checked: boolean; onChange: (v: boolean) => void; canEdit: boolean }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "4px 0" }}>
-      <span style={{ fontSize: 11, color: checked ? "#e2e8f0" : "#64748b" }}>{label}</span>
-      <button
-        onClick={() => canEdit && onChange(!checked)}
-        disabled={!canEdit}
-        role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        style={{ width: 28, height: 16, borderRadius: 8, position: "relative", background: checked ? "#00d4ff" : "rgba(255,255,255,0.1)", border: "none", cursor: canEdit ? "pointer" : "default", flexShrink: 0, transition: "background 0.2s" }}
-      >
-        <span style={{ position: "absolute", top: 2, left: checked ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: "#fff", transition: "left 0.15s" }} />
-      </button>
-    </div>
-  );
-}
 
 const ghostBtn: React.CSSProperties = {
   display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8,

@@ -57,7 +57,7 @@ export async function getMetaAccessToken(
         const provider = MODULE_PROVIDER_MAP[module] || `meta_${module}`;
         const moduleIntegration = await prisma.integration.findUnique({
           where: {
-            workspaceId_provider: { workspaceId, provider },
+            workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" },
           },
         });
         if (moduleIntegration?.connected && moduleIntegration.credentials) {
@@ -75,7 +75,7 @@ export async function getMetaAccessToken(
       // 2. Try generic "meta" Integration (shared token)
       const integration = await prisma.integration.findUnique({
         where: {
-          workspaceId_provider: { workspaceId, provider: "meta" },
+          workspaceId_provider_userId: { workspaceId, provider: "meta", userId: "workspace" },
         },
       });
       if (integration?.connected && integration.credentials) {

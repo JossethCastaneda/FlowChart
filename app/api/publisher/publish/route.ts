@@ -178,6 +178,10 @@ export async function POST(req: NextRequest) {
             const domain = isVideo ? "graph-video.facebook.com" : "graph.facebook.com";
             
             const form = new FormData();
+            if (post.status === "Scheduled" && post.scheduledAt) {
+              form.append("published", "false");
+              form.append("scheduled_publish_time", Math.floor(new Date(post.scheduledAt).getTime() / 1000).toString());
+            }
             if (isVideo) {
               form.append("description", fbContent);
             } else {
@@ -213,6 +217,10 @@ export async function POST(req: NextRequest) {
             const domain = isVideo ? "graph-video.facebook.com" : "graph.facebook.com";
             
             const payload: any = {};
+            if (post.status === "Scheduled" && post.scheduledAt) {
+              payload.published = false;
+              payload.scheduled_publish_time = Math.floor(new Date(post.scheduledAt).getTime() / 1000);
+            }
             if (isVideo) {
               payload.file_url = mediaUrl;
               payload.description = fbContent;
@@ -241,12 +249,17 @@ export async function POST(req: NextRequest) {
           }
         } else {
           // Text-only post
+          const payload: any = { message: fbContent };
+          if (post.status === "Scheduled" && post.scheduledAt) {
+            payload.published = false;
+            payload.scheduled_publish_time = Math.floor(new Date(post.scheduledAt).getTime() / 1000);
+          }
           const fbRes = await fetch(
             `https://graph.facebook.com/${META_VERSION}/${pageId}/feed`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json", Authorization: `Bearer ${pageToken}` },
-              body: JSON.stringify({ message: fbContent }),
+              body: JSON.stringify(payload),
             }
           );
           const fbData = await fbRes.json();
@@ -265,7 +278,7 @@ export async function POST(req: NextRequest) {
     }
 
     // ── Publish to Instagram ──
-    if (post.channels.includes("instagram") && igUserId) {
+    if (post.channels.includes("instagram") && igUserId && post.status !== "Scheduled") {
       try {
         const allMedia = (post.mediaUrls?.length ? post.mediaUrls : (post.mediaUrl ? [post.mediaUrl] : []));
         if (allMedia.length === 0) {
@@ -506,10 +519,11 @@ export async function POST(req: NextRequest) {
 
     // Update post status
     const hasAnySuccess = Object.keys(externalIds).length > 0;
+    const newStatus = post.status === "Scheduled" ? "Scheduled" : (hasAnySuccess ? "Published" : "Failed");
     const updateData: any = {
       externalIds,
-      publishedAt: hasAnySuccess ? new Date() : null,
-      status: hasAnySuccess ? "Published" : "Failed",
+      publishedAt: (hasAnySuccess && post.status !== "Scheduled") ? new Date() : null,
+      status: newStatus,
       error: errors.length > 0 ? errors.join(" | ") : null,
       pageName: targetPage.name,
       pageId: targetPage.id,

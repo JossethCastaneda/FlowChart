@@ -1,26 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
-
+import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { createPortal } from "react-dom";
 import {
-  Plus,
-  Home,
-  AtSign,
-  Hash,
-  Calendar,
-  Send,
-  Heart,
-  MessageCircle,
-  Share2,
-  MoreHorizontal,
-  X,
-  Settings,
-  RefreshCw,
-  ChevronDown,
-  ChevronUp,
-  Trash2,
-  Loader2,
+  Plus, Home, AtSign, Hash, Calendar, Send, Heart, MessageCircle, Share2,
+  MoreHorizontal, X, Settings, RefreshCw, ChevronDown, ChevronUp, Trash2, Loader2,
+  ExternalLink, Search, Check
 } from "lucide-react";
+import { useLanguage } from "@/components/layout/LanguageContext";
 
 /* Column type definitions */
 const STREAM_TYPES = [
@@ -52,7 +39,6 @@ interface StreamPost {
   image?: string;
 }
 
-/* ── Board interface ────────────────────────────────────── */
 interface BoardColumn {
   id: string;
   type: string;
@@ -67,10 +53,134 @@ interface Board {
   columns: BoardColumn[];
 }
 
+const TRANSLATIONS = {
+  es: {
+    homeFeed: "Home Feed",
+    mentions: "Menciones",
+    keyword: "Keyword / Hashtag",
+    scheduled: "Programados",
+    published: "Publicados",
+    addCol: "Agregar Columna",
+    type: "Tipo",
+    platform: "Plataforma",
+    activeAsset: "Activo (Página/Perfil)",
+    addBtn: "Agregar",
+    cancelBtn: "Cancelar",
+    emptyBoard: "Board vacío",
+    emptySub: "Agrega columnas para monitorear tu feed, menciones y publicaciones en tiempo real.",
+    selectAsset: "Selecciona un activo...",
+    loadingBoards: "Cargando boards...",
+    newBoardPrompt: "Nombre del board:",
+    deleteBoardConfirm: "¿Eliminar este board?",
+    updatedJustNow: "Actualizado hace un momento",
+    updatedSeconds: "Actualizado hace {s}s",
+    noDataMeta: "Sin contenido aún. Conecta tus activos en el sistema.",
+    postDetail: "Detalle de Publicación",
+    viewOnPlatform: "Ver en la plataforma",
+    nicknamePlaceholder: "Apodo de columna...",
+    refreshInterval: "Frecuencia de Refresco",
+    manualRefresh: "Solo Manual",
+    secondsInterval: "{s} segundos",
+    minutesInterval: "{m} minutos",
+    writeReply: "Escribe una respuesta directa...",
+    sendingReply: "Enviando respuesta...",
+    replySent: "Respuesta enviada con éxito",
+    replyFailed: "Error al enviar la respuesta",
+    sendBtn: "Enviar",
+  },
+  en: {
+    homeFeed: "Home Feed",
+    mentions: "Mentions",
+    keyword: "Keyword / Hashtag",
+    scheduled: "Scheduled",
+    published: "Published",
+    addCol: "Add Column",
+    type: "Type",
+    platform: "Platform",
+    activeAsset: "Active Asset (Page/Profile)",
+    addBtn: "Add",
+    cancelBtn: "Cancel",
+    emptyBoard: "Empty Board",
+    emptySub: "Add columns to monitor your feed, mentions, and posts in real-time.",
+    selectAsset: "Select an asset...",
+    loadingBoards: "Loading boards...",
+    newBoardPrompt: "Board name:",
+    deleteBoardConfirm: "Delete this board?",
+    updatedJustNow: "Updated just now",
+    updatedSeconds: "Updated {s}s ago",
+    noDataMeta: "No content yet. Connect your assets in the dashboard.",
+    postDetail: "Post Detail",
+    viewOnPlatform: "View on platform",
+    nicknamePlaceholder: "Column nickname...",
+    refreshInterval: "Refresh Interval",
+    manualRefresh: "Manual Only",
+    secondsInterval: "{s} seconds",
+    minutesInterval: "{m} minutes",
+    writeReply: "Write a direct reply...",
+    sendingReply: "Sending reply...",
+    replySent: "Reply sent successfully",
+    replyFailed: "Failed to send reply",
+    sendBtn: "Send",
+  }
+};
+
+/* Helper to safely parse JSON query */
+function parseColumnQuery(rawQuery?: string) {
+  if (!rawQuery) return { pageId: "", nickname: "", interval: 60000, keyword: "" };
+  if (rawQuery.startsWith("{")) {
+    try {
+      const parsed = JSON.parse(rawQuery);
+      return {
+        pageId: parsed.pageId || "",
+        nickname: parsed.nickname || "",
+        interval: parsed.interval !== undefined ? parsed.interval : 60000,
+        keyword: parsed.keyword || ""
+      };
+    } catch {
+      // Fallback
+    }
+  }
+  return { pageId: "", nickname: "", interval: 60000, keyword: rawQuery };
+}
+
+/* Helper to serialize JSON query */
+function serializeColumnQuery(pageId: string, nickname: string, interval: number, keyword: string) {
+  return JSON.stringify({ pageId, nickname, interval, keyword });
+}
+
+/* Dropdown component helper */
+function Dropdown({ trigger, children }: { trigger: React.ReactNode; children: (close: () => void) => React.ReactNode }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const h = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
+  }, []);
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-block" }}>
+      <div onClick={() => setOpen(!open)} style={{ cursor: "pointer" }}>{trigger}</div>
+      {open && (
+        <div style={{
+          position: "absolute", top: "100%", right: 0,
+          marginTop: 6, zIndex: 150, background: "var(--surface)",
+          border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden",
+          boxShadow: "0 10px 40px rgba(0,0,0,0.35)", minWidth: 180, padding: 6
+        }}>
+          {children(() => setOpen(false))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══════════════════════════════════════════════════════
    STREAMS DASHBOARD
    ═══════════════════════════════════════════════════════ */
 export function StreamsDashboard() {
+  const { lang } = useLanguage();
+  const t = TRANSLATIONS[lang];
+
   const [boards, setBoards] = useState<Board[]>([]);
   const [activeBoardId, setActiveBoardId] = useState("");
   const [addingColumn, setAddingColumn] = useState(false);
@@ -78,6 +188,9 @@ export function StreamsDashboard() {
   const [newColPlatform, setNewColPlatform] = useState("facebook");
   const [newColQuery, setNewColQuery] = useState("");
   const [loadingBoards, setLoadingBoards] = useState(true);
+  
+  const [availablePages, setAvailablePages] = useState<any[]>([]);
+  const [selectedPost, setSelectedPost] = useState<StreamPost | null>(null);
 
   // Load boards from DB
   useEffect(() => {
@@ -90,6 +203,13 @@ export function StreamsDashboard() {
       })
       .catch(() => {})
       .finally(() => setLoadingBoards(false));
+
+    fetch("/api/meta/pages")
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.data) setAvailablePages(d.data);
+      })
+      .catch(() => {});
   }, []);
 
   const activeBoard = boards.find((b) => b.id === activeBoardId) || boards[0];
@@ -112,11 +232,19 @@ export function StreamsDashboard() {
 
   const addColumn = () => {
     if (!activeBoard) return;
+    
+    let queryVal = "";
+    if (["home_feed", "mentions", "published"].includes(newColType)) {
+      queryVal = serializeColumnQuery(newColQuery, "", 60000, "");
+    } else {
+      queryVal = serializeColumnQuery("", "", 60000, newColQuery);
+    }
+
     const newCol: BoardColumn = {
       id: `c${Date.now()}`,
       type: newColType,
       platform: newColPlatform,
-      query: newColQuery || undefined,
+      query: queryVal,
     };
     const updatedCols = [...activeBoard.columns, newCol];
     setBoards(boards.map((b) =>
@@ -136,9 +264,40 @@ export function StreamsDashboard() {
     saveColumns(activeBoardId, updatedCols);
   };
 
+  /* ── Drag & Drop Column Reordering ── */
+  const handleColumnDrop = (draggedId: string, targetId: string) => {
+    if (!activeBoard || draggedId === targetId) return;
+    const cols = [...activeBoard.columns];
+    const draggedIdx = cols.findIndex((c) => c.id === draggedId);
+    const targetIdx = cols.findIndex((c) => c.id === targetId);
+    if (draggedIdx === -1 || targetIdx === -1) return;
+    
+    // Swap columns
+    const [removed] = cols.splice(draggedIdx, 1);
+    cols.splice(targetIdx, 0, removed);
+    
+    setBoards(boards.map((b) =>
+      b.id === activeBoardId ? { ...b, columns: cols } : b
+    ));
+    saveColumns(activeBoardId, cols);
+  };
+
+  /* ── Update Column Settings ── */
+  const updateColumnConfig = (colId: string, pageId: string, nickname: string, interval: number, keyword: string) => {
+    if (!activeBoard) return;
+    const queryVal = serializeColumnQuery(pageId, nickname, interval, keyword);
+    const updatedCols = activeBoard.columns.map(c => 
+      c.id === colId ? { ...c, query: queryVal } : c
+    );
+    setBoards(boards.map((b) =>
+      b.id === activeBoardId ? { ...b, columns: updatedCols } : b
+    ));
+    saveColumns(activeBoardId, updatedCols);
+  };
+
   /* ── Board CRUD ── */
   const createBoard = async () => {
-    const name = prompt("Nombre del board:");
+    const name = prompt(t.newBoardPrompt);
     if (!name?.trim()) return;
     try {
       const res = await fetch("/api/streams/boards", {
@@ -156,7 +315,7 @@ export function StreamsDashboard() {
 
   const deleteBoard = async (boardId: string) => {
     if (boards.length <= 1) return;
-    if (!confirm("¿Eliminar este board?")) return;
+    if (!confirm(t.deleteBoardConfirm)) return;
     await fetch(`/api/streams/boards/${boardId}`, { method: "DELETE" }).catch(() => {});
     const remaining = boards.filter((b) => b.id !== boardId);
     setBoards(remaining);
@@ -165,30 +324,54 @@ export function StreamsDashboard() {
     }
   };
 
+  const filteredAssets = useMemo(() => {
+    if (newColPlatform === "facebook") {
+      return availablePages.map(p => ({ id: p.id, name: p.name }));
+    }
+    if (newColPlatform === "instagram") {
+      return availablePages.filter(p => p.instagram).map(p => ({ id: p.instagram.id, name: `@${p.instagram.username}` }));
+    }
+    return [];
+  }, [availablePages, newColPlatform]);
+
+  useEffect(() => {
+    if (["home_feed", "mentions", "published"].includes(newColType)) {
+      if (filteredAssets[0] && !newColQuery) {
+        setNewColQuery(filteredAssets[0].id);
+      }
+    }
+  }, [newColType, filteredAssets, newColQuery]);
+
   if (loadingBoards) {
     return (
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "80px 20px", gap: 12 }}>
-        <Loader2 style={{ width: 24, height: 24, color: "#22d3ee", animation: "spin 1s linear infinite" }} />
-        <p style={{ fontSize: 13, color: "#64748b" }}>Cargando boards...</p>
+        <Loader2 style={{ width: 24, height: 24, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
+        <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>{t.loadingBoards}</p>
       </div>
     );
   }
+
+  const selectStyles: React.CSSProperties = {
+    padding: "8px 12px", borderRadius: 8, background: "var(--surface-hover)",
+    border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 13, outline: "none", cursor: "pointer",
+    minWidth: 150
+  };
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16, paddingBottom: 40 }}>
 
       {/* Board tabs */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <div className="flex space-x-1 glass-panel p-1">
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", background: "var(--surface)", border: "1px solid var(--border)", padding: 4, borderRadius: 12 }}>
           {boards.map((board) => (
             <div key={board.id} style={{ display: "flex", alignItems: "center", position: "relative" }}>
               <button
                 onClick={() => setActiveBoardId(board.id)}
-                className={`px-4 py-2 text-sm font-medium rounded-xl transition-all duration-200 ${
-                  activeBoardId === board.id
-                    ? "bg-white/10 text-white shadow-sm"
-                    : "text-slate-400 hover:text-slate-200 hover:bg-white/5"
-                }`}
+                style={{
+                  background: activeBoardId === board.id ? "var(--surface-hover)" : "transparent",
+                  color: activeBoardId === board.id ? "var(--cyan)" : "var(--text-secondary)",
+                  border: "none", borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 13, fontWeight: 600
+                }}
               >
                 {board.name}
               </button>
@@ -197,8 +380,8 @@ export function StreamsDashboard() {
                   onClick={(e) => { e.stopPropagation(); deleteBoard(board.id); }}
                   style={{
                     position: "absolute", top: -4, right: -4, width: 16, height: 16,
-                    borderRadius: "50%", background: "rgba(226,68,92,0.3)", border: "none",
-                    color: "#e2445c", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+                    borderRadius: "50%", background: "rgba(226,68,92,0.15)", border: "1px solid rgba(226,68,92,0.25)",
+                    color: "var(--red)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 10,
                   }}
                   title="Eliminar board"
@@ -208,10 +391,12 @@ export function StreamsDashboard() {
               )}
             </div>
           ))}
-          {/* Add board button */}
           <button
             onClick={createBoard}
-            className="px-3 py-2 text-sm font-medium rounded-xl text-slate-500 hover:text-cyan-400 hover:bg-white/5 transition-all duration-200"
+            style={{
+              background: "transparent", border: "none", color: "var(--text-secondary)",
+              padding: "8px 12px", borderRadius: 8, cursor: "pointer"
+            }}
             title="Nuevo board"
           >
             <Plus style={{ width: 14, height: 14 }} />
@@ -221,106 +406,157 @@ export function StreamsDashboard() {
         <button
           onClick={() => setAddingColumn(true)}
           style={{
-            padding: "8px 14px", borderRadius: 10, background: "rgba(34,211,238,0.12)",
-            border: "1px solid rgba(34,211,238,0.25)", color: "#22d3ee", fontSize: 12,
-            cursor: "pointer", display: "flex", alignItems: "center", gap: 6,
+            padding: "8px 16px", borderRadius: 10, background: "var(--cyan-dim)",
+            border: "1px solid var(--border-strong)", color: "var(--cyan)", fontSize: 12, fontWeight: 700,
+            cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit"
           }}
         >
-          <Plus style={{ width: 14, height: 14 }} /> Agregar Columna
+          <Plus style={{ width: 14, height: 14 }} /> {t.addCol}
         </button>
       </div>
 
       {/* Add column modal */}
       {addingColumn && (
-        <div className="glass-panel p-4" style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap" }}>
+        <div className="glass-panel" style={{ display: "flex", gap: 12, alignItems: "flex-end", flexWrap: "wrap", padding: 16, border: "1px solid var(--border)", background: "var(--surface)", borderRadius: 12 }}>
           <div>
-            <label style={{ fontSize: 11, color: "#94a3b8", display: "block", marginBottom: 4 }}>Tipo</label>
+            <label style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>{t.type}</label>
             <select
               value={newColType}
-              onChange={(e) => setNewColType(e.target.value)}
-              style={{
-                padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.1)",
-                border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 13,
+              onChange={(e) => {
+                setNewColType(e.target.value);
+                setNewColQuery("");
               }}
+              style={selectStyles}
             >
               {STREAM_TYPES.map((t) => (
-                <option key={t.type} value={t.type} style={{ background: "#1a1a2e" }}>{t.label}</option>
+                <option key={t.type} value={t.type} style={{ background: "var(--surface)" }}>{t.label}</option>
               ))}
             </select>
           </div>
           <div>
-            <label style={{ fontSize: 11, color: "#94a3b8", display: "block", marginBottom: 4 }}>Plataforma</label>
+            <label style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>{t.platform}</label>
             <select
               value={newColPlatform}
-              onChange={(e) => setNewColPlatform(e.target.value)}
-              style={{
-                padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.1)",
-                border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 13,
+              onChange={(e) => {
+                setNewColPlatform(e.target.value);
+                setNewColQuery("");
               }}
+              style={selectStyles}
             >
               {Object.keys(platformColors).map((p) => (
-                <option key={p} value={p} style={{ background: "#1a1a2e" }}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
+                <option key={p} value={p} style={{ background: "var(--surface)" }}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>
               ))}
             </select>
           </div>
+          
+          {["home_feed", "mentions", "published"].includes(newColType) && ["facebook", "instagram"].includes(newColPlatform) && (
+            <div>
+              <label style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>{t.activeAsset}</label>
+              <select
+                value={newColQuery}
+                onChange={(e) => setNewColQuery(e.target.value)}
+                style={selectStyles}
+              >
+                <option value="">{t.selectAsset}</option>
+                {filteredAssets.map(asset => (
+                  <option key={asset.id} value={asset.id} style={{ background: "var(--surface)" }}>{asset.name}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
           {(newColType === "keyword" || newColType === "hashtag") && (
             <div>
-              <label style={{ fontSize: 11, color: "#94a3b8", display: "block", marginBottom: 4 }}>Keyword</label>
+              <label style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 4 }}>{t.keyword}</label>
               <input
                 value={newColQuery}
                 onChange={(e) => setNewColQuery(e.target.value)}
                 placeholder="#hashtag o keyword"
                 style={{
-                  padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.1)",
-                  border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 13, outline: "none",
+                  padding: "8px 12px", borderRadius: 8, background: "var(--surface-hover)",
+                  border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 13, outline: "none",
                 }}
               />
             </div>
           )}
+          
           <button onClick={addColumn} style={{
-            padding: "8px 16px", borderRadius: 8, background: "#22d3ee", color: "#0a0a1a",
-            fontWeight: 600, fontSize: 13, border: "none", cursor: "pointer",
+            padding: "8px 20px", borderRadius: 8, background: "var(--cyan-dim)", color: "var(--cyan)",
+            border: "1px solid var(--border-strong)", fontWeight: 700, fontSize: 13, cursor: "pointer",
           }}>
-            Agregar
+            {t.addBtn}
           </button>
           <button onClick={() => setAddingColumn(false)} style={{
-            padding: "8px 16px", borderRadius: 8, background: "transparent", color: "#94a3b8",
-            fontSize: 13, border: "1px solid rgba(255,255,255,0.1)", cursor: "pointer",
+            padding: "8px 16px", borderRadius: 8, background: "transparent", color: "var(--text-secondary)",
+            fontSize: 13, border: "1px solid var(--border)", cursor: "pointer",
           }}>
-            Cancelar
+            {t.cancelBtn}
           </button>
         </div>
       )}
 
       {/* Empty state for no columns */}
       {activeBoard && activeBoard.columns.length === 0 && (
-        <div className="glass-panel" style={{ padding: "48px 20px", textAlign: "center" }}>
-          <Settings style={{ width: 32, height: 32, color: "#334155", margin: "0 auto 12px" }} />
-          <p style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.6)", margin: 0 }}>Board vacío</p>
-          <p style={{ fontSize: 12, color: "#64748b", marginTop: 6 }}>
-            Agrega columnas para monitorear tu feed, menciones y publicaciones en tiempo real.
+        <div className="glass-panel" style={{ padding: "48px 20px", textAlign: "center", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
+          <Settings style={{ width: 32, height: 32, color: "var(--text-muted)", margin: "0 auto 12px" }} />
+          <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{t.emptyBoard}</p>
+          <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 6 }}>
+            {t.emptySub}
           </p>
         </div>
       )}
 
-      {/* Columns grid */}
+      {/* Columns grid with horizontal layout */}
       <div style={{
-        display: "flex", gap: 16, overflowX: "auto", paddingBottom: 8,
+        display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16,
         minHeight: "calc(100vh - 280px)",
       }}>
         {activeBoard?.columns?.map((col) => (
-          <StreamColumnView key={col.id} col={col} onRemove={removeColumn} />
+          <div
+            key={col.id}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData("colId", col.id);
+            }}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              const draggedId = e.dataTransfer.getData("colId");
+              handleColumnDrop(draggedId, col.id);
+            }}
+            style={{ flex: "0 0 auto", cursor: "grab" }}
+          >
+            <StreamColumnView
+              col={col}
+              availablePages={availablePages}
+              onRemove={removeColumn}
+              onUpdateConfig={updateColumnConfig}
+              onPostClick={setSelectedPost}
+            />
+          </div>
         ))}
       </div>
+
+      {/* Modal Detail View */}
+      {selectedPost && (
+        <PostDetailModal post={selectedPost} onClose={() => setSelectedPost(null)} />
+      )}
     </div>
   );
 }
 
 /* ── Stream Column with real data fetching + auto-refresh ── */
 const INITIAL_VISIBLE = 10;
-const REFRESH_INTERVAL = 60_000; // 60s
 
-function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: string) => void }) {
+function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPostClick }: {
+  col: BoardColumn; availablePages: any[]; onRemove: (id: string) => void;
+  onUpdateConfig: (id: string, pageId: string, nickname: string, interval: number, keyword: string) => void;
+  onPostClick: (post: StreamPost) => void;
+}) {
+  const { lang } = useLanguage();
+  const t = TRANSLATIONS[lang];
+
+  const { pageId, nickname, interval, keyword } = useMemo(() => parseColumnQuery(col.query), [col.query]);
+
   const streamType = STREAM_TYPES.find((t) => t.type === col.type);
   const Icon = streamType?.icon || Home;
   const platColor = platformColors[col.platform] || "#64748b";
@@ -331,6 +567,10 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
   const [showAll, setShowAll] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(Date.now());
   const [secondsAgo, setSecondsAgo] = useState(0);
+  
+  // Column-specific search text
+  const [colSearch, setColSearch] = useState("");
+  const [showSearch, setShowSearch] = useState(false);
 
   // Fetch data
   const fetchData = useCallback(() => {
@@ -338,7 +578,8 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
       setLoading(false);
       return;
     }
-    fetch(`/api/streams/feed?type=${col.type}&platform=${col.platform}`)
+    const pageParam = pageId ? `&pageId=${pageId}` : "";
+    fetch(`/api/streams/feed?type=${col.type}&platform=${col.platform}${pageParam}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((data) => {
         if (data?.posts?.length) {
@@ -356,6 +597,8 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
           }));
           setPosts(mapped);
           setIsReal(true);
+        } else {
+          setPosts([]);
         }
       })
       .catch(() => {})
@@ -363,20 +606,21 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
         setLoading(false);
         setLastRefresh(Date.now());
       });
-  }, [col.type, col.platform]);
+  }, [col.type, col.platform, pageId]);
 
   // Initial fetch
   useEffect(() => {
     fetchData();
   }, [fetchData]);
 
-  // Auto-refresh every 60s
+  // Auto-refresh interval listener
   useEffect(() => {
-    const interval = setInterval(() => {
+    if (interval <= 0) return; // Manual only
+    const id = setInterval(() => {
       fetchData();
-    }, REFRESH_INTERVAL);
-    return () => clearInterval(interval);
-  }, [fetchData]);
+    }, interval);
+    return () => clearInterval(id);
+  }, [fetchData, interval]);
 
   // Seconds-ago counter
   useEffect(() => {
@@ -386,68 +630,157 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
     return () => clearInterval(tick);
   }, [lastRefresh]);
 
-  const visiblePosts = showAll ? posts : posts.slice(0, INITIAL_VISIBLE);
-  const hasMore = posts.length > INITIAL_VISIBLE;
+  // Filter posts internally
+  const filteredPosts = useMemo(() => {
+    if (!colSearch.trim()) return posts;
+    const q = colSearch.toLowerCase();
+    return posts.filter(p => 
+      p.content.toLowerCase().includes(q) || 
+      p.author.toLowerCase().includes(q) || 
+      p.handle.toLowerCase().includes(q)
+    );
+  }, [posts, colSearch]);
+
+  const visiblePosts = showAll ? filteredPosts : filteredPosts.slice(0, INITIAL_VISIBLE);
+  const hasMore = filteredPosts.length > INITIAL_VISIBLE;
   const CollapseIcon = collapsed ? ChevronDown : ChevronUp;
+
+  // Resolve active page name
+  const matchedPage = availablePages.find(p => p.id === pageId || (p.instagram?.id === pageId));
+  const pageLabel = matchedPage ? (col.platform === "instagram" ? `@${matchedPage.instagram?.username}` : matchedPage.name) : (keyword || "");
+
+  const headerLabel = nickname || streamType?.label || col.type;
 
   return (
     <div
       style={{
-        minWidth: 320, maxWidth: 360, flex: "0 0 auto",
+        width: 340,
         display: "flex", flexDirection: "column",
-        borderRadius: 12, background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.06)", overflow: "hidden",
+        borderRadius: 12, background: "var(--surface)",
+        border: "1px solid var(--border)", overflow: "hidden",
       }}
     >
       {/* Column header */}
       <div
         style={{
           display: "flex", alignItems: "center", gap: 8, padding: "12px 14px",
-          borderBottom: collapsed ? "none" : "1px solid rgba(255,255,255,0.06)",
-          background: `${platColor}08`,
-          cursor: "pointer", userSelect: "none",
+          borderBottom: collapsed ? "none" : "1px solid var(--border)",
+          background: "var(--surface-hover)",
+          userSelect: "none",
         }}
-        onClick={() => setCollapsed((c) => !c)}
       >
-        <Icon style={{ width: 16, height: 16, color: platColor }} />
-        <span style={{ fontSize: 13, fontWeight: 600, color: "white", flex: 1 }}>
-          {streamType?.label || col.type}
-          {col.query && <span style={{ fontWeight: 400, color: "#94a3b8" }}> · {col.query}</span>}
-          <span style={{ fontWeight: 400, color: "#64748b", marginLeft: 6, fontSize: 11 }}>({posts.length})</span>
-        </span>
-        <span style={{
-          fontSize: 10, padding: "2px 6px", borderRadius: 4,
-          background: `${platColor}20`, color: platColor,
-        }}>
-          {col.platform}
-        </span>
+        <div onClick={() => setCollapsed((c) => !c)} style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, minWidth: 0, cursor: "pointer" }}>
+          <Icon style={{ width: 16, height: 16, color: platColor }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {headerLabel}
+            {pageLabel && <span style={{ fontWeight: 400, color: "var(--text-secondary)", fontSize: 11 }}> · {pageLabel}</span>}
+          </span>
+        </div>
 
-        <CollapseIcon style={{ width: 14, height: 14, color: "#64748b", flexShrink: 0 }} />
+        {/* Action controls */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <button
+            onClick={() => setShowSearch(!showSearch)}
+            style={{ background: "none", border: "none", color: showSearch ? "var(--cyan)" : "var(--text-secondary)", cursor: "pointer", padding: 2 }}
+            title="Buscar en columna"
+          >
+            <Search style={{ width: 13, height: 13 }} />
+          </button>
 
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove(col.id); }}
-          style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", padding: 2 }}
-        >
-          <X style={{ width: 12, height: 12 }} />
-        </button>
+          {/* Column Settings dropdown */}
+          <Dropdown trigger={
+            <button style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 2 }} title="Configuración de columna">
+              <Settings style={{ width: 13, height: 13 }} />
+            </button>
+          }>
+            {(close) => (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                <div>
+                  <input
+                    value={nickname}
+                    onChange={(e) => onUpdateConfig(col.id, pageId, e.target.value, interval, keyword)}
+                    placeholder={t.nicknamePlaceholder}
+                    style={{
+                      width: "100%", padding: "6px 8px", fontSize: 11, background: "var(--surface-hover)",
+                      border: "1px solid var(--border)", color: "var(--foreground)", borderRadius: 4, outline: "none"
+                    }}
+                  />
+                </div>
+                <div style={{ borderTop: "1px solid var(--border)", paddingTop: 6 }}>
+                  <span style={{ fontSize: 9, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: 4 }}>
+                    {t.refreshInterval}
+                  </span>
+                  {[
+                    { val: 0, label: t.manualRefresh },
+                    { val: 30000, label: t.secondsInterval.replace("{s}", "30") },
+                    { val: 60000, label: t.minutesInterval.replace("{m}", "1") },
+                    { val: 300000, label: t.minutesInterval.replace("{m}", "5") },
+                  ].map(opt => (
+                    <button
+                      key={opt.val}
+                      onClick={() => {
+                        onUpdateConfig(col.id, pageId, nickname, opt.val, keyword);
+                        close();
+                      }}
+                      style={{
+                        display: "flex", width: "100%", padding: "5px 8px", border: "none", background: "transparent",
+                        fontSize: 11, color: interval === opt.val ? "var(--cyan)" : "var(--foreground)", cursor: "pointer",
+                        textAlign: "left", borderRadius: 4, alignItems: "center", justifyContent: "space-between"
+                      }}
+                      onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+                    >
+                      {opt.label}
+                      {interval === opt.val && <Check style={{ width: 10, height: 10 }} />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </Dropdown>
+
+          <CollapseIcon onClick={() => setCollapsed((c) => !c)} style={{ width: 14, height: 14, color: "var(--text-muted)", cursor: "pointer" }} />
+
+          <button
+            onClick={() => onRemove(col.id)}
+            style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 2 }}
+          >
+            <X style={{ width: 12, height: 12 }} />
+          </button>
+        </div>
       </div>
 
-      {/* Posts – compact list */}
+      {/* Inner Column Search Bar */}
+      {!collapsed && showSearch && (
+        <div style={{ padding: "6px 10px", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 6, background: "var(--surface-hover)" }}>
+          <Search style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
+          <input
+            value={colSearch}
+            onChange={(e) => setColSearch(e.target.value)}
+            placeholder="Filtrar..."
+            style={{ flex: 1, background: "transparent", border: "none", outline: "none", fontSize: 11, color: "var(--foreground)" }}
+          />
+          {colSearch && (
+            <X style={{ width: 12, height: 12, color: "var(--text-muted)", cursor: "pointer" }} onClick={() => setColSearch("")} />
+          )}
+        </div>
+      )}
+
+      {/* Posts – list */}
       {!collapsed && (
         <>
-          <div style={{ flex: 1, overflowY: "auto", padding: "4px 0" }}>
+          <div style={{ flex: 1, overflowY: "auto", padding: "4px 0", maxHeight: 500 }}>
             {loading && (
               <div style={{ display: "flex", justifyContent: "center", padding: 24 }}>
                 <Loader2 style={{ width: 16, height: 16, color: platColor, animation: "spin 1s linear infinite" }} />
               </div>
             )}
 
-            {!loading && posts.length === 0 && (
+            {!loading && filteredPosts.length === 0 && (
               <div style={{ padding: "32px 16px", textAlign: "center" }}>
                 <Icon style={{ width: 24, height: 24, color: platColor, opacity: 0.3, margin: "0 auto 8px" }} />
-                <p style={{ fontSize: 11, color: "#475569", lineHeight: 1.5 }}>
-                  Sin contenido aún.{"\n"}
-                  Conecta tu cuenta Meta en Integraciones.
+                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
+                  {t.noDataMeta}
                 </p>
               </div>
             )}
@@ -455,99 +788,250 @@ function StreamColumnView({ col, onRemove }: { col: BoardColumn; onRemove: (id: 
             {visiblePosts.map((post) => (
               <div
                 key={post.id}
+                onClick={() => onPostClick(post)}
                 style={{
-                  display: "flex", alignItems: "center", gap: 8,
-                  padding: "6px 14px",
+                  display: "flex", flexDirection: "column", gap: 6,
+                  padding: "10px 14px", borderBottom: "1px solid var(--border-neutral)",
                   transition: "background 0.15s", cursor: "pointer",
                 }}
-                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.1)")}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
                 onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
               >
-                {/* Avatar */}
-                <div style={{
-                  width: 24, height: 24, borderRadius: "50%", background: `${platColor}15`,
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 10, fontWeight: 600, color: platColor, flexShrink: 0,
-                }}>
-                  {post.author.charAt(0)}
-                </div>
-
-                {/* Name + handle */}
-                <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{
-                    fontSize: 12, fontWeight: 500, color: "white",
-                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    width: 24, height: 24, borderRadius: "50%", background: "var(--cyan-dim)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: 10, fontWeight: 600, color: "var(--cyan)", flexShrink: 0,
                   }}>
-                    {post.author}
-                    {post.handle && (
-                      <span style={{ fontWeight: 400, color: "#64748b", marginLeft: 4, fontSize: 10 }}>{post.handle}</span>
-                    )}
+                    {post.author.charAt(0)}
                   </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{
+                      fontSize: 12, fontWeight: 600, color: "var(--foreground)",
+                      whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                    }}>
+                      {post.author}
+                      {post.handle && (
+                        <span style={{ fontWeight: 400, color: "var(--text-secondary)", marginLeft: 4, fontSize: 10 }}>{post.handle}</span>
+                      )}
+                    </div>
+                  </div>
+                  <span style={{ fontSize: 10, color: "var(--text-muted)", flexShrink: 0 }}>{post.time}</span>
                 </div>
 
-                {/* Platform badge */}
-                <span style={{
-                  fontSize: 9, padding: "1px 5px", borderRadius: 3,
-                  background: `${platformColors[post.platform] || platColor}18`,
-                  color: platformColors[post.platform] || platColor,
-                  flexShrink: 0, textTransform: "capitalize",
-                }}>
-                  {post.platform}
-                </span>
+                {post.content && (
+                  <p style={{ fontSize: 11.5, color: "var(--text-secondary)", lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                    {post.content}
+                  </p>
+                )}
 
-                {/* Inline metrics */}
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
-                  <span style={{ display: "flex", alignItems: "center", gap: 2, color: "#64748b", fontSize: 10 }}>
-                    <Heart style={{ width: 10, height: 10 }} /> {post.likes}
+                {post.image && (
+                  <div style={{ width: "100%", height: 120, borderRadius: 6, overflow: "hidden", marginTop: 4, background: "rgba(0,0,0,0.2)" }}>
+                    <img src={post.image} alt="Media" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  </div>
+                )}
+
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 4 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--text-secondary)", fontSize: 10 }}>
+                    <Heart style={{ width: 11, height: 11, color: "var(--text-muted)" }} /> {post.likes}
                   </span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 2, color: "#64748b", fontSize: 10 }}>
-                    <MessageCircle style={{ width: 10, height: 10 }} /> {post.comments}
+                  <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--text-secondary)", fontSize: 10 }}>
+                    <MessageCircle style={{ width: 11, height: 11, color: "var(--text-muted)" }} /> {post.comments}
                   </span>
-                  <span style={{ display: "flex", alignItems: "center", gap: 2, color: "#64748b", fontSize: 10 }}>
-                    <Share2 style={{ width: 10, height: 10 }} /> {post.shares}
+                  <span style={{ display: "flex", alignItems: "center", gap: 3, color: "var(--text-secondary)", fontSize: 10 }}>
+                    <Share2 style={{ width: 11, height: 11, color: "var(--text-muted)" }} /> {post.shares}
                   </span>
                 </div>
-
-                {/* Time */}
-                <span style={{ fontSize: 10, color: "#475569", flexShrink: 0 }}>{post.time}</span>
               </div>
             ))}
           </div>
 
-          {/* Ver más / Ver menos */}
           {hasMore && (
             <button
               onClick={() => setShowAll((s) => !s)}
               style={{
-                width: "100%", padding: "6px 0", background: "none", border: "none",
-                borderTop: "1px solid rgba(255,255,255,0.09)",
-                color: "#22d3ee", fontSize: 11, cursor: "pointer", fontWeight: 500,
+                width: "100%", padding: "8px 0", background: "none", border: "none",
+                borderTop: "1px solid var(--border)",
+                color: "var(--cyan)", fontSize: 11, cursor: "pointer", fontWeight: 700, fontFamily: "inherit"
               }}
             >
-              {showAll ? "Ver menos" : `Ver más (${posts.length - INITIAL_VISIBLE})`}
+              {showAll ? "Ver menos" : `Ver más (${filteredPosts.length - INITIAL_VISIBLE})`}
             </button>
           )}
 
-          {/* Refresh indicator */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
-            padding: 8, borderTop: "1px solid rgba(255,255,255,0.09)",
-            fontSize: 10, color: "#475569",
+            padding: 8, borderTop: "1px solid var(--border)",
+            fontSize: 10, color: "var(--text-muted)",
           }}>
             <button
               onClick={(e) => { e.stopPropagation(); fetchData(); }}
-              style={{ background: "none", border: "none", cursor: "pointer", color: "#475569", padding: 0, display: "flex" }}
+              style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0, display: "flex" }}
               title="Refrescar ahora"
             >
               <RefreshCw style={{ width: 10, height: 10 }} />
             </button>
             {isReal
-              ? `Actualizado hace ${secondsAgo < 5 ? "un momento" : `${secondsAgo}s`}`
-              : "Sin datos — conecta Meta"}
+              ? (lang === "es" ? `Actualizado hace ${secondsAgo < 5 ? "un momento" : `${secondsAgo}s`}` : `Updated ${secondsAgo < 5 ? "just now" : `${secondsAgo}s ago`}`)
+              : t.noDataMeta}
           </div>
         </>
       )}
     </div>
+  );
+}
+
+/* ── Modal Detail View Component with Quick Replies ── */
+function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => void }) {
+  const { lang } = useLanguage();
+  const t = TRANSLATIONS[lang];
+  const [replyText, setReplyText] = useState("");
+  const [sending, setSending] = useState(false);
+  const [statusMsg, setStatusMsg] = useState({ text: "", type: "info" });
+
+  const sendReply = async () => {
+    if (!replyText.trim()) return;
+    setSending(true);
+    setStatusMsg({ text: t.sendingReply, type: "info" });
+    try {
+      const r = await fetch("/api/streams/comment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          postId: post.id,
+          platform: post.platform,
+          content: replyText.trim()
+        })
+      });
+      const d = await r.json();
+      if (r.ok) {
+        setReplyText("");
+        setStatusMsg({ text: t.replySent, type: "success" });
+        setTimeout(() => setStatusMsg({ text: "", type: "info" }), 3000);
+      } else {
+        setStatusMsg({ text: d.error || t.replyFailed, type: "error" });
+      }
+    } catch {
+      setStatusMsg({ text: t.replyFailed, type: "error" });
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return createPortal(
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}>
+      <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 500, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--border)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--foreground)", fontFamily: "'Orbitron',sans-serif" }}>
+              {t.postDetail}
+            </span>
+            <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "var(--cyan-dim)", color: "var(--cyan)", fontWeight: 700, textTransform: "capitalize" }}>
+              {post.platform}
+            </span>
+          </div>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 4 }}>
+            <X style={{ width: 16, height: 16 }} />
+          </button>
+        </div>
+
+        {/* Content */}
+        <div style={{ padding: 20, maxHeight: "60vh", overflowY: "auto", display: "flex", flexDirection: "column", gap: 14 }}>
+          {/* Author info */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--cyan-dim)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--cyan)" }}>
+              {post.author.charAt(0)}
+            </div>
+            <div>
+              <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{post.author}</p>
+              {post.handle && <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0 }}>{post.handle}</p>}
+            </div>
+            <span style={{ fontSize: 10, color: "var(--text-muted)", marginLeft: "auto" }}>{post.time}</span>
+          </div>
+
+          {/* Body content */}
+          {post.content && (
+            <p style={{ fontSize: 13, color: "var(--foreground)", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>
+              {post.content}
+            </p>
+          )}
+
+          {/* Full Media Image */}
+          {post.image && (
+            <div style={{ width: "100%", borderRadius: 8, overflow: "hidden", background: "rgba(0,0,0,0.1)", border: "1px solid var(--border)" }}>
+              <img src={post.image} alt="Full Post Media" style={{ width: "100%", height: "auto", maxHeight: 260, objectFit: "contain" }} />
+            </div>
+          )}
+
+          {/* Stats Summary */}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, padding: "10px 12px", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 8, textAlign: "center" }}>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>{post.likes}</p>
+              <p style={{ fontSize: 9, color: "var(--text-secondary)", margin: 2 }}>Likes</p>
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>{post.comments}</p>
+              <p style={{ fontSize: 9, color: "var(--text-secondary)", margin: 2 }}>Comments</p>
+            </div>
+            <div>
+              <p style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>{post.shares}</p>
+              <p style={{ fontSize: 9, color: "var(--text-secondary)", margin: 2 }}>Shares</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Quick Comment Input */}
+        <div style={{ padding: "12px 18px", borderTop: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 8, background: "var(--surface-hover)" }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              value={replyText}
+              onChange={(e) => setReplyText(e.target.value)}
+              placeholder={t.writeReply}
+              disabled={sending}
+              onKeyDown={e => { if (e.key === "Enter" && replyText.trim()) sendReply(); }}
+              style={{
+                flex: 1, padding: "8px 12px", fontSize: 12, background: "var(--surface)",
+                border: "1px solid var(--border)", color: "var(--foreground)", outline: "none", borderRadius: 6
+              }}
+            />
+            <button
+              onClick={sendReply}
+              disabled={sending || !replyText.trim()}
+              style={{
+                padding: "8px 16px", background: "var(--cyan-dim)", border: "1px solid var(--border-strong)",
+                color: "var(--cyan)", borderRadius: 6, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                opacity: replyText.trim() ? 1 : 0.4
+              }}
+            >
+              {t.sendBtn}
+            </button>
+          </div>
+          {statusMsg.text && (
+            <p style={{
+              fontSize: 10, margin: 0, fontWeight: 600,
+              color: statusMsg.type === "success" ? "var(--emerald)" : statusMsg.type === "error" ? "var(--red)" : "var(--cyan)"
+            }}>
+              {statusMsg.text}
+            </p>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "12px 18px", borderTop: "1px solid var(--border)" }}>
+          <a
+            href={post.platform === "facebook" ? `https://facebook.com/${post.id}` : `https://instagram.com/p/${post.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 16px", borderRadius: 8, background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", fontSize: 12, fontWeight: 700, textDecoration: "none" }}
+          >
+            <ExternalLink style={{ width: 13, height: 13 }} />
+            {t.viewOnPlatform}
+          </a>
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 

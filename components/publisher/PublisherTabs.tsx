@@ -1,25 +1,19 @@
 "use client";
 
 import React, { useState } from "react";
-import { Calendar, CheckCircle2, Images, Plug, Zap } from "lucide-react";
+import { Calendar, CheckCircle2, Images, Zap } from "lucide-react";
 import { Composer } from "./Composer";
 import { ScheduledCalendar } from "./ScheduledCalendar";
-import { IntegrationsPanel } from "./IntegrationsPanel";
 
 const TABS = [
   { key: "composer", label: "Redactor", icon: Zap, color: "#ffbe0b" },
   { key: "calendar", label: "Calendario", icon: Calendar, color: "#06d6a0" },
   { key: "approvals", label: "Aprobaciones", icon: CheckCircle2, color: "#22c55e" },
   { key: "library", label: "Biblioteca", icon: Images, color: "#f472b6" },
-  { key: "integrations", label: "Integraciones", icon: Plug, color: "#00d4ff" },
 ] as const;
 
 export function PublisherTabs() {
-  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["key"]>(() => {
-    if (typeof window === "undefined") return "composer";
-    const params = new URLSearchParams(window.location.search);
-    return params.get("connected") ? "integrations" : "composer";
-  });
+  const [activeTab, setActiveTab] = useState<(typeof TABS)[number]["key"]>("composer");
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%", minHeight: 0 }}>
@@ -99,7 +93,6 @@ export function PublisherTabs() {
             items={["Imagenes y videos", "Hashtags y captions guardados", "Formatos por canal"]}
           />
         )}
-        {activeTab === "integrations" && <IntegrationsPanel />}
       </div>
     </div>
   );

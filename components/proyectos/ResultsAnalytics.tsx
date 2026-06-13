@@ -31,18 +31,115 @@ function fmtDuration(sec: number): string {
 }
 const n = (v: number) => (v ? v.toLocaleString("es-MX") : "—");
 
-export function ResultsAnalytics({ project }: { project?: { whatsapp?: string[]; instagram?: string[]; fanpage?: string[] } }) {
-  void project; // kept for call-site compatibility; the view now covers all channels.
+interface SourceSegment {
+  source: string;
+  label: string;
+  integrationId: string;
+  connected: boolean;
+  error?: string;
+  data: any;
+}
 
-  const [data, setData] = useState<any>(null);
-  const [connected, setConnected] = useState<boolean | null>(null);
+// Identidad visual de cada herramienta CRM conectada al proyecto.
+const SOURCE_META: Record<string, { color: string; icon: any }> = {
+  botmaker: { color: "#3b82f6", icon: Bot },
+  cari: { color: "#10b981", icon: Cpu },
+};
+
+/**
+ * Análisis de resultados del proyecto.
+ *
+ * Si el proyecto tiene CRMs conectados (crmIntegrationIds), consulta
+ * /api/projects/[id]/results y muestra UN segmento independiente por
+ * herramienta (ej. Botmaker | Cari AI) — el tráfico de cada una nunca se
+ * mezcla. Sin CRMs configurados cae al comportamiento anterior
+ * (analítica Botmaker del workspace).
+ */
+export function ResultsAnalytics({ project }: { project?: { id?: string; whatsapp?: string[]; instagram?: string[]; fanpage?: string[]; crmIntegrationIds?: string[]; crmIntegrationId?: string | null } }) {
+  const hasCrms = !!project?.id && ((project?.crmIntegrationIds?.length || 0) > 0 || !!project?.crmIntegrationId);
+  const [segments, setSegments] = useState<SourceSegment[] | null>(null);
+  const [activeSource, setActiveSource] = useState(0);
+  const [segLoading, setSegLoading] = useState(hasCrms);
+
+  useEffect(() => {
+    if (!hasCrms) { setSegments(null); setSegLoading(false); return; }
+    let alive = true;
+    setSegLoading(true);
+    fetch(`/api/projects/${project!.id}/results?days=30`)
+      .then((r) => r.json())
+      .then((res) => {
+        if (!alive) return;
+        const src: SourceSegment[] = res?.data?.sources || [];
+        setSegments(src.length > 0 ? src : null);
+        setActiveSource(0);
+      })
+      .catch(() => { if (alive) setSegments(null); })
+      .finally(() => { if (alive) setSegLoading(false); });
+    return () => { alive = false; };
+  }, [hasCrms, project?.id]);
+
+  if (segLoading) {
+    return <div style={{ display: "flex", justifyContent: "center", padding: 50 }}><Loader2 style={{ width: 24, height: 24, color: "#64748b", animation: "spin 1s linear infinite" }} /></div>;
+  }
+
+  // Sin CRMs por proyecto → comportamiento legado (Botmaker del workspace).
+  if (!segments) return <BotmakerResultsView />;
+
+  const seg = segments[Math.min(activeSource, segments.length - 1)];
+
+  return (
+    <div className="space-y-4">
+      {/* Selector de fuente — cada herramienta se analiza por separado */}
+      {segments.length > 1 && (
+        <div role="tablist" aria-label="Fuentes CRM" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {segments.map((s, i) => {
+            const meta = SOURCE_META[s.source] || { color: "#64748b", icon: Layers };
+            const Icon = meta.icon;
+            const active = i === activeSource;
+            return (
+              <button key={s.integrationId} role="tab" aria-selected={active} onClick={() => setActiveSource(i)}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8, padding: "9px 16px", borderRadius: 8, cursor: "pointer",
+                  fontSize: 13, fontWeight: 700,
+                  color: active ? meta.color : "#94a3b8",
+                  background: active ? `${meta.color}14` : "rgba(255,255,255,0.03)",
+                  border: `1px solid ${active ? `${meta.color}55` : "rgba(255,255,255,0.08)"}`,
+                }}>
+                <Icon style={{ width: 15, height: 15 }} />
+                {s.label}
+                {!s.connected && <span style={{ fontSize: 9, color: "#fbbf24" }}>· sin conectar</span>}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {seg.error && (
+        <div style={{ display: "flex", gap: 10, alignItems: "center", padding: "12px 16px", borderRadius: 8, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
+          <AlertTriangle style={{ width: 16, height: 16, color: "#f87171", flexShrink: 0 }} />
+          <span style={{ fontSize: 12, color: "#fca5a5" }}>{seg.error}</span>
+        </div>
+      )}
+
+      {seg.source === "cari"
+        ? <CariResultsView data={seg.data} />
+        : seg.source === "botmaker"
+          ? <BotmakerResultsView initialData={seg.data} />
+          : <Empty label={`La fuente ${seg.label} aún no tiene adaptador de resultados.`} />}
+    </div>
+  );
+}
+
+function BotmakerResultsView({ initialData }: { initialData?: any }) {
+  const [data, setData] = useState<any>(initialData ?? null);
+  const [connected, setConnected] = useState<boolean | null>(initialData ? (initialData.connected ?? true) : null);
   const [tab, setTab] = useState<TabKey>("all");
   const [errorMsg, setErrorMsg] = useState<string>("");
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!initialData);
 
-  // Fetch ONCE: the API returns metrics for every channel + aggregate, so
-  // switching tabs is instant and costs no extra request.
+  // Modo legado (sin CRMs por proyecto): fetch propio al endpoint de workspace.
   useEffect(() => {
+    if (initialData) return;
     let alive = true;
     setLoading(true);
     fetch("/api/botmaker/analytics")
@@ -61,7 +158,7 @@ export function ResultsAnalytics({ project }: { project?: { whatsapp?: string[];
       })
       .finally(() => { if (alive) setLoading(false); });
     return () => { alive = false; };
-  }, []);
+  }, [initialData]);
 
   const counts = (data?.counts || {}) as Record<TabKey, number>;
   const m = (tab === "all" ? data?.all : data?.byChannel?.[tab]) || {};
@@ -518,6 +615,178 @@ function QualityPanel({ title, icon: Icon, data, accentColor }: {
           </div>
         </details>
       </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════════════════════
+// CARI AI — vista de resultados (misma metodología: funnel del cliente,
+// razones de no-finalización, errores del bot y tendencias). Datos en CDMX.
+// ═════════════════════════════════════════════════════════════════════════════
+
+function CariResultsView({ data }: { data: any }) {
+  const kpis = data?.kpis || {};
+  const funnel: any[] = data?.funnel || [];
+  const reasons: any[] = data?.dropOffReasons || [];
+  const botErr = data?.botErrors || { unanswered: [], totalUnanswered: 0, systemErrors: 0 };
+  const daily: any[] = data?.daily || [];
+  const insights: string[] = data?.insights || [];
+
+  if (!data?.connected) {
+    return (
+      <div style={{ display: "flex", gap: 10, alignItems: "center", padding: "12px 16px", borderRadius: 8, background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)" }}>
+        <Plug style={{ width: 16, height: 16, color: "#fbbf24", flexShrink: 0 }} />
+        <span style={{ fontSize: 12, color: "#fcd34d" }}>Cari AI no conectado. Conéctalo en <strong>Integraciones</strong> con sus credenciales de reportes.</span>
+      </div>
+    );
+  }
+
+  const maxDaily = Math.max(1, ...daily.map((d) => d.total || 0));
+  const maxReason = reasons[0]?.count || 1;
+
+  return (
+    <div className="space-y-4">
+      {/* Rango + zona horaria + parcialidad */}
+      <div style={{ fontSize: 11, color: "#64748b", display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+        <span>{data.range?.from?.slice(0, 10)} → {data.range?.to?.slice(0, 10)} · hora CDMX</span>
+        {data.partial && (
+          <span style={{ color: "#fbbf24", display: "flex", gap: 4, alignItems: "center" }}>
+            <AlertTriangle style={{ width: 11, height: 11 }} /> faltan credenciales de algún grupo de reportes — vista parcial
+          </span>
+        )}
+      </div>
+
+      {/* Headline narrativo */}
+      <div className="glass-panel" style={{ padding: "16px 20px" }}>
+        <p style={{ fontSize: 14, fontWeight: 700, color: "#e2e8f0", lineHeight: 1.5 }}>{data.headline}</p>
+        {insights.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 12 }}>
+            {insights.map((t, i) => (
+              <div key={i} style={{ display: "flex", gap: 8, alignItems: "flex-start" }}>
+                <TrendingUp style={{ width: 12, height: 12, color: "#10b981", flexShrink: 0, marginTop: 2 }} />
+                <span style={{ fontSize: 11, color: "#94a3b8", lineHeight: 1.5 }}>{t}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* KPIs */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Metric icon={MessageSquare} color="#00d4ff" label="Conversaciones" value={n(kpis.totalConversations)} />
+        <Metric icon={Bot} color="#10b981" label="Contención del bot" value={kpis.totalConversations ? `${kpis.botContainmentPct}%` : "—"} />
+        <Metric icon={UserCog} color="#fbbf24" label="Atendidas por agente" value={n(kpis.agentAttended)} />
+        <Metric icon={XCircle} color="#ef4444" label="No finalizadas" value={kpis.totalConversations ? `${kpis.abandonedPct}%` : "—"} />
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+        <Metric icon={CheckCircle2} color="#06d6a0" label="Tasa de finalización" value={kpis.totalConversations ? `${kpis.completionPct}%` : "—"} />
+        <Metric icon={ArrowRight} color="#7b61ff" label="Transferidas a agente" value={n(kpis.transferred)} />
+        <Metric icon={MessageSquare} color="#f472b6" label="Interacciones prom." value={kpis.avgInteractions ? String(kpis.avgInteractions) : "—"} />
+      </div>
+
+      {/* Funnel del cliente */}
+      {funnel.length > 0 && funnel[0].count > 0 && (
+        <div className="glass-panel" style={{ padding: 0 }}>
+          <div className="section-header">
+            <span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <Crosshair style={{ width: 14, height: 14, color: "#f472b6" }} /> Flujo del cliente
+            </span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: kpis.completionPct >= 70 ? "#06d6a0" : kpis.completionPct >= 40 ? "#fbbf24" : "#ef4444" }}>
+              {kpis.completionPct}% finaliza
+            </span>
+          </div>
+          <div style={{ padding: "20px 20px 16px" }}>
+            <div style={{ display: "flex", alignItems: "stretch", gap: 0 }}>
+              {funnel.map((stage, i) => {
+                const isFirst = i === 0;
+                const maxCount = funnel[0].count || 1;
+                const widthPct = (stage.count / maxCount) * 100;
+                const barColor = isFirst ? "#00d4ff" : stage.rate >= 70 ? "#06d6a0" : stage.rate >= 40 ? "#fbbf24" : "#ef4444";
+                return (
+                  <div key={stage.key} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", position: "relative" }}>
+                    <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 18, fontWeight: 700, color: barColor }}>{stage.count.toLocaleString("es-MX")}</span>
+                    <span style={{ fontSize: 9, color: "#94a3b8", fontWeight: 600, textAlign: "center", marginBottom: 6, lineHeight: 1.3 }}>{stage.label}</span>
+                    <div style={{ width: "100%", height: 8, background: "rgba(255,255,255,0.04)", borderRadius: 4, overflow: "hidden" }}>
+                      <div style={{ width: `${widthPct}%`, height: "100%", background: barColor, borderRadius: 4, transition: "width 0.6s ease" }} />
+                    </div>
+                    {!isFirst && <span style={{ fontSize: 9, fontWeight: 700, color: barColor, marginTop: 4 }}>{stage.rate}%</span>}
+                    {i < funnel.length - 1 && <ArrowRight style={{ position: "absolute", right: -8, top: 6, width: 14, height: 14, color: "#334155", zIndex: 1 }} />}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Razones de no-finalización */}
+        <Panel title="Por qué no finalizan" icon={XCircle}>
+          {reasons.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {reasons.map((r) => (
+                <div key={r.key}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 3 }}>
+                    <span style={{ fontSize: 11, color: "#cbd5e1", fontWeight: 600 }}>{r.label}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444" }}>{r.count.toLocaleString("es-MX")} · {r.pct}%</span>
+                  </div>
+                  <div style={{ height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden", marginBottom: 3 }}>
+                    <div style={{ width: `${(r.count / maxReason) * 100}%`, height: "100%", background: "linear-gradient(90deg,#ef4444,#f87171)", borderRadius: 3 }} />
+                  </div>
+                  <p style={{ fontSize: 10, color: "#64748b", lineHeight: 1.4 }}>{r.insight}</p>
+                </div>
+              ))}
+            </div>
+          ) : <Empty label="Sin fugas registradas en el periodo" />}
+        </Panel>
+
+        {/* Errores del bot */}
+        <Panel title={`Errores del bot · ${n(botErr.totalUnanswered)} frases sin respuesta`} icon={Bug}>
+          {botErr.unanswered?.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {botErr.unanswered.map((u: any, i: number) => (
+                <div key={i} style={{ padding: "7px 10px", borderRadius: 4, background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.12)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
+                    <span style={{ fontSize: 11, color: "#fca5a5", fontStyle: "italic", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>"{u.phrase}"</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "#ef4444", flexShrink: 0 }}>{u.count}×</span>
+                  </div>
+                  <span style={{ fontSize: 9, color: "#64748b" }}>Flujo: {u.flow} · Nodo: {u.node}</span>
+                </div>
+              ))}
+              {botErr.systemErrors > 0 && (
+                <p style={{ fontSize: 10, color: "#fbbf24", marginTop: 4 }}>+ {n(botErr.systemErrors)} errores de sistema en el periodo</p>
+              )}
+            </div>
+          ) : <Empty label={botErr.systemErrors > 0 ? `${n(botErr.systemErrors)} errores de sistema (sin frases pendientes)` : "El bot entendió todo en el periodo 🎉"} />}
+        </Panel>
+      </div>
+
+      {/* Tendencia diaria */}
+      <Panel title="Tendencia diaria (conversaciones · hora CDMX)" icon={BarChart3}>
+        {daily.some((d) => d.total > 0) ? (
+          <div style={{ display: "flex", alignItems: "flex-end", gap: 2, height: 130, paddingTop: 8 }}>
+            {daily.map((d) => {
+              const hTotal = (d.total / maxDaily) * 100;
+              const hHandled = d.total > 0 ? ((d.bot + d.attended) / maxDaily) * 100 : 0;
+              return (
+                <div key={d.day} title={`${d.day}\nTotal: ${d.total}\nAtendidas: ${d.bot + d.attended}\nNo finalizadas: ${d.abandoned}`}
+                  style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "flex-end", height: "100%", position: "relative" }}>
+                  <div style={{ height: `${hTotal}%`, minHeight: d.total > 0 ? 3 : 0, background: "rgba(239,68,68,0.45)", borderRadius: "2px 2px 0 0", position: "relative" }}>
+                    <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: hTotal > 0 ? `${(hHandled / hTotal) * 100}%` : 0, background: "linear-gradient(180deg,#10b981,rgba(16,185,129,0.5))", borderRadius: "2px 2px 0 0" }} />
+                  </div>
+                  {daily.length <= 31 && new Date(d.day + "T12:00:00").getDate() % 7 === 1 && (
+                    <span style={{ fontSize: 7, color: "#475569", textAlign: "center", marginTop: 2 }}>{d.day.slice(5)}</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        ) : <Empty />}
+        <div style={{ display: "flex", gap: 14, marginTop: 8 }}>
+          <span style={{ fontSize: 9, color: "#94a3b8", display: "flex", gap: 5, alignItems: "center" }}><span style={{ width: 8, height: 8, borderRadius: 2, background: "#10b981", display: "inline-block" }} /> Atendidas (bot + agente)</span>
+          <span style={{ fontSize: 9, color: "#94a3b8", display: "flex", gap: 5, alignItems: "center" }}><span style={{ width: 8, height: 8, borderRadius: 2, background: "rgba(239,68,68,0.45)", display: "inline-block" }} /> No finalizadas</span>
+        </div>
+      </Panel>
     </div>
   );
 }

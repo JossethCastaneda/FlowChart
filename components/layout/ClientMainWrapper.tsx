@@ -18,6 +18,8 @@ import {
   Target,
   Zap,
   ChevronRight,
+  ChevronLeft,
+  Check,
   LogOut,
   FolderKanban,
   Megaphone,
@@ -26,7 +28,20 @@ import {
   BarChart3,
   Ear,
   Columns3,
+  MessageSquarePlus,
+  HelpCircle,
+  ChevronDown,
+  UserCheck,
+  UserMinus,
+  Coffee,
+  Utensils,
+  GraduationCap,
+  MinusCircle,
+  Languages,
+  Palette,
 } from "lucide-react";
+import { showToast } from "@/components/ui/Toast";
+import { useLanguage } from "@/components/layout/LanguageContext";
 
 const NAV_ITEMS: { name: string; short: string; href: string; icon: any; color: string; roles?: string[] }[] = [
   { name: "Inicio", short: "HOME", href: "/dashboard/resumen", icon: LayoutDashboard, color: "#00d4ff" },
@@ -34,18 +49,111 @@ const NAV_ITEMS: { name: string; short: string; href: string; icon: any; color: 
   { name: "Planner", short: "PLAN", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b" },
   { name: "Inbox", short: "INBX", href: "/dashboard/inbox", icon: MessageSquare, color: "#a855f7" },
   { name: "Analytics", short: "DATA", href: "/dashboard/analytics", icon: BarChart3, color: "#f472b6" },
+  { name: "Resultados", short: "RES", href: "/dashboard/analisis-resultados", icon: Target, color: "#00d4ff" },
   { name: "Ads", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB" },
   { name: "Listening", short: "LIST", href: "/dashboard/listening", icon: Ear, color: "#fb923c" },
   { name: "Streams", short: "STRM", href: "/dashboard/streams", icon: Columns3, color: "#22d3ee" },
   { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500" },
   { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55" },
-  { name: "Integraciones", short: "APIs", href: "/dashboard/integrations", icon: Plug, color: "#00d4ff", roles: ["OWNER", "ADMIN"] },
-  { name: "Admin", short: "ADM", href: "/dashboard/settings", icon: Settings, color: "#94a3b8", roles: ["OWNER", "ADMIN"] },
 ];
 
 
 
 const SIDEBAR_COLLAPSE_KEY = "sodare:sidebar-collapsed";
+
+const TRANSLATIONS = {
+  es: {
+    inicio: "Inicio",
+    clientes: "Clientes",
+    planner: "Planner",
+    inbox: "Inbox",
+    analytics: "Analytics",
+    ads: "Ads",
+    listening: "Listening",
+    streams: "Streams",
+    gridia: "GridIA",
+    ops: "Ops",
+    integrations: "Integraciones",
+    admin: "Admin",
+    operacion: "Operación",
+    colapsar: "Colapsar",
+    expandir: "Expandir menú",
+    estado: "Estado",
+    recibe: "Recibe conversaciones",
+    noRecibe: "No recibe conversaciones",
+    enLinea: "En línea",
+    break: "Break",
+    almuerzo: "Almuerzo",
+    coach: "Coach",
+    ocupado: "Ocupado",
+    idioma: "Cambiar lenguaje",
+    apariencia: "Apariencia",
+    config: "Configuración",
+    logout: "Cerrar sesión",
+    superAdmin: "Super Administrador",
+    miembro: "Miembro de Equipo",
+    idiomaTitulo: "Seleccionar Idioma",
+    aparienciaTitulo: "Apariencia",
+    modoOscuro: "Original (Oscuro)",
+    modoClaro: "Claro",
+    modoAzul: "Azul Medianoche",
+  },
+  en: {
+    inicio: "Home",
+    clientes: "Clients",
+    planner: "Planner",
+    inbox: "Inbox",
+    analytics: "Analytics",
+    ads: "Ads",
+    listening: "Listening",
+    streams: "Streams",
+    gridia: "GridIA",
+    ops: "Ops",
+    integrations: "Integrations",
+    admin: "Admin",
+    operacion: "Operation",
+    colapsar: "Collapse",
+    expandir: "Expand menu",
+    estado: "Status",
+    recibe: "Receives conversations",
+    noRecibe: "Does not receive conversations",
+    enLinea: "Online",
+    break: "Break",
+    almuerzo: "Lunch",
+    coach: "Coach",
+    ocupado: "Busy",
+    idioma: "Change language",
+    apariencia: "Appearance",
+    config: "Settings",
+    logout: "Sign Out",
+    superAdmin: "Super Administrator",
+    miembro: "Team Member",
+    idiomaTitulo: "Select Language",
+    aparienciaTitulo: "Appearance",
+    modoOscuro: "Original (Dark)",
+    modoClaro: "Light",
+    modoAzul: "Midnight Blue",
+  }
+};
+
+const getTranslatedNavItemName = (name: string, lang: 'es' | 'en') => {
+  const map: Record<string, string> = {
+    "Inicio": lang === 'es' ? "Inicio" : "Home",
+    "Clientes": lang === 'es' ? "Clientes" : "Clients",
+    "Planner": lang === 'es' ? "Planner" : "Planner",
+    "Inbox": lang === 'es' ? "Inbox" : "Inbox",
+    "Analytics": lang === 'es' ? "Analytics" : "Analytics",
+    "Ads": lang === 'es' ? "Ads" : "Ads",
+    "Listening": lang === 'es' ? "Listening" : "Listening",
+    "Streams": lang === 'es' ? "Streams" : "Streams",
+    "GridIA": lang === 'es' ? "GridIA" : "GridIA",
+    "Ops": lang === 'es' ? "Ops" : "Ops",
+    "Integraciones": lang === 'es' ? "Integraciones" : "Integrations",
+    "Resultados": lang === 'es' ? "Resultados" : "Results",
+    "Admin": lang === 'es' ? "Admin" : "Admin",
+  };
+  return map[name] || name;
+};
 
 export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -77,36 +185,101 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   // ── Activity status ──
   const STATUS_OPTIONS = [
-    { key: "disponible", label: "Disponible", color: "#00c875" },
-    { key: "ocupado", label: "Ocupado", color: "#fdab3d" },
-    { key: "ausente", label: "Ausente", color: "#e2445c" },
-    { key: "offline", label: "Offline", color: "#64748b" },
+    { key: "online_chat", dbStatus: "disponible" as const, label: "En línea (Recibe chat)", category: "recibe" as const, color: "#00c875", icon: UserCheck },
+    { key: "online_no_chat", dbStatus: "ausente" as const, label: "En línea", category: "no_recibe" as const, color: "#fdab3d", icon: UserMinus },
+    { key: "break", dbStatus: "ausente" as const, label: "Break", category: "no_recibe" as const, color: "#fdab3d", icon: Coffee },
+    { key: "almuerzo", dbStatus: "ausente" as const, label: "Almuerzo", category: "no_recibe" as const, color: "#fdab3d", icon: Utensils },
+    { key: "coach", dbStatus: "ausente" as const, label: "Coach", category: "no_recibe" as const, color: "#fdab3d", icon: GraduationCap },
+    { key: "ocupado", dbStatus: "ocupado" as const, label: "Ocupado", category: "no_recibe" as const, color: "#e2445c", icon: MinusCircle },
   ];
-  const [activityStatus, setActivityStatus] = useState("disponible");
+  const [activityStatus, setActivityStatus] = useState<"disponible" | "ocupado" | "ausente" | "offline">("disponible");
+  const [subStatus, setSubStatus] = useState<string>("online_chat");
   const [userRole, setUserRole] = useState<string>("");
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
-  const statusRef = useRef<HTMLDivElement>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const [theme, setTheme] = useState<'original' | 'claro' | 'azul_medianoche'>('original');
+  const { lang, setLang } = useLanguage();
+  const [activePanel, setActivePanel] = useState<'main' | 'lang' | 'theme'>('main');
+
+  useEffect(() => {
+    // Load saved theme
+    const savedTheme = localStorage.getItem("sodare:theme") as 'original' | 'claro' | 'azul_medianoche' | null;
+    if (savedTheme) {
+      setTheme(savedTheme);
+      applyTheme(savedTheme);
+    }
+  }, []);
+
+  const applyTheme = (t: 'original' | 'claro' | 'azul_medianoche') => {
+    const root = document.documentElement;
+    root.classList.remove('theme-claro', 'theme-azul-medianoche');
+    if (t === 'claro') root.classList.add('theme-claro');
+    if (t === 'azul_medianoche') root.classList.add('theme-azul-medianoche');
+  };
+
+  const changeTheme = (t: 'original' | 'claro' | 'azul_medianoche') => {
+    setTheme(t);
+    applyTheme(t);
+    localStorage.setItem("sodare:theme", t);
+    setActivePanel('main');
+    showToast("success", lang === 'es' ? `Tema cambiado` : `Theme changed`);
+  };
+
+  const changeLang = (l: 'es' | 'en') => {
+    setLang(l);
+    localStorage.setItem("sodare:lang", l);
+    setActivePanel('main');
+    showToast("success", l === 'es' ? `Idioma cambiado a Español` : `Language changed to English`);
+  };
+
+  const t = TRANSLATIONS[lang];
 
   useEffect(() => {
     fetch("/api/workspace/members/status")
       .then(r => r.json())
-      .then(d => { if (d.activityStatus) setActivityStatus(d.activityStatus); if (d.role) setUserRole(d.role); })
+      .then(d => { 
+        if (d.activityStatus) {
+          setActivityStatus(d.activityStatus); 
+          const local = localStorage.getItem("sodare:sub-status");
+          const matched = STATUS_OPTIONS.find(s => s.key === local);
+          if (matched && matched.dbStatus === d.activityStatus) {
+            setSubStatus(matched.key);
+          } else {
+            const def = STATUS_OPTIONS.find(s => s.dbStatus === d.activityStatus);
+            if (def) setSubStatus(def.key);
+          }
+        }
+        if (d.role) setUserRole(d.role); 
+      })
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    const h = (e: MouseEvent) => { if (statusRef.current && !statusRef.current.contains(e.target as Node)) setStatusMenuOpen(false); };
+    const h = (e: MouseEvent) => { if (userMenuRef.current && !userMenuRef.current.contains(e.target as Node)) setUserMenuOpen(false); };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  const changeStatus = async (s: string) => {
-    setActivityStatus(s);
-    setStatusMenuOpen(false);
-    try { await fetch("/api/workspace/members/status", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: s }) }); } catch {}
+  const changeStatus = async (statusKey: string) => {
+    const opt = STATUS_OPTIONS.find(o => o.key === statusKey);
+    if (!opt) return;
+
+    setSubStatus(statusKey);
+    setActivityStatus(opt.dbStatus);
+    localStorage.setItem("sodare:sub-status", statusKey);
+    setUserMenuOpen(false);
+
+    try { 
+      await fetch("/api/workspace/members/status", { 
+        method: "PUT", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ status: opt.dbStatus }) 
+      }); 
+    } catch {}
   };
 
-  const currentStatusCfg = STATUS_OPTIONS.find(s => s.key === activityStatus) || STATUS_OPTIONS[0];
+  const currentStatusCfg = STATUS_OPTIONS.find(s => s.key === subStatus) || { key: "online_chat", dbStatus: "disponible" as const, label: "En línea", category: "recibe" as const, color: "#00c875", icon: UserCheck };
 
   if (!pathname?.startsWith("/dashboard")) {
     return <>{children}</>;
@@ -124,7 +297,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   return (
     <div className="h-screen overflow-hidden flex" style={{ background: "var(--background)" }}>
       {/* Animated galaxy background */}
-      <GalaxyBackground />
+      {theme !== 'claro' && <GalaxyBackground />}
       <div className="dashboard-grid" />
 
       {/* Mobile overlay */}
@@ -168,7 +341,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             textTransform: "uppercase" as const,
             color: "rgba(148,163,184,0.65)",
           }}>
-            Operacion
+            {t.operacion}
           </span>
         </div>
 
@@ -177,6 +350,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           {NAV_ITEMS.filter(item => !item.roles || !userRole || item.roles.includes(userRole)).map((item) => {
             const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
             const Icon = item.icon;
+            const translatedName = getTranslatedNavItemName(item.name, lang);
 
             return (
               <Link
@@ -193,7 +367,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     filter: isActive ? `drop-shadow(0 0 6px ${item.color})` : undefined,
                   }}
                 />
-                <span className="flex-1 nav-full-name">{item.name}</span>
+                <span className="flex-1 nav-full-name">{translatedName}</span>
                 <span className="nav-short-name">{item.short}</span>
                 {isActive && (
                   <ChevronRight className="w-3 h-3" style={{ color: item.color, opacity: 0.5 }} />
@@ -207,68 +381,17 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         <button
           onClick={toggleCollapsed}
           className="sidebar-collapse-btn hidden lg:flex"
-          title={collapsed ? "Expandir menú" : "Colapsar menú"}
-          aria-label={collapsed ? "Expandir menú" : "Colapsar menú"}
+          title={collapsed ? t.expandir : t.colapsar}
+          aria-label={collapsed ? t.expandir : t.colapsar}
         >
           <ChevronRight
             className="w-[18px] h-[18px] flex-shrink-0"
             style={{ transform: collapsed ? "none" : "rotate(180deg)", transition: "transform 0.3s ease" }}
           />
-          <span className="sidebar-hide-compact">Colapsar</span>
+          <span className="sidebar-hide-compact">{t.colapsar}</span>
         </button>
 
-        {/* User section */}
-        <div className="user-chip" style={{ position: "relative" }}>
-          <div style={{ position: "relative" }}>
-            <div className="user-avatar" style={{ overflow: "hidden" }}>
-              {session?.user?.image ? (
-                <img src={session.user.image} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-              ) : (
-                <Users className="w-4 h-4 text-white" />
-              )}
-            </div>
-            <div
-              ref={statusRef}
-              onClick={() => setStatusMenuOpen(!statusMenuOpen)}
-              title={`Estatus: ${currentStatusCfg.label}`}
-              style={{ position: "absolute", bottom: -1, right: -1, width: 12, height: 12, borderRadius: "50%", background: currentStatusCfg.color, border: "2px solid var(--background)", cursor: "pointer", zIndex: 2, transition: "background 0.2s" }}
-            >
-              {statusMenuOpen && (
-                <div style={{ position: "absolute", bottom: 18, left: "50%", transform: "translateX(-50%)", background: "rgba(10,15,30,0.97)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: 4, minWidth: 140, zIndex: 100, boxShadow: "0 8px 32px rgba(0,0,0,0.6)" }}>
-                  {STATUS_OPTIONS.map(s => (
-                    <button key={s.key} onClick={(e) => { e.stopPropagation(); changeStatus(s.key); }} style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", padding: "7px 10px", border: "none", cursor: "pointer", borderRadius: 4, background: activityStatus === s.key ? "rgba(255,255,255,0.08)" : "transparent", fontSize: 12, color: "#e2e8f0", fontFamily: "inherit" }}>
-                      <span style={{ width: 8, height: 8, borderRadius: "50%", background: s.color, flexShrink: 0 }} />
-                      {s.label}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="flex-1 min-w-0 sidebar-hide-compact">
-            <p style={{
-              fontFamily: "'Orbitron', sans-serif",
-              fontSize: "11px",
-              fontWeight: 600,
-              color: "white",
-              letterSpacing: "0.15em",
-              textTransform: "uppercase" as const,
-            }}>
-              {session?.user?.name || "Comandante"}
-            </p>
-            <p style={{ fontSize: "10px", color: currentStatusCfg.color, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
-              {currentStatusCfg.label}
-            </p>
-          </div>
-          <button
-            className="p-1.5 hover:bg-white/5 transition-colors sidebar-hide-compact"
-            style={{ color: "rgba(148,163,184,0.65)" }}
-            title="Cerrar sesión"
-            onClick={() => signOut({ callbackUrl: "/login" })}
-          >
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
+
       </aside>
 
       {/* ─── Main Content ─── */}
@@ -293,12 +416,287 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         <MobileBottomNav onOpenMenu={() => setSidebarOpen(true)} />
 
         {/* Desktop top bar */}
-        <div className="hidden lg:flex items-center justify-end px-4 py-2" style={{
+        <div className="hidden lg:flex items-center justify-end px-6 py-2 gap-5" style={{
           borderBottom: "1px solid var(--border)",
           background: "rgba(5,8,18,0.6)",
           backdropFilter: "blur(20px)",
+          height: "56px",
+          position: "relative",
+          zIndex: 50,
         }}>
+          {/* Quick actions */}
+          <Link href="/dashboard/inbox" className="text-slate-400 hover:text-white transition-colors" title="Conversaciones">
+            <MessageSquarePlus className="w-[18px] h-[18px]" />
+          </Link>
+
           <NotificationBell />
+
+          <button className="text-slate-400 hover:text-white transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+            <HelpCircle className="w-[18px] h-[18px]" />
+          </button>
+
+          {/* User Menu Trigger */}
+          <div className="relative" ref={userMenuRef}>
+            <button
+              onClick={() => { setUserMenuOpen(!userMenuOpen); setActivePanel('main'); }}
+              className="flex items-center gap-3 hover:bg-white/5 px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
+              style={{ background: "transparent", border: "none" }}
+            >
+              <div style={{ position: "relative" }}>
+                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/10" style={{ background: "linear-gradient(135deg,#00B2FF,#0064E0)" }}>
+                  {session?.user?.image ? (
+                    <img src={session.user.image} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
+                      {session?.user?.name?.charAt(0).toUpperCase() || "C"}
+                    </div>
+                  )}
+                </div>
+                <div style={{
+                  position: "absolute",
+                  bottom: -1,
+                  right: -1,
+                  width: 10,
+                  height: 10,
+                  borderRadius: "50%",
+                  background: currentStatusCfg.color,
+                  border: "1.5px solid var(--background)",
+                }} />
+              </div>
+
+              <div className="flex flex-col items-start text-left min-w-[70px]">
+                <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.6)", textTransform: "uppercase", letterSpacing: "0.05em", lineHeight: 1.1 }}>{t.estado}</span>
+                <span style={{ fontSize: "11px", color: theme === 'claro' ? '#0f172a' : 'white', fontWeight: 600, lineHeight: 1.2 }}>
+                  {currentStatusCfg.key === "online_chat" ? t.enLinea : currentStatusCfg.key === "online_no_chat" ? t.enLinea : currentStatusCfg.key === "break" ? t.break : currentStatusCfg.key === "almuerzo" ? t.almuerzo : currentStatusCfg.key === "coach" ? t.coach : t.ocupado}
+                </span>
+              </div>
+
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+            </button>
+
+            {/* Dropdown Panel */}
+            {userMenuOpen && (
+              <div
+                style={{
+                  position: "absolute",
+                  top: "105%",
+                  right: 0,
+                  width: 280,
+                  background: theme === 'claro' ? "rgba(255, 255, 255, 0.98)" : "rgba(10, 15, 30, 0.98)",
+                  backdropFilter: "blur(20px)",
+                  border: theme === 'claro' ? "1px solid rgba(0, 0, 0, 0.08)" : "1px solid rgba(255, 255, 255, 0.08)",
+                  borderRadius: 12,
+                  boxShadow: theme === 'claro' ? "0 10px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.02)" : "0 10px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,240,255,0.05)",
+                  padding: "16px 0 8px",
+                  zIndex: 999,
+                  animation: "fadeInScale 0.15s ease-out",
+                  color: theme === 'claro' ? "#0f172a" : "white",
+                }}
+              >
+                {activePanel === 'main' && (
+                  <>
+                    {/* User Header */}
+                    <div className="px-5 pb-4 flex items-center gap-3">
+                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-white/10" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", flexShrink: 0 }}>
+                        {session?.user?.image ? (
+                          <img src={session.user.image} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
+                            {session?.user?.name?.charAt(0).toUpperCase() || "C"}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p style={{ fontSize: 13, fontWeight: 700, color: theme === 'claro' ? "#0f172a" : "white", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {session?.user?.name || "Josseth"}
+                        </p>
+                        <p style={{ fontSize: 10, color: theme === 'claro' ? "#475569" : "rgba(148, 163, 184, 0.7)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {userRole === "OWNER" || userRole === "ADMIN" ? t.superAdmin : t.miembro}
+                        </p>
+                        <p style={{ fontSize: 10, color: theme === 'claro' ? "#64748b" : "rgba(148, 163, 184, 0.4)", margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                          {session?.user?.email || ""}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{ height: "1px", background: theme === 'claro' ? "rgba(0,0,0,0.06)" : "rgba(255, 255, 255, 0.06)", margin: "0 0 12px" }} />
+
+                    {/* Estado Section */}
+                    <div className="px-5">
+                      <p style={{ fontSize: "10px", fontWeight: 700, color: theme === 'claro' ? "#475569" : "rgba(148, 163, 184, 0.7)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 10px" }}>{t.estado}</p>
+                      
+                      {/* Recibe conversaciones */}
+                      <p style={{ fontSize: "10px", color: theme === 'claro' ? "#64748b" : "rgba(148, 163, 184, 0.4)", margin: "0 0 6px" }}>{t.recibe}</p>
+                      <div className="space-y-1 mb-3">
+                        {STATUS_OPTIONS.filter(o => o.category === "recibe").map(opt => {
+                          const Icon = opt.icon;
+                          const isSelected = subStatus === opt.key;
+                          return (
+                            <button
+                              key={opt.key}
+                              onClick={() => changeStatus(opt.key)}
+                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-white/5 transition-colors"
+                              style={{
+                                background: isSelected ? (theme === 'claro' ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.08)") : "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "rgba(0,200,117,0.15)" }}>
+                                <Icon className="w-3.5 h-3.5 text-[#00c875]" />
+                              </div>
+                              <span style={{ fontSize: 12, color: isSelected ? (theme === 'claro' ? "#0f172a" : "white") : (theme === 'claro' ? "#475569" : "#e2e8f0"), fontWeight: isSelected ? 600 : 400 }}>
+                                {opt.key === "online_chat" ? t.enLinea : opt.label}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      {/* No recibe conversaciones */}
+                      <p style={{ fontSize: "10px", color: theme === 'claro' ? "#64748b" : "rgba(148, 163, 184, 0.4)", margin: "0 0 6px" }}>{t.noRecibe}</p>
+                      <div className="space-y-1 mb-2" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        {STATUS_OPTIONS.filter(o => o.category === "no_recibe").map(opt => {
+                          const Icon = opt.icon;
+                          const isSelected = subStatus === opt.key;
+                          return (
+                            <button
+                              key={opt.key}
+                              onClick={() => changeStatus(opt.key)}
+                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-white/5 transition-colors"
+                              style={{
+                                background: isSelected ? (theme === 'claro' ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.08)") : "transparent",
+                                border: "none",
+                                cursor: "pointer",
+                              }}
+                            >
+                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "rgba(253,171,61,0.15)", flexShrink: 0 }}>
+                                <Icon className="w-3.5 h-3.5 text-[#fdab3d]" />
+                              </div>
+                              <span style={{ fontSize: 12, color: isSelected ? (theme === 'claro' ? "#0f172a" : "white") : (theme === 'claro' ? "#475569" : "#e2e8f0"), fontWeight: isSelected ? 600 : 400 }}>
+                                {opt.key === "online_no_chat" ? t.enLinea : opt.key === "break" ? t.break : opt.key === "almuerzo" ? t.almuerzo : opt.key === "coach" ? t.coach : t.ocupado}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div style={{ height: "1px", background: theme === 'claro' ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)", margin: "8px 0" }} />
+
+                    {/* Actions Section */}
+                    <div className="px-2" style={{ display: "flex", flexDirection: "column" }}>
+                      <button
+                        onClick={() => setActivePanel('lang')}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-white/5 transition-colors"
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: theme === 'claro' ? "#475569" : "#e2e8f0" }}
+                      >
+                        <Languages className="w-4 h-4 text-slate-400" />
+                        <span style={{ fontSize: 12 }}>{t.idioma}</span>
+                      </button>
+                      <button
+                        onClick={() => setActivePanel('theme')}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-white/5 transition-colors"
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: theme === 'claro' ? "#475569" : "#e2e8f0" }}
+                      >
+                        <Palette className="w-4 h-4 text-slate-400" />
+                        <span style={{ fontSize: 12 }}>{t.apariencia}</span>
+                      </button>
+                      <Link
+                        href="/dashboard/settings"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-left"
+                        style={{ color: theme === 'claro' ? "#475569" : "#e2e8f0" }}
+                      >
+                        <Settings className="w-4 h-4 text-slate-400" />
+                        <span style={{ fontSize: 12 }}>{t.config}</span>
+                      </Link>
+                      <button
+                        onClick={() => signOut({ callbackUrl: "/login" })}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors text-left"
+                        style={{ background: "transparent", border: "none", cursor: "pointer" }}
+                      >
+                        <LogOut className="w-4 h-4 text-red-500" />
+                        <span style={{ fontSize: 12, fontWeight: 500 }}>{t.logout}</span>
+                      </button>
+                    </div>
+                  </>
+                )}
+
+                {activePanel === 'lang' && (
+                  <div className="px-4 py-2">
+                    <button
+                      onClick={() => setActivePanel('main')}
+                      className="flex items-center gap-2 text-xs font-semibold mb-4 hover:opacity-80 transition-opacity"
+                      style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "rgba(148, 163, 184, 0.7)", cursor: "pointer" }}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Volver / Back
+                    </button>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: theme === 'claro' ? "#0f172a" : "white", marginBottom: 12 }}>{t.idiomaTitulo}</p>
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => changeLang('es')}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                      >
+                        <span>Español (ES)</span>
+                        {lang === 'es' && <Check className="w-4 h-4 text-[#00c875]" />}
+                      </button>
+                      <button
+                        onClick={() => changeLang('en')}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                      >
+                        <span>English (EN)</span>
+                        {lang === 'en' && <Check className="w-4 h-4 text-[#00c875]" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {activePanel === 'theme' && (
+                  <div className="px-4 py-2">
+                    <button
+                      onClick={() => setActivePanel('main')}
+                      className="flex items-center gap-2 text-xs font-semibold mb-4 hover:opacity-80 transition-opacity"
+                      style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "rgba(148, 163, 184, 0.7)", cursor: "pointer" }}
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                      Volver / Back
+                    </button>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: theme === 'claro' ? "#0f172a" : "white", marginBottom: 12 }}>{t.aparienciaTitulo}</p>
+                    <div className="space-y-1">
+                      <button
+                        onClick={() => changeTheme('original')}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                      >
+                        <span>{t.modoOscuro}</span>
+                        {theme === 'original' && <Check className="w-4 h-4 text-[#00c875]" />}
+                      </button>
+                      <button
+                        onClick={() => changeTheme('claro')}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                      >
+                        <span>{t.modoClaro}</span>
+                        {theme === 'claro' && <Check className="w-4 h-4 text-[#00c875]" />}
+                      </button>
+                      <button
+                        onClick={() => changeTheme('azul_medianoche')}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                      >
+                        <span>{t.modoAzul}</span>
+                        {theme === 'azul_medianoche' && <Check className="w-4 h-4 text-[#00c875]" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Page content */}

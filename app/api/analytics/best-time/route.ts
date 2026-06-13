@@ -51,6 +51,28 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    const pageIdsParam = req.nextUrl.searchParams.get("pageIds");
+    const platformParam = req.nextUrl.searchParams.get("platform");
+    const forceParam = req.nextUrl.searchParams.get("force") === "true";
+
+    // ── CACHE READ ──
+    const paramsKey = `pageIds=${pageIdsParam || "all"}&platform=${platformParam || "all"}`;
+    const cached = await prisma.metaAnalyticsCache.findUnique({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "best-time",
+          paramsKey,
+        },
+      },
+    });
+
+    const now = new Date();
+    // 24 horas de TTL (los mapas de calor no varían radicalmente hora a hora)
+    if (!forceParam && cached && (now.getTime() - cached.updatedAt.getTime()) < 24 * 60 * 60 * 1000) {
+      return NextResponse.json({ ...((cached.data as any) || {}), cached: true, generatedAt: cached.updatedAt });
+    }
+
     // ── Resolve igUserId from Integration credentials ──
     const integration = await prisma.integration.findFirst({
       where: {
@@ -180,13 +202,29 @@ export async function GET(req: NextRequest) {
       label: `${DAY_LABELS[s.day]} ${String(s.hour).padStart(2, "0")}:00`,
     }));
 
-    const now = new Date();
-    return NextResponse.json({
+    const responseData = {
       slots,
       topSlots,
+      totalPostsAnalyzed: allMedia.length,
+    };
+
+    // ── CACHE WRITE ──
+    await prisma.metaAnalyticsCache.upsert({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "best-time",
+          paramsKey,
+        },
+      },
+      update: { data: responseData as any, updatedAt: now },
+      create: { workspaceId, endpoint: "best-time", paramsKey, data: responseData as any },
+    }).catch((err: any) => console.error("[BEST-TIME] Cache save error:", err));
+
+    return NextResponse.json({
+      ...responseData,
       cached: false,
       generatedAt: now,
-      totalPostsAnalyzed: allMedia.length,
     });
   } catch (err: any) {
     console.error("[BEST-TIME] Error:", err.message);

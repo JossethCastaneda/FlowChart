@@ -141,16 +141,25 @@ export async function POST(request: NextRequest) {
     // ─── Get current webhook verification status ───
     const callbackUrl = `${getCallbackUrl()}/api/webhooks/meta`;
 
+    // Sin fallback hardcodeado: el verify token es un secreto y vive solo en env.
+    const verifyToken = process.env.META_WEBHOOK_VERIFY_TOKEN;
+    if (!verifyToken) {
+      return NextResponse.json(
+        { error: "META_WEBHOOK_VERIFY_TOKEN no está configurado en este entorno." },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       success: true,
       callbackUrl,
-      verifyToken: process.env.META_WEBHOOK_VERIFY_TOKEN || "sodare_webhook_verify_2026",
+      verifyToken,
       subscriptions: results,
       totalPages: pages.length,
       instructions: {
         step1: "Ve a Meta Developers → Tu App → Webhooks",
         step2: `Callback URL: ${callbackUrl}`,
-        step3: `Verify Token: ${process.env.META_WEBHOOK_VERIFY_TOKEN || "sodare_webhook_verify_2026"}`,
+        step3: `Verify Token: ${verifyToken}`,
         step4: "Suscríbete a: page, instagram, ad_account, whatsapp_business_account",
         pageFields: "messages, messaging_postbacks, messaging_optins, messaging_referrals, message_deliveries, message_reads, feed, mention, ratings, leadgen",
         instagramFields: "messages, messaging_postbacks, comments, mentions, story_insights, live_comments",
@@ -214,9 +223,17 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    const verifyToken = process.env.META_WEBHOOK_VERIFY_TOKEN;
+    if (!verifyToken) {
+      return NextResponse.json(
+        { error: "META_WEBHOOK_VERIFY_TOKEN no está configurado en este entorno." },
+        { status: 500 }
+      );
+    }
+
     return NextResponse.json({
       callbackUrl: `${getCallbackUrl()}/api/webhooks/meta`,
-      verifyToken: process.env.META_WEBHOOK_VERIFY_TOKEN || "sodare_webhook_verify_2026",
+      verifyToken,
       subscriptions,
     });
   } catch (err: any) {

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, TrendingDown, Eye, Heart, Users, BarChart2, ArrowUpRight, ArrowDownRight, MessageCircle, Share2, Grid3X3, List, ChevronUp, ChevronDown, Camera, ThumbsUp, Clock, UserPlus, Activity, Info, Play, Bookmark, Film, Star, Loader2, Check } from "lucide-react";
-import { generateHeatmap, ChannelIcons, TABS, Tab, Kpi, EMPTY_KPI, AUDIENCE_DEVICE, DAYS, HOURS } from "./shared";
+import { generateHeatmap, ChannelIcons, TABS, Tab, Kpi, EMPTY_KPI, DAYS, HOURS } from "./shared";
 
 export function TabResumen({ kpis, posts }: { kpis: typeof EMPTY_KPI; posts: any[] }) {
     const topPosts = posts.slice(0, 3).map((p, i) => ({
@@ -386,6 +386,20 @@ export function TabPosts({ posts }: { posts: any[] }) {
             ) : null;
     return (
     <div className="space-y-4">
+      {posts.length === 0 ? (
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          justifyContent: "center", padding: 60, gap: 12,
+          borderRadius: 12, background: "rgba(255,255,255,0.015)",
+          border: "1px solid rgba(255,255,255,0.09)",
+        }}>
+          <List style={{ width: 32, height: 32, color: "#334155" }} />
+          <p style={{ fontSize: 13, color: "#64748b", textAlign: "center", maxWidth: 300 }}>
+            No hay posts en este rango de tiempo. Intenta ampliando las fechas o selecciona otra cuenta.
+          </p>
+        </div>
+      ) : (
+      <>
       {/* Toggle */}
       <div className="flex items-center justify-between">
         <span
@@ -594,11 +608,29 @@ export function TabPosts({ posts }: { posts: any[] }) {
           })}
         </div>
       )}
+      </>
+      )}
     </div>
     );
 }
 
 export function TabAudiencia({ age, gender, location }: { age: any[]; gender: any[]; location: any[] }) {
+    if (age.length === 0 && gender.length === 0 && location.length === 0) {
+      return (
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          justifyContent: "center", padding: 60, gap: 12,
+          borderRadius: 12, background: "rgba(255,255,255,0.015)",
+          border: "1px solid rgba(255,255,255,0.09)",
+        }}>
+          <Users style={{ width: 32, height: 32, color: "#334155" }} />
+          <p style={{ fontSize: 13, color: "#64748b", textAlign: "center", maxWidth: 300 }}>
+            No hay suficientes datos demográficos disponibles para esta cuenta. Meta requiere un mínimo de 100 seguidores para mostrar esta información.
+          </p>
+        </div>
+      );
+    }
+
     return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {/* Edad */}
@@ -709,26 +741,7 @@ export function TabAudiencia({ age, gender, location }: { age: any[]; gender: an
         </div>
       </div>
 
-      {/* Dispositivo - Pie */}
-      {AUDIENCE_DEVICE.length > 0 && (
-      <div className="glass-panel" style={{ padding: 0 }}>
-        <div className="section-header">
-          <span className="section-title">Dispositivo</span>
-        </div>
-        <div style={{ padding: 24, display: "flex", alignItems: "center", justifyContent: "center", gap: 32 }}>
-          <DonutChart data={AUDIENCE_DEVICE} size={140} />
-          <div className="space-y-3">
-            {AUDIENCE_DEVICE.map((d) => (
-              <div key={d.label} className="flex items-center gap-3">
-                <div style={{ width: 10, height: 10, borderRadius: "50%", background: d.color, boxShadow: `0 0 6px ${d.color}50` }} />
-                <span style={{ fontSize: 12, color: "#e2e8f0" }}>{d.label}</span>
-                <span style={{ fontSize: 12, fontWeight: 700, color: d.color, fontFamily: "'Orbitron', sans-serif" }}>{d.pct}%</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      )}
+
     </div>
     );
 }

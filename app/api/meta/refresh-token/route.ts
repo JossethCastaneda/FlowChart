@@ -18,6 +18,29 @@ function verifyCronAuth(req: NextRequest): boolean {
   return req.headers.get("authorization") === `Bearer ${cronSecret}`;
 }
 
+/** Intercambia UN token por su versión long-lived. */
+async function exchangeToken(currentToken: string): Promise<
+  | { ok: true; token: string; expiresIn: number }
+  | { ok: false; code: number | null; error: string }
+> {
+  const exchangeUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
+  exchangeUrl.searchParams.set("grant_type", "fb_exchange_token");
+  exchangeUrl.searchParams.set("client_id", process.env.FACEBOOK_CLIENT_ID || "");
+  exchangeUrl.searchParams.set("client_secret", process.env.FACEBOOK_CLIENT_SECRET || "");
+  exchangeUrl.searchParams.set("fb_exchange_token", currentToken);
+
+  const res = await fetch(exchangeUrl.toString());
+  const data = await res.json();
+  if (!res.ok || !data.access_token) {
+    return {
+      ok: false,
+      code: data?.error?.code ?? null,
+      error: data?.error?.message || "Error refreshing Meta token",
+    };
+  }
+  return { ok: true, token: data.access_token, expiresIn: data.expires_in || 5_184_000 };
+}
+
 async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshResult> {
   const allIntegrations = await prisma.integration.findMany({
     where: {
@@ -31,72 +54,81 @@ async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshR
     return { status: "missing", workspaceId, error: "No connected Meta integrations" };
   }
 
-  const genericMeta = allIntegrations.find((integration) => integration.provider === "meta");
-  const integration = genericMeta || allIntegrations[0];
-  const creds = integration.credentials as { accessToken?: string } | null;
-  const currentToken = decryptToken(creds?.accessToken);
+  // Cada integración (meta_ads, meta_community, meta_publisher_*) se conectó
+  // con su propio config_id y scopes: se refresca CADA token individualmente.
+  // Nunca se sobrescribe un módulo con el token de otro, y un token expirado
+  // solo desconecta SU integración.
+  let refreshedCount = 0;
+  let expiredCount = 0;
+  const errors: string[] = [];
+  let lastExpiresAt: Date | null = null;
+  let lastExpiresIn = 0;
 
-  if (!currentToken || currentToken.startsWith("enc:")) {
-    return { status: "missing", workspaceId, error: "No usable Meta token found" };
-  }
-
-  const exchangeUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
-  exchangeUrl.searchParams.set("grant_type", "fb_exchange_token");
-  exchangeUrl.searchParams.set("client_id", process.env.FACEBOOK_CLIENT_ID || "");
-  exchangeUrl.searchParams.set("client_secret", process.env.FACEBOOK_CLIENT_SECRET || "");
-  exchangeUrl.searchParams.set("fb_exchange_token", currentToken);
-
-  const exchangeRes = await fetch(exchangeUrl.toString());
-  const exchangeData = await exchangeRes.json();
-
-  if (!exchangeRes.ok || !exchangeData.access_token) {
-    const errorMsg = exchangeData?.error?.message || "Error refreshing Meta token";
-
-    if (exchangeData?.error?.code === 190) {
-      await prisma.integration.updateMany({
-        where: { workspaceId, provider: { startsWith: "meta" } },
-        data: { connected: false },
-      });
-      return { status: "expired", workspaceId, error: "Token expired. Reconnect Meta." };
+  for (const intg of allIntegrations) {
+    const creds = (intg.credentials as Record<string, unknown>) || {};
+    let currentToken = "";
+    try {
+      currentToken = decryptToken(typeof creds.accessToken === "string" ? creds.accessToken : "");
+    } catch {
+      errors.push(`${intg.provider}: token ilegible (texto plano o corrupto)`);
+      continue;
+    }
+    if (!currentToken || currentToken.startsWith("enc:")) {
+      errors.push(`${intg.provider}: sin token utilizable`);
+      continue;
     }
 
-    return { status: "failed", workspaceId, error: errorMsg };
-  }
+    const exchange = await exchangeToken(currentToken);
 
-  const newToken = exchangeData.access_token;
-  const expiresIn = exchangeData.expires_in || 5_184_000;
-  const expiresAt = new Date(Date.now() + expiresIn * 1000);
-  const refreshedAt = new Date().toISOString();
+    if (!exchange.ok) {
+      if (exchange.code === 190) {
+        await prisma.integration.update({
+          where: { id: intg.id },
+          data: { connected: false },
+        });
+        expiredCount++;
+        errors.push(`${intg.provider}: token expirado — requiere reconexión`);
+      } else {
+        errors.push(`${intg.provider}: ${exchange.error}`);
+      }
+      continue;
+    }
 
-  const updatePromises = allIntegrations.map((intg) => {
-    const existingCreds = (intg.credentials as Record<string, unknown>) || {};
-    return prisma.integration.update({
+    const expiresAt = new Date(Date.now() + exchange.expiresIn * 1000);
+    await prisma.integration.update({
       where: { id: intg.id },
       data: {
         credentials: {
-          ...existingCreds,
-          accessToken: encryptToken(newToken),
+          ...creds,
+          accessToken: encryptToken(exchange.token),
           expiresAt: expiresAt.toISOString(),
-          refreshedAt,
+          refreshedAt: new Date().toISOString(),
         },
         connectedAt: new Date(),
       },
     });
-  });
-
-  await Promise.allSettled(updatePromises);
+    refreshedCount++;
+    lastExpiresAt = expiresAt;
+    lastExpiresIn = exchange.expiresIn;
+  }
 
   console.log(
-    `[META REFRESH] Token refreshed for workspace ${workspaceId} - ${allIntegrations.length} integrations updated, expires: ${expiresAt.toISOString()}`
+    `[META REFRESH] workspace ${workspaceId}: ${refreshedCount}/${allIntegrations.length} refreshed, ${expiredCount} expired${errors.length ? ` — ${errors.join("; ")}` : ""}`
   );
 
-  return {
-    status: "refreshed",
-    workspaceId,
-    expiresAt: expiresAt.toISOString(),
-    expiresInDays: Math.floor(expiresIn / 86_400),
-    integrationsUpdated: allIntegrations.length,
-  };
+  if (refreshedCount > 0) {
+    return {
+      status: "refreshed",
+      workspaceId,
+      expiresAt: (lastExpiresAt as Date).toISOString(),
+      expiresInDays: Math.floor(lastExpiresIn / 86_400),
+      integrationsUpdated: refreshedCount,
+    };
+  }
+  if (expiredCount > 0) {
+    return { status: "expired", workspaceId, error: "Token expired. Reconnect Meta." };
+  }
+  return { status: "failed", workspaceId, error: errors.join("; ") || "No tokens could be refreshed" };
 }
 
 /**

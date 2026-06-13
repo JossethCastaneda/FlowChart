@@ -22,7 +22,7 @@ import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 
 /* ═══ TYPES ═══ */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; }
-interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN ÓRBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; }
+interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN ÓRBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; crmIntegrationIds?: string[]; }
 
 
 const PLATFORMS = [
@@ -227,6 +227,7 @@ export default function ProjectDashboardPage() {
             createdAt: raw.createdAt || "",
             crmIntegrationId: raw.crmIntegrationId || null,
             crmType: raw.crmType || null,
+            crmIntegrationIds: raw.crmIntegrationIds || [],
           };
           setProject(mapped);
           setEditForm(mapped);
@@ -517,12 +518,23 @@ export default function ProjectDashboardPage() {
           <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
           <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
           {(!!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
-            <TabButton active={activeTab === "resultados"} label="Análisis de resultados" icon={<Activity style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
+            <TabButton active={activeTab === "resultados"} label="Resultados por fuente" icon={<Activity style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
           )}
           {!!project.website && (
             <TabButton active={activeTab === "trafico"} label="Análisis de tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
           )}
           <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
+          <button
+            onClick={() => router.push(`/dashboard/proyectos/${project.id}/analisis-resultados`)}
+            style={{
+              display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", fontSize: 10, fontWeight: 600,
+              background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", color: "#00d4ff",
+              borderRadius: 4, cursor: "pointer", letterSpacing: "0.03em",
+            }}
+            title="KPIs conversacionales, funnels, ROI y calidad del bot acotados a este proyecto"
+          >
+            <BarChart2 style={{ width: 13, height: 13 }} /> Análisis de Resultados
+          </button>
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {project.channels.map(c => {
@@ -1726,34 +1738,61 @@ export default function ProjectDashboardPage() {
                 <div><p style={labelStyle}>Fecha Fin</p>{isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "#e2e8f0" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString() : "—"}</p>}</div>
               </div>
               <div>
-                <p style={labelStyle}>Plataforma Analítica (Bot)</p>
-                {isEditing ? (
-                  <select
-                    value={editForm.crmIntegrationId || ""}
-                    onChange={e => {
-                      const sel = e.target.value;
-                      const intg = activeIntegrations.find(i => i.id === sel);
-                      setEditForm(prev => ({ ...prev, crmIntegrationId: sel || null, crmType: intg ? intg.provider : null }));
-                    }}
-                    style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}
-                  >
-                    <option value="">Ninguna</option>
-                    {activeIntegrations.filter(i => ["botmaker", "custom_crm", "hubspot"].includes(i.provider)).map(i => (
-                      <option key={i.id} value={i.id}>
-                        {i.provider === "botmaker" ? "BotMaker" : i.provider === "custom_crm" ? "CRM Custom (vía API)" : i.provider}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <p style={{ fontSize: 13, color: project.crmIntegrationId ? "#00d4ff" : "#e2e8f0" }}>
-                    {project.crmIntegrationId 
-                      ? (() => {
-                          const i = activeIntegrations.find(a => a.id === project.crmIntegrationId);
-                          return i ? (i.provider === "botmaker" ? "BotMaker" : i.provider === "custom_crm" ? "CRM Custom (vía API)" : i.provider) : "Conectado";
-                        })()
-                      : "—"}
-                  </p>
-                )}
+                <p style={labelStyle}>CRMs conectados (análisis de resultados)</p>
+                {(() => {
+                  const CRM_PROVIDERS = ["botmaker", "cari", "custom_crm", "hubspot"];
+                  const crmLabel = (p: string) => p === "botmaker" ? "BotMaker" : p === "cari" ? "Cari AI" : p === "custom_crm" ? "CRM Custom (vía API)" : p;
+                  const crmOptions = activeIntegrations.filter(i => CRM_PROVIDERS.includes(i.provider));
+                  // Selección efectiva: arreglo nuevo, con fallback al campo legacy.
+                  const selected: string[] = (editForm.crmIntegrationIds && editForm.crmIntegrationIds.length > 0)
+                    ? editForm.crmIntegrationIds
+                    : editForm.crmIntegrationId ? [editForm.crmIntegrationId] : [];
+                  if (isEditing) {
+                    return (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                        {crmOptions.length === 0 && <p style={{ fontSize: 11, color: "#64748b" }}>Conecta un CRM en Integraciones primero.</p>}
+                        {crmOptions.map(i => {
+                          const checked = selected.includes(i.id);
+                          return (
+                            <label key={i.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#e2e8f0", cursor: "pointer", padding: "6px 10px", borderRadius: 4, background: checked ? "rgba(0,212,255,0.06)" : "rgba(0,0,0,0.2)", border: `1px solid ${checked ? "rgba(0,212,255,0.3)" : "rgba(255,255,255,0.06)"}` }}>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={e => {
+                                  const next = e.target.checked ? [...selected, i.id] : selected.filter(x => x !== i.id);
+                                  const first = activeIntegrations.find(a => a.id === next[0]);
+                                  setEditForm(prev => ({
+                                    ...prev,
+                                    crmIntegrationIds: next,
+                                    // legacy en sync: primer CRM seleccionado
+                                    crmIntegrationId: next[0] || null,
+                                    crmType: first ? first.provider : null,
+                                  }));
+                                }}
+                                style={{ accentColor: "#00d4ff" }}
+                              />
+                              {crmLabel(i.provider)}
+                            </label>
+                          );
+                        })}
+                        {selected.length > 1 && <p style={{ fontSize: 10, color: "#64748b" }}>El análisis de resultados se mostrará segmentado por cada herramienta.</p>}
+                      </div>
+                    );
+                  }
+                  const current: string[] = (project.crmIntegrationIds && project.crmIntegrationIds.length > 0)
+                    ? project.crmIntegrationIds
+                    : project.crmIntegrationId ? [project.crmIntegrationId] : [];
+                  return (
+                    <p style={{ fontSize: 13, color: current.length ? "#00d4ff" : "#e2e8f0" }}>
+                      {current.length
+                        ? current.map(id => {
+                            const i = activeIntegrations.find(a => a.id === id);
+                            return i ? crmLabel(i.provider) : "Conectado";
+                          }).join(" · ")
+                        : "—"}
+                    </p>
+                  );
+                })()}
               </div>
             </div>
           </div>

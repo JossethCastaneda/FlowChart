@@ -28,18 +28,17 @@ export function useAlerts(data: any[], level: "campaigns" | "adsets" | "ads"): A
       const hookRate = calcHookRate(ins);
 
       // ── CRITICAL ──
-      // Active with $0 spend and we check if it has had a chance to spend (e.g. ad_count exists or impressions > 0 or created time logic)
-      // Since we don't have created_time easily accessible, we will only flag no spend if impressions are 0 but reach > 0, or just flag it as warning.
-      // We also check effective_status, which helps ignore paused entities inside active campaigns.
-      if (item.status === "ACTIVE" && spend === 0 && item.effective_status === "ACTIVE" && item.id.includes("fake") === false) {
-        // If impressions === 0 and reach === 0, it might just be new. Let's make it a warning instead of critical,
-        // UNLESS we know it's old (which we lack field for here, but we can assume it's just a warning)
-        const isLikelyNew = impressions === 0;
+      // Active without delivery. Only alert when the entity is truly ACTIVE
+      // (effective_status filters out items paused at a parent level) and has
+      // been given a chance to deliver. A campaign created hours ago, or one
+      // outside the selected date range, has spend=0 legitimately — that is a
+      // warning at most, never critical.
+      if (item.status === "ACTIVE" && item.effective_status === "ACTIVE" && spend === 0 && impressions === 0) {
         alerts.push({
           id: `${item.id}-no-spend`,
-          level: isLikelyNew ? "warning" : "critical",
-          title: "Campaña activa sin gasto",
-          message: `"${item.name}" está activa pero no está gastando. Verifica la configuración o si está recién creada.`,
+          level: "warning",
+          title: "Activa sin entrega",
+          message: `"${item.name}" está activa pero sin impresiones en el periodo seleccionado. Si no es nueva, revisa entrega, pagos o revisión de anuncios en Meta.`,
           itemId: item.id,
           itemName: item.name,
         });

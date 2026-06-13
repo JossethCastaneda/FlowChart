@@ -94,6 +94,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Fecha de publicación es obligatoria para programar" }, { status: 400 });
     }
 
+    if (validStatus === "Scheduled" && scheduledAt) {
+      const scheduleDate = new Date(scheduledAt);
+      const diffMin = (scheduleDate.getTime() - Date.now()) / (1000 * 60);
+      if (diffMin < 11) {
+        return NextResponse.json({ error: "Meta requiere programar con al menos 11 minutos de antelación" }, { status: 400 });
+      }
+      if (diffMin > (75 * 24 * 60)) {
+        return NextResponse.json({ error: "Meta permite programar hasta un máximo de 75 días" }, { status: 400 });
+      }
+    }
+
     const post = await prisma.scheduledPost.create({
       data: {
         workspaceId,

@@ -58,7 +58,11 @@ function getWarnings(campaigns: AdEntity[], adsets: AdEntity[], ads: AdEntity[])
   const warnings: Array<{ title: string; description: string; level: "high" | "medium" | "low" }> = [];
   const all = [...campaigns, ...adsets, ...ads];
   const activeCampaigns = campaigns.filter((item) => getStatus(item) === "ACTIVE");
-  const noSpendActive = activeCampaigns.filter((item) => num(item?.insights?.spend) === 0);
+  // Only flag campaigns that are truly not delivering (no impressions either).
+  // spend=0 alone is normal for new campaigns or short date ranges.
+  const noSpendActive = activeCampaigns.filter(
+    (item) => num(item?.insights?.spend) === 0 && int(item?.insights?.impressions) === 0
+  );
   const highFrequency = all.filter((item) => num(item?.insights?.frequency) >= 4);
   const weakCtr = all.filter((item) => num(item?.insights?.ctr) > 0 && num(item?.insights?.ctr) < 0.7);
   const learning = adsets.filter((item) => String(item?.learning_phase || "").toLowerCase().includes("learning"));

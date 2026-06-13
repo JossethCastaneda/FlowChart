@@ -14,7 +14,10 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
   const [loading, setLoading] = useState(false);
 
   const handleApply = async () => {
-    const capValue = noLimit ? 0 : Math.round((parseFloat(amount) || 0) * 100);
+    // Meta API: to REMOVE a spend cap you must send the documented sentinel
+    // value 922337203685478 — sending 0 is rejected with error #100.
+    const REMOVE_SPEND_CAP = 922337203685478;
+    const capValue = noLimit ? REMOVE_SPEND_CAP : Math.round((parseFloat(amount) || 0) * 100);
     const updates = items.map((i) => ({ id: i.id, spend_cap: capValue }));
     setLoading(true);
     await onApply(updates);

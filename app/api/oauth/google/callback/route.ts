@@ -85,7 +85,7 @@ export async function GET(request: NextRequest) {
     // 4. Save to database
     // Fetch existing integration to preserve non-overlapping fields (like resources)
     const existing = await prisma.integration.findUnique({
-      where: { workspaceId_provider: { workspaceId, provider: "google" } },
+      where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
     });
     const existingCreds = existing?.credentials as Record<string, any> || {};
 
@@ -110,7 +110,7 @@ export async function GET(request: NextRequest) {
     };
 
     await prisma.integration.upsert({
-      where: { workspaceId_provider: { workspaceId, provider: "google" } },
+      where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
       update: {
         credentials,
         connected: true,

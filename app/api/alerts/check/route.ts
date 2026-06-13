@@ -52,9 +52,10 @@ export async function GET(req: NextRequest) {
         // Get Meta token from workspace Integration table
         const integration = await prisma.integration.findUnique({
           where: {
-            workspaceId_provider: {
+            workspaceId_provider_userId: {
               workspaceId: project.workspaceId,
               provider: "meta",
+              userId: "workspace",
             },
           },
         });

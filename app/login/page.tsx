@@ -1,18 +1,17 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { SodareLogo } from "@/components/ui/SodareLogo";
+
+// Los tipos de Window.FB y FbLoginResponse viven en types/facebook-sdk.d.ts
 
 type AuthProviders = Record<string, unknown>;
 
 function getSafeCallbackUrl() {
   if (typeof window === "undefined") return "/dashboard/resumen";
-
   const rawCallbackUrl = new URLSearchParams(window.location.search).get("callbackUrl");
   if (!rawCallbackUrl) return "/dashboard/resumen";
-
   if (rawCallbackUrl.startsWith("/")) return rawCallbackUrl;
-
   try {
     const callbackUrl = new URL(rawCallbackUrl);
     if (callbackUrl.origin === window.location.origin) {
@@ -21,7 +20,6 @@ function getSafeCallbackUrl() {
   } catch {
     return "/dashboard/resumen";
   }
-
   return "/dashboard/resumen";
 }
 
@@ -35,6 +33,8 @@ export default function LoginPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [credError, setCredError] = useState("");
+  const [fbReady, setFbReady] = useState(false);
+  const autoLoginAttempted = useRef(false);
   const [status, setStatus] = useState<{
     type: "idle" | "connecting" | "success" | "error";
     message: string;
@@ -61,7 +61,6 @@ export default function LoginPage() {
           type: "error",
           message: errorMessages[oauthError] || errorMessages.Default,
         });
-        // Clean the URL to avoid showing the error on refresh
         window.history.replaceState({}, "", "/login");
       }
     }
@@ -84,10 +83,73 @@ export default function LoginPage() {
     }
 
     loadProviders();
-    return () => {
-      isActive = false;
+
+    // ── Cargar FB SDK ──────────────────────────────────────────
+    // Sin fallback hardcodeado: si falta el env, no se carga el SDK y el
+    // botón usa el flujo redirect de NextAuth (que valida config en servidor).
+    const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID;
+    if (!APP_ID) {
+      console.error("[LOGIN] NEXT_PUBLIC_META_APP_ID no configurado — SDK de Facebook deshabilitado, se usará redirect OAuth.");
+      return () => { isActive = false; };
+    }
+
+    const initSdk = () => {
+      window.FB!.init({
+        appId:   APP_ID,
+        cookie:  true,
+        xfbml:   false,
+        version: process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0",
+      });
+      window.FB!.AppEvents.logPageView();
+      if (isActive) setFbReady(true);
     };
+
+    if (window.FB) {
+      // SDK ya cargado (p.ej. hot-reload / segunda visita)
+      initSdk();
+    } else {
+      window.fbAsyncInit = initSdk;
+      if (!document.getElementById("facebook-jssdk")) {
+        const js = document.createElement("script");
+        js.id  = "facebook-jssdk";
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        js.async = true;
+        document.head.appendChild(js);
+      }
+    }
+
+    return () => { isActive = false; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── Autenticar con el accessToken obtenido del SDK ──────────
+  async function handleFbTokenInternal(accessToken: string) {
+    setIsLoading(true);
+    setStatus({ type: "connecting", message: "Autenticando con Facebook..." });
+    const { signIn } = await import("next-auth/react");
+    console.log("[FB LOGIN] Calling NextAuth signIn with facebook-sdk credentials provider...");
+    const result = await signIn("facebook-sdk", {
+      accessToken,
+      redirect: false,
+    });
+    console.log("[FB LOGIN] NextAuth signIn result:", JSON.stringify(result));
+    if (!result?.ok || result?.error) {
+      setIsLoading(false);
+      let errorMsg = "";
+      if (result?.error === "MetaRateLimit") {
+        errorMsg = " (Límite de peticiones de Meta alcanzado. Espera 60 minutos sin reintentar para permitir que se restablezca)";
+      } else {
+        errorMsg = result?.error ? ` (${result.error})` : `. Intenta de nuevo`;
+      }
+      setStatus({ 
+        type: "error", 
+        message: `Error al autenticar con Facebook${errorMsg}.` 
+      });
+      return;
+    }
+    setStatus({ type: "success", message: "Acceso autorizado" });
+    window.location.href = getSafeCallbackUrl();
+  }
 
   const providerStatusLoaded = providers !== null;
   const hasFacebookProvider = Boolean(providers?.facebook);
@@ -101,11 +163,34 @@ export default function LoginPage() {
       });
       return;
     }
+
+    // Si el SDK está listo, usar popup (mejor UX — sin redirect).
+    // config_id es OBLIGATORIO para apps Business; sin el env no hay popup
+    // (sin fallback hardcodeado) y se usa el redirect de NextAuth.
+    const LOGIN_CONFIG_ID = process.env.NEXT_PUBLIC_FACEBOOK_LOGIN_CONFIG_ID;
+    if (fbReady && window.FB && LOGIN_CONFIG_ID) {
+      setIsLoading(true);
+      setStatus({ type: "connecting", message: "Abriendo Facebook..." });
+      window.FB!.login(
+        (response: FbLoginResponse) => {
+          if (response.authResponse?.accessToken) {
+            handleFbTokenInternal(response.authResponse.accessToken);
+          } else {
+            setIsLoading(false);
+            setStatus({ type: "idle", message: "Inicio de sesión cancelado." });
+          }
+        },
+        {
+          config_id: LOGIN_CONFIG_ID,
+          auth_type: "rerequest",
+        }
+      );
+      return;
+    }
+
+    // Fallback: redirect OAuth estándar de NextAuth (por si el SDK no cargó)
     setIsLoading(true);
-    setStatus({
-      type: "connecting",
-      message: "Conectando...",
-    });
+    setStatus({ type: "connecting", message: "Conectando..." });
     const { signIn } = await import("next-auth/react");
     try {
       await signIn("facebook", { callbackUrl: getSafeCallbackUrl() });
@@ -114,6 +199,7 @@ export default function LoginPage() {
       setStatus({ type: "error", message: "⚠ Error de conexión. Reintentar." });
     }
   }
+
 
   async function handleGoogleLogin() {
     if (!hasGoogleProvider) {

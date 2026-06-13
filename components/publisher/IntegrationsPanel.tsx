@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Loader2, RefreshCw, Bell, CheckCircle2, Circle, AlertTriangle, ChevronRight, X } from "lucide-react";
+import { WhatsAppConnectCard } from "@/components/settings/WhatsAppConnectCard";
 
 interface ModuleStatus {
   connected: boolean;
@@ -358,6 +359,15 @@ export function IntegrationsPanel() {
             </div>
           );
         })}
+      </div>
+
+      {/* ── WhatsApp Business ─── */}
+      <div style={{ marginTop: 4 }}>
+        <div style={{
+          fontSize: 9, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase",
+          color: "rgba(148,163,184,0.4)", padding: "0 2px 6px",
+        }}>WhatsApp</div>
+        <WhatsAppConnectCard />
       </div>
 
       {/* ── Webhook row ─── */}

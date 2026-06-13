@@ -36,6 +36,8 @@ export function getPlatformConfig(platform: Platform) {
       return { label: "Comentario IG", color: "#F77737", icon: AtSign, bgAlpha: "rgba(247,119,55,0.12)" };
     case "fb_comment":
       return { label: "Comentario FB", color: "#1877F2", icon: MessageSquare, bgAlpha: "rgba(24,119,242,0.12)" };
+    case "whatsapp":
+      return { label: "WhatsApp", color: "#25D366", icon: MessageCircle, bgAlpha: "rgba(37,211,102,0.12)" };
     }
 }
 

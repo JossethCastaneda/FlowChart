@@ -39,6 +39,8 @@ export interface Conversation {
     tags: string[];
     messages: Message[];
     _postData?: PostData | null;
+    pageId?: string;
+    contactId?: string | null;
 }
 
 export interface ConnectedPage {
@@ -49,6 +51,6 @@ export interface ConnectedPage {
     igId?: string;
 }
 
-export type Platform = "fb_messenger" | "ig_dm" | "ig_comment" | "fb_comment" | "instagram_comment";
-export type ChannelFilter = "all" | "messenger" | "instagram" | "fb_comment" | "ig_comment";
+export type Platform = "fb_messenger" | "ig_dm" | "ig_comment" | "fb_comment" | "instagram_comment" | "whatsapp";
+export type ChannelFilter = "all" | "messenger" | "instagram" | "fb_comment" | "ig_comment" | "whatsapp";
 export type QueueFilter = "all" | "unassigned" | "mine" | "needs_reply" | "done";

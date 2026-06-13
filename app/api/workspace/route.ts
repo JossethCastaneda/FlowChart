@@ -2,12 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
-import {
-  getActiveWorkspaceId,
-  ACTIVE_WORKSPACE_COOKIE,
-} from "@/lib/active-workspace";
+import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+
+const RequestSchema = z.object({ name: z.string().min(2, "Name required") });
 
 function generateSlug(name: string): string {
   return name
@@ -68,25 +67,16 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-    try {
-          const result = await validateBody(req, RequestSchema);
-          if (!result.ok) return result.response;
-          const { name } = result.data;
-          
+  try {
+    // Auth first — before consuming the request body
     const session = await getServerSession(authOptions);
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-
-
-
-    if (!name || typeof name !== "string" || name.trim().length < 2) {
-      return NextResponse.json(
-        { error: "El nombre del workspace debe tener al menos 2 caracteres" },
-        { status: 400 }
-      );
-    }
+    const result = await validateBody(req, RequestSchema);
+    if (!result.ok) return result.response;
+    const { name } = result.data;
 
     const baseSlug = generateSlug(name);
     let slug = baseSlug;
@@ -112,21 +102,16 @@ export async function POST(req: NextRequest) {
           },
         },
       },
-      include: {
-        members: true,
-      },
     });
 
     console.log("[WORKSPACE] Created successfully:", workspace.id);
 
-    return NextResponse.json({ data: workspace }, { status: 201 });
-    } catch (err: any) {
+    return NextResponse.json({ data: { id: workspace.id, name: workspace.name, slug: workspace.slug } }, { status: 201 });
+  } catch (err: unknown) {
     console.error("[WORKSPACE] Error creating workspace:", err);
     return NextResponse.json(
       { error: "Error interno al crear workspace" },
       { status: 500 }
     );
-    }
+  }
 }
-
-let RequestSchema = z.object({ name: z.string().min(2, "Name required") });

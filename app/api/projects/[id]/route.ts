@@ -1,172 +1,124 @@
-import { NextRequest } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth.config";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { withAuth } from "@/lib/api-handler";
+import { validateBody } from "@/lib/validate";
 import {
   apiSuccess,
-  apiUnauthorized,
-  apiForbidden,
   apiNotFound,
-  apiServerError,
+  apiForbidden,
 } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 
-type RouteContext = { params: Promise<{ id: string }> };
+const ChannelSchema = z.object({
+  name: z.string().min(1),
+  type: z.string().min(1),
+  config: z.record(z.string(), z.unknown()).nullish(),
+});
 
-// ---------------------------------------------------------------------------
-// GET /api/projects/[id] — get a single project
-// ---------------------------------------------------------------------------
-export async function GET(
-  _request: NextRequest,
-  context: RouteContext
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return apiUnauthorized();
-    }
+const UpdateProjectSchema = z.object({
+  name: z.string().optional(),
+  alias: z.string().nullish(),
+  client: z.string().nullish(),
+  vertical: z.string().nullish(),
+  fanpage: z.array(z.string()).optional(),
+  instagram: z.array(z.string()).optional(),
+  whatsapp: z.array(z.string()).optional(),
+  website: z.string().nullish(),
+  persona: z.string().nullish(),
+  geo: z.string().nullish(),
+  status: z.string().optional(),
+  dateStart: z.string().nullish(),
+  dateEnd: z.string().nullish(),
+  crmIntegrationId: z.string().nullish(),
+  crmIntegrationIds: z.array(z.string()).nullish(),
+  crmType: z.string().nullish(),
+  channels: z.array(ChannelSchema).optional(),
+});
 
-    const { id } = await context.params;
-    
-    const project = await prisma.project.findUnique({
-      where: { id },
-      include: { channels: true },
-    });
+export const GET = withAuth(async (_req, ctx) => {
+  const { id } = await ctx.params;
+  
+  const project = await prisma.project.findUnique({
+    where: { id },
+    include: { channels: true },
+  });
 
-    if (!project) return apiNotFound("Proyecto no encontrado");
+  if (!project) return apiNotFound("Proyecto no encontrado");
 
-    const authorized = await verifyWorkspaceAccess(project.workspaceId, session.user.id);
-    if (!authorized) return apiForbidden("No tienes acceso a este proyecto");
+  const authorized = await verifyWorkspaceAccess(project.workspaceId, ctx.userId);
+  if (!authorized) return apiForbidden("No tienes acceso a este proyecto");
 
-    return apiSuccess(project);
-  } catch (error) {
-    return apiServerError(error);
-  }
-}
+  return apiSuccess(project);
+});
 
-// ---------------------------------------------------------------------------
-// PUT /api/projects/[id] — update a project
-// ---------------------------------------------------------------------------
-export async function PUT(
-  request: NextRequest,
-  context: RouteContext
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return apiUnauthorized();
-    }
+export const PUT = withAuth(async (req, ctx) => {
+  const { id } = await ctx.params;
+  
+  const project = await prisma.project.findUnique({
+    where: { id },
+  });
 
-    const { id } = await context.params;
-    
-    const project = await prisma.project.findUnique({
-      where: { id },
-    });
+  if (!project) return apiNotFound("Proyecto no encontrado");
 
-    if (!project) return apiNotFound("Proyecto no encontrado");
+  const authorized = await verifyWorkspaceAccess(project.workspaceId, ctx.userId);
+  if (!authorized) return apiForbidden("No tienes acceso a este proyecto");
 
-    const authorized = await verifyWorkspaceAccess(project.workspaceId, session.user.id);
-    if (!authorized) return apiForbidden("No tienes acceso a este proyecto");
+  const result = await validateBody(req, UpdateProjectSchema);
+  if (!result.ok) return result.response;
 
-    const body = await request.json();
+  const { channels, ...updateData } = result.data;
 
-    // Separate channels from the rest of the update data
-    const { channels, ...updateData } = body;
+  // Actualizar utilizando el esquema directamente
+  const updatePayload = {
+    ...updateData,
+    ...(updateData.crmIntegrationIds !== undefined ? { crmIntegrationIds: updateData.crmIntegrationIds ?? [] } : {})
+  };
 
-    // Only pass through fields that exist on the Project model
-    const allowedFields = [
-      "name",
-      "alias",
-      "client",
-      "vertical",
-      "fanpage",
-      "instagram",
-      "whatsapp",
-      "website",
-      "persona",
-      "geo",
-      "status",
-      "dateEnd",
-      "crmIntegrationId",
-      "crmType",
-    ] as const;
+  await prisma.project.update({
+    where: { id },
+    data: updatePayload as any,
+  });
 
-    const sanitized: Record<string, unknown> = {};
-    for (const field of allowedFields) {
-      if (field in updateData) {
-        sanitized[field] = updateData[field];
+  if (channels !== undefined) {
+    await prisma.$transaction(async (tx) => {
+      await tx.channel.deleteMany({ where: { projectId: id } });
+      if (channels.length > 0) {
+        await tx.channel.createMany({
+          data: channels.map((c) => ({
+            name: c.name,
+            type: c.type,
+            config: (c.config ?? undefined) as object | undefined,
+            projectId: id,
+          })),
+        });
       }
-    }
-
-    // Update project fields
-    await prisma.project.update({
-      where: { id },
-      data: sanitized,
+      // Los canales determinan qué fuentes Meta mapean a este proyecto: invalidar
+      // el cache de webhooks para que se repueble con la nueva configuración.
+      await tx.metaSource.deleteMany({ where: { projectId: id } });
     });
-
-    // FIX: use $transaction — delete + recreate channels atomically
-    if (Array.isArray(channels)) {
-      await prisma.$transaction(async (tx) => {
-        await tx.channel.deleteMany({ where: { projectId: id } });
-        if (channels.length > 0) {
-          await tx.channel.createMany({
-            data: channels.map((c: { name: string; type: string; config?: object | null }) => ({
-              name: c.name,
-              type: c.type,
-              config: (c.config ?? undefined) as object | undefined,
-              projectId: id,
-            })),
-          });
-        }
-        // Los canales determinan qué fuentes Meta (pageId/igAccountId/adAccountId)
-        // mapean a este proyecto: invalidar el cache de webhooks para que se
-        // repueble con la nueva configuración.
-        await tx.metaSource.deleteMany({ where: { projectId: id } });
-      });
-    }
-
-    // Re-fetch with channels
-    const result = await prisma.project.findUnique({
-      where: { id },
-      include: { channels: true },
-    });
-
-    return apiSuccess(result);
-  } catch (error) {
-    return apiServerError(error);
   }
-}
 
-// ---------------------------------------------------------------------------
-// DELETE /api/projects/[id] — delete a project
-// ---------------------------------------------------------------------------
-export async function DELETE(
-  _request: NextRequest,
-  context: RouteContext
-) {
-  try {
-    const session = await getServerSession(authOptions);
-    if (!session?.user?.id) {
-      return apiUnauthorized();
-    }
+  const updatedResult = await prisma.project.findUnique({
+    where: { id },
+    include: { channels: true },
+  });
 
-    const { id } = await context.params;
-    
-    const project = await prisma.project.findUnique({
-      where: { id },
-    });
+  return apiSuccess(updatedResult);
+});
 
-    if (!project) return apiNotFound("Proyecto no encontrado");
+export const DELETE = withAuth(async (_req, ctx) => {
+  const { id } = await ctx.params;
+  
+  const project = await prisma.project.findUnique({
+    where: { id },
+  });
 
-    // Only OWNER/ADMIN can delete projects
-    const authorized = await verifyWorkspaceAccess(project.workspaceId, session.user.id, ["OWNER", "ADMIN"]);
-    if (!authorized) return apiForbidden("Solo OWNER o ADMIN pueden eliminar proyectos");
+  if (!project) return apiNotFound("Proyecto no encontrado");
 
-    // Cascade delete handles channels, briefs, members, etc.
-    await prisma.project.delete({ where: { id } });
+  const authorized = await verifyWorkspaceAccess(project.workspaceId, ctx.userId, ["OWNER", "ADMIN"]);
+  if (!authorized) return apiForbidden("Solo OWNER o ADMIN pueden eliminar proyectos");
 
-    return apiSuccess({ deleted: true });
-  } catch (error) {
-    return apiServerError(error);
-  }
-}
+  await prisma.project.delete({ where: { id } });
+
+  return apiSuccess({ deleted: true });
+});

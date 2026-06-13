@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { decryptToken } from "@/lib/encryption";
+import { getRequiredScopes, scopeGranted } from "@/lib/meta-scopes";
 
 const MODULE_PROVIDER_MAP: Record<string, string> = {
   publisher_facebook: "meta_publisher_facebook",
@@ -15,15 +16,7 @@ const MODULE_PROVIDER_MAP: Record<string, string> = {
   community: "meta_community",
 };
 
-const REQUIRED_SCOPES_BY_MODULE: Record<string, string[]> = {
-  ads: ["ads_read", "ads_management"],
-  analytics: ["read_insights", "pages_read_engagement"],
-  community: ["pages_messaging", "instagram_manage_messages", "instagram_manage_comments"],
-  publisher_facebook: ["pages_show_list", "pages_read_engagement", "pages_manage_posts"],
-  publisher_instagram: ["pages_show_list", "instagram_basic", "instagram_content_publish"],
-  social: ["pages_show_list", "pages_read_engagement"],
-  meta: ["pages_show_list", "pages_manage_posts", "instagram_business_content_publish"],
-};
+// Los scopes requeridos por módulo viven en lib/meta-scopes.ts (fuente única).
 
 type IntegrationCredentials = {
   accessToken?: unknown;
@@ -65,10 +58,10 @@ export async function GET(req: NextRequest) {
     const moduleIntegration = provider === "meta"
       ? null
       : await prisma.integration.findUnique({
-          where: { workspaceId_provider: { workspaceId, provider } },
+          where: { workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" } },
         });
     const genericIntegration = await prisma.integration.findUnique({
-      where: { workspaceId_provider: { workspaceId, provider: "meta" } },
+      where: { workspaceId_provider_userId: { workspaceId, provider: "meta", userId: "workspace" } },
     });
     const integration = moduleIntegration || genericIntegration;
     const providerUsed = integration?.provider || null;
@@ -154,15 +147,10 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const requiredScopes = REQUIRED_SCOPES_BY_MODULE[requestedModule] || REQUIRED_SCOPES_BY_MODULE.meta;
-    const missingScopes = requiredScopes.filter((scope) => !scopes.includes(scope));
-    const oldScopeMap: Record<string, string> = {
-      instagram_business_content_publish: "instagram_content_publish",
-    };
-    const actuallyMissing = missingScopes.filter((scope) => {
-      const oldName = oldScopeMap[scope];
-      return !oldName || !scopes.includes(oldName);
-    });
+    const requiredScopes = getRequiredScopes(requestedModule);
+    // scopeGranted resuelve alias legacy (instagram_business_content_publish ↔
+    // instagram_content_publish) para tokens conectados con nombres viejos.
+    const actuallyMissing = requiredScopes.filter((scope) => !scopeGranted(scope, scopes));
 
     return NextResponse.json({
       connected: true,

@@ -1,12 +1,7 @@
 import { NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 
+// This endpoint has been disabled for security reasons.
+// It previously exposed all user data without authentication.
 export async function GET() {
-  const users = await prisma.user.findMany({
-    include: {
-      accounts: true,
-      workspaces: { include: { workspace: true } }
-    }
-  });
-  return NextResponse.json(users);
+  return NextResponse.json({ error: "Not found" }, { status: 404 });
 }

@@ -36,6 +36,8 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
   const [gender, setGender] = useState<"all" | "male" | "female">("all");
   const [advantageAudience, setAdvantageAudience] = useState(true);
   const [advantagePlacements, setAdvantagePlacements] = useState(true);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -66,6 +68,8 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           genders: gender === "male" ? [1] : gender === "female" ? [2] : [],
           advantageAudience,
           advantagePlacements,
+          start_time: startDate ? new Date(startDate).toISOString() : undefined,
+          end_time: endDate ? new Date(endDate).toISOString() : undefined,
           confirmed_by_user: true,
         }),
       });
@@ -124,16 +128,33 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-            <div><label style={lbl}>Edad mín.</label><input style={inp} type="number" min={13} max={65} value={ageMin} onChange={(e) => setAgeMin(e.target.value)} /></div>
-            <div><label style={lbl}>Edad máx.</label><input style={inp} type="number" min={13} max={65} value={ageMax} onChange={(e) => setAgeMax(e.target.value)} /></div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, opacity: advantageAudience ? 0.6 : 1, transition: "opacity 0.2s" }}>
+            <div><label style={lbl}>Edad mín.</label><input style={inp} type="number" min={13} max={65} value={ageMin} onChange={(e) => setAgeMin(e.target.value)} disabled={advantageAudience} /></div>
+            <div><label style={lbl}>Edad máx.</label><input style={inp} type="number" min={13} max={65} value={ageMax} onChange={(e) => setAgeMax(e.target.value)} disabled={advantageAudience} /></div>
             <div>
               <label style={lbl}>Género</label>
-              <select style={{ ...inp, cursor: "pointer" }} value={gender} onChange={(e) => setGender(e.target.value as any)}>
+              <select style={{ ...inp, cursor: advantageAudience ? "not-allowed" : "pointer" }} value={gender} onChange={(e) => setGender(e.target.value as any)} disabled={advantageAudience}>
                 <option value="all">Todos</option>
                 <option value="male">Hombres</option>
                 <option value="female">Mujeres</option>
               </select>
+            </div>
+          </div>
+          
+          {advantageAudience && (
+            <div style={{ fontSize: 10, color: "#a78bfa", marginTop: "-6px" }}>
+              * Advantage+ tomará control de la edad y el género basado en el rendimiento.
+            </div>
+          )}
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+            <div>
+              <label style={lbl}>Fecha de inicio</label>
+              <input style={inp} type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+            </div>
+            <div>
+              <label style={lbl}>Fecha de fin (opcional)</label>
+              <input style={inp} type="datetime-local" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
             </div>
           </div>
 

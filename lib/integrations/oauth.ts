@@ -25,7 +25,7 @@ export async function getProviderCredentials(
   provider: string
 ): Promise<{ accessToken: string; refreshToken?: string; expiresAt?: string } | null> {
   const integ = await prisma.integration.findUnique({
-    where: { workspaceId_provider: { workspaceId, provider } },
+    where: { workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" } },
   });
 
   if (!integ?.connected) return null;
@@ -104,7 +104,7 @@ export async function refreshAccessToken(
   };
 
   await prisma.integration.update({
-    where: { workspaceId_provider: { workspaceId, provider } },
+    where: { workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" } },
     data: { credentials: updatedCreds },
   });
 

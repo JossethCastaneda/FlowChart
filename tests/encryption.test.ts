@@ -33,7 +33,9 @@ describe("encryption", () => {
     expect(decryptToken("")).toBe("");
   });
 
-  it("treats non-encrypted input as plain text on decrypt (backward compat)", () => {
-    expect(decryptToken("plain-legacy-token")).toBe("plain-legacy-token");
+  it("rejects plaintext (non-encrypted) input on decrypt", () => {
+    expect(() => decryptToken("plain-legacy-token")).toThrow(
+      /Plaintext credential/
+    );
   });
 });

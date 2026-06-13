@@ -19,7 +19,7 @@ export interface GoogleCredentials {
  */
 export async function refreshAccessToken(workspaceId: string): Promise<string | null> {
   const integration = await prisma.integration.findUnique({
-    where: { workspaceId_provider: { workspaceId, provider: "google" } },
+    where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
   });
 
   if (!integration || !integration.connected) {

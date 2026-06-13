@@ -1,0 +1,27 @@
+[
+  {
+    "_nota": "FIXTURE ANONIMIZADO — reemplazar con una respuesta REAL anonimizada de Cari AI cuando el endpoint esté confirmado. Sin PII real.",
+    "id_conversacion": "cari-fixture-0001",
+    "canal": "WhatsApp",
+    "estado": "cerrada",
+    "atendido_por": "bot",
+    "fecha_inicio": "2026-06-01T10:00:00Z",
+    "fecha_fin": "2026-06-01T10:05:00Z",
+    "mensajes_usuario": 4,
+    "mensajes_bot": 5,
+    "csat": 5,
+    "etiquetas": ["soporte", "fixture"]
+  },
+  {
+    "id_conversacion": "cari-fixture-0002",
+    "canal": "web",
+    "estado": "transferida",
+    "atendido_por": "agente",
+    "fecha_inicio": "2026-06-01T11:00:00Z",
+    "fecha_fin": "2026-06-01T11:20:00Z",
+    "mensajes_usuario": 8,
+    "mensajes_bot": 3,
+    "csat": 3,
+    "etiquetas": ["reclamo"]
+  }
+]

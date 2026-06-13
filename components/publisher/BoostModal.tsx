@@ -81,11 +81,13 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
         body: JSON.stringify({
           postId: post.id,
           adAccountId: adAccountId.trim().replace("act_", ""),
-          budgetCents: budget * 100,
+          budgetCents: Math.round(budget * 100),
           durationDays: days,
           countries,
           pageId: post.pageId,
-          pageToken: "",
+          // El page token se resuelve en el servidor; el clic en "Boostear"
+          // es la confirmación explícita del usuario.
+          confirmed_by_user: true,
         }),
       });
       const data = await res.json();

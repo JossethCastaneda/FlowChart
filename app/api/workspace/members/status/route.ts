@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { parseWorkflow, findUserArea, getPermissions, type AreaPermissions, DEFAULT_MEMBER_PERMS } from "@/lib/workflow-config";
 
 const VALID_STATUSES = ["disponible", "ocupado", "ausente", "offline"];
 
@@ -78,13 +79,26 @@ export async function GET() {
       where: {
         workspaceId_userId: { workspaceId, userId: session.user.id },
       },
-      select: { activityStatus: true, lastActiveAt: true, role: true },
+      select: { activityStatus: true, lastActiveAt: true, role: true, permissions: true },
     });
+
+    const settingsRow = await prisma.workspaceSettings.findUnique({
+      where: { workspaceId },
+      select: { areas: true, requireLeadReview: true },
+    });
+
+    let userPerms: AreaPermissions = { ...DEFAULT_MEMBER_PERMS };
+    if (member) {
+      const config = parseWorkflow(settingsRow);
+      const userArea = findUserArea(config, session.user.id);
+      userPerms = getPermissions(userArea, session.user.id, member.role, member.permissions as any);
+    }
 
     return NextResponse.json({
       activityStatus: member?.activityStatus || "disponible",
       lastActiveAt: member?.lastActiveAt || null,
       role: member?.role || "MEMBER",
+      permissions: userPerms,
     });
   } catch (err: any) {
     console.error("[MEMBER_STATUS] GET error:", err);
@@ -92,4 +106,4 @@ export async function GET() {
   }
 }
 
-let RequestSchema = z.object({ status: z.enum(["ONLINE", "OFFLINE", "AWAY", "BUSY", "DO_NOT_DISTURB"]) });
+const RequestSchema = z.object({ status: z.enum(["disponible", "ocupado", "ausente", "offline"]) });

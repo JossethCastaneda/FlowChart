@@ -1,0 +1,150 @@
+[35m.github/CLAUDE_SYSTEM_PROMPT.md[m[36m:[m[32m61[m[36m:[m   └─ Guarda en Integration table: { workspaceId, provider: "meta_${module}", [1;31mcredential[ms }
+[35m.github/CLAUDE_SYSTEM_PROMPT.md[m[36m:[m[32m176[m[36m:[m| `prisma/schema.prisma` | 305-320 | Integration model, [1;31mcredential[ms JSON |
+[35m.github/CLAUDE_SYSTEM_PROMPT.md[m[36m:[m[32m219[m[36m:[m   // Integration.[1;31mcredential[ms debe estar encrypted at rest
+[35m.github/CLAUDE_SYSTEM_PROMPT.md[m[36m:[m[32m298[m[36m:[m         ([1;31mcredential[ms->>'expiresAt')::timestamp as expires
+[35mAUDITORIA-BOTMAKER.md[m[36m:[m[32m38[m[36m:[m- La lista de integraciones nunca selecciona `[1;31mcredential[ms` (comentario explícito).
+[35mAUDITORIA-BOTMAKER.md[m[36m:[m[32m53[m[36m:[m- **Problema:** El modelo define `apiKey String` **sin cifrar**, a diferencia de `Integration.[1;31mcredential[ms` (AES-256). La búsqueda en todo el repo confirma que **`prisma.botMakerConfig` no se usa en ningún sitio** ⇒ hoy es **esquema muerto** (nunca poblado).
+[35mAUDITORIA-SODARE-v2.md[m[36m:[m[32m132[m[36m:[m  - **`alerts/check` usa el token Meta sin descifrar:** toma `(integration.[1;31mcredential[ms).accessToken` y lo manda como `Bearer` **sin `decryptToken`** → como se guarda cifrado (`enc:...`), Graph falla siempre y el cron de health‑alerts queda inerte. `publish-scheduled` sí descifra (línea 126).
+[35mAUDITORIA-SODARE-v2.md[m[36m:[m[32m271[m[36m:[mAplicar en los 4 crons, todos como `GET`. En `alerts/check`: `const token = decryptToken((integration?.[1;31mcredential[ms as any)?.accessToken);` antes del `Bearer`. Corregir `check-sla` a `GET` + `verifyCronAuth`.
+[35mAUDITORIA-SODARE.md[m[36m:[m[32m110[m[36m:[m- **Ubicación:** `app/api/auth/register`, `app/api/auth/forgot-password`, `app/api/auth/reset-password`, login (NextAuth [1;31mcredential[ms).
+[35mapp/api/alerts/check/route.ts[m[36m:[m[32m63[m[36m:[m        // Decrypt the stored token — [1;31mcredential[ms are encrypted at rest with AES-256-GCM.
+[35mapp/api/alerts/check/route.ts[m[36m:[m[32m66[m[36m:[m        const rawToken = (integration?.[1;31mcredential[ms as any)?.accessToken;
+[35mapp/api/analytics/best-time/route.ts[m[36m:[m[32m76[m[36m:[m    // ── Resolve igUserId from Integration [1;31mcredential[ms ──
+[35mapp/api/analytics/best-time/route.ts[m[36m:[m[32m86[m[36m:[m    let igUserId = (integration?.[1;31mcredential[ms as any)?.igUserId || null;
+[35mapp/api/connect/callback/route.ts[m[36m:[m[32m224[m[36m:[m        [1;31mcredential[ms: {
+[35mapp/api/connect/callback/route.ts[m[36m:[m[32m239[m[36m:[m        [1;31mcredential[ms: {
+[35mapp/api/connect/callback/route.ts[m[36m:[m[32m263[m[36m:[m        [1;31mcredential[ms: {
+[35mapp/api/connect/callback/route.ts[m[36m:[m[32m277[m[36m:[m        [1;31mcredential[ms: {
+[35mapp/api/connect/status/route.ts[m[36m:[m[32m36[m[36m:[m    const creds = integration?.[1;31mcredential[ms as any;
+[35mapp/api/connect/status/route.ts[m[36m:[m[32m59[m[36m:[m  const genericPages = ((genericMeta?.[1;31mcredential[ms as any)?.pages || []).map(({ accessToken, ...p }: any) => p);
+[35mapp/api/connect/status/route.ts[m[36m:[m[32m60[m[36m:[m  const genericCreds = genericMeta?.[1;31mcredential[ms as any;
+[35mapp/api/connect/status/route.ts[m[36m:[m[32m75[m[36m:[m    select: { connected: true, connectedAt: true, [1;31mcredential[ms: true },
+[35mapp/api/connect/status/route.ts[m[36m:[m[32m77[m[36m:[m  const waCreds = waIntegration?.[1;31mcredential[ms as Record<string, string> | null;
+[35mapp/api/connect/whatsapp/route.ts[m[36m:[m[32m139[m[36m:[m        [1;31mcredential[ms: { accessToken: encryptedToken, phoneNumberId, wabaId },
+[35mapp/api/connect/whatsapp/route.ts[m[36m:[m[32m148[m[36m:[m        [1;31mcredential[ms: { accessToken: encryptedToken, phoneNumberId, wabaId },
+[35mapp/api/connect/whatsapp/route.ts[m[36m:[m[32m189[m[36m:[m      select: { [1;31mcredential[ms: true },
+[35mapp/api/connect/whatsapp/route.ts[m[36m:[m[32m192[m[36m:[m    const phoneNumberId = (integration?.[1;31mcredential[ms as Record<string, string> | null)?.phoneNumberId;
+[35mapp/api/cron/publish-scheduled/route.ts[m[36m:[m[32m107[m[36m:[m    if (!integration?.connected || !(integration.[1;31mcredential[ms as any)?.accessToken) {
+[35mapp/api/cron/publish-scheduled/route.ts[m[36m:[m[32m115[m[36m:[m    const accessToken = decryptToken((integration.[1;31mcredential[ms as any).accessToken);
+[35mapp/api/cron/sync-google/route.ts[m[36m:[m[32m23[m[36m:[m      // const creds = integration.[1;31mcredential[ms as unknown as GoogleCredentials;
+[35mapp/api/inbox/reply/route.ts[m[36m:[m[32m90[m[36m:[m    if (integration?.[1;31mcredential[ms) {
+[35mapp/api/inbox/reply/route.ts[m[36m:[m[32m91[m[36m:[m      const creds = integration.[1;31mcredential[ms as Record<string, unknown>;
+[35mapp/api/integrations/google/resources/ads/route.ts[m[36m:[m[32m117[m[36m:[m  const creds = (integration.[1;31mcredential[ms as unknown) as GoogleCredentials;
+[35mapp/api/integrations/google/resources/ads/route.ts[m[36m:[m[32m131[m[36m:[m    data: { [1;31mcredential[ms: newCreds as any },
+[35mapp/api/integrations/google/resources/ga4/route.ts[m[36m:[m[32m78[m[36m:[m  const creds = (integration.[1;31mcredential[ms as unknown) as GoogleCredentials;
+[35mapp/api/integrations/google/resources/ga4/route.ts[m[36m:[m[32m92[m[36m:[m    data: { [1;31mcredential[ms: newCreds as any },
+[35mapp/api/integrations/google/resources/gsc/route.ts[m[36m:[m[32m69[m[36m:[m  const creds = (integration.[1;31mcredential[ms as unknown) as GoogleCredentials;
+[35mapp/api/integrations/google/resources/gsc/route.ts[m[36m:[m[32m83[m[36m:[m    data: { [1;31mcredential[ms: newCreds as any },
+[35mapp/api/integrations/google/resources/gtm/route.ts[m[36m:[m[32m79[m[36m:[m  const creds = (integration.[1;31mcredential[ms as unknown) as GoogleCredentials;
+[35mapp/api/integrations/google/resources/gtm/route.ts[m[36m:[m[32m94[m[36m:[m    data: { [1;31mcredential[ms: newCreds as any },
+[35mapp/api/meta/connection-status/route.ts[m[36m:[m[32m69[m[36m:[m    if (!integration?.connected || !integration.[1;31mcredential[ms) {
+[35mapp/api/meta/connection-status/route.ts[m[36m:[m[32m84[m[36m:[m    const creds = integration.[1;31mcredential[ms as IntegrationCredentials;
+[35mapp/api/meta/refresh-token/route.ts[m[36m:[m[32m68[m[36m:[m    const creds = (intg.[1;31mcredential[ms as Record<string, unknown>) || {};
+[35mapp/api/meta/refresh-token/route.ts[m[36m:[m[32m101[m[36m:[m        [1;31mcredential[ms: {
+[35mapp/api/oauth/[provider]/callback/route.ts[m[36m:[m[32m132[m[36m:[m    const [1;31mcredential[ms = {
+[35mapp/api/oauth/[provider]/callback/route.ts[m[36m:[m[32m147[m[36m:[m        [1;31mcredential[ms,
+[35mapp/api/oauth/[provider]/callback/route.ts[m[36m:[m[32m153[m[36m:[m        [1;31mcredential[ms,
+[35mapp/api/oauth/google/callback/route.ts[m[36m:[m[32m63[m[36m:[m    return NextResponse.json({ error: "Google client [1;31mcredential[ms not configured" }, { status: 500 });
+[35mapp/api/oauth/google/callback/route.ts[m[36m:[m[32m90[m[36m:[m    const existingCreds = existing?.[1;31mcredential[ms as Record<string, any> || {};
+[35mapp/api/oauth/google/callback/route.ts[m[36m:[m[32m102[m[36m:[m    const [1;31mcredential[ms = {
+[35mapp/api/oauth/google/callback/route.ts[m[36m:[m[32m115[m[36m:[m        [1;31mcredential[ms,
+[35mapp/api/oauth/google/callback/route.ts[m[36m:[m[32m123[m[36m:[m        [1;31mcredential[ms,
+[35mapp/api/publisher/diagnose/route.ts[m[36m:[m[32m50[m[36m:[m    const creds = integration.[1;31mcredential[ms as any;
+[35mapp/api/publisher/diagnose/route.ts[m[36m:[m[32m55[m[36m:[m        : "[1;31mcredential[ms.accessToken está vacío",
+[35mapp/api/publisher/filters/route.ts[m[36m:[m[32m66[m[36m:[m      select: { [1;31mcredential[ms: true },
+[35mapp/api/publisher/filters/route.ts[m[36m:[m[32m70[m[36m:[m      const creds = integration.[1;31mcredential[ms as any;
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m50[m[36m:[m        [1;31mcredential[ms: true,
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m55[m[36m:[m      const creds = (intg.[1;31mcredential[ms as Record<string, any>) || {};
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m139[m[36m:[m    const [1;31mcredential[ms: Record<string, unknown> = {
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m143[m[36m:[m    if (baseUrl) [1;31mcredential[ms.baseUrl = baseUrl;
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m144[m[36m:[m    if (refreshToken) [1;31mcredential[ms.refreshToken = encryptToken(refreshToken);
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m153[m[36m:[m        [1;31mcredential[ms: [1;31mcredential[ms as any,
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m159[m[36m:[m        [1;31mcredential[ms: [1;31mcredential[ms as any,
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m241[m[36m:[m        integration.[1;31mcredential[ms as import("@/lib/integrations/google/oauth").GoogleCredentials
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m245[m[36m:[m    // Disconnect: clear [1;31mcredential[ms, set connected = false
+[35mapp/api/workspace/integrations/route.ts[m[36m:[m[32m250[m[36m:[m        [1;31mcredential[ms: {},
+[35mapp/dashboard/integrations/page.tsx[m[36m:[m[32m108[m[36m:[m        body: JSON.stringify({ provider, [1;31mcredential[ms: { accessToken: token.trim() } }),
+[35mapp/invite/[token]/page.tsx[m[36m:[m[32m136[m[36m:[m    const result = await signIn("[1;31mcredential[ms", {
+[35mapp/login/page.tsx[m[36m:[m[32m130[m[36m:[m    console.log("[FB LOGIN] Calling NextAuth signIn with facebook-sdk [1;31mcredential[ms provider...");
+[35mapp/login/page.tsx[m[36m:[m[32m235[m[36m:[m    const result = await signIn("[1;31mcredential[ms", {
+[35mapp/login/page.tsx[m[36m:[m[32m280[m[36m:[m    const result = await signIn("[1;31mcredential[ms", {
+[35mauth.config.ts[m[36m:[m[32m4[m[36m:[mimport CredentialsProvider from "next-auth/providers/[1;31mcredential[ms";
+[35mauth.config.ts[m[36m:[m[32m14[m[36m:[m// Build providers dynamically — only register if [1;31mcredential[ms are configured
+[35mauth.config.ts[m[36m:[m[32m60[m[36m:[m    [1;31mcredential[ms: {
+[35mauth.config.ts[m[36m:[m[32m64[m[36m:[m    async authorize([1;31mcredential[ms, req) {
+[35mauth.config.ts[m[36m:[m[32m65[m[36m:[m      if (![1;31mcredential[ms?.email || ![1;31mcredential[ms?.password) return null;
+[35mauth.config.ts[m[36m:[m[32m73[m[36m:[m      const email = [1;31mcredential[ms.email.toLowerCase();
+[35mauth.config.ts[m[36m:[m[32m86[m[36m:[m      const valid = await bcrypt.compare([1;31mcredential[ms.password, user.password);
+[35mauth.config.ts[m[36m:[m[32m99[m[36m:[m    [1;31mcredential[ms: {
+[35mauth.config.ts[m[36m:[m[32m102[m[36m:[m    async authorize([1;31mcredential[ms) {
+[35mauth.config.ts[m[36m:[m[32m103[m[36m:[m      if (![1;31mcredential[ms?.accessToken) {
+[35mauth.config.ts[m[36m:[m[32m114[m[36m:[m            headers: { Authorization: `Bearer ${[1;31mcredential[ms.accessToken}` },
+[35mauth.config.ts[m[36m:[m[32m344[m[36m:[m        if (token.sub && account.type !== "[1;31mcredential[ms") {
+[35mcomponents/integrations/CariConnectModal.tsx[m[36m:[m[32m42[m[36m:[m      const [1;31mcredential[ms: Record<string, string> = {};
+[35mcomponents/integrations/CariConnectModal.tsx[m[36m:[m[32m45[m[36m:[m        if (v) [1;31mcredential[ms[f.key] = v;
+[35mcomponents/integrations/CariConnectModal.tsx[m[36m:[m[32m50[m[36m:[m        body: JSON.stringify({ provider: "cari", token: JSON.stringify([1;31mcredential[ms) }),
+[35mlib/botmaker.ts[m[36m:[m[32m38[m[36m:[m    const creds = integ?.[1;31mcredential[ms as Record<string, unknown> | null;
+[35mlib/crm/cari.ts[m[36m:[m[32m11[m[36m:[m *  - POST /reportapiv2/v1/createtoken {[1;31mcredential[ms} → { cariSec, expiresIn }
+[35mlib/crm/cari.ts[m[36m:[m[32m18[m[36m:[m * Personalizados) tiene su PROPIA credencial — por eso [1;31mcredential[ms es un mapa.
+[35mlib/crm/cari.ts[m[36m:[m[32m35[m[36m:[m  const creds = integ?.[1;31mcredential[ms as Record<string, unknown> | null;
+[35mlib/crm/cari.ts[m[36m:[m[32m41[m[36m:[m    logger.warn("cari [1;31mcredential[ms malformed", { workspaceId });
+[35mlib/crm/cari.ts[m[36m:[m[32m51[m[36m:[masync function getCariSec([1;31mcredential[m: string): Promise<string> {
+[35mlib/crm/cari.ts[m[36m:[m[32m52[m[36m:[m  const hit = tokenCache.get([1;31mcredential[m);
+[35mlib/crm/cari.ts[m[36m:[m[32m58[m[36m:[m    body: JSON.stringify({ [1;31mcredential[ms: [1;31mcredential[m }),
+[35mlib/crm/cari.ts[m[36m:[m[32m66[m[36m:[m  tokenCache.set([1;31mcredential[m, { cariSec: json.cariSec, expiresAt });
+[35mlib/crm/cari.ts[m[36m:[m[32m75[m[36m:[m  [1;31mcredential[m: string,
+[35mlib/crm/cari.ts[m[36m:[m[32m81[m[36m:[m  const cariSec = await getCariSec([1;31mcredential[m);
+[35mlib/crm/cari.ts[m[36m:[m[32m97[m[36m:[m      tokenCache.delete([1;31mcredential[m); // token vencido — reintentar una vez
+[35mlib/crm/cari.ts[m[36m:[m[32m98[m[36m:[m      if (page === 0 && maxPages > 0) return fetchCariReport([1;31mcredential[m, report, range, extraBody, maxPages);
+[35mlib/crm/cari.ts[m[36m:[m[32m194[m[36m:[m    const [1;31mcredential[m = creds[credKey];
+[35mlib/crm/cari.ts[m[36m:[m[32m195[m[36m:[m    if (![1;31mcredential[m) { partial = true; return [] as any[]; }
+[35mlib/crm/cari.ts[m[36m:[m[32m197[m[36m:[m      return await fetchCariReport([1;31mcredential[m, report, range, extra);
+[35mlib/encryption.ts[m[36m:[m[32m16[m[36m:[m    // Fail-fast in production: never persist Meta tokens / [1;31mcredential[ms in plain text.
+[35mlib/encryption.ts[m[36m:[m[32m20[m[36m:[m      throw new Error(`${msg} Refusing to store [1;31mcredential[ms unencrypted.`);
+[35mlib/encryption.ts[m[36m:[m[32m41[m[36m:[m    throw new Error("[ENCRYPTION] Failed to encrypt token. Refusing to store unencrypted [1;31mcredential[ms.");
+[35mlib/encryption.ts[m[36m:[m[32m47[m[36m:[m * Throws if the value does not start with "enc:" — plaintext [1;31mcredential[ms are
+[35mlib/encryption.ts[m[36m:[m[32m56[m[36m:[m    const msg = "[ENCRYPTION] Plaintext [1;31mcredential[m encountered! Rejecting to decrypt/use unencrypted token.";
+[35mlib/integrations/google/google-ads.ts[m[36m:[m[32m15[m[36m:[m  const creds = integration.[1;31mcredential[ms as unknown as GoogleCredentials;
+[35mlib/integrations/google/google-ads.ts[m[36m:[m[32m113[m[36m:[m  const creds = integration.[1;31mcredential[ms as unknown as GoogleCredentials;
+[35mlib/integrations/google/oauth.ts[m[36m:[m[32m29[m[36m:[m  const creds = integration.[1;31mcredential[ms as unknown as GoogleCredentials;
+[35mlib/integrations/google/oauth.ts[m[36m:[m[32m46[m[36m:[m    console.error("[OAUTH GOOGLE] Missing client [1;31mcredential[ms to refresh token");
+[35mlib/integrations/google/oauth.ts[m[36m:[m[32m83[m[36m:[m      data: { [1;31mcredential[ms: newCreds as any },
+[35mlib/integrations/oauth.ts[m[36m:[m[32m4[m[36m:[m * Handles: get [1;31mcredential[ms → check expiry → refresh if needed → re-encrypt → update DB.
+[35mlib/integrations/oauth.ts[m[36m:[m[32m20[m[36m:[m * Retrieve and decrypt OAuth [1;31mcredential[ms for a provider+workspace.
+[35mlib/integrations/oauth.ts[m[36m:[m[32m33[m[36m:[m  const creds = integ.[1;31mcredential[ms as StoredCredentials | null;
+[35mlib/integrations/oauth.ts[m[36m:[m[32m108[m[36m:[m    data: { [1;31mcredential[ms: updatedCreds },
+[35mlib/meta-data-deletion.ts[m[36m:[m[32m49[m[36m:[m      [1;31mcredential[ms: {},
+[35mlib/meta-tokens.ts[m[36m:[m[32m33[m[36m:[m * Parse [1;31mcredential[ms from Integration table
+[35mlib/meta-tokens.ts[m[36m:[m[32m35[m[36m:[mexport function parseIntegrationCredentials([1;31mcredential[ms: any): UserTokenData | null {
+[35mlib/meta-tokens.ts[m[36m:[m[32m36[m[36m:[m  if (![1;31mcredential[ms?.accessToken) return null;
+[35mlib/meta-tokens.ts[m[36m:[m[32m39[m[36m:[m    const decrypted = decryptToken([1;31mcredential[ms.accessToken);
+[35mlib/meta-tokens.ts[m[36m:[m[32m42[m[36m:[m      expiresAt: [1;31mcredential[ms.expiresAt || "",
+[35mlib/meta-tokens.ts[m[36m:[m[32m43[m[36m:[m      refreshedAt: [1;31mcredential[ms.refreshedAt || "",
+[35mlib/meta-tokens.ts[m[36m:[m[32m44[m[36m:[m      pages: Array.isArray([1;31mcredential[ms.pages) 
+[35mlib/meta-tokens.ts[m[36m:[m[32m45[m[36m:[m        ? [1;31mcredential[ms.pages.map((p: any) => ({
+[35mlib/meta-tokens.ts[m[36m:[m[32m53[m[36m:[m      module: [1;31mcredential[ms.module || "unknown",
+[35mlib/meta-tokens.ts[m[36m:[m[32m56[m[36m:[m    console.error("[META-TOKENS] Failed to parse [1;31mcredential[ms:", err);
+[35mlib/server-auth.ts[m[36m:[m[32m63[m[36m:[m        if (moduleIntegration?.connected && moduleIntegration.[1;31mcredential[ms) {
+[35mlib/server-auth.ts[m[36m:[m[32m64[m[36m:[m          const creds = moduleIntegration.[1;31mcredential[ms as any;
+[35mlib/server-auth.ts[m[36m:[m[32m81[m[36m:[m      if (integration?.connected && integration.[1;31mcredential[ms) {
+[35mlib/server-auth.ts[m[36m:[m[32m82[m[36m:[m        const creds = integration.[1;31mcredential[ms as any;
+[35mlib/whatsapp.ts[m[36m:[m[32m87[m[36m:[m      select: { [1;31mcredential[ms: true, connected: true },
+[35mlib/whatsapp.ts[m[36m:[m[32m90[m[36m:[m    if (!integration?.connected || !integration.[1;31mcredential[ms) return null;
+[35mlib/whatsapp.ts[m[36m:[m[32m92[m[36m:[m    const creds = integration.[1;31mcredential[ms as Record<string, string>;
+[35mlib/whatsapp.ts[m[36m:[m[32m98[m[36m:[m      logger.warn("WA [1;31mcredential[ms incompletas", { workspaceId });
+[35mnext.config.ts[m[36m:[m[32m38[m[36m:[m        // CORS solo para la API (no para páginas) — con [1;31mcredential[ms el origen
+[35mpackage-lock.json[m[36m:[m[32m210[m[36m:[m    "node_modules/@aws-sdk/[1;31mcredential[m-provider-web-identity": {
+[35mpackage-lock.json[m[36m:[m[32m212[m[36m:[m      "resolved": "https://registry.npmjs.org/@aws-sdk/[1;31mcredential[m-provider-web-identity/-/[1;31mcredential[m-provider-web-identity-3.972.13.tgz",
+[35mpackage-lock.json[m[36m:[m[32m5218[m[36m:[m        "@aws-sdk/[1;31mcredential[m-provider-web-identity": "*"
+[35mpackage-lock.json[m[36m:[m[32m5221[m[36m:[m        "@aws-sdk/[1;31mcredential[m-provider-web-identity": {
+[35mpackage-lock.json[m[36m:[m[32m6072[m[36m:[m        "@aws-sdk/[1;31mcredential[m-provider-web-identity": "3.972.13",
+[35mprisma/migrations/20260529201310_init/migration.sql[m[36m:[m[32m210[m[36m:[m    "[1;31mcredential[ms" JSONB NOT NULL,
+[35mprisma/schema.prisma[m[36m:[m[32m389[m[36m:[m  [1;31mcredential[ms   Json      // Encrypted with AES-256 (encryptToken/decryptToken)
+[35mscripts/db-sync.mjs[m[36m:[m[32m34[m[36m:[m// Log the target host (NEVER [1;31mcredential[ms) so DB drift is obvious in build logs.
+[35mscripts/reencrypt-tokens.ts[m[36m:[m[32m4[m[36m:[m * If [1;31mcredential[ms were ever saved while ENCRYPTION_KEY was missing/invalid, the
+[35mscripts/reencrypt-tokens.ts[m[36m:[m[32m41[m[36m:[m    const creds = (integration.[1;31mcredential[ms ?? {}) as Record<string, any>;
+[35mscripts/reencrypt-tokens.ts[m[36m:[m[32m70[m[36m:[m          data: { [1;31mcredential[ms: creds },
+[35mtest_flow.js[m[36m:[m[32m7[m[36m:[m  const loginRes = await fetch('http://localhost:3000/api/auth/callback/[1;31mcredential[ms', {
+[35mtest_login.js[m[36m:[m[32m13[m[36m:[m  path: '/api/auth/callback/[1;31mcredential[ms',
+[35mtest_puppeteer.js[m[36m:[m[32m24[m[36m:[m  console.log("Typing [1;31mcredential[ms...");
+[35mtests/encryption.test.ts[m[36m:[m[32m38[m[36m:[m      /Plaintext [1;31mcredential[m/

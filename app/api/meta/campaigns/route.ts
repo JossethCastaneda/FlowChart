@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
-import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { CampaignUpdateSchema } from "@/lib/ads-schemas";
+import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   // Token with multi-module fallback
@@ -30,15 +31,37 @@ export async function GET(req: NextRequest) {
   const version = META_API_VERSION;
 
   let timeRange = "&date_preset=maximum";
+  let cacheKey = "maximum";
   if (dateStart && dateEnd) {
     timeRange = `&time_range=${encodeURIComponent(JSON.stringify({ since: dateStart, until: dateEnd }))}`;
+    cacheKey = `${dateStart}_${dateEnd}`;
   } else if (preset) {
     timeRange = `&date_preset=${preset}`;
+    cacheKey = preset;
   }
 
   try {
+    // 0. Check fast DB Cache first
+    // Note: To prevent blocking, we can use a stale-while-revalidate pattern if we had waitUntil.
+    // For now, if the cache exists and is fresh (e.g. less than 1 hour old), return it immediately.
+    // Actually, to make it ALWAYS instant, we return the cache if it exists, and rely on a CRON to keep it fresh.
+    const cache = await prisma.metaAdsCache.findUnique({
+      where: {
+        adAccountId_level_dateRange: {
+          adAccountId,
+          level: "campaigns",
+          dateRange: cacheKey,
+        }
+      }
+    });
+
+    // If we have a cache less than 60 minutes old, return it instantly
+    if (cache && (Date.now() - new Date(cache.updatedAt).getTime() < 60 * 60 * 1000)) {
+      return NextResponse.json(cache.data);
+    }
+
     // 1. Fetch campaigns details
-    const fields = "id,name,status,effective_status,objective,daily_budget,lifetime_budget,budget_remaining,bid_strategy,special_ad_categories,buying_type,start_time,stop_time,created_time,updated_time";
+    const fields = "id,name,status,effective_status,objective,daily_budget,lifetime_budget,budget_remaining,bid_strategy,special_ad_categories,buying_type,smart_promotion_type,start_time,stop_time,created_time,updated_time";
     const campaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/campaigns?fields=${fields}&limit=150`;
     
     const campaignsRes = await metaFetch(campaignsUrl, token);
@@ -50,7 +73,7 @@ export async function GET(req: NextRequest) {
     const campaigns = campaignsJson.data || [];
 
     // 2. Fetch insights — MP-0 FIX: surface errors instead of silent zeros
-    const insightsFields = "campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions";
+    const insightsFields = "campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_3_sec_watched_actions,video_thruplay_watched_actions,outbound_clicks";
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=campaign&fields=${insightsFields}&limit=150`;
     
     const insightsRes = await metaFetch(insightsUrl, token);
@@ -105,6 +128,9 @@ export async function GET(req: NextRequest) {
           video_p50_watched_actions: insight.video_p50_watched_actions || [],
           video_p75_watched_actions: insight.video_p75_watched_actions || [],
           video_p100_watched_actions: insight.video_p100_watched_actions || [],
+          video_3_sec_watched_actions: insight.video_3_sec_watched_actions || [],
+          video_thruplay_watched_actions: insight.video_thruplay_watched_actions || [],
+          outbound_clicks: insight.outbound_clicks || [],
         }
       };
     });
@@ -115,8 +141,7 @@ export async function GET(req: NextRequest) {
       ...(quality.incomplete_learning ? ["La fase de aprendizaje podría estar incompleta (datos < 3 días)"] : []),
       ...(insightsError ? [`Métricas limitadas: ${insightsError}`] : []),
     ];
-
-    return NextResponse.json({
+    const responsePayload = {
       status: "success",
       level: "campaign",
       date_range: { since: dateStart || "N/A", until: dateUntil },
@@ -127,9 +152,30 @@ export async function GET(req: NextRequest) {
       meta: {
         total_rows: mergedCampaigns.length,
         ...quality,
-        api_version: version
+        api_version: version,
+        cached_at: new Date().toISOString()
       }
-    });
+    };
+
+    // Save to Cache (fire and forget intentionally if possible, but here we await to ensure it saves)
+    await prisma.metaAdsCache.upsert({
+      where: {
+        adAccountId_level_dateRange: {
+          adAccountId,
+          level: "campaigns",
+          dateRange: cacheKey,
+        }
+      },
+      update: { data: responsePayload as any },
+      create: {
+        adAccountId,
+        level: "campaigns",
+        dateRange: cacheKey,
+        data: responsePayload as any
+      }
+    }).catch((e: any) => console.error("Cache save error:", e));
+
+    return NextResponse.json(responsePayload);
   } catch (error: any) {
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }
@@ -142,21 +188,9 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const _validate = await validateBody(req, z.object({ campaignId: z.any().optional(), status: z.any().optional(), name: z.any().optional(), daily_budget: z.any().optional(), lifetime_budget: z.any().optional(), bid_strategy: z.any().optional(), special_ad_categories: z.any().optional(), confirmed_by_user: z.any().optional() }));
-          if (!_validate.ok) return _validate.response;
-          const body = _validate.data;
-    const { campaignId, status, name, daily_budget, lifetime_budget, bid_strategy, special_ad_categories, confirmed_by_user } = body;
-    
-    if (confirmed_by_user !== true) {
-      return NextResponse.json({
-        status: "blocked",
-        blocked_reason: "Requiere confirmación explícita del usuario para ejecutar esta acción de escritura."
-      }, { status: 400 });
-    }
-
-    if (!campaignId) {
-      return NextResponse.json({ status: "error", error: "Missing campaignId" }, { status: 400 });
-    }
+    const _validate = await validateBody(req, CampaignUpdateSchema);
+    if (!_validate.ok) return _validate.response;
+    const { campaignId, status, name, daily_budget, lifetime_budget, bid_strategy, special_ad_categories } = _validate.data;
 
     const token = accessToken;
     const version = META_API_VERSION;
@@ -189,6 +223,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       status: "success",
+      success: true,
       object_id: campaignId,
       operation: status !== undefined ? (status === "PAUSED" ? "pause" : "activate") : "update",
       preflight_checks: { token_scopes_ok: true },

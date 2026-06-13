@@ -218,7 +218,32 @@ export async function GET(request: NextRequest) {
     }
 
     const results = await Promise.all(fetchers);
-    const conversations = results.flat();
+    const remoteConversations = results.flat();
+
+    // ── 5. WhatsApp Local Conversations from DB ──
+    const { default: prisma } = await import("@/lib/prisma");
+    const localConversations = await prisma.inboxConversation.findMany({
+      where: {
+        workspaceId,
+        platform: "whatsapp",
+      },
+      orderBy: { lastMessageAt: "desc" },
+    });
+
+    const mappedLocal = localConversations.map((c) => ({
+      id: c.id,
+      platform: "whatsapp",
+      pageId: c.pageId || "",
+      pageName: "WhatsApp",
+      contactName: c.contactName || "Usuario WhatsApp",
+      contactId: c.externalId.replace("wa_", ""),
+      contactAvatar: c.contactAvatar || null,
+      lastMessage: c.lastMessage || "",
+      lastMessageAt: c.lastMessageAt || c.updatedAt,
+      unread: c.unread,
+    }));
+
+    const conversations = [...remoteConversations, ...mappedLocal];
 
     conversations.sort((a, b) =>
       new Date(b.lastMessageAt || 0).getTime() - new Date(a.lastMessageAt || 0).getTime()

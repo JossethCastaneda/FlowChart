@@ -32,9 +32,10 @@ export async function GET(request: NextRequest) {
       if (page?.access_token) pageToken = page.access_token;
     }
 
-    // Fetch profile picture — follow redirect to get actual URL
-    const picUrl = `https://graph.facebook.com/${userId}/picture?type=normal&width=100&height=100&access_token=${pageToken}`;
-    const picRes = await fetch(picUrl, { redirect: "follow" });
+    // Fetch profile picture — token por header (nunca en la URL) y
+    // siguiendo el redirect al CDN de Meta.
+    const picUrl = `https://graph.facebook.com/${userId}/picture?type=normal&width=100&height=100`;
+    const picRes = await metaFetch(picUrl, pageToken, { redirect: "follow" });
 
     if (!picRes.ok) {
       return new NextResponse(null, { status: 404 });

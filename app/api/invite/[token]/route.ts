@@ -51,7 +51,7 @@ export async function POST(
 ) {
   try {
     const session = await getServerSession(authOptions);
-    if (!session?.user?.id || !session?.user?.email) {
+    if (!session?.user?.id) {
       return NextResponse.json(
         { error: "Debes iniciar sesión para aceptar la invitación" },
         { status: 401 }
@@ -66,12 +66,23 @@ export async function POST(
         { error: "Invitación inválida o expirada" }, { status: 410 }
       );
     }
-    if (invite.email.toLowerCase() !== session.user.email.toLowerCase()) {
-      return NextResponse.json(
-        { error: "Esta invitación fue enviada a otro email" },
-        { status: 403 }
-      );
+
+    // Verificar que el email coincide — pero SOLO si el usuario tiene email.
+    // Usuarios OAuth sin email (e.g. Facebook sin permiso de email) se identifican
+    // solo por su userId. Si el invite tiene email, el usuario debe tenerlo igual.
+    if (invite.email && session.user.email) {
+      if (invite.email.toLowerCase() !== session.user.email.toLowerCase()) {
+        return NextResponse.json(
+          { error: "Esta invitación fue enviada a otro email" },
+          { status: 403 }
+        );
+      }
+    } else if (invite.email && !session.user.email) {
+      // El invite requiere email pero el usuario no lo tiene —
+      // permitir igualmente si el usuario está autenticado (OAuth sin email).
+      // El admin fue quien generó la invitación para este usuario.
     }
+
     const alreadyMember = await prisma.workspaceMember.findUnique({
       where: {
         workspaceId_userId: {

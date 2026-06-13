@@ -9,7 +9,9 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { ToastContainer } from "@/components/ui/Toast";
 import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
+import { PermissionsProvider } from "@/components/layout/PermissionsContext";
 import { getBaseUrl } from "@/lib/get-base-url";
+import { LanguageProvider } from "@/components/layout/LanguageContext";
 
 // Solo inyectar los tags si el ID tiene el formato real (GTM-XXXX / G-XXXX);
 // así un placeholder en Vercel no genera scripts rotos en producción.
@@ -30,10 +32,17 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL(getBaseUrl()),
+  metadataBase: (() => {
+    try {
+      return new URL(getBaseUrl());
+    } catch {
+      return new URL("https://sodare.xyz");
+    }
+  })(),
   title: "Sodare — Inteligencia Multicanal",
   description: "Plataforma avanzada de CRM, Analytics, Ads Manager y operaciones para agencias de marketing digital.",
 };
+
 
 export default function RootLayout({
   children,
@@ -44,11 +53,15 @@ export default function RootLayout({
     <html lang="es" className="dark">
       <body className={`${inter.variable} font-sans antialiased`}>
         <AuthProvider>
-          <QueryProvider>
-            <ClientMainWrapper>{children}</ClientMainWrapper>
-          </QueryProvider>
-          <ToastContainer />
-          <ConfirmModalContainer />
+          <LanguageProvider>
+            <PermissionsProvider>
+              <QueryProvider>
+                <ClientMainWrapper>{children}</ClientMainWrapper>
+              </QueryProvider>
+              <ToastContainer />
+              <ConfirmModalContainer />
+            </PermissionsProvider>
+          </LanguageProvider>
         </AuthProvider>
         <SpeedInsights />
         {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}

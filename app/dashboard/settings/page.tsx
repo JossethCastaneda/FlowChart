@@ -8,14 +8,14 @@ import {
   Shield, User, Plug, CreditCard, Globe, ChevronRight, Lock, Layers, Eye, Pencil,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { IntegrationsPanel } from "@/components/publisher/IntegrationsPanel";
+import { IntegrationsView } from "@/app/dashboard/integrations/page";
 import { AreasManager } from "@/components/settings/AreasManager";
 import { PermissionsManager } from "@/components/settings/PermissionsManager";
 import { MemberPermissionsModal, type MemberPermissions } from "@/components/settings/MemberPermissionsModal";
 
 // ── Settings catalogue: groups (menus) → sections (submenus) ──
 // Single source of truth — add a section here and render it in the switch below.
-type SectionKey = "profile" | "preferences" | "general" | "team" | "areas" | "permisos" | "integrations" | "plan" | "danger";
+type SectionKey = "profile" | "preferences" | "workspace" | "integrations" | "plan" | "danger";
 
 const SETTINGS_GROUPS: {
   group: string;
@@ -31,10 +31,12 @@ const SETTINGS_GROUPS: {
   {
     group: "Workspace",
     items: [
-      { key: "general", label: "General", icon: Globe, desc: "Nombre y configuración" },
-      { key: "team", label: "Equipo y roles", icon: Users, roles: ["OWNER", "ADMIN"], desc: "Miembros e invitaciones" },
-      { key: "areas", label: "Áreas y flujos", icon: Layers, desc: "Departamentos y SLA" },
-      { key: "permisos", label: "Permisos", icon: Shield, roles: ["OWNER", "ADMIN"], desc: "Control de acceso por área" },
+      { key: "workspace", label: "Workspace", icon: Globe, desc: "Equipo, áreas y permisos" },
+    ],
+  },
+  {
+    group: "Admin",
+    items: [
       { key: "integrations", label: "Integraciones", icon: Plug, desc: "Conexiones externas" },
       { key: "plan", label: "Plan", icon: CreditCard, desc: "Suscripción y facturación" },
     ],
@@ -83,11 +85,18 @@ export default function SettingsPage() {
   const [workspaceSlug, setWorkspaceSlug] = useState("");
   const [workspacePlan, setWorkspacePlan] = useState("free");
   const [userRole, setUserRole] = useState<string>("");
-  const [activeSection, setActiveSection] = useState<SectionKey>("general");
+  const [activeSection, setActiveSection] = useState<SectionKey>("workspace");
+  const [workspaceTab, setWorkspaceTab] = useState<"general" | "team" | "areas" | "permisos">("general");
   const [prefs, setPrefs] = useState<Prefs>(DEFAULT_PREFS);
   const [profileData, setProfileData] = useState<{ id: string, name: string, email: string, image: string, providers: string[] } | null>(null);
   const [profileName, setProfileName] = useState("");
   const [savingProfile, setSavingProfile] = useState(false);
+  // Password change state
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordMsg, setPasswordMsg] = useState<{ ok: boolean; text: string } | null>(null);
   const router = useRouter();
 
   // Restore section + preferences (client-only).
@@ -284,6 +293,31 @@ export default function SettingsPage() {
     setSavingProfile(false);
   }
 
+  async function handleChangePassword() {
+    setPasswordMsg(null);
+    if (!currentPassword) { setPasswordMsg({ ok: false, text: "Ingresa tu contraseña actual" }); return; }
+    if (newPassword.length < 8) { setPasswordMsg({ ok: false, text: "La nueva contraseña debe tener al menos 8 caracteres" }); return; }
+    if (newPassword !== confirmPassword) { setPasswordMsg({ ok: false, text: "Las contraseñas no coinciden" }); return; }
+    setChangingPassword(true);
+    try {
+      const res = await fetch("/api/auth/change-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setPasswordMsg({ ok: false, text: data.error || "Error al cambiar contraseña" });
+      } else {
+        setPasswordMsg({ ok: true, text: "Contraseña actualizada correctamente" });
+        setCurrentPassword(""); setNewPassword(""); setConfirmPassword("");
+      }
+    } catch {
+      setPasswordMsg({ ok: false, text: "Error de red. Intenta de nuevo." });
+    }
+    setChangingPassword(false);
+  }
+
   const isAdmin = userRole === "OWNER" || userRole === "ADMIN";
 
   // Build the visible nav (role-gated) and keep the active section valid.
@@ -331,19 +365,21 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Admin"
-        description="Configuración de tu cuenta, equipo y workspace."
-        icon={<Settings className="w-6 h-6" style={{ color: "#00d4ff" }} />}
-      />
+    <div style={{ display: "flex", flexDirection: "column", height: "calc(100vh - 88px)", overflow: "hidden" }}>
+      <div style={{ flexShrink: 0, paddingBottom: 12 }}>
+        <PageHeader
+          title="Admin"
+          description="Configuración de tu cuenta, equipo y workspace."
+          icon={<Settings className="w-6 h-6" style={{ color: "#00d4ff" }} />}
+        />
+      </div>
 
-      <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start">
+      <div style={{ display: "flex", flex: 1, gap: 16, overflow: "hidden", minHeight: 0 }}>
         {/* ── Left nav: groups (menus) + sections (submenus) ── */}
-        <nav className="w-full lg:w-56 shrink-0 flex flex-row lg:flex-col gap-2 lg:gap-6 sticky top-0 z-10 lg:z-auto bg-[var(--background)] lg:bg-transparent pb-3 pt-2 lg:p-0 border-b border-[var(--border)] lg:border-none overflow-x-auto scrollbar-hide">
+        <nav style={{ width: 216, flexShrink: 0, display: "flex", flexDirection: "column", gap: 2, overflowY: "auto", overflowX: "hidden", padding: "2px 0 16px", scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.05) transparent" }}>
           {visibleGroups.map((g, gi) => (
-            <div key={g.group} className="flex flex-row lg:flex-col items-center lg:items-stretch gap-2">
-              <div className="hidden lg:block">
+            <div key={g.group} style={{ display: "flex", flexDirection: "column" }}>
+              <div>
                 {gi > 0 && <div style={{ height: 1, background: "rgba(255,255,255,0.06)", margin: "4px 10px 8px" }} />}
                 <div style={{
                   fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase",
@@ -353,7 +389,7 @@ export default function SettingsPage() {
                   {g.group}
                 </div>
               </div>
-              <div className="flex flex-row lg:flex-col gap-2">
+              <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
                 {g.items.map((it) => {
                   const active = activeSection === it.key;
                   const Icon = it.icon;
@@ -382,7 +418,8 @@ export default function SettingsPage() {
         </nav>
 
         {/* ── Right content ── */}
-        <div className="flex-1 min-w-0 flex flex-col gap-6 w-full">
+        <div style={{ flex: 1, minWidth: 0, overflowY: "auto", overflowX: "hidden", padding: "2px 4px 32px", scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.06) transparent" }}>
+          <div className="flex flex-col gap-6">
 
           {/* PERFIL */}
           {activeSection === "profile" && (
@@ -478,6 +515,65 @@ export default function SettingsPage() {
                   </div>
                 </div>
               )}
+
+              {/* CAMBIO DE CONTRASEÑA */}
+              {profileData && profileData.providers.includes("email") && (
+                <div className="glass-panel p-4 md:p-6">
+                  <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                    <span className="section-title flex items-center gap-2">
+                      <Lock className="w-4 h-4 text-[#00d4ff]" /> Cambiar contraseña
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-3 max-w-md">
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1.5">Contraseña actual</label>
+                      <input
+                        type="password"
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        style={inp}
+                        placeholder="••••••••"
+                        autoComplete="current-password"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1.5">Nueva contraseña</label>
+                      <input
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        style={inp}
+                        placeholder="Mínimo 8 caracteres"
+                        autoComplete="new-password"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[11px] text-slate-500 block mb-1.5">Confirmar nueva contraseña</label>
+                      <input
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        style={inp}
+                        placeholder="Repite la nueva contraseña"
+                        autoComplete="new-password"
+                      />
+                    </div>
+                    {passwordMsg && (
+                      <p className={`text-xs px-3 py-2 rounded ${passwordMsg.ok ? "text-emerald-400 bg-emerald-400/10" : "text-red-400 bg-red-400/10"}`}>
+                        {passwordMsg.text}
+                      </p>
+                    )}
+                    <button
+                      onClick={handleChangePassword}
+                      disabled={changingPassword}
+                      className="btn-primary w-full sm:w-auto self-start"
+                      style={{ opacity: changingPassword ? 0.6 : 1 }}
+                    >
+                      {changingPassword ? "Actualizando..." : "Cambiar contraseña"}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -497,224 +593,208 @@ export default function SettingsPage() {
             </div>
           )}
 
-          {/* GENERAL (workspace) */}
-          {activeSection === "general" && (
-            <div className="glass-panel p-4 md:p-6">
-              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
-                <span className="section-title flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-[#00d4ff]" /> General
-                </span>
-              </div>
-              <label className="text-[11px] text-slate-500 block mb-1.5">Nombre del workspace</label>
-              <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                <input type="text" value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} disabled={!isAdmin} className="flex-1 w-full" style={{ ...inp, opacity: isAdmin ? 1 : 0.6 }} />
-                {isAdmin && <button onClick={handleRenameWorkspace} className="btn-primary w-full sm:w-auto">Guardar</button>}
-              </div>
-              <div className="flex flex-col sm:flex-row gap-6">
-                <div>
-                  <div className="text-[11px] text-slate-500">Slug</div>
-                  <div className="text-[13px] text-slate-200 font-mono mt-1 bg-black/20 px-3 py-1.5 rounded">{workspaceSlug || "—"}</div>
-                </div>
-                <div>
-                  <div className="text-[11px] text-slate-500">Plan</div>
-                  <div className="text-[13px] text-slate-200 capitalize mt-1 bg-black/20 px-3 py-1.5 rounded">{workspacePlan}</div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* EQUIPO Y ROLES */}
-          {activeSection === "team" && isAdmin && (
-            <>
-              <div className="glass-panel p-4 md:p-6">
-                <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
-                  <span className="section-title flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-[#00d4ff]" /> Invitar al equipo
-                  </span>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-3">
-                  <input type="email" placeholder="email@empresa.com" value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handleInvite()}
-                    className="flex-1 w-full" style={inp} />
-                  <div className="flex gap-3 w-full sm:w-auto">
-                    <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className="w-1/2 sm:w-[140px] appearance-none cursor-pointer" style={inp}>
-                      <option value="MEMBER">Miembro</option>
-                      <option value="ADMIN">Admin</option>
-                    </select>
-                    <button onClick={handleInvite} disabled={sending} className="btn-primary flex-1 sm:flex-none" style={{ opacity: sending ? 0.6 : 1 }}>
-                      {sending ? "Enviando..." : "Invitar →"}
+          {/* WORKSPACE - unified module with 4 internal tabs */}
+          {activeSection === "workspace" && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+              {/* ── Tab bar ── */}
+              <div style={{ display: "flex", gap: 0, borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", padding: 4 }}>
+                {([
+                  { id: "general" as const, label: "General", icon: Globe },
+                  { id: "team" as const, label: "Equipo y roles", icon: Users },
+                  { id: "areas" as const, label: "Áreas y flujos", icon: Layers },
+                  { id: "permisos" as const, label: "Permisos", icon: Shield },
+                ] as const).map((tab) => {
+                  const active = workspaceTab === tab.id;
+                  const TabIcon = tab.icon;
+                  return (
+                    <button key={tab.id} onClick={() => setWorkspaceTab(tab.id)}
+                      style={{
+                        flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+                        padding: "7px 10px", borderRadius: 7, border: "none", cursor: "pointer",
+                        background: active ? "rgba(0,212,255,0.1)" : "transparent",
+                        color: active ? "#00d4ff" : "#475569",
+                        fontSize: 12, fontWeight: active ? 700 : 400, fontFamily: "inherit",
+                        transition: "all 0.15s",
+                        boxShadow: active ? "inset 0 0 0 1px rgba(0,212,255,0.2)" : "none",
+                      }}
+                    >
+                      <TabIcon style={{ width: 13, height: 13 }} />
+                      {tab.label}
                     </button>
-                  </div>
-                </div>
-                {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
-                {emailSent && (
-                  <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded">
-                    <p className="text-[13px] text-emerald-400 flex items-center gap-2">
-                      <CheckCircle className="w-4 h-4" /> Invitación enviada por email. Expira en 7 días.
-                    </p>
-                  </div>
-                )}
-                {!emailSent && lastInviteUrl && (
-                  <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded overflow-hidden">
-                    <p className="text-[11px] text-slate-500 mb-1.5 font-display tracking-widest">ENLACE DE INVITACIÓN GENERADO</p>
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                      <code className="w-full sm:flex-1 text-[11px] text-emerald-400 break-all bg-emerald-500/5 px-2 py-1.5 rounded">{lastInviteUrl}</code>
-                      <button onClick={handleCopyUrl} className="px-3 py-1.5 bg-transparent border border-emerald-500/30 text-emerald-400 rounded cursor-pointer text-[11px] whitespace-nowrap flex items-center gap-1 w-full sm:w-auto justify-center">
-                        {copied ? <><CheckCircle className="w-3 h-3" /> Copiado</> : <><Copy className="w-3 h-3" /> Copiar</>}
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  );
+                })}
               </div>
 
-              {invites.length > 0 && (
-                <div className="glass-panel p-4 md:p-6">
-                  <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 flex justify-between items-center">
-                    <span className="section-title flex items-center gap-2">
-                      <Clock className="w-4 h-4 text-amber-500" /> Invitaciones pendientes
-                    </span>
-                    <span className="badge badge-amber">{invites.length}</span>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    {invites.map((inv: any) => (
-                      <div key={inv.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-white/5 border border-white/5">
-                        <div>
-                          <p className="text-[13px] text-slate-200 truncate max-w-[200px] sm:max-w-none">{inv.email}</p>
-                          <p className="text-[11px] text-slate-500">Rol: {inv.role} · Expira: {new Date(inv.expires).toLocaleDateString("es-MX")}</p>
-                        </div>
-                        <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-                          <span className="badge badge-amber">Pendiente</span>
-                          <button onClick={() => handleCancelInvite(inv.id)} className="bg-red-500/10 border border-red-500/30 rounded-md text-red-500 text-[11px] px-2.5 py-1 cursor-pointer whitespace-nowrap">Cancelar</button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              {/* ── Tab content ── */}
 
-              <div className="glass-panel p-4 md:p-6">
-                <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 flex justify-between items-center">
-                  <span className="section-title flex items-center gap-2">
-                    <Users className="w-4 h-4 text-[#00d4ff]" /> Equipo actual
-                  </span>
-                  <span className="badge badge-cyan">{members.length}</span>
-                </div>
-                <div className="flex flex-col gap-2">
-                  {members.map((m: any) => (
-                    <div key={m.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-white/5 border border-white/5">
-                      <div className="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
-                        {m.user.image ? (
-                          <img src={m.user.image} alt={m.user.name || ""} className="w-8 h-8 rounded-full border border-[rgba(0,212,255,0.2)] shrink-0" />
-                        ) : (
-                          <div className="w-8 h-8 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center font-display text-[11px] text-[#00d4ff] shrink-0">
-                            {(m.user.name || "U")[0].toUpperCase()}
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <p className="text-[13px] text-slate-200 font-medium truncate">{m.user.name || "Sin nombre"}</p>
-                          <p className="text-[11px] text-slate-500 truncate">{m.user.email}</p>
-                        </div>
-                      </div>
-                      <div className="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
-                        <span className="text-[10px] font-semibold text-white font-display tracking-widest" style={{ color: roleBadgeColor[m.role] || "white" }}>{m.role}</span>
-                        {m.role !== "OWNER" && m.user.id !== session?.user?.id && (
-                          <div className="flex items-center gap-2">
-                            {isAdmin && (
-                              <button
-                                onClick={() => setEditingPermsFor({ id: m.user.id, name: m.user.name || "Usuario", perms: m.permissions || null })}
-                                className="bg-[rgba(0,212,255,0.03)] border border-[rgba(0,212,255,0.1)] cursor-pointer text-[#00d4ff] hover:bg-[rgba(0,212,255,0.1)] p-1.5 rounded transition-colors"
-                                title="Permisos granulares"
-                              >
-                                <Shield className="w-3.5 h-3.5" />
-                              </button>
-                            )}
-                            <select value={m.role} onChange={(e) => handleRoleChange(m.user.id, e.target.value)} className="bg-[rgba(0,212,255,0.03)] border border-[rgba(0,212,255,0.1)] text-slate-200 text-[10px] px-1.5 py-1 cursor-pointer outline-none rounded">
-                              <option value="MEMBER">MEMBER</option>
-                              <option value="ADMIN">ADMIN</option>
-                              <option value="OWNER">OWNER</option>
-                            </select>
-                            <button onClick={() => handleRemoveMember(m.user.id)} className="bg-transparent border-none cursor-pointer p-1 text-red-500/50 hover:text-red-500 transition-colors" title="Remover miembro">
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-
-          {/* ÁREAS Y FLUJOS */}
-          {activeSection === "areas" && (
-            <div className="flex flex-col gap-6">
-              {isAdmin && (
+              {/* General */}
+              {workspaceTab === "general" && (
                 <div className="glass-panel p-4 md:p-6">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                     <span className="section-title flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-[#00d4ff]" /> Invitar al equipo
+                      <Globe className="w-4 h-4 text-[#00d4ff]" /> General
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 mb-4">Invita a miembros a tu workspace para luego asignarlos a tus áreas y flujos.</p>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input type="email" placeholder="email@empresa.com" value={inviteEmail}
-                      onChange={(e) => setInviteEmail(e.target.value)}
-                      onKeyDown={(e) => e.key === "Enter" && handleInvite()}
-                      className="flex-1 w-full" style={inp} />
-                    <div className="flex gap-3 w-full sm:w-auto">
-                      <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className="w-1/2 sm:w-[140px] appearance-none cursor-pointer" style={inp}>
-                        <option value="MEMBER">Miembro</option>
-                        <option value="ADMIN">Admin</option>
-                      </select>
-                      <button onClick={handleInvite} disabled={sending} className="btn-primary flex-1 sm:flex-none" style={{ opacity: sending ? 0.6 : 1 }}>
-                        {sending ? "Enviando..." : "Invitar →"}
-                      </button>
+                  <label className="text-[11px] text-slate-500 block mb-1.5">Nombre del workspace</label>
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    <input type="text" value={workspaceName} onChange={(e) => setWorkspaceName(e.target.value)} disabled={!isAdmin} className="flex-1 w-full" style={{ ...inp, opacity: isAdmin ? 1 : 0.6 }} />
+                    {isAdmin && <button onClick={handleRenameWorkspace} className="btn-primary w-full sm:w-auto">Guardar</button>}
+                  </div>
+                  <div className="flex flex-col sm:flex-row gap-6">
+                    <div>
+                      <div className="text-[11px] text-slate-500">Slug</div>
+                      <div className="text-[13px] text-slate-200 font-mono mt-1 bg-black/20 px-3 py-1.5 rounded">{workspaceSlug || "—"}</div>
+                    </div>
+                    <div>
+                      <div className="text-[11px] text-slate-500">Plan</div>
+                      <div className="text-[13px] text-slate-200 capitalize mt-1 bg-black/20 px-3 py-1.5 rounded">{workspacePlan}</div>
                     </div>
                   </div>
-                  {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
-                  {emailSent && (
-                    <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded">
-                      <p className="text-[13px] text-emerald-400 flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" /> Invitación enviada por email. Expira en 7 días.
-                      </p>
-                    </div>
-                  )}
-                  {!emailSent && lastInviteUrl && (
-                    <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded overflow-hidden">
-                      <p className="text-[11px] text-slate-500 mb-1.5 font-display tracking-widest">ENLACE DE INVITACIÓN GENERADO</p>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                        <code className="w-full sm:flex-1 text-[11px] text-emerald-400 break-all bg-emerald-500/5 px-2 py-1.5 rounded">{lastInviteUrl}</code>
-                        <button onClick={handleCopyUrl} className="px-3 py-1.5 bg-transparent border border-emerald-500/30 text-emerald-400 rounded cursor-pointer text-[11px] whitespace-nowrap flex items-center gap-1 w-full sm:w-auto justify-center">
-                          {copied ? <><CheckCircle className="w-3 h-3" /> Copiado</> : <><Copy className="w-3 h-3" /> Copiar</>}
-                        </button>
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 
-              <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
-                <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
-                  <span className="section-title flex items-center gap-2">
-                    <Users className="w-4 h-4 text-[#00d4ff]" /> Áreas y flujos
-                  </span>
-                </div>
-                <AreasManager members={members.map((m: any) => ({ id: m.user.id, name: m.user.name || "Sin nombre", activityStatus: m.activityStatus }))} canEdit={isAdmin} />
-              </div>
-            </div>
-          )}
+              {/* Equipo y roles */}
+              {workspaceTab === "team" && isAdmin && (
+                <>
+                  <div className="glass-panel p-4 md:p-6">
+                    <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
+                      <span className="section-title flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-[#00d4ff]" /> Invitar al equipo
+                      </span>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <input type="email" placeholder="email@empresa.com" value={inviteEmail}
+                        onChange={(e) => setInviteEmail(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && handleInvite()}
+                        className="flex-1 w-full" style={inp} />
+                      <div className="flex gap-3 w-full sm:w-auto">
+                        <select value={inviteRole} onChange={(e) => setInviteRole(e.target.value)} className="w-1/2 sm:w-[140px] appearance-none cursor-pointer" style={inp}>
+                          <option value="MEMBER">Miembro</option>
+                          <option value="ADMIN">Admin</option>
+                        </select>
+                        <button onClick={handleInvite} disabled={sending} className="btn-primary flex-1 sm:flex-none" style={{ opacity: sending ? 0.6 : 1 }}>
+                          {sending ? "Enviando..." : "Invitar →"}
+                        </button>
+                      </div>
+                    </div>
+                    {error && <p className="text-xs text-red-500 mt-2">{error}</p>}
+                    {emailSent && (
+                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded">
+                        <p className="text-[13px] text-emerald-400 flex items-center gap-2">
+                          <CheckCircle className="w-4 h-4" /> Invitación enviada por email. Expira en 7 días.
+                        </p>
+                      </div>
+                    )}
+                    {!emailSent && lastInviteUrl && (
+                      <div className="mt-4 p-3 bg-emerald-500/5 border border-emerald-500/20 rounded overflow-hidden">
+                        <p className="text-[11px] text-slate-500 mb-1.5 font-display tracking-widest">ENLACE DE INVITACIÓN GENERADO</p>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                          <code className="w-full sm:flex-1 text-[11px] text-emerald-400 break-all bg-emerald-500/5 px-2 py-1.5 rounded">{lastInviteUrl}</code>
+                          <button onClick={handleCopyUrl} className="px-3 py-1.5 bg-transparent border border-emerald-500/30 text-emerald-400 rounded cursor-pointer text-[11px] whitespace-nowrap flex items-center gap-1 w-full sm:w-auto justify-center">
+                            {copied ? <><CheckCircle className="w-3 h-3" /> Copiado</> : <><Copy className="w-3 h-3" /> Copiar</>}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  {invites.length > 0 && (
+                    <div className="glass-panel p-4 md:p-6">
+                      <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 flex justify-between items-center">
+                        <span className="section-title flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-amber-500" /> Invitaciones pendientes
+                        </span>
+                        <span className="badge badge-amber">{invites.length}</span>
+                      </div>
+                      <div className="flex flex-col gap-2">
+                        {invites.map((inv: any) => (
+                          <div key={inv.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-white/5 border border-white/5">
+                            <div>
+                              <p className="text-[13px] text-slate-200 truncate max-w-[200px] sm:max-w-none">{inv.email}</p>
+                              <p className="text-[11px] text-slate-500">Rol: {inv.role} · Expira: {new Date(inv.expires).toLocaleDateString("es-MX")}</p>
+                            </div>
+                            <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                              <span className="badge badge-amber">Pendiente</span>
+                              <button onClick={() => handleCancelInvite(inv.id)} className="bg-red-500/10 border border-red-500/30 rounded-md text-red-500 text-[11px] px-2.5 py-1 cursor-pointer whitespace-nowrap">Cancelar</button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  <div className="glass-panel p-4 md:p-6">
+                    <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 flex justify-between items-center">
+                      <span className="section-title flex items-center gap-2">
+                        <Users className="w-4 h-4 text-[#00d4ff]" /> Equipo actual
+                      </span>
+                      <span className="badge badge-cyan">{members.length}</span>
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      {members.map((m: any) => (
+                        <div key={m.id} className="data-row !flex-col sm:!flex-row !items-start sm:!items-center gap-3 sm:gap-0 !px-3 !py-3 rounded-lg bg-white/5 border border-white/5">
+                          <div className="flex items-center gap-3 w-full sm:w-auto overflow-hidden">
+                            {m.user.image ? (
+                              <img src={m.user.image} alt="" className="w-8 h-8 rounded-full border border-white/10" />
+                            ) : (
+                              <div className="w-8 h-8 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center text-[#00d4ff] text-xs font-semibold">
+                                {(m.user.name || "?")[0].toUpperCase()}
+                              </div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-[13px] text-slate-200 truncate">{m.user.name || "Sin nombre"}</p>
+                              <p className="text-[11px] text-slate-500 truncate">{m.user.email}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
+                            <span style={{ color: roleBadgeColor[m.role] || "#64748b", fontSize: 11, fontWeight: 600 }}>
+                              {m.role}
+                            </span>
+                            {userRole === "OWNER" && m.role !== "OWNER" && (
+                              <select value={m.role} onChange={(e) => handleRoleChange(m.user.id, e.target.value)}
+                                style={{ ...inp, width: "auto", padding: "4px 8px", fontSize: 11 }}>
+                                <option value="MEMBER">Miembro</option>
+                                <option value="ADMIN">Admin</option>
+                              </select>
+                            )}
+                            {isAdmin && m.role !== "OWNER" && (
+                              <button onClick={() => setEditingPermsFor({ id: m.user.id, name: m.user.name || "", perms: m.permissions ?? null })}
+                                title="Permisos granulares" className="p-1.5 rounded hover:bg-white/5 text-slate-400">
+                                <Eye className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                            {isAdmin && m.userId !== session?.user?.id && (
+                              <button onClick={() => handleRemoveMember(m.userId)} className="p-1.5 rounded hover:bg-red-500/10 text-red-500">
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+              {workspaceTab === "team" && !isAdmin && (
+                <div className="glass-panel p-6 text-center text-slate-500 text-sm">Solo admins y owners pueden ver el equipo.</div>
+              )}
 
-          {/* PERMISOS */}
-          {activeSection === "permisos" && (
-            <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
-              <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
-                <span className="section-title flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-[#00d4ff]" /> Permisos por área
-                </span>
-              </div>
-              <PermissionsManager />
+              {/* Áreas y flujos */}
+              {workspaceTab === "areas" && (
+                <div className="flex flex-col gap-6">
+                  <AreasManager members={members.map(m => ({ id: m.userId, name: m.user?.name || "?" }))} canEdit={isAdmin} />
+                </div>
+              )}
+
+              {/* Permisos */}
+              {workspaceTab === "permisos" && (
+                <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
+                  <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
+                    <span className="section-title flex items-center gap-2">
+                      <Shield className="w-4 h-4 text-[#00d4ff]" /> Permisos por área
+                    </span>
+                  </div>
+                  <PermissionsManager />
+                </div>
+              )}
             </div>
           )}
 
@@ -725,7 +805,7 @@ export default function SettingsPage() {
                   <Plug className="w-4 h-4 text-[#00d4ff]" /> Integraciones
                 </span>
               </div>
-              <IntegrationsPanel />
+              <IntegrationsView />
             </div>
           )}
 
@@ -771,7 +851,8 @@ export default function SettingsPage() {
             </div>
           )}
         </div>
-      </div>
+        </div>
+        </div>
 
       {editingPermsFor && (
         <MemberPermissionsModal

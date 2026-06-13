@@ -22,9 +22,10 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
       authorization: {
         url: `https://www.facebook.com/${META_API_VERSION}/dialog/oauth`,
         params: {
-          // Config ID 2028091691078800 must be set in Facebook App to request email,public_profile only.
-          config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID
-            || "2028091691078800",
+          // FACEBOOK_LOGIN_CONFIG_ID must point to a Meta config that requests
+          // email,public_profile only. No hardcoded fallback: if the env is
+          // missing the param goes empty and Meta rejects the dialog visibly.
+          config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID || "",
           auth_type: "rerequest",
           // Explicitly restrict scope to minimum — no ads_read, no pages_manage_posts, etc.
           scope: "email,public_profile",
@@ -89,6 +90,134 @@ providers.push(
   })
 );
 
+// Facebook SDK — valida el accessToken client-side con la Graph API
+// y crea/vincula el usuario en DB. Usado por el popup de FB.login() en /login.
+providers.push(
+  CredentialsProvider({
+    id: "facebook-sdk",
+    name: "Facebook SDK",
+    credentials: {
+      accessToken: { type: "text" },
+    },
+    async authorize(credentials) {
+      if (!credentials?.accessToken) {
+        console.error("[AUTH facebook-sdk] No access token provided.");
+        return null;
+      }
+      try {
+        // 1. Validar token con Meta y obtener perfil.
+        // Token SOLO por header (nunca en query string: las URLs terminan en
+        // logs de proxies/CDN) y versión de API fijada server-side.
+        const res = await fetch(
+          `https://graph.facebook.com/${META_API_VERSION}/me?fields=id,name,email,picture.type(large)`,
+          {
+            headers: { Authorization: `Bearer ${credentials.accessToken}` },
+            signal: AbortSignal.timeout(6000),
+          },
+        );
+
+        const fbUser = await res.json();
+
+        if (!fbUser?.id || fbUser.error) {
+          // Sin volcar la respuesta completa (puede traer datos del usuario):
+          // solo código/tipo del error de Meta.
+          console.error(
+            "[AUTH facebook-sdk] Meta validation failed.",
+            "status:", res.status,
+            "code:", fbUser?.error?.code ?? null,
+            "subcode:", fbUser?.error?.error_subcode ?? null,
+          );
+          // Códigos de throttling de Meta: 4 (app), 17 (usuario), 32 (page), 613 (custom)
+          const rateLimitCodes = [4, 17, 32, 613];
+          if (
+            rateLimitCodes.includes(fbUser?.error?.code) ||
+            fbUser?.error?.message?.toLowerCase().includes("request limit")
+          ) {
+            throw new Error("MetaRateLimit");
+          }
+          return null;
+        }
+
+        const { default: prisma } = await import("@/lib/prisma");
+
+        // 2. Buscar por cuenta de Facebook vinculada
+        const existingAccount = await prisma.account.findUnique({
+          where: {
+            provider_providerAccountId: {
+              provider: "facebook",
+              providerAccountId: fbUser.id,
+            },
+          },
+          include: { user: true },
+        });
+
+        let dbUser = existingAccount?.user ?? null;
+
+        // 3. Si no existe cuenta, buscar por email (sin loguear el email — PII)
+        if (!dbUser && fbUser.email) {
+          dbUser = await prisma.user.findUnique({ where: { email: fbUser.email } }) ?? null;
+        }
+
+        // 4. Crear usuario si no existe
+        if (!dbUser) {
+          dbUser = await prisma.user.create({
+            data: {
+              name: fbUser.name ?? null,
+              email: fbUser.email ?? null,
+              image: fbUser.picture?.data?.url ?? null,
+            },
+          });
+        } else {
+          // Completar campos vacíos
+          dbUser = await prisma.user.update({
+            where: { id: dbUser.id },
+            data: {
+              name: dbUser.name ?? fbUser.name ?? undefined,
+              image: dbUser.image ?? fbUser.picture?.data?.url ?? undefined,
+            },
+          });
+        }
+
+        // 5. Garantizar que el Account record de Facebook exista
+        if (!existingAccount) {
+          await prisma.account.upsert({
+            where: {
+              provider_providerAccountId: {
+                provider: "facebook",
+                providerAccountId: fbUser.id,
+              },
+            },
+            update: { userId: dbUser.id },
+            create: {
+              userId: dbUser.id,
+              type: "oauth",
+              provider: "facebook",
+              providerAccountId: fbUser.id,
+            },
+          });
+        }
+
+        console.log("[AUTH facebook-sdk] Authorization successful for user:", dbUser.id);
+        return {
+          id: dbUser.id, // CUID de nuestra DB (no el ID de Facebook)
+          name: dbUser.name,
+          email: dbUser.email,
+          image: dbUser.image,
+        };
+      } catch (err) {
+        // Propagar el rate limit de Meta para que la UI muestre el mensaje
+        // específico (signIn → result.error === "MetaRateLimit"). Antes este
+        // catch lo convertía en null y el usuario veía un error genérico.
+        if (err instanceof Error && err.message === "MetaRateLimit") {
+          throw err;
+        }
+        console.error("[AUTH facebook-sdk] Unexpected error in authorize:", err);
+        return null;
+      }
+    },
+  })
+);
+
 export const authOptions: NextAuthOptions = {
   providers,
   secret: AUTH_SECRET,
@@ -100,20 +229,31 @@ export const authOptions: NextAuthOptions = {
 
   session: { strategy: "jwt" },
 
-  cookies: {
-    sessionToken: {
-      name: `__Secure-next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-        domain: ".sodare.xyz", // Permite compartir la sesión con subdominios
-      },
-    },
-  },
+  // Cookie config for production (sodare.xyz).
+  // CRITICAL: authOptions is a static object evaluated at module-load time.
+  // NEXTAUTH_URL is set dynamically per-request in [...nextauth]/route.ts, so it
+  // is ALWAYS empty here. Do NOT check NEXTAUTH_URL.
+  // VERCEL_ENV === "production" is injected by Vercel at build time and is stable.
+  // On localhost, browsers reject __Secure- cookies over HTTP and ignore domain:.sodare.xyz,
+  // so enabling the production cookie config locally has no effect on dev sessions.
+  cookies:
+    process.env.VERCEL_ENV === "production"
+      ? {
+          sessionToken: {
+            name: `__Secure-next-auth.session-token`,
+            options: {
+              httpOnly: true,
+              sameSite: "lax" as const,
+              path: "/",
+              secure: true,
+              domain: ".sodare.xyz",
+            },
+          },
+        }
+      : undefined,
 
   callbacks: {
+
     async jwt({ token, account, user, trigger }) {
       if (user) {
         // Detect account linking: if token already has a sub (from existing session)
@@ -124,17 +264,35 @@ export const authOptions: NextAuthOptions = {
         if (!isLinking) {
           try {
             const { default: prisma } = await import("@/lib/prisma");
-            
-            // 1. First, try to find an existing user by email
-            // This prevents Unique Constraint Failed errors if the user already signed up with Credentials
+
             let dbUser;
-            if (user.email) {
+
+            // 1. If we have an OAuth account, look up by providerAccountId first.
+            //    This prevents creating duplicate users for OAuth providers that
+            //    don't return an email (e.g. Facebook without email permission).
+            if (account?.provider && account?.providerAccountId) {
+              const existingAccount = await prisma.account.findUnique({
+                where: {
+                  provider_providerAccountId: {
+                    provider: account.provider,
+                    providerAccountId: account.providerAccountId,
+                  },
+                },
+                include: { user: true },
+              });
+              if (existingAccount) {
+                dbUser = existingAccount.user;
+              }
+            }
+
+            // 2. If not found by OAuth account, try to find by email
+            if (!dbUser && user.email) {
               dbUser = await prisma.user.findUnique({
-                where: { email: user.email }
+                where: { email: user.email },
               });
             }
 
-            // 2. If no user exists, create one
+            // 3. If no user exists, create one
             if (!dbUser) {
               dbUser = await prisma.user.create({
                 data: {
@@ -144,7 +302,7 @@ export const authOptions: NextAuthOptions = {
                 }
               });
             } else {
-              // 3. If exists, just update name/image if they are missing
+              // 4. Update name/image if they are missing
               dbUser = await prisma.user.update({
                 where: { id: dbUser.id },
                 data: {
@@ -192,7 +350,7 @@ export const authOptions: NextAuthOptions = {
         token.provider = account.provider;
 
         // Guardar la cuenta vinculada para la vista de Perfil
-        if (token.sub && account.provider !== "credentials") {
+        if (token.sub && account.type !== "credentials") {
           try {
             const { default: prisma } = await import("@/lib/prisma");
             await prisma.account.upsert({

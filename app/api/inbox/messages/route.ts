@@ -41,6 +41,32 @@ export async function GET(request: NextRequest) {
   const pageId = request.nextUrl.searchParams.get("pageId");
   if (!conversationId) return NextResponse.json({ error: "conversationId required" }, { status: 400 });
 
+  // ── 1. Check if conversation exists locally (e.g. WhatsApp) ──
+  const { default: prisma } = await import("@/lib/prisma");
+  const localConv = await prisma.inboxConversation.findFirst({
+    where: {
+      id: conversationId,
+      workspaceId,
+    },
+    include: {
+      messages: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+
+  if (localConv) {
+    const messages = localConv.messages.map((m) => ({
+      id: m.id,
+      text: m.content,
+      incoming: m.sender === "user",
+      timestamp: m.createdAt,
+      senderName: m.senderName || "Usuario",
+      senderId: m.senderName,
+    }));
+    return NextResponse.json({ messages });
+  }
+
   try {
     // Get page token (from cache or single API call)
     const tokens = await getPageTokens(token);
@@ -91,14 +117,83 @@ export async function POST(request: NextRequest) {
   if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+
+  const body = await request.json();
+  const { pageId, recipientId, message, conversationId, platform } = body;
+
+  if (!message) {
+    return NextResponse.json({ error: "message required" }, { status: 400 });
+  }
+
+  // ── 1. Check if WhatsApp / Local Conversation ──
+  if (platform === "whatsapp" || (conversationId && conversationId.length > 15)) {
+    try {
+      const { default: prisma } = await import("@/lib/prisma");
+      const { getWaCredentials, sendWaText } = await import("@/lib/whatsapp");
+      const { logger } = await import("@/lib/logger");
+
+      // Buscar conversación local
+      const localConv = await prisma.inboxConversation.findFirst({
+        where: {
+          id: conversationId,
+          workspaceId,
+        },
+      });
+
+      if (!localConv) {
+        return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+      }
+
+      // Obtener credenciales de WhatsApp
+      const creds = await getWaCredentials(workspaceId);
+      if (!creds) {
+        return NextResponse.json({ error: "WhatsApp not connected" }, { status: 400 });
+      }
+
+      // Extraer teléfono del destinatario desde externalId (ej. wa_5215541702793 -> 5215541702793)
+      const to = localConv.externalId.replace("wa_", "");
+
+      // Enviar vía WhatsApp Cloud API
+      const waRes = await sendWaText(creds, {
+        to,
+        text: message,
+      });
+
+      // Guardar mensaje en Prisma
+      await prisma.inboxMessage.create({
+        data: {
+          conversationId: localConv.id,
+          content: message,
+          sender: "page",
+          senderName: "WhatsApp",
+          externalId: waRes.messageId,
+          createdAt: new Date(),
+        },
+      });
+
+      // Actualizar conversación
+      await prisma.inboxConversation.update({
+        where: { id: localConv.id },
+        data: {
+          lastMessage: message.slice(0, 255),
+          lastMessageAt: new Date(),
+          unread: false,
+        },
+      });
+
+      logger.info("[INBOX] WhatsApp message sent and saved", { workspaceId, conversationId });
+      return NextResponse.json({ success: true, messageId: waRes.messageId });
+    } catch (err: any) {
+      console.error("[INBOX] WhatsApp send error:", err);
+      return NextResponse.json({ error: err.message || "Failed to send WhatsApp message" }, { status: 502 });
+    }
+  }
+
   const token = await getMetaAccessToken(request, "inbox");
   if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
 
-  const body = await request.json();
-  const { pageId, recipientId, message } = body;
-
-  if (!pageId || !recipientId || !message) {
-    return NextResponse.json({ error: "pageId, recipientId, message required" }, { status: 400 });
+  if (!pageId || !recipientId) {
+    return NextResponse.json({ error: "pageId and recipientId required for Facebook/Instagram" }, { status: 400 });
   }
 
   try {

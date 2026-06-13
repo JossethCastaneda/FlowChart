@@ -1,10 +1,12 @@
 import { PageHeader } from "@/components/ui/PageHeader";
 import { BarChart3 } from "lucide-react";
 import { AnalyticsDashboard } from "@/components/analytics/AnalyticsDashboard";
+import { PermissionGuard } from "@/components/layout/PermissionsContext";
 
 export default function AnalyticsPage() {
   return (
-    <div className="space-y-6">
+    <PermissionGuard permKey="canAccessAnalytics">
+      <div className="space-y-6">
       <PageHeader
         title="Analytics"
         description="Métricas orgánicas de tus redes sociales."
@@ -12,6 +14,7 @@ export default function AnalyticsPage() {
       />
 
       <AnalyticsDashboard />
-    </div>
+      </div>
+    </PermissionGuard>
   );
 }

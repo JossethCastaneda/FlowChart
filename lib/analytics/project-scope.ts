@@ -1,0 +1,161 @@
+// ============================================================================
+// Acotamiento del módulo "Análisis de Resultados" al ámbito de un PROYECTO.
+//
+// El modelo normalizado (NormalizedConversation/Message) se aísla por
+// `workspaceId`. No existe `projectId` en la conversación normalizada, así que
+// el alcance por proyecto se construye con dos dimensiones que SÍ están en el
+// modelo real del repo:
+//
+//   1) PROVEEDORES configurados en el proyecto: Project.crmIntegrationIds (con
+//      fallback al legacy crmIntegrationId) → Integration.provider → proveedor
+//      normalizado ("botmaker" | "cari_ai").
+//
+//   2) CANALES configurados en el proyecto: leídos de su configuración real
+//      (filas Channel + cuentas sociales) y normalizados a una forma canónica.
+//      Solo se admiten los 4 canales de esta vista; el resto se excluye.
+//
+// Este archivo NO importa prisma: es seguro tanto en cliente como en servidor.
+// La resolución contra base de datos vive en `project-scope.server.ts`.
+// ============================================================================
+
+/** Únicos canales admitidos en la vista de Análisis de Resultados por proyecto. */
+export type CanonicalChannel = "whatsapp" | "instagram" | "facebook" | "messenger";
+
+export const SUPPORTED_CHANNELS: CanonicalChannel[] = ["whatsapp", "instagram", "facebook", "messenger"];
+
+/**
+ * Aliases de proveedor → canal canónico. Cada proveedor (Cari AI, Botmaker,
+ * Meta, etc.) puede reportar el canal con nombres distintos; aquí se concentran
+ * todas las variantes conocidas. Las claves se comparan ya normalizadas
+ * (minúsculas, separadores colapsados a "_").
+ */
+export const CHANNEL_ALIASES: Record<CanonicalChannel, string[]> = {
+  whatsapp: ["whatsapp", "whats_app", "wa", "waba", "whatsapp_business"],
+  instagram: ["instagram", "instagram_dm", "instagram_direct", "ig", "ig_dm"],
+  facebook: ["facebook", "facebook_page", "facebook_comments", "fb", "fb_page"],
+  messenger: ["messenger", "facebook_messenger", "fb_messenger", "meta_messenger"],
+};
+
+// Índice inverso alias → canónico (construido una sola vez).
+const ALIAS_TO_CANONICAL: Record<string, CanonicalChannel> = (() => {
+  const map: Record<string, CanonicalChannel> = {};
+  for (const canonical of SUPPORTED_CHANNELS) {
+    for (const alias of CHANNEL_ALIASES[canonical]) map[alias] = canonical;
+  }
+  return map;
+})();
+
+/**
+ * Normaliza el nombre de canal que reporta un proveedor a su forma canónica.
+ * Devuelve `null` si el canal no está soportado en esta vista (debe excluirse).
+ *
+ *   normalizeChannelName("WhatsApp Business") → "whatsapp"
+ *   normalizeChannelName("instagram_direct")  → "instagram"
+ *   normalizeChannelName("fb_messenger")       → "messenger"
+ *   normalizeChannelName("webchat")            → null  (no soportado)
+ */
+export function normalizeChannelName(providerChannel: unknown): CanonicalChannel | null {
+  if (typeof providerChannel !== "string") return null;
+  const key = providerChannel
+    .trim()
+    .toLowerCase()
+    .replace(/[\s\-./]+/g, "_") // espacios, guiones, puntos, slashes → "_"
+    .replace(/[^a-z0-9_]/g, ""); // descarta cualquier otro símbolo
+  if (!key) return null;
+  return ALIAS_TO_CANONICAL[key] ?? null;
+}
+
+/**
+ * Mapea el `provider` de la integración (cómo se guarda en Integration) al
+ * `provider` del modelo normalizado (cómo lo escriben los adapters). Las
+ * integraciones CRM de proyecto usan "cari"; las de analítica usan "cari_ai";
+ * ambas alimentan el mismo proveedor normalizado.
+ */
+export const INTEGRATION_TO_NORMALIZED_PROVIDER: Record<string, string> = {
+  botmaker: "botmaker",
+  cari: "cari_ai",
+  cari_ai: "cari_ai",
+};
+
+/** Etiquetas legibles para el selector de canal del dashboard. */
+export const CHANNEL_LABELS: Record<string, string> = {
+  whatsapp: "WhatsApp",
+  instagram: "Instagram",
+  facebook: "Facebook",
+  messenger: "Messenger",
+};
+
+/** Etiquetas legibles para el selector de plataforma/proveedor. */
+export const PROVIDER_LABELS: Record<string, string> = {
+  botmaker: "Botmaker",
+  cari_ai: "Cari AI",
+};
+
+/** Forma mínima de proyecto necesaria para derivar sus canales configurados. */
+export interface ProjectChannelConfig {
+  whatsapp?: string[] | null;
+  instagram?: string[] | null;
+  fanpage?: string[] | null;
+  /** Filas Channel del proyecto (cada una con su `type`, p. ej. "WHATSAPP", "META"). */
+  channels?: { type?: string | null }[] | null;
+}
+
+/**
+ * Deriva los canales canónicos REALMENTE configurados en un proyecto, leyendo
+ * dos fuentes y normalizando todo a través de `normalizeChannelName`:
+ *
+ *   - Filas `Channel` (su `type`): se normaliza; lo no soportado (META, GOOGLE,
+ *     TIKTOK, webchat, telegram…) se excluye.
+ *   - Cuentas sociales vinculadas: `whatsapp[]`→whatsapp, `instagram[]`→instagram,
+ *     `fanpage[]`→facebook + messenger (una fanpage habilita publicaciones y DM).
+ *
+ * No asume que todos los canales existen: solo devuelve los configurados.
+ * El resultado se devuelve deduplicado y en orden canónico estable.
+ */
+export function collectProjectChannels(p: ProjectChannelConfig): CanonicalChannel[] {
+  const found = new Set<CanonicalChannel>();
+
+  for (const ch of p.channels ?? []) {
+    const canonical = normalizeChannelName(ch?.type ?? undefined);
+    if (canonical) found.add(canonical);
+  }
+
+  if (p.whatsapp && p.whatsapp.length > 0) found.add("whatsapp");
+  if (p.instagram && p.instagram.length > 0) found.add("instagram");
+  if (p.fanpage && p.fanpage.length > 0) {
+    found.add("facebook");
+    found.add("messenger");
+  }
+
+  // Orden canónico estable (whatsapp, instagram, facebook, messenger).
+  return SUPPORTED_CHANNELS.filter((c) => found.has(c));
+}
+
+/**
+ * Alias retrocompatible: deriva canales solo desde las cuentas sociales.
+ * Se mantiene para no romper llamadas existentes; prefiera `collectProjectChannels`.
+ */
+export function deriveProjectChannels(p: ProjectChannelConfig): CanonicalChannel[] {
+  return collectProjectChannels({ whatsapp: p.whatsapp, instagram: p.instagram, fanpage: p.fanpage });
+}
+
+/**
+ * Mapea los `provider` de un conjunto de integraciones a proveedores
+ * normalizados, deduplicando y descartando proveedores sin adaptador analítico.
+ */
+export function deriveNormalizedProviders(integrationProviders: string[]): string[] {
+  const out = new Set<string>();
+  for (const p of integrationProviders) {
+    const mapped = INTEGRATION_TO_NORMALIZED_PROVIDER[p];
+    if (mapped) out.add(mapped);
+  }
+  return [...out];
+}
+
+export interface ProjectScope {
+  projectId: string;
+  /** Proveedores normalizados habilitados para el proyecto (p. ej. ["botmaker"]). */
+  providers: string[];
+  /** Canales canónicos configurados (p. ej. ["whatsapp","instagram"]). */
+  channels: CanonicalChannel[];
+}
