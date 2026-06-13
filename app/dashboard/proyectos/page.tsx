@@ -107,13 +107,29 @@ const STATUS_COLORS: Record<string, string> = {
    PERSISTENCE — API (database)
    ═══════════════════════════════════════ */
 
-async function fetchProjectsFromAPI(): Promise<Project[]> {
+type FetchResult =
+  | { ok: true; data: Project[] }
+  | { ok: false; status: number; code: string; message: string };
+
+async function fetchProjectsFromAPI(): Promise<FetchResult> {
   try {
     const res = await fetch("/api/projects", { cache: "no-store" });
-    if (!res.ok) return [];
+    if (!res.ok) {
+      let code = "HTTP_ERROR";
+      let message = `Error ${res.status} al cargar proyectos.`;
+      try {
+        const json = await res.json();
+        code = json.code || code;
+        message = json.error || message;
+      } catch { /* ignore parse error */ }
+      if (res.status === 401) message = "Tu sesión expiró. Vuelve a iniciar sesión.";
+      return { ok: false, status: res.status, code, message };
+    }
     const json = await res.json();
-    if (!json.success) return [];
-    return (json.data || []).map((p: any) => ({
+    if (!json.success) {
+      return { ok: false, status: 200, code: json.code || "API_ERROR", message: json.error || "Error al cargar proyectos." };
+    }
+    return { ok: true, data: (json.data || []).map((p: any) => ({
       ...p,
       alias: p.alias || p.name || "",
       channels: (p.channels || []).map((ch: any) => {
@@ -128,8 +144,11 @@ async function fetchProjectsFromAPI(): Promise<Project[]> {
           cpr: cfg.cpr || "",
         };
       }),
-    }));
-  } catch { return []; }
+    })) };
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : "Error de red al cargar proyectos.";
+    return { ok: false, status: 0, code: "NETWORK_ERROR", message: msg };
+  }
 }
 
 /* ═══════════════════════════════════════
@@ -521,6 +540,7 @@ function ProyectosContent() {
   const searchParams = useSearchParams();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [modalMode, setModalMode] = useState<"closed" | "create" | "edit" | "view">("closed");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState<string | null>(null);
@@ -589,8 +609,21 @@ function ProyectosContent() {
 
   const loadProjects = useCallback(async () => {
     setLoading(true);
-    const data = await fetchProjectsFromAPI();
-    setProjects(data);
+    setFetchError(null);
+    const result = await fetchProjectsFromAPI();
+    if (result.ok) {
+      setProjects(result.data);
+    } else {
+      setProjects([]);
+      // NO_WORKSPACE is informational — show a softer message
+      if (result.code === "NO_WORKSPACE") {
+        setFetchError("No tienes un workspace configurado aún. Completa el onboarding o solicita una invitación.");
+      } else if (result.status === 401) {
+        setFetchError("Tu sesión expiró. Vuelve a iniciar sesión.");
+      } else {
+        setFetchError(result.message);
+      }
+    }
     setLoading(false);
   }, []);
 
@@ -745,6 +778,19 @@ function ProyectosContent() {
         }}>
           <span>{banner.message}</span>
           <button onClick={() => setBanner(null)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.8 }}><X className="w-4 h-4" /></button>
+        </div>
+      )}
+
+      {fetchError && (
+        <div style={{
+          padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
+          background: "rgba(251,191,36,0.12)", color: "#fbbf24",
+          border: "1px solid rgba(251,191,36,0.35)",
+          display: "flex", alignItems: "center", gap: "10px"
+        }}>
+          <AlertTriangle className="w-4 h-4" style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1 }}>{fetchError}</span>
+          <button onClick={() => setFetchError(null)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.8 }}><X className="w-4 h-4" /></button>
         </div>
       )}
 
