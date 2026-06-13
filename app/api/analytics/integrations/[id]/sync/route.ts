@@ -1,0 +1,71 @@
+import { withWorkspace } from "@/lib/api-handler";
+import { apiSuccess, apiForbidden, apiNotFound } from "@/lib/api-response";
+import prisma from "@/lib/prisma";
+import { isWorkspaceAdmin } from "@/lib/analytics/rbac";
+import { writeAuditLog } from "@/lib/analytics/audit";
+import { AnalyticsAdapterFactory } from "@/lib/analytics/adapters/AnalyticsAdapterFactory";
+
+// POST /api/analytics/integrations/:id/sync — dispara un sync manual (spec §28)
+// Crea un SyncJob trazable y ejecuta el adaptador (idempotente vía upsert).
+export const POST = withWorkspace(async (req, ctx) => {
+  if (!(await isWorkspaceAdmin(ctx.workspaceId, ctx.userId))) {
+    return apiForbidden("Solo administradores pueden ejecutar sincronizaciones");
+  }
+  const { id } = await ctx.params;
+
+  const integration = await prisma.integration.findUnique({ where: { id } });
+  if (!integration || integration.workspaceId !== ctx.workspaceId) {
+    return apiNotFound("Integración no encontrada");
+  }
+  if (!["cari_ai", "botmaker"].includes(integration.provider)) {
+    return apiNotFound("La integración no es un proveedor de analítica soportado");
+  }
+
+  const days = parseInt(req.nextUrl.searchParams.get("days") || "7", 10) || 7;
+  const endDate = new Date();
+  const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
+
+  const job = await prisma.syncJob.create({
+    data: {
+      workspaceId: ctx.workspaceId,
+      integrationId: integration.id,
+      provider: integration.provider,
+      reportType: "conversations+messages",
+      status: "running",
+      startDate,
+      endDate,
+    },
+  });
+
+  try {
+    const adapter = AnalyticsAdapterFactory.getAdapter(integration.provider);
+    const convResult = await adapter.syncConversations(ctx.workspaceId, startDate, endDate);
+    const msgResult = await adapter.syncMessages(ctx.workspaceId, startDate, endDate);
+    const recordsInserted = convResult.recordsInserted + msgResult.recordsInserted;
+    const ok = convResult.success && msgResult.success;
+
+    await prisma.syncJob.update({
+      where: { id: job.id },
+      data: {
+        status: ok ? "completed" : "failed",
+        recordsInserted,
+        errorMessage: ok ? null : convResult.error || msgResult.error || "Error de sync",
+        finishedAt: new Date(),
+      },
+    });
+
+    await writeAuditLog({
+      workspaceId: ctx.workspaceId, userId: ctx.userId, action: "sync_manual",
+      resourceType: "integration", resourceId: integration.id, metadata: { recordsInserted, days },
+    });
+
+    return apiSuccess({ jobId: job.id, recordsInserted, success: ok });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Error de sync";
+    await prisma.syncJob.update({
+      where: { id: job.id },
+      data: { status: "failed", errorMessage: message, finishedAt: new Date() },
+    });
+    return apiSuccess({ jobId: job.id, recordsInserted: 0, success: false, error: message });
+  }
+});

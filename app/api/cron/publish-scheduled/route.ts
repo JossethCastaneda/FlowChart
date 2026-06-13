@@ -146,11 +146,11 @@ async function publishSinglePost(
     const pageId = targetPage.id;
     const igUserId = targetPage.instagram_business_account?.id;
 
-    const externalIds: Record<string, string> = {};
+    const externalIds: Record<string, string> = (post.externalIds as Record<string, string>) || {};
     const errors: string[] = [];
 
     // ── Publish to Facebook ──
-    if (post.channels.includes("facebook")) {
+    if (post.channels.includes("facebook") && !externalIds.facebook) {
       try {
         const mediaUrl = post.mediaUrls?.[0] || (post as any).mediaUrl;
         if (mediaUrl) {

@@ -3,6 +3,7 @@ import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-au
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
 import { validateBody } from "@/lib/validate";
 import { CampaignUpdateSchema } from "@/lib/ads-schemas";
+import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   // Token with multi-module fallback
@@ -30,13 +31,35 @@ export async function GET(req: NextRequest) {
   const version = META_API_VERSION;
 
   let timeRange = "&date_preset=maximum";
+  let cacheKey = "maximum";
   if (dateStart && dateEnd) {
     timeRange = `&time_range=${encodeURIComponent(JSON.stringify({ since: dateStart, until: dateEnd }))}`;
+    cacheKey = `${dateStart}_${dateEnd}`;
   } else if (preset) {
     timeRange = `&date_preset=${preset}`;
+    cacheKey = preset;
   }
 
   try {
+    // 0. Check fast DB Cache first
+    // Note: To prevent blocking, we can use a stale-while-revalidate pattern if we had waitUntil.
+    // For now, if the cache exists and is fresh (e.g. less than 1 hour old), return it immediately.
+    // Actually, to make it ALWAYS instant, we return the cache if it exists, and rely on a CRON to keep it fresh.
+    const cache = await prisma.metaAdsCache.findUnique({
+      where: {
+        adAccountId_level_dateRange: {
+          adAccountId,
+          level: "campaigns",
+          dateRange: cacheKey,
+        }
+      }
+    });
+
+    // If we have a cache less than 60 minutes old, return it instantly
+    if (cache && (Date.now() - new Date(cache.updatedAt).getTime() < 60 * 60 * 1000)) {
+      return NextResponse.json(cache.data);
+    }
+
     // 1. Fetch campaigns details
     const fields = "id,name,status,effective_status,objective,daily_budget,lifetime_budget,budget_remaining,bid_strategy,special_ad_categories,buying_type,smart_promotion_type,start_time,stop_time,created_time,updated_time";
     const campaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/campaigns?fields=${fields}&limit=150`;
@@ -118,8 +141,7 @@ export async function GET(req: NextRequest) {
       ...(quality.incomplete_learning ? ["La fase de aprendizaje podría estar incompleta (datos < 3 días)"] : []),
       ...(insightsError ? [`Métricas limitadas: ${insightsError}`] : []),
     ];
-
-    return NextResponse.json({
+    const responsePayload = {
       status: "success",
       level: "campaign",
       date_range: { since: dateStart || "N/A", until: dateUntil },
@@ -130,9 +152,30 @@ export async function GET(req: NextRequest) {
       meta: {
         total_rows: mergedCampaigns.length,
         ...quality,
-        api_version: version
+        api_version: version,
+        cached_at: new Date().toISOString()
       }
-    });
+    };
+
+    // Save to Cache (fire and forget intentionally if possible, but here we await to ensure it saves)
+    await prisma.metaAdsCache.upsert({
+      where: {
+        adAccountId_level_dateRange: {
+          adAccountId,
+          level: "campaigns",
+          dateRange: cacheKey,
+        }
+      },
+      update: { data: responsePayload as any },
+      create: {
+        adAccountId,
+        level: "campaigns",
+        dateRange: cacheKey,
+        data: responsePayload as any
+      }
+    }).catch((e: any) => console.error("Cache save error:", e));
+
+    return NextResponse.json(responsePayload);
   } catch (error: any) {
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }

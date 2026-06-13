@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import prisma from "@/lib/prisma";
 
 /**
  * GET /api/analytics/growth
@@ -80,6 +81,26 @@ export async function GET(request: NextRequest) {
 
     const pageIdsParam = request.nextUrl.searchParams.get("pageIds");
     const platformParam = request.nextUrl.searchParams.get("platform");
+    const forceParam = request.nextUrl.searchParams.get("force") === "true";
+
+    // ── CACHE READ ──
+    const paramsKey = `pageIds=${pageIdsParam || "all"}&platform=${platformParam || "all"}`;
+    const cached = await prisma.metaAnalyticsCache.findUnique({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "growth",
+          paramsKey,
+        },
+      },
+    });
+
+    const now = new Date();
+    // 24 horas de TTL (los conteos de seguidores se agregan diariamente en Meta)
+    if (!forceParam && cached && (now.getTime() - cached.updatedAt.getTime()) < 24 * 60 * 60 * 1000) {
+      return NextResponse.json({ ...((cached.data as any) || {}), cached: true });
+    }
+
     if (pageIdsParam) {
       const allowed = pageIdsParam.split(",").map((id) => id.trim());
       pages = pages.filter((p) => allowed.includes(p.id));
@@ -192,7 +213,22 @@ export async function GET(request: NextRequest) {
     const series = buckets.slice(-6);
     const totalGained = series.reduce((s, p) => s + p.gained, 0);
 
-    return NextResponse.json({ series, current: currentFollowers, totalGained });
+    const responseData = { series, current: currentFollowers, totalGained };
+
+    // ── CACHE WRITE ──
+    await prisma.metaAnalyticsCache.upsert({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "growth",
+          paramsKey,
+        },
+      },
+      update: { data: responseData as any, updatedAt: now },
+      create: { workspaceId, endpoint: "growth", paramsKey, data: responseData as any },
+    }).catch((err: any) => console.error("[GROWTH] Cache save error:", err));
+
+    return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
     console.error("[GROWTH] Unhandled error:", error);
     // Degrade gracefully — never crash the tab.

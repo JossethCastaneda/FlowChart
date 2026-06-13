@@ -1,16 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import { Shield, Check, Loader2, Zap, Calendar, MessageCircle, Megaphone, BarChart3, Target, Lock } from "lucide-react";
-import { DEFAULT_MEMBER_PERMS, DEFAULT_EXTERNAL_PERMS, type Area, type AreaPermissions } from "@/lib/workflow-config";
+import { useState, useEffect } from "react";
+import { Shield, Check, Loader2, Zap, Calendar, MessageCircle, Megaphone, BarChart3, Target } from "lucide-react";
+import { DEFAULT_MEMBER_PERMS, DEFAULT_LEADER_PERMS, DEFAULT_EXTERNAL_PERMS, type Area, type AreaPermissions } from "@/lib/workflow-config";
 
-const PERM_KEYS: { key: keyof AreaPermissions; label: string; desc: string; icon: React.ElementType }[] = [
-  { key: "canAccessOps", label: "Ops (Gestión)", desc: "Acceso al módulo de Tareas y SLA", icon: Zap },
-  { key: "canAccessPublisher", label: "Publisher", desc: "Planificador de contenido", icon: Calendar },
-  { key: "canAccessInbox", label: "Inbox", desc: "Gestor de mensajes y comentarios", icon: MessageCircle },
-  { key: "canAccessAds", label: "Ads Manager", desc: "Gestión de pauta publicitaria", icon: Megaphone },
-  { key: "canAccessAnalytics", label: "Analytics", desc: "Métricas y reportes", icon: BarChart3 },
-  { key: "canAccessBriefing", label: "Briefing", desc: "Documentos estratégicos", icon: Target },
+const PERM_KEYS: { key: keyof AreaPermissions; label: string; icon: React.ElementType }[] = [
+  { key: "canAccessOps",       label: "Ops (Gestión)",  icon: Zap },
+  { key: "canAccessPublisher", label: "Publisher",       icon: Calendar },
+  { key: "canAccessInbox",     label: "Inbox",           icon: MessageCircle },
+  { key: "canAccessAds",       label: "Ads Manager",     icon: Megaphone },
+  { key: "canAccessAnalytics", label: "Analytics",       icon: BarChart3 },
+  { key: "canAccessBriefing",  label: "Briefing",        icon: Target },
+];
+
+type PermScope = "leaders" | "members" | "external";
+
+const SCOPES: { id: PermScope; emoji: string; label: string; sub: string; color: string }[] = [
+  { id: "leaders",  emoji: "⭐", label: "Líderes",          sub: "Líderes del área",          color: "#f59e0b" },
+  { id: "members",  emoji: "👤", label: "Miembros",          sub: "Asignados al área",          color: "#00d4ff" },
+  { id: "external", emoji: "🌐", label: "Externos",          sub: "Personas de otras áreas",    color: "#64748b" },
 ];
 
 export function PermissionsManager() {
@@ -34,10 +42,19 @@ export function PermissionsManager() {
 
   const mark = () => { setDirty(true); setSavedAt(false); };
 
-  const patchPerm = (areaId: string, scope: "members" | "external", key: keyof AreaPermissions, val: boolean) => {
+  const defaultsFor = (scope: PermScope): AreaPermissions =>
+    scope === "leaders" ? DEFAULT_LEADER_PERMS
+    : scope === "members" ? DEFAULT_MEMBER_PERMS
+    : DEFAULT_EXTERNAL_PERMS;
+
+  const patchPerm = (areaId: string, scope: PermScope, key: keyof AreaPermissions, val: boolean) => {
     setAreas((prev) => prev.map((a) => {
       if (a.id !== areaId) return a;
-      const perms = a.permissions || { members: { ...DEFAULT_MEMBER_PERMS }, external: { ...DEFAULT_EXTERNAL_PERMS } };
+      const perms = a.permissions || {
+        leaders:  { ...DEFAULT_LEADER_PERMS },
+        members:  { ...DEFAULT_MEMBER_PERMS },
+        external: { ...DEFAULT_EXTERNAL_PERMS },
+      };
       return { ...a, permissions: { ...perms, [scope]: { ...perms[scope], [key]: val } } };
     })); mark();
   };
@@ -72,20 +89,19 @@ export function PermissionsManager() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
-        Controla a qué <strong>módulos</strong> pueden acceder los <strong>miembros</strong> de cada área y los <strong>usuarios externos</strong>.
+        Controla a qué <strong>módulos</strong> pueden acceder los <strong>líderes</strong>, <strong>miembros</strong> de cada área y los <strong>usuarios externos</strong>.{" "}
+        <span style={{ color: "#475569" }}>Solo Owners y Admins siempre tienen acceso completo.</span>
       </p>
-
-      {/* Info box: Leads + OWNER/ADMIN always have full access */}
-      <div className="p-3 rounded-lg bg-[rgba(0,212,255,0.04)] border border-[rgba(0,212,255,0.12)] text-[11px] text-slate-400 flex items-start sm:items-center gap-2">
-        <Lock className="w-3.5 h-3.5 text-[#00d4ff] shrink-0 mt-0.5 sm:mt-0" />
-        <span>Los <strong className="text-slate-200">Líderes de área</strong>, <strong className="text-slate-200">Owners</strong> y <strong className="text-slate-200">Admins</strong> siempre tienen acceso completo, sin importar estos permisos.</span>
-      </div>
 
       {/* Permissions table per area */}
       {areas.map((area) => {
-        const perms = area.permissions || { members: { ...DEFAULT_MEMBER_PERMS }, external: { ...DEFAULT_EXTERNAL_PERMS } };
+        const perms = area.permissions || {
+          leaders:  { ...DEFAULT_LEADER_PERMS },
+          members:  { ...DEFAULT_MEMBER_PERMS },
+          external: { ...DEFAULT_EXTERNAL_PERMS },
+        };
         return (
-          <div key={area.id} style={{ borderRadius: 10, border: `1px solid ${area.color}25`, overflow: "hidden" }}>
+          <div key={area.id} style={{ borderRadius: 12, border: `1px solid ${area.color}25`, overflow: "hidden" }}>
             {/* Area header */}
             <div style={{
               padding: "10px 16px", background: `${area.color}0a`,
@@ -101,33 +117,64 @@ export function PermissionsManager() {
               </span>
             </div>
 
-            {/* Permissions grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2">
-              {/* Members column */}
-              <div className="flex flex-col border-b md:border-b-0 md:border-r border-white/5">
-                <div className="p-3 bg-black/10 border-b border-white/5">
-                  <div className="text-[11px] font-bold text-slate-400 tracking-widest">👤 Miembros del área</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Personas asignadas a esta área</div>
-                </div>
-                <div className="p-2 sm:p-3">
-                  {PERM_KEYS.map((p) => (
-                    <PermRow key={p.key} perm={p} checked={perms.members[p.key]} onChange={(v) => patchPerm(area.id, "members", p.key, v)} />
-                  ))}
-                </div>
-              </div>
-
-              {/* External column */}
-              <div className="flex flex-col">
-                <div className="p-3 bg-black/10 border-b border-white/5">
-                  <div className="text-[11px] font-bold text-slate-400 tracking-widest">🌐 Usuarios externos</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Personas de otras áreas</div>
-                </div>
-                <div className="p-2 sm:p-3">
-                  {PERM_KEYS.map((p) => (
-                    <PermRow key={p.key} perm={p} checked={perms.external[p.key]} onChange={(v) => patchPerm(area.id, "external", p.key, v)} />
-                  ))}
-                </div>
-              </div>
+            {/* 3-column permissions grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
+              {SCOPES.map((scope, si) => {
+                const scopePerms = (perms as any)[scope.id] as AreaPermissions | undefined;
+                const effectivePerms = scopePerms || defaultsFor(scope.id);
+                return (
+                  <div key={scope.id} style={{
+                    display: "flex", flexDirection: "column",
+                    borderRight: si < SCOPES.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                  }}>
+                    {/* Column header */}
+                    <div style={{ padding: "10px 12px", background: "rgba(0,0,0,0.12)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ fontSize: 11, fontWeight: 700, color: scope.color, letterSpacing: "0.04em" }}>
+                        {scope.emoji} {scope.label}
+                      </div>
+                      <div style={{ fontSize: 9, color: "#475569", marginTop: 2 }}>{scope.sub}</div>
+                    </div>
+                    {/* Permission rows */}
+                    <div style={{ padding: "4px 8px" }}>
+                      {PERM_KEYS.map((p) => {
+                        const checked = effectivePerms[p.key] ?? false;
+                        return (
+                          <div key={p.key} style={{
+                            display: "flex", alignItems: "center", justifyContent: "space-between",
+                            gap: 6, padding: "6px 4px",
+                            borderBottom: "1px solid rgba(255,255,255,0.04)",
+                          }}
+                            className="last:border-none"
+                          >
+                            <span style={{ fontSize: 11, color: checked ? "#e2e8f0" : "#475569", fontWeight: checked ? 500 : 400, flex: 1 }}>
+                              {p.label}
+                            </span>
+                            <button
+                              onClick={() => patchPerm(area.id, scope.id, p.key, !checked)}
+                              role="switch"
+                              aria-checked={checked}
+                              aria-label={`${scope.label} - ${p.label}`}
+                              style={{
+                                width: 30, height: 16, borderRadius: 8, border: "none",
+                                background: checked ? scope.color : "rgba(255,255,255,0.08)",
+                                cursor: "pointer", position: "relative", flexShrink: 0,
+                                transition: "background 0.2s",
+                              }}
+                            >
+                              <span style={{
+                                position: "absolute", top: 2,
+                                left: checked ? 14 : 2,
+                                width: 12, height: 12, borderRadius: "50%", background: "#fff",
+                                transition: "left 0.15s",
+                              }} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         );
@@ -135,37 +182,24 @@ export function PermissionsManager() {
 
       {/* Save */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "flex-end" }}>
-        {savedAt && !dirty && <span style={{ fontSize: 11, color: "#06d6a0", display: "inline-flex", alignItems: "center", gap: 4 }}><Check style={{ width: 13, height: 13 }} /> Guardado</span>}
-        <button onClick={save} disabled={!dirty || saving} className="btn-primary" style={{ opacity: !dirty || saving ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 6 }}>
-          {saving ? <Loader2 style={{ width: 13, height: 13, animation: "spin 1s linear infinite" }} /> : <Shield style={{ width: 13, height: 13 }} />}
+        {savedAt && !dirty && (
+          <span style={{ fontSize: 11, color: "#06d6a0", display: "inline-flex", alignItems: "center", gap: 4 }}>
+            <Check style={{ width: 13, height: 13 }} /> Guardado
+          </span>
+        )}
+        <button
+          onClick={save}
+          disabled={!dirty || saving}
+          className="btn-primary"
+          style={{ opacity: !dirty || saving ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 6 }}
+        >
+          {saving
+            ? <Loader2 style={{ width: 13, height: 13, animation: "spin 1s linear infinite" }} />
+            : <Shield style={{ width: 13, height: 13 }} />
+          }
           Guardar permisos
         </button>
       </div>
-    </div>
-  );
-}
-
-/* ── Single permission row with toggle ── */
-function PermRow({ perm, checked, onChange }: {
-  perm: { key: string; label: string; desc: string; icon: React.ElementType };
-  checked: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-2 py-2 px-1 border-b border-white/5 last:border-none">
-      <div className="flex flex-col flex-1 min-w-0">
-        <span className={`text-[12px] ${checked ? "text-slate-200 font-medium" : "text-slate-500 font-normal"}`}>{perm.label}</span>
-      </div>
-      <button
-        onClick={() => onChange(!checked)}
-        role="switch"
-        aria-checked={checked}
-        aria-label={perm.label}
-        className="w-8 h-4.5 rounded-full relative shrink-0 transition-colors duration-200"
-        style={{ background: checked ? "#00d4ff" : "rgba(255,255,255,0.08)" }}
-      >
-        <span className="absolute top-0.5 w-3.5 h-3.5 rounded-full bg-white transition-all duration-150" style={{ left: checked ? 16 : 2 }} />
-      </button>
     </div>
   );
 }

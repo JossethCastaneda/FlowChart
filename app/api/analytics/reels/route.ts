@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
+import prisma from "@/lib/prisma";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -44,19 +45,42 @@ export async function GET(req: NextRequest) {
     }
 
     // If platform=facebook, reels don't exist for FB (they're IG only)
-    const platformParam = req.nextUrl.searchParams.get("platform");
-    if (platformParam === "facebook") {
-      return NextResponse.json({ reels: [], total: 0 });
-    }
+    const platformParam = req.nextUrl.searchParams.get("platform") || "all";
+    const pageIdsParam = req.nextUrl.searchParams.get("pageIds");
+    const explicitIgUserId = req.nextUrl.searchParams.get("igUserId");
 
     const limit = Math.min(
       parseInt(req.nextUrl.searchParams.get("limit") || "25", 10),
       100
     );
 
+    // ── CACHE READ ──
+    const forceParam = req.nextUrl.searchParams.get("force") === "true";
+
+    // ── CACHE READ ──
+    const paramsKey = `limit=${limit}&igUserId=${req.nextUrl.searchParams.get("igUserId") || "all"}&pageIds=${req.nextUrl.searchParams.get("pageIds") || "all"}&platform=${platformParam}`;
+    const cached = await prisma.metaAnalyticsCache.findUnique({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "reels",
+          paramsKey,
+        },
+      },
+    });
+
+    const now = new Date();
+    // 30 min de TTL
+    if (!forceParam && cached && (now.getTime() - cached.updatedAt.getTime()) < 30 * 60 * 1000) {
+      return NextResponse.json({ ...((cached.data as any) || {}), cached: true });
+    }
+
+    if (platformParam === "facebook") {
+      return NextResponse.json({ reels: [], total: 0 });
+    }
+
     // M1 FIX: Auto-detect IG accounts from connected pages
     let igUserIds: string[] = [];
-    const explicitIgUserId = req.nextUrl.searchParams.get("igUserId");
 
     if (explicitIgUserId) {
       igUserIds = [explicitIgUserId];
@@ -70,7 +94,6 @@ export async function GET(req: NextRequest) {
         const pagesJson = await pagesRes.json();
         let pages: any[] = pagesJson.data || [];
 
-        const pageIdsParam = req.nextUrl.searchParams.get("pageIds");
         if (pageIdsParam) {
           const allowedIds = pageIdsParam.split(",").map((id) => id.trim());
           pages = pages.filter((p) => allowedIds.includes(p.id));
@@ -154,7 +177,22 @@ export async function GET(req: NextRequest) {
     // Sort by timestamp descending
     allReels.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    return NextResponse.json({ reels: allReels, total: allReels.length });
+    const responseData = { reels: allReels, total: allReels.length };
+
+    // ── CACHE WRITE ──
+    await prisma.metaAnalyticsCache.upsert({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "reels",
+          paramsKey,
+        },
+      },
+      update: { data: responseData as any, updatedAt: now },
+      create: { workspaceId, endpoint: "reels", paramsKey, data: responseData as any },
+    }).catch((err: any) => console.error("[REELS] Cache save error:", err));
+
+    return NextResponse.json({ ...responseData, cached: false });
   } catch (err: any) {
     console.error("[ANALYTICS/REELS] Error:", err.message);
     return NextResponse.json({ error: err.message || "Error interno" }, { status: 500 });

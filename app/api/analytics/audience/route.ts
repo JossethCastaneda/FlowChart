@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import prisma from "@/lib/prisma";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -99,6 +100,26 @@ export async function GET(request: NextRequest) {
     // Apply pageIds filter if provided
     const pageIdsParam = request.nextUrl.searchParams.get("pageIds");
     const platformParam = request.nextUrl.searchParams.get("platform");
+    const forceParam = request.nextUrl.searchParams.get("force") === "true";
+
+    // ── CACHE READ ──
+    const paramsKey = `pageIds=${pageIdsParam || "all"}&platform=${platformParam || "all"}`;
+    const cached = await prisma.metaAnalyticsCache.findUnique({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "audience",
+          paramsKey,
+        },
+      },
+    });
+
+    // 24 horas de TTL para la audiencia (cambia lentamente)
+    const now = new Date();
+    if (!forceParam && cached && (now.getTime() - cached.updatedAt.getTime()) < 24 * 60 * 60 * 1000) {
+      return NextResponse.json({ ...((cached.data as any) || {}), cached: true });
+    }
+
     if (pageIdsParam) {
       const allowedIds = pageIdsParam.split(",").map((id) => id.trim());
       pages = pages.filter((p) => allowedIds.includes(p.id));
@@ -218,7 +239,22 @@ export async function GET(request: NextRequest) {
     const location: LocationEntry[] = toPctArray(cityAcc, (city, pct) => ({ city, pct }))
       .slice(0, 20); // Top 20 cities
 
-    return NextResponse.json({ age, gender, location });
+    const responseData = { age, gender, location };
+
+    // ── CACHE WRITE ──
+    await prisma.metaAnalyticsCache.upsert({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "audience",
+          paramsKey,
+        },
+      },
+      update: { data: responseData as any, updatedAt: now },
+      create: { workspaceId, endpoint: "audience", paramsKey, data: responseData as any },
+    }).catch((err: any) => console.error("[AUDIENCE] Cache save error:", err));
+
+    return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
     console.error("[AUDIENCE] Unhandled error:", error);
     return NextResponse.json(

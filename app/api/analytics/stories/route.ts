@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
+import prisma from "@/lib/prisma";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -43,15 +44,35 @@ export async function GET(req: NextRequest) {
     }
 
     // If platform=facebook, stories don't exist for FB
-    const platformParam = req.nextUrl.searchParams.get("platform");
+    const platformParam = req.nextUrl.searchParams.get("platform") || "all";
+    const explicitIgUserId = req.nextUrl.searchParams.get("igUserId");
+    const pageIdsParam = req.nextUrl.searchParams.get("pageIds");
+    const forceParam = req.nextUrl.searchParams.get("force") === "true";
+
+    // ── CACHE READ ──
+    const paramsKey = `platform=${platformParam}&igUserId=${explicitIgUserId || "none"}`;
+    const cached = await prisma.metaAnalyticsCache.findUnique({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "stories",
+          paramsKey,
+        },
+      },
+    });
+
+    const now = new Date();
+    // 30 min de TTL
+    if (!forceParam && cached && (now.getTime() - cached.updatedAt.getTime()) < 30 * 60 * 1000) {
+      return NextResponse.json({ ...((cached.data as any) || {}), cached: true });
+    }
+
     if (platformParam === "facebook") {
       return NextResponse.json({ stories: [], total: 0 });
     }
 
     // AN-3 FIX: Auto-detect IG accounts from connected pages
     let igUserIds: string[] = [];
-    const explicitIgUserId = req.nextUrl.searchParams.get("igUserId");
-
     if (explicitIgUserId) {
       igUserIds = [explicitIgUserId];
     } else {
@@ -66,10 +87,9 @@ export async function GET(req: NextRequest) {
         let pages: any[] = pagesJson.data || [];
 
         // Apply pageIds filter if provided
-        const pageIdsParam = req.nextUrl.searchParams.get("pageIds");
         if (pageIdsParam) {
-          const allowedIds = pageIdsParam.split(",").map((id) => id.trim());
-          pages = pages.filter((p) => allowedIds.includes(p.id));
+          const allowedIds = pageIdsParam.split(",").map((id: string) => id.trim());
+          pages = pages.filter((p: any) => allowedIds.includes(p.id));
         }
 
         igUserIds = pages
@@ -143,7 +163,22 @@ export async function GET(req: NextRequest) {
     // Sort by timestamp descending
     allStories.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
 
-    return NextResponse.json({ stories: allStories, total: allStories.length });
+    const responseData = { stories: allStories, total: allStories.length };
+
+    // ── CACHE WRITE ──
+    await prisma.metaAnalyticsCache.upsert({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "stories",
+          paramsKey,
+        },
+      },
+      update: { data: responseData as any, updatedAt: now },
+      create: { workspaceId, endpoint: "stories", paramsKey, data: responseData as any },
+    }).catch((err: any) => console.error("[STORIES] Cache save error:", err));
+
+    return NextResponse.json({ ...responseData, cached: false });
   } catch (err: any) {
     console.error("[ANALYTICS/STORIES] Error:", err.message);
     return NextResponse.json({ error: err.message || "Error interno" }, { status: 500 });

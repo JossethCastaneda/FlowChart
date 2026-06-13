@@ -3,6 +3,7 @@ import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-a
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
 import { validateBody } from "@/lib/validate";
 import { AdUpdateSchema } from "@/lib/ads-schemas";
+import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "ads");
@@ -27,13 +28,31 @@ export async function GET(req: NextRequest) {
   const version = META_API_VERSION;
 
   let timeRange = "&date_preset=maximum";
+  let cacheKey = "maximum";
   if (dateStart && dateEnd) {
     timeRange = `&time_range=${encodeURIComponent(JSON.stringify({ since: dateStart, until: dateEnd }))}`;
+    cacheKey = `${dateStart}_${dateEnd}`;
   } else if (preset) {
     timeRange = `&date_preset=${preset}`;
+    cacheKey = preset;
   }
 
   try {
+    // 0. Check fast DB Cache first
+    const cache = await prisma.metaAdsCache.findUnique({
+      where: {
+        adAccountId_level_dateRange: {
+          adAccountId,
+          level: "ads",
+          dateRange: cacheKey,
+        }
+      }
+    });
+
+    if (cache && (Date.now() - new Date(cache.updatedAt).getTime() < 60 * 60 * 1000)) {
+      return NextResponse.json(cache.data);
+    }
+
     // 1. Fetch ads with full creative details
     const creativeFields = "id,name,thumbnail_url,image_url,title,body,object_story_spec,call_to_action_type,effective_object_story_id,image_hash";
     const fields = `id,name,status,effective_status,adset_id,campaign_id,creative{${creativeFields}}`;
@@ -93,7 +112,7 @@ export async function GET(req: NextRequest) {
     const quality = calculateDataQuality(dateStart || undefined, dateUntil);
     const warnings = quality.incomplete_learning ? ["La fase de aprendizaje podría estar incompleta (datos < 3 días)"] : [];
 
-    return NextResponse.json({
+    const responsePayload = {
       status: "success",
       level: "ad",
       date_range: { since: dateStart || "N/A", until: dateUntil },
@@ -103,9 +122,29 @@ export async function GET(req: NextRequest) {
       meta: {
         total_rows: mergedAds.length,
         ...quality,
-        api_version: version
+        api_version: version,
+        cached_at: new Date().toISOString()
       }
-    });
+    };
+
+    await prisma.metaAdsCache.upsert({
+      where: {
+        adAccountId_level_dateRange: {
+          adAccountId,
+          level: "ads",
+          dateRange: cacheKey,
+        }
+      },
+      update: { data: responsePayload as any },
+      create: {
+        adAccountId,
+        level: "ads",
+        dateRange: cacheKey,
+        data: responsePayload as any
+      }
+    }).catch((e: any) => console.error("Cache save error:", e));
+
+    return NextResponse.json(responsePayload);
   } catch (error: any) {
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }

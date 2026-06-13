@@ -93,6 +93,7 @@ model Workspace {
   trackedKeywords TrackedKeyword[]
   settings        WorkspaceSettings?
   waPhoneSources  WaPhoneSource[]
+  metaAnalyticsCache MetaAnalyticsCache[]
 }
 
 // ------------------------------------------------------
@@ -384,7 +385,9 @@ model Integration {
   /// "workspace" → workspace-level integration (OWNER/ADMIN shared, e.g. meta_ads, google)
   /// userId     → user-level integration (each member connects their own account independently)
   userId        String    @default("workspace")
+  name          String?   // User-defined name for the integration
   credentials   Json      // Encrypted with AES-256 (encryptToken/decryptToken)
+  config        Json?     @default("{}") // Analytics settings (syncFrequency, paused, backfill, etc)
   connected     Boolean   @default(false)
   connectedAt   DateTime?
   connectedBy   String?   // userId of who first connected this integration
@@ -622,4 +625,233 @@ model DataDeletionRequest {
 
   @@index([metaUserId])
   @@index([status])
+}
+
+// ------------------------------------------------------
+// ADS MANAGER CACHE
+// ------------------------------------------------------
+model MetaAdsCache {
+  id          String   @id @default(cuid())
+  adAccountId String   // ID de la cuenta publicitaria
+  level       String   // "campaigns", "adsets", "ads"
+  dateRange   String   // Clave del rango de fechas (ej. "last_7d", "maximum", "2026-06-01_2026-06-12")
+  data        Json     // El payload JSON completo y ya procesado
+  updatedAt   DateTime @updatedAt
+
+  @@unique([adAccountId, level, dateRange])
+  @@index([adAccountId])
+}
+
+// ------------------------------------------------------
+// ANALYTICS CACHE
+// ------------------------------------------------------
+model MetaAnalyticsCache {
+  id          String   @id @default(cuid())
+  workspaceId String   
+  endpoint    String   // "organic", "audience", "posts", "best-time", "stories", "reels", "growth"
+  paramsKey   String   // hash o clave de los parámetros de consulta (ej. "days=30&pageIds=...&platform=...")
+  data        Json     // El payload JSON completo y ya procesado
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, endpoint, paramsKey])
+  @@index([workspaceId])
+}
+
+// ------------------------------------------------------
+// CONVERSATIONAL ANALYTICS MODULE (PHASE 1)
+// ------------------------------------------------------
+
+model SyncJob {
+  id                  String   @id @default(cuid())
+  workspaceId         String
+  integrationId       String
+  provider            String
+  reportType          String
+  status              String   // pending, running, completed, failed
+  startDate           DateTime
+  endDate             DateTime
+  recordsInserted     Int      @default(0)
+  errorMessage        String?
+  startedAt           DateTime @default(now())
+  finishedAt          DateTime?
+
+  @@index([workspaceId, provider])
+}
+
+model RawProviderEvent {
+  id                  String   @id @default(cuid())
+  workspaceId         String
+  provider            String
+  externalId          String
+  payload             Json
+  createdAt           DateTime @default(now())
+
+  @@index([workspaceId, provider])
+}
+
+model NormalizedConversation {
+  id                      String   @id @default(cuid())
+  workspaceId             String
+  provider                String
+  providerConversationId  String   @unique
+  channel                 String
+  botId                   String?
+  customerId              String?
+  customerIdentifierHash  String?
+  
+  conversationStartedAt   DateTime
+  conversationEndedAt     DateTime?
+  firstBotResponseAt      DateTime?
+  firstAgentResponseAt    DateTime?
+  closedAt                DateTime?
+
+  status                  String   // active, closed, transferred, abandoned
+  outcome                 String?  // resolved, transferred, abandoned, error
+  resolvedBy              String?  // bot, agent, mixed
+  
+  wasBotOnly              Boolean  @default(false)
+  wasHandoff              Boolean  @default(false)
+  queueId                 String?
+  agentId                 String?
+  
+  botName                 String?
+  agentName               String?
+  queueName               String?
+  skillName               String?
+
+  totalUserMessages       Int      @default(0)
+  totalBotMessages        Int      @default(0)
+  totalAgentMessages      Int      @default(0)
+  totalFallbacks          Int      @default(0)
+
+  csatScore               Float?
+  npsScore                Float?
+  campaignId              String?
+  serviceId               String?
+  tags                    String[] @default([])
+
+  // Clasificación auditable: qué regla determinó el outcome y si requiere revisión humana
+  appliedRuleId           String?
+  requiresReview          Boolean  @default(false)
+
+  durationSeconds         Int?
+  waitingTimeSeconds      Int?
+  firstResponseTimeSeconds Int?
+  handleTimeSeconds       Int?
+
+  syncedAt                DateTime @default(now())
+
+  @@index([workspaceId, conversationStartedAt])
+  @@index([workspaceId, provider, providerConversationId])
+  @@index([workspaceId, agentId])
+  @@index([workspaceId, campaignId])
+}
+
+model NormalizedMessage {
+  id                      String   @id @default(cuid())
+  workspaceId             String
+  provider                String
+  providerMessageId       String   @unique
+  conversationId          String
+  senderType              String   // user, bot, agent, system
+  messageType             String   // text, image, template
+  messageTextHash         String?
+  intent                  String?
+  topic                   String?
+  confidence              Float?
+  isFallback              Boolean  @default(false)
+  isError                 Boolean  @default(false)
+  isTemplate              Boolean  @default(false)
+  templateName            String?
+  campaignId              String?
+  status                  String?  // sent, delivered, read, replied, failed
+  sentAt                  DateTime
+
+  @@index([workspaceId, conversationId])
+}
+
+model AnalyticsOutcomeRule {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  name              String
+  description       String?
+  priority          Int      @default(100) // menor = mayor prioridad; se evalúan en orden ascendente
+  enabled           Boolean  @default(true)
+  conditions        Json     // [{ field, operator, value }]  (AND lógico)
+  outcome           String
+  resolvedBy        String
+  actions           Json?    // { requiresReview?: bool, tag?: string }
+  appliesToProvider String?  // null = todos los proveedores
+  createdBy         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([workspaceId, priority])
+}
+
+// Metas y semáforos configurables por workspace (spec §12, §35)
+model AnalyticsKpiTarget {
+  id                String   @id @default(cuid())
+  workspaceId       String
+  kpiKey            String
+  targetValue       Float?
+  warningThreshold  Float?
+  criticalThreshold Float?
+  direction         String   @default("higher_is_better") // higher_is_better | lower_is_better | neutral
+  enabled           Boolean  @default(true)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([workspaceId, kpiKey])
+  @@index([workspaceId])
+}
+
+// Bitácora de auditoría (exportaciones, acceso a datos sensibles, cambios de config)
+model AnalyticsAuditLog {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  userId       String?
+  action       String   // export, view_sensitive, rule_create, rule_delete, sync_manual, integration_update
+  resourceType String?
+  resourceId   String?
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@index([workspaceId, createdAt])
+}
+
+// Agregados diarios precalculados (spec §33)
+model AnalyticsDailyMetric {
+  id           String   @id @default(cuid())
+  workspaceId  String
+  date         DateTime
+  provider     String
+  botId        String?
+  channel      String?
+  metricKey    String
+  metricValue  Float
+  numerator    Float?
+  denominator  Float?
+  dimensions   Json?
+  calculatedAt DateTime @default(now())
+
+  @@unique([workspaceId, date, provider, botId, channel, metricKey])
+  @@index([workspaceId, date])
+}
+
+// Issues de calidad de datos detectados sobre el dataset normalizado (spec §27)
+model DataQualityIssue {
+  id             String   @id @default(cuid())
+  workspaceId    String
+  provider       String?
+  conversationId String?
+  issueType      String   // missing_start_date, missing_external_id, negative_duration, frt_gt_duration, unclassified_outcome, ...
+  severity       String   @default("warning") // info | warning | critical
+  details        String?
+  resolved       Boolean  @default(false)
+  detectedAt     DateTime @default(now())
+
+  @@index([workspaceId, issueType])
 }

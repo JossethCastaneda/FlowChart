@@ -6,6 +6,7 @@ import { generateContentGridClient } from "./geminiClient";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { BrainCircuit } from "lucide-react";
+import { PermissionGuard } from "@/components/layout/PermissionsContext";
 
 
 /* ═══ CONSTANTS ═══ */
@@ -166,8 +167,9 @@ export default function BriefingPage() {
   };
 
   return (
-    <div className="page-enter">
-      {/* Header */}
+    <PermissionGuard permKey="canAccessBriefing">
+      <div className="page-enter">
+        {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <LogoIcon />
@@ -216,8 +218,9 @@ export default function BriefingPage() {
           title="GridIA Inactiva"
           description="Configura los parámetros del proyecto y presiona Generar para iniciar la conexión neuronal."
         />
-      )}
-    </div>
+        )}
+      </div>
+    </PermissionGuard>
   );
 }
 

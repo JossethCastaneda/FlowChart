@@ -109,7 +109,7 @@ const STATUS_COLORS: Record<string, string> = {
 
 async function fetchProjectsFromAPI(): Promise<Project[]> {
   try {
-    const res = await fetch("/api/projects");
+    const res = await fetch("/api/projects", { cache: "no-store" });
     if (!res.ok) return [];
     const json = await res.json();
     if (!json.success) return [];
@@ -531,6 +531,7 @@ function ProyectosContent() {
   // Meta Ads connection status
   const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
   const [justConnected, setJustConnected] = useState(false);
+  const [banner, setBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   useEffect(() => {
     if (searchParams.get("connected") === "ads") {
@@ -633,14 +634,15 @@ function ProyectosContent() {
       const json = await res.json();
       if (json.success) {
         await loadProjects();
-        setModalMode("closed"); // FIX: only close on success
+        setModalMode("closed");
+        setBanner({ type: "success", message: "Proyecto creado exitosamente." });
       } else {
         console.error("Failed to create project:", json.error);
-        // Keep modal open so user doesn't lose their data
+        setBanner({ type: "error", message: json.error || "Ocurrió un error al crear el proyecto." });
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to create project", err);
-      // Keep modal open — don't swallow error silently
+      setBanner({ type: "error", message: err.message || "Error de red al crear el proyecto." });
     }
   }
 
@@ -655,10 +657,19 @@ function ProyectosContent() {
         body: JSON.stringify({ ...data, name: data.alias, channels: channelsToApi(data.channels) }),
       });
       const json = await res.json();
-      if (!json.success) setProjects(prev);
-      else await loadProjects();
-    } catch { setProjects(prev); }
-    setModalMode("closed"); setEditingId(null);
+      if (!json.success) {
+        setProjects(prev);
+        setBanner({ type: "error", message: json.error || "Error al actualizar el proyecto." });
+      } else {
+        await loadProjects();
+        setModalMode("closed");
+        setEditingId(null);
+        setBanner({ type: "success", message: "Proyecto actualizado correctamente." });
+      }
+    } catch (err: any) { 
+      setProjects(prev);
+      setBanner({ type: "error", message: err.message || "Error de red al actualizar." });
+    }
   }
 
   async function handleDelete(id: string) {
@@ -670,9 +681,13 @@ function ProyectosContent() {
       if (!json.success) {
         setProjects(prev); // rollback
         console.error("Failed to delete project:", json.error);
+        setBanner({ type: "error", message: json.error || "Error al eliminar el proyecto." });
+      } else {
+        setBanner({ type: "success", message: "Proyecto eliminado permanentemente." });
       }
-    } catch {
+    } catch (err: any) {
       setProjects(prev); // rollback on network error
+      setBanner({ type: "error", message: err.message || "Error de red al eliminar." });
     }
     setDeleteConfirm(null);
     setMenuOpen(null);
@@ -688,8 +703,16 @@ function ProyectosContent() {
         body: JSON.stringify({ status: s }),
       });
       const json = await res.json();
-      if (!json.success) setProjects(prev);
-    } catch { setProjects(prev); }
+      if (!json.success) {
+        setProjects(prev);
+        setBanner({ type: "error", message: json.error || "Error al cambiar el estatus." });
+      } else {
+        setBanner({ type: "success", message: `Estatus cambiado a ${s}.` });
+      }
+    } catch (err: any) { 
+      setProjects(prev);
+      setBanner({ type: "error", message: err.message || "Error de red al cambiar estatus." });
+    }
     setMenuOpen(null);
   }
 
@@ -711,6 +734,19 @@ function ProyectosContent() {
           </button>
         }
       />
+
+      {banner && (
+        <div style={{
+          padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
+          background: banner.type === "success" ? "rgba(6,214,160,0.15)" : "rgba(226,68,92,0.15)",
+          color: banner.type === "success" ? "#06d6a0" : "#e2445c",
+          border: `1px solid ${banner.type === "success" ? "rgba(6,214,160,0.4)" : "rgba(226,68,92,0.4)"}`,
+          display: "flex", alignItems: "center", justifyContent: "space-between"
+        }}>
+          <span>{banner.message}</span>
+          <button onClick={() => setBanner(null)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.8 }}><X className="w-4 h-4" /></button>
+        </div>
+      )}
 
       {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

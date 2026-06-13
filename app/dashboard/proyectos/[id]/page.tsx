@@ -524,6 +524,17 @@ export default function ProjectDashboardPage() {
             <TabButton active={activeTab === "trafico"} label="Análisis de tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
           )}
           <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
+          <button
+            onClick={() => router.push(`/dashboard/proyectos/${project.id}/analisis-resultados`)}
+            style={{
+              display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", fontSize: 10, fontWeight: 600,
+              background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", color: "#00d4ff",
+              borderRadius: 4, cursor: "pointer", letterSpacing: "0.03em",
+            }}
+            title="Módulo avanzado: KPIs conversacionales, funnels, ROI y calidad del bot acotados al proyecto"
+          >
+            <BarChart2 style={{ width: 13, height: 13 }} /> Análisis avanzado
+          </button>
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {project.channels.map(c => {

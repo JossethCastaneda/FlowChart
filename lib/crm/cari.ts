@@ -68,6 +68,22 @@ async function getCariSec(credential: string): Promise<string> {
 }
 
 /**
+ * Valida una credencial Cari contra el endpoint confirmado /createtoken.
+ * Devuelve true si responde con cariSec. Reutilizado por el adaptador de
+ * analítica para testConnection real (sin loguear la credencial).
+ */
+export async function validateCariCredential(credential: string): Promise<boolean> {
+  const res = await fetch(`${CARI_BASE}/createtoken`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ credentials: credential }),
+  });
+  if (!res.ok) throw new Error(`Cari AI HTTP ${res.status}`);
+  const json = await res.json();
+  return Boolean(json?.cariSec);
+}
+
+/**
  * Ejecuta un reporte paginado completo (hasta MAX_PAGES) con la ventana CDMX.
  * Devuelve las filas crudas del payload.
  */

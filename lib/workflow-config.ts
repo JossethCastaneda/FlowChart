@@ -33,6 +33,16 @@ export const DEFAULT_MEMBER_PERMS: AreaPermissions = {
   canAccessBriefing: true, canEditBriefing: true,
 };
 
+/** Leaders default to full access — same as members, but configurable separately. */
+export const DEFAULT_LEADER_PERMS: AreaPermissions = {
+  canAccessOps: true, canEditOps: true,
+  canAccessPublisher: true, canEditPublisher: true,
+  canAccessInbox: true, canEditInbox: true,
+  canAccessAds: true, canEditAds: true,
+  canAccessAnalytics: true, canEditAnalytics: true,
+  canAccessBriefing: true, canEditBriefing: true,
+};
+
 export const DEFAULT_EXTERNAL_PERMS: AreaPermissions = {
   canAccessOps: true, canEditOps: false,      // They might need to request tasks
   canAccessPublisher: false, canEditPublisher: false,
@@ -52,6 +62,7 @@ export interface Area {
   requestTypes: RequestType[];
   // Granular permissions per area
   permissions?: {
+    leaders: AreaPermissions;  // líderes de área — ahora configurables
     members: AreaPermissions;
     external: AreaPermissions;
   };
@@ -134,6 +145,7 @@ export const AreaSchema = z.object({
   requestTypes: z.array(RequestTypeSchema),
   permissions: z
     .object({
+      leaders: AreaPermissionsSchema.optional(),
       members: AreaPermissionsSchema,
       external: AreaPermissionsSchema,
     })
@@ -184,7 +196,7 @@ export function parseWorkflow(input: unknown): WorkflowConfig {
   const areas: Area[] = Array.isArray(raw?.areas)
     ? raw.areas.map((item: unknown) => {
         const a = (item ?? {}) as Record<string, unknown>;
-        const perms = a.permissions as { members?: unknown; external?: unknown } | undefined;
+        const perms = a.permissions as { leaders?: unknown; members?: unknown; external?: unknown } | undefined;
         return {
           id: String(a.id || ""),
           name: String(a.name || ""),
@@ -200,6 +212,7 @@ export function parseWorkflow(input: unknown): WorkflowConfig {
             : [],
           // Preserve granular permissions (previously dropped!)
           permissions: perms ? {
+            leaders: parsePerms(perms.leaders, DEFAULT_LEADER_PERMS),
             members: parsePerms(perms.members, DEFAULT_MEMBER_PERMS),
             external: parsePerms(perms.external, DEFAULT_EXTERNAL_PERMS),
           } : undefined,
@@ -253,9 +266,9 @@ export function getPermissions(
   if (!area) {
     return { ...DEFAULT_MEMBER_PERMS };
   }
-  // Leads get full access to their area
+  // Leads get permissions from area.permissions.leaders (configurable, default = full)
   if (area.leadIds.includes(userId)) {
-    return { ...DEFAULT_MEMBER_PERMS };
+    return area.permissions?.leaders ? { ...area.permissions.leaders } : { ...DEFAULT_LEADER_PERMS };
   }
   // Members of the area
   if (area.memberIds.includes(userId)) {

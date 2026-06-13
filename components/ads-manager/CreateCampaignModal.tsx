@@ -46,6 +46,7 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
   const [special, setSpecial] = useState("");
   const [buyingType, setBuyingType] = useState("AUCTION");
   const [cbo, setCbo] = useState(false);
+  const [isAsc, setIsAsc] = useState(true); // Default to Advantage+ Shopping when SALES
   const [dailyBudget, setDailyBudget] = useState("");
   const [bidStrategy, setBidStrategy] = useState("LOWEST_COST_WITHOUT_CAP");
   const [saving, setSaving] = useState(false);
@@ -65,6 +66,7 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
           objective,
           special_ad_categories: special ? [special] : [],
           buying_type: buyingType,
+          smart_promotion_type: objective === "OUTCOME_SALES" && isAsc ? "SMART_APP_PROMOTION" : undefined, // Meta API uses specific flags or relies on the AdSet for ASC, we pass this to help the backend map it if necessary
           daily_budget: cbo && dailyBudget ? Number(dailyBudget) : undefined,
           bid_strategy: cbo ? bidStrategy : undefined,
           confirmed_by_user: true,
@@ -121,7 +123,23 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
             </div>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {objective === "OUTCOME_SALES" && (
+            <div style={{ marginTop: 8 }}>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.15)", padding: "14px", borderRadius: 8 }}>
+                <input type="checkbox" checked={isAsc} onChange={(e) => setIsAsc(e.target.checked)} style={{ width: 18, height: 18, accentColor: "var(--cyan)", marginTop: 2 }} />
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cyan)", display: "flex", alignItems: "center", gap: 6 }}>
+                    <Megaphone style={{ width: 14, height: 14 }} /> Campaña de compras Advantage+ (ASC)
+                  </div>
+                  <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4, lineHeight: 1.4 }}>
+                    Simplifica la configuración de la campaña y confía en el aprendizaje automático de Meta para encontrar los públicos adecuados. (Recomendado)
+                  </div>
+                </div>
+              </label>
+            </div>
+          )}
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, opacity: objective === "OUTCOME_SALES" && isAsc ? 0.4 : 1, pointerEvents: objective === "OUTCOME_SALES" && isAsc ? "none" : "auto" }}>
             <div>
               <label style={lbl}>Categoría especial</label>
               <select style={{ ...inp, cursor: "pointer" }} value={special} onChange={(e) => setSpecial(e.target.value)}>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import prisma from "@/lib/prisma";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -126,11 +127,33 @@ export async function GET(request: NextRequest) {
 
   try {
     // Parse period / date range from query
-    const periodDays = Number(request.nextUrl.searchParams.get("days") || "30");
+    const daysParam = request.nextUrl.searchParams.get("days") || "30";
+    const periodDays = Number(daysParam);
     const now = new Date();
     const since = new Date(now.getTime() - periodDays * 24 * 60 * 60 * 1000);
     const sinceStr = since.toISOString().split("T")[0];
     const untilStr = now.toISOString().split("T")[0];
+    const pageIdsParam = request.nextUrl.searchParams.get("pageIds");
+    const platformParam = request.nextUrl.searchParams.get("platform");
+    const compareParam = request.nextUrl.searchParams.get("compare");
+    const forceParam = request.nextUrl.searchParams.get("force") === "true";
+
+    // ── CACHE READ ──
+    const paramsKey = `days=${daysParam || "28"}&pageIds=${pageIdsParam || "all"}&platform=${platformParam || "all"}&compare=${compareParam || "none"}`;
+    const cached = await prisma.metaAnalyticsCache.findUnique({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "organic",
+          paramsKey,
+        },
+      },
+    });
+
+    // 1 hora de TTL para orgánico
+    if (!forceParam && cached && (now.getTime() - cached.updatedAt.getTime()) < 60 * 60 * 1000) {
+      return NextResponse.json({ ...((cached.data as any) || {}), cached: true });
+    }
 
     // 1. Get all pages
     const pagesUrl = metaUrl("me/accounts", {
@@ -149,8 +172,6 @@ export async function GET(request: NextRequest) {
     let pages: any[] = pagesJson.data || [];
 
     // Apply pageIds filter if provided
-    const pageIdsParam = request.nextUrl.searchParams.get("pageIds");
-    const platformParam = request.nextUrl.searchParams.get("platform");
     if (pageIdsParam) {
       const allowedIds = pageIdsParam.split(",").map((id) => id.trim());
       pages = pages.filter((p) => allowedIds.includes(p.id));
@@ -332,11 +353,10 @@ export async function GET(request: NextRequest) {
 
     // ── Comparison period (period-over-period / year-over-year) ──────────────
     // compare = "previous" (same-length window immediately before) | "prev_year"
-    const compare = request.nextUrl.searchParams.get("compare");
     let comparison: any = null;
-    if (compare === "previous" || compare === "prev_year") {
+    if (compareParam === "previous" || compareParam === "prev_year") {
       let cmpSince: Date, cmpUntil: Date;
-      if (compare === "previous") {
+      if (compareParam === "previous") {
         cmpUntil = new Date(since.getTime() - DAY_MS);
         cmpSince = new Date(cmpUntil.getTime() - (periodDays - 1) * DAY_MS);
       } else {
@@ -348,7 +368,7 @@ export async function GET(request: NextRequest) {
       );
       const cmpEngRate = cmp.reach > 0 ? parseFloat(((cmp.engagement / cmp.reach) * 100).toFixed(2)) : 0;
       comparison = {
-        mode: compare,
+        mode: compareParam,
         range: { since: fmtDate(cmpSince), until: fmtDate(cmpUntil) },
         reach: cmp.reach,
         engagement: cmpEngRate,
@@ -361,7 +381,7 @@ export async function GET(request: NextRequest) {
       };
     }
 
-    return NextResponse.json({
+    const responseData = {
       reach: totalReach,
       engagement: engagementRate,        // % rate (e.g. 2.5)
       engagementRaw: totalEngagement,     // absolute count for reference
@@ -373,7 +393,22 @@ export async function GET(request: NextRequest) {
       impressionsTrend,
       comparison,                         // null unless ?compare= is set
       pages: pageSummaries,
-    });
+    };
+
+    // ── CACHE WRITE ──
+    await prisma.metaAnalyticsCache.upsert({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "organic",
+          paramsKey,
+        },
+      },
+      update: { data: responseData as any, updatedAt: now },
+      create: { workspaceId, endpoint: "organic", paramsKey, data: responseData as any },
+    }).catch((err: any) => console.error("[ORGANIC] Cache save error:", err));
+
+    return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
     console.error("[ORGANIC] Unhandled error:", error);
     return NextResponse.json(

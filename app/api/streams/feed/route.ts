@@ -18,6 +18,7 @@ export async function GET(request: NextRequest) {
 
   const type = request.nextUrl.searchParams.get("type") || "home_feed";
   const platform = request.nextUrl.searchParams.get("platform") || "facebook";
+  const pageId = request.nextUrl.searchParams.get("pageId");
 
   try {
     // Get pages
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
     }
 
     const posts: any[] = [];
-    const page = pages[0]; // Use first page
+    const page = pageId ? (pages.find((p: any) => p.id === pageId) || pages[0]) : pages[0];
     const pageToken = page.access_token || token;
 
     if (platform === "facebook") {

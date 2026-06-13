@@ -1,0 +1,25 @@
+[
+  {
+    "_nota": "FIXTURE ANONIMIZADO — reemplazar con una respuesta REAL anonimizada de Botmaker cuando el endpoint esté confirmado. Sin PII real.",
+    "chatId": "bm-fixture-0001",
+    "channel": "whatsapp",
+    "creationTime": "2026-06-01T10:00:00Z",
+    "lastMessageTime": "2026-06-01T10:03:00Z",
+    "status": "closed",
+    "tags": ["soporte"],
+    "messagesCount": 6,
+    "assignedTo": null,
+    "csat": 4
+  },
+  {
+    "chatId": "bm-fixture-0002",
+    "channel": "whatsapp",
+    "creationTime": "2026-06-01T12:00:00Z",
+    "lastMessageTime": "2026-06-01T12:10:00Z",
+    "status": "closed",
+    "tags": ["Venta", "Resuelto_por_Bot"],
+    "messagesCount": 9,
+    "assignedTo": null,
+    "csat": 5
+  }
+]

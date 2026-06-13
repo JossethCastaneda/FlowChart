@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState } from "react";
-import { Download, FileText, Table2, ChevronDown } from "lucide-react";
+import { Download, FileText, Table2, ChevronDown, Sheet } from "lucide-react";
+import * as XLSX from "xlsx";
 
 interface ExportButtonProps {
   data: any[];
@@ -76,6 +77,26 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
     setShowMenu(false);
   };
 
+  const exportXLSX = () => {
+    const headers = visibleColumns.map(c => columnLabels[c] || c);
+    const rows = data.map(row => visibleColumns.map(c => {
+      const val = getCellValue(row, c);
+      // Intentar convertir números donde tenga sentido
+      if (!isNaN(Number(val)) && val !== "") return Number(val);
+      if (val.startsWith("$")) {
+        const num = parseFloat(val.replace(/[$,]/g, "").split(" ")[0]);
+        if (!isNaN(num)) return num;
+      }
+      return val;
+    }));
+
+    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, level.toUpperCase());
+    XLSX.writeFile(workbook, `sodare_${level}_${new Date().toISOString().split("T")[0]}.xlsx`);
+    setShowMenu(false);
+  };
+
   return (
     <div style={{ position: "relative" }}>
       <button
@@ -101,6 +122,18 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
           padding: "4px", zIndex: 100, minWidth: "160px",
           boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7)",
         }}>
+          <button
+            onClick={exportXLSX}
+            style={{
+              width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
+              padding: "8px 10px", fontSize: "11px", color: "white",
+              background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
+            }}
+            onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
+            onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+          >
+            <Sheet className="w-3.5 h-3.5" style={{ color: "#10b981" }} /> Exportar Excel
+          </button>
           <button
             onClick={exportCSV}
             style={{

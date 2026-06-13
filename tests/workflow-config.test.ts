@@ -4,6 +4,7 @@ import {
   parseWorkflow,
   getPermissions,
   DEFAULT_MEMBER_PERMS,
+  DEFAULT_LEADER_PERMS,
   DEFAULT_EXTERNAL_PERMS,
   type Area,
 } from "@/lib/workflow-config";
@@ -79,6 +80,7 @@ describe("getPermissions", () => {
   const area: Area = {
     ...validArea,
     permissions: {
+      leaders: { ...DEFAULT_LEADER_PERMS },
       members: { ...DEFAULT_MEMBER_PERMS, canAccessAds: false },
       external: { ...DEFAULT_EXTERNAL_PERMS },
     },
@@ -89,8 +91,15 @@ describe("getPermissions", () => {
     expect(getPermissions(area, "anyone", "ADMIN").canAccessAds).toBe(true);
   });
 
-  it("lead del área tiene acceso total", () => {
+  it("lead del área usa permissions.leaders (configurable)", () => {
+    // With DEFAULT_LEADER_PERMS (all true), lead has full access
     expect(getPermissions(area, "lead-1", "MEMBER").canAccessAds).toBe(true);
+    // If leaders permissions restrict canAccessAds, lead loses access
+    const restrictedArea: Area = {
+      ...area,
+      permissions: { ...area.permissions!, leaders: { ...DEFAULT_LEADER_PERMS, canAccessAds: false } },
+    };
+    expect(getPermissions(restrictedArea, "lead-1", "MEMBER").canAccessAds).toBe(false);
   });
 
   it("miembro del área usa permissions.members", () => {

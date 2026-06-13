@@ -2,7 +2,9 @@
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import { openConnectPopup } from "@/lib/connect-popup";
 
 import {
   Search, Send, X, ChevronRight, ChevronDown, ChevronUp, UserPlus, Tag, Clock,
@@ -430,7 +432,7 @@ export function InboxLayout() {
       {conversations.length === 0 && initialFetchDone && (
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", flex: 1, padding: 60, gap: 14,
+          justifyContent: "center", flex: 1, padding: 60, gap: 20,
         }}>
           <div style={{
             width: 56, height: 56, borderRadius: 14,
@@ -439,11 +441,48 @@ export function InboxLayout() {
           }}>
             <MessageSquare style={{ width: 26, height: 26, color: "#a855f7" }} />
           </div>
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: "white", margin: 0 }}>Sin conversaciones</h3>
-          <p style={{ fontSize: 12, color: "#64748b", textAlign: "center", maxWidth: 320 }}>
-            Conecta tu cuenta de Meta en <strong style={{ color: "#00d4ff" }}>Integraciones</strong> para
-            recibir mensajes de Facebook Messenger e Instagram Direct.
-          </p>
+          <div style={{ textAlign: "center" }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: "white", margin: "0 0 8px" }}>Sin conversaciones</h3>
+            <p style={{ fontSize: 12, color: "#64748b", textAlign: "center", maxWidth: 320, margin: 0 }}>
+              Conecta tus cuentas de Meta para recibir mensajes de Facebook Messenger e Instagram Direct.
+            </p>
+          </div>
+
+          {/* Quick connect buttons */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 340 }}>
+            <p style={{ fontSize: 10, fontWeight: 700, color: "#475569", margin: 0, letterSpacing: "0.08em", textAlign: "center" }}>ACCESO RÁPIDO</p>
+            <button
+              onClick={() => openConnectPopup("community", () => window.location.reload())}
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(0,100,224,0.08)", border: "1px solid rgba(0,100,224,0.2)", color: "#60a5fa", cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}
+            >
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "#0064E0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <svg viewBox="0 0 24 24" width={16} height={16} fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>Facebook & Messenger</p>
+                <p style={{ fontSize: 10, color: "#475569", margin: 0 }}>Páginas, inbox y comentarios</p>
+              </div>
+              <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: "auto" }}><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+
+            <button
+              onClick={() => openConnectPopup("community", () => window.location.reload())}
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(244,114,182,0.06)", border: "1px solid rgba(244,114,182,0.18)", color: "#f472b6", cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}
+            >
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <svg viewBox="0 0 24 24" width={16} height={16} fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+              </div>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>Instagram DMs</p>
+                <p style={{ fontSize: 10, color: "#475569", margin: 0 }}>Mensajes directos e interacciones</p>
+              </div>
+              <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: "auto" }}><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+
+            <p style={{ fontSize: 10, color: "#334155", margin: 0, textAlign: "center" }}>
+              O ve a <a onClick={() => window.location.href = "/dashboard/integrations"} style={{ color: "#00d4ff", cursor: "pointer", textDecoration: "underline" }}>Integraciones</a> para gestionar todos los canales
+            </p>
+          </div>
         </div>
       )}
 

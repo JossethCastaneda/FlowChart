@@ -409,13 +409,30 @@ export function Composer() {
     const err = validateForm();
     if (err) { setBanner({ type: "error", message: err }); return; }
     if (!scheduledAt) { setBanner({ type: "error", message: "Selecciona fecha y hora" }); return; }
+    
+    const scheduleDateParsed = new Date(scheduledAt);
+    const diffMin = (scheduleDateParsed.getTime() - Date.now()) / (1000 * 60);
+    if (diffMin < 11) { setBanner({ type: "error", message: "Meta requiere programar con al menos 11 minutos de antelación" }); return; }
+    if (diffMin > (75 * 24 * 60)) { setBanner({ type: "error", message: "Meta permite programar hasta un máximo de 75 días" }); return; }
+    
     setScheduling(true);
     try {
       const res = await fetch("/api/publisher/posts", {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify(buildPayload("Scheduled")),
       });
-      if (!res.ok) { const d = await res.json(); throw new Error(d.error || "Error al registrar la programación."); }
+      const createData = await res.json();
+      if (!res.ok) { throw new Error(createData.error || "Error al registrar la programación."); }
+      const { post } = createData;
+
+      if (format === "post" && post.channels.includes("facebook")) {
+        // Trigger native Facebook scheduling immediately
+        await fetch("/api/publisher/publish", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ postId: post.id }),
+        }).catch(err => console.error("Native FB schedule error:", err));
+      }
+
       const scheduleDate = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(new Date(scheduledAt));
       setBanner({ type: "success", message: `Salto orbital programado para el marco: ${scheduleDate}` });
       clearForm();

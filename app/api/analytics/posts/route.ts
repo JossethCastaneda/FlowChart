@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import prisma from "@/lib/prisma";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -64,7 +65,29 @@ export async function GET(request: NextRequest) {
   if (!token) return NextResponse.json({ error: "No hay token Meta. Conecta tu cuenta en Integraciones." }, { status: 401 });
 
   try {
-    const limit = request.nextUrl.searchParams.get("limit") || "25";
+    const pageIdsParam = request.nextUrl.searchParams.get("pageIds");
+    const limitParam = request.nextUrl.searchParams.get("limit");
+    const limit = limitParam || "25";
+    const platformParam = request.nextUrl.searchParams.get("platform");
+    const forceParam = request.nextUrl.searchParams.get("force") === "true";
+
+    // ── CACHE READ ──
+    const paramsKey = `pageIds=${pageIdsParam || "all"}&limit=${limitParam || "25"}&platform=${platformParam || "all"}`;
+    const cached = await prisma.metaAnalyticsCache.findUnique({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "posts",
+          paramsKey,
+        },
+      },
+    });
+
+    const now = new Date();
+    // 30 min de TTL
+    if (!forceParam && cached && (now.getTime() - cached.updatedAt.getTime()) < 30 * 60 * 1000) {
+      return NextResponse.json({ ...((cached.data as any) || {}), cached: true });
+    }
 
     // 1. Get all pages (with IG account)
     const pagesUrl = metaUrl("me/accounts", {
@@ -83,8 +106,6 @@ export async function GET(request: NextRequest) {
     let pages: any[] = pagesJson.data || [];
 
     // Apply pageIds filter if provided
-    const pageIdsParam = request.nextUrl.searchParams.get("pageIds");
-    const platformParam = request.nextUrl.searchParams.get("platform");
     if (pageIdsParam) {
       const allowedIds = pageIdsParam.split(",").map((id) => id.trim());
       pages = pages.filter((p) => allowedIds.includes(p.id));
@@ -236,7 +257,22 @@ export async function GET(request: NextRequest) {
     // 3. Sort by engagement rate descending (match Hootsuite behavior)
     allPosts.sort((a, b) => b.engagementRate - a.engagementRate);
 
-    return NextResponse.json({ posts: allPosts });
+    const responseData = { posts: allPosts };
+
+    // ── CACHE WRITE ──
+    await prisma.metaAnalyticsCache.upsert({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: "posts",
+          paramsKey,
+        },
+      },
+      update: { data: responseData as any, updatedAt: now },
+      create: { workspaceId, endpoint: "posts", paramsKey, data: responseData as any },
+    }).catch((err: any) => console.error("[POSTS] Cache save error:", err));
+
+    return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
     console.error("[POSTS] Unhandled error:", error);
     return NextResponse.json(
