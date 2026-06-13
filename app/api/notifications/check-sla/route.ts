@@ -1,6 +1,5 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { checkSLAWarnings } from "@/lib/notifications";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
@@ -27,7 +26,7 @@ export async function GET(req: NextRequest) {
     }
 
     // Invocación manual: verificar sesión de usuario
-    const session = await getServerSession(authOptions);
+    const session = await safeGetSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

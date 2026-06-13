@@ -1,6 +1,5 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth.config";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
 
@@ -20,7 +19,7 @@ export async function GET(_req: NextRequest) {
   try {
     // Step 1: session
     steps.step = "getServerSession";
-    const session = await getServerSession(authOptions);
+    const session = await safeGetSession();
     steps.hasSession = !!session;
     steps.userId = session?.user?.id ?? null;
 

@@ -76,3 +76,19 @@ export function withWorkspace(handler: Handler<WorkspaceContext>) {
     return handler(req, { ...ctx, workspaceId });
   });
 }
+
+/**
+ * Safe wrapper around getServerSession that returns null instead of throwing.
+ * Use this in routes that call getServerSession directly (not through withAuth).
+ * 
+ * Example:
+ *   const session = await safeGetSession();
+ *   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+ */
+export async function safeGetSession() {
+  try {
+    return await getServerSession(authOptions);
+  } catch {
+    return null;
+  }
+}

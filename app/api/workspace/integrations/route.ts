@@ -1,6 +1,5 @@
+﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/auth.config";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { encryptToken } from "@/lib/encryption";
@@ -15,7 +14,7 @@ import { GOOGLE_MODULES, isModuleConnected } from "@/lib/integrations/google/reg
  */
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions);
+    const session = await safeGetSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -111,7 +110,7 @@ export async function POST(req: NextRequest) {
     if (!result.ok) return result.response;
     const { provider, token, baseUrl, refreshToken } = result.data;
 
-    const session = await getServerSession(authOptions);
+    const session = await safeGetSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -184,7 +183,7 @@ export async function DELETE(req: NextRequest) {
           if (!result.ok) return result.response;
           const { provider } = result.data;
           
-    const session = await getServerSession(authOptions);
+    const session = await safeGetSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
