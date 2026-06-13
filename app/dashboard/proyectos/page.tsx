@@ -615,17 +615,19 @@ function ProyectosContent() {
       setProjects(result.data);
     } else {
       setProjects([]);
-      // NO_WORKSPACE is informational — show a softer message
-      if (result.code === "NO_WORKSPACE") {
+      if (result.status === 401) {
+        // Session expired or invalid — redirect to login
+        window.location.href = "/login?callbackUrl=" + encodeURIComponent("/dashboard/proyectos");
+        return;
+      } else if (result.code === "NO_WORKSPACE") {
         setFetchError("No tienes un workspace configurado aún. Completa el onboarding o solicita una invitación.");
-      } else if (result.status === 401) {
-        setFetchError("Tu sesión expiró. Vuelve a iniciar sesión.");
       } else {
         setFetchError(result.message);
       }
     }
     setLoading(false);
   }, []);
+
 
   useEffect(() => {
     loadProjects();
