@@ -229,22 +229,31 @@ export const authOptions: NextAuthOptions = {
 
   session: { strategy: "jwt" },
 
-  cookies: (process.env.NEXTAUTH_URL && !process.env.NEXTAUTH_URL.includes("localhost") && process.env.NEXTAUTH_URL.includes("sodare.xyz"))
-    ? {
-        sessionToken: {
-          name: `__Secure-next-auth.session-token`,
-          options: {
-            httpOnly: true,
-            sameSite: "lax",
-            path: "/",
-            secure: true,
-            domain: ".sodare.xyz", // Permite compartir la sesión con subdominios en producción
+  // Cookie config for production (sodare.xyz).
+  // CRITICAL: authOptions is a static object evaluated at module-load time.
+  // NEXTAUTH_URL is set dynamically per-request in [...nextauth]/route.ts, so it
+  // is ALWAYS empty here. Do NOT check NEXTAUTH_URL.
+  // VERCEL_ENV === "production" is injected by Vercel at build time and is stable.
+  // On localhost, browsers reject __Secure- cookies over HTTP and ignore domain:.sodare.xyz,
+  // so enabling the production cookie config locally has no effect on dev sessions.
+  cookies:
+    process.env.VERCEL_ENV === "production"
+      ? {
+          sessionToken: {
+            name: `__Secure-next-auth.session-token`,
+            options: {
+              httpOnly: true,
+              sameSite: "lax" as const,
+              path: "/",
+              secure: true,
+              domain: ".sodare.xyz",
+            },
           },
-        },
-      }
-    : undefined, // NextAuth manejará automáticamente las cookies adecuadas para localhost o ramas de preview/staging
+        }
+      : undefined,
 
   callbacks: {
+
     async jwt({ token, account, user, trigger }) {
       if (user) {
         // Detect account linking: if token already has a sub (from existing session)
