@@ -218,6 +218,29 @@ providers.push(
   })
 );
 
+// Cookie config for production (sodare.xyz).
+// CRITICAL: authOptions is a static object evaluated at module-load time.
+// NEXTAUTH_URL is set dynamically per-request in [...nextauth]/route.ts, so it
+// is ALWAYS empty here. Do NOT check NEXTAUTH_URL.
+// VERCEL_ENV === "production" is injected by Vercel at build time and is stable.
+// On localhost, browsers reject __Secure- cookies over HTTP and ignore domain:.sodare.xyz,
+// so enabling the production cookie config locally has no effect on dev sessions.
+const productionCookies: NextAuthOptions["cookies"] =
+  process.env.VERCEL_ENV === "production"
+    ? {
+        sessionToken: {
+          name: "__Secure-next-auth.session-token",
+          options: {
+            httpOnly: true,
+            sameSite: "lax" as const,
+            path: "/",
+            secure: true,
+            domain: ".sodare.xyz",
+          },
+        },
+      }
+    : undefined;
+
 export const authOptions: NextAuthOptions = {
   providers,
   secret: AUTH_SECRET,
@@ -229,28 +252,7 @@ export const authOptions: NextAuthOptions = {
 
   session: { strategy: "jwt" },
 
-  // Cookie config for production (sodare.xyz).
-  // CRITICAL: authOptions is a static object evaluated at module-load time.
-  // NEXTAUTH_URL is set dynamically per-request in [...nextauth]/route.ts, so it
-  // is ALWAYS empty here. Do NOT check NEXTAUTH_URL.
-  // VERCEL_ENV === "production" is injected by Vercel at build time and is stable.
-  // On localhost, browsers reject __Secure- cookies over HTTP and ignore domain:.sodare.xyz,
-  // so enabling the production cookie config locally has no effect on dev sessions.
-  cookies:
-    process.env.VERCEL_ENV === "production"
-      ? {
-          sessionToken: {
-            name: `__Secure-next-auth.session-token`,
-            options: {
-              httpOnly: true,
-              sameSite: "lax" as const,
-              path: "/",
-              secure: true,
-              domain: ".sodare.xyz",
-            },
-          },
-        }
-      : undefined,
+  cookies: productionCookies,
 
   callbacks: {
 
