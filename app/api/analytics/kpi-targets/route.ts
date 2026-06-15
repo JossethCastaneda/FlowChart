@@ -5,13 +5,17 @@ import { apiSuccess, apiForbidden } from "@/lib/api-response";
 import prisma from "@/lib/prisma";
 import { isWorkspaceAdmin } from "@/lib/analytics/rbac";
 import { KPI_DEFINITIONS } from "@/lib/analytics/kpis/definitions";
-import { resolveProjectScope } from "@/lib/analytics/project-scope.server";
+import { scopeFromRequest } from "@/lib/analytics/project-scope.server";
 
 // GET /api/analytics/kpi-targets — definiciones + overrides del workspace y proyecto
 export const GET = withWorkspace(async (req, ctx) => {
-  const scope = await resolveProjectScope(req, ctx.workspaceId);
+  const sp = req.nextUrl.searchParams;
+  const resolution = await scopeFromRequest(sp, ctx.workspaceId);
+  if (!resolution.ok) return apiForbidden("Proyecto no válido o acceso denegado");
+  const scope = resolution.scope;
+
   const where: any = { workspaceId: ctx.workspaceId };
-  if (scope.projectId) {
+  if (scope?.projectId) {
     where.OR = [
       { projectId: null },
       { projectId: scope.projectId }
@@ -70,16 +74,26 @@ export const POST = withWorkspace(async (req, ctx) => {
   if (!result.ok) return result.response;
   const { kpiKey, projectId, targetValue, warningThreshold, criticalThreshold, direction, enabled } = result.data;
 
-  const target = await prisma.analyticsKpiTarget.upsert({
-    where: { workspaceId_kpiKey_projectId: { workspaceId: ctx.workspaceId, kpiKey, projectId: projectId || null } },
-    create: {
-      workspaceId: ctx.workspaceId, projectId: projectId || null, kpiKey,
-      targetValue: targetValue ?? null, warningThreshold: warningThreshold ?? null,
-      criticalThreshold: criticalThreshold ?? null,
-      direction: direction || "higher_is_better", enabled: enabled ?? true,
-    },
-    update: { targetValue, warningThreshold, criticalThreshold, direction, enabled },
+  const existing = await prisma.analyticsKpiTarget.findFirst({
+    where: { workspaceId: ctx.workspaceId, kpiKey, projectId: projectId || null }
   });
+
+  let target;
+  if (existing) {
+    target = await prisma.analyticsKpiTarget.update({
+      where: { id: existing.id },
+      data: { targetValue, warningThreshold, criticalThreshold, direction, enabled },
+    });
+  } else {
+    target = await prisma.analyticsKpiTarget.create({
+      data: {
+        workspaceId: ctx.workspaceId, projectId: projectId || null, kpiKey,
+        targetValue: targetValue ?? null, warningThreshold: warningThreshold ?? null,
+        criticalThreshold: criticalThreshold ?? null,
+        direction: direction || "higher_is_better", enabled: enabled ?? true,
+      },
+    });
+  }
 
   return apiSuccess(target);
 });

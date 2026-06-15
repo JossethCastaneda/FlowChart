@@ -384,7 +384,7 @@ model Integration {
   provider      String    // "meta_ads", "meta_community", "google", etc.
   /// "workspace" → workspace-level integration (OWNER/ADMIN shared, e.g. meta_ads, google)
   /// userId     → user-level integration (each member connects their own account independently)
-  userId        String    @default("workspace")
+  userId        String?   @default("workspace")
   name          String?   // User-defined name for the integration
   credentials   Json      // Encrypted with AES-256 (encryptToken/decryptToken)
   config        Json?     @default("{}") // Analytics settings (syncFrequency, paused, backfill, etc)

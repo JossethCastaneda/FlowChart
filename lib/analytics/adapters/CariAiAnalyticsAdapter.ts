@@ -193,12 +193,21 @@ export class CariAiAnalyticsAdapter implements AnalyticsProviderAdapter {
           
           const t = typeof ind.total_conversaciones === "number" ? ind.total_conversaciones : parseFloat(String(ind.total_conversaciones ?? 0));
           if (!isNaN(t)) {
+            const date = new Date(parsedDate.day + "T00:00:00Z");
             // Utilizamos botId "cari_bot" como fallback si no hay bot específico
-            await prisma.analyticsDailyMetric.upsert({
-              where: { workspaceId_projectId_date_provider_botId_channel_metricKey: { workspaceId, projectId: null, date: new Date(parsedDate.iso), provider: "cari_ai", botId: "", channel: "", metricKey: "total_conversations" } },
-              create: { workspaceId, date: new Date(parsedDate.iso), provider: "cari_ai", botId: "", channel: "", metricKey: "total_conversations", metricValue: t },
-              update: { metricValue: t }
+            const existing = await prisma.analyticsDailyMetric.findFirst({
+              where: { workspaceId, projectId: null, date, provider: "cari_ai", botId: "", channel: "", metricKey: "total_conversations" }
             });
+            if (existing) {
+              await prisma.analyticsDailyMetric.update({
+                where: { id: existing.id },
+                data: { metricValue: t }
+              });
+            } else {
+              await prisma.analyticsDailyMetric.create({
+                data: { workspaceId, date, provider: "cari_ai", botId: "", channel: "", metricKey: "total_conversations", metricValue: t }
+              });
+            }
           }
         }
       }
