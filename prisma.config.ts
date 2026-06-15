@@ -13,6 +13,7 @@ const databaseUrl =
 
 const directUrl =
   process.env["DIRECT_URL"] ||
+  process.env["DATABASE_URL"] ||
   process.env["STORAGE_DATABASE_URL_UNPOOLED"] ||
   process.env["DATABASE_URL_UNPOOLED"] ||
   process.env["POSTGRES_URL_NON_POOLING"] ||
