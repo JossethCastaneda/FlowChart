@@ -12,6 +12,7 @@ import {
   FolderKanban, Plus, X, Users, Globe, DollarSign, Target, Rocket,
   Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown, AlertTriangle, CheckCircle
 } from "lucide-react";
+import { normalizeIntegrationProvider, PROVIDER_LABELS } from "@/lib/analytics/project-scope";
 
 /* ═══════════════════════════════════════
    TYPES
@@ -47,6 +48,7 @@ interface Project {
   createdAt: string;
   updatedAt?: string;
   crmIntegrationId?: string | null;
+  crmIntegrationIds?: string[];
   crmType?: string | null;
 }
 
@@ -1003,6 +1005,21 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Integraciones ANALÍTICAS reales del workspace (provider → botmaker | cari_ai).
+  // No incluye custom_crm/hubspot: no son compatibles con Análisis de Resultados.
+  const analyticsIntegrations = activeIntegrations.filter((i) => normalizeIntegrationProvider(i.provider) !== null);
+
+  // Sugerir/autoseleccionar cuando hay EXACTAMENTE una integración analítica y
+  // el proyecto nuevo aún no tiene ninguna asociada. Con varias, selección manual.
+  useEffect(() => {
+    if (mode === "view") return;
+    if (analyticsIntegrations.length === 1 && !form.crmIntegrationId && !(form.crmIntegrationIds && form.crmIntegrationIds.length)) {
+      const only = analyticsIntegrations[0];
+      setForm((prev) => ({ ...prev, crmIntegrationId: only.id, crmIntegrationIds: [only.id], crmType: only.provider }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIntegrations.length]);
+
   function set(k: string, v: string) {
     setForm(prev => ({ ...prev, [k]: v }));
     setErrors(prev => prev.filter(e => e !== k));
@@ -1113,23 +1130,56 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
               />
             } />
             <Field l="Plataforma Analítica (Bot)" el={
-              <select 
-                value={form.crmIntegrationId || ""} 
-                onChange={e => {
-                  const sel = e.target.value;
-                  const intg = activeIntegrations.find(i => i.id === sel);
-                  setForm(prev => ({ ...prev, crmIntegrationId: sel || null, crmType: intg ? intg.provider : null }));
-                }}
-                disabled={ro}
-                style={{ ...inp, appearance: "auto" }}
-              >
-                <option value="">Ninguna</option>
-                {activeIntegrations.filter(i => ["botmaker", "custom_crm", "hubspot"].includes(i.provider)).map(i => (
-                  <option key={i.id} value={i.id}>
-                    {i.provider === "botmaker" ? "BotMaker" : i.provider === "custom_crm" ? "CRM Custom (vía API)" : i.provider}
-                  </option>
-                ))}
-              </select>
+              (() => {
+                const selectedId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
+                const hasChannel = (form.whatsapp?.length || 0) > 0 || (form.instagram?.length || 0) > 0 || (form.fanpage?.length || 0) > 0;
+                const showNeedsBotWarning = hasChannel && !selectedId;
+                return (
+                  <div>
+                    <select
+                      value={selectedId}
+                      onChange={e => {
+                        const sel = e.target.value;
+                        const intg = analyticsIntegrations.find(i => i.id === sel);
+                        setForm(prev => ({
+                          ...prev,
+                          crmIntegrationId: sel || null,
+                          crmIntegrationIds: sel ? [sel] : [],
+                          crmType: intg ? intg.provider : null,
+                        }));
+                      }}
+                      disabled={ro}
+                      style={{ ...inp, appearance: "auto" }}
+                    >
+                      <option value="">Ninguna</option>
+                      {analyticsIntegrations.map(i => {
+                        const norm = normalizeIntegrationProvider(i.provider) as string;
+                        return (
+                          <option key={i.id} value={i.id}>
+                            {PROVIDER_LABELS[norm] || (norm === "cari_ai" ? "Cari AI" : norm === "botmaker" ? "Botmaker" : i.provider)}
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {!ro && analyticsIntegrations.length === 0 && (
+                      <p style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>
+                        Conecta Cari AI o Botmaker en Integraciones para ver Análisis de Resultados.
+                      </p>
+                    )}
+                    {!ro && analyticsIntegrations.length > 1 && !selectedId && (
+                      <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>
+                        Selecciona la plataforma del bot (Cari AI o Botmaker) para este proyecto.
+                      </p>
+                    )}
+                    {!ro && showNeedsBotWarning && (
+                      <p style={{ fontSize: 10, color: "#f59e0b", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                        <AlertTriangle style={{ width: 11, height: 11 }} />
+                        El número configura el canal, pero necesitas asociar Cari AI o Botmaker para ver métricas.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()
             } />
           </Row>
 

@@ -8,6 +8,7 @@ import {
   apiForbidden,
 } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { resolveProjectCrmAssociation } from "@/lib/projects/crm";
 
 const ChannelSchema = z.object({
   name: z.string().min(1),
@@ -68,10 +69,27 @@ export const PUT = withAuth(async (req, ctx) => {
 
   const { channels, ...updateData } = result.data;
 
+  // Defensa tenant en escritura: si se actualiza la asociación CRM, solo se
+  // aceptan integraciones del workspace del proyecto (ids ajenos se descartan).
+  const crmRequested = updateData.crmIntegrationId !== undefined || updateData.crmIntegrationIds !== undefined;
+  const crm = crmRequested
+    ? await resolveProjectCrmAssociation(project.workspaceId, {
+        crmIntegrationId: updateData.crmIntegrationId,
+        crmIntegrationIds: updateData.crmIntegrationIds,
+      })
+    : null;
+
   // Actualizar utilizando el esquema directamente
   const updatePayload = {
     ...updateData,
-    ...(updateData.crmIntegrationIds !== undefined ? { crmIntegrationIds: updateData.crmIntegrationIds ?? [] } : {})
+    ...(crm
+      ? {
+          crmIntegrationIds: crm.crmIntegrationIds,
+          crmIntegrationId: crm.crmIntegrationId,
+          // crmType solo válido si quedó una integración asociada.
+          ...(updateData.crmType !== undefined ? { crmType: crm.crmIntegrationId ? updateData.crmType : null } : {}),
+        }
+      : {}),
   };
 
   await prisma.project.update({

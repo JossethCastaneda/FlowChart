@@ -637,3 +637,79 @@ El empty state aparece cuando `resolveProjectScopeView` devuelve `channels` no v
 1. **Diagnóstico:** `npx tsx scripts/backfill-project-crm-integrations.ts` (dry-run) lista proyectos con `crmIntegrationIds` vacío y los candidatos analíticos conectados por workspace.
 2. **Si la línea Cari existe pero no está asociada:** `npx tsx scripts/backfill-project-crm-integrations.ts --apply --project=cmq8nz5je000004jre56o2lde` asocia la integración analítica conectada del workspace al proyecto. Recargar Proyectos > Análisis de Resultados → `providers` ya incluye `cari_ai` (deja de aparecer el empty state).
 3. **Si el provider estaba con alias raro:** ya no requiere acción — `normalizeIntegrationProvider` lo resuelve en caliente.
+
+---
+
+## 18. Ruta admin temporal para ejecutar el backfill en producción (2026-06-15)
+
+Para correr el backfill en producción **sin guardar secrets localmente** (sin `DATABASE_URL` ni `tsx` en la máquina del operador), se expuso la lógica idempotente vía una ruta admin temporal.
+
+### 18.1 Refactor: lógica compartida
+- **NEW `lib/analytics/backfill-crm.ts`** — `backfillProjectCrmIntegrations({ projectId?, workspaceId?, apply?, associate? })` devuelve un `BackfillSummary` estructurado (sin secrets): `{ apply, scope, legacyMigrated, associated, changes[] }`, donde cada `change` tiene `action` (`legacy_migrate | associate | already_ok | skip_no_candidates`), `before`/`after` (ids) y `providers` normalizados. **Defensa multi-tenant:** las integraciones siempre se resuelven por el `workspaceId` del proyecto.
+- **MOD `scripts/backfill-project-crm-integrations.ts`** — ahora delega en el módulo compartido (misma lógica, sin duplicar); conserva flags `--apply`/`--project`/`--workspace`.
+
+### 18.2 Ruta admin temporal
+- **NEW `app/api/admin/backfill-project-crm-integrations/route.ts`** — `POST { projectId, apply? }`.
+  - **Auth (cualquiera):** `CRON_SECRET` (`Authorization: Bearer …`, fail-closed) **o** sesión con rol **OWNER** del workspace activo.
+  - **dryRun por defecto:** `apply` debe enviarse explícito en `true` para escribir.
+  - **Multi-tenant:** vía OWNER, el proyecto debe pertenecer al workspace activo (si no → 404); vía CRON, el workspace objetivo es el del propio proyecto. Las integraciones se acotan a ese workspace.
+  - **No expone secrets:** la respuesta solo trae ids/proveedores/contadores; el log solo imprime `projectId`/`ws`/contadores.
+  - **Fácil de eliminar:** borrar la carpeta `app/api/admin/backfill-project-crm-integrations/`; el módulo `lib/analytics/backfill-crm.ts` y el CLI quedan (no dependen de la ruta).
+- **Tests** (`tests/analytics-backfill-crm.test.ts`, 5, prisma mockeado): dry-run no escribe; `apply` escribe `crmIntegrationIds` (+ alias `Cari AI` tolerado); idempotente (`already_ok` no re-asocia ni escribe); `skip_no_candidates` sin integración analítica; migración legacy. Defensa tenant verificada (`integration.findMany` por `workspaceId` del proyecto).
+
+### 18.3 Cómo usar en producción
+```
+# dry-run (no escribe), como OWNER (cookie de sesión) o con CRON_SECRET:
+POST /api/admin/backfill-project-crm-integrations
+{ "projectId": "cmq8nz5je000004jre56o2lde", "apply": false }
+
+# aplicar:
+{ "projectId": "cmq8nz5je000004jre56o2lde", "apply": true }
+
+# con CRON_SECRET (sin sesión):
+curl -X POST https://<host>/api/admin/backfill-project-crm-integrations \
+  -H "Authorization: Bearer $CRON_SECRET" -H "Content-Type: application/json" \
+  -d '{"projectId":"cmq8nz5je000004jre56o2lde","apply":true}'
+```
+La respuesta trae el resumen de cambios. Tras confirmar el fix, **eliminar la ruta** (carpeta `app/api/admin/backfill-project-crm-integrations/`).
+
+### 18.4 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **207 tests / 27 archivos** (202 + 5 nuevos) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** (ruta `/api/admin/backfill-project-crm-integrations` registrada) |
+| `npx eslint <archivos de esta fase>` | ✅ **0 errores / 0 warnings** |
+
+---
+
+## 19. Formulario Nuevo/Editar Proyecto: "Plataforma Analítica (Bot)" guarda la integración real (2026-06-15)
+
+Causa de raíz a nivel UI: el selector "Plataforma Analítica (Bot)" del modal de **Nuevo Proyecto** listaba `["botmaker","custom_crm","hubspot"]` (¡sin Cari!) y guardaba **solo** el legacy `crmIntegrationId`; además, la API `POST /api/projects` ni siquiera aceptaba `crmIntegrationIds`. Resultado: un proyecto con número WhatsApp pero sin una integración analítica real asociada → empty state en Análisis de Resultados.
+
+### 19.1 Auditoría (sin inventar campos)
+- **Modelo:** `Project.crmIntegrationIds: String[]` (+ legacy `crmIntegrationId`, `crmType`). La línea Cari canónica es `Integration.provider = "cari"` (mapea a `cari_ai`); Botmaker es `"botmaker"`.
+- **Selector nuevo proyecto** (`app/dashboard/proyectos/page.tsx`): filtraba `botmaker/custom_crm/hubspot`, guardaba solo `crmIntegrationId`.
+- **`POST /api/projects`:** aceptaba `crmIntegrationId`/`crmType`, **no** `crmIntegrationIds`, y **no** validaba que la integración fuera del workspace. **`PUT`:** guardaba `crmIntegrationIds` crudo, **sin** validar tenant.
+
+### 19.2 Cambios
+- **MOD `app/dashboard/proyectos/page.tsx`** (modal Nuevo/Editar):
+  - El selector lista **solo integraciones analíticas reales** del workspace (`normalizeIntegrationProvider(provider) !== null` → botmaker / cari / cari_ai), con etiquetas claras **Cari AI** y **Botmaker** (vía `PROVIDER_LABELS`). `custom_crm`/`hubspot` ya **no** aparecen como plataforma analítica.
+  - Al elegir, guarda `crmIntegrationIds: [id]` **+** legacy `crmIntegrationId` **+** `crmType`.
+  - **Autoselección/sugerencia:** si hay **exactamente una** integración analítica y el proyecto nuevo no tiene ninguna, se autoselecciona; con **varias**, selección manual (hint).
+  - **Aviso (canal sin bot):** si hay WhatsApp/IG/FB pero no se eligió plataforma → "El número configura el canal, pero necesitas asociar Cari AI o Botmaker para ver métricas". Permite crear igual.
+- **MOD `app/dashboard/proyectos/[id]/page.tsx`** (editar, selector "CRMs conectados"): las opciones no analíticas se etiquetan "— no compatible con Análisis de Resultados" (se conservan para "Resultados por fuente", pero no se confunden con analytics).
+- **NEW `lib/projects/crm.ts`** — `sanitizeWorkspaceIntegrationIds` / `resolveProjectCrmAssociation`: **defensa multi-tenant en escritura**, descarta ids ajenos/inexistentes; combina array + legacy.
+- **MOD `app/api/projects/route.ts`** (POST): acepta `crmIntegrationIds`, persiste array + legacy saneados por workspace; `crmType` solo si quedó integración válida.
+- **MOD `app/api/projects/[id]/route.ts`** (PUT): sanea `crmIntegrationIds`/`crmIntegrationId` contra el workspace del proyecto antes de guardar.
+- **MOD empty state** `app/dashboard/proyectos/[id]/analisis-resultados/page.tsx`: copy → "Este proyecto tiene canales, pero no tiene una integración Cari AI/Botmaker asociada…".
+
+### 19.3 Tests (`tests/project-crm-association.test.ts`, 8)
+Crear con **WhatsApp + Botmaker** → `crmIntegrationIds` guardado y dashboard resuelve `botmaker`; **WhatsApp + Cari** → resuelve `cari_ai`; **WhatsApp sin provider** → `channels` presentes, `providers []` (empty state correcto); **CRM Custom no se trata como Cari** → `providers []`; **integración de otro workspace no se puede asociar** (se descarta; `findMany` filtra por `workspaceId`); sanitize deduplica/ordena.
+
+### 19.4 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **215 tests / 28 archivos** (207 + 8 nuevos) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** |

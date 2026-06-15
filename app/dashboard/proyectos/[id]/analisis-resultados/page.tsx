@@ -77,9 +77,9 @@ export default async function ProjectAnalisisResultadosPage({
         {header}
         <EmptyConfig
           icon={<PlugZap className="w-12 h-12" />}
-          title="Sin integraciones de analytics"
-          description="Este proyecto tiene canales configurados, pero aún no hay integraciones de analytics activas."
-          ctaLabel="Configurar integración"
+          title="Falta asociar una plataforma de bot"
+          description="Este proyecto tiene canales, pero no tiene una integración Cari AI/Botmaker asociada. Edita el proyecto y elige la plataforma analítica (bot) para ver métricas."
+          ctaLabel="Asociar Cari AI o Botmaker"
           ctaHref={backHref}
         />
       </div>
