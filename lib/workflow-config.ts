@@ -20,6 +20,8 @@ export interface AreaPermissions {
   canEditAds: boolean;
   canAccessAnalytics: boolean;
   canEditAnalytics: boolean;
+  /** Ver PII sin enmascarar en Análisis de Resultados (default seguro: false). */
+  canViewSensitiveAnalytics: boolean;
   canAccessBriefing: boolean;
   canEditBriefing: boolean;
 }
@@ -30,6 +32,7 @@ export const DEFAULT_MEMBER_PERMS: AreaPermissions = {
   canAccessInbox: true, canEditInbox: true,
   canAccessAds: true, canEditAds: true,
   canAccessAnalytics: true, canEditAnalytics: true,
+  canViewSensitiveAnalytics: false,
   canAccessBriefing: true, canEditBriefing: true,
 };
 
@@ -40,6 +43,7 @@ export const DEFAULT_LEADER_PERMS: AreaPermissions = {
   canAccessInbox: true, canEditInbox: true,
   canAccessAds: true, canEditAds: true,
   canAccessAnalytics: true, canEditAnalytics: true,
+  canViewSensitiveAnalytics: false,
   canAccessBriefing: true, canEditBriefing: true,
 };
 
@@ -49,6 +53,7 @@ export const DEFAULT_EXTERNAL_PERMS: AreaPermissions = {
   canAccessInbox: false, canEditInbox: false,
   canAccessAds: false, canEditAds: false,
   canAccessAnalytics: false, canEditAnalytics: false,
+  canViewSensitiveAnalytics: false,
   canAccessBriefing: false, canEditBriefing: false,
 };
 
@@ -126,6 +131,7 @@ const AreaPermissionsSchema = z.object({
   canAccessInbox: z.boolean(), canEditInbox: z.boolean().optional().default(false),
   canAccessAds: z.boolean(), canEditAds: z.boolean().optional().default(false),
   canAccessAnalytics: z.boolean(), canEditAnalytics: z.boolean().optional().default(false),
+  canViewSensitiveAnalytics: z.boolean().optional().default(false),
   canAccessBriefing: z.boolean(), canEditBriefing: z.boolean().optional().default(false),
 });
 
@@ -185,6 +191,8 @@ export function parsePerms(input: unknown, defaults: AreaPermissions): AreaPermi
     canEditAds: typeof raw.canEditAds === "boolean" ? raw.canEditAds : (typeof raw.canAccessAds === "boolean" ? raw.canAccessAds : defaults.canEditAds),
     canAccessAnalytics: typeof raw.canAccessAnalytics === "boolean" ? raw.canAccessAnalytics : defaults.canAccessAnalytics,
     canEditAnalytics: typeof raw.canEditAnalytics === "boolean" ? raw.canEditAnalytics : (typeof raw.canAccessAnalytics === "boolean" ? raw.canAccessAnalytics : defaults.canEditAnalytics),
+    // PII sensible: NUNCA se hereda de canAccessAnalytics; default seguro false.
+    canViewSensitiveAnalytics: typeof raw.canViewSensitiveAnalytics === "boolean" ? raw.canViewSensitiveAnalytics : defaults.canViewSensitiveAnalytics,
     canAccessBriefing: typeof raw.canAccessBriefing === "boolean" ? raw.canAccessBriefing : defaults.canAccessBriefing,
     canEditBriefing: typeof raw.canEditBriefing === "boolean" ? raw.canEditBriefing : (typeof raw.canAccessBriefing === "boolean" ? raw.canAccessBriefing : defaults.canEditBriefing),
   };

@@ -62,7 +62,7 @@ export async function GET(req: NextRequest) {
 
     // 1. Fetch campaigns details
     const fields = "id,name,status,effective_status,objective,daily_budget,lifetime_budget,budget_remaining,bid_strategy,special_ad_categories,buying_type,smart_promotion_type,start_time,stop_time,created_time,updated_time";
-    const campaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/campaigns?fields=${fields}&limit=150`;
+    const campaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/campaigns?filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED"]}]&fields=${fields}&limit=100`;
     
     const campaignsRes = await metaFetch(campaignsUrl, token);
     if (!campaignsRes.ok) {
@@ -74,7 +74,7 @@ export async function GET(req: NextRequest) {
 
     // 2. Fetch insights — MP-0 FIX: surface errors instead of silent zeros
     const insightsFields = "campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_3_sec_watched_actions,video_thruplay_watched_actions,outbound_clicks";
-    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=campaign&fields=${insightsFields}&limit=150`;
+    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=campaign&fields=${insightsFields}&limit=100`;
     
     const insightsRes = await metaFetch(insightsUrl, token);
     let insights: any[] = [];
@@ -94,7 +94,7 @@ export async function GET(req: NextRequest) {
       if (!dateStart && !dateEnd) {
         const fallbackSince = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
         const fallbackUntil = new Date().toISOString().slice(0, 10);
-        const fallbackUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?time_range=${encodeURIComponent(JSON.stringify({ since: fallbackSince, until: fallbackUntil }))}&level=campaign&fields=${insightsFields}&limit=150`;
+        const fallbackUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?time_range=${encodeURIComponent(JSON.stringify({ since: fallbackSince, until: fallbackUntil }))}&level=campaign&fields=${insightsFields}&limit=100`;
         const fallbackRes = await metaFetch(fallbackUrl, token);
         if (fallbackRes.ok) {
           const fallbackJson = await fallbackRes.json();
