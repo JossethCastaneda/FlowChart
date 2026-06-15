@@ -4,6 +4,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { schedulePublishJob, cancelPublishJob } from "@/lib/qstash";
 
 // GET /api/publisher/posts/[id]
 export const GET = withWorkspace(async (req: NextRequest, ctx) => {
@@ -59,6 +60,38 @@ export const PUT = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError("Fecha requerida para programar", "VALIDATION_ERROR", 400);
   }
 
+  let newQstashMessageId = existing.qStashMessageId;
+  const statusChanged = updateData.status !== undefined && updateData.status !== existing.status;
+  const timeChanged = updateData.scheduledAt !== undefined && 
+    (updateData.scheduledAt === null || updateData.scheduledAt.getTime() !== existing.scheduledAt?.getTime());
+
+  // Cancel old schedule if status or time changed
+  if (existing.qStashMessageId && (statusChanged || timeChanged)) {
+    await cancelPublishJob(existing.qStashMessageId);
+    newQstashMessageId = null;
+  }
+
+  const finalStatus = updateData.status || existing.status;
+  const finalTime = updateData.scheduledAt !== undefined ? updateData.scheduledAt : existing.scheduledAt;
+
+  // Create new schedule if it should be scheduled
+  if (finalStatus === "Scheduled" && finalTime && !newQstashMessageId) {
+    try {
+      newQstashMessageId = await schedulePublishJob({
+        publishJobId: id,
+        scheduledAt: finalTime,
+      });
+      updateData.error = null;
+    } catch (e) {
+      console.error("[QSTASH_ERROR] Failed to schedule new message:", e);
+      // Hacemos visible el fallo en lugar de dejar un post programado que nunca correrá.
+      updateData.error =
+        "No se pudo reprogramar en QStash; el post no se publicará automáticamente.";
+    }
+  }
+
+  updateData.qStashMessageId = newQstashMessageId;
+
   const post = await prisma.scheduledPost.update({
     where: { id },
     data: updateData,
@@ -78,6 +111,8 @@ export const DELETE = withWorkspace(async (req: NextRequest, ctx) => {
   if (!existing) {
     return apiError("Post no encontrado", "NOT_FOUND", 404);
   }
+
+  await cancelPublishJob(existing.qStashMessageId);
 
   await prisma.scheduledPost.delete({ where: { id } });
 

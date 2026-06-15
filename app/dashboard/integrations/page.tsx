@@ -90,6 +90,7 @@ interface IntegrationData {
   connectedAt: string | null;
   connectedBy: { id: string; name: string | null } | null;
   canDisconnect: boolean;
+  pages?: { id: string; name: string; picture?: string | null }[];
 }
 
 // ─── Token Modal (BotMaker / Cari token entry) ────────────────────────────────
@@ -150,6 +151,14 @@ interface ChannelDef {
 const ALL_CHANNELS: ChannelDef[] = [
   // Meta
   {
+    provider: "meta_ads",
+    name: "Meta Ads",
+    description: "Campañas publicitarias, audiencias y presupuestos en Meta.",
+    Icon: MetaIcon, iconBg: "#0081FB",
+    badges: [{ label: "ADS", color: "#60a5fa" }],
+    managePage: "/dashboard/integrations/meta-ads",
+  },
+  {
     provider: "meta_community",
     name: "Facebook Pages",
     description: "Gestiona páginas, publicaciones y comentarios de Facebook.",
@@ -158,26 +167,11 @@ const ALL_CHANNELS: ChannelDef[] = [
     managePage: "/dashboard/integrations/facebook",
   },
   {
-    provider: "meta_community",
-    name: "Facebook Messenger",
-    description: "Responde conversaciones y automatiza el inbox de Messenger.",
-    Icon: MessengerIcon, iconBg: "linear-gradient(135deg,#00B2FF,#0064E0)",
-    badges: [{ label: "CHAT", color: "#60a5fa" }],
-    managePage: "/dashboard/integrations/facebook",
-  },
-  {
-    provider: "meta_instagram",
+    provider: "instagram",
     name: "Instagram",
     description: "Automatiza conversaciones, responde mensajes y comentarios.",
     Icon: InstagramIcon, iconBg: "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)",
     badges: [{ label: "POSTS", color: "#f472b6" }, { label: "DMS", color: "#f472b6" }],
-  },
-  {
-    provider: "meta_ads",
-    name: "Meta Ads",
-    description: "Campañas publicitarias, audiencias y presupuestos en Meta.",
-    Icon: MetaIcon, iconBg: "#0081FB",
-    badges: [{ label: "ADS", color: "#60a5fa" }],
   },
   // WhatsApp
   {
@@ -290,8 +284,8 @@ export function IntegrationsView() {
     switch (channel.provider) {
       case "meta_community":
         openConnectPopup("community", loadIntegrations); break;
-      case "meta_instagram":
-        openConnectPopup("community", loadIntegrations); break;
+      case "instagram":
+        openConnectPopup("/api/integrations/instagram/connect", loadIntegrations); break;
       case "meta_ads":
         openConnectPopup("ads", loadIntegrations); break;
       case "whatsapp_business":
@@ -442,6 +436,7 @@ export function IntegrationsView() {
                       </>
                     )}
                   </div>
+                  {/* The small overlapping circles have been removed */}
  
                   {!ch.comingSoon && (
                     <button

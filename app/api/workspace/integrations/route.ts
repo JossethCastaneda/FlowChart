@@ -1,4 +1,4 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
+import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
@@ -62,6 +62,7 @@ export async function GET() {
       }
       
       const resources = creds.resources || {};
+      const pages = creds.pages || [];
 
       return {
         id: intg.id,
@@ -77,6 +78,7 @@ export async function GET() {
           intg.connectedBy === session.user.id,
         connectedModules,
         resources,
+        pages,
       };
     });
 
@@ -259,4 +261,3 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: message }, { status: 500 });
     }
 }
-

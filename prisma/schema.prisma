@@ -59,6 +59,9 @@ model User {
   integrations  Integration[]     @relation("UserIntegrations")
   notifications Notification[]
   sentInvites   WorkspaceInvite[] @relation("SentInvites")
+  mediaAssets   MediaAsset[]
+  drafts        DraftPost[]
+  auditLogs     AuditLog[]
 }
 
 model VerificationToken {
@@ -94,6 +97,10 @@ model Workspace {
   settings        WorkspaceSettings?
   waPhoneSources  WaPhoneSource[]
   metaAnalyticsCache MetaAnalyticsCache[]
+  mediaAssets     MediaAsset[]
+  drafts          DraftPost[]
+  transmissions   Transmission[]
+  auditLogs       AuditLog[]
 }
 
 // ------------------------------------------------------
@@ -181,6 +188,7 @@ model Project {
   alerts        ProjectAlert[]
   metaSources   MetaSource[]
   waPhoneSources WaPhoneSource[]
+  drafts         DraftPost[]
   alertsEnabled Boolean  @default(true)
   alertEmails   String[]
   crmIntegrationId String? // Legacy: single analytics integration (kept for back-compat)
@@ -343,6 +351,137 @@ model Brief {
 // PUBLISHER / SCHEDULING
 // ------------------------------------------------------
 
+model MediaAsset {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String?
+  url         String
+  fileName    String
+  mimeType    String
+  size        Int
+  width       Int?
+  height      Int?
+  status      String   @default("ready") // uploading, ready, processing_failed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+}
+
+model DraftPost {
+  id             String   @id @default(cuid())
+  workspaceId    String
+  projectId      String?
+  authorId       String?
+  
+  // Shared base content
+  baseContent    String   @db.Text
+  baseMediaUrls  String[] // Array of MediaAsset URLs or raw URLs
+  
+  // Per-channel overrides (JSON) - e.g. { "instagram": { content: "...", media: [...] } }
+  channelOverrides Json   @default("{}")
+  
+  status         String   @default("draft") // draft, scheduled, publishing, completed, failed
+  scheduledAt    DateTime?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project        Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  author         User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  
+  transmissions  Transmission[]
+
+  @@index([workspaceId, status])
+  @@index([scheduledAt])
+}
+
+model Transmission {
+  id             String   @id @default(cuid())
+  draftId        String
+  workspaceId    String
+  
+  channel        String   // "facebook_page", "instagram_ig", "linkedin", "tiktok"
+  accountId      String   // the external page/account ID
+  accountName    String?  // human readable
+  
+  status         String   @default("pending") // pending, active, completed, failed, cancelled
+  scheduledAt    DateTime?
+  publishedAt    DateTime?
+  
+  // The exact payload that will be sent to the channel
+  finalContent   String   @db.Text
+  finalMediaUrls String[]
+  
+  externalPostId String?  // ID returned by the platform
+  externalUrl    String?  // public URL of the post
+  errorMessage   String?  @db.Text
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  draft          DraftPost @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  jobs           PublishJob[]
+
+  @@index([draftId])
+  @@index([workspaceId, status])
+  @@index([scheduledAt])
+}
+
+model PublishJob {
+  id             String   @id @default(cuid())
+  transmissionId String
+  
+  step           String   // e.g. "upload_media", "create_container", "publish", "verify"
+  status         String   @default("pending") // pending, running, success, failed, retry
+  attempts       Int      @default(0)
+  maxAttempts    Int      @default(3)
+  nextAttemptAt  DateTime?
+  
+  payload        Json?    // Context for this specific step
+  result         Json?    // API response or error details
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  transmission   Transmission @relation(fields: [transmissionId], references: [id], onDelete: Cascade)
+
+  @@index([transmissionId])
+  @@index([status, nextAttemptAt])
+}
+
+// ------------------------------------------------------
+// AUDIT LOGS
+// ------------------------------------------------------
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  workspaceId    String
+  userId         String?
+  action         String   // e.g., "connect_integration", "delete_draft", "update_settings"
+  resourceType   String   // e.g., "Integration", "DraftPost", "WorkspaceSettings"
+  resourceId     String?
+  details        Json?    // DO NOT store tokens here.
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, action])
+  @@index([workspaceId, createdAt])
+}
+
+// ------------------------------------------------------
+// LEGACY PUBLISHER (ScheduledPost)
+// ------------------------------------------------------
+
 model ScheduledPost {
   id           String   @id @default(cuid())
   workspaceId  String
@@ -361,6 +500,7 @@ model ScheduledPost {
   status       String   @default("Draft") // Draft, Scheduled, Published, Failed
   error        String?  @db.Text // error message if publish failed
   externalIds  Json?    // { facebook: "post_id", instagram: "media_id" }
+  qStashMessageId String? // ID del mensaje programado en QStash
   pageName     String?  // Facebook page name used
   pageId       String?  // Facebook page ID used
   createdAt    DateTime @default(now())

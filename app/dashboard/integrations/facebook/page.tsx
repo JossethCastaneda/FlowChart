@@ -36,6 +36,8 @@ const TRANSLATIONS = {
     active: "Activo",
     inactive: "Inactivo",
     authPermission: "Permiso de autorización",
+    missingScopesAlert: "Permisos faltantes",
+    missingScopesMsg: "La conexión es parcial porque faltan permisos requeridos para publicar o gestionar mensajes. Por favor re-autoriza:",
     footerInfo: "Los toggles de Messenger y Facebook Page controlan qué canales de cada página reciben mensajes en el Inbox. Para renovar permisos o agregar páginas, haz clic en Dar permisos al bot.",
   },
   en: {
@@ -63,6 +65,8 @@ const TRANSLATIONS = {
     active: "Active",
     inactive: "Inactive",
     authPermission: "Authorization permission",
+    missingScopesAlert: "Missing Permissions",
+    missingScopesMsg: "The connection is partial because required permissions for publishing or messaging are missing. Please re-authorize:",
     footerInfo: "The Messenger and Facebook Page toggles control which channels of each page receive messages in the Inbox. To renew permissions or add pages, click Grant permissions to bot.",
   }
 };
@@ -125,12 +129,14 @@ function Toggle({
 }
 
 // ─── Page Avatar ──────────────────────────────────────────────────────────────
-function PageAvatar({ name, picture }: { name: string; picture: string | null }) {
+function PageAvatar({ name, picture, pageId }: { name: string; picture: string | null; pageId: string }) {
   const [err, setErr] = useState(false);
-  if (picture && !err) {
+  if (!err) {
+    // Use Graph API redirect to always get a fresh, non-expired picture
+    const src = `https://graph.facebook.com/${pageId}/picture?type=large`;
     return (
       <img
-        src={picture}
+        src={src}
         alt={name}
         onError={() => setErr(true)}
         style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--border-strong)" }}
@@ -175,6 +181,7 @@ export default function FacebookPagesPage() {
   const [error, setError] = useState<string | null>(null);
   const [toggling, setToggling] = useState<{ pageId: string; field: string } | null>(null);
   const [reconnecting, setReconnecting] = useState(false);
+  const [missingScopes, setMissingScopes] = useState<string[]>([]);
 
   const fetchPages = useCallback(async () => {
     setLoading(true);
@@ -186,6 +193,7 @@ export default function FacebookPagesPage() {
       setConnected(data.connected ?? false);
       setConnectedAt(data.connectedAt || null);
       setPages(data.pages || []);
+      setMissingScopes(data.missingScopes || []);
     } catch (e: any) {
       setError(e.message || (lang === "es" ? "Error de red" : "Network error"));
     }
@@ -390,6 +398,27 @@ export default function FacebookPagesPage() {
                 </button>
               </div>
 
+              {/* Missing scopes warning */}
+              {missingScopes.length > 0 && (
+                <div style={{
+                  padding: "16px 20px", borderRadius: 12, background: "var(--red-dim)", border: "1px solid var(--red)",
+                  marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 12
+                }}>
+                  <AlertCircle size={18} style={{ color: "var(--red)", marginTop: 2, flexShrink: 0 }} />
+                  <div>
+                    <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--red)", margin: "0 0 4px" }}>{t.missingScopesAlert}</h3>
+                    <p style={{ fontSize: 12, color: "var(--red)", opacity: 0.9, margin: "0 0 10px" }}>{t.missingScopesMsg}</p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                      {missingScopes.map(scope => (
+                        <span key={scope} style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", padding: "2px 8px", borderRadius: 6, fontSize: 10, fontFamily: "monospace", color: "var(--red)" }}>
+                          {scope}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Empty pages */}
               {pages.length === 0 && (
                 <div style={{ padding: "40px 20px", textAlign: "center", borderRadius: 12, border: "1px dashed var(--border)", background: "var(--surface)" }}>
@@ -405,12 +434,18 @@ export default function FacebookPagesPage() {
                   {/* Table head */}
                   <div style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 180px",
+                    gridTemplateColumns: "1fr 180px 180px",
                     background: "var(--surface-hover)",
                     borderBottom: "1px solid var(--border)",
                     padding: "10px 20px",
                   }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em" }}>{t.profile}</span>
+                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "linear-gradient(135deg, #00B2FF, #0064E0)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                        <MessengerIcon />
+                      </div>
+                      {t.messenger}
+                    </span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
                       <div style={{ width: 18, height: 18, borderRadius: 5, background: "#0064E0", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
                         <MetaIcon />
@@ -429,7 +464,7 @@ export default function FacebookPagesPage() {
                         className="fb-row"
                         style={{
                           display: "grid",
-                          gridTemplateColumns: "1fr 180px",
+                          gridTemplateColumns: "1fr 180px 180px",
                           padding: "16px 20px",
                           borderTop: idx > 0 ? "1px solid var(--border-neutral)" : "none",
                           background: "transparent",
@@ -440,7 +475,7 @@ export default function FacebookPagesPage() {
                         {/* Profile column */}
                         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                           <div style={{ position: "relative" }}>
-                            <PageAvatar name={page.name} picture={page.picture} />
+                            <PageAvatar name={page.name} picture={page.picture} pageId={page.id} />
                             {/* minus / indicator */}
                             <div style={{
                               position: "absolute", bottom: -1, right: -1,
@@ -463,6 +498,26 @@ export default function FacebookPagesPage() {
                               <p style={{ fontSize: 10, color: "var(--purple)", margin: 0 }}>@{page.instagram.username}</p>
                             )}
                           </div>
+                        </div>
+
+                        {/* Messenger toggle column */}
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                            {isTogglingPage && toggling?.field === "messengerEnabled" ? (
+                              <Loader2 size={14} style={{ color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
+                            ) : (
+                              <Toggle
+                                checked={page.messengerEnabled}
+                                onChange={(v) => handleToggle(page.id, "messengerEnabled", v)}
+                              />
+                            )}
+                            <span style={{ fontSize: 12, color: page.messengerEnabled ? "var(--foreground)" : "var(--text-secondary)", fontWeight: 500 }}>
+                              {page.messengerEnabled ? t.active : t.inactive}
+                            </span>
+                          </div>
+                          <button style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 11, textAlign: "left", display: "flex", alignItems: "center", gap: 4, fontFamily: "inherit", padding: 0 }}>
+                            <Shield size={10} /> {t.authPermission}
+                          </button>
                         </div>
 
                         {/* Facebook Page toggle column */}

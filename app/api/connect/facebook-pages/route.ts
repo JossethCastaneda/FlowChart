@@ -43,11 +43,24 @@ export const GET = withWorkspace(async (_req, { workspaceId }) => {
       : null,
   }));
 
+  const grantedScopes = creds?.grantedScopes || [];
+  const requiredScopes = [
+    "pages_show_list",
+    "pages_read_engagement",
+    "pages_manage_posts",
+    "instagram_basic",
+    "instagram_manage_messages",
+    "instagram_manage_comments",
+    "instagram_content_publish"
+  ];
+  const missingScopes = requiredScopes.filter(scope => !grantedScopes.includes(scope));
+
   return NextResponse.json({
     connected: integration.connected,
     connectedAt: integration.connectedAt?.toISOString() || null,
     provider: integration.provider,
     pages,
+    missingScopes,
   });
 });
 

@@ -1,9 +1,10 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
+import { safeGetSession } from "@/lib/api-handler";
 import { META_API_VERSION } from "@/lib/server-auth";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { encryptToken, decryptToken } from "@/lib/encryption";
+import { env } from "@/lib/env";
 
 type RefreshResult =
   | { status: "refreshed"; workspaceId: string; expiresAt: string; integrationsUpdated: number; expiresInDays: number }
@@ -12,7 +13,7 @@ type RefreshResult =
   | { status: "failed"; workspaceId: string; error: string };
 
 function verifyCronAuth(req: NextRequest): boolean {
-  const cronSecret = process.env.CRON_SECRET;
+  const cronSecret = env.CRON_SECRET;
   if (!cronSecret) return process.env.NODE_ENV !== "production";
   return req.headers.get("authorization") === `Bearer ${cronSecret}`;
 }
@@ -24,8 +25,8 @@ async function exchangeToken(currentToken: string): Promise<
 > {
   const exchangeUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
   exchangeUrl.searchParams.set("grant_type", "fb_exchange_token");
-  exchangeUrl.searchParams.set("client_id", process.env.FACEBOOK_CLIENT_ID || "");
-  exchangeUrl.searchParams.set("client_secret", process.env.FACEBOOK_CLIENT_SECRET || "");
+  exchangeUrl.searchParams.set("client_id", env.FACEBOOK_CLIENT_ID || "");
+  exchangeUrl.searchParams.set("client_secret", env.FACEBOOK_CLIENT_SECRET || "");
   exchangeUrl.searchParams.set("fb_exchange_token", currentToken);
 
   const res = await fetch(exchangeUrl.toString());
@@ -112,7 +113,7 @@ async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshR
   }
 
   console.log(
-    `[META REFRESH] workspace ${workspaceId}: ${refreshedCount}/${allIntegrations.length} refreshed, ${expiredCount} expired${errors.length ? ` — ${errors.join("; ")}` : ""}`
+    `[META REFRESH] workspace ${workspaceId}: ${refreshedCount}/${allIntegrations.length} refreshed, ${expiredCount} expired${errors.length ? " — " + errors.join("; ") : ""}`
   );
 
   if (refreshedCount > 0) {

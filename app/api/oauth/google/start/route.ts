@@ -4,8 +4,9 @@ import { createHmac } from "crypto";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { GOOGLE_BASE_SCOPES, scopesForModules } from "@/lib/integrations/google/registry";
+import { env } from "@/lib/env";
 
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
 
 export async function GET(request: NextRequest) {
   // 1. Authenticate
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
   const allScopes = Array.from(new Set([...GOOGLE_BASE_SCOPES, ...requiredScopes]));
 
   // 4. Validate env vars
-  const clientId = process.env.GOOGLE_CLIENT_ID;
+  const clientId = env.GOOGLE_CLIENT_ID;
   if (!clientId) {
     return NextResponse.json({ error: "GOOGLE_CLIENT_ID not configured" }, { status: 500 });
   }
@@ -58,7 +59,8 @@ export async function GET(request: NextRequest) {
   const encodedState = Buffer.from(JSON.stringify({ payload, sig })).toString("base64url");
 
   // 7. Build authorization URL
-  const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  let baseUrl = env.NEXTAUTH_URL || request.nextUrl.origin;
+  baseUrl = baseUrl.replace(/\/$/, "");
   const redirectUri = `${baseUrl}/api/oauth/google/callback`;
 
   const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");

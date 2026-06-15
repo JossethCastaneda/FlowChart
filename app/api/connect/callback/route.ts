@@ -4,9 +4,10 @@ import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
 import { validateModulePermissions } from "@/lib/meta-scopes";
+import { env } from "@/lib/env";
 
-const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+const META_API_VERSION = env.META_API_VERSION || "v25.0";
+const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
 
 /**
  * GET /api/connect/callback
@@ -23,7 +24,8 @@ export async function GET(request: NextRequest) {
   const stateParam = request.nextUrl.searchParams.get("state");
   const error = request.nextUrl.searchParams.get("error");
 
-  const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  let baseUrl = env.NEXT_PUBLIC_APP_URL || env.NEXTAUTH_URL || request.nextUrl.origin;
+  baseUrl = baseUrl.replace(/\/$/, "");
 
   // User cancelled or error
   if (error) {
@@ -36,14 +38,13 @@ export async function GET(request: NextRequest) {
   }
 
   // ── SECURITY: Verify active session ──
-  const jwt = await getToken({ req: request as any, secret: AUTH_SECRET });
+  const jwt = await getToken({ req: request as any, secret: NEXTAUTH_SECRET });
   if (!jwt?.sub) {
     return NextResponse.redirect(`${baseUrl}/connect/done?error=not_authenticated`);
   }
 
   // ── SECURITY: Verify HMAC signature on state ──
-  const secret = AUTH_SECRET;
-  if (!secret) {
+  if (!NEXTAUTH_SECRET) {
     console.error("[CONNECT CALLBACK] NEXTAUTH_SECRET/AUTH_SECRET not configured");
     return NextResponse.redirect(`${baseUrl}/connect/done?error=server_error_auth_secret`);
   }
@@ -59,7 +60,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${baseUrl}/connect/done?error=invalid_state`);
     }
 
-    const expected = createHmac("sha256", secret)
+    const expected = createHmac("sha256", NEXTAUTH_SECRET)
       .update(payload)
       .digest("hex");
     const sigBuf = Buffer.from(sig, "hex");
@@ -84,8 +85,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/connect/done?error=invalid_state`);
   }
 
-  const clientId = process.env.FACEBOOK_CLIENT_ID || "";
-  const clientSecret = process.env.FACEBOOK_CLIENT_SECRET || "";
+  const clientId = env.FACEBOOK_CLIENT_ID || "";
+  const clientSecret = env.FACEBOOK_CLIENT_SECRET || "";
   const redirectUri = `${baseUrl}/api/connect/callback`;
 
   try {

@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
+import { env } from "@/lib/env";
 
-const VERIFY_TOKEN = process.env.META_WEBHOOK_VERIFY_TOKEN;
+const VERIFY_TOKEN = env.META_WEBHOOK_VERIFY_TOKEN;
 
 /**
  * GET — Meta Webhook Verification
@@ -56,7 +57,7 @@ export async function POST(req: NextRequest) {
     // ── HMAC-SHA256 Signature Validation (Meta Security Requirement) ──────
     const rawBody = await req.text();
     const signature = req.headers.get("x-hub-signature-256");
-    const appSecret = process.env.FACEBOOK_CLIENT_SECRET;
+    const appSecret = env.FACEBOOK_CLIENT_SECRET;
 
     // Reject if app secret is not configured
     if (!appSecret) {

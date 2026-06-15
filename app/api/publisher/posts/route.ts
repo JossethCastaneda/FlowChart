@@ -4,6 +4,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
+import { schedulePublishJob } from "@/lib/qstash";
 
 // GET /api/publisher/posts — list posts for workspace
 export const GET = withWorkspace(async (req: NextRequest, ctx) => {
@@ -97,6 +98,32 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       pageId: pageId || null,
     },
   });
+
+  // Schedule to QStash if it's a scheduled post
+  if (post.status === "Scheduled" && post.scheduledAt) {
+    try {
+      const messageId = await schedulePublishJob({
+        publishJobId: post.id,
+        scheduledAt: post.scheduledAt,
+      });
+      const scheduled = await prisma.scheduledPost.update({
+        where: { id: post.id },
+        data: { qStashMessageId: messageId, error: null },
+      });
+      return apiSuccess({ post: scheduled }, 201);
+    } catch (error) {
+      console.error("[QSTASH_ERROR] Failed to schedule post:", error);
+      // No dejamos el post como "Scheduled" silenciosamente roto: lo dejamos
+      // visible con un error para que el usuario sepa que NO se publicará solo.
+      const warning =
+        "El post se guardó, pero no se pudo encolar en QStash y no se publicará automáticamente. Revisa la configuración de QStash o publícalo manualmente.";
+      const broken = await prisma.scheduledPost.update({
+        where: { id: post.id },
+        data: { error: warning },
+      });
+      return apiSuccess({ post: broken, warning }, 201);
+    }
+  }
 
   return apiSuccess({ post }, 201);
 });

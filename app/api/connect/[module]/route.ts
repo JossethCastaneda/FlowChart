@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { createHmac } from "crypto";
-import { buildScopeString } from "@/lib/meta-scopes";
+import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { env } from "@/lib/env";
 
-const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+const META_API_VERSION = env.META_API_VERSION || "v25.0";
+const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
 
 /**
  * GET /api/connect/[module]
@@ -53,7 +55,7 @@ export async function GET(
   const { module } = await params;
 
   // Auth check
-  const jwt = await getToken({ req: request, secret: AUTH_SECRET });
+  const jwt = await getToken({ req: request, secret: NEXTAUTH_SECRET });
   if (!jwt?.sub) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
@@ -66,19 +68,19 @@ export async function GET(
     );
   }
 
-  const clientId = process.env.FACEBOOK_CLIENT_ID;
-  if (!clientId) {
+  const metaAppId = env.FACEBOOK_CLIENT_ID;
+  if (!metaAppId) {
     return NextResponse.json({ error: "FACEBOOK_CLIENT_ID not configured" }, { status: 500 });
   }
 
-  const secret = AUTH_SECRET;
-  if (!secret) {
+  if (!NEXTAUTH_SECRET) {
     return NextResponse.json({ error: "NEXTAUTH_SECRET/AUTH_SECRET not configured" }, { status: 500 });
   }
 
   // FIX: Config_ids are REQUIRED in production — no hardcoded fallbacks
   // This prevents using wrong config_ids if env vars are missing
-  let configId = process.env[config.envKey];
+  const configIdEnvKey = config.envKey as keyof typeof env;
+  let configId = env[configIdEnvKey];
   if (!configId) {
     const msg = `${config.envKey} not configured for ${config.label}`;
     if (process.env.NODE_ENV === "production") {
@@ -90,7 +92,8 @@ export async function GET(
   }
 
   // Build the redirect URI for the callback
-  const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  let baseUrl = env.NEXT_PUBLIC_APP_URL || env.NEXTAUTH_URL || request.nextUrl.origin;
+  baseUrl = baseUrl.replace(/\/$/, "");
   const redirectUri = `${baseUrl}/api/connect/callback`;
 
   // ── SECURITY: HMAC-signed state with nonce ──
@@ -114,17 +117,14 @@ export async function GET(
     workspaceId,
     nonce: crypto.randomUUID(),
   });
-  const sig = createHmac("sha256", secret)
+  const sig = createHmac("sha256", NEXTAUTH_SECRET)
     .update(payload)
     .digest("hex");
   const encodedState = Buffer.from(JSON.stringify({ payload, sig })).toString("base64url");
 
-  // FIX: Include module-specific scopes (not global)
-  const scopeString = buildScopeString(module);
-
   // Build Facebook OAuth URL with config_id
   const fbUrl = new URL(`https://www.facebook.com/${META_API_VERSION}/dialog/oauth`);
-  fbUrl.searchParams.set("client_id", clientId);
+  fbUrl.searchParams.set("client_id", metaAppId);
   fbUrl.searchParams.set("redirect_uri", redirectUri);
   fbUrl.searchParams.set("state", encodedState);
   fbUrl.searchParams.set("config_id", configId);

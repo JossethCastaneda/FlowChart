@@ -8,6 +8,7 @@
 import prisma from "@/lib/prisma";
 import { encryptToken, decryptToken } from "@/lib/encryption";
 import { getProvider } from "./registry";
+import { env } from "@/lib/env";
 
 interface StoredCredentials {
   accessToken: string;
@@ -57,8 +58,10 @@ export async function refreshAccessToken(
     throw new Error(`No refresh token for ${provider} in workspace ${workspaceId}`);
   }
 
-  const clientId = process.env[config.clientIdEnv];
-  const clientSecret = process.env[config.clientSecretEnv];
+  const clientIdEnvKey = config.clientIdEnv as keyof typeof env;
+  const clientSecretEnvKey = config.clientSecretEnv as keyof typeof env;
+  const clientId = env[clientIdEnvKey] as string | undefined;
+  const clientSecret = env[clientSecretEnvKey] as string | undefined;
   if (!clientId || !clientSecret) {
     throw new Error(`${config.clientIdEnv} or ${config.clientSecretEnv} not configured`);
   }
