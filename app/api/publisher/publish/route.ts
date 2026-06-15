@@ -1,4 +1,4 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
+import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
@@ -6,6 +6,9 @@ import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+
+import { withWorkspace } from "@/lib/api-handler";
+import { apiSuccess, apiError } from "@/lib/api-response";
 
 const META_VERSION = process.env.META_API_VERSION || "v25.0";
 
@@ -59,49 +62,33 @@ async function checkIfVideo(url: string): Promise<boolean> {
  * Publishes a post to Facebook Page and/or Instagram.
  * Handles both URL-based and binary multipart uploads using axios & form-data.
  */
-export async function POST(req: NextRequest) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const POST = withWorkspace(async (req: NextRequest, ctx) => {
+  const _validate = await validateBody(req, z.object({ postId: z.string() }));
+  if (!_validate.ok) return _validate.response;
+  const { postId } = _validate.data;
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
-    }
 
-    const body = await req.json();
-    const { postId } = body;
+  const post = await prisma.scheduledPost.findFirst({
+    where: { id: postId, workspaceId: ctx.workspaceId },
+  });
 
-    if (!postId) {
-      return NextResponse.json({ error: "postId is required" }, { status: 400 });
-    }
+  if (!post) {
+    return apiError("Post no encontrado", "NOT_FOUND", 404);
+  }
 
-    const post = await prisma.scheduledPost.findFirst({
-      where: { id: postId, workspaceId },
-    });
+  if (post.status === "Published") {
+    return apiError("Este post ya fue publicado", "VALIDATION_ERROR", 400);
+  }
 
-    if (!post) {
-      return NextResponse.json({ error: "Post no encontrado" }, { status: 404 });
-    }
+  // Try publisher_facebook token first, fallback to meta, then social
+  let accessToken = await getMetaAccessToken(req, "publisher_facebook");
+  if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher");
+  if (!accessToken) accessToken = await getMetaAccessToken(req, "social");
+  if (!accessToken) accessToken = await getMetaAccessToken(req);
 
-    if (post.status === "Published") {
-      return NextResponse.json({ error: "Este post ya fue publicado" }, { status: 400 });
-    }
-
-    // Try publisher_facebook token first, fallback to meta, then social
-    let accessToken = await getMetaAccessToken(req, "publisher_facebook");
-    if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher");
-    if (!accessToken) accessToken = await getMetaAccessToken(req, "social");
-    if (!accessToken) accessToken = await getMetaAccessToken(req);
-
-    if (!accessToken) {
-      return NextResponse.json(
-        { error: "No hay cuenta de Facebook conectada. Ve al Publisher y conecta tu cuenta de Facebook." },
-        { status: 401 }
-      );
-    }
+  if (!accessToken) {
+    return apiError("No hay cuenta de Facebook conectada. Ve al Publisher y conecta tu cuenta de Facebook.", "UNAUTHORIZED", 401);
+  }
 
     // Fetch ALL pages with pagination (user may have 100+)
     let pages: any[] = [];
@@ -129,12 +116,9 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    if (pages.length === 0) {
-      return NextResponse.json(
-        { error: "No se encontraron páginas de Facebook. Verifica permisos." },
-        { status: 400 }
-      );
-    }
+  if (pages.length === 0) {
+    return apiError("No se encontraron páginas de Facebook. Verifica permisos.", "VALIDATION_ERROR", 400);
+  }
 
     let targetPage = pages[0];
     if (post.pageId) {
@@ -533,27 +517,26 @@ export async function POST(req: NextRequest) {
       data: updateData,
     });
 
-    if (!hasAnySuccess) {
-      return NextResponse.json(
-        { error: errors.join(" | "), post: updated },
-        { status: 422 }
-      );
-    }
-
+  if (!hasAnySuccess) {
+    // Retornamos NextResponse directamente porque apiError no soporta payload adicional por defecto.
     return NextResponse.json({
-      success: true,
-      post: updated,
-      published: externalIds,
-      warnings: errors.length > 0 ? errors : undefined,
-    });
-
-    // ── Sprint 1.4: Auto first-comment on Instagram ──
-    // Note: This runs AFTER the response is sent to the user for speed.
-    // We use a fire-and-forget pattern here.
-  } catch (err: any) {
-    console.error("[PUBLISHER] Publish error:", err);
-    return NextResponse.json({ error: err?.message || "Error" }, { status: 500 });
+      success: false,
+      error: errors.join(" | "),
+      code: "PUBLISH_FAILED",
+      post: updated
+    }, { status: 422 });
   }
-}
+
+  return apiSuccess({
+    success: true,
+    post: updated,
+    published: externalIds,
+    warnings: errors.length > 0 ? errors : undefined,
+  });
+
+  // ── Sprint 1.4: Auto first-comment on Instagram ──
+  // Note: This runs AFTER the response is sent to the user for speed.
+  // We use a fire-and-forget pattern here.
+});
 
 export const maxDuration = 60;

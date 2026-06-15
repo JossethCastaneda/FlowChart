@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { NextRequest } from "next/server";
+import { withWorkspace } from "@/lib/api-handler";
+import { apiSuccess } from "@/lib/api-response";
 import prisma from "@/lib/prisma";
 
 /**
@@ -14,16 +14,10 @@ import prisma from "@/lib/prisma";
  *   channels:  [{ id: "page_123", name: "Mi Página", type: "fanpage", picture: "..." }, ...]
  * }
  */
-export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
-
+export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   // 1. Get all projects for this workspace
   const projects = await prisma.project.findMany({
-    where: { workspaceId },
+    where: { workspaceId: ctx.workspaceId },
     select: {
       client: true,
       vertical: true,
@@ -59,7 +53,7 @@ export async function GET(request: NextRequest) {
   try {
     const integrations = await prisma.integration.findMany({
       where: {
-        workspaceId,
+        workspaceId: ctx.workspaceId,
         provider: { startsWith: "meta" },
         connected: true,
       },
@@ -85,5 +79,5 @@ export async function GET(request: NextRequest) {
     console.warn("[FILTERS] Failed to fetch channels from integrations:", e);
   }
 
-  return NextResponse.json({ clients, verticals, channels });
-}
+  return apiSuccess({ clients, verticals, channels });
+});

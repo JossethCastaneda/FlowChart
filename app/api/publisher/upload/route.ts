@@ -1,6 +1,6 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { NextRequest } from "next/server";
+import { withWorkspace } from "@/lib/api-handler";
+import { apiSuccess, apiError } from "@/lib/api-response";
 import { randomUUID } from "crypto";
 
 /**
@@ -11,50 +11,38 @@ import { randomUUID } from "crypto";
  * The data URL is stored in the post's mediaUrls and
  * the publish route handles converting it to a multipart upload.
  */
-export async function POST(req: NextRequest) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const POST = withWorkspace(async (req: NextRequest, ctx) => {
+  const formData = await req.formData();
+  const file = formData.get("file") as File | null;
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
-    }
+  if (!file) {
+    return apiError("No se recibió archivo", "VALIDATION_ERROR", 400);
+  }
 
-    const formData = await req.formData();
-    const file = formData.get("file") as File | null;
+  // Validate file type
+  const allowedTypes = [
+    "image/jpeg", "image/png", "image/gif", "image/webp", "image/heic",
+    "video/mp4", "video/quicktime", "video/x-msvideo", "video/webm",
+  ];
 
-    if (!file) {
-      return NextResponse.json({ error: "No se recibió archivo" }, { status: 400 });
-    }
+  if (!allowedTypes.includes(file.type)) {
+    return apiError(
+      `Tipo de archivo no permitido: ${file.type}. Usa JPEG, PNG, GIF, WebP, MP4, MOV.`,
+      "VALIDATION_ERROR",
+      400
+    );
+  }
 
-    // Validate file type
-    const allowedTypes = [
-      "image/jpeg", "image/png", "image/gif", "image/webp", "image/heic",
-      "video/mp4", "video/quicktime", "video/x-msvideo", "video/webm",
-    ];
+  // Max 10MB
+  const MAX_SIZE = 10 * 1024 * 1024;
+  if (file.size > MAX_SIZE) {
+    return apiError("El archivo excede 10MB", "VALIDATION_ERROR", 400);
+  }
 
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json(
-        { error: `Tipo de archivo no permitido: ${file.type}. Usa JPEG, PNG, GIF, WebP, MP4, MOV.` },
-        { status: 400 }
-      );
-    }
-
-    // Max 10MB
-    const MAX_SIZE = 10 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      return NextResponse.json(
-        { error: "El archivo excede 10MB" },
-        { status: 400 }
-      );
-    }
-
-    // Upload to Vercel Blob if configured, otherwise fallback to base64
-    let fileUrl = "";
-    if (process.env.BLOB_READ_WRITE_TOKEN) {
+  // Upload to Vercel Blob if configured, otherwise fallback to base64
+  let fileUrl = "";
+  if (process.env.BLOB_READ_WRITE_TOKEN) {
+    try {
       const { put } = await import("@vercel/blob");
       
       // Sanitize the filename: strip path traversal chars, unicode, and limit length
@@ -71,23 +59,26 @@ export async function POST(req: NextRequest) {
 
       const blob = await put(finalName, file, { access: 'public' });
       fileUrl = blob.url;
-    } else {
+    } catch (uploadError) {
+      console.warn("[PUBLISHER] Vercel Blob upload failed, falling back to base64:", uploadError);
       // Read file buffer and convert to base64 data URL
       const buffer = Buffer.from(await file.arrayBuffer());
       const base64 = buffer.toString("base64");
       fileUrl = `data:${file.type};base64,${base64}`;
     }
-
-    return NextResponse.json({
-      url: fileUrl,
-      filename: file.name,
-      size: file.size,
-      type: file.type,
-    });
-  } catch (err: any) {
-    console.error("[PUBLISHER] Upload error:", err);
-    return NextResponse.json({ error: err?.message || "Error al subir archivo" }, { status: 500 });
+  } else {
+    // Read file buffer and convert to base64 data URL
+    const buffer = Buffer.from(await file.arrayBuffer());
+    const base64 = buffer.toString("base64");
+    fileUrl = `data:${file.type};base64,${base64}`;
   }
-}
+
+  return apiSuccess({
+    url: fileUrl,
+    filename: file.name,
+    size: file.size,
+    type: file.type,
+  });
+});
 
 export const maxDuration = 30;
