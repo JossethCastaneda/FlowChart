@@ -42,6 +42,17 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
     },
   });
 
+  if (reveal) {
+    await writeAuditLog({
+      workspaceId: ctx.workspaceId,
+      projectId: id,
+      userId: ctx.userId,
+      action: "view_sensitive",
+      resourceType: "conversation",
+      resourceId: c.id,
+    });
+  }
+
   return apiSuccess({
     conversation: {
       id: c.id,
@@ -51,7 +62,8 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
       agentName: c.agentName,
       queueName: c.queueName,
       skillName: c.skillName,
-      customer: maskIdentifier(c.customerId),
+      customer: reveal ? (c.customerId ?? "") : maskIdentifier(c.customerId),
+      piiRevealed: reveal,
       status: c.status,
       outcome: c.outcome,
       resolvedBy: c.resolvedBy,
