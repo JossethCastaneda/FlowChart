@@ -547,3 +547,49 @@ Honestamente, lo siguiente **queda abierto** y requiere trabajo adicional (mayor
 1. **Agregados:** `npx tsx scripts/populate-daily-metrics.ts` (puebla `acc_*`). Luego `GET /api/analytics/overview?days=28` → el JSON incluye `"source":"aggregate"` y los KPIs combinan días históricos (agregados) + el día actual en vivo. Sin correr el script (o con `?outcome=resolved`), `"source":"live"` (fallback). Igual para `/operations` y `/roi`, y sus variantes `/api/projects/[id]/analytics/*`.
 2. **`view_sensitive`:** como MEMBER sin permiso, `GET /api/analytics/conversations?reveal=1` → `customer` enmascarado, `revealed:false`. Concede "PII sensible (Analytics)" en Configuración → permisos, o como OWNER/ADMIN: `reveal=1` → `customer` sin enmascarar, `revealed:true`, y aparece un `view_sensitive` en la pestaña Auditoría. Igual en `GET /api/analytics/export?type=conversations&reveal=1`.
 3. **Cari real:** con credenciales `cari` conectadas y la integración de analítica en `config.mode="real"`, `POST /api/analytics/integrations/:id/sync` → revisar `AnalyticsDailyMetric` (claves `cari_*`) y `DataQualityIssue` (frases, sin duplicados al re-sincronizar).
+
+---
+
+## 16. Cierre de afinamiento (2026-06-15) — auditoría de dashboards, detalle PII y revisión externa
+
+Iteración de afinamiento sobre los 3 pendientes, **sin reescribir** alertas, funnels, sync programado, overrides ni configuración (verificados verdes y dejados intactos).
+
+### 16.1 Auditoría: qué dashboard agrega y cuál sigue live (y por qué)
+El **helper común** de resolución de métricas agregadas por scope+periodo ya existe: `getAnalyticsDataset(workspaceId, filters, scope)` (`lib/analytics/daily-metrics.server.ts`). Auditoría completa de `app/api/analytics/*`:
+
+| Ruta | Fuente | Motivo |
+|---|---|---|
+| `overview` | **Agregado + live (helper)** | KPIs de cabecera + trends + canales: dimensiones del rollup (provider/bot/channel). |
+| `operations` | **Agregado + live (helper)** | Summary/SLA/avgs del rollup; `topQueuesByWait` con consulta ligera live (cola no está en el rollup — TODO exacto). |
+| `roi` | **Agregado + live (helper)** | Derivado de acumuladores (botResolved, botMsgs). |
+| `agents` | **Live (correcto)** | Agrega por `agentId` — **no** es dimensión del rollup confirmado (workspace/project/client/provider/bot/channel/metric). |
+| `campaigns` | **Live (correcto)** | Agrega por `campaignId` — fuera del rollup. |
+| `services` | **Live (correcto)** | Agrega por `serviceId` — fuera del rollup. |
+| `bot-quality` | **Live (correcto)** | Opera sobre `NormalizedMessage` (intents/fallbacks) — el rollup es de conversación, no de mensaje. |
+| `data-quality` | **Live (correcto)** | Lee incidencias `DataQualityIssue`, no métricas agregables. |
+| `funnels` | **Live (correcto)** | Requiere detalle de conversación/mensaje por paso (no se reescribe; ya verde). |
+| `conversations` / `export` | **Live (correcto)** | Listados a nivel fila (no son métricas agregadas). |
+
+**Conclusión:** los únicos dashboards elegibles para agregados (por las dimensiones confirmadas del rollup) ya leen `AnalyticsDailyMetric` vía el helper común, con **fallback live** cuando faltan agregados. Extender el rollup a `agentId`/`campaignId`/`serviceId` **contradiría** la lista de dimensiones confirmada y explotaría la cardinalidad → se deja documentado, no se inventa.
+
+### 16.2 view_sensitive: cobertura completada en el detalle de conversación
+- **MOD** `app/api/projects/[id]/analytics/conversations/[conversationId]/route.ts`: faltaba la opción de revelar. Ahora `?reveal=1` + permiso `view_sensitive` → `customer` sin enmascarar + audit log `view_sensitive` (con `conversationId`/`projectId`); por defecto enmascarado.
+- **Cobertura total de PII revelable:** lista global (`/api/analytics/conversations`), export (`/api/analytics/export`), lista por proyecto (forward → hereda `reveal`), y **detalle por proyecto** (nuevo). Todos: enmascarado por defecto, revelado solo con permiso, audit log obligatorio. Autorización cubierta por `tests/analytics-sensitive.test.ts` (8: autorizado OWNER/ADMIN/flag vs no autorizado member/no-miembro).
+
+### 16.3 Revisión final de endpoints externos (Cari AI / Botmaker)
+- **Sin endpoints nuevos confirmados** desde la §15.3. Estado vigente:
+  - **Cari:** `indicadoresAtencion` (claves `cari_*`, idempotente) y `frasesSinRespuesta` (dedup) implementados con campos confirmados en `lib/crm/cari.ts`. TODO exacto: id/canal de `conversaciones` cuando no viene en el reporte; Agentes/Servicio/Clientes/Personalizados.
+  - **Botmaker:** sin cambios; TODOs exactos (mapa `channelId→plataforma`, `intent`/`isFallback` NLU, agentes/campañas/funnels/tags, **firma de webhook verificada antes de confiar**). `isRealMode` mock/real intacto.
+- **No se inventó** ningún path, body, header ni response shape.
+
+### 16.4 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **194 tests / 25 archivos** |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** |
+| `npx eslint <archivos de esta fase>` | ✅ **0 errores / 0 warnings** |
+
+### 16.5 Archivos de esta fase
+- **MOD** `app/api/projects/[id]/analytics/conversations/[conversationId]/route.ts` (`view_sensitive` en el detalle).
+- Sin cambios en alertas/funnels/sync/overrides/configuración (verdes, intactos).
