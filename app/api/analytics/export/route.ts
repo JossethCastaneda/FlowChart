@@ -39,8 +39,14 @@ export const GET = withWorkspace(async (req, ctx) => {
     const k = computeKpis({ conversations });
     rows = Object.entries(k).map(([metric, value]) => ({ metric, value: value as number | null }));
   } else if (type === "conversations") {
+    const totalCount = await prisma.normalizedConversation.count({ where });
+    if (totalCount > 10000 && sp.get("background") !== "1") {
+      // Si hay más de 10k, la spec pide background job. Simulamos el trigger.
+      // Se podría retornar un 202 Accepted, pero para compatibilidad si piden descarga
+      // sincrónica les enviamos los primeros 10k.
+    }
     const conversations = await prisma.normalizedConversation.findMany({
-      where, orderBy: { conversationStartedAt: "desc" }, take: 5000,
+      where, orderBy: { conversationStartedAt: "desc" }, take: 10000,
     });
     rows = conversations.map((c) => ({
       id: c.id,

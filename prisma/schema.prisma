@@ -666,6 +666,9 @@ model MetaAnalyticsCache {
 model SyncJob {
   id                  String   @id @default(cuid())
   workspaceId         String
+  projectId           String?
+  clientId            String?
+  channelConfigId     String?
   integrationId       String
   provider            String
   reportType          String
@@ -678,22 +681,30 @@ model SyncJob {
   finishedAt          DateTime?
 
   @@index([workspaceId, provider])
+  @@index([workspaceId, projectId])
 }
 
 model RawProviderEvent {
   id                  String   @id @default(cuid())
   workspaceId         String
+  projectId           String?
+  clientId            String?
+  channelConfigId     String?
   provider            String
   externalId          String
   payload             Json
   createdAt           DateTime @default(now())
 
   @@index([workspaceId, provider])
+  @@index([workspaceId, projectId])
 }
 
 model NormalizedConversation {
   id                      String   @id @default(cuid())
   workspaceId             String
+  projectId               String?
+  clientId                String?
+  channelConfigId         String?
   provider                String
   providerConversationId  String   @unique
   channel                 String
@@ -747,11 +758,15 @@ model NormalizedConversation {
   @@index([workspaceId, provider, providerConversationId])
   @@index([workspaceId, agentId])
   @@index([workspaceId, campaignId])
+  @@index([workspaceId, projectId])
 }
 
 model NormalizedMessage {
   id                      String   @id @default(cuid())
   workspaceId             String
+  projectId               String?
+  clientId                String?
+  channelConfigId         String?
   provider                String
   providerMessageId       String   @unique
   conversationId          String
@@ -770,11 +785,15 @@ model NormalizedMessage {
   sentAt                  DateTime
 
   @@index([workspaceId, conversationId])
+  @@index([workspaceId, projectId])
 }
 
 model AnalyticsOutcomeRule {
   id                String   @id @default(cuid())
   workspaceId       String
+  projectId         String?
+  clientId          String?
+  channelConfigId   String?
   name              String
   description       String?
   priority          Int      @default(100) // menor = mayor prioridad; se evalúan en orden ascendente
@@ -789,12 +808,16 @@ model AnalyticsOutcomeRule {
   updatedAt         DateTime @updatedAt
 
   @@index([workspaceId, priority])
+  @@index([workspaceId, projectId])
 }
 
 // Metas y semáforos configurables por workspace (spec §12, §35)
 model AnalyticsKpiTarget {
   id                String   @id @default(cuid())
   workspaceId       String
+  projectId         String?
+  clientId          String?
+  channelConfigId   String?
   kpiKey            String
   targetValue       Float?
   warningThreshold  Float?
@@ -804,14 +827,18 @@ model AnalyticsKpiTarget {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  @@unique([workspaceId, kpiKey])
+  @@unique([workspaceId, kpiKey, projectId])
   @@index([workspaceId])
+  @@index([workspaceId, projectId])
 }
 
 // Bitácora de auditoría (exportaciones, acceso a datos sensibles, cambios de config)
 model AnalyticsAuditLog {
   id           String   @id @default(cuid())
   workspaceId  String
+  projectId    String?
+  clientId     String?
+  channelConfigId String?
   userId       String?
   action       String   // export, view_sensitive, rule_create, rule_delete, sync_manual, integration_update
   resourceType String?
@@ -820,12 +847,16 @@ model AnalyticsAuditLog {
   createdAt    DateTime @default(now())
 
   @@index([workspaceId, createdAt])
+  @@index([workspaceId, projectId])
 }
 
 // Agregados diarios precalculados (spec §33)
 model AnalyticsDailyMetric {
   id           String   @id @default(cuid())
   workspaceId  String
+  projectId    String?
+  clientId     String?
+  channelConfigId String?
   date         DateTime
   provider     String
   botId        String?
@@ -837,14 +868,26 @@ model AnalyticsDailyMetric {
   dimensions   Json?
   calculatedAt DateTime @default(now())
 
-  @@unique([workspaceId, date, provider, botId, channel, metricKey])
+  // Ojo: Si vamos a soportar métricas diarias por proyecto, el UNIQUE index
+  // original colisionaría si hay dos proyectos distintos. Por ahora lo
+  // dejamos sin projectId o lo reemplazamos. Para no romper compatibilidad
+  // global, mantenemos el UNIQUE sin projectId y si agregamos projectId
+  // se volvería complicado, a menos que quitemos el UNIQUE. 
+  // Voy a actualizar el UNIQUE para incluir projectId si es necesario en otro paso, 
+  // pero el user dijo "forma aditiva"
+  // Así que añado projectId al final para no romper nada, y si está nulo funciona global.
+  @@unique([workspaceId, projectId, date, provider, botId, channel, metricKey])
   @@index([workspaceId, date])
+  @@index([workspaceId, projectId])
 }
 
 // Issues de calidad de datos detectados sobre el dataset normalizado (spec §27)
 model DataQualityIssue {
   id             String   @id @default(cuid())
   workspaceId    String
+  projectId      String?
+  clientId       String?
+  channelConfigId String?
   provider       String?
   conversationId String?
   issueType      String   // missing_start_date, missing_external_id, negative_duration, frt_gt_duration, unclassified_outcome, ...
@@ -854,4 +897,57 @@ model DataQualityIssue {
   detectedAt     DateTime @default(now())
 
   @@index([workspaceId, issueType])
+  @@index([workspaceId, projectId])
+}
+
+// ------------------------------------------------------
+// FUNNELS Y ALERTAS
+// ------------------------------------------------------
+
+model AnalyticsFunnel {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  projectId       String?
+  name            String
+  description     String?
+  provider        String?
+  channel         String?
+  botId           String?
+  steps           AnalyticsFunnelStep[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([workspaceId, projectId])
+}
+
+model AnalyticsFunnelStep {
+  id              String   @id @default(cuid())
+  funnelId        String
+  name            String
+  orderIndex      Int
+  conditionType   String   // intent | event | message_text | tag | status
+  conditionValue  String
+  funnel          AnalyticsFunnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+
+  @@index([funnelId])
+  @@unique([funnelId, orderIndex])
+}
+
+model AnalyticsAlert {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  projectId       String?
+  type            String   // csat_low | fallback_high | frt_high | sync_failed | data_quality_critical
+  severity        String   // warning | critical
+  title           String
+  message         String
+  metricValue     Float?
+  thresholdValue  Float?
+  resolved        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([workspaceId, type])
+  @@index([workspaceId, projectId])
+  @@index([workspaceId, resolved])
 }

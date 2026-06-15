@@ -9,7 +9,7 @@ import {
 import prisma from "../../prisma";
 import { isRealMode } from "../mode";
 import { getCariCredentials, fetchCariReport, validateCariCredential } from "@/lib/crm/cari";
-import { cdmxRange } from "@/lib/crm/timezone";
+import { cdmxRange, parseWallClock } from "@/lib/crm/timezone";
 
 // ============================================================================
 // Adaptador Cari AI — Report API v2 (https://cari.ai/reportapiv2/v1).
@@ -149,6 +149,8 @@ export class CariAiAnalyticsAdapter implements AnalyticsProviderAdapter {
    * queda como TODO porque el repo no confirma el campo id de conversación.
    */
   private async syncConversationsReal(workspaceId: string, startDate: Date, endDate: Date): Promise<SyncResult> {
+    let recordsInserted = 0;
+    let recordsFailed = 0;
     try {
       const creds = await getCariCredentials(workspaceId);
       if (!creds?.conversaciones) {
@@ -156,22 +158,71 @@ export class CariAiAnalyticsAdapter implements AnalyticsProviderAdapter {
       }
       const days = Math.max(1, Math.round((endDate.getTime() - startDate.getTime()) / 86400000));
       const range = cdmxRange(days);
+      
+      // 1. Fetch conversations
       const rows = await fetchCariReport(creds.conversaciones, "conversaciones", range);
 
-      // 1. Raw payload intocable (auditoría/remapeo futuro). Confirmado.
+      // Raw payload intocable
       await prisma.rawProviderEvent.create({
         data: { workspaceId, provider: "cari_ai", externalId: `conversaciones_${range.fromLocal}`, payload: JSON.parse(JSON.stringify(rows)) },
       });
 
-      // 2. TODO (sin inventar): normalizar per-fila requiere confirmar el campo id
-      //    de conversación y el canal en el reporte `conversaciones`. Mientras tanto
-      //    el raw queda capturado (rows.length filas) y disponible para remapeo.
-      void rows.length;
-      return { success: true, recordsInserted: 0, recordsFailed: 0 };
+      // Normalizar per-fila si tenemos id_conversacion y canal
+      for (const raw of rows) {
+        if (raw.id_conversacion && raw.canal) {
+          try {
+            const normalized = this.normalizeRawData(raw, "conversations") as NormalizedConversationInput;
+            await prisma.normalizedConversation.upsert({
+              where: { providerConversationId: normalized.providerConversationId },
+              create: { workspaceId, provider: "cari_ai", ...normalized },
+              update: { ...normalized },
+            });
+            recordsInserted++;
+          } catch (e) {
+            recordsFailed++;
+          }
+        }
+      }
+
+      // 2. Fetch daily metrics (indicadoresAtencion) -> AnalyticsDailyMetric
+      if (creds.servicio) {
+        const indicadores = await fetchCariReport(creds.servicio, "indicadoresAtencion", range);
+        for (const ind of indicadores) {
+          const parsedDate = parseWallClock(ind.fecha);
+          if (!parsedDate) continue;
+          
+          const t = typeof ind.total_conversaciones === "number" ? ind.total_conversaciones : parseFloat(String(ind.total_conversaciones ?? 0));
+          if (!isNaN(t)) {
+            // Utilizamos botId "cari_bot" como fallback si no hay bot específico
+            await prisma.analyticsDailyMetric.upsert({
+              where: { workspaceId_projectId_date_provider_botId_channel_metricKey: { workspaceId, projectId: null, date: new Date(parsedDate.iso), provider: "cari_ai", botId: "", channel: "", metricKey: "total_conversations" } },
+              create: { workspaceId, date: new Date(parsedDate.iso), provider: "cari_ai", botId: "", channel: "", metricKey: "total_conversations", metricValue: t },
+              update: { metricValue: t }
+            });
+          }
+        }
+      }
+
+      // 3. Fetch errores/frases -> DataQualityIssue
+      if (creds.conversaciones) {
+        const frases = await fetchCariReport(creds.conversaciones, "frasesSinRespuesta", range, { status: 0 });
+        for (const f of frases) {
+          const phrase = String(f.frase_sin_respuesta || "").trim().slice(0, 100);
+          if (phrase) {
+            await prisma.dataQualityIssue.create({
+              data: {
+                workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", severity: "warning", details: phrase
+              }
+            });
+          }
+        }
+      }
+
+      return { success: true, recordsInserted, recordsFailed };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Error desconocido";
       console.error("[CariAiAnalyticsAdapter] syncConversationsReal:", message);
-      return { success: false, recordsInserted: 0, recordsFailed: 1, error: message };
+      return { success: false, recordsInserted, recordsFailed: recordsFailed + 1, error: message };
     }
   }
 

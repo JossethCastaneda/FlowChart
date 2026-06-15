@@ -133,10 +133,13 @@ export async function GET(
   fbUrl.searchParams.set("override_default_response_type", "true");
   // display=popup tells Facebook to render the OAuth dialog in popup mode (no nav bar)
   fbUrl.searchParams.set("display", "popup");
-  // FIX: Include scopes for this module (per Meta best practices)
-  fbUrl.searchParams.set("scope", scopeString);
+  
+  // FIX: Include scopes ONLY if not using configId, as Meta docs state:
+  // "When using configuration IDs, the scope parameter in the OAuth request is ignored or may cause errors."
+  // However, since configId is required now, we must not pass scope.
+  // fbUrl.searchParams.set("scope", scopeString);
 
-  console.log(`[CONNECT] Redirecting to Meta OAuth for module: ${module} with scopes: ${scopeString}`);
+  console.log(`[CONNECT] Redirecting to Meta OAuth for module: ${module} with configId: ${configId}`);
 
   return NextResponse.redirect(fbUrl.toString());
 }

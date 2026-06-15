@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { Download, RefreshCw, BarChart2, MessageSquare, User, TrendingUp, Target, Activity, DollarSign, Filter, LayoutDashboard, Database, ShieldCheck } from "lucide-react";
+import { Download, RefreshCw, BarChart2, MessageSquare, User, TrendingUp, Target, Activity, DollarSign, Filter, LayoutDashboard, Database, ShieldCheck, Settings } from "lucide-react";
 import { TabOperation } from "./tabs/TabOperation";
 import { TabQuality } from "./tabs/TabQuality";
 import { TabRoi } from "./tabs/TabRoi";
+import { TabConfig } from "./tabs/TabConfig";
 import {
   TabResumen, TabConversations, TabAgents, TabCampaigns, TabServices, TabFunnels, TabDataQuality, TabAudit,
 } from "./tabs/DataTabs";
@@ -49,6 +50,7 @@ const TABS = [
   { id: "roi", label: "ROI", icon: DollarSign },
   { id: "calidad-datos", label: "Calidad de Datos", icon: Database },
   { id: "auditoria", label: "Auditoría", icon: ShieldCheck },
+  { id: "configuracion", label: "Configuración", icon: Settings },
 ];
 
 const OVERVIEW_TABS = new Set(["operacion", "calidad", "roi"]);
@@ -253,6 +255,7 @@ export function AdvancedAnalyticsDashboard({
         {activeTab === "funnels" && <TabFunnels query={query} base={base} />}
         {activeTab === "calidad-datos" && <TabDataQuality query={query} base={base} />}
         {activeTab === "auditoria" && <TabAudit query={query} base={base} />}
+        {activeTab === "configuracion" && <TabConfig base={base} projectId={projectId} clientId={clientId} />}
 
         {OVERVIEW_TABS.has(activeTab) && (
           loading && !data ? (

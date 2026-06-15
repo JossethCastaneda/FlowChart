@@ -84,6 +84,7 @@ export function buildConversationWhere(
     conversationStartedAt: { gte: f.startDate, lte: f.endDate },
   };
   if (scope) {
+    where.projectId = scope.projectId; // Asegurado a nivel BD
     where.provider = { in: scope.providers };
     where.channel = { in: scope.channels };
   }
@@ -129,8 +130,8 @@ export interface ProjectAnalyticsWhereArgs {
  *     (intersecta cualquier filtro pedido; lo fuera de whitelist se ignora);
  *   - aplica el rango de fechas y valida el resto de filtros vía `buildConversationWhere`.
  *
- * Nota: `NormalizedConversation` no tiene columna `projectId`/`clientId`; el
- * acotamiento por proyecto se materializa vía workspace + proveedores + canales.
+ * Nota: `NormalizedConversation` ahora tiene columna `projectId`/`clientId`.
+ * El acotamiento por proyecto se materializa vía workspace + projectId + proveedores + canales.
  */
 export function buildProjectAnalyticsWhere(
   args: ProjectAnalyticsWhereArgs
@@ -140,7 +141,11 @@ export function buildProjectAnalyticsWhere(
     providers: args.allowedProviders ?? [],
     channels: args.allowedChannels as CanonicalChannel[],
   };
-  return buildConversationWhere(args.workspaceId, args.filters, scope);
+  const where = buildConversationWhere(args.workspaceId, args.filters, scope);
+  if (args.clientId) {
+    where.clientId = args.clientId;
+  }
+  return where;
 }
 
 /** Restringe un WHERE de NormalizedMessage al alcance del proyecto (por provider). */
@@ -148,7 +153,10 @@ export function applyScopeToMessageWhere(
   where: Prisma.NormalizedMessageWhereInput,
   scope?: ProjectScope | null
 ): Prisma.NormalizedMessageWhereInput {
-  if (scope) where.provider = { in: scope.providers };
+  if (scope) {
+    where.projectId = scope.projectId;
+    where.provider = { in: scope.providers };
+  }
   return where;
 }
 
