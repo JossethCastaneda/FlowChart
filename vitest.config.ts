@@ -13,9 +13,14 @@ export default defineConfig({
     environment: "node",
     include: ["tests/**/*.test.ts"],
     env: {
-      // Deterministic 32-byte key (64 hex chars) so encryption round-trip
-      // tests are stable. Not a real secret — test-only.
+      // Valores dummy SOLO para tests: lib/env.ts valida el entorno al importar
+      // (parseEnv lanza si faltan variables críticas), y varios módulos lo
+      // importan de forma transitiva. No son secretos reales.
       ENCRYPTION_KEY: "0".repeat(64),
+      NEXTAUTH_SECRET: "ci-test-secret",
+      DATABASE_URL: "postgresql://user:pass@localhost:5432/test",
+      FACEBOOK_CLIENT_ID: "ci-test-fb-id",
+      FACEBOOK_CLIENT_SECRET: "ci-test-fb-secret",
     },
   },
 });
