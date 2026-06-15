@@ -593,3 +593,47 @@ El **helper común** de resolución de métricas agregadas por scope+periodo ya 
 ### 16.5 Archivos de esta fase
 - **MOD** `app/api/projects/[id]/analytics/conversations/[conversationId]/route.ts` (`view_sensitive` en el detalle).
 - Sin cambios en alertas/funnels/sync/overrides/configuración (verdes, intactos).
+
+---
+
+## 17. Bug: empty state "Sin integraciones de analytics" con línea Cari AI configurada (2026-06-15)
+
+### 17.1 Investigación del modelo real (sin inventar campos)
+Diagnóstico contra la BD real (`DATABASE_URL` de `.env`, mismo Neon de prod) y el código:
+
+- **Cómo se asocia la línea CRM/bot a un proyecto:** `Project.crmIntegrationIds: String[]` (con fallback al legacy `Project.crmIntegrationId`). Lo confirman: el selector "CRMs conectados" del detalle de proyecto (`app/dashboard/proyectos/[id]/page.tsx`, providers `["botmaker","cari","custom_crm","hubspot"]`), la ruta `PUT /api/projects/[id]` (persiste `crmIntegrationIds`), y la vista "Resultados por fuente" (`/api/projects/[id]/results`) que lee **la misma** relación.
+- **Dónde viven las credenciales Cari:** `getCariCredentials` (`lib/crm/cari.ts`) exige `Integration` con **`provider === "cari"`** exacto, `userId === "workspace"`, `connected`. La línea Cari canónica es, por tanto, `Integration.provider = "cari"`.
+- **Cómo deriva providers el módulo:** `resolveProjectProviders` (`lib/analytics/project-scope.server.ts`) toma `crmIntegrationIds`/legacy → `integration.findMany({ id IN, workspaceId })` → `deriveNormalizedProviders` (mapa `INTEGRATION_TO_NORMALIZED_PROVIDER`). Los **canales** se derivan por otra vía (`collectProjectChannels`: filas `Channel` + cuentas sociales), por eso un proyecto puede tener **canales pero `providers: []`**.
+
+**Hallazgos en la BD real:** el proyecto `cmq8nz5je000004jre56o2lde` **no existe en esta BD** (entorno/branch distinto), pero la causa es independiente del dato: **ningún** proyecto tiene `crmIntegrationIds`/`crmIntegrationId` poblado, y los `Integration.provider` distintos son `botmaker, custom_crm, meta, meta_ads, meta_analytics, meta_community, google, whatsapp_business` (no hay `cari` en esta BD).
+
+### 17.2 Causa raíz
+El empty state aparece cuando `resolveProjectScopeView` devuelve `channels` no vacío pero `providers` vacío. Dos causas reales, ambas atacadas sin inventar:
+
+1. **Mapeo de provider exacto y case-sensitive.** `deriveNormalizedProviders` indexaba `INTEGRATION_TO_NORMALIZED_PROVIDER[p]` directamente: un provider guardado como `"Cari"`, `"CARI_AI"`, `"cari ai"` o `"cari-ai"` **no** se reconocía y se descartaba → `providers: []` aunque la línea Cari estuviera asociada.
+2. **Asociación proyecto↔integración ausente.** Si la línea Cari está conectada a nivel workspace pero el proyecto nunca la marcó en "CRMs conectados" (`crmIntegrationIds` vacío), `providers` es `[]` — y no había backfill para corregirlo.
+
+> Descartado (sin inventar): `custom_crm` **no** se asume como Cari — un CRM genérico no es necesariamente Cari, así que sigue resolviendo a `null` (no analítico). No existe otra relación confirmada que asocie la línea Cari a un proyecto fuera de `crmIntegrationIds`.
+
+### 17.3 Solución
+- **MOD `lib/analytics/project-scope.ts`** — nuevo `normalizeIntegrationProvider(raw)`: normaliza (trim, minúsculas, separadores→`_`) y resuelve aliases (`cari`, `cari_ai`, `cariai`, `Cari AI`, `CARI_AI` → `cari_ai`; `botmaker`, `bot_maker`, `BotMaker` → `botmaker`). `deriveNormalizedProviders` ahora lo usa. `custom_crm`/`meta`/`google` siguen devolviendo `null` (sin inventar). Mapa canónico conservado.
+- **MOD `app/api/projects/[id]/analytics/sync/route.ts`** — los 3 usos directos del mapa pasan a `normalizeIntegrationProvider` (consistencia tolerante a alias en el estado de configuración y en el sync manual).
+- **NEW `scripts/backfill-project-crm-integrations.ts`** — idempotente, multi-tenant: (1) migra `crmIntegrationId` legacy → `crmIntegrationIds` cuando el arreglo está vacío; (2) con `--apply --project=<id>`/`--workspace=<id>`, asocia las integraciones analíticas **conectadas del mismo workspace** del proyecto a su `crmIntegrationIds` (sin duplicar, nunca de otro tenant). Dry-run por defecto.
+- **Defensa multi-tenant intacta:** `resolveProjectProviders` sigue filtrando `integration.findMany({ id IN, workspaceId })` por el workspace de la sesión; una integración de otro workspace nunca se acepta (test).
+
+### 17.4 Tests (`tests/analytics-cari-provider.test.ts`, 8)
+- `normalizeIntegrationProvider`: canónico + aliases/case de Cari y Botmaker; `custom_crm`/`meta`/`google`/`null` → `null`; `deriveNormalizedProviders` dedup/descarte.
+- `resolveProjectScope` (prisma mockeado): **canal sin integración → `providers: []` (empty state correcto)**; **integración Cari asociada → `providers: ["cari_ai"]`**; **alias `CARI_AI` → `cari_ai`**; **integración de otro workspace no aceptada** (filtra por `workspaceId` de la sesión).
+
+### 17.5 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **202 tests / 26 archivos** (194 + 8 nuevos) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** |
+| `npx eslint <archivos de esta fase>` | ✅ **0 errores / 0 warnings** |
+
+### 17.6 Cómo verificar/arreglar en el entorno con el proyecto real
+1. **Diagnóstico:** `npx tsx scripts/backfill-project-crm-integrations.ts` (dry-run) lista proyectos con `crmIntegrationIds` vacío y los candidatos analíticos conectados por workspace.
+2. **Si la línea Cari existe pero no está asociada:** `npx tsx scripts/backfill-project-crm-integrations.ts --apply --project=cmq8nz5je000004jre56o2lde` asocia la integración analítica conectada del workspace al proyecto. Recargar Proyectos > Análisis de Resultados → `providers` ya incluye `cari_ai` (deja de aparecer el empty state).
+3. **Si el provider estaba con alias raro:** ya no requiere acción — `normalizeIntegrationProvider` lo resuelve en caliente.

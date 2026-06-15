@@ -7,7 +7,7 @@ import { isWorkspaceAdmin } from "@/lib/analytics/rbac";
 import { writeAuditLog } from "@/lib/analytics/audit";
 import { AnalyticsAdapterFactory } from "@/lib/analytics/adapters/AnalyticsAdapterFactory";
 import { resolveProjectScope, resolveProjectScopeView } from "@/lib/analytics/project-scope.server";
-import { INTEGRATION_TO_NORMALIZED_PROVIDER, normalizeChannelName } from "@/lib/analytics/project-scope";
+import { normalizeIntegrationProvider, normalizeChannelName } from "@/lib/analytics/project-scope";
 
 // POST /api/projects/[id]/analytics/sync
 // Sync manual ACOTADO al proyecto. Solo consulta integraciones vinculadas al
@@ -64,7 +64,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
     integrations: integrations.map((i) => ({
       id: i.id,
       provider: i.provider,
-      normalizedProvider: INTEGRATION_TO_NORMALIZED_PROVIDER[i.provider] ?? null,
+      normalizedProvider: normalizeIntegrationProvider(i.provider),
       connected: i.connected,
     })),
     recentJobs,
@@ -144,7 +144,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
 
   // Solo proveedores con adaptador analítico, y respetando el filtro provider.
   const targets = integrations.filter((i) => {
-    const normalized = INTEGRATION_TO_NORMALIZED_PROVIDER[i.provider];
+    const normalized = normalizeIntegrationProvider(i.provider);
     if (!normalized) return false;
     return !body.provider || normalized === body.provider;
   });
@@ -157,7 +157,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   const results: { integrationId: string; provider: string; jobId: string; recordsInserted: number; success: boolean; error?: string }[] = [];
 
   for (const integ of targets) {
-    const normalized = INTEGRATION_TO_NORMALIZED_PROVIDER[integ.provider];
+    const normalized = normalizeIntegrationProvider(integ.provider) as string;
     const job = await prisma.syncJob.create({
       data: {
         workspaceId: ctx.workspaceId,

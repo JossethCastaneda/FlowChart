@@ -70,12 +70,57 @@ export function normalizeChannelName(providerChannel: unknown): CanonicalChannel
  * `provider` del modelo normalizado (cómo lo escriben los adapters). Las
  * integraciones CRM de proyecto usan "cari"; las de analítica usan "cari_ai";
  * ambas alimentan el mismo proveedor normalizado.
+ *
+ * IMPORTANTE: usar `normalizeIntegrationProvider()` para resolver — no indexar
+ * este mapa directamente. El mapa es solo el conjunto canónico; la resolución
+ * tolera mayúsculas/separadores y aliases conocidos (un provider guardado como
+ * "Cari", "CARI_AI" o "cari ai" debe resolver igual que "cari").
  */
 export const INTEGRATION_TO_NORMALIZED_PROVIDER: Record<string, string> = {
   botmaker: "botmaker",
   cari: "cari_ai",
   cari_ai: "cari_ai",
 };
+
+/**
+ * Aliases conocidos → proveedor normalizado, comparados ya normalizados
+ * (minúsculas, separadores colapsados a "_"). NO se incluye `custom_crm`: un CRM
+ * genérico no es necesariamente Cari y no debe asumirse (sin inventar).
+ */
+const PROVIDER_ALIASES: Record<string, string> = {
+  botmaker: "botmaker",
+  bot_maker: "botmaker",
+  cari: "cari_ai",
+  cari_ai: "cari_ai",
+  cariai: "cari_ai",
+};
+
+/** Normaliza una cadena de provider a su clave comparable. */
+function normalizeProviderKey(raw: unknown): string {
+  if (typeof raw !== "string") return "";
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/[\s\-./]+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+}
+
+/**
+ * Resuelve el provider de una integración al proveedor normalizado del modelo
+ * analítico, tolerando mayúsculas, separadores y aliases. Devuelve `null` si el
+ * provider no tiene adaptador analítico (p. ej. `custom_crm`, `meta`, `google`).
+ *
+ *   normalizeIntegrationProvider("cari")     → "cari_ai"
+ *   normalizeIntegrationProvider("Cari AI")  → "cari_ai"
+ *   normalizeIntegrationProvider("CARI_AI")  → "cari_ai"
+ *   normalizeIntegrationProvider("BotMaker") → "botmaker"
+ *   normalizeIntegrationProvider("custom_crm") → null
+ */
+export function normalizeIntegrationProvider(raw: unknown): string | null {
+  const key = normalizeProviderKey(raw);
+  if (!key) return null;
+  return PROVIDER_ALIASES[key] ?? INTEGRATION_TO_NORMALIZED_PROVIDER[key] ?? null;
+}
 
 /** Etiquetas legibles para el selector de canal del dashboard. */
 export const CHANNEL_LABELS: Record<string, string> = {
@@ -146,7 +191,7 @@ export function deriveProjectChannels(p: ProjectChannelConfig): CanonicalChannel
 export function deriveNormalizedProviders(integrationProviders: string[]): string[] {
   const out = new Set<string>();
   for (const p of integrationProviders) {
-    const mapped = INTEGRATION_TO_NORMALIZED_PROVIDER[p];
+    const mapped = normalizeIntegrationProvider(p);
     if (mapped) out.add(mapped);
   }
   return [...out];
