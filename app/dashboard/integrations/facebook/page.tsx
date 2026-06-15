@@ -405,18 +405,12 @@ export default function FacebookPagesPage() {
                   {/* Table head */}
                   <div style={{
                     display: "grid",
-                    gridTemplateColumns: "1fr 180px 180px",
+                    gridTemplateColumns: "1fr 180px",
                     background: "var(--surface-hover)",
                     borderBottom: "1px solid var(--border)",
                     padding: "10px 20px",
                   }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em" }}>{t.profile}</span>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "linear-gradient(135deg,#00B2FF,#0064E0)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
-                        <MessengerIcon />
-                      </div>
-                      {t.messenger}
-                    </span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
                       <div style={{ width: 18, height: 18, borderRadius: 5, background: "#0064E0", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
                         <MetaIcon />
@@ -427,7 +421,6 @@ export default function FacebookPagesPage() {
 
                   {/* Rows */}
                   {pages.map((page, idx) => {
-                    const isTogglingMsg = toggling?.pageId === page.id && toggling.field === "messengerEnabled";
                     const isTogglingPage = toggling?.pageId === page.id && toggling.field === "pageEnabled";
 
                     return (
@@ -436,7 +429,7 @@ export default function FacebookPagesPage() {
                         className="fb-row"
                         style={{
                           display: "grid",
-                          gridTemplateColumns: "1fr 180px 180px",
+                          gridTemplateColumns: "1fr 180px",
                           padding: "16px 20px",
                           borderTop: idx > 0 ? "1px solid var(--border-neutral)" : "none",
                           background: "transparent",
@@ -470,26 +463,6 @@ export default function FacebookPagesPage() {
                               <p style={{ fontSize: 10, color: "var(--purple)", margin: 0 }}>@{page.instagram.username}</p>
                             )}
                           </div>
-                        </div>
-
-                        {/* Messenger toggle column */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                            {isTogglingMsg ? (
-                              <Loader2 size={14} style={{ color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
-                            ) : (
-                              <Toggle
-                                checked={page.messengerEnabled}
-                                onChange={(v) => handleToggle(page.id, "messengerEnabled", v)}
-                              />
-                            )}
-                            <span style={{ fontSize: 12, color: page.messengerEnabled ? "var(--foreground)" : "var(--text-secondary)", fontWeight: 500 }}>
-                              {page.messengerEnabled ? t.active : t.inactive}
-                            </span>
-                          </div>
-                          <button style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 11, textAlign: "left", display: "flex", alignItems: "center", gap: 4, fontFamily: "inherit", padding: 0 }}>
-                            <Shield size={10} /> {t.authPermission}
-                          </button>
                         </div>
 
                         {/* Facebook Page toggle column */}

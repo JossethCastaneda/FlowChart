@@ -28,7 +28,7 @@ export const GET = withWorkspace(async (_req, { workspaceId }) => {
   const pages = rawPages.map((p: any) => ({
     id: p.id,
     name: p.name,
-    picture: p.picture || null,
+    picture: typeof p.picture === "object" && p.picture?.data?.url ? p.picture.data.url : (typeof p.picture === "string" && p.picture !== "[object Object]" ? p.picture : null),
     email: p.email || null,
     category: p.category || null,
     // Enabled flags stored in creds.pageSettings
