@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { logger } from "@/lib/logger";
 
 /**
  * Standardized API response helpers for Sodare.
@@ -36,7 +37,15 @@ export function apiNotFound(message = "No encontrado") {
   return apiError(message, "NOT_FOUND", 404);
 }
 
-export function apiServerError(error: unknown) {
+export function apiServerError(error: unknown, hint?: string) {
+  // Always log the full error to structured logs (visible in Vercel dashboard)
+  logger.error("apiServerError", {
+    hint,
+    error,
+    errorMessage: error instanceof Error ? error.message : String(error),
+    errorName: error instanceof Error ? error.name : undefined,
+    stack: error instanceof Error ? error.stack?.slice(0, 500) : undefined,
+  });
   // Nunca exponer detalles internos (mensajes de Prisma, stack traces, hosts)
   // al cliente en producción; el detalle queda en los logs del servidor.
   const message =

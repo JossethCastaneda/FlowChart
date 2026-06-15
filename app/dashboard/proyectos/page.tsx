@@ -111,44 +111,61 @@ type FetchResult =
   | { ok: true; data: Project[] }
   | { ok: false; status: number; code: string; message: string };
 
-async function fetchProjectsFromAPI(): Promise<FetchResult> {
-  try {
-    const res = await fetch("/api/projects", { cache: "no-store" });
-    if (!res.ok) {
-      let code = "HTTP_ERROR";
-      let message = `Error ${res.status} al cargar proyectos.`;
-      try {
-        const json = await res.json();
-        code = json.code || code;
-        message = json.error || message;
-      } catch { /* ignore parse error */ }
-      if (res.status === 401) message = "Tu sesión expiró. Vuelve a iniciar sesión.";
-      return { ok: false, status: res.status, code, message };
+async function fetchProjectsFromAPI(retries = 2): Promise<FetchResult> {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await fetch("/api/projects", { cache: "no-store" });
+      if (!res.ok) {
+        let code = "HTTP_ERROR";
+        let message = `Error ${res.status} al cargar proyectos.`;
+        try {
+          const json = await res.json();
+          code = json.code || code;
+          message = json.error || message;
+        } catch { /* ignore parse error */ }
+        if (res.status === 401) {
+          message = "Tu sesión expiró. Vuelve a iniciar sesión.";
+          return { ok: false, status: res.status, code, message };
+        }
+        // Retry on server errors (500+) if we have attempts left
+        if (res.status >= 500 && attempt < retries) {
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        return { ok: false, status: res.status, code, message };
+      }
+      const json = await res.json();
+      if (!json.success) {
+        return { ok: false, status: 200, code: json.code || "API_ERROR", message: json.error || "Error al cargar proyectos." };
+      }
+      return { ok: true, data: (json.data || []).map((p: any) => ({
+        ...p,
+        alias: p.alias || p.name || "",
+        channels: (p.channels || []).map((ch: any) => {
+          const cfg = ch.config || {};
+          return {
+            platformId: cfg.platformId || ch.type?.toLowerCase() || ch.name?.toLowerCase() || "",
+            platformName: cfg.platformName || ch.name || "",
+            adAccounts: cfg.adAccounts || [],
+            budget: cfg.budget || "",
+            period: cfg.period || "Mensual",
+            goal: cfg.goal || "",
+            cpr: cfg.cpr || "",
+          };
+        }),
+      })) };
+    } catch (err: unknown) {
+      // Retry on network errors if we have attempts left
+      if (attempt < retries) {
+        await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+        continue;
+      }
+      const msg = err instanceof Error ? err.message : "Error de red al cargar proyectos.";
+      return { ok: false, status: 0, code: "NETWORK_ERROR", message: msg };
     }
-    const json = await res.json();
-    if (!json.success) {
-      return { ok: false, status: 200, code: json.code || "API_ERROR", message: json.error || "Error al cargar proyectos." };
-    }
-    return { ok: true, data: (json.data || []).map((p: any) => ({
-      ...p,
-      alias: p.alias || p.name || "",
-      channels: (p.channels || []).map((ch: any) => {
-        const cfg = ch.config || {};
-        return {
-          platformId: cfg.platformId || ch.type?.toLowerCase() || ch.name?.toLowerCase() || "",
-          platformName: cfg.platformName || ch.name || "",
-          adAccounts: cfg.adAccounts || [],
-          budget: cfg.budget || "",
-          period: cfg.period || "Mensual",
-          goal: cfg.goal || "",
-          cpr: cfg.cpr || "",
-        };
-      }),
-    })) };
-  } catch (err: unknown) {
-    const msg = err instanceof Error ? err.message : "Error de red al cargar proyectos.";
-    return { ok: false, status: 0, code: "NETWORK_ERROR", message: msg };
   }
+  // Should never reach here, but satisfy TypeScript
+  return { ok: false, status: 0, code: "NETWORK_ERROR", message: "Error de red al cargar proyectos." };
 }
 
 /* ═══════════════════════════════════════
@@ -792,6 +809,7 @@ function ProyectosContent() {
         }}>
           <AlertTriangle className="w-4 h-4" style={{ flexShrink: 0 }} />
           <span style={{ flex: 1 }}>{fetchError}</span>
+          <button onClick={() => { setFetchError(null); loadProjects(); }} style={{ background: "rgba(251,191,36,0.2)", border: "1px solid rgba(251,191,36,0.4)", color: "inherit", cursor: "pointer", padding: "4px 12px", borderRadius: "4px", fontSize: "12px", fontWeight: 600 }}>Reintentar</button>
           <button onClick={() => setFetchError(null)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.8 }}><X className="w-4 h-4" /></button>
         </div>
       )}

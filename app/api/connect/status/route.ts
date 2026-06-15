@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -11,93 +12,102 @@ const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
  * Response: { modules: { social, ads, analytics, community }, pages: [...], tokenExpiresSoon }
  */
 export async function GET(request: NextRequest) {
-  const jwt = await getToken({ req: request, secret: AUTH_SECRET });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
+  try {
+    const jwt = await getToken({ req: request, secret: AUTH_SECRET });
+    if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
 
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
-  if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+    const workspaceId = await getActiveWorkspaceId(jwt.sub);
+    if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
-  // Fetch all meta integrations for this workspace
-  const integrations = await prisma.integration.findMany({
-    where: {
-      workspaceId,
-      provider: { startsWith: "meta" },
-    },
-  });
+    // Fetch all meta integrations for this workspace
+    const integrations = await prisma.integration.findMany({
+      where: {
+        workspaceId,
+        provider: { startsWith: "meta" },
+      },
+    });
 
-  const now = new Date();
+    const now = new Date();
 
-  const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; tokenExpiresSoon?: boolean; daysUntilExpiry?: number }> = {};
+    const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; tokenExpiresSoon?: boolean; daysUntilExpiry?: number }> = {};
 
-  for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community"]) {
-    // Look for module-specific integration first, then fall back to generic "meta"
-    const integration = integrations.find((i) => i.provider === `meta_${mod}`)
-      || integrations.find((i) => i.provider === "meta");
-    const creds = integration?.credentials as any;
+    for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community"]) {
+      // Look for module-specific integration first, then fall back to generic "meta"
+      const integration = integrations.find((i) => i.provider === `meta_${mod}`)
+        || integrations.find((i) => i.provider === "meta");
+      const creds = integration?.credentials as any;
 
-    // Detect token expiry
-    let tokenExpiresSoon = false;
-    let daysUntilExpiry: number | undefined;
-    if (creds?.expiresAt) {
-      const expiresAt = new Date(creds.expiresAt);
-      const msLeft = expiresAt.getTime() - now.getTime();
-      daysUntilExpiry = Math.floor(msLeft / (1000 * 60 * 60 * 24));
-      tokenExpiresSoon = daysUntilExpiry <= 7;
+      // Detect token expiry
+      let tokenExpiresSoon = false;
+      let daysUntilExpiry: number | undefined;
+      if (creds?.expiresAt) {
+        const expiresAt = new Date(creds.expiresAt);
+        const msLeft = expiresAt.getTime() - now.getTime();
+        daysUntilExpiry = Math.floor(msLeft / (1000 * 60 * 60 * 24));
+        tokenExpiresSoon = daysUntilExpiry <= 7;
+      }
+
+      modules[mod] = {
+        connected: integration?.connected ?? false,
+        connectedAt: integration?.connectedAt?.toISOString() || null,
+        pages: (creds?.pages || []).map(({ accessToken, ...p }: any) => p),
+        tokenExpiresSoon,
+        daysUntilExpiry,
+      };
     }
 
-    modules[mod] = {
-      connected: integration?.connected ?? false,
-      connectedAt: integration?.connectedAt?.toISOString() || null,
-      pages: (creds?.pages || []).map(({ accessToken, ...p }: any) => p),
-      tokenExpiresSoon,
-      daysUntilExpiry,
-    };
-  }
+    // Also get pages from generic "meta" integration as fallback
+    const genericMeta = integrations.find((i) => i.provider === "meta");
+    const genericPages = ((genericMeta?.credentials as any)?.pages || []).map(({ accessToken, ...p }: any) => p);
+    const genericCreds = genericMeta?.credentials as any;
 
-  // Also get pages from generic "meta" integration as fallback
-  const genericMeta = integrations.find((i) => i.provider === "meta");
-  const genericPages = ((genericMeta?.credentials as any)?.pages || []).map(({ accessToken, ...p }: any) => p);
-  const genericCreds = genericMeta?.credentials as any;
+    // Check generic token expiry
+    let genericTokenExpiresSoon = false;
+    let genericDaysUntilExpiry: number | undefined;
+    if (genericCreds?.expiresAt) {
+      const expiresAt = new Date(genericCreds.expiresAt);
+      const msLeft = expiresAt.getTime() - now.getTime();
+      genericDaysUntilExpiry = Math.floor(msLeft / (1000 * 60 * 60 * 24));
+      genericTokenExpiresSoon = genericDaysUntilExpiry <= 7;
+    }
 
-  // Check generic token expiry
-  let genericTokenExpiresSoon = false;
-  let genericDaysUntilExpiry: number | undefined;
-  if (genericCreds?.expiresAt) {
-    const expiresAt = new Date(genericCreds.expiresAt);
-    const msLeft = expiresAt.getTime() - now.getTime();
-    genericDaysUntilExpiry = Math.floor(msLeft / (1000 * 60 * 60 * 24));
-    genericTokenExpiresSoon = genericDaysUntilExpiry <= 7;
-  }
+    // ── WhatsApp Business status ─────────────────────────────────────────────────
+    const waIntegration = await prisma.integration.findFirst({
+      where: { workspaceId, provider: "whatsapp_business" },
+      select: { connected: true, connectedAt: true, credentials: true },
+    });
+    const waCreds = waIntegration?.credentials as Record<string, string> | null;
 
-  // ── WhatsApp Business status ─────────────────────────────────────────────────
-  const waIntegration = await prisma.integration.findFirst({
-    where: { workspaceId, provider: "whatsapp_business" },
-    select: { connected: true, connectedAt: true, credentials: true },
-  });
-  const waCreds = waIntegration?.credentials as Record<string, string> | null;
+    // Get the WaPhoneSource for the display number
+    const waPhone = waCreds?.phoneNumberId
+      ? await prisma.waPhoneSource.findUnique({
+          where: { phoneNumberId: waCreds.phoneNumberId },
+          select: { phoneNumberId: true },
+        })
+      : null;
 
-  // Get the WaPhoneSource for the display number
-  const waPhone = waCreds?.phoneNumberId
-    ? await prisma.waPhoneSource.findUnique({
-        where: { phoneNumberId: waCreds.phoneNumberId },
-        select: { phoneNumberId: true },
-      })
-    : null;
-
-  return NextResponse.json({
-    modules: {
-      ...modules,
-      whatsapp_business: {
-        connected: waIntegration?.connected ?? false,
-        connectedAt: waIntegration?.connectedAt?.toISOString() || null,
-        phoneNumber: waPhone?.phoneNumberId ?? waCreds?.phoneNumberId ?? null,
-        wabaId: waCreds?.wabaId ?? null,
-        pages: [],
+    return NextResponse.json({
+      modules: {
+        ...modules,
+        whatsapp_business: {
+          connected: waIntegration?.connected ?? false,
+          connectedAt: waIntegration?.connectedAt?.toISOString() || null,
+          phoneNumber: waPhone?.phoneNumberId ?? waCreds?.phoneNumberId ?? null,
+          wabaId: waCreds?.wabaId ?? null,
+          pages: [],
+        },
       },
-    },
-    pages: genericPages,
-    hasAnyConnection: integrations.some((i) => i.connected) || (waIntegration?.connected ?? false),
-    tokenExpiresSoon: genericTokenExpiresSoon,
-    daysUntilExpiry: genericDaysUntilExpiry,
-  });
+      pages: genericPages,
+      hasAnyConnection: integrations.some((i) => i.connected) || (waIntegration?.connected ?? false),
+      tokenExpiresSoon: genericTokenExpiresSoon,
+      daysUntilExpiry: genericDaysUntilExpiry,
+    });
+  } catch (err) {
+    logger.error("[connect/status] Unhandled error", { error: err });
+    const message = process.env.NODE_ENV !== "production" && err instanceof Error
+      ? err.message
+      : "Error interno del servidor";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
 }
+

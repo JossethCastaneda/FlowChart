@@ -60,7 +60,7 @@ export function withAuth(handler: Handler<AuthContext>) {
       });
     } catch (error) {
       logger.error("Unhandled API error", { url: req.nextUrl?.pathname, error });
-      return apiServerError(error);
+      return apiServerError(error, req.nextUrl?.pathname);
     }
   };
 }

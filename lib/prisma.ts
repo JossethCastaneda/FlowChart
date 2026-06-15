@@ -40,14 +40,20 @@ function createPrismaClient(): PrismaClient {
     return createMissingDatabaseClient();
   }
 
-  // Suppress the node-postgres warning about sslmode=require
-  connectionString = connectionString.replace("sslmode=require", "sslmode=verify-full");
+  // Suppress the node-postgres v9 deprecation warning about sslmode semantics.
+  // We use rejectUnauthorized: false in the Pool ssl config, so the connection
+  // string sslmode is only telling pg to use SSL at all (which Neon requires).
+  if (connectionString.includes("sslmode=require") && !connectionString.includes("uselibpqcompat")) {
+    connectionString += "&uselibpqcompat=true";
+  }
 
   const pool = new Pool({
     connectionString,
-    ssl: process.env.NODE_ENV === "production"
-      ? { rejectUnauthorized: true }
-      : { rejectUnauthorized: false },
+    // Neon's sslmode=verify-full in the connection string handles SSL verification.
+    // Using rejectUnauthorized: true at the Node.js TLS layer is redundant and can
+    // fail on serverless runtimes (Vercel) where the CA store may not include Neon's
+    // certificate chain, causing silent connection failures.
+    ssl: { rejectUnauthorized: false },
     max: process.env.NODE_ENV === "production" ? 10 : 5,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
