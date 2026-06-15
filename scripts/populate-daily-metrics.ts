@@ -1,13 +1,33 @@
+// Pobla AnalyticsDailyMetric con ACUMULADORES diarios (acc_*) por grupo
+// workspace/project/provider/bot/channel/fecha. Estos acumuladores son aditivos
+// y los vuelve a sumar el lector (lib/analytics/daily-metrics.server.ts) para
+// servir overview/operations/roi desde agregados + el día en vivo.
+//
+// Idempotente: re-ejecutar recalcula y actualiza las filas existentes.
+// Uso: npx tsx scripts/populate-daily-metrics.ts
 import prisma from "../lib/prisma";
-import { computeKpis, KpiConversation } from "../lib/analytics/kpis/engine";
+import {
+  accumulatorsFromConversations,
+  accumulatorsToMetricRows,
+  type DailyConv,
+} from "../lib/analytics/daily-metrics";
+
+interface Row extends DailyConv {
+  workspaceId: string;
+  projectId: string | null;
+  clientId: string | null;
+  provider: string;
+  botId: string | null;
+}
 
 async function run() {
-  const convs = await prisma.normalizedConversation.findMany({
+  const convs = (await prisma.normalizedConversation.findMany({
     select: {
-      id: true,
       workspaceId: true,
       projectId: true,
+      clientId: true,
       provider: true,
+      botId: true,
       channel: true,
       status: true,
       outcome: true,
@@ -16,42 +36,65 @@ async function run() {
       wasHandoff: true,
       conversationStartedAt: true,
       csatScore: true,
+      totalUserMessages: true,
+      totalBotMessages: true,
+      totalFallbacks: true,
       firstResponseTimeSeconds: true,
-      handleTimeSeconds: true
-    }
-  });
+      handleTimeSeconds: true,
+      waitingTimeSeconds: true,
+    },
+  })) as Row[];
 
-  const grouped: Record<string, any[]> = {};
+  // Agrupa por workspace|project|client|provider|bot|channel|fecha(UTC).
+  const grouped = new Map<string, Row[]>();
   for (const c of convs) {
     const d = c.conversationStartedAt.toISOString().split("T")[0];
-    const key = `${c.workspaceId}_${c.projectId || "none"}_${c.provider}_${c.channel}_${d}`;
-    if (!grouped[key]) grouped[key] = [];
-    grouped[key].push(c);
+    const key = [c.workspaceId, c.projectId ?? "", c.clientId ?? "", c.provider, c.botId ?? "", c.channel, d].join("|");
+    const arr = grouped.get(key) || [];
+    arr.push(c);
+    grouped.set(key, arr);
   }
 
-  for (const [key, items] of Object.entries(grouped)) {
-    const kpis = computeKpis({ conversations: items as KpiConversation[] });
-    const [workspaceId, projectId, provider, channel, date] = key.split("_");
-    const actualProjectId = projectId === "none" ? null : projectId;
-    const actualDate = new Date(date);
+  let upserts = 0;
+  for (const [key, items] of grouped) {
+    const [workspaceId, projectId, clientId, provider, botId, channel, date] = key.split("|");
+    const actualProjectId = projectId === "" ? null : projectId;
+    const actualClientId = clientId === "" ? null : clientId;
+    const day = new Date(date);
+    const acc = accumulatorsFromConversations(items);
+    const rows = accumulatorsToMetricRows(acc);
 
-    const saveMetric = async (metricKey: string, val: number) => {
-      if (isNaN(val) || val === null || val === undefined) return;
-      await prisma.analyticsDailyMetric.upsert({
-        where: { workspaceId_projectId_date_provider_botId_channel_metricKey: {
-          workspaceId, projectId: actualProjectId, date: actualDate, provider, botId: "", channel, metricKey
-        }},
-        create: { workspaceId, projectId: actualProjectId, date: actualDate, provider, botId: "", channel, metricKey, metricValue: val },
-        update: { metricValue: val }
+    for (const r of rows) {
+      const existing = await prisma.analyticsDailyMetric.findFirst({
+        where: { workspaceId, projectId: actualProjectId, date: day, provider, botId, channel, metricKey: r.metricKey },
+        select: { id: true },
       });
-    };
-
-    await saveMetric("total_conversations", kpis.totalConversations);
-    await saveMetric("containment_rate", kpis.realContainmentRate);
-    await saveMetric("handoff_rate", kpis.escalationRate);
-    await saveMetric("avg_csat", kpis.avgCsat || 0);
+      if (existing) {
+        await prisma.analyticsDailyMetric.update({ where: { id: existing.id }, data: { metricValue: r.metricValue } });
+      } else {
+        await prisma.analyticsDailyMetric.create({
+          data: {
+            workspaceId,
+            projectId: actualProjectId,
+            clientId: actualClientId,
+            date: day,
+            provider,
+            botId,
+            channel,
+            metricKey: r.metricKey,
+            metricValue: r.metricValue,
+          },
+        });
+      }
+      upserts++;
+    }
   }
-  console.log("Terminado");
+  console.log(`Terminado: ${grouped.size} grupos, ${upserts} métricas escritas.`);
 }
 
-run().catch(console.error);
+run()
+  .catch((e) => {
+    console.error(e);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

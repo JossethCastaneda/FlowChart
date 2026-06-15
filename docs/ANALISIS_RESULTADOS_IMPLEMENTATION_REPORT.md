@@ -419,3 +419,131 @@ La sección de proyecto incluye las **11 tabs** (Resumen, Operación, Conversaci
 | `npx vitest run` | ✅ **153 tests / 19 archivos** (incluye `analytics-project-scope` 29 + `analytics-project-security` 6, prisma mockeado) |
 | `SKIP_DB_SYNC=1 next build` (rutas anidadas) | ✅ 14 rutas `/api/projects/[id]/analytics/*` registradas |
 | `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** (ruta `/dashboard/proyectos/[id]/analisis-resultados` registrada) |
+
+---
+
+## 14. Cierre de brechas (2026-06-15)
+
+Iteración enfocada en cerrar las brechas reales que quedaban abiertas en §8 y §13.6,
+**de forma aditiva y sin romper lo implementado**. Baseline previo a esta fase verificado:
+`tsc` 0 errores, **155 tests** en verde, `next build` OK.
+
+### 14.0 Reconciliación: qué ya estaba hecho (verificado, no se tocó)
+Antes de codificar se auditó el estado real. Varios puntos del objetivo **ya estaban implementados** y se conservaron intactos:
+- **Schema aditivo (§3):** `projectId`/`clientId`/`channelConfigId` ya presentes en `NormalizedConversation`, `NormalizedMessage`, `SyncJob`, `RawProviderEvent`, `AnalyticsDailyMetric`, `AnalyticsAuditLog`, `DataQualityIssue`, `AnalyticsKpiTarget`, `AnalyticsOutcomeRule`, con índices `@@index([workspaceId, projectId])`. Modelos `AnalyticsFunnel`, `AnalyticsFunnelStep`, `AnalyticsAlert` ya definidos.
+- **`buildProjectAnalyticsWhere` (§4) y scoping de mensajes (§5):** `lib/analytics/query.ts` ya fija `workspaceId` de sesión + `projectId` validado + `provider IN`/`channel IN` whitelists, ignorando query manipulada; `applyScopeToMessageWhere` acota mensajes por proyecto+proveedor.
+- **POST `outcome-rules` (§8):** ya usa `withWorkspace` + `isWorkspaceAdmin` + Zod (`RuleSchema`) + JSON nativo (`Prisma.InputJsonValue`/`Prisma.JsonNull`) + `writeAuditLog`. **Sin cambios necesarios.**
+- **KPI targets por proyecto (§9 parcial):** `kpi-targets` ya resuelve prioridad proyecto > workspace > default inline.
+
+### 14.1 Motor de alertas (§12) — NUEVO
+- **`lib/analytics/alerts/engine.ts`** — `evaluateAlerts(ctx)` **función pura** (sin red/BD). Cubre: CSAT bajo, fallback alto, FRT alto, AHT alto, escalamiento/handoff alto, caída de volumen (vs periodo anterior), sync/API fallida, errores de campaña/servicio y calidad de datos crítica. Severidad `warning`/`critical` por magnitud; `minSampleSize` evita falsos positivos con muestra chica. Umbrales `DEFAULT_ALERT_THRESHOLDS` alineados con `KPI_DEFINITIONS`, sobreescribibles.
+- **`lib/analytics/alerts/persist.ts`** — `evaluateAndPersistAlerts(scope)` carga datos reales del workspace/proyecto (periodo + periodo anterior), cuenta issues críticos de `DataQualityIssue`, errores de mensaje (`isError`), última sync fallida (`SyncJob`), computa KPIs y persiste con **DEDUP** (no recrea una alerta del mismo `type+projectId` si hay una abierta). No fatal.
+- **API `app/api/analytics/alerts/route.ts`** — `GET` (abiertas o `?resolved=1`, scoped por proyecto), `POST {action:"resolve"}` (con audit log e `updateMany` scoped por workspace) y `POST {action:"evaluate"}` (admin) que **resuelve umbrales proyecto > workspace > default** desde `AnalyticsKpiTarget` y dispara el motor.
+
+### 14.2 Sync programado endurecido (§11) — REESCRITO
+- **`lib/analytics/cron/sync.ts`** — `runScheduledSync()` ahora:
+  - **Watermark/cursor:** ventana derivada del `endDate` del último `SyncJob` completado por integración (+ solape de 30 min); backfill por defecto si nunca se sincronizó.
+  - **Ciclo de vida de `SyncJob`:** crea registro `running` → `completed`/`failed` con `recordsInserted`, `errorMessage` (truncado, sin credenciales) y `finishedAt`.
+  - **Reintentos:** hasta `MAX_ATTEMPTS=2` con backoff; contadores `inserted`/`failed`/`attempts`.
+  - **Alertas post-sync:** invoca `evaluateAndPersistAlerts` por workspace afectado, incluida la señal de sync fallida.
+  - Logs seguros (nunca token/credencial/payload).
+- **`app/api/cron/analytics-sync/route.ts`** — NUEVO, protegido por `verifyCronAuth` (CRON_SECRET), `maxDuration=300`.
+- **`vercel.json`** — NUEVO cron `0 5 * * *`.
+
+### 14.3 Overrides por proyecto (§9) — NUEVO helper canónico
+- **`lib/analytics/overrides.ts`** (puro): `resolveKpiThreshold`/`resolveAllKpiThresholds` (semáforos), `buildAlertThresholdsFromTargets` (deriva umbrales de alerta de las metas de KPI), `sortRulesByScope` (reglas de proyecto se evalúan **antes** que las de workspace; filtra deshabilitadas/ajenas), `mergeRoiParams` (capas ROI proyecto > workspace > default). Prioridad **proyecto > workspace > default** en todos. Cableado en `alerts` (acción `evaluate`).
+
+### 14.4 Funnels configurables (§14) — NUEVO
+- **`lib/analytics/funnels/evaluate.ts`** (puro): `evaluateConfiguredFunnel(steps, conversations)` con avance **secuencial temporal** (cada paso ocurre en/después del anterior), conversión paso-a-paso y desde el inicio, **drop-off** y **tiempo promedio entre pasos**. Condiciones: `intent | event | message_text | tag | status`. `message_text` se evalúa contra `topic`/`intent` (no-PII) porque el texto está hasheado.
+- **API `app/api/analytics/funnels/route.ts`** — `GET` evalúa el funnel configurado (`?funnelId`) o devuelve el **canónico bot→resolución como fallback** + lista de funnels disponibles; `POST`/`PATCH`/`DELETE` (admin, Zod, audit log) para CRUD de `AnalyticsFunnel`/`AnalyticsFunnelStep` (reemplazo transaccional de pasos). Scoped por workspace/proyecto.
+
+### 14.5b Pestaña "Configuración" en Proyectos > Análisis de Resultados (§10) — NUEVO
+- **API:** `GET /api/projects/[id]/analytics/sync` (NUEVO handler) — estado de configuración para miembros del workspace (ownership verificado): canales configurados, integraciones/proveedores con `connected`, últimos `SyncJob` por proveedor (estado/errores/contadores/fechas), conteo de alertas abiertas y `clientId`. No expone credenciales. El `POST` (sync manual, admin) ya existía.
+- **UI:** `components/analytics-v2/ProjectAnalyticsView.tsx` (envoltura cliente con tabs **Dashboard | Configuración**, sin duplicar el dashboard) + `components/analytics-v2/ProjectAnalyticsConfigPanel.tsx` (canales, proveedores/integraciones + estado de conexión, último sync con errores, **sync manual** con botón, alertas abiertas, accesos directos a reglas/integraciones/metas; nota de ROI/funnels/alerts/exportaciones con prioridad proyecto > workspace > default). Carga vía `@tanstack/react-query` (lint-clean).
+- La página `app/dashboard/proyectos/[id]/analisis-resultados/page.tsx` ahora renderiza `ProjectAnalyticsView` (antes `AdvancedAnalyticsDashboard` directo).
+
+### 14.5 Tests añadidos (§22)
+- **`tests/analytics-alerts.test.ts`** (7): sano→0 alertas, CSAT bajo, fallback/FRT/AHT/handoff altos, `minSampleSize`, caída de volumen, sync/DQ críticas, override de umbral.
+- **`tests/analytics-overrides.test.ts`** (9): prioridad proyecto>workspace>default, deshabilitados, mapeo metas→alertas, orden de reglas por alcance, capas ROI.
+- **`tests/analytics-funnels.test.ts`** (5): sin pasos, avance secuencial + conversión/drop-off, orden temporal estricto, tiempo entre pasos, condiciones tag/event.
+
+### 14.6 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **176 tests / 23 archivos** (155 previos + 21 nuevos) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully**; rutas `/api/cron/analytics-sync`, `/api/analytics/alerts`, `/api/analytics/funnels` registradas |
+| `npx eslint <archivos nuevos>` | ✅ **0 errores/warnings** en los archivos de esta fase |
+
+### 14.7 Archivos de esta fase
+- **NEW** `lib/analytics/alerts/engine.ts`, `lib/analytics/alerts/persist.ts`, `lib/analytics/overrides.ts`, `lib/analytics/funnels/evaluate.ts`, `app/api/cron/analytics-sync/route.ts`, `components/analytics-v2/ProjectAnalyticsView.tsx`, `components/analytics-v2/ProjectAnalyticsConfigPanel.tsx`, `tests/analytics-{alerts,overrides,funnels}.test.ts`.
+- **MOD** `lib/analytics/cron/sync.ts` (reescrito), `app/api/analytics/alerts/route.ts` (evaluate + resolve + audit), `app/api/analytics/funnels/route.ts` (eval configurable + CRUD), `app/api/projects/[id]/analytics/sync/route.ts` (+GET estado), `app/dashboard/proyectos/[id]/analisis-resultados/page.tsx` (usa `ProjectAnalyticsView`), `vercel.json` (cron).
+
+### 14.8 Prueba manual
+1. **Alertas:** con datos mock cargados, `POST /api/analytics/alerts?projectId=<id>` body `{"action":"evaluate"}` (como admin) → genera alertas según KPIs; `GET /api/analytics/alerts` lista abiertas; `POST {"action":"resolve","alertId":"..."}` las cierra (audit log).
+2. **Cron sync:** `GET /api/cron/analytics-sync` con header `Authorization: Bearer $CRON_SECRET` → crea `SyncJob` con watermark, reintentos y dispara alertas. Revisar tabla `SyncJob` y pestaña Auditoría.
+3. **Funnels:** `POST /api/analytics/funnels` (admin) con `{name, steps:[{name,orderIndex,conditionType,conditionValue}]}`; `GET /api/analytics/funnels?funnelId=<id>` devuelve conversión/drop-off/tiempo entre pasos; sin `funnelId` cae al canónico.
+
+### 14.9 Pendientes reales (no inventados, no fabricados)
+> **Actualización 2026-06-15:** §13 (agregados), §20 (`view_sensitive`) y §7 (Cari/Botmaker) de esta lista **se cerraron** en la **§15**. Lo que sigue se conserva como registro histórico; ver §15 para el estado vigente.
+
+Honestamente, lo siguiente **queda abierto** y requiere trabajo adicional (mayormente UI o decisiones de producto), documentado para no dar por cerrado lo que no lo está:
+- **§13 — Poblado de `AnalyticsDailyMetric` en dashboards:** `scripts/populate-daily-metrics.ts` agrega por workspace/project/provider/channel/fecha; falta extender a `clientId`/`channelConfigId`/`botId` por métrica y que los dashboards lean agregados históricos + día en vivo (hoy se computa en vivo, correcto pero no precalculado).
+- **§20 — `view_sensitive`:** hoy la PII se enmascara **siempre** (default seguro). El desenmascarado para roles autorizados + audit log `view_sensitive` requiere un permiso granular en el modelo de RBAC (no existe aún); pendiente de definición de producto.
+- **§7 — Endpoints reales de proveedor restantes:** Cari `indicadoresAtencion`→`AnalyticsDailyMetric`, `frasesSinRespuesta`/`errores`→calidad; Botmaker mapa `channelId→plataforma`, `intent`/`isFallback` por mensaje, agentes/campañas/funnels/tags/variables y **firma del webhook**. Marcados `TODO` exactos en los adaptadores; mock seguro entretanto. **No se inventaron endpoints.**
+- **§3 — `clientId`/`channelConfigId` a nivel de fila en ingesta:** las columnas existen e índices listos; falta poblarlas en la ingesta real (resolución por `MetaSource`/`WaPhoneSource`/canal) + backfill para aislamiento fila-a-fila entre proyectos del mismo workspace y mismo proveedor/canal.
+
+---
+
+## 15. Pendientes cerrados / pendientes externos (2026-06-15)
+
+> Esta sección **cierra** los 3 pendientes que §14.9 dejaba abiertos (§13 agregados, §20 `view_sensitive`, §7 endpoints) y precisa lo que queda como **pendiente externo** (datos/credenciales del proveedor o backfill operativo). Baseline previo: `tsc` 0, **176 tests**, build OK.
+
+### 15.1 §13 — Dashboards leen `AnalyticsDailyMetric` (agregados + día en vivo) — CERRADO
+**Diseño:** los caminos EN VIVO y AGREGADO derivan los KPIs del **mismo set de acumuladores aditivos** (`lib/analytics/daily-metrics.ts`), así sumar agregados históricos + recomputar el día en vivo da **idéntico** resultado que recomputar todo en vivo (el fallback no cambia números).
+
+- **NEW `lib/analytics/daily-metrics.ts`** (puro): `Accumulators` (23 campos aditivos), `accumulatorsFromConversations`, `accumulatorsToMetricRows`/`accumulatorsFromMetricRows` (persistencia `acc_*` ↔ acumuladores), y derivaciones `overviewKpisFromAccumulators` / `operationsSummaryFromAccumulators` / `roiFromAccumulators` (espejo exacto de la matemática de las rutas).
+- **NEW `lib/analytics/daily-metrics.server.ts`**: `getAnalyticsDataset(workspaceId, filters, scope)` →
+  - usa agregados solo si el filtro se limita a dimensiones del rollup (provider/channel/botId + rango); cualquier filtro de alta cardinalidad (agente/campaña/servicio/cola/skill/outcome/estado/tag/búsqueda) **fuerza live** (`aggregatesUsable`);
+  - lee `AnalyticsDailyMetric` (`acc_*`) para días `< hoy` con el **mismo scoping** (workspaceId de sesión + projectId/providers/canales del scope) y **suma el día actual EN VIVO**;
+  - **fallback seguro**: si no hay filas agregadas en la ventana → consulta EN VIVO completa.
+- **MOD rutas**: `overview`, `operations`, `roi` consumen `getAnalyticsDataset` y exponen `source: "aggregate" | "live"`. Las rutas anidadas por proyecto (`/api/projects/[id]/analytics/{overview,operations,roi}`) heredan vía `forwardScoped` (mismo `projectId` validado del path).
+- **MOD `scripts/populate-daily-metrics.ts`**: escribe filas `acc_*` por **workspace/project/client/provider/bot/channel/fecha**, idempotente (upsert).
+- **Tests** (`tests/analytics-daily-metrics.test.ts`, 10): acumuladores correctos, round-trip persistencia, derivaciones overview/operations/roi == live, partición por día y suma == una sola pasada, y **lector con prisma mockeado**: usa agregados cuando existen (sin tocar conversaciones en rango pasado), respeta scope (`projectId`/`provider IN`/`channel IN`), **fallback** a live sin agregados, y filtro de alta cardinalidad → live.
+
+> **Límite real (documentado):** el desglose por **cola** de `operations` (topQueuesByWait) usa una consulta ligera EN VIVO porque el rollup diario aún no lleva dimensión de cola (TODO exacto en la ruta). `uniqueUsers` no es aditivo entre días; no se sirve desde agregados.
+
+### 15.2 §20 — `view_sensitive` granular — CERRADO
+- **MOD `lib/workflow-config.ts`**: nuevo permiso `canViewSensitiveAnalytics` (interfaz `AreaPermissions` + defaults **false** en member/leader/external + Zod + `parsePerms`). **No se hereda** de `canAccessAnalytics` (permiso separado, default seguro).
+- **NEW `lib/analytics/sensitive.ts`**: `resolveViewSensitive(role, perms)` (puro: OWNER/ADMIN o el flag) + `canViewSensitive(workspaceId, userId)` (resuelve permisos efectivos igual que `/api/workspace/members/status`).
+- **MOD `app/api/analytics/conversations/route.ts`** y **`export/route.ts`**: PII **enmascarada por defecto**; con `?reveal=1` **y** permiso → identificador sin enmascarar **y** se escribe audit log `action: "view_sensitive"`. Sin permiso, `reveal` se ignora (sigue enmascarado).
+- **MOD `components/settings/PermissionsManager.tsx`**: toggle "PII sensible (Analytics)" para que OWNER/ADMIN lo concedan por área/scope.
+- **Tests** (`tests/analytics-sensitive.test.ts`, 8): resolución pura (OWNER/ADMIN siempre, member default no, member con flag sí, `canAccessAnalytics` no concede PII) y autorización con prisma mockeado (no-miembro→false, OWNER→true sin settings, member sin/with flag, workspaceId siempre el de la sesión).
+
+> **Límite real (documentado):** el permiso es a nivel **workspace** (el repo no tiene ACL por proyecto: ver proyecto = membresía del workspace). `canViewSensitive` acepta el `projectId` para el audit log y como gancho de futura granularidad por proyecto.
+
+### 15.3 §7 — Endpoints Cari/Botmaker — REVISADO (solo confirmados)
+- **Cari AI (`CariAiAnalyticsAdapter`)** — corregido a partir de campos **confirmados en `lib/crm/cari.ts`**:
+  - `indicadoresAtencion` → `AnalyticsDailyMetric` bajo claves **provider-native** `cari_total/cari_bot_only/cari_transferred/cari_attended/cari_abandoned`, **idempotente** (upsert por día/clave). **No** se pliega a `acc_*`: `indicadoresAtencion` reporta **contención** (bot-only), no **resolución** — plegarlo violaría *bot-only ≠ resuelto*. La serie nativa la consume la vista por fuente (`computeCariResults`).
+  - `frasesSinRespuesta` → `DataQualityIssue` ahora **idempotente** (dedup por frase sin resolver; antes creaba duplicados en cada sync — bug corregido).
+  - Comentario de cabecera del adaptador corregido (antes decía "TODO" sobre lo ya implementado).
+  - **Pendiente externo (TODO exacto, sin inventar):** campo id/canal de `conversaciones` cuando el reporte no lo trae; endpoints/paginación de Agentes/Servicio/Clientes/Personalizados.
+- **Botmaker (`BotmakerAnalyticsAdapter`)** — revisado, **sin cambios**: `isRealMode` (mock/real configurable) intacto; TODOs exactos y seguros para lo no confirmado (mapa `channelId→plataforma` GET /channels, `intent`/`isFallback` por mensaje vía endpoint NLU, agentes/campañas/funnels/tags, **verificación de firma del webhook ANTES de confiar el payload**). No se inventó ningún endpoint.
+- **Modo mock/real** preservado en ambos adaptadores (`lib/analytics/mode.ts`).
+
+### 15.4 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **194 tests / 25 archivos** (176 previos + 18 nuevos: daily-metrics 10, sensitive 8) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** |
+| `npx eslint <archivos de esta fase>` | ✅ **0 errores/0 warnings** |
+
+### 15.5 Archivos de esta fase
+- **NEW** `lib/analytics/daily-metrics.ts`, `lib/analytics/daily-metrics.server.ts`, `lib/analytics/sensitive.ts`, `tests/analytics-daily-metrics.test.ts`, `tests/analytics-sensitive.test.ts`.
+- **MOD** `app/api/analytics/{overview,operations,roi}/route.ts` (agregados+live), `app/api/analytics/{conversations,export}/route.ts` (`view_sensitive`), `lib/workflow-config.ts` (permiso), `components/settings/PermissionsManager.tsx` (toggle), `scripts/populate-daily-metrics.ts` (acc_*), `lib/analytics/adapters/CariAiAnalyticsAdapter.ts` (mapping confirmado + idempotencia + comentario).
+
+### 15.6 Cómo probar manualmente
+1. **Agregados:** `npx tsx scripts/populate-daily-metrics.ts` (puebla `acc_*`). Luego `GET /api/analytics/overview?days=28` → el JSON incluye `"source":"aggregate"` y los KPIs combinan días históricos (agregados) + el día actual en vivo. Sin correr el script (o con `?outcome=resolved`), `"source":"live"` (fallback). Igual para `/operations` y `/roi`, y sus variantes `/api/projects/[id]/analytics/*`.
+2. **`view_sensitive`:** como MEMBER sin permiso, `GET /api/analytics/conversations?reveal=1` → `customer` enmascarado, `revealed:false`. Concede "PII sensible (Analytics)" en Configuración → permisos, o como OWNER/ADMIN: `reveal=1` → `customer` sin enmascarar, `revealed:true`, y aparece un `view_sensitive` en la pestaña Auditoría. Igual en `GET /api/analytics/export?type=conversations&reveal=1`.
+3. **Cari real:** con credenciales `cari` conectadas y la integración de analítica en `config.mode="real"`, `POST /api/analytics/integrations/:id/sync` → revisar `AnalyticsDailyMetric` (claves `cari_*`) y `DataQualityIssue` (frases, sin duplicados al re-sincronizar).

@@ -6,6 +6,7 @@ import { scopeFromRequest } from "@/lib/analytics/project-scope.server";
 import { computeKpis } from "@/lib/analytics/kpis/engine";
 import { maskIdentifier } from "@/lib/analytics/privacy";
 import { writeAuditLog } from "@/lib/analytics/audit";
+import { canViewSensitive } from "@/lib/analytics/sensitive";
 
 type Row = Record<string, string | number | boolean | null | undefined>;
 
@@ -32,6 +33,9 @@ export const GET = withWorkspace(async (req, ctx) => {
   if (!scopeRes.ok) return apiError("Proyecto no encontrado", "NOT_FOUND", 404);
   const where = buildConversationWhere(ctx.workspaceId, filters, scopeRes.scope);
 
+  // PII enmascarada por defecto; revelar solo con ?reveal=1 + permiso view_sensitive.
+  const reveal = sp.get("reveal") === "1" && (await canViewSensitive(ctx.workspaceId, ctx.userId));
+
   let rows: Row[] = [];
 
   if (type === "kpis") {
@@ -52,7 +56,7 @@ export const GET = withWorkspace(async (req, ctx) => {
       id: c.id,
       provider: c.provider,
       channel: c.channel,
-      cliente: maskIdentifier(c.customerId),
+      cliente: reveal ? (c.customerId ?? "") : maskIdentifier(c.customerId),
       estado: c.status,
       outcome: c.outcome,
       resueltoPor: c.resolvedBy,
@@ -70,8 +74,17 @@ export const GET = withWorkspace(async (req, ctx) => {
     workspaceId: ctx.workspaceId, userId: ctx.userId, action: "export",
     resourceType: type,
     resourceId: scopeRes.scope?.projectId,
-    metadata: { format, rows: rows.length, ...(scopeRes.scope ? { projectId: scopeRes.scope.projectId } : {}) },
+    metadata: { format, rows: rows.length, revealed: reveal, ...(scopeRes.scope ? { projectId: scopeRes.scope.projectId } : {}) },
   });
+
+  // Auditoría adicional explícita cuando la exportación incluyó PII sin enmascarar.
+  if (reveal && type === "conversations") {
+    await writeAuditLog({
+      workspaceId: ctx.workspaceId, userId: ctx.userId, action: "view_sensitive",
+      resourceType: "export", resourceId: scopeRes.scope?.projectId,
+      metadata: { format, rows: rows.length },
+    });
+  }
 
   const stamp = filters.endDate.toISOString().split("T")[0];
   if (format === "json") {

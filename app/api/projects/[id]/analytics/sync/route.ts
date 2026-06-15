@@ -6,7 +6,7 @@ import prisma from "@/lib/prisma";
 import { isWorkspaceAdmin } from "@/lib/analytics/rbac";
 import { writeAuditLog } from "@/lib/analytics/audit";
 import { AnalyticsAdapterFactory } from "@/lib/analytics/adapters/AnalyticsAdapterFactory";
-import { resolveProjectScope } from "@/lib/analytics/project-scope.server";
+import { resolveProjectScope, resolveProjectScopeView } from "@/lib/analytics/project-scope.server";
 import { INTEGRATION_TO_NORMALIZED_PROVIDER, normalizeChannelName } from "@/lib/analytics/project-scope";
 
 // POST /api/projects/[id]/analytics/sync
@@ -20,6 +20,57 @@ import { INTEGRATION_TO_NORMALIZED_PROVIDER, normalizeChannelName } from "@/lib/
 // NOTA (límite real): los adapters sincronizan a nivel workspace+proveedor (las
 // tablas normalizadas aún no llevan projectId). El `channel` se valida pero el
 // adapter no filtra por canal todavía; ver plan de migración aditiva en el reporte.
+
+// GET /api/projects/[id]/analytics/sync — estado de configuración + último sync.
+// Lectura para miembros del workspace (ownership del proyecto verificado). Surte
+// la pestaña "Configuración" de Proyectos > Análisis de Resultados (canales,
+// proveedores, último sync por integración, errores). No expone credenciales.
+export const GET = withWorkspace(async (req: NextRequest, ctx) => {
+  const { id: projectId } = await ctx.params;
+  const scope = await resolveProjectScopeView(ctx.workspaceId, projectId);
+  if (!scope) return apiNotFound("Proyecto no encontrado");
+
+  const ids = await prisma.project.findUnique({
+    where: { id: projectId },
+    select: { crmIntegrationId: true, crmIntegrationIds: true },
+  });
+  const integrationIds = ids
+    ? (ids.crmIntegrationIds.length ? ids.crmIntegrationIds : ids.crmIntegrationId ? [ids.crmIntegrationId] : [])
+    : [];
+  const integrations = integrationIds.length
+    ? await prisma.integration.findMany({
+        where: { id: { in: integrationIds }, workspaceId: ctx.workspaceId },
+        select: { id: true, provider: true, connected: true },
+      })
+    : [];
+
+  // Último SyncJob por proveedor (estado/errores/contadores), sin credenciales.
+  const recentJobs = await prisma.syncJob.findMany({
+    where: { workspaceId: ctx.workspaceId, provider: { in: scope.providers.length ? scope.providers : ["__none__"] } },
+    orderBy: { startedAt: "desc" },
+    take: 20,
+    select: { id: true, provider: true, status: true, recordsInserted: true, errorMessage: true, startedAt: true, finishedAt: true, startDate: true, endDate: true },
+  });
+
+  const openAlerts = await prisma.analyticsAlert.count({
+    where: { workspaceId: ctx.workspaceId, projectId, resolved: false },
+  });
+
+  return apiSuccess({
+    projectId,
+    clientId: scope.clientId ?? null,
+    channels: scope.channels,
+    providers: scope.providers,
+    integrations: integrations.map((i) => ({
+      id: i.id,
+      provider: i.provider,
+      normalizedProvider: INTEGRATION_TO_NORMALIZED_PROVIDER[i.provider] ?? null,
+      connected: i.connected,
+    })),
+    recentJobs,
+    openAlerts,
+  });
+});
 
 const SyncBody = z.object({
   channel: z.string().optional(),

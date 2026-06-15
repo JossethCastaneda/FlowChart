@@ -21,14 +21,20 @@ import { cdmxRange, parseWallClock } from "@/lib/crm/timezone";
 //
 // MODO configurable por integración (config.mode): "mock" (default) | "real".
 //
-// CONFIRMADO e implementado: testConnection (createtoken), captura de raw del
-// reporte `conversaciones` en modo real.
+// CONFIRMADO e implementado (campos parseados en lib/crm/cari.ts):
+//   - testConnection (createtoken).
+//   - `conversaciones`: captura de raw + normalización per-fila SOLO si la fila
+//     trae `id_conversacion` y `canal` (si no, raw queda capturado, sin inventar id).
+//   - `indicadoresAtencion` (agregado diario) → AnalyticsDailyMetric con claves
+//     PROVIDER-NATIVE (`cari_*`), idempotentes. NO se pliega a las claves
+//     canónicas `acc_*`: indicadoresAtencion reporta CONTENCIÓN (bot-only), no
+//     RESOLUCIÓN por bot — plegarlo rompería la regla bot-only ≠ resuelto. La
+//     serie nativa la consume la vista por fuente (computeCariResults).
+//   - `frasesSinRespuesta` → DataQualityIssue (idempotente, dedup por frase).
 // PENDIENTE (no confirmado en el repo → TODO exacto, sin inventar):
-//   - Campo id de conversación y canal en el reporte `conversaciones` (necesarios
-//     para el upsert idempotente per-fila → hoy se captura raw, no se normaliza).
+//   - Campo id de conversación/canal en `conversaciones` cuando el reporte no lo trae.
 //   - Endpoints/paginación de ReportesAgentes, ReportesServicio (per-fila),
 //     ReportesClientes y ReportesPersonalizados.
-//   - Mapeo de `indicadoresAtencion` (agregado diario) → AnalyticsDailyMetric.
 // ============================================================================
 
 interface CariRawConversation {
@@ -178,50 +184,67 @@ export class CariAiAnalyticsAdapter implements AnalyticsProviderAdapter {
               update: { ...normalized },
             });
             recordsInserted++;
-          } catch (e) {
+          } catch {
             recordsFailed++;
           }
         }
       }
 
-      // 2. Fetch daily metrics (indicadoresAtencion) -> AnalyticsDailyMetric
+      // 2. indicadoresAtencion → AnalyticsDailyMetric (claves PROVIDER-NATIVE cari_*).
+      //    Campos confirmados en lib/crm/cari.ts. Idempotente (upsert por clave/día).
+      //    NO se mapea a acc_* (contención ≠ resolución; bot-only ≠ resuelto).
       if (creds.servicio) {
+        const num = (v: unknown): number => {
+          const n = typeof v === "number" ? v : parseFloat(String(v ?? "").replace(/[%,]/g, ""));
+          return Number.isFinite(n) ? n : 0;
+        };
         const indicadores = await fetchCariReport(creds.servicio, "indicadoresAtencion", range);
+        const byDay = new Map<string, { total: number; bot: number; transferred: number; attended: number; abandoned: number }>();
         for (const ind of indicadores) {
           const parsedDate = parseWallClock(ind.fecha);
           if (!parsedDate) continue;
-          
-          const t = typeof ind.total_conversaciones === "number" ? ind.total_conversaciones : parseFloat(String(ind.total_conversaciones ?? 0));
-          if (!isNaN(t)) {
-            const date = new Date(parsedDate.day + "T00:00:00Z");
-            // Utilizamos botId "cari_bot" como fallback si no hay bot específico
+          const d = byDay.get(parsedDate.day) || { total: 0, bot: 0, transferred: 0, attended: 0, abandoned: 0 };
+          d.total += num(ind.total_conversaciones);
+          d.bot += num(ind.atendidas_por_bot);
+          d.transferred += num(ind.conversaciones_con_transferencia_a_agente);
+          d.attended += num(ind["agente._atendidas"]);
+          d.abandoned += num(ind["cliente._canceladas"]) + num(ind.agentes_no_disponibles) +
+            num(ind["agente._no_atendidas"]) + num(ind["agente._abandono"]) + num(ind["cliente._abandono"]);
+          byDay.set(parsedDate.day, d);
+        }
+        for (const [day, d] of byDay) {
+          const date = new Date(day + "T00:00:00Z");
+          const metrics: Record<string, number> = {
+            cari_total: d.total, cari_bot_only: d.bot, cari_transferred: d.transferred,
+            cari_attended: d.attended, cari_abandoned: d.abandoned,
+          };
+          for (const [metricKey, metricValue] of Object.entries(metrics)) {
             const existing = await prisma.analyticsDailyMetric.findFirst({
-              where: { workspaceId, projectId: null, date, provider: "cari_ai", botId: "", channel: "", metricKey: "total_conversations" }
+              where: { workspaceId, projectId: null, date, provider: "cari_ai", botId: "", channel: "", metricKey },
+              select: { id: true },
             });
-            if (existing) {
-              await prisma.analyticsDailyMetric.update({
-                where: { id: existing.id },
-                data: { metricValue: t }
-              });
-            } else {
-              await prisma.analyticsDailyMetric.create({
-                data: { workspaceId, date, provider: "cari_ai", botId: "", channel: "", metricKey: "total_conversations", metricValue: t }
-              });
-            }
+            if (existing) await prisma.analyticsDailyMetric.update({ where: { id: existing.id }, data: { metricValue } });
+            else await prisma.analyticsDailyMetric.create({ data: { workspaceId, date, provider: "cari_ai", botId: "", channel: "", metricKey, metricValue } });
           }
         }
       }
 
-      // 3. Fetch errores/frases -> DataQualityIssue
+      // 3. frasesSinRespuesta → DataQualityIssue. IDEMPOTENTE: dedup por frase
+      //    (no recrea una incidencia sin resolver de la misma frase en cada sync).
       if (creds.conversaciones) {
         const frases = await fetchCariReport(creds.conversaciones, "frasesSinRespuesta", range, { status: 0 });
+        const seen = new Set<string>();
         for (const f of frases) {
           const phrase = String(f.frase_sin_respuesta || "").trim().slice(0, 100);
-          if (phrase) {
+          if (!phrase || seen.has(phrase)) continue;
+          seen.add(phrase);
+          const existing = await prisma.dataQualityIssue.findFirst({
+            where: { workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", details: phrase, resolved: false },
+            select: { id: true },
+          });
+          if (!existing) {
             await prisma.dataQualityIssue.create({
-              data: {
-                workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", severity: "warning", details: phrase
-              }
+              data: { workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", severity: "warning", details: phrase },
             });
           }
         }
