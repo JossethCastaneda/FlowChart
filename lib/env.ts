@@ -19,8 +19,13 @@ const envSchema = z.object({
   DIRECT_URL: z.string().url().optional(),
 
   // Meta (Facebook / Instagram)
-  FACEBOOK_CLIENT_ID: z.string().min(1),
-  FACEBOOK_CLIENT_SECRET: z.string().min(1),
+  // Opcionales: NO todos los entornos (p. ej. Preview) tienen estos secretos.
+  // parseEnv corre al importar y, si fueran obligatorios, romperían el build de
+  // Preview ("Failed to collect page data"). Todos los usos ya manejan ausencia
+  // (env.FACEBOOK_CLIENT_ID || "" / guards if(!x)). Coincide con el resto de
+  // vars de Meta, ya opcionales.
+  FACEBOOK_CLIENT_ID: z.string().min(1).optional(),
+  FACEBOOK_CLIENT_SECRET: z.string().min(1).optional(),
   META_API_VERSION: z.string().default("v22.0"),
   META_WEBHOOK_VERIFY_TOKEN: z.string().min(1).optional(),
 
