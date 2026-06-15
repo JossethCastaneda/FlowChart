@@ -1,9 +1,11 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
+import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { ACTIVE_WORKSPACE_COOKIE } from "@/lib/active-workspace";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+
+const RequestSchema = z.object({ workspaceId: z.string().min(1, "Workspace ID required") });
 
 export async function POST(req: NextRequest) {
     try {
@@ -65,5 +67,3 @@ export async function POST(req: NextRequest) {
     );
     }
 }
-
-let RequestSchema = z.object({ workspaceId: z.string().min(1, "Workspace ID required") });

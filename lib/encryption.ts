@@ -81,6 +81,6 @@ export function decryptToken(encryptedText: string | null | undefined): string {
     return decrypted;
   } catch (err) {
     console.error("[ENCRYPTION] Failed to decrypt token:", err);
-    return encryptedText; // Return encrypted string if decryption fails
+    throw new Error("[ENCRYPTION] Decryption failed. Cannot retrieve token.");
   }
 }
