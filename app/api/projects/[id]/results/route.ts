@@ -52,7 +52,10 @@ const PROVIDER_LABELS: Record<string, string> = {
 async function botmakerSegment(workspaceId: string, integrationId: string, days: number): Promise<SourceSegment> {
   const base: SourceSegment = { source: "botmaker", label: "Botmaker", integrationId, connected: false, data: null };
   const conn = await getBotmakerConnection(workspaceId);
-  if (!conn) return { ...base, data: emptyBotmakerData() };
+  if (!conn) {
+    logger.warn("project results: botmaker sin conexión (token ausente/no descifrable)", { workspaceId, integrationId });
+    return { ...base, data: emptyBotmakerData() };
+  }
 
   const range = cdmxRange(days);
   try {
@@ -116,8 +119,17 @@ async function cariSegment(workspaceId: string, integrationId: string, days: num
   const base: SourceSegment = { source: "cari", label: "Cari AI", integrationId, connected: false, data: EMPTY_CARI_RESULTS };
   try {
     const creds = await getCariCredentials(workspaceId);
-    if (!creds) return base;
+    if (!creds) {
+      logger.warn("project results: cari sin credenciales (token no descifrable o JSON inválido)", { workspaceId, integrationId });
+      return base;
+    }
     const results = await computeCariResults(creds, days);
+    logger.info("project results: cari ok", {
+      workspaceId,
+      integrationId,
+      credentialGroups: Object.keys(creds as Record<string, unknown>),
+      conversations: (results as { totals?: { conversations?: number } })?.totals?.conversations ?? null,
+    });
     return { ...base, connected: true, data: results };
   } catch (error) {
     logger.error("project results: cari segment failed", { workspaceId, error });
