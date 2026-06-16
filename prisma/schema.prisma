@@ -1092,3 +1092,21 @@ model AnalyticsAlert {
   @@index([workspaceId, projectId])
   @@index([workspaceId, resolved])
 }
+
+// ------------------------------------------------------
+// INTEGRATION ASSETS CACHE
+// ------------------------------------------------------
+model IntegrationAssetCache {
+  id            String   @id @default(cuid())
+  integrationId String
+  workspaceId   String
+  provider      String   // "meta", "google", "botmaker"
+  assetType     String   // "ad_account", "bot", "page", "ig_account"
+  externalId    String   // ID de la cuenta en la plataforma origen
+  name          String
+  metadata      Json     // Estructura variable (roles, spend, tokens)
+  syncedAt      DateTime @default(now())
+
+  @@unique([integrationId, assetType, externalId])
+  @@index([workspaceId, assetType])
+}

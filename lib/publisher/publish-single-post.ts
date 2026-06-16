@@ -2,18 +2,23 @@ import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
 import { publishPostToMeta } from "@/lib/publisher/publish-to-meta";
 
-// Una entrega atascada (crash/timeout sin liberar el lock) se reclama
-// pasados estos ms, para que un reintento pueda retomarla.
+type IntegrationCredentials = {
+  accessToken?: unknown;
+};
+
 const STALE_LOCK_MS = 5 * 60 * 1000;
 
+function getErrorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 /**
- * Publica un único post programado. Idempotente ante la entrega "at-least-once".
- * Reclama el post de forma atómica (Scheduled/Failed → Publishing)
- * antes de tocar Meta; una segunda entrega concurrente no pasa el claim.
- * Un lock "Publishing" viejo (crash/timeout) se reclama tras STALE_LOCK_MS.
+ * Publishes one scheduled post. The optional schedule token makes old Workflow
+ * runs harmless after a post is rescheduled, deleted, or published manually.
  */
 export async function publishSinglePost(
-  postId: string
+  postId: string,
+  expectedScheduleToken?: string
 ): Promise<{ id: string; status: string; error?: string }> {
   const post = await prisma.scheduledPost.findUnique({ where: { id: postId } });
 
@@ -25,11 +30,19 @@ export async function publishSinglePost(
     return { id: postId, status: "Published" };
   }
 
-  // ── Claim atómico (anti doble-publicación) ──
+  if (expectedScheduleToken && post.qStashMessageId !== expectedScheduleToken) {
+    return {
+      id: postId,
+      status: "Skipped",
+      error: "Skipped: schedule superseded",
+    };
+  }
+
   const staleBefore = new Date(Date.now() - STALE_LOCK_MS);
   const claim = await prisma.scheduledPost.updateMany({
     where: {
       id: postId,
+      ...(expectedScheduleToken ? { qStashMessageId: expectedScheduleToken } : {}),
       OR: [
         { status: { in: ["Scheduled", "Failed"] } },
         { status: "Publishing", updatedAt: { lt: staleBefore } },
@@ -39,75 +52,79 @@ export async function publishSinglePost(
   });
 
   if (claim.count === 0) {
-    // Otra entrega ya lo tomó o ya se publicó; no republicamos.
     const current = await prisma.scheduledPost.findUnique({ where: { id: postId } });
     return {
       id: postId,
       status: current?.status ?? "Unknown",
-      error: "Skipped: ya en proceso o publicado",
+      error: "Skipped: already publishing or published",
     };
   }
 
+  const claimedPost = await prisma.scheduledPost.findUnique({ where: { id: postId } });
+  if (!claimedPost) {
+    return { id: postId, status: "Failed", error: "Post not found after claim" };
+  }
+
   try {
-    // Token a nivel de workspace (el worker no tiene sesión de usuario).
     const integration = await prisma.integration.findUnique({
       where: {
         workspaceId_provider_userId: {
-          workspaceId: post.workspaceId,
+          workspaceId: claimedPost.workspaceId,
           provider: "meta",
           userId: "workspace",
         },
       },
     });
 
-    if (!integration?.connected || !(integration.credentials as any)?.accessToken) {
+    const credentials = integration?.credentials as IntegrationCredentials | null;
+    if (!integration?.connected || typeof credentials?.accessToken !== "string") {
       await prisma.scheduledPost.update({
-        where: { id: post.id },
+        where: { id: claimedPost.id },
         data: { status: "Failed", error: "No Meta token found for workspace" },
       });
-      return { id: post.id, status: "Failed", error: "No token" };
+      return { id: claimedPost.id, status: "Failed", error: "No token" };
     }
 
-    const accessToken = decryptToken((integration.credentials as any).accessToken);
+    const accessToken = decryptToken(credentials.accessToken);
     if (!accessToken || accessToken.startsWith("enc:")) {
       await prisma.scheduledPost.update({
-        where: { id: post.id },
+        where: { id: claimedPost.id },
         data: { status: "Failed", error: "Meta token could not be decrypted" },
       });
-      return { id: post.id, status: "Failed", error: "Invalid token" };
+      return { id: claimedPost.id, status: "Failed", error: "Invalid token" };
     }
 
-    // Publicamos YA (modo "now").
     const { externalIds, errors, targetPage } = await publishPostToMeta({
-      post,
+      post: claimedPost,
       accessToken,
       mode: "now",
     });
 
     const hasSuccess = Object.keys(externalIds).length > 0;
     await prisma.scheduledPost.update({
-      where: { id: post.id },
+      where: { id: claimedPost.id },
       data: {
         status: hasSuccess ? "Published" : "Failed",
         publishedAt: hasSuccess ? new Date() : null,
         externalIds,
-        pageName: targetPage?.name ?? post.pageName,
-        pageId: targetPage?.id ?? post.pageId,
+        pageName: targetPage?.name ?? claimedPost.pageName,
+        pageId: targetPage?.id ?? claimedPost.pageId,
         error: errors.length > 0 ? errors.join(" | ") : null,
+        qStashMessageId: hasSuccess ? null : undefined,
       },
     });
 
     return {
-      id: post.id,
+      id: claimedPost.id,
       status: hasSuccess ? "Published" : "Failed",
       error: errors.length > 0 ? errors.join(" | ") : undefined,
     };
-  } catch (postErr: any) {
-    // Liberamos el lock dejándolo en Failed para que se pueda reintentar.
+  } catch (error) {
+    const message = getErrorMessage(error);
     await prisma.scheduledPost.update({
-      where: { id: post.id },
-      data: { status: "Failed", error: postErr.message },
+      where: { id: claimedPost.id },
+      data: { status: "Failed", error: message },
     });
-    return { id: post.id, status: "Failed", error: postErr.message };
+    return { id: claimedPost.id, status: "Failed", error: message };
   }
 }

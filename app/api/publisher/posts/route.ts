@@ -4,20 +4,23 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { start } from "workflow/api";
-import { publishPostWorkflow } from "@/workflows/publish-post";
+import type { Prisma } from "@prisma/client";
+import {
+  startPublishWorkflowSchedule,
+  validatePublisherScheduledAt,
+} from "@/lib/publisher/schedule";
+import { logger } from "@/lib/logger";
 
-// GET /api/publisher/posts — list posts for workspace
+// GET /api/publisher/posts - list posts for workspace
 export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const { searchParams } = new URL(req.url);
-  const status = searchParams.get("status"); // comma-separated: "Draft,Scheduled"
+  const status = searchParams.get("status");
   const channel = searchParams.get("channel");
   const limit = parseInt(searchParams.get("limit") || "100", 10);
 
-  const where: any = { workspaceId: ctx.workspaceId };
+  const where: Prisma.ScheduledPostWhereInput = { workspaceId: ctx.workspaceId };
   if (status) {
-    const statuses = status.split(",").map((s) => s.trim());
-    where.status = { in: statuses };
+    where.status = { in: status.split(",").map((s) => s.trim()) };
   }
   if (channel) {
     where.channels = { has: channel };
@@ -32,24 +35,25 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   return apiSuccess({ posts });
 });
 
-// POST /api/publisher/posts — create a new post
+// POST /api/publisher/posts - create a new post
 export const POST = withWorkspace(async (req: NextRequest, ctx) => {
-  const _validate = await validateBody(req, z.object({
-    content: z.string().min(1, "El contenido es obligatorio").optional(), // Need optional so we can manually check and return specific message for backward compatibility if needed, but actually let's use zod.
-    channels: z.array(z.string()).min(1, "Selecciona al menos un canal"),
-    mediaUrls: z.array(z.string()).optional(),
-    scheduledAt: z.string().optional(),
-    status: z.string().optional(),
-    type: z.string().optional(),
-    hashtags: z.array(z.string()).optional(),
-    projectId: z.string().optional(),
-    pageName: z.string().optional(),
-    pageId: z.string().optional(),
-  }));
+  const parsed = await validateBody(
+    req,
+    z.object({
+      content: z.string().min(1, "El contenido es obligatorio").optional(),
+      channels: z.array(z.string()).min(1, "Selecciona al menos un canal"),
+      mediaUrls: z.array(z.string()).optional(),
+      scheduledAt: z.string().optional(),
+      status: z.string().optional(),
+      type: z.string().optional(),
+      hashtags: z.array(z.string()).optional(),
+      projectId: z.string().optional(),
+      pageName: z.string().optional(),
+      pageId: z.string().optional(),
+    })
+  );
 
-  if (!_validate.ok) return _validate.response;
-  const body = _validate.data;
-
+  if (!parsed.ok) return parsed.response;
   const {
     content,
     channels,
@@ -61,7 +65,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     projectId,
     pageName,
     pageId,
-  } = body;
+  } = parsed.data;
 
   if (!content || content.trim().length < 1) {
     return apiError("El contenido es obligatorio", "VALIDATION_ERROR", 400);
@@ -69,18 +73,12 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
 
   const validStatus = status || "Draft";
   if (validStatus === "Scheduled" && !scheduledAt) {
-    return apiError("Fecha de publicación es obligatoria para programar", "VALIDATION_ERROR", 400);
+    return apiError("Fecha de publicacion es obligatoria para programar", "VALIDATION_ERROR", 400);
   }
 
   if (validStatus === "Scheduled" && scheduledAt) {
-    const scheduleDate = new Date(scheduledAt);
-    const diffMin = (scheduleDate.getTime() - Date.now()) / (1000 * 60);
-    if (diffMin < 11) {
-      return apiError("Meta requiere programar con al menos 11 minutos de antelación", "VALIDATION_ERROR", 400);
-    }
-    if (diffMin > (75 * 24 * 60)) {
-      return apiError("Meta permite programar hasta un máximo de 75 días", "VALIDATION_ERROR", 400);
-    }
+    const scheduleError = validatePublisherScheduledAt(new Date(scheduledAt));
+    if (scheduleError) return apiError(scheduleError, "VALIDATION_ERROR", 400);
   }
 
   const post = await prisma.scheduledPost.create({
@@ -88,7 +86,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       workspaceId: ctx.workspaceId,
       userId: ctx.userId,
       content: content.trim(),
-      channels: channels || [],
+      channels,
       mediaUrls: mediaUrls || [],
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       status: validStatus,
@@ -100,21 +98,23 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     },
   });
 
-  // Schedule to Vercel Workflow if it's a scheduled post
   if (post.status === "Scheduled" && post.scheduledAt) {
     try {
-      const delaySeconds = Math.max(0, Math.floor((post.scheduledAt.getTime() - Date.now()) / 1000));
-      const { runId } = await start(publishPostWorkflow, [post.id, delaySeconds]);
-      
+      const scheduleToken = await startPublishWorkflowSchedule(post.id, post.scheduledAt);
       const scheduled = await prisma.scheduledPost.update({
         where: { id: post.id },
-        data: { qStashMessageId: runId, error: null }, // Reusing the column for the workflow run ID
+        data: { qStashMessageId: scheduleToken, error: null },
       });
       return apiSuccess({ post: scheduled }, 201);
     } catch (error) {
-      console.error("[WORKFLOW_ERROR] Failed to start workflow:", error);
+      logger.error("Failed to start publisher workflow", {
+        route: "api/publisher/posts",
+        postId: post.id,
+        workspaceId: ctx.workspaceId,
+        error,
+      });
       const warning =
-        "El post se guardó, pero no se pudo programar el workflow de publicación. Revisa los logs o publícalo manualmente.";
+        "El post se guardo, pero no se pudo programar el workflow de publicacion. Revisa los logs o publicalo manualmente.";
       const broken = await prisma.scheduledPost.update({
         where: { id: post.id },
         data: { error: warning },

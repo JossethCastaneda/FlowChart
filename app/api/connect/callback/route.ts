@@ -3,8 +3,11 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
-import { validateModulePermissions } from "@/lib/meta-scopes";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { env } from "@/lib/env";
+import { start } from "workflow/api";
+import { syncIntegrationAssetsWorkflow } from "@/workflows/sync-integration-assets";
+import { validateModulePermissions } from "@/lib/meta-scopes";
 
 const META_API_VERSION = env.META_API_VERSION || "v25.0";
 const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
@@ -252,7 +255,7 @@ export async function GET(request: NextRequest) {
     });
 
     // Also update the generic "meta" integration so all modules can use it as fallback
-    await prisma.integration.upsert({
+    const metaIntegration = await prisma.integration.upsert({
       where: {
         workspaceId_provider_userId: {
           workspaceId: resolvedWorkspaceId,
@@ -289,6 +292,14 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
+
+    // Dispatch background sync workflow to cache assets immediately
+    try {
+      await start(syncIntegrationAssetsWorkflow, [metaIntegration.id]);
+      console.log(`[CONNECT CALLBACK] ⚡ Dispatched asset sync for integration ${metaIntegration.id}`);
+    } catch (syncErr) {
+      console.error("[CONNECT CALLBACK] ❌ Failed to dispatch sync workflow:", syncErr);
+    }
 
     // Always redirect to /connect/done — it handles popup close OR fallback navigation
     return NextResponse.redirect(`${baseUrl}/connect/done?module=${module}`);

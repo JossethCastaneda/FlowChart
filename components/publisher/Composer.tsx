@@ -423,15 +423,8 @@ export function Composer() {
       });
       const createData = await res.json();
       if (!res.ok) { throw new Error(createData.error || "Error al registrar la programación."); }
-      const { post } = createData;
-
-      if (format === "post" && post.channels.includes("facebook")) {
-        // Trigger native Facebook scheduling immediately
-        await fetch("/api/publisher/publish", {
-          method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ postId: post.id }),
-        }).catch(err => console.error("Native FB schedule error:", err));
-      }
+      const post = createData.data?.post;
+      if (!post) throw new Error("Error al registrar la programacion.");
 
       const scheduleDate = new Intl.DateTimeFormat("es-MX", { dateStyle: "medium", timeStyle: "short" }).format(new Date(scheduledAt));
       setBanner({ type: "success", message: `Salto orbital programado para el marco: ${scheduleDate}` });
@@ -456,7 +449,8 @@ export function Composer() {
       });
       const createData = await createRes.json();
       if (!createRes.ok) throw new Error(createData.error || "Error creando post");
-      const { post } = createData;
+      const post = createData.data?.post;
+      if (!post) throw new Error("Error creando post");
 
       // ── Step 2: Publish via correct endpoint based on format ──
       let pubEndpoint = "/api/publisher/publish";
@@ -535,20 +529,21 @@ export function Composer() {
           const detail = pubData.error || "Error al desplegar mensaje en redes.";
           throw new Error(detail);
         }
+        const publishPayload = pubData.data || pubData;
 
         // First comment for IG
         if (
           firstComment.trim() &&
-          pubData.published?.instagram &&
+          publishPayload.published?.instagram &&
           format === "post"
         ) {
           await fetch("/api/publisher/first-comment", {
             method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ mediaId: pubData.published.instagram, comment: firstComment }),
+            body: JSON.stringify({ mediaId: publishPayload.published.instagram, comment: firstComment }),
           }).catch(() => {});
         }
 
-        if (pubData.status === "Processing") {
+        if (publishPayload.status === "Processing") {
           setBanner({ type: "success", message: "Video en procesamiento — se publicará en segundos en background." });
         } else {
           setBanner({ type: "success", message: "¡Transmisión Ejecutada! La señal está en vivo." });

@@ -23,6 +23,11 @@ export interface PublisherPost {
   updatedAt: string;
 }
 
+type ApiEnvelope<T> = {
+  data?: T;
+  error?: string;
+};
+
 interface PublisherStore {
   posts: PublisherPost[];
   isLoading: boolean;
@@ -46,8 +51,8 @@ export const usePublisherStore = create<PublisherStore>((set, get) => ({
       const params = status ? `?status=${status}` : "";
       const res = await fetch(`/api/publisher/posts${params}`);
       if (!res.ok) throw new Error("Failed to fetch posts");
-      const data = await res.json();
-      set({ posts: data.posts || [], isLoading: false });
+      const json = (await res.json()) as ApiEnvelope<{ posts?: PublisherPost[] }>;
+      set({ posts: json.data?.posts || [], isLoading: false });
     } catch (err: any) {
       set({ error: err.message, isLoading: false });
     }
@@ -61,10 +66,12 @@ export const usePublisherStore = create<PublisherStore>((set, get) => ({
         body: JSON.stringify(data),
       });
       if (!res.ok) {
-        const err = await res.json();
+        const err = (await res.json()) as ApiEnvelope<unknown>;
         throw new Error(err.error || "Failed to create post");
       }
-      const { post } = await res.json();
+      const json = (await res.json()) as ApiEnvelope<{ post?: PublisherPost }>;
+      const post = json.data?.post;
+      if (!post) throw new Error("Failed to create post");
       set((s) => ({ posts: [post, ...s.posts] }));
       return post;
     } catch (err: any) {
@@ -81,7 +88,9 @@ export const usePublisherStore = create<PublisherStore>((set, get) => ({
         body: JSON.stringify(data),
       });
       if (!res.ok) throw new Error("Failed to update post");
-      const { post } = await res.json();
+      const json = (await res.json()) as ApiEnvelope<{ post?: PublisherPost }>;
+      const post = json.data?.post;
+      if (!post) throw new Error("Failed to update post");
       set((s) => ({ posts: s.posts.map((p) => (p.id === id ? post : p)) }));
       return post;
     } catch (err: any) {
