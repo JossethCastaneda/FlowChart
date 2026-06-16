@@ -6,7 +6,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { resolveProjectScopeView } from "@/lib/analytics/project-scope.server";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PermissionGuard } from "@/components/layout/PermissionsContext";
-import { AdvancedAnalyticsDashboard } from "@/components/analytics-v2/AdvancedAnalyticsDashboard";
+import { ProjectAnalyticsView } from "@/components/analytics-v2/ProjectAnalyticsView";
 import { BarChart2, ArrowLeft, MessageSquareShare, PlugZap } from "lucide-react";
 
 export const dynamic = "force-dynamic";
@@ -77,9 +77,9 @@ export default async function ProjectAnalisisResultadosPage({
         {header}
         <EmptyConfig
           icon={<PlugZap className="w-12 h-12" />}
-          title="Sin integraciones de analytics"
-          description="Este proyecto tiene canales configurados, pero aún no hay integraciones de analytics activas."
-          ctaLabel="Configurar integración"
+          title="Falta asociar una plataforma de bot"
+          description="Este proyecto tiene canales, pero no tiene una integración Cari AI/Botmaker asociada. Edita el proyecto y elige la plataforma analítica (bot) para ver métricas."
+          ctaLabel="Asociar Cari AI o Botmaker"
           ctaHref={backHref}
         />
       </div>
@@ -104,7 +104,7 @@ export default async function ProjectAnalisisResultadosPage({
     <PermissionGuard permKey="canAccessAnalytics" fallback={permissionDenied}>
       <div className="space-y-6">
         {header}
-        <AdvancedAnalyticsDashboard
+        <ProjectAnalyticsView
           projectId={scope.projectId}
           clientId={scope.clientId}
           availableChannels={scope.channels}

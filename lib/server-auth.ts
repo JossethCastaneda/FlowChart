@@ -4,9 +4,11 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { decryptToken } from "@/lib/encryption";
 
+import { env } from "./env";
+
 /** Centralized Meta Graph API version — use this everywhere, never hardcode */
-export const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+export const META_API_VERSION = env.META_API_VERSION;
+const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
 
 /**
  * Module-to-provider mapping for config_id-specific tokens.

@@ -9,16 +9,16 @@
       "schedule": "0 15 * * *"
     },
     {
-      "path": "/api/cron/publish-scheduled",
-      "schedule": "0 6 * * *"
-    },
-    {
       "path": "/api/meta/refresh-token",
       "schedule": "0 3 */7 * *"
     },
     {
       "path": "/api/cron/sync-insights",
       "schedule": "0 4 * * *"
+    },
+    {
+      "path": "/api/cron/analytics-sync",
+      "schedule": "0 5 * * *"
     }
   ]
 }

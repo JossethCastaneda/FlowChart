@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
 
     // Generar token
     const token = crypto.randomBytes(32).toString("hex");
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
     const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hora
 
     // Eliminar tokens previos para este email
@@ -53,7 +54,7 @@ export async function POST(req: NextRequest) {
     await prisma.verificationToken.create({
       data: {
         identifier: normalizedEmail,
-        token,
+        token: tokenHash,
         expires,
       },
     });
@@ -62,53 +63,12 @@ export async function POST(req: NextRequest) {
     const baseUrl = getBaseUrl();
     const resetUrl = `${baseUrl}/reset-password/${token}`;
 
-    // Enviar email si Resend está configurado
-    if (process.env.RESEND_API_KEY) {
-      try {
-        const templateId = process.env.RESEND_TEMPLATE_PASSWORD_RESET;
-        const fromEmail = process.env.RESEND_FROM_EMAIL || "SODARE <onboarding@resend.dev>";
-
-        const emailPayload: Record<string, unknown> = {
-          from: fromEmail,
-          to: [normalizedEmail],
-        };
-
-        if (templateId) {
-          // Resend API requires "template" object, NOT "template_id"
-          emailPayload.template = {
-            id: templateId,
-            variables: {
-              NAME: user.name || "usuario",
-              RESET_URL: resetUrl,
-            },
-          };
-        } else {
-          // Fallback: HTML inline
-          emailPayload.subject = "Recuperar contraseña — SODARE";
-          emailPayload.html = (await import("@/lib/email-templates")).getPasswordResetEmailHtml({
-            userName: user.name || "usuario",
-            resetUrl,
-          });
-        }
-
-        const res = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          },
-          body: JSON.stringify(emailPayload),
-        });
-        if (!res.ok) {
-          console.error("[FORGOT-PASSWORD] Resend error:", await res.text());
-        }
-      } catch (emailErr) {
-        console.error("[FORGOT-PASSWORD] Email send error:", emailErr);
-      }
-    } else {
-      // Sin Resend configurado — log the URL for debugging
-      console.log("[FORGOT-PASSWORD] Reset URL (no email provider):", resetUrl);
-    }
+    const { sendPasswordResetEmail } = await import("@/lib/email");
+    await sendPasswordResetEmail({
+      to: normalizedEmail,
+      userName: user.name || "usuario",
+      resetUrl,
+    });
 
     return NextResponse.json({ success: true });
   } catch (err: any) {

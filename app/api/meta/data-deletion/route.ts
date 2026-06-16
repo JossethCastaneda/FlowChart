@@ -3,6 +3,7 @@ import crypto from "crypto";
 import prisma from "@/lib/prisma";
 import { verifySignedRequest } from "@/lib/meta-signed-request";
 import { deleteMetaDataForUser } from "@/lib/meta-data-deletion";
+import { env } from "@/lib/env";
 
 /**
  * Meta Data Deletion Request Callback
@@ -22,7 +23,7 @@ import { deleteMetaDataForUser } from "@/lib/meta-data-deletion";
  * - Returns the confirmation code so the user can track status
  */
 
-const APP_URL = process.env.NEXTAUTH_URL || process.env.NEXT_PUBLIC_APP_URL || "https://sodare.xyz";
+const APP_URL = env.NEXTAUTH_URL || env.NEXT_PUBLIC_APP_URL || "https://sodare.xyz";
 
 export async function POST(req: NextRequest) {
   // Fallback code in case DB insert fails — always return something to Meta
@@ -33,7 +34,7 @@ export async function POST(req: NextRequest) {
     const signedRequest = body?.get("signed_request") as string | null;
 
     let metaUserId = "unknown";
-    const appSecret = process.env.FACEBOOK_CLIENT_SECRET;
+    const appSecret = env.FACEBOOK_CLIENT_SECRET;
 
     if (signedRequest && appSecret) {
       const decoded = verifySignedRequest(signedRequest, appSecret);

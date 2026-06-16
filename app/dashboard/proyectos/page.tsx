@@ -12,6 +12,7 @@ import {
   FolderKanban, Plus, X, Users, Globe, DollarSign, Target, Rocket,
   Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown, AlertTriangle, CheckCircle
 } from "lucide-react";
+import { normalizeIntegrationProvider, PROVIDER_LABELS } from "@/lib/analytics/project-scope";
 
 /* ═══════════════════════════════════════
    TYPES
@@ -36,6 +37,7 @@ interface Project {
   fanpage: string[];
   instagram: string[];
   whatsapp: string[];
+  webchat: string[];
   website: string;
   channels: ChannelConfig[];
   dateStart: string;
@@ -47,6 +49,7 @@ interface Project {
   createdAt: string;
   updatedAt?: string;
   crmIntegrationId?: string | null;
+  crmIntegrationIds?: string[];
   crmType?: string | null;
 }
 
@@ -64,7 +67,7 @@ interface MetaPage {
 
 const EMPTY_PROJECT: Omit<Project, "id" | "createdAt"> = {
   alias: "", client: "", vertical: "", fanpage: [], instagram: [],
-  whatsapp: [], website: "", channels: [],
+  whatsapp: [], webchat: [], website: "", channels: [],
   dateStart: "", dateEnd: "", persona: "", geo: "",
   status: "Draft",
 };
@@ -90,6 +93,22 @@ const GOALS = [
   "Ventas (Purchase)", "Registros", "Descargas app", "Video views",
   "Alcance (Reach)", "Tráfico a tienda",
 ];
+
+// Canales de bot disponibles por Plataforma Analítica. Al elegir la plataforma,
+// el formulario solo ofrece SUS canales (Cari/Botmaker → WhatsApp + Web Chat).
+// Facebook/Instagram NO se filtran por plataforma: son cuentas Meta independientes
+// (van siempre en "Redes Sociales"). Google maneja Web Chat + tráfico de landing
+// (GA4/GTM/Ads) en la pestaña "Análisis de Tráfico" del proyecto.
+const BOT_PLATFORM_CHANNELS: Record<string, ("whatsapp" | "webchat")[]> = {
+  cari_ai: ["whatsapp", "webchat"],
+  botmaker: ["whatsapp", "webchat"],
+  // Google: solo Web Chat aquí; el tráfico de landing (GA4/GTM/Ads) se ve en la
+  // pestaña "Análisis de Tráfico" del proyecto.
+  google: ["webchat"],
+};
+
+/** Valor centinela del selector para elegir "Google" (no es una Integration). */
+const GOOGLE_PLATFORM = "__google__";
 const CPR_MAP: Record<string, string> = {
   "Conversaciones": "Costo / conversación",
   "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
@@ -1003,6 +1022,36 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
 
   useEffect(() => { setMounted(true); }, []);
 
+  // Integraciones ANALÍTICAS reales del workspace (provider → botmaker | cari_ai).
+  // No incluye custom_crm/hubspot: no son compatibles con Análisis de Resultados.
+  const analyticsIntegrations = activeIntegrations.filter((i) => normalizeIntegrationProvider(i.provider) !== null);
+
+  // Plataforma analítica seleccionada → canales de bot que ofrece el formulario.
+  // Sin plataforma elegida se muestran los comunes (WhatsApp + Web Chat).
+  const isGooglePlatform = form.crmType === "google" && !(form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds.length));
+  const selectedBotProvider = (() => {
+    if (isGooglePlatform) return "google";
+    const selId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
+    const intg = analyticsIntegrations.find((i) => i.id === selId);
+    return intg ? normalizeIntegrationProvider(intg.provider) : null;
+  })();
+  const botChannels = selectedBotProvider
+    ? BOT_PLATFORM_CHANNELS[selectedBotProvider] ?? ["whatsapp", "webchat"]
+    : (["whatsapp", "webchat"] as ("whatsapp" | "webchat")[]);
+  const showWhatsapp = botChannels.includes("whatsapp");
+  const showWebchat = botChannels.includes("webchat");
+
+  // Sugerir/autoseleccionar cuando hay EXACTAMENTE una integración analítica y
+  // el proyecto nuevo aún no tiene ninguna asociada. Con varias, selección manual.
+  useEffect(() => {
+    if (mode === "view") return;
+    if (analyticsIntegrations.length === 1 && !form.crmIntegrationId && !(form.crmIntegrationIds && form.crmIntegrationIds.length)) {
+      const only = analyticsIntegrations[0];
+      setForm((prev) => ({ ...prev, crmIntegrationId: only.id, crmIntegrationIds: [only.id], crmType: only.provider }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeIntegrations.length]);
+
   function set(k: string, v: string) {
     setForm(prev => ({ ...prev, [k]: v }));
     setErrors(prev => prev.filter(e => e !== k));
@@ -1113,23 +1162,64 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
               />
             } />
             <Field l="Plataforma Analítica (Bot)" el={
-              <select 
-                value={form.crmIntegrationId || ""} 
-                onChange={e => {
-                  const sel = e.target.value;
-                  const intg = activeIntegrations.find(i => i.id === sel);
-                  setForm(prev => ({ ...prev, crmIntegrationId: sel || null, crmType: intg ? intg.provider : null }));
-                }}
-                disabled={ro}
-                style={{ ...inp, appearance: "auto" }}
-              >
-                <option value="">Ninguna</option>
-                {activeIntegrations.filter(i => ["botmaker", "custom_crm", "hubspot"].includes(i.provider)).map(i => (
-                  <option key={i.id} value={i.id}>
-                    {i.provider === "botmaker" ? "BotMaker" : i.provider === "custom_crm" ? "CRM Custom (vía API)" : i.provider}
-                  </option>
-                ))}
-              </select>
+              (() => {
+                const selectedId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
+                const selectValue = isGooglePlatform ? GOOGLE_PLATFORM : selectedId;
+                const hasChannel = (form.whatsapp?.length || 0) > 0 || (form.instagram?.length || 0) > 0 || (form.fanpage?.length || 0) > 0;
+                const showNeedsBotWarning = hasChannel && !selectValue;
+                return (
+                  <div>
+                    <select
+                      value={selectValue}
+                      onChange={e => {
+                        const sel = e.target.value;
+                        if (sel === GOOGLE_PLATFORM) {
+                          // Google no es una Integration: se marca por crmType y
+                          // su analítica vive en la pestaña "Análisis de Tráfico".
+                          setForm(prev => ({ ...prev, crmIntegrationId: null, crmIntegrationIds: [], crmType: "google" }));
+                          return;
+                        }
+                        const intg = analyticsIntegrations.find(i => i.id === sel);
+                        setForm(prev => ({
+                          ...prev,
+                          crmIntegrationId: sel || null,
+                          crmIntegrationIds: sel ? [sel] : [],
+                          crmType: intg ? intg.provider : null,
+                        }));
+                      }}
+                      disabled={ro}
+                      style={{ ...inp, appearance: "auto" }}
+                    >
+                      <option value="">Ninguna</option>
+                      {analyticsIntegrations.map(i => {
+                        const norm = normalizeIntegrationProvider(i.provider) as string;
+                        return (
+                          <option key={i.id} value={i.id}>
+                            {PROVIDER_LABELS[norm] || (norm === "cari_ai" ? "Cari AI" : norm === "botmaker" ? "Botmaker" : i.provider)}
+                          </option>
+                        );
+                      })}
+                      <option value={GOOGLE_PLATFORM}>Google (Web Chat + Landing)</option>
+                    </select>
+                    {!ro && analyticsIntegrations.length === 0 && (
+                      <p style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>
+                        Conecta Cari AI o Botmaker en Integraciones para ver Análisis de Resultados.
+                      </p>
+                    )}
+                    {!ro && analyticsIntegrations.length > 1 && !selectedId && (
+                      <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>
+                        Selecciona la plataforma del bot (Cari AI o Botmaker) para este proyecto.
+                      </p>
+                    )}
+                    {!ro && showNeedsBotWarning && (
+                      <p style={{ fontSize: 10, color: "#f59e0b", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                        <AlertTriangle style={{ width: 11, height: 11 }} />
+                        El número configura el canal, pero necesitas asociar Cari AI o Botmaker para ver métricas.
+                      </p>
+                    )}
+                  </div>
+                );
+              })()
             } />
           </Row>
 
@@ -1155,15 +1245,29 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
               />
             } />
           </Row>
+          {/* Canales del bot: solo los que ofrece la Plataforma Analítica elegida.
+              Facebook/Instagram (arriba) no se filtran: son cuentas Meta aparte. */}
+          {(showWhatsapp || showWebchat) && (
+            <Row>
+              {showWhatsapp && <Field l="WhatsApp" el={
+                <TagsInput
+                  values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
+                  onChange={(vals) => setForm(prev => ({ ...prev, whatsapp: vals }))}
+                  placeholder="+52 55 1234 5678 (Enter para agregar)"
+                  ro={ro}
+                />
+              } />}
+              {showWebchat && <Field l="Web Chat (ID del widget)" el={
+                <TagsInput
+                  values={Array.isArray(form.webchat) ? form.webchat : form.webchat ? [form.webchat] : []}
+                  onChange={(vals) => setForm(prev => ({ ...prev, webchat: vals }))}
+                  placeholder="ID del web chat (Enter para agregar)"
+                  ro={ro}
+                />
+              } />}
+            </Row>
+          )}
           <Row>
-            <Field l="WhatsApp" el={
-              <TagsInput
-                values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
-                onChange={(vals) => setForm(prev => ({ ...prev, whatsapp: vals }))}
-                placeholder="+52 55 1234 5678 (Enter para agregar)"
-                ro={ro}
-              />
-            } />
             <Field l="Página Web" el={<input type="url" value={form.website} readOnly={ro} placeholder="https://sitio.com" style={inp} onChange={e => set("website", e.target.value)} />} />
           </Row>
 

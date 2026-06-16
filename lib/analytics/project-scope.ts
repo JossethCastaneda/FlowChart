@@ -19,9 +19,9 @@
 // ============================================================================
 
 /** Únicos canales admitidos en la vista de Análisis de Resultados por proyecto. */
-export type CanonicalChannel = "whatsapp" | "instagram" | "facebook" | "messenger";
+export type CanonicalChannel = "whatsapp" | "instagram" | "facebook" | "messenger" | "webchat";
 
-export const SUPPORTED_CHANNELS: CanonicalChannel[] = ["whatsapp", "instagram", "facebook", "messenger"];
+export const SUPPORTED_CHANNELS: CanonicalChannel[] = ["whatsapp", "instagram", "facebook", "messenger", "webchat"];
 
 /**
  * Aliases de proveedor → canal canónico. Cada proveedor (Cari AI, Botmaker,
@@ -34,6 +34,7 @@ export const CHANNEL_ALIASES: Record<CanonicalChannel, string[]> = {
   instagram: ["instagram", "instagram_dm", "instagram_direct", "ig", "ig_dm"],
   facebook: ["facebook", "facebook_page", "facebook_comments", "fb", "fb_page"],
   messenger: ["messenger", "facebook_messenger", "fb_messenger", "meta_messenger"],
+  webchat: ["webchat", "web_chat", "web", "widget", "website_chat", "site_chat"],
 };
 
 // Índice inverso alias → canónico (construido una sola vez).
@@ -52,7 +53,8 @@ const ALIAS_TO_CANONICAL: Record<string, CanonicalChannel> = (() => {
  *   normalizeChannelName("WhatsApp Business") → "whatsapp"
  *   normalizeChannelName("instagram_direct")  → "instagram"
  *   normalizeChannelName("fb_messenger")       → "messenger"
- *   normalizeChannelName("webchat")            → null  (no soportado)
+ *   normalizeChannelName("webchat")            → "webchat"
+ *   normalizeChannelName("telegram")           → null  (no soportado)
  */
 export function normalizeChannelName(providerChannel: unknown): CanonicalChannel | null {
   if (typeof providerChannel !== "string") return null;
@@ -70,6 +72,11 @@ export function normalizeChannelName(providerChannel: unknown): CanonicalChannel
  * `provider` del modelo normalizado (cómo lo escriben los adapters). Las
  * integraciones CRM de proyecto usan "cari"; las de analítica usan "cari_ai";
  * ambas alimentan el mismo proveedor normalizado.
+ *
+ * IMPORTANTE: usar `normalizeIntegrationProvider()` para resolver — no indexar
+ * este mapa directamente. El mapa es solo el conjunto canónico; la resolución
+ * tolera mayúsculas/separadores y aliases conocidos (un provider guardado como
+ * "Cari", "CARI_AI" o "cari ai" debe resolver igual que "cari").
  */
 export const INTEGRATION_TO_NORMALIZED_PROVIDER: Record<string, string> = {
   botmaker: "botmaker",
@@ -77,12 +84,53 @@ export const INTEGRATION_TO_NORMALIZED_PROVIDER: Record<string, string> = {
   cari_ai: "cari_ai",
 };
 
+/**
+ * Aliases conocidos → proveedor normalizado, comparados ya normalizados
+ * (minúsculas, separadores colapsados a "_"). NO se incluye `custom_crm`: un CRM
+ * genérico no es necesariamente Cari y no debe asumirse (sin inventar).
+ */
+const PROVIDER_ALIASES: Record<string, string> = {
+  botmaker: "botmaker",
+  bot_maker: "botmaker",
+  cari: "cari_ai",
+  cari_ai: "cari_ai",
+  cariai: "cari_ai",
+};
+
+/** Normaliza una cadena de provider a su clave comparable. */
+function normalizeProviderKey(raw: unknown): string {
+  if (typeof raw !== "string") return "";
+  return raw
+    .trim()
+    .toLowerCase()
+    .replace(/[\s\-./]+/g, "_")
+    .replace(/[^a-z0-9_]/g, "");
+}
+
+/**
+ * Resuelve el provider de una integración al proveedor normalizado del modelo
+ * analítico, tolerando mayúsculas, separadores y aliases. Devuelve `null` si el
+ * provider no tiene adaptador analítico (p. ej. `custom_crm`, `meta`, `google`).
+ *
+ *   normalizeIntegrationProvider("cari")     → "cari_ai"
+ *   normalizeIntegrationProvider("Cari AI")  → "cari_ai"
+ *   normalizeIntegrationProvider("CARI_AI")  → "cari_ai"
+ *   normalizeIntegrationProvider("BotMaker") → "botmaker"
+ *   normalizeIntegrationProvider("custom_crm") → null
+ */
+export function normalizeIntegrationProvider(raw: unknown): string | null {
+  const key = normalizeProviderKey(raw);
+  if (!key) return null;
+  return PROVIDER_ALIASES[key] ?? INTEGRATION_TO_NORMALIZED_PROVIDER[key] ?? null;
+}
+
 /** Etiquetas legibles para el selector de canal del dashboard. */
 export const CHANNEL_LABELS: Record<string, string> = {
   whatsapp: "WhatsApp",
   instagram: "Instagram",
   facebook: "Facebook",
   messenger: "Messenger",
+  webchat: "Web Chat",
 };
 
 /** Etiquetas legibles para el selector de plataforma/proveedor. */
@@ -96,6 +144,8 @@ export interface ProjectChannelConfig {
   whatsapp?: string[] | null;
   instagram?: string[] | null;
   fanpage?: string[] | null;
+  /** ID(s) del widget de web chat configurados en el proyecto. */
+  webchat?: string[] | null;
   /** Filas Channel del proyecto (cada una con su `type`, p. ej. "WHATSAPP", "META"). */
   channels?: { type?: string | null }[] | null;
 }
@@ -126,8 +176,9 @@ export function collectProjectChannels(p: ProjectChannelConfig): CanonicalChanne
     found.add("facebook");
     found.add("messenger");
   }
+  if (p.webchat && p.webchat.length > 0) found.add("webchat");
 
-  // Orden canónico estable (whatsapp, instagram, facebook, messenger).
+  // Orden canónico estable (whatsapp, instagram, facebook, messenger, webchat).
   return SUPPORTED_CHANNELS.filter((c) => found.has(c));
 }
 
@@ -136,7 +187,7 @@ export function collectProjectChannels(p: ProjectChannelConfig): CanonicalChanne
  * Se mantiene para no romper llamadas existentes; prefiera `collectProjectChannels`.
  */
 export function deriveProjectChannels(p: ProjectChannelConfig): CanonicalChannel[] {
-  return collectProjectChannels({ whatsapp: p.whatsapp, instagram: p.instagram, fanpage: p.fanpage });
+  return collectProjectChannels({ whatsapp: p.whatsapp, instagram: p.instagram, fanpage: p.fanpage, webchat: p.webchat });
 }
 
 /**
@@ -146,7 +197,7 @@ export function deriveProjectChannels(p: ProjectChannelConfig): CanonicalChannel
 export function deriveNormalizedProviders(integrationProviders: string[]): string[] {
   const out = new Set<string>();
   for (const p of integrationProviders) {
-    const mapped = INTEGRATION_TO_NORMALIZED_PROVIDER[p];
+    const mapped = normalizeIntegrationProvider(p);
     if (mapped) out.add(mapped);
   }
   return [...out];

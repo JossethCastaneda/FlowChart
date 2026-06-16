@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
     // 1. Fetch ads with full creative details
     const creativeFields = "id,name,thumbnail_url,image_url,title,body,object_story_spec,call_to_action_type,effective_object_story_id,image_hash";
     const fields = `id,name,status,effective_status,adset_id,campaign_id,creative{${creativeFields}}`;
-    const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?fields=${fields}&limit=150`;
+    const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED"]}]&fields=${fields}&limit=100`;
     
     const adsRes = await metaFetch(adsUrl, token);
     if (!adsRes.ok) {
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
 
     // 2. Fetch insights
     const insightsFields = "ad_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,quality_ranking,engagement_rate_ranking,conversion_rate_ranking,action_values,purchase_roas,video_p25_watched_actions,video_p100_watched_actions,video_3_sec_watched_actions,video_thruplay_watched_actions,outbound_clicks";
-    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=ad&fields=${insightsFields}&limit=150`;
+    const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=ad&fields=${insightsFields}&limit=100`;
     
     const insightsRes = await metaFetch(insightsUrl, token);
     let insights: any[] = [];

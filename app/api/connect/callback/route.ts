@@ -4,9 +4,10 @@ import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
 import { validateModulePermissions } from "@/lib/meta-scopes";
+import { env } from "@/lib/env";
 
-const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+const META_API_VERSION = env.META_API_VERSION || "v25.0";
+const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
 
 /**
  * GET /api/connect/callback
@@ -23,29 +24,29 @@ export async function GET(request: NextRequest) {
   const stateParam = request.nextUrl.searchParams.get("state");
   const error = request.nextUrl.searchParams.get("error");
 
-  const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  let baseUrl = env.NEXT_PUBLIC_APP_URL || env.NEXTAUTH_URL || request.nextUrl.origin;
+  baseUrl = baseUrl.replace(/\/$/, "");
 
   // User cancelled or error
   if (error) {
     console.error("[CONNECT CALLBACK] Facebook error:", error);
-    return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=${error}`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?error=${error}`);
   }
 
   if (!code || !stateParam) {
-    return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=missing_params`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?error=missing_params`);
   }
 
   // ── SECURITY: Verify active session ──
-  const jwt = await getToken({ req: request as any, secret: AUTH_SECRET });
+  const jwt = await getToken({ req: request as any, secret: NEXTAUTH_SECRET });
   if (!jwt?.sub) {
-    return NextResponse.redirect(`${baseUrl}/login`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?error=not_authenticated`);
   }
 
   // ── SECURITY: Verify HMAC signature on state ──
-  const secret = AUTH_SECRET;
-  if (!secret) {
+  if (!NEXTAUTH_SECRET) {
     console.error("[CONNECT CALLBACK] NEXTAUTH_SECRET/AUTH_SECRET not configured");
-    return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=server_error`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?error=server_error_auth_secret`);
   }
 
   let module = "unknown";
@@ -56,10 +57,10 @@ export async function GET(request: NextRequest) {
     const { payload, sig } = parsed;
 
     if (!payload || !sig) {
-      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=invalid_state`);
+      return NextResponse.redirect(`${baseUrl}/connect/done?error=invalid_state`);
     }
 
-    const expected = createHmac("sha256", secret)
+    const expected = createHmac("sha256", NEXTAUTH_SECRET)
       .update(payload)
       .digest("hex");
     const sigBuf = Buffer.from(sig, "hex");
@@ -67,7 +68,7 @@ export async function GET(request: NextRequest) {
 
     if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
       console.warn("[CONNECT CALLBACK] ❌ HMAC signature mismatch — possible CSRF attack");
-      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=invalid_state`);
+      return NextResponse.redirect(`${baseUrl}/connect/done?error=invalid_state`);
     }
 
     const decoded = JSON.parse(payload);
@@ -78,14 +79,14 @@ export async function GET(request: NextRequest) {
     // Verify that the userId in the state matches the current JWT session
     if (userId !== jwt.sub) {
       console.warn(`[CONNECT CALLBACK] ❌ User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
-      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=user_mismatch`);
+      return NextResponse.redirect(`${baseUrl}/connect/done?error=user_mismatch`);
     }
   } catch {
-    return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=invalid_state`);
+    return NextResponse.redirect(`${baseUrl}/connect/done?error=invalid_state`);
   }
 
-  const clientId = process.env.FACEBOOK_CLIENT_ID || "";
-  const clientSecret = process.env.FACEBOOK_CLIENT_SECRET || "";
+  const clientId = env.FACEBOOK_CLIENT_ID || "";
+  const clientSecret = env.FACEBOOK_CLIENT_SECRET || "";
   const redirectUri = `${baseUrl}/api/connect/callback`;
 
   try {
@@ -101,7 +102,7 @@ export async function GET(request: NextRequest) {
 
     if (!tokenRes.ok || !tokenData.access_token) {
       console.error("[CONNECT CALLBACK] Token exchange failed:", tokenData);
-      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=token_exchange_failed`);
+      return NextResponse.redirect(`${baseUrl}/connect/done?error=token_exchange_failed&details=${encodeURIComponent(tokenData.error?.message || "Unknown error")}`);
     }
 
     let userAccessToken = tokenData.access_token;
@@ -176,7 +177,7 @@ export async function GET(request: NextRequest) {
       }
     } catch (e) {
       console.warn("[CONNECT CALLBACK] Failed to fetch pages:", e);
-      return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=fetch_pages_failed`);
+      return NextResponse.redirect(`${baseUrl}/connect/done?error=fetch_pages_failed`);
     }
 
     // 4. Verify workspace membership using workspaceId from state
@@ -189,7 +190,7 @@ export async function GET(request: NextRequest) {
       });
       if (!member) {
         console.warn(`[CONNECT CALLBACK] ❌ User ${userId} is not OWNER/ADMIN of workspace ${resolvedWorkspaceId}`);
-        return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=insufficient_role`);
+        return NextResponse.redirect(`${baseUrl}/connect/done?error=insufficient_role`);
       }
     } else {
       // Fallback: find user's first workspace
@@ -199,7 +200,7 @@ export async function GET(request: NextRequest) {
         select: { workspaceId: true },
       });
       if (!membership) {
-        return NextResponse.redirect(`${baseUrl}/dashboard?connect_error=no_workspace`);
+        return NextResponse.redirect(`${baseUrl}/connect/done?error=no_workspace`);
       }
       resolvedWorkspaceId = membership.workspaceId;
     }

@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { decryptToken, encryptToken } from "@/lib/encryption";
+import { env } from "@/lib/env";
 
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 
@@ -39,8 +40,8 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
   }
 
   // Otherwise, refresh the token
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
+  const clientId = env.GOOGLE_CLIENT_ID;
+  const clientSecret = env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     console.error("[OAUTH GOOGLE] Missing client credentials to refresh token");

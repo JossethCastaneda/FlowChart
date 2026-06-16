@@ -146,19 +146,16 @@ export async function GET(req: NextRequest) {
   // Note: asset_feed_spec is not available as a sub-field of creative{} in /ads
   // We must fetch it separately via /adcreatives
   const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?` +
+    `filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED"]}]&` +
     `fields=id,name,status,effective_image_url,creative{${creativeFields}}&limit=100`;
 
   const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?` +
-    `level=ad&fields=ad_id,spend,impressions,clicks,actions,action_values,cpc,ctr&${timeQs}&limit=200`;
+    `level=ad&fields=ad_id,spend,impressions,clicks,actions,action_values,cpc,ctr&${timeQs}&limit=100`;
 
-  const creativesUrl = `https://graph.facebook.com/${version}/${adAccountId}/adcreatives?` +
-    `fields=${creativeFields}&thumbnail_width=720&thumbnail_height=720&limit=200`;
-
-  // ── Parallel fetch (allSettled = never crashes) ─────────────────────────
-  const [adsRes, insightsRes, creativesRes] = await Promise.allSettled([
+  // ── Parallel fetch (ads and insights first) ─────────────────────────
+  const [adsRes, insightsRes] = await Promise.allSettled([
     metaFetch(adsUrl, accessToken),
     metaFetch(insightsUrl, accessToken),
-    metaFetch(creativesUrl, accessToken),
   ]);
 
   // Helper: safely parse a response
@@ -175,10 +172,9 @@ export async function GET(req: NextRequest) {
     return result.value.json().catch(() => ({ data: [] }));
   };
 
-  const [adsJson, insightsJson, creativesJson] = await Promise.all([
+  const [adsJson, insightsJson] = await Promise.all([
     parseRes(adsRes, "ads"),
     parseRes(insightsRes, "insights"),
-    parseRes(creativesRes, "creatives"),
   ]);
 
   // ── Build lookup maps ────────────────────────────────────────────────────
@@ -189,7 +185,7 @@ export async function GET(req: NextRequest) {
     insightsMap[ins.ad_id] = ins;
   }
 
-  // Full-res image + DCO texts by creative_id (from /adcreatives endpoint)
+  // ── Fetch Specific Creatives by ID ──────────────────────────────────────
   const creativeDetailMap: Record<string, {
     imageUrl: string;
     thumbUrl: string;
@@ -198,17 +194,45 @@ export async function GET(req: NextRequest) {
     assetFeedSpec: any;
     objectStorySpec: any;
   }> = {};
-  for (const cr of (creativesJson.data || [])) {
-    const imageUrl = extractImageUrl(cr);
-    const feed = cr.asset_feed_spec || {};
-    creativeDetailMap[cr.id] = {
-      imageUrl,
-      thumbUrl: cr.thumbnail_url || "",
-      feedTitles: (feed.titles || []).map((t: any) => t.text || "").filter(Boolean),
-      feedBodies: (feed.bodies || []).map((b: any) => b.text || "").filter(Boolean),
-      assetFeedSpec: cr.asset_feed_spec || {},
-      objectStorySpec: cr.object_story_spec || {},
-    };
+
+  const creativeIds = Array.from(new Set<string>((adsJson.data || []).map((ad: any) => ad.creative?.id as string).filter(Boolean)));
+  if (creativeIds.length > 0) {
+    const chunks: string[][] = [];
+    for (let i = 0; i < creativeIds.length; i += 50) {
+      chunks.push(creativeIds.slice(i, i + 50));
+    }
+    const creativeResults = await Promise.allSettled(
+      chunks.map(chunk =>
+        metaFetch(
+          `https://graph.facebook.com/${version}/?ids=${chunk.join(",")}&fields=${creativeFields}&thumbnail_width=720&thumbnail_height=720`,
+          accessToken
+        )
+      )
+    );
+    for (const result of creativeResults) {
+      if (result.status === "fulfilled" && result.value.ok) {
+        try {
+          const json = await result.value.json();
+          for (const [id, cr] of Object.entries<any>(json)) {
+            const imageUrl = extractImageUrl(cr);
+            const feed = cr.asset_feed_spec || {};
+            creativeDetailMap[id] = {
+              imageUrl,
+              thumbUrl: cr.thumbnail_url || "",
+              feedTitles: (feed.titles || []).map((t: any) => t.text || "").filter(Boolean),
+              feedBodies: (feed.bodies || []).map((b: any) => b.text || "").filter(Boolean),
+              assetFeedSpec: feed,
+              objectStorySpec: cr.object_story_spec || {},
+            };
+          }
+        } catch { /* ignore parse errors */ }
+      } else if (result.status === "fulfilled") {
+        const err = await result.value.json().catch(() => ({}));
+        console.error(`[ADCREATIVES:batch] HTTP error:`, err?.error?.message || `HTTP ${result.value.status}`);
+      } else {
+        console.error(`[ADCREATIVES:batch] Fetch rejected:`, result.reason);
+      }
+    }
   }
 
   // ── Merge ads + creatives + insights ────────────────────────────────────

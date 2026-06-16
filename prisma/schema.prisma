@@ -59,6 +59,9 @@ model User {
   integrations  Integration[]     @relation("UserIntegrations")
   notifications Notification[]
   sentInvites   WorkspaceInvite[] @relation("SentInvites")
+  mediaAssets   MediaAsset[]
+  drafts        DraftPost[]
+  auditLogs     AuditLog[]
 }
 
 model VerificationToken {
@@ -94,6 +97,10 @@ model Workspace {
   settings        WorkspaceSettings?
   waPhoneSources  WaPhoneSource[]
   metaAnalyticsCache MetaAnalyticsCache[]
+  mediaAssets     MediaAsset[]
+  drafts          DraftPost[]
+  transmissions   Transmission[]
+  auditLogs       AuditLog[]
 }
 
 // ------------------------------------------------------
@@ -164,6 +171,7 @@ model Project {
   fanpage     String[]
   instagram   String[]
   whatsapp    String[]
+  webchat     String[] // ID(s) del widget de web chat (Cari/Botmaker/Google)
   website     String?
   persona     String?  @db.Text
   geo         String?
@@ -181,6 +189,7 @@ model Project {
   alerts        ProjectAlert[]
   metaSources   MetaSource[]
   waPhoneSources WaPhoneSource[]
+  drafts         DraftPost[]
   alertsEnabled Boolean  @default(true)
   alertEmails   String[]
   crmIntegrationId String? // Legacy: single analytics integration (kept for back-compat)
@@ -343,6 +352,137 @@ model Brief {
 // PUBLISHER / SCHEDULING
 // ------------------------------------------------------
 
+model MediaAsset {
+  id          String   @id @default(cuid())
+  workspaceId String
+  userId      String?
+  url         String
+  fileName    String
+  mimeType    String
+  size        Int
+  width       Int?
+  height      Int?
+  status      String   @default("ready") // uploading, ready, processing_failed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+}
+
+model DraftPost {
+  id             String   @id @default(cuid())
+  workspaceId    String
+  projectId      String?
+  authorId       String?
+  
+  // Shared base content
+  baseContent    String   @db.Text
+  baseMediaUrls  String[] // Array of MediaAsset URLs or raw URLs
+  
+  // Per-channel overrides (JSON) - e.g. { "instagram": { content: "...", media: [...] } }
+  channelOverrides Json   @default("{}")
+  
+  status         String   @default("draft") // draft, scheduled, publishing, completed, failed
+  scheduledAt    DateTime?
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project        Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  author         User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  
+  transmissions  Transmission[]
+
+  @@index([workspaceId, status])
+  @@index([scheduledAt])
+}
+
+model Transmission {
+  id             String   @id @default(cuid())
+  draftId        String
+  workspaceId    String
+  
+  channel        String   // "facebook_page", "instagram_ig", "linkedin", "tiktok"
+  accountId      String   // the external page/account ID
+  accountName    String?  // human readable
+  
+  status         String   @default("pending") // pending, active, completed, failed, cancelled
+  scheduledAt    DateTime?
+  publishedAt    DateTime?
+  
+  // The exact payload that will be sent to the channel
+  finalContent   String   @db.Text
+  finalMediaUrls String[]
+  
+  externalPostId String?  // ID returned by the platform
+  externalUrl    String?  // public URL of the post
+  errorMessage   String?  @db.Text
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  draft          DraftPost @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  jobs           PublishJob[]
+
+  @@index([draftId])
+  @@index([workspaceId, status])
+  @@index([scheduledAt])
+}
+
+model PublishJob {
+  id             String   @id @default(cuid())
+  transmissionId String
+  
+  step           String   // e.g. "upload_media", "create_container", "publish", "verify"
+  status         String   @default("pending") // pending, running, success, failed, retry
+  attempts       Int      @default(0)
+  maxAttempts    Int      @default(3)
+  nextAttemptAt  DateTime?
+  
+  payload        Json?    // Context for this specific step
+  result         Json?    // API response or error details
+  
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  transmission   Transmission @relation(fields: [transmissionId], references: [id], onDelete: Cascade)
+
+  @@index([transmissionId])
+  @@index([status, nextAttemptAt])
+}
+
+// ------------------------------------------------------
+// AUDIT LOGS
+// ------------------------------------------------------
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  workspaceId    String
+  userId         String?
+  action         String   // e.g., "connect_integration", "delete_draft", "update_settings"
+  resourceType   String   // e.g., "Integration", "DraftPost", "WorkspaceSettings"
+  resourceId     String?
+  details        Json?    // DO NOT store tokens here.
+  ipAddress      String?
+  userAgent      String?
+  createdAt      DateTime @default(now())
+
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, action])
+  @@index([workspaceId, createdAt])
+}
+
+// ------------------------------------------------------
+// LEGACY PUBLISHER (ScheduledPost)
+// ------------------------------------------------------
+
 model ScheduledPost {
   id           String   @id @default(cuid())
   workspaceId  String
@@ -361,6 +501,7 @@ model ScheduledPost {
   status       String   @default("Draft") // Draft, Scheduled, Published, Failed
   error        String?  @db.Text // error message if publish failed
   externalIds  Json?    // { facebook: "post_id", instagram: "media_id" }
+  qStashMessageId String? // ID del mensaje programado en QStash
   pageName     String?  // Facebook page name used
   pageId       String?  // Facebook page ID used
   createdAt    DateTime @default(now())
@@ -384,7 +525,7 @@ model Integration {
   provider      String    // "meta_ads", "meta_community", "google", etc.
   /// "workspace" → workspace-level integration (OWNER/ADMIN shared, e.g. meta_ads, google)
   /// userId     → user-level integration (each member connects their own account independently)
-  userId        String    @default("workspace")
+  userId        String?   @default("workspace")
   name          String?   // User-defined name for the integration
   credentials   Json      // Encrypted with AES-256 (encryptToken/decryptToken)
   config        Json?     @default("{}") // Analytics settings (syncFrequency, paused, backfill, etc)
@@ -666,6 +807,9 @@ model MetaAnalyticsCache {
 model SyncJob {
   id                  String   @id @default(cuid())
   workspaceId         String
+  projectId           String?
+  clientId            String?
+  channelConfigId     String?
   integrationId       String
   provider            String
   reportType          String
@@ -678,22 +822,30 @@ model SyncJob {
   finishedAt          DateTime?
 
   @@index([workspaceId, provider])
+  @@index([workspaceId, projectId])
 }
 
 model RawProviderEvent {
   id                  String   @id @default(cuid())
   workspaceId         String
+  projectId           String?
+  clientId            String?
+  channelConfigId     String?
   provider            String
   externalId          String
   payload             Json
   createdAt           DateTime @default(now())
 
   @@index([workspaceId, provider])
+  @@index([workspaceId, projectId])
 }
 
 model NormalizedConversation {
   id                      String   @id @default(cuid())
   workspaceId             String
+  projectId               String?
+  clientId                String?
+  channelConfigId         String?
   provider                String
   providerConversationId  String   @unique
   channel                 String
@@ -747,11 +899,15 @@ model NormalizedConversation {
   @@index([workspaceId, provider, providerConversationId])
   @@index([workspaceId, agentId])
   @@index([workspaceId, campaignId])
+  @@index([workspaceId, projectId])
 }
 
 model NormalizedMessage {
   id                      String   @id @default(cuid())
   workspaceId             String
+  projectId               String?
+  clientId                String?
+  channelConfigId         String?
   provider                String
   providerMessageId       String   @unique
   conversationId          String
@@ -770,11 +926,15 @@ model NormalizedMessage {
   sentAt                  DateTime
 
   @@index([workspaceId, conversationId])
+  @@index([workspaceId, projectId])
 }
 
 model AnalyticsOutcomeRule {
   id                String   @id @default(cuid())
   workspaceId       String
+  projectId         String?
+  clientId          String?
+  channelConfigId   String?
   name              String
   description       String?
   priority          Int      @default(100) // menor = mayor prioridad; se evalúan en orden ascendente
@@ -789,12 +949,16 @@ model AnalyticsOutcomeRule {
   updatedAt         DateTime @updatedAt
 
   @@index([workspaceId, priority])
+  @@index([workspaceId, projectId])
 }
 
 // Metas y semáforos configurables por workspace (spec §12, §35)
 model AnalyticsKpiTarget {
   id                String   @id @default(cuid())
   workspaceId       String
+  projectId         String?
+  clientId          String?
+  channelConfigId   String?
   kpiKey            String
   targetValue       Float?
   warningThreshold  Float?
@@ -804,14 +968,18 @@ model AnalyticsKpiTarget {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  @@unique([workspaceId, kpiKey])
+  @@unique([workspaceId, kpiKey, projectId])
   @@index([workspaceId])
+  @@index([workspaceId, projectId])
 }
 
 // Bitácora de auditoría (exportaciones, acceso a datos sensibles, cambios de config)
 model AnalyticsAuditLog {
   id           String   @id @default(cuid())
   workspaceId  String
+  projectId    String?
+  clientId     String?
+  channelConfigId String?
   userId       String?
   action       String   // export, view_sensitive, rule_create, rule_delete, sync_manual, integration_update
   resourceType String?
@@ -820,12 +988,16 @@ model AnalyticsAuditLog {
   createdAt    DateTime @default(now())
 
   @@index([workspaceId, createdAt])
+  @@index([workspaceId, projectId])
 }
 
 // Agregados diarios precalculados (spec §33)
 model AnalyticsDailyMetric {
   id           String   @id @default(cuid())
   workspaceId  String
+  projectId    String?
+  clientId     String?
+  channelConfigId String?
   date         DateTime
   provider     String
   botId        String?
@@ -837,14 +1009,26 @@ model AnalyticsDailyMetric {
   dimensions   Json?
   calculatedAt DateTime @default(now())
 
-  @@unique([workspaceId, date, provider, botId, channel, metricKey])
+  // Ojo: Si vamos a soportar métricas diarias por proyecto, el UNIQUE index
+  // original colisionaría si hay dos proyectos distintos. Por ahora lo
+  // dejamos sin projectId o lo reemplazamos. Para no romper compatibilidad
+  // global, mantenemos el UNIQUE sin projectId y si agregamos projectId
+  // se volvería complicado, a menos que quitemos el UNIQUE. 
+  // Voy a actualizar el UNIQUE para incluir projectId si es necesario en otro paso, 
+  // pero el user dijo "forma aditiva"
+  // Así que añado projectId al final para no romper nada, y si está nulo funciona global.
+  @@unique([workspaceId, projectId, date, provider, botId, channel, metricKey])
   @@index([workspaceId, date])
+  @@index([workspaceId, projectId])
 }
 
 // Issues de calidad de datos detectados sobre el dataset normalizado (spec §27)
 model DataQualityIssue {
   id             String   @id @default(cuid())
   workspaceId    String
+  projectId      String?
+  clientId       String?
+  channelConfigId String?
   provider       String?
   conversationId String?
   issueType      String   // missing_start_date, missing_external_id, negative_duration, frt_gt_duration, unclassified_outcome, ...
@@ -854,4 +1038,57 @@ model DataQualityIssue {
   detectedAt     DateTime @default(now())
 
   @@index([workspaceId, issueType])
+  @@index([workspaceId, projectId])
+}
+
+// ------------------------------------------------------
+// FUNNELS Y ALERTAS
+// ------------------------------------------------------
+
+model AnalyticsFunnel {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  projectId       String?
+  name            String
+  description     String?
+  provider        String?
+  channel         String?
+  botId           String?
+  steps           AnalyticsFunnelStep[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([workspaceId])
+  @@index([workspaceId, projectId])
+}
+
+model AnalyticsFunnelStep {
+  id              String   @id @default(cuid())
+  funnelId        String
+  name            String
+  orderIndex      Int
+  conditionType   String   // intent | event | message_text | tag | status
+  conditionValue  String
+  funnel          AnalyticsFunnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+
+  @@index([funnelId])
+  @@unique([funnelId, orderIndex])
+}
+
+model AnalyticsAlert {
+  id              String   @id @default(cuid())
+  workspaceId     String
+  projectId       String?
+  type            String   // csat_low | fallback_high | frt_high | sync_failed | data_quality_critical
+  severity        String   // warning | critical
+  title           String
+  message         String
+  metricValue     Float?
+  thresholdValue  Float?
+  resolved        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+
+  @@index([workspaceId, type])
+  @@index([workspaceId, projectId])
+  @@index([workspaceId, resolved])
 }

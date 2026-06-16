@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { env } from "@/lib/env";
 
 // Prisma 7 "client" engine requires a driver adapter.
 // We use @prisma/adapter-pg with node-postgres (pg) Pool.
@@ -33,7 +34,7 @@ function createMissingDatabaseClient(): PrismaClient {
 }
 
 function createPrismaClient(): PrismaClient {
-  let connectionString = process.env.DATABASE_URL || process.env.STORAGE_DATABASE_URL;
+  let connectionString = env.DATABASE_URL || (env as any).STORAGE_DATABASE_URL;
 
   if (!connectionString) {
     console.warn("[Prisma] DATABASE_URL not set - database queries will fail if executed");
@@ -54,7 +55,7 @@ function createPrismaClient(): PrismaClient {
     // fail on serverless runtimes (Vercel) where the CA store may not include Neon's
     // certificate chain, causing silent connection failures.
     ssl: { rejectUnauthorized: false },
-    max: process.env.NODE_ENV === "production" ? 10 : 5,
+    max: env.NODE_ENV === "production" ? 10 : 5,
     idleTimeoutMillis: 30_000,
     connectionTimeoutMillis: 10_000,
   });
@@ -65,7 +66,7 @@ function createPrismaClient(): PrismaClient {
 
 const prisma = globalForPrisma.prisma ?? createPrismaClient();
 
-if (process.env.NODE_ENV !== "production") {
+if (env.NODE_ENV !== "production") {
   globalForPrisma.prisma = prisma;
 }
 

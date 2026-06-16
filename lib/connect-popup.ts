@@ -5,14 +5,15 @@
  * @param module  - e.g. "publisher_facebook", "ads", "analytics"
  * @param onSuccess - callback fired when the popup closes successfully
  */
-export function openConnectPopup(module: string, onSuccess?: (module: string) => void) {
-  const url = `/api/connect/${module}`;
+export function openConnectPopup(moduleOrUrl: string, onSuccess?: (module: string) => void) {
+  const url = moduleOrUrl.includes("/") ? moduleOrUrl : `/api/connect/${moduleOrUrl}`;
   const w = 520, h = 660;
   const left = Math.max(0, (window.screen.width - w) / 2);
   const top = Math.max(0, (window.screen.height - h) / 2);
   const features = `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`;
-
-  const popup = window.open(url, `connect_${module}`, features);
+  // Use a safe window name without slashes
+  const windowName = moduleOrUrl.includes("/") ? "connect_oauth" : `connect_${moduleOrUrl}`;
+  const popup = window.open(url, windowName, features);
 
   if (!popup) {
     // Popup blocked — fall back to redirect

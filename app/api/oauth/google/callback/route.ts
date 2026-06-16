@@ -3,8 +3,9 @@ import { createHmac } from "crypto";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { env } from "@/lib/env";
 
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -54,9 +55,10 @@ export async function GET(request: NextRequest) {
   }
 
   // 3. Exchange code for tokens
-  const clientId = process.env.GOOGLE_CLIENT_ID;
-  const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
-  const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  const clientId = env.GOOGLE_CLIENT_ID;
+  const clientSecret = env.GOOGLE_CLIENT_SECRET;
+  let baseUrl = env.NEXTAUTH_URL || request.nextUrl.origin;
+  baseUrl = baseUrl.replace(/\/$/, "");
   const redirectUri = `${baseUrl}/api/oauth/google/callback`;
 
   if (!clientId || !clientSecret) {

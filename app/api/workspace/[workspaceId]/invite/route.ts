@@ -1,4 +1,4 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
+import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
@@ -6,6 +6,8 @@ import crypto from "crypto";
 import { getBaseUrl } from "@/lib/get-base-url";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+
+const RequestSchema = z.object({ email: z.string().email("Email inválido"), role: z.enum(["OWNER", "ADMIN", "MEMBER"]).default("MEMBER") });
 
 export async function GET(
   _req: NextRequest,
@@ -103,61 +105,17 @@ export async function POST(
 
     // Enviar email de invitación via Resend
     let emailSent = false;
-    if (process.env.RESEND_API_KEY) {
-      try {
-        const templateId = process.env.RESEND_TEMPLATE_WORKSPACE_INVITE;
-        const fromEmail = process.env.RESEND_FROM_EMAIL || "SODARE <onboarding@resend.dev>";
-
-        const emailPayload: Record<string, unknown> = {
-          from: fromEmail,
-          to: [email],
-        };
-
-        if (templateId) {
-          // Resend API requires "template" object, NOT "template_id"
-          emailPayload.template = {
-            id: templateId,
-            variables: {
-              INVITER_NAME: session.user.name || "Un administrador",
-              WORKSPACE_NAME: invite.workspace.name,
-              ROLE: role,
-              INVITE_URL: inviteUrl,
-            },
-          };
-        } else {
-          // Fallback: inline HTML (no template)
-          emailPayload.subject = `Te invitaron a ${invite.workspace.name} — SODARE`;
-          emailPayload.html = (await import("@/lib/email-templates")).getInviteEmailHtml({
-            inviterName: session.user.name || "Un administrador",
-            workspaceName: invite.workspace.name,
-            role,
-            inviteUrl,
-          });
-        }
-
-        console.log(`[INVITE] Sending email to ${email} from ${fromEmail} (template: ${templateId || 'inline'})`);
-
-        const emailRes = await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          },
-          body: JSON.stringify(emailPayload),
-        });
-
-        const emailResBody = await emailRes.text();
-        if (emailRes.ok) {
-          emailSent = true;
-          console.log(`[INVITE] Email sent to ${email} — response: ${emailResBody}`);
-        } else {
-          console.error(`[INVITE] Email FAILED (${emailRes.status}): ${emailResBody}`);
-        }
-      } catch (emailErr) {
-        console.error("[INVITE] Email send exception:", emailErr);
-      }
-    } else {
-      console.warn("[INVITE] RESEND_API_KEY not configured — email not sent");
+    const { sendInviteEmail } = await import("@/lib/email");
+    const resultEmail = await sendInviteEmail({
+      to: email,
+      inviterName: session.user.name || "Un administrador",
+      workspaceName: invite.workspace.name,
+      role,
+      inviteUrl,
+    });
+    
+    if (resultEmail) {
+      emailSent = true;
     }
 
     console.log(`[INVITE] ${email} → ${inviteUrl} (emailSent: ${emailSent})`);
@@ -177,5 +135,3 @@ export async function POST(
     return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
     }
 }
-
-let RequestSchema = z.object({ email: z.string().email("Email inválido"), role: z.enum(["OWNER", "ADMIN", "MEMBER"]).default("MEMBER") });

@@ -125,6 +125,11 @@ export function TabConversations({ query, base = "/api/analytics" }: { query: st
           { key: "resolvedBy", label: "Resuelto por" },
           { key: "wasBotOnly", label: "Bot-only", render: (r) => (r.wasBotOnly ? "Sí" : "No") },
           { key: "csatScore", label: "CSAT" },
+          { key: "actions", label: "Acciones", render: (r) => (
+            <button style={{ background: "transparent", border: "1px solid rgba(0,212,255,0.3)", color: "#00d4ff", padding: "4px 8px", borderRadius: "4px", fontSize: "11px", cursor: "pointer" }}>
+              Ver Detalle
+            </button>
+          )},
         ]}
       />
     </div>

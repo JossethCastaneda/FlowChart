@@ -5,6 +5,7 @@ import prisma from "@/lib/prisma";
 // operación principal: si falla el insert, se registra y se continúa.
 export async function writeAuditLog(params: {
   workspaceId: string;
+  projectId?: string | null;
   userId?: string;
   action: string;
   resourceType?: string;
@@ -15,6 +16,7 @@ export async function writeAuditLog(params: {
     await prisma.analyticsAuditLog.create({
       data: {
         workspaceId: params.workspaceId,
+        projectId: params.projectId || null,
         userId: params.userId,
         action: params.action,
         resourceType: params.resourceType,

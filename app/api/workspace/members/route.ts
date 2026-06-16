@@ -1,4 +1,4 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
+import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
@@ -132,46 +132,14 @@ export async function POST(req: NextRequest) {
     const { getBaseUrl } = await import("@/lib/get-base-url");
     const inviteUrl = `${getBaseUrl()}/invite/${token}`;
 
-    // Enviar email si Resend está configurado
-    if (process.env.RESEND_API_KEY && process.env.RESEND_FROM_EMAIL) {
-      try {
-        const templateId = process.env.RESEND_TEMPLATE_WORKSPACE_INVITE;
-        const fromEmail = process.env.RESEND_FROM_EMAIL;
-        const payload: Record<string, unknown> = {
-          from: fromEmail,
-          to: [email],
-        };
-
-        if (templateId) {
-          payload.template = {
-            id: templateId,
-            variables: {
-              WORKSPACE_NAME: workspace?.name || "Sodare",
-              INVITE_URL: inviteUrl,
-              ROLE: role,
-            },
-          };
-        } else {
-          payload.subject = `Invitación a ${workspace?.name || "Sodare"}`;
-          payload.html = `
-            <p>Has sido invitado a unirte a <strong>${workspace?.name || "Sodare"}</strong> como <strong>${role}</strong>.</p>
-            <p><a href="${inviteUrl}" style="background:#00d4ff;color:#000;padding:10px 20px;text-decoration:none;border-radius:6px;display:inline-block;">Aceptar invitación</a></p>
-            <p style="color:#666;font-size:12px;">Este enlace expira en 7 días.</p>
-          `;
-        }
-
-        await fetch("https://api.resend.com/emails", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-          },
-          body: JSON.stringify(payload),
-        });
-      } catch (emailErr) {
-        console.error("[WORKSPACE MEMBERS] Email send error:", emailErr);
-      }
-    }
+    const { sendInviteEmail } = await import("@/lib/email");
+    const resultEmail = await sendInviteEmail({
+      to: email,
+      inviterName: session.user.name || "Un administrador",
+      workspaceName: workspace?.name || "Sodare",
+      role,
+      inviteUrl,
+    });
 
     return NextResponse.json({
       data: { inviteUrl, token: invite.token, email, role },

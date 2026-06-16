@@ -213,6 +213,33 @@ export function WhatsAppConnectCard() {
     }
   };
 
+  // ── Register Line (if PENDING) ─────────────────────────────────────────────────
+  const handleRegisterLine = async (phoneNumberId: string) => {
+    const pin = prompt("Ingresa el PIN de 6 dígitos que configuraste en Facebook para este número:");
+    if (!pin) return;
+    if (pin.length !== 6 || !/^\d+$/.test(pin)) {
+      alert("El PIN debe contener exactamente 6 números.");
+      return;
+    }
+
+    try {
+      const res = await fetch("/api/whatsapp/phone-numbers/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ phoneNumberId, pin }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        alert("¡Número registrado exitosamente! Ahora puedes enlazarlo.");
+        fetchLines(); // Refrescar para ver el nuevo status
+      } else {
+        alert(data.error || "Error al registrar el número.");
+      }
+    } catch {
+      alert("Error de red al registrar el número.");
+    }
+  };
+
   // ── Send Test Call ───────────────────────────────────────────────────────────
   const handleSendTestCall = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -645,6 +672,23 @@ export function WhatsAppConnectCard() {
                             <Trash2 size={12} />
                           </button>
                         </>
+                      ) : line.status === "PENDING" ? (
+                        <button
+                          onClick={() => handleRegisterLine(line.id)}
+                          style={{
+                            background: "rgba(245, 158, 11, 0.08)",
+                            border: "1px solid rgba(245, 158, 11, 0.2)",
+                            borderRadius: "6px",
+                            color: "#f59e0b",
+                            fontSize: "10px",
+                            fontWeight: 600,
+                            padding: "5px 12px",
+                            cursor: "pointer",
+                            fontFamily: "inherit",
+                          }}
+                        >
+                          Registrar
+                        </button>
                       ) : (
                         <button
                           onClick={() => handleLinkLine(line.id, null)}

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifySignedRequest } from "@/lib/meta-signed-request";
 import { disconnectMetaForUser } from "@/lib/meta-data-deletion";
 import { logger } from "@/lib/logger";
+import { env } from "@/lib/env";
 
 /**
  * Meta Deauthorization Callback
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.formData().catch(() => null);
     const signedRequest = body?.get("signed_request") as string | null;
-    const appSecret = process.env.FACEBOOK_CLIENT_SECRET;
+    const appSecret = env.FACEBOOK_CLIENT_SECRET;
 
     if (signedRequest && appSecret) {
       const decoded = verifySignedRequest(signedRequest, appSecret);

@@ -1,8 +1,9 @@
 import crypto from "crypto";
+import { env } from "./env";
 
 const ALGORITHM = "aes-256-gcm";
 // ENCRYPTION_KEY must be a 32-byte hex string (64 characters)
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || ""; 
+const ENCRYPTION_KEY = env.ENCRYPTION_KEY || ""; 
 
 /**
  * Encrypts a plain text string using AES-256-GCM.
@@ -16,7 +17,7 @@ export function encryptToken(text: string | null | undefined): string {
     // Fail-fast in production: never persist Meta tokens / credentials in plain text.
     // The caller (OAuth callback, token sync) surfaces this as a visible error
     // instead of silently storing secrets unencrypted at rest.
-    if (process.env.NODE_ENV === "production") {
+    if (env.NODE_ENV === "production") {
       throw new Error(`${msg} Refusing to store credentials unencrypted.`);
     }
     console.warn(`${msg} Storing token as plain text (dev only).`);
@@ -81,6 +82,6 @@ export function decryptToken(encryptedText: string | null | undefined): string {
     return decrypted;
   } catch (err) {
     console.error("[ENCRYPTION] Failed to decrypt token:", err);
-    return encryptedText; // Return encrypted string if decryption fails
+    throw new Error("[ENCRYPTION] Decryption failed. Cannot retrieve token.");
   }
 }

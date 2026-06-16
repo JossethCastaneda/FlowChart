@@ -419,3 +419,297 @@ La sección de proyecto incluye las **11 tabs** (Resumen, Operación, Conversaci
 | `npx vitest run` | ✅ **153 tests / 19 archivos** (incluye `analytics-project-scope` 29 + `analytics-project-security` 6, prisma mockeado) |
 | `SKIP_DB_SYNC=1 next build` (rutas anidadas) | ✅ 14 rutas `/api/projects/[id]/analytics/*` registradas |
 | `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** (ruta `/dashboard/proyectos/[id]/analisis-resultados` registrada) |
+
+---
+
+## 14. Cierre de brechas (2026-06-15)
+
+Iteración enfocada en cerrar las brechas reales que quedaban abiertas en §8 y §13.6,
+**de forma aditiva y sin romper lo implementado**. Baseline previo a esta fase verificado:
+`tsc` 0 errores, **155 tests** en verde, `next build` OK.
+
+### 14.0 Reconciliación: qué ya estaba hecho (verificado, no se tocó)
+Antes de codificar se auditó el estado real. Varios puntos del objetivo **ya estaban implementados** y se conservaron intactos:
+- **Schema aditivo (§3):** `projectId`/`clientId`/`channelConfigId` ya presentes en `NormalizedConversation`, `NormalizedMessage`, `SyncJob`, `RawProviderEvent`, `AnalyticsDailyMetric`, `AnalyticsAuditLog`, `DataQualityIssue`, `AnalyticsKpiTarget`, `AnalyticsOutcomeRule`, con índices `@@index([workspaceId, projectId])`. Modelos `AnalyticsFunnel`, `AnalyticsFunnelStep`, `AnalyticsAlert` ya definidos.
+- **`buildProjectAnalyticsWhere` (§4) y scoping de mensajes (§5):** `lib/analytics/query.ts` ya fija `workspaceId` de sesión + `projectId` validado + `provider IN`/`channel IN` whitelists, ignorando query manipulada; `applyScopeToMessageWhere` acota mensajes por proyecto+proveedor.
+- **POST `outcome-rules` (§8):** ya usa `withWorkspace` + `isWorkspaceAdmin` + Zod (`RuleSchema`) + JSON nativo (`Prisma.InputJsonValue`/`Prisma.JsonNull`) + `writeAuditLog`. **Sin cambios necesarios.**
+- **KPI targets por proyecto (§9 parcial):** `kpi-targets` ya resuelve prioridad proyecto > workspace > default inline.
+
+### 14.1 Motor de alertas (§12) — NUEVO
+- **`lib/analytics/alerts/engine.ts`** — `evaluateAlerts(ctx)` **función pura** (sin red/BD). Cubre: CSAT bajo, fallback alto, FRT alto, AHT alto, escalamiento/handoff alto, caída de volumen (vs periodo anterior), sync/API fallida, errores de campaña/servicio y calidad de datos crítica. Severidad `warning`/`critical` por magnitud; `minSampleSize` evita falsos positivos con muestra chica. Umbrales `DEFAULT_ALERT_THRESHOLDS` alineados con `KPI_DEFINITIONS`, sobreescribibles.
+- **`lib/analytics/alerts/persist.ts`** — `evaluateAndPersistAlerts(scope)` carga datos reales del workspace/proyecto (periodo + periodo anterior), cuenta issues críticos de `DataQualityIssue`, errores de mensaje (`isError`), última sync fallida (`SyncJob`), computa KPIs y persiste con **DEDUP** (no recrea una alerta del mismo `type+projectId` si hay una abierta). No fatal.
+- **API `app/api/analytics/alerts/route.ts`** — `GET` (abiertas o `?resolved=1`, scoped por proyecto), `POST {action:"resolve"}` (con audit log e `updateMany` scoped por workspace) y `POST {action:"evaluate"}` (admin) que **resuelve umbrales proyecto > workspace > default** desde `AnalyticsKpiTarget` y dispara el motor.
+
+### 14.2 Sync programado endurecido (§11) — REESCRITO
+- **`lib/analytics/cron/sync.ts`** — `runScheduledSync()` ahora:
+  - **Watermark/cursor:** ventana derivada del `endDate` del último `SyncJob` completado por integración (+ solape de 30 min); backfill por defecto si nunca se sincronizó.
+  - **Ciclo de vida de `SyncJob`:** crea registro `running` → `completed`/`failed` con `recordsInserted`, `errorMessage` (truncado, sin credenciales) y `finishedAt`.
+  - **Reintentos:** hasta `MAX_ATTEMPTS=2` con backoff; contadores `inserted`/`failed`/`attempts`.
+  - **Alertas post-sync:** invoca `evaluateAndPersistAlerts` por workspace afectado, incluida la señal de sync fallida.
+  - Logs seguros (nunca token/credencial/payload).
+- **`app/api/cron/analytics-sync/route.ts`** — NUEVO, protegido por `verifyCronAuth` (CRON_SECRET), `maxDuration=300`.
+- **`vercel.json`** — NUEVO cron `0 5 * * *`.
+
+### 14.3 Overrides por proyecto (§9) — NUEVO helper canónico
+- **`lib/analytics/overrides.ts`** (puro): `resolveKpiThreshold`/`resolveAllKpiThresholds` (semáforos), `buildAlertThresholdsFromTargets` (deriva umbrales de alerta de las metas de KPI), `sortRulesByScope` (reglas de proyecto se evalúan **antes** que las de workspace; filtra deshabilitadas/ajenas), `mergeRoiParams` (capas ROI proyecto > workspace > default). Prioridad **proyecto > workspace > default** en todos. Cableado en `alerts` (acción `evaluate`).
+
+### 14.4 Funnels configurables (§14) — NUEVO
+- **`lib/analytics/funnels/evaluate.ts`** (puro): `evaluateConfiguredFunnel(steps, conversations)` con avance **secuencial temporal** (cada paso ocurre en/después del anterior), conversión paso-a-paso y desde el inicio, **drop-off** y **tiempo promedio entre pasos**. Condiciones: `intent | event | message_text | tag | status`. `message_text` se evalúa contra `topic`/`intent` (no-PII) porque el texto está hasheado.
+- **API `app/api/analytics/funnels/route.ts`** — `GET` evalúa el funnel configurado (`?funnelId`) o devuelve el **canónico bot→resolución como fallback** + lista de funnels disponibles; `POST`/`PATCH`/`DELETE` (admin, Zod, audit log) para CRUD de `AnalyticsFunnel`/`AnalyticsFunnelStep` (reemplazo transaccional de pasos). Scoped por workspace/proyecto.
+
+### 14.5b Pestaña "Configuración" en Proyectos > Análisis de Resultados (§10) — NUEVO
+- **API:** `GET /api/projects/[id]/analytics/sync` (NUEVO handler) — estado de configuración para miembros del workspace (ownership verificado): canales configurados, integraciones/proveedores con `connected`, últimos `SyncJob` por proveedor (estado/errores/contadores/fechas), conteo de alertas abiertas y `clientId`. No expone credenciales. El `POST` (sync manual, admin) ya existía.
+- **UI:** `components/analytics-v2/ProjectAnalyticsView.tsx` (envoltura cliente con tabs **Dashboard | Configuración**, sin duplicar el dashboard) + `components/analytics-v2/ProjectAnalyticsConfigPanel.tsx` (canales, proveedores/integraciones + estado de conexión, último sync con errores, **sync manual** con botón, alertas abiertas, accesos directos a reglas/integraciones/metas; nota de ROI/funnels/alerts/exportaciones con prioridad proyecto > workspace > default). Carga vía `@tanstack/react-query` (lint-clean).
+- La página `app/dashboard/proyectos/[id]/analisis-resultados/page.tsx` ahora renderiza `ProjectAnalyticsView` (antes `AdvancedAnalyticsDashboard` directo).
+
+### 14.5 Tests añadidos (§22)
+- **`tests/analytics-alerts.test.ts`** (7): sano→0 alertas, CSAT bajo, fallback/FRT/AHT/handoff altos, `minSampleSize`, caída de volumen, sync/DQ críticas, override de umbral.
+- **`tests/analytics-overrides.test.ts`** (9): prioridad proyecto>workspace>default, deshabilitados, mapeo metas→alertas, orden de reglas por alcance, capas ROI.
+- **`tests/analytics-funnels.test.ts`** (5): sin pasos, avance secuencial + conversión/drop-off, orden temporal estricto, tiempo entre pasos, condiciones tag/event.
+
+### 14.6 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **176 tests / 23 archivos** (155 previos + 21 nuevos) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully**; rutas `/api/cron/analytics-sync`, `/api/analytics/alerts`, `/api/analytics/funnels` registradas |
+| `npx eslint <archivos nuevos>` | ✅ **0 errores/warnings** en los archivos de esta fase |
+
+### 14.7 Archivos de esta fase
+- **NEW** `lib/analytics/alerts/engine.ts`, `lib/analytics/alerts/persist.ts`, `lib/analytics/overrides.ts`, `lib/analytics/funnels/evaluate.ts`, `app/api/cron/analytics-sync/route.ts`, `components/analytics-v2/ProjectAnalyticsView.tsx`, `components/analytics-v2/ProjectAnalyticsConfigPanel.tsx`, `tests/analytics-{alerts,overrides,funnels}.test.ts`.
+- **MOD** `lib/analytics/cron/sync.ts` (reescrito), `app/api/analytics/alerts/route.ts` (evaluate + resolve + audit), `app/api/analytics/funnels/route.ts` (eval configurable + CRUD), `app/api/projects/[id]/analytics/sync/route.ts` (+GET estado), `app/dashboard/proyectos/[id]/analisis-resultados/page.tsx` (usa `ProjectAnalyticsView`), `vercel.json` (cron).
+
+### 14.8 Prueba manual
+1. **Alertas:** con datos mock cargados, `POST /api/analytics/alerts?projectId=<id>` body `{"action":"evaluate"}` (como admin) → genera alertas según KPIs; `GET /api/analytics/alerts` lista abiertas; `POST {"action":"resolve","alertId":"..."}` las cierra (audit log).
+2. **Cron sync:** `GET /api/cron/analytics-sync` con header `Authorization: Bearer $CRON_SECRET` → crea `SyncJob` con watermark, reintentos y dispara alertas. Revisar tabla `SyncJob` y pestaña Auditoría.
+3. **Funnels:** `POST /api/analytics/funnels` (admin) con `{name, steps:[{name,orderIndex,conditionType,conditionValue}]}`; `GET /api/analytics/funnels?funnelId=<id>` devuelve conversión/drop-off/tiempo entre pasos; sin `funnelId` cae al canónico.
+
+### 14.9 Pendientes reales (no inventados, no fabricados)
+> **Actualización 2026-06-15:** §13 (agregados), §20 (`view_sensitive`) y §7 (Cari/Botmaker) de esta lista **se cerraron** en la **§15**. Lo que sigue se conserva como registro histórico; ver §15 para el estado vigente.
+
+Honestamente, lo siguiente **queda abierto** y requiere trabajo adicional (mayormente UI o decisiones de producto), documentado para no dar por cerrado lo que no lo está:
+- **§13 — Poblado de `AnalyticsDailyMetric` en dashboards:** `scripts/populate-daily-metrics.ts` agrega por workspace/project/provider/channel/fecha; falta extender a `clientId`/`channelConfigId`/`botId` por métrica y que los dashboards lean agregados históricos + día en vivo (hoy se computa en vivo, correcto pero no precalculado).
+- **§20 — `view_sensitive`:** hoy la PII se enmascara **siempre** (default seguro). El desenmascarado para roles autorizados + audit log `view_sensitive` requiere un permiso granular en el modelo de RBAC (no existe aún); pendiente de definición de producto.
+- **§7 — Endpoints reales de proveedor restantes:** Cari `indicadoresAtencion`→`AnalyticsDailyMetric`, `frasesSinRespuesta`/`errores`→calidad; Botmaker mapa `channelId→plataforma`, `intent`/`isFallback` por mensaje, agentes/campañas/funnels/tags/variables y **firma del webhook**. Marcados `TODO` exactos en los adaptadores; mock seguro entretanto. **No se inventaron endpoints.**
+- **§3 — `clientId`/`channelConfigId` a nivel de fila en ingesta:** las columnas existen e índices listos; falta poblarlas en la ingesta real (resolución por `MetaSource`/`WaPhoneSource`/canal) + backfill para aislamiento fila-a-fila entre proyectos del mismo workspace y mismo proveedor/canal.
+
+---
+
+## 15. Pendientes cerrados / pendientes externos (2026-06-15)
+
+> Esta sección **cierra** los 3 pendientes que §14.9 dejaba abiertos (§13 agregados, §20 `view_sensitive`, §7 endpoints) y precisa lo que queda como **pendiente externo** (datos/credenciales del proveedor o backfill operativo). Baseline previo: `tsc` 0, **176 tests**, build OK.
+
+### 15.1 §13 — Dashboards leen `AnalyticsDailyMetric` (agregados + día en vivo) — CERRADO
+**Diseño:** los caminos EN VIVO y AGREGADO derivan los KPIs del **mismo set de acumuladores aditivos** (`lib/analytics/daily-metrics.ts`), así sumar agregados históricos + recomputar el día en vivo da **idéntico** resultado que recomputar todo en vivo (el fallback no cambia números).
+
+- **NEW `lib/analytics/daily-metrics.ts`** (puro): `Accumulators` (23 campos aditivos), `accumulatorsFromConversations`, `accumulatorsToMetricRows`/`accumulatorsFromMetricRows` (persistencia `acc_*` ↔ acumuladores), y derivaciones `overviewKpisFromAccumulators` / `operationsSummaryFromAccumulators` / `roiFromAccumulators` (espejo exacto de la matemática de las rutas).
+- **NEW `lib/analytics/daily-metrics.server.ts`**: `getAnalyticsDataset(workspaceId, filters, scope)` →
+  - usa agregados solo si el filtro se limita a dimensiones del rollup (provider/channel/botId + rango); cualquier filtro de alta cardinalidad (agente/campaña/servicio/cola/skill/outcome/estado/tag/búsqueda) **fuerza live** (`aggregatesUsable`);
+  - lee `AnalyticsDailyMetric` (`acc_*`) para días `< hoy` con el **mismo scoping** (workspaceId de sesión + projectId/providers/canales del scope) y **suma el día actual EN VIVO**;
+  - **fallback seguro**: si no hay filas agregadas en la ventana → consulta EN VIVO completa.
+- **MOD rutas**: `overview`, `operations`, `roi` consumen `getAnalyticsDataset` y exponen `source: "aggregate" | "live"`. Las rutas anidadas por proyecto (`/api/projects/[id]/analytics/{overview,operations,roi}`) heredan vía `forwardScoped` (mismo `projectId` validado del path).
+- **MOD `scripts/populate-daily-metrics.ts`**: escribe filas `acc_*` por **workspace/project/client/provider/bot/channel/fecha**, idempotente (upsert).
+- **Tests** (`tests/analytics-daily-metrics.test.ts`, 10): acumuladores correctos, round-trip persistencia, derivaciones overview/operations/roi == live, partición por día y suma == una sola pasada, y **lector con prisma mockeado**: usa agregados cuando existen (sin tocar conversaciones en rango pasado), respeta scope (`projectId`/`provider IN`/`channel IN`), **fallback** a live sin agregados, y filtro de alta cardinalidad → live.
+
+> **Límite real (documentado):** el desglose por **cola** de `operations` (topQueuesByWait) usa una consulta ligera EN VIVO porque el rollup diario aún no lleva dimensión de cola (TODO exacto en la ruta). `uniqueUsers` no es aditivo entre días; no se sirve desde agregados.
+
+### 15.2 §20 — `view_sensitive` granular — CERRADO
+- **MOD `lib/workflow-config.ts`**: nuevo permiso `canViewSensitiveAnalytics` (interfaz `AreaPermissions` + defaults **false** en member/leader/external + Zod + `parsePerms`). **No se hereda** de `canAccessAnalytics` (permiso separado, default seguro).
+- **NEW `lib/analytics/sensitive.ts`**: `resolveViewSensitive(role, perms)` (puro: OWNER/ADMIN o el flag) + `canViewSensitive(workspaceId, userId)` (resuelve permisos efectivos igual que `/api/workspace/members/status`).
+- **MOD `app/api/analytics/conversations/route.ts`** y **`export/route.ts`**: PII **enmascarada por defecto**; con `?reveal=1` **y** permiso → identificador sin enmascarar **y** se escribe audit log `action: "view_sensitive"`. Sin permiso, `reveal` se ignora (sigue enmascarado).
+- **MOD `components/settings/PermissionsManager.tsx`**: toggle "PII sensible (Analytics)" para que OWNER/ADMIN lo concedan por área/scope.
+- **Tests** (`tests/analytics-sensitive.test.ts`, 8): resolución pura (OWNER/ADMIN siempre, member default no, member con flag sí, `canAccessAnalytics` no concede PII) y autorización con prisma mockeado (no-miembro→false, OWNER→true sin settings, member sin/with flag, workspaceId siempre el de la sesión).
+
+> **Límite real (documentado):** el permiso es a nivel **workspace** (el repo no tiene ACL por proyecto: ver proyecto = membresía del workspace). `canViewSensitive` acepta el `projectId` para el audit log y como gancho de futura granularidad por proyecto.
+
+### 15.3 §7 — Endpoints Cari/Botmaker — REVISADO (solo confirmados)
+- **Cari AI (`CariAiAnalyticsAdapter`)** — corregido a partir de campos **confirmados en `lib/crm/cari.ts`**:
+  - `indicadoresAtencion` → `AnalyticsDailyMetric` bajo claves **provider-native** `cari_total/cari_bot_only/cari_transferred/cari_attended/cari_abandoned`, **idempotente** (upsert por día/clave). **No** se pliega a `acc_*`: `indicadoresAtencion` reporta **contención** (bot-only), no **resolución** — plegarlo violaría *bot-only ≠ resuelto*. La serie nativa la consume la vista por fuente (`computeCariResults`).
+  - `frasesSinRespuesta` → `DataQualityIssue` ahora **idempotente** (dedup por frase sin resolver; antes creaba duplicados en cada sync — bug corregido).
+  - Comentario de cabecera del adaptador corregido (antes decía "TODO" sobre lo ya implementado).
+  - **Pendiente externo (TODO exacto, sin inventar):** campo id/canal de `conversaciones` cuando el reporte no lo trae; endpoints/paginación de Agentes/Servicio/Clientes/Personalizados.
+- **Botmaker (`BotmakerAnalyticsAdapter`)** — revisado, **sin cambios**: `isRealMode` (mock/real configurable) intacto; TODOs exactos y seguros para lo no confirmado (mapa `channelId→plataforma` GET /channels, `intent`/`isFallback` por mensaje vía endpoint NLU, agentes/campañas/funnels/tags, **verificación de firma del webhook ANTES de confiar el payload**). No se inventó ningún endpoint.
+- **Modo mock/real** preservado en ambos adaptadores (`lib/analytics/mode.ts`).
+
+### 15.4 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **194 tests / 25 archivos** (176 previos + 18 nuevos: daily-metrics 10, sensitive 8) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** |
+| `npx eslint <archivos de esta fase>` | ✅ **0 errores/0 warnings** |
+
+### 15.5 Archivos de esta fase
+- **NEW** `lib/analytics/daily-metrics.ts`, `lib/analytics/daily-metrics.server.ts`, `lib/analytics/sensitive.ts`, `tests/analytics-daily-metrics.test.ts`, `tests/analytics-sensitive.test.ts`.
+- **MOD** `app/api/analytics/{overview,operations,roi}/route.ts` (agregados+live), `app/api/analytics/{conversations,export}/route.ts` (`view_sensitive`), `lib/workflow-config.ts` (permiso), `components/settings/PermissionsManager.tsx` (toggle), `scripts/populate-daily-metrics.ts` (acc_*), `lib/analytics/adapters/CariAiAnalyticsAdapter.ts` (mapping confirmado + idempotencia + comentario).
+
+### 15.6 Cómo probar manualmente
+1. **Agregados:** `npx tsx scripts/populate-daily-metrics.ts` (puebla `acc_*`). Luego `GET /api/analytics/overview?days=28` → el JSON incluye `"source":"aggregate"` y los KPIs combinan días históricos (agregados) + el día actual en vivo. Sin correr el script (o con `?outcome=resolved`), `"source":"live"` (fallback). Igual para `/operations` y `/roi`, y sus variantes `/api/projects/[id]/analytics/*`.
+2. **`view_sensitive`:** como MEMBER sin permiso, `GET /api/analytics/conversations?reveal=1` → `customer` enmascarado, `revealed:false`. Concede "PII sensible (Analytics)" en Configuración → permisos, o como OWNER/ADMIN: `reveal=1` → `customer` sin enmascarar, `revealed:true`, y aparece un `view_sensitive` en la pestaña Auditoría. Igual en `GET /api/analytics/export?type=conversations&reveal=1`.
+3. **Cari real:** con credenciales `cari` conectadas y la integración de analítica en `config.mode="real"`, `POST /api/analytics/integrations/:id/sync` → revisar `AnalyticsDailyMetric` (claves `cari_*`) y `DataQualityIssue` (frases, sin duplicados al re-sincronizar).
+
+---
+
+## 16. Cierre de afinamiento (2026-06-15) — auditoría de dashboards, detalle PII y revisión externa
+
+Iteración de afinamiento sobre los 3 pendientes, **sin reescribir** alertas, funnels, sync programado, overrides ni configuración (verificados verdes y dejados intactos).
+
+### 16.1 Auditoría: qué dashboard agrega y cuál sigue live (y por qué)
+El **helper común** de resolución de métricas agregadas por scope+periodo ya existe: `getAnalyticsDataset(workspaceId, filters, scope)` (`lib/analytics/daily-metrics.server.ts`). Auditoría completa de `app/api/analytics/*`:
+
+| Ruta | Fuente | Motivo |
+|---|---|---|
+| `overview` | **Agregado + live (helper)** | KPIs de cabecera + trends + canales: dimensiones del rollup (provider/bot/channel). |
+| `operations` | **Agregado + live (helper)** | Summary/SLA/avgs del rollup; `topQueuesByWait` con consulta ligera live (cola no está en el rollup — TODO exacto). |
+| `roi` | **Agregado + live (helper)** | Derivado de acumuladores (botResolved, botMsgs). |
+| `agents` | **Live (correcto)** | Agrega por `agentId` — **no** es dimensión del rollup confirmado (workspace/project/client/provider/bot/channel/metric). |
+| `campaigns` | **Live (correcto)** | Agrega por `campaignId` — fuera del rollup. |
+| `services` | **Live (correcto)** | Agrega por `serviceId` — fuera del rollup. |
+| `bot-quality` | **Live (correcto)** | Opera sobre `NormalizedMessage` (intents/fallbacks) — el rollup es de conversación, no de mensaje. |
+| `data-quality` | **Live (correcto)** | Lee incidencias `DataQualityIssue`, no métricas agregables. |
+| `funnels` | **Live (correcto)** | Requiere detalle de conversación/mensaje por paso (no se reescribe; ya verde). |
+| `conversations` / `export` | **Live (correcto)** | Listados a nivel fila (no son métricas agregadas). |
+
+**Conclusión:** los únicos dashboards elegibles para agregados (por las dimensiones confirmadas del rollup) ya leen `AnalyticsDailyMetric` vía el helper común, con **fallback live** cuando faltan agregados. Extender el rollup a `agentId`/`campaignId`/`serviceId` **contradiría** la lista de dimensiones confirmada y explotaría la cardinalidad → se deja documentado, no se inventa.
+
+### 16.2 view_sensitive: cobertura completada en el detalle de conversación
+- **MOD** `app/api/projects/[id]/analytics/conversations/[conversationId]/route.ts`: faltaba la opción de revelar. Ahora `?reveal=1` + permiso `view_sensitive` → `customer` sin enmascarar + audit log `view_sensitive` (con `conversationId`/`projectId`); por defecto enmascarado.
+- **Cobertura total de PII revelable:** lista global (`/api/analytics/conversations`), export (`/api/analytics/export`), lista por proyecto (forward → hereda `reveal`), y **detalle por proyecto** (nuevo). Todos: enmascarado por defecto, revelado solo con permiso, audit log obligatorio. Autorización cubierta por `tests/analytics-sensitive.test.ts` (8: autorizado OWNER/ADMIN/flag vs no autorizado member/no-miembro).
+
+### 16.3 Revisión final de endpoints externos (Cari AI / Botmaker)
+- **Sin endpoints nuevos confirmados** desde la §15.3. Estado vigente:
+  - **Cari:** `indicadoresAtencion` (claves `cari_*`, idempotente) y `frasesSinRespuesta` (dedup) implementados con campos confirmados en `lib/crm/cari.ts`. TODO exacto: id/canal de `conversaciones` cuando no viene en el reporte; Agentes/Servicio/Clientes/Personalizados.
+  - **Botmaker:** sin cambios; TODOs exactos (mapa `channelId→plataforma`, `intent`/`isFallback` NLU, agentes/campañas/funnels/tags, **firma de webhook verificada antes de confiar**). `isRealMode` mock/real intacto.
+- **No se inventó** ningún path, body, header ni response shape.
+
+### 16.4 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **194 tests / 25 archivos** |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** |
+| `npx eslint <archivos de esta fase>` | ✅ **0 errores / 0 warnings** |
+
+### 16.5 Archivos de esta fase
+- **MOD** `app/api/projects/[id]/analytics/conversations/[conversationId]/route.ts` (`view_sensitive` en el detalle).
+- Sin cambios en alertas/funnels/sync/overrides/configuración (verdes, intactos).
+
+---
+
+## 17. Bug: empty state "Sin integraciones de analytics" con línea Cari AI configurada (2026-06-15)
+
+### 17.1 Investigación del modelo real (sin inventar campos)
+Diagnóstico contra la BD real (`DATABASE_URL` de `.env`, mismo Neon de prod) y el código:
+
+- **Cómo se asocia la línea CRM/bot a un proyecto:** `Project.crmIntegrationIds: String[]` (con fallback al legacy `Project.crmIntegrationId`). Lo confirman: el selector "CRMs conectados" del detalle de proyecto (`app/dashboard/proyectos/[id]/page.tsx`, providers `["botmaker","cari","custom_crm","hubspot"]`), la ruta `PUT /api/projects/[id]` (persiste `crmIntegrationIds`), y la vista "Resultados por fuente" (`/api/projects/[id]/results`) que lee **la misma** relación.
+- **Dónde viven las credenciales Cari:** `getCariCredentials` (`lib/crm/cari.ts`) exige `Integration` con **`provider === "cari"`** exacto, `userId === "workspace"`, `connected`. La línea Cari canónica es, por tanto, `Integration.provider = "cari"`.
+- **Cómo deriva providers el módulo:** `resolveProjectProviders` (`lib/analytics/project-scope.server.ts`) toma `crmIntegrationIds`/legacy → `integration.findMany({ id IN, workspaceId })` → `deriveNormalizedProviders` (mapa `INTEGRATION_TO_NORMALIZED_PROVIDER`). Los **canales** se derivan por otra vía (`collectProjectChannels`: filas `Channel` + cuentas sociales), por eso un proyecto puede tener **canales pero `providers: []`**.
+
+**Hallazgos en la BD real:** el proyecto `cmq8nz5je000004jre56o2lde` **no existe en esta BD** (entorno/branch distinto), pero la causa es independiente del dato: **ningún** proyecto tiene `crmIntegrationIds`/`crmIntegrationId` poblado, y los `Integration.provider` distintos son `botmaker, custom_crm, meta, meta_ads, meta_analytics, meta_community, google, whatsapp_business` (no hay `cari` en esta BD).
+
+### 17.2 Causa raíz
+El empty state aparece cuando `resolveProjectScopeView` devuelve `channels` no vacío pero `providers` vacío. Dos causas reales, ambas atacadas sin inventar:
+
+1. **Mapeo de provider exacto y case-sensitive.** `deriveNormalizedProviders` indexaba `INTEGRATION_TO_NORMALIZED_PROVIDER[p]` directamente: un provider guardado como `"Cari"`, `"CARI_AI"`, `"cari ai"` o `"cari-ai"` **no** se reconocía y se descartaba → `providers: []` aunque la línea Cari estuviera asociada.
+2. **Asociación proyecto↔integración ausente.** Si la línea Cari está conectada a nivel workspace pero el proyecto nunca la marcó en "CRMs conectados" (`crmIntegrationIds` vacío), `providers` es `[]` — y no había backfill para corregirlo.
+
+> Descartado (sin inventar): `custom_crm` **no** se asume como Cari — un CRM genérico no es necesariamente Cari, así que sigue resolviendo a `null` (no analítico). No existe otra relación confirmada que asocie la línea Cari a un proyecto fuera de `crmIntegrationIds`.
+
+### 17.3 Solución
+- **MOD `lib/analytics/project-scope.ts`** — nuevo `normalizeIntegrationProvider(raw)`: normaliza (trim, minúsculas, separadores→`_`) y resuelve aliases (`cari`, `cari_ai`, `cariai`, `Cari AI`, `CARI_AI` → `cari_ai`; `botmaker`, `bot_maker`, `BotMaker` → `botmaker`). `deriveNormalizedProviders` ahora lo usa. `custom_crm`/`meta`/`google` siguen devolviendo `null` (sin inventar). Mapa canónico conservado.
+- **MOD `app/api/projects/[id]/analytics/sync/route.ts`** — los 3 usos directos del mapa pasan a `normalizeIntegrationProvider` (consistencia tolerante a alias en el estado de configuración y en el sync manual).
+- **NEW `scripts/backfill-project-crm-integrations.ts`** — idempotente, multi-tenant: (1) migra `crmIntegrationId` legacy → `crmIntegrationIds` cuando el arreglo está vacío; (2) con `--apply --project=<id>`/`--workspace=<id>`, asocia las integraciones analíticas **conectadas del mismo workspace** del proyecto a su `crmIntegrationIds` (sin duplicar, nunca de otro tenant). Dry-run por defecto.
+- **Defensa multi-tenant intacta:** `resolveProjectProviders` sigue filtrando `integration.findMany({ id IN, workspaceId })` por el workspace de la sesión; una integración de otro workspace nunca se acepta (test).
+
+### 17.4 Tests (`tests/analytics-cari-provider.test.ts`, 8)
+- `normalizeIntegrationProvider`: canónico + aliases/case de Cari y Botmaker; `custom_crm`/`meta`/`google`/`null` → `null`; `deriveNormalizedProviders` dedup/descarte.
+- `resolveProjectScope` (prisma mockeado): **canal sin integración → `providers: []` (empty state correcto)**; **integración Cari asociada → `providers: ["cari_ai"]`**; **alias `CARI_AI` → `cari_ai`**; **integración de otro workspace no aceptada** (filtra por `workspaceId` de la sesión).
+
+### 17.5 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **202 tests / 26 archivos** (194 + 8 nuevos) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** |
+| `npx eslint <archivos de esta fase>` | ✅ **0 errores / 0 warnings** |
+
+### 17.6 Cómo verificar/arreglar en el entorno con el proyecto real
+1. **Diagnóstico:** `npx tsx scripts/backfill-project-crm-integrations.ts` (dry-run) lista proyectos con `crmIntegrationIds` vacío y los candidatos analíticos conectados por workspace.
+2. **Si la línea Cari existe pero no está asociada:** `npx tsx scripts/backfill-project-crm-integrations.ts --apply --project=cmq8nz5je000004jre56o2lde` asocia la integración analítica conectada del workspace al proyecto. Recargar Proyectos > Análisis de Resultados → `providers` ya incluye `cari_ai` (deja de aparecer el empty state).
+3. **Si el provider estaba con alias raro:** ya no requiere acción — `normalizeIntegrationProvider` lo resuelve en caliente.
+
+---
+
+## 18. Ruta admin temporal para ejecutar el backfill en producción (2026-06-15)
+
+Para correr el backfill en producción **sin guardar secrets localmente** (sin `DATABASE_URL` ni `tsx` en la máquina del operador), se expuso la lógica idempotente vía una ruta admin temporal.
+
+### 18.1 Refactor: lógica compartida
+- **NEW `lib/analytics/backfill-crm.ts`** — `backfillProjectCrmIntegrations({ projectId?, workspaceId?, apply?, associate? })` devuelve un `BackfillSummary` estructurado (sin secrets): `{ apply, scope, legacyMigrated, associated, changes[] }`, donde cada `change` tiene `action` (`legacy_migrate | associate | already_ok | skip_no_candidates`), `before`/`after` (ids) y `providers` normalizados. **Defensa multi-tenant:** las integraciones siempre se resuelven por el `workspaceId` del proyecto.
+- **MOD `scripts/backfill-project-crm-integrations.ts`** — ahora delega en el módulo compartido (misma lógica, sin duplicar); conserva flags `--apply`/`--project`/`--workspace`.
+
+### 18.2 Ruta admin temporal
+- **NEW `app/api/admin/backfill-project-crm-integrations/route.ts`** — `POST { projectId, apply? }`.
+  - **Auth (cualquiera):** `CRON_SECRET` (`Authorization: Bearer …`, fail-closed) **o** sesión con rol **OWNER** del workspace activo.
+  - **dryRun por defecto:** `apply` debe enviarse explícito en `true` para escribir.
+  - **Multi-tenant:** vía OWNER, el proyecto debe pertenecer al workspace activo (si no → 404); vía CRON, el workspace objetivo es el del propio proyecto. Las integraciones se acotan a ese workspace.
+  - **No expone secrets:** la respuesta solo trae ids/proveedores/contadores; el log solo imprime `projectId`/`ws`/contadores.
+  - **Fácil de eliminar:** borrar la carpeta `app/api/admin/backfill-project-crm-integrations/`; el módulo `lib/analytics/backfill-crm.ts` y el CLI quedan (no dependen de la ruta).
+- **Tests** (`tests/analytics-backfill-crm.test.ts`, 5, prisma mockeado): dry-run no escribe; `apply` escribe `crmIntegrationIds` (+ alias `Cari AI` tolerado); idempotente (`already_ok` no re-asocia ni escribe); `skip_no_candidates` sin integración analítica; migración legacy. Defensa tenant verificada (`integration.findMany` por `workspaceId` del proyecto).
+
+### 18.3 Cómo usar en producción
+```
+# dry-run (no escribe), como OWNER (cookie de sesión) o con CRON_SECRET:
+POST /api/admin/backfill-project-crm-integrations
+{ "projectId": "cmq8nz5je000004jre56o2lde", "apply": false }
+
+# aplicar:
+{ "projectId": "cmq8nz5je000004jre56o2lde", "apply": true }
+
+# con CRON_SECRET (sin sesión):
+curl -X POST https://<host>/api/admin/backfill-project-crm-integrations \
+  -H "Authorization: Bearer $CRON_SECRET" -H "Content-Type: application/json" \
+  -d '{"projectId":"cmq8nz5je000004jre56o2lde","apply":true}'
+```
+La respuesta trae el resumen de cambios. Tras confirmar el fix, **eliminar la ruta** (carpeta `app/api/admin/backfill-project-crm-integrations/`).
+
+### 18.4 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **207 tests / 27 archivos** (202 + 5 nuevos) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** (ruta `/api/admin/backfill-project-crm-integrations` registrada) |
+| `npx eslint <archivos de esta fase>` | ✅ **0 errores / 0 warnings** |
+
+---
+
+## 19. Formulario Nuevo/Editar Proyecto: "Plataforma Analítica (Bot)" guarda la integración real (2026-06-15)
+
+Causa de raíz a nivel UI: el selector "Plataforma Analítica (Bot)" del modal de **Nuevo Proyecto** listaba `["botmaker","custom_crm","hubspot"]` (¡sin Cari!) y guardaba **solo** el legacy `crmIntegrationId`; además, la API `POST /api/projects` ni siquiera aceptaba `crmIntegrationIds`. Resultado: un proyecto con número WhatsApp pero sin una integración analítica real asociada → empty state en Análisis de Resultados.
+
+### 19.1 Auditoría (sin inventar campos)
+- **Modelo:** `Project.crmIntegrationIds: String[]` (+ legacy `crmIntegrationId`, `crmType`). La línea Cari canónica es `Integration.provider = "cari"` (mapea a `cari_ai`); Botmaker es `"botmaker"`.
+- **Selector nuevo proyecto** (`app/dashboard/proyectos/page.tsx`): filtraba `botmaker/custom_crm/hubspot`, guardaba solo `crmIntegrationId`.
+- **`POST /api/projects`:** aceptaba `crmIntegrationId`/`crmType`, **no** `crmIntegrationIds`, y **no** validaba que la integración fuera del workspace. **`PUT`:** guardaba `crmIntegrationIds` crudo, **sin** validar tenant.
+
+### 19.2 Cambios
+- **MOD `app/dashboard/proyectos/page.tsx`** (modal Nuevo/Editar):
+  - El selector lista **solo integraciones analíticas reales** del workspace (`normalizeIntegrationProvider(provider) !== null` → botmaker / cari / cari_ai), con etiquetas claras **Cari AI** y **Botmaker** (vía `PROVIDER_LABELS`). `custom_crm`/`hubspot` ya **no** aparecen como plataforma analítica.
+  - Al elegir, guarda `crmIntegrationIds: [id]` **+** legacy `crmIntegrationId` **+** `crmType`.
+  - **Autoselección/sugerencia:** si hay **exactamente una** integración analítica y el proyecto nuevo no tiene ninguna, se autoselecciona; con **varias**, selección manual (hint).
+  - **Aviso (canal sin bot):** si hay WhatsApp/IG/FB pero no se eligió plataforma → "El número configura el canal, pero necesitas asociar Cari AI o Botmaker para ver métricas". Permite crear igual.
+- **MOD `app/dashboard/proyectos/[id]/page.tsx`** (editar, selector "CRMs conectados"): las opciones no analíticas se etiquetan "— no compatible con Análisis de Resultados" (se conservan para "Resultados por fuente", pero no se confunden con analytics).
+- **NEW `lib/projects/crm.ts`** — `sanitizeWorkspaceIntegrationIds` / `resolveProjectCrmAssociation`: **defensa multi-tenant en escritura**, descarta ids ajenos/inexistentes; combina array + legacy.
+- **MOD `app/api/projects/route.ts`** (POST): acepta `crmIntegrationIds`, persiste array + legacy saneados por workspace; `crmType` solo si quedó integración válida.
+- **MOD `app/api/projects/[id]/route.ts`** (PUT): sanea `crmIntegrationIds`/`crmIntegrationId` contra el workspace del proyecto antes de guardar.
+- **MOD empty state** `app/dashboard/proyectos/[id]/analisis-resultados/page.tsx`: copy → "Este proyecto tiene canales, pero no tiene una integración Cari AI/Botmaker asociada…".
+
+### 19.3 Tests (`tests/project-crm-association.test.ts`, 8)
+Crear con **WhatsApp + Botmaker** → `crmIntegrationIds` guardado y dashboard resuelve `botmaker`; **WhatsApp + Cari** → resuelve `cari_ai`; **WhatsApp sin provider** → `channels` presentes, `providers []` (empty state correcto); **CRM Custom no se trata como Cari** → `providers []`; **integración de otro workspace no se puede asociar** (se descarta; `findMany` filtra por `workspaceId`); sanitize deduplica/ordena.
+
+### 19.4 Verificación
+| Comando | Resultado |
+|---|---|
+| `npx tsc --noEmit` | ✅ **0 errores** |
+| `npx vitest run` | ✅ **215 tests / 28 archivos** (207 + 8 nuevos) |
+| `SKIP_DB_SYNC=1 npx next build` | ✅ **Compiled successfully** |

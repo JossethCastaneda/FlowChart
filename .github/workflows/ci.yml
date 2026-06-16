@@ -40,6 +40,12 @@ jobs:
         env:
           NEXTAUTH_SECRET: ci-only-dummy-secret
           ENCRYPTION_KEY: "0000000000000000000000000000000000000000000000000000000000000000"
+          # lib/env.ts valida el entorno al importar (lo evalúan los route
+          # modules durante el build). Dummies CI-only — ninguna página toca la
+          # DB en build (las de datos son force-dynamic).
+          DATABASE_URL: "postgresql://user:pass@localhost:5432/test"
+          FACEBOOK_CLIENT_ID: ci-only-dummy-fb-id
+          FACEBOOK_CLIENT_SECRET: ci-only-dummy-fb-secret
 
       # Lint is advisory for now — the codebase has a large backlog of
       # pre-existing @typescript-eslint/no-explicit-any errors. Surfaced

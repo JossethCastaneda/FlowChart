@@ -13,8 +13,9 @@ import { createHmac } from "crypto";
 import { getProvider } from "@/lib/integrations/registry";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { env } from "@/lib/env";
 
-const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
 
 export async function GET(
   request: NextRequest,
@@ -38,7 +39,8 @@ export async function GET(
   }
 
   // 3. Validate env vars
-  const clientId = process.env[config.clientIdEnv];
+  const clientIdEnvKey = config.clientIdEnv as keyof typeof env;
+  const clientId = env[clientIdEnvKey] as string | undefined;
   if (!clientId) {
     return NextResponse.json(
       { error: `${config.clientIdEnv} not configured` },
@@ -83,7 +85,7 @@ export async function GET(
   const encodedState = Buffer.from(JSON.stringify({ payload, sig })).toString("base64url");
 
   // 6. Build authorization URL
-  const baseUrl = process.env.NEXTAUTH_URL || request.nextUrl.origin;
+  const baseUrl = env.NEXTAUTH_URL || request.nextUrl.origin;
   const redirectUri = `${baseUrl}/api/oauth/${provider}/callback`;
 
   const authUrl = new URL(config.authUrl);

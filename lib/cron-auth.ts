@@ -12,13 +12,14 @@
  */
 
 import { NextRequest } from "next/server";
+import { env } from "@/lib/env";
 
 /**
  * Verifica que la request provenga de un cron job autenticado de Vercel.
  * @returns true si el header Authorization es válido, false en caso contrario.
  */
 export function verifyCronAuth(req: NextRequest | Request): boolean {
-  const secret = process.env.CRON_SECRET;
+  const secret = env.CRON_SECRET;
   // fail-closed: si no hay secreto configurado, rechazar siempre
   if (!secret) {
     console.error("[CRON] CRON_SECRET no está configurado — rechazando request.");

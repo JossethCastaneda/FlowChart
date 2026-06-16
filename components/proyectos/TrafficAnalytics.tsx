@@ -1,7 +1,37 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Globe, Users, MousePointer, Clock, Target, TrendingUp, Plug, ChevronUp, ChevronDown, Check, Settings } from "lucide-react";
+
+interface TrafficSummary {
+  users: number;
+  sessions: number;
+  engagement: number;
+  avg_duration: number;
+  conversions: number;
+  bounce: number;
+}
+interface TrafficResponse {
+  connected: boolean;
+  propertyId: string | null;
+  metrics: TrafficSummary | null;
+  website: string | null;
+}
+
+/** Formatea el valor de cada métrica GA4 para su tarjeta. */
+function fmtMetric(id: string, m: TrafficSummary | null): string {
+  if (!m) return "—";
+  const v = (m as unknown as Record<string, number>)[id];
+  if (v == null || Number.isNaN(v)) return "—";
+  if (id === "engagement" || id === "bounce") return `${v}%`;
+  if (id === "avg_duration") {
+    const mm = Math.floor(v / 60);
+    const ss = Math.round(v % 60);
+    return mm > 0 ? `${mm}m ${ss}s` : `${ss}s`;
+  }
+  return v.toLocaleString();
+}
 
 // Base GA4 / Tag Manager traffic metrics. They render even before GA4 is
 // connected or the request form is filled (empty states).
@@ -21,6 +51,18 @@ export function TrafficAnalytics({ project }: { project: Project }) {
   const [order, setOrder] = useState<string[]>(TRAFFIC_METRICS.map((m) => m.id));
   const [hidden, setHidden] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
+
+  // Tráfico GA4 real (degradado a "Conecta GA4" si no está conectado).
+  const { data: traffic, isLoading: trafficLoading } = useQuery<TrafficResponse>({
+    queryKey: ["project-traffic", project.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/projects/${project.id}/traffic?days=28`);
+      const json = await res.json();
+      return (json.data ?? json) as TrafficResponse;
+    },
+  });
+  const connected = traffic?.connected ?? false;
+  const metrics = traffic?.metrics ?? null;
 
   useEffect(() => {
     try {
@@ -58,7 +100,10 @@ export function TrafficAnalytics({ project }: { project: Project }) {
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <Plug style={{ width: 16, height: 16, color: "#4285F4", flexShrink: 0 }} />
           <span style={{ fontSize: 12, color: "#94a3b8" }}>
-            Análisis de tráfico para <strong style={{ color: "#e2e8f0" }}>{project.website || "el sitio"}</strong>. Conecta <strong>GA4</strong> y <strong>Tag Manager</strong> para poblar las métricas (próximamente).
+            Análisis de tráfico para <strong style={{ color: "#e2e8f0" }}>{project.website || "el sitio"}</strong>.{" "}
+            {connected
+              ? <>Datos de <strong style={{ color: "#06d6a0" }}>GA4</strong> · últimos 28 días.</>
+              : <>Conecta <strong>GA4</strong> en Integraciones → Google para poblar las métricas.</>}
           </span>
         </div>
         <button onClick={() => setShowForm((s) => !s)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", fontSize: 12, fontWeight: 500, cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
@@ -100,8 +145,10 @@ export function TrafficAnalytics({ project }: { project: Project }) {
                 <Icon style={{ width: 14, height: 14, color: m.color }} />
                 <span style={{ fontSize: 10, color: "#64748b", fontWeight: 600 }}>{m.label}</span>
               </div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 22, fontWeight: 700, color: m.color }}>—</div>
-              <div style={{ fontSize: 9, color: "#475569", marginTop: 4 }}>Conecta GA4</div>
+              <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 22, fontWeight: 700, color: m.color }}>
+                {trafficLoading ? "…" : connected ? fmtMetric(m.id, metrics) : "—"}
+              </div>
+              <div style={{ fontSize: 9, color: "#475569", marginTop: 4 }}>{connected ? "Últimos 28 días" : "Conecta GA4"}</div>
             </div>
           );
         })}
@@ -109,7 +156,11 @@ export function TrafficAnalytics({ project }: { project: Project }) {
 
       <div className="glass-panel" style={{ padding: 0 }}>
         <div className="section-header"><span className="section-title" style={{ display: "flex", alignItems: "center", gap: 8 }}><Globe style={{ width: 14, height: 14 }} /> Fuentes de tráfico</span></div>
-        <div style={{ padding: 24, textAlign: "center", color: "#475569", fontSize: 12 }}>Disponible al conectar Google Analytics 4 / Tag Manager.</div>
+        <div style={{ padding: 24, textAlign: "center", color: "#475569", fontSize: 12 }}>
+          {connected
+            ? "Desglose por fuente/medio (sessionSource) — próxima iteración."
+            : "Disponible al conectar Google Analytics 4 / Tag Manager."}
+        </div>
       </div>
     </div>
   );

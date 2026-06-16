@@ -102,3 +102,103 @@ export async function sendAlertEmail({
     return null;
   }
 }
+
+export async function sendInviteEmail({
+  to,
+  inviterName,
+  workspaceName,
+  role,
+  inviteUrl,
+}: {
+  to: string;
+  inviterName: string;
+  workspaceName: string;
+  role: string;
+  inviteUrl: string;
+}) {
+  if (!resend || !to) {
+    console.log("[EMAIL] Resend not configured or no recipients, skipping invite email");
+    return null;
+  }
+
+  const { getInviteEmailHtml } = await import("@/lib/email-templates");
+  const html = getInviteEmailHtml({ inviterName, workspaceName, role, inviteUrl });
+
+  try {
+    const result = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: `Invitación a ${workspaceName} — SODARE`,
+      html,
+    });
+    console.log("[EMAIL] Sent invite email:", result);
+    return result;
+  } catch (err) {
+    console.error("[EMAIL] Failed to send invite:", err);
+    return null;
+  }
+}
+
+export async function sendPasswordResetEmail({
+  to,
+  userName,
+  resetUrl,
+}: {
+  to: string;
+  userName: string;
+  resetUrl: string;
+}) {
+  if (!resend || !to) {
+    console.log("[EMAIL] Resend not configured or no recipients, skipping password reset email");
+    return null;
+  }
+
+  const { getPasswordResetEmailHtml } = await import("@/lib/email-templates");
+  const html = getPasswordResetEmailHtml({ userName, resetUrl });
+
+  try {
+    const result = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: "Recuperar contraseña — SODARE",
+      html,
+    });
+    console.log("[EMAIL] Sent password reset email:", result);
+    return result;
+  } catch (err) {
+    console.error("[EMAIL] Failed to send password reset:", err);
+    return null;
+  }
+}
+
+export async function sendWelcomeEmail({
+  to,
+  userName,
+  dashboardUrl,
+}: {
+  to: string;
+  userName: string;
+  dashboardUrl: string;
+}) {
+  if (!resend || !to) {
+    console.log("[EMAIL] Resend not configured or no recipients, skipping welcome email");
+    return null;
+  }
+
+  const { getWelcomeEmailHtml } = await import("@/lib/email-templates");
+  const html = getWelcomeEmailHtml({ userName, dashboardUrl });
+
+  try {
+    const result = await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject: "Bienvenido a SODARE",
+      html,
+    });
+    console.log("[EMAIL] Sent welcome email:", result);
+    return result;
+  } catch (err) {
+    console.error("[EMAIL] Failed to send welcome email:", err);
+    return null;
+  }
+}

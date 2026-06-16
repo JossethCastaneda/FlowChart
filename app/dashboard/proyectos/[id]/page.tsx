@@ -9,6 +9,7 @@ import {
   Layers, Monitor, Smartphone, Globe, PieChart as PieIcon,
   HeartPulse, RefreshCw, MousePointer, Shield
 } from "lucide-react";
+import { normalizeIntegrationProvider } from "@/lib/analytics/project-scope";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ComposedChart, Line, PieChart, Pie, Cell, Legend, BarChart, Bar, ReferenceLine
@@ -1741,7 +1742,12 @@ export default function ProjectDashboardPage() {
                 <p style={labelStyle}>CRMs conectados (análisis de resultados)</p>
                 {(() => {
                   const CRM_PROVIDERS = ["botmaker", "cari", "custom_crm", "hubspot"];
-                  const crmLabel = (p: string) => p === "botmaker" ? "BotMaker" : p === "cari" ? "Cari AI" : p === "custom_crm" ? "CRM Custom (vía API)" : p;
+                  // Solo botmaker/cari/cari_ai alimentan Análisis de Resultados; el resto
+                  // (custom_crm/hubspot) se conserva pero se marca como NO compatible.
+                  const crmLabel = (p: string) => {
+                    const base = p === "botmaker" ? "Botmaker" : p === "cari" ? "Cari AI" : p === "custom_crm" ? "CRM Custom (vía API)" : p;
+                    return normalizeIntegrationProvider(p) ? base : `${base} — no compatible con Análisis de Resultados`;
+                  };
                   const crmOptions = activeIntegrations.filter(i => CRM_PROVIDERS.includes(i.provider));
                   // Selección efectiva: arreglo nuevo, con fallback al campo legacy.
                   const selected: string[] = (editForm.crmIntegrationIds && editForm.crmIntegrationIds.length > 0)

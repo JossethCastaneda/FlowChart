@@ -3,6 +3,7 @@ import { z } from "zod";
 import { withAuth } from "@/lib/api-handler";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { validateBody } from "@/lib/validate";
+import { resolveProjectCrmAssociation } from "@/lib/projects/crm";
 import {
   apiSuccess,
   apiUnauthorized,
@@ -51,6 +52,7 @@ const CreateProjectSchema = z.object({
   fanpage: z.array(z.string()).optional(),
   instagram: z.array(z.string()).optional(),
   whatsapp: z.array(z.string()).optional(),
+  webchat: z.array(z.string()).optional(),
   website: z.string().nullish(),
   persona: z.string().nullish(),
   geo: z.string().nullish(),
@@ -59,6 +61,7 @@ const CreateProjectSchema = z.object({
   dateStart: z.string().nullish(),
   dateEnd: z.string().nullish(),
   crmIntegrationId: z.string().nullish(),
+  crmIntegrationIds: z.array(z.string()).optional(),
   crmType: z.string().nullish(),
   channels: z.array(ChannelSchema).optional(),
 });
@@ -86,9 +89,16 @@ export const POST = withAuth(async (req, ctx) => {
   }
 
   const {
-    alias, client, vertical, fanpage, instagram, whatsapp, website,
-    persona, geo, status, dateStart, dateEnd, crmIntegrationId, crmType,
+    alias, client, vertical, fanpage, instagram, whatsapp, webchat, website,
+    persona, geo, status, dateStart, dateEnd, crmIntegrationId, crmIntegrationIds, crmType,
   } = fields;
+
+  // Defensa tenant en escritura: solo se asocian integraciones de ESTE workspace
+  // (ids ajenos/inexistentes se descartan). Mantiene legacy crmIntegrationId.
+  const crmRequested = crmIntegrationId !== undefined || crmIntegrationIds !== undefined;
+  const crm = crmRequested
+    ? await resolveProjectCrmAssociation(workspaceId, { crmIntegrationId, crmIntegrationIds })
+    : null;
 
   // FIX: use $transaction — project + channels must succeed or fail together
   const projectWithChannels = await prisma.$transaction(async (tx) => {
@@ -102,14 +112,16 @@ export const POST = withAuth(async (req, ctx) => {
         ...(fanpage !== undefined && { fanpage }),
         ...(instagram !== undefined && { instagram }),
         ...(whatsapp !== undefined && { whatsapp }),
+        ...(webchat !== undefined && { webchat }),
         ...(website !== undefined && { website }),
         ...(persona !== undefined && { persona }),
         ...(geo !== undefined && { geo }),
         ...(status !== undefined && { status }),
         ...(dateStart !== undefined && { dateStart }),
         ...(dateEnd !== undefined && { dateEnd }),
-        ...(crmIntegrationId !== undefined && { crmIntegrationId }),
-        ...(crmType !== undefined && { crmType }),
+        ...(crm ? { crmIntegrationIds: crm.crmIntegrationIds, crmIntegrationId: crm.crmIntegrationId } : {}),
+        // crmType solo se conserva si la integración asociada es válida del workspace.
+        ...(crmType !== undefined && { crmType: crm && crm.crmIntegrationId ? crmType : null }),
       },
     });
 

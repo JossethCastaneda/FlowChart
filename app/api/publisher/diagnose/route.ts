@@ -1,7 +1,7 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { withWorkspace } from "@/lib/api-handler";
+import { apiSuccess } from "@/lib/api-response";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
 
 const META_VERSION = process.env.META_API_VERSION || "v25.0";
@@ -18,28 +18,16 @@ const META_VERSION = process.env.META_API_VERSION || "v25.0";
  *
  * Returns a structured JSON with pass/fail for each step.
  */
-export async function GET(req: NextRequest) {
+export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const results: Record<string, { ok: boolean; detail: string }> = {};
 
-  // 1. Session
-  const session = await safeGetSession();
-  if (!session?.user?.id) {
-    results.session = { ok: false, detail: "No hay sesión activa" };
-    return NextResponse.json({ results, ready: false });
-  }
-  results.session = { ok: true, detail: `userId: ${session.user.id}` };
-
-  // 2. Workspace
-  const workspaceId = await getActiveWorkspaceId(session.user.id);
-  if (!workspaceId) {
-    results.workspace = { ok: false, detail: "No hay workspace activo" };
-    return NextResponse.json({ results, ready: false });
-  }
-  results.workspace = { ok: true, detail: `workspaceId: ${workspaceId}` };
+  // 1. & 2. Session and Workspace are already verified by withWorkspace
+  results.session = { ok: true, detail: `userId: ${ctx.userId}` };
+  results.workspace = { ok: true, detail: `workspaceId: ${ctx.workspaceId}` };
 
   // 3. Integration token in DB
   const integration = await prisma.integration.findUnique({
-    where: { workspaceId_provider_userId: { workspaceId, provider: "meta", userId: "workspace" } },
+    where: { workspaceId_provider_userId: { workspaceId: ctx.workspaceId, provider: "meta", userId: "workspace" } },
   });
   if (!integration) {
     results.integration_db = { ok: false, detail: "No existe registro 'meta' en la tabla Integration" };
@@ -59,7 +47,7 @@ export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "social");
   if (!accessToken) {
     results.access_token = { ok: false, detail: "getMetaAccessToken devolvió null — no hay token activo" };
-    return NextResponse.json({ results, ready: false });
+    return apiSuccess({ results, ready: false });
   }
   results.access_token = { ok: true, detail: "Token obtenido correctamente" };
 
@@ -77,11 +65,11 @@ export async function GET(req: NextRequest) {
         ok: false,
         detail: `Error: ${meData?.error?.message || "respuesta inesperada"} (code: ${meData?.error?.code})`,
       };
-      return NextResponse.json({ results, ready: false });
+      return apiSuccess({ results, ready: false });
     }
   } catch (e: any) {
     results.meta_me = { ok: false, detail: `Excepción: ${e.message}` };
-    return NextResponse.json({ results, ready: false });
+    return apiSuccess({ results, ready: false });
   }
 
   // 6. Meta pages
@@ -121,5 +109,5 @@ export async function GET(req: NextRequest) {
   }
 
   const allOk = Object.values(results).every((r) => r.ok);
-  return NextResponse.json({ results, ready: allOk });
-}
+  return apiSuccess({ results, ready: allOk });
+});

@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { openConnectPopup } from "@/lib/connect-popup";
+import { useLanguage } from "@/components/layout/LanguageContext";
 import { SodareLogo } from "@/components/ui/SodareLogo";
 
 // Los tipos de Window.FB y FbLoginResponse viven en types/facebook-sdk.d.ts
@@ -95,9 +98,9 @@ export default function LoginPage() {
 
     const initSdk = () => {
       window.FB!.init({
-        appId:   APP_ID,
-        cookie:  true,
-        xfbml:   false,
+        appId: APP_ID,
+        cookie: true,
+        xfbml: false,
         version: process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0",
       });
       window.FB!.AppEvents.logPageView();
@@ -111,7 +114,7 @@ export default function LoginPage() {
       window.fbAsyncInit = initSdk;
       if (!document.getElementById("facebook-jssdk")) {
         const js = document.createElement("script");
-        js.id  = "facebook-jssdk";
+        js.id = "facebook-jssdk";
         js.src = "https://connect.facebook.net/en_US/sdk.js";
         js.async = true;
         document.head.appendChild(js);
@@ -119,7 +122,7 @@ export default function LoginPage() {
     }
 
     return () => { isActive = false; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Autenticar con el accessToken obtenido del SDK ──────────
@@ -141,9 +144,9 @@ export default function LoginPage() {
       } else {
         errorMsg = result?.error ? ` (${result.error})` : `. Intenta de nuevo`;
       }
-      setStatus({ 
-        type: "error", 
-        message: `Error al autenticar con Facebook${errorMsg}.` 
+      setStatus({
+        type: "error",
+        message: `Error al autenticar con Facebook${errorMsg}.`
       });
       return;
     }
@@ -164,39 +167,42 @@ export default function LoginPage() {
       return;
     }
 
-    // Si el SDK está listo, usar popup (mejor UX — sin redirect).
-    // config_id es OBLIGATORIO para apps Business; sin el env no hay popup
-    // (sin fallback hardcodeado) y se usa el redirect de NextAuth.
-    const LOGIN_CONFIG_ID = process.env.NEXT_PUBLIC_FACEBOOK_LOGIN_CONFIG_ID;
-    if (fbReady && window.FB && LOGIN_CONFIG_ID) {
-      setIsLoading(true);
-      setStatus({ type: "connecting", message: "Abriendo Facebook..." });
-      window.FB!.login(
-        (response: FbLoginResponse) => {
-          if (response.authResponse?.accessToken) {
-            handleFbTokenInternal(response.authResponse.accessToken);
-          } else {
-            setIsLoading(false);
-            setStatus({ type: "idle", message: "Inicio de sesión cancelado." });
-          }
-        },
-        {
-          config_id: LOGIN_CONFIG_ID,
-          auth_type: "rerequest",
-        }
-      );
-      return;
-    }
-
-    // Fallback: redirect OAuth estándar de NextAuth (por si el SDK no cargó)
     setIsLoading(true);
-    setStatus({ type: "connecting", message: "Conectando..." });
-    const { signIn } = await import("next-auth/react");
-    try {
-      await signIn("facebook", { callbackUrl: getSafeCallbackUrl() });
-    } catch {
-      setIsLoading(false);
-      setStatus({ type: "error", message: "⚠ Error de conexión. Reintentar." });
+    setStatus({ type: "connecting", message: "Conectando con Facebook..." });
+    
+    const w = 520, h = 660;
+    const left = Math.max(0, (window.screen.width - w) / 2);
+    const top = Math.max(0, (window.screen.height - h) / 2);
+    const features = `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`;
+    
+    // Abrimos el popup directo a nuestra ruta delegada para que NextAuth redirija EL POPUP, no la ventana principal
+    const popup = window.open("/login/popup?provider=facebook", "connect_oauth", features);
+
+    if (popup) {
+      const handler = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        if (event.data?.type === "CONNECT_DONE") {
+          window.removeEventListener("message", handler);
+          if (event.data.module === "login") {
+            setStatus({ type: "success", message: "Acceso autorizado" });
+            window.location.href = getSafeCallbackUrl();
+          }
+          popup.close();
+        }
+      };
+      window.addEventListener("message", handler);
+
+      const timer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(timer);
+          window.removeEventListener("message", handler);
+          setIsLoading(false);
+          setStatus({ type: "idle", message: "Inicio de sesión cancelado." });
+        }
+      }, 500);
+    } else {
+      // Fallback si el popup se bloqueó por el navegador
+      window.location.href = "/login/popup?provider=facebook";
     }
   }
 
@@ -210,16 +216,39 @@ export default function LoginPage() {
       return;
     }
     setIsLoading(true);
-    setStatus({
-      type: "connecting",
-      message: "Conectando...",
-    });
-    const { signIn } = await import("next-auth/react");
-    try {
-      await signIn("google", { callbackUrl: getSafeCallbackUrl() });
-    } catch {
-      setIsLoading(false);
-      setStatus({ type: "error", message: "⚠ Error de conexión. Reintentar." });
+    setStatus({ type: "connecting", message: "Conectando con Google..." });
+
+    const w = 520, h = 660;
+    const left = Math.max(0, (window.screen.width - w) / 2);
+    const top = Math.max(0, (window.screen.height - h) / 2);
+    const features = `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`;
+    
+    const popup = window.open("/login/popup?provider=google", "connect_oauth_google", features);
+
+    if (popup) {
+      const handler = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) return;
+        if (event.data?.type === "CONNECT_DONE") {
+          window.removeEventListener("message", handler);
+          if (event.data.module === "login") {
+            setStatus({ type: "success", message: "Acceso autorizado" });
+            window.location.href = getSafeCallbackUrl();
+          }
+          popup.close();
+        }
+      };
+      window.addEventListener("message", handler);
+
+      const timer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(timer);
+          window.removeEventListener("message", handler);
+          setIsLoading(false);
+          setStatus({ type: "idle", message: "Inicio de sesión cancelado." });
+        }
+      }, 500);
+    } else {
+      window.location.href = "/login/popup?provider=google";
     }
   }
 
@@ -390,10 +419,10 @@ export default function LoginPage() {
               {!isLoading ? (
                 <>
                   <svg viewBox="0 0 24 24" className="fb-icon" style={{ fill: "white" }}>
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
                   </svg>
                   <span>
                     {!providerStatusLoaded

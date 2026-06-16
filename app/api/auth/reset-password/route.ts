@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import crypto from "crypto";
 import prisma from "@/lib/prisma";
 import { rateLimit, getClientIP } from "@/lib/ratelimit";
 
@@ -26,11 +27,13 @@ export async function POST(req: NextRequest) {
     const validationResult = await validateBody(req, ResetPasswordSchema);
     if (!validationResult.ok) return validationResult.response;
     const { token, password } = validationResult.data;
+    
+    const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
 
     // Wrap in transaction to prevent race conditions (two requests using same token)
     const result = await prisma.$transaction(async (tx) => {
       const verification = await tx.verificationToken.findUnique({
-        where: { token },
+        where: { token: tokenHash },
       });
 
       if (!verification) {
@@ -38,7 +41,7 @@ export async function POST(req: NextRequest) {
       }
 
       if (verification.expires < new Date()) {
-        await tx.verificationToken.delete({ where: { token } });
+        await tx.verificationToken.delete({ where: { token: tokenHash } });
         return { error: "El enlace ha expirado. Solicita uno nuevo.", status: 410 };
       }
 
@@ -56,7 +59,7 @@ export async function POST(req: NextRequest) {
         data: { password: hashedPassword },
       });
 
-      await tx.verificationToken.delete({ where: { token } });
+      await tx.verificationToken.delete({ where: { token: tokenHash } });
 
       console.log("[RESET-PASSWORD] Password updated for:", user.email);
       return { success: true };

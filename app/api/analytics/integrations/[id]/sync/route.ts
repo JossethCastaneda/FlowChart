@@ -21,6 +21,16 @@ export const POST = withWorkspace(async (req, ctx) => {
     return apiNotFound("La integración no es un proveedor de analítica soportado");
   }
 
+  // Validación de scope de proyecto
+  const projectId = req.nextUrl.searchParams.get("projectId") || null;
+  const channelConfigId = req.nextUrl.searchParams.get("channelConfigId") || null;
+  if (projectId) {
+    const p = await prisma.project.findFirst({
+      where: { id: projectId, workspaceId: ctx.workspaceId }
+    });
+    if (!p) return apiForbidden("Proyecto no pertenece al workspace");
+  }
+
   const days = parseInt(req.nextUrl.searchParams.get("days") || "7", 10) || 7;
   const endDate = new Date();
   const startDate = new Date(endDate.getTime() - days * 24 * 60 * 60 * 1000);
@@ -28,6 +38,8 @@ export const POST = withWorkspace(async (req, ctx) => {
   const job = await prisma.syncJob.create({
     data: {
       workspaceId: ctx.workspaceId,
+      projectId,
+      channelConfigId,
       integrationId: integration.id,
       provider: integration.provider,
       reportType: "conversations+messages",
@@ -44,6 +56,18 @@ export const POST = withWorkspace(async (req, ctx) => {
     const recordsInserted = convResult.recordsInserted + msgResult.recordsInserted;
     const ok = convResult.success && msgResult.success;
 
+    // Actualizamos los registros de la ventana de sync con el projectId si corresponde (best-effort para "guarda scope en datos")
+    if (projectId && ok) {
+      await prisma.normalizedConversation.updateMany({
+        where: { workspaceId: ctx.workspaceId, provider: integration.provider, conversationStartedAt: { gte: startDate, lte: endDate } },
+        data: { projectId }
+      });
+      await prisma.normalizedMessage.updateMany({
+        where: { workspaceId: ctx.workspaceId, provider: integration.provider, sentAt: { gte: startDate, lte: endDate } },
+        data: { projectId }
+      });
+    }
+
     await prisma.syncJob.update({
       where: { id: job.id },
       data: {
@@ -55,8 +79,8 @@ export const POST = withWorkspace(async (req, ctx) => {
     });
 
     await writeAuditLog({
-      workspaceId: ctx.workspaceId, userId: ctx.userId, action: "sync_manual",
-      resourceType: "integration", resourceId: integration.id, metadata: { recordsInserted, days },
+      workspaceId: ctx.workspaceId, userId: ctx.userId, action: "sync_manual", projectId,
+      resourceType: "integration", resourceId: integration.id, metadata: { recordsInserted, days, projectId }
     });
 
     return apiSuccess({ jobId: job.id, recordsInserted, success: ok });

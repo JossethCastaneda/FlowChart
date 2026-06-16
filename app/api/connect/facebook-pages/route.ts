@@ -28,7 +28,7 @@ export const GET = withWorkspace(async (_req, { workspaceId }) => {
   const pages = rawPages.map((p: any) => ({
     id: p.id,
     name: p.name,
-    picture: p.picture || null,
+    picture: typeof p.picture === "object" && p.picture?.data?.url ? p.picture.data.url : (typeof p.picture === "string" && p.picture !== "[object Object]" ? p.picture : null),
     email: p.email || null,
     category: p.category || null,
     // Enabled flags stored in creds.pageSettings
@@ -43,11 +43,24 @@ export const GET = withWorkspace(async (_req, { workspaceId }) => {
       : null,
   }));
 
+  const grantedScopes = creds?.grantedScopes || [];
+  const requiredScopes = [
+    "pages_show_list",
+    "pages_read_engagement",
+    "pages_manage_posts",
+    "instagram_basic",
+    "instagram_manage_messages",
+    "instagram_manage_comments",
+    "instagram_content_publish"
+  ];
+  const missingScopes = requiredScopes.filter(scope => !grantedScopes.includes(scope));
+
   return NextResponse.json({
     connected: integration.connected,
     connectedAt: integration.connectedAt?.toISOString() || null,
     provider: integration.provider,
     pages,
+    missingScopes,
   });
 });
 

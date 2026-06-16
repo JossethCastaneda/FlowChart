@@ -35,5 +35,12 @@ export function useAnalyticsData<T>(endpoint: string | null, query: string): Ana
     };
   }, [endpoint, query]);
 
-  return state;
+  // Sin endpoint NO hay request en vuelo → estado idle (loading:false).
+  // Si devolviéramos `state` tal cual, el `loading:true` inicial se quedaría
+  // pegado (el efecto hace early-return y nunca lo baja), haciendo que el botón
+  // "Actualizar" gire indefinidamente en las pestañas que no usan este fetch
+  // (Resumen, etc.). Lo resolvemos derivando aquí, sin setState dentro del
+  // efecto (respeta react-hooks/set-state-in-effect). Con endpoint, `state`
+  // sigue intacto, así que las pestañas overview conservan su spinner de carga.
+  return endpoint ? state : { data: null, loading: false, error: null };
 }

@@ -10,6 +10,7 @@ const PERM_KEYS: { key: keyof AreaPermissions; label: string; icon: React.Elemen
   { key: "canAccessInbox",     label: "Inbox",           icon: MessageCircle },
   { key: "canAccessAds",       label: "Ads Manager",     icon: Megaphone },
   { key: "canAccessAnalytics", label: "Analytics",       icon: BarChart3 },
+  { key: "canViewSensitiveAnalytics", label: "PII sensible (Analytics)", icon: BarChart3 },
   { key: "canAccessBriefing",  label: "Briefing",        icon: Target },
 ];
 
