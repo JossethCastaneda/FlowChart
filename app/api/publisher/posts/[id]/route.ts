@@ -4,7 +4,9 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { schedulePublishJob, cancelPublishJob } from "@/lib/qstash";
+import { cancelPublishJob } from "@/lib/qstash";
+import { start } from "workflow/api";
+import { publishPostWorkflow } from "@/workflows/publish-post";
 
 // GET /api/publisher/posts/[id]
 export const GET = withWorkspace(async (req: NextRequest, ctx) => {
@@ -77,16 +79,15 @@ export const PUT = withWorkspace(async (req: NextRequest, ctx) => {
   // Create new schedule if it should be scheduled
   if (finalStatus === "Scheduled" && finalTime && !newQstashMessageId) {
     try {
-      newQstashMessageId = await schedulePublishJob({
-        publishJobId: id,
-        scheduledAt: finalTime,
-      });
+      const delaySeconds = Math.max(0, Math.floor((finalTime.getTime() - Date.now()) / 1000));
+      const { runId } = await start(publishPostWorkflow, [id, delaySeconds]);
+      newQstashMessageId = runId;
       updateData.error = null;
     } catch (e) {
-      console.error("[QSTASH_ERROR] Failed to schedule new message:", e);
+      console.error("[WORKFLOW_ERROR] Failed to schedule new workflow:", e);
       // Hacemos visible el fallo en lugar de dejar un post programado que nunca correrá.
       updateData.error =
-        "No se pudo reprogramar en QStash; el post no se publicará automáticamente.";
+        "No se pudo reprogramar en Workflow; el post no se publicará automáticamente.";
     }
   }
 
