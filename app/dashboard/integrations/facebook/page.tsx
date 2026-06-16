@@ -13,7 +13,7 @@ import { useLanguage } from "@/components/layout/LanguageContext";
 const TRANSLATIONS = {
   es: {
     title: "Facebook y FB Messenger",
-    subtitle: "Conecta el bot a tu página de Facebook.",
+    subtitle: "Conecta tu página de Facebook.",
     noPageLink: "¿No tienes una página de Facebook? Créala desde aquí",
     connectedOn: "Conectado el",
     grantPermissions: "Dar permisos al bot",
