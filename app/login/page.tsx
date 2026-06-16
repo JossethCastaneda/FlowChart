@@ -1,6 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { openConnectPopup } from "@/lib/connect-popup";
+import { useLanguage } from "@/components/layout/LanguageContext";
 import { SodareLogo } from "@/components/ui/SodareLogo";
 
 // Los tipos de Window.FB y FbLoginResponse viven en types/facebook-sdk.d.ts
@@ -164,16 +167,28 @@ export default function LoginPage() {
       return;
     }
 
-    // Si el SDK está listo, usar popup (mejor UX — sin redirect).
-    // config_id es OBLIGATORIO para apps Business; sin el env no hay popup
-    // (sin fallback hardcodeado) y se usa el redirect de NextAuth.
-    // OMITIMOS window.FB.login para Login for Business porque Meta NO soporta el implicit flow (no puede devolver accessToken).
-    // Usamos siempre el redirect OAuth estándar de NextAuth (que maneja el flujo de código de servidor correctamente).
+    // Usamos NextAuth pero capturamos la URL para abrirla en un popup en lugar de recargar la página
     setIsLoading(true);
     setStatus({ type: "connecting", message: "Conectando con Facebook..." });
     const { signIn } = await import("next-auth/react");
     try {
-      await signIn("facebook", { callbackUrl: getSafeCallbackUrl() });
+      const result = await signIn("facebook", {
+        callbackUrl: window.location.origin + "/connect/done?module=login",
+        redirect: false,
+      });
+
+      if (result?.url) {
+        openConnectPopup(result.url, (mod) => {
+          if (mod === "login") {
+            setStatus({ type: "success", message: "Acceso autorizado" });
+            window.location.href = getSafeCallbackUrl();
+          }
+        });
+        // Reseteamos el estado a idle por si el usuario cierra el popup manualmente
+        setTimeout(() => { setIsLoading(false); setStatus({ type: "idle", message: "Esperando..." }); }, 2000);
+      } else if (result?.error) {
+        throw new Error(result.error);
+      }
     } catch {
       setIsLoading(false);
       setStatus({ type: "error", message: "⚠ Error de conexión. Reintentar." });
@@ -192,11 +207,26 @@ export default function LoginPage() {
     setIsLoading(true);
     setStatus({
       type: "connecting",
-      message: "Conectando...",
+      message: "Conectando con Google...",
     });
     const { signIn } = await import("next-auth/react");
     try {
-      await signIn("google", { callbackUrl: getSafeCallbackUrl() });
+      const result = await signIn("google", {
+        callbackUrl: window.location.origin + "/connect/done?module=login",
+        redirect: false,
+      });
+
+      if (result?.url) {
+        openConnectPopup(result.url, (mod) => {
+          if (mod === "login") {
+            setStatus({ type: "success", message: "Acceso autorizado" });
+            window.location.href = getSafeCallbackUrl();
+          }
+        });
+        setTimeout(() => { setIsLoading(false); setStatus({ type: "idle", message: "Esperando..." }); }, 2000);
+      } else if (result?.error) {
+        throw new Error(result.error);
+      }
     } catch {
       setIsLoading(false);
       setStatus({ type: "error", message: "⚠ Error de conexión. Reintentar." });
