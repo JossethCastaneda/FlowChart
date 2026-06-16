@@ -167,9 +167,17 @@ export default function LoginPage() {
       return;
     }
 
-    // Usamos NextAuth pero capturamos la URL para abrirla en un popup en lugar de recargar la página
     setIsLoading(true);
     setStatus({ type: "connecting", message: "Conectando con Facebook..." });
+    
+    // Abrimos el popup de forma síncrona para evitar que el navegador lo bloquee
+    const w = 520, h = 660;
+    const left = Math.max(0, (window.screen.width - w) / 2);
+    const top = Math.max(0, (window.screen.height - h) / 2);
+    const features = `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`;
+    const popup = window.open("", "connect_oauth", features);
+    if (popup) popup.document.write("<div style='font-family:sans-serif;padding:20px'>Cargando...</div>");
+
     const { signIn } = await import("next-auth/react");
     try {
       const result = await signIn("facebook", {
@@ -178,18 +186,40 @@ export default function LoginPage() {
       });
 
       if (result?.url) {
-        openConnectPopup(result.url, (mod) => {
-          if (mod === "login") {
-            setStatus({ type: "success", message: "Acceso autorizado" });
-            window.location.href = getSafeCallbackUrl();
-          }
-        });
-        // Reseteamos el estado a idle por si el usuario cierra el popup manualmente
-        setTimeout(() => { setIsLoading(false); setStatus({ type: "idle", message: "Esperando..." }); }, 2000);
+        if (popup) {
+          popup.location.href = result.url;
+          
+          const handler = (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data?.type === "CONNECT_DONE") {
+              window.removeEventListener("message", handler);
+              if (event.data.module === "login") {
+                setStatus({ type: "success", message: "Acceso autorizado" });
+                window.location.href = getSafeCallbackUrl();
+              }
+              popup.close();
+            }
+          };
+          window.addEventListener("message", handler);
+
+          const timer = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(timer);
+              window.removeEventListener("message", handler);
+              setIsLoading(false);
+              setStatus({ type: "idle", message: "Inicio de sesión cancelado." });
+            }
+          }, 500);
+        } else {
+          // Fallback si se bloqueó
+          window.location.href = result.url;
+        }
       } else if (result?.error) {
+        if (popup) popup.close();
         throw new Error(result.error);
       }
     } catch {
+      if (popup && !popup.closed) popup.close();
       setIsLoading(false);
       setStatus({ type: "error", message: "⚠ Error de conexión. Reintentar." });
     }
@@ -205,10 +235,15 @@ export default function LoginPage() {
       return;
     }
     setIsLoading(true);
-    setStatus({
-      type: "connecting",
-      message: "Conectando con Google...",
-    });
+    setStatus({ type: "connecting", message: "Conectando con Google..." });
+
+    const w = 520, h = 660;
+    const left = Math.max(0, (window.screen.width - w) / 2);
+    const top = Math.max(0, (window.screen.height - h) / 2);
+    const features = `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`;
+    const popup = window.open("", "connect_oauth_google", features);
+    if (popup) popup.document.write("<div style='font-family:sans-serif;padding:20px'>Cargando...</div>");
+
     const { signIn } = await import("next-auth/react");
     try {
       const result = await signIn("google", {
@@ -217,17 +252,39 @@ export default function LoginPage() {
       });
 
       if (result?.url) {
-        openConnectPopup(result.url, (mod) => {
-          if (mod === "login") {
-            setStatus({ type: "success", message: "Acceso autorizado" });
-            window.location.href = getSafeCallbackUrl();
-          }
-        });
-        setTimeout(() => { setIsLoading(false); setStatus({ type: "idle", message: "Esperando..." }); }, 2000);
+        if (popup) {
+          popup.location.href = result.url;
+          
+          const handler = (event: MessageEvent) => {
+            if (event.origin !== window.location.origin) return;
+            if (event.data?.type === "CONNECT_DONE") {
+              window.removeEventListener("message", handler);
+              if (event.data.module === "login") {
+                setStatus({ type: "success", message: "Acceso autorizado" });
+                window.location.href = getSafeCallbackUrl();
+              }
+              popup.close();
+            }
+          };
+          window.addEventListener("message", handler);
+
+          const timer = setInterval(() => {
+            if (popup.closed) {
+              clearInterval(timer);
+              window.removeEventListener("message", handler);
+              setIsLoading(false);
+              setStatus({ type: "idle", message: "Inicio de sesión cancelado." });
+            }
+          }, 500);
+        } else {
+          window.location.href = result.url;
+        }
       } else if (result?.error) {
+        if (popup) popup.close();
         throw new Error(result.error);
       }
     } catch {
+      if (popup && !popup.closed) popup.close();
       setIsLoading(false);
       setStatus({ type: "error", message: "⚠ Error de conexión. Reintentar." });
     }
