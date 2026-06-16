@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { motion } from "framer-motion";
 import {
   Settings, Loader2, RefreshCw, Plug, MessageSquare, Database,
 } from "lucide-react";
@@ -327,47 +328,61 @@ export function IntegrationsView() {
       <div style={{ display: "flex", flexDirection: "column", gap: 20, animation: "fadeInUp 0.25s ease" }}>
 
         {/* ── Summary ─── */}
-        <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "9px 16px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px", borderRadius: "14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", boxShadow: "0 4px 20px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.02)" }}>
           {loading ? (
-            <Loader2 size={13} style={{ color: "#475569", animation: "spin 1s linear infinite" }} />
+            <Loader2 size={16} style={{ color: "#475569", animation: "spin 1s linear infinite" }} />
           ) : (
             <>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: uniqueConnected > 0 ? "#10b981" : "#334155", animation: uniqueConnected > 0 ? "pulse-dot 2s infinite" : "none" }} />
-                <span style={{ fontSize: 12, color: "#94a3b8" }}>
-                  <strong style={{ color: "#e2e8f0" }}>{uniqueConnected}</strong> {lang === "es" ? `de ${totalActive} canales conectados` : `of ${totalActive} connected channels`}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", flexShrink: 0 }}>
+                <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: uniqueConnected > 0 ? "#10b981" : "#334155", boxShadow: uniqueConnected > 0 ? "0 0 10px #10b981" : "none" }} />
+                <span style={{ fontSize: "14px", color: "#94a3b8" }}>
+                  <strong style={{ color: "white", fontWeight: 800 }}>{uniqueConnected}</strong> {lang === "es" ? `de ${totalActive} canales conectados` : `of ${totalActive} connected channels`}
                 </span>
               </div>
-              <div style={{ flex: 1, height: 3, borderRadius: 2, background: "rgba(255,255,255,0.05)" }}>
-                <div style={{ width: `${totalActive > 0 ? (uniqueConnected / totalActive) * 100 : 0}%`, height: "100%", borderRadius: 2, background: "linear-gradient(90deg,#0081FB,#25D366,#4285F4)", transition: "width 0.6s ease" }} />
+              <div style={{ flex: 1, height: "6px", borderRadius: "3px", background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+                <motion.div initial={{ width: 0 }} animate={{ width: `${totalActive > 0 ? (uniqueConnected / totalActive) * 100 : 0}%` }} transition={{ duration: 1, ease: "easeOut" }} style={{ height: "100%", borderRadius: "3px", background: "linear-gradient(90deg,#00d4ff,#4f46e5,#f472b6)", boxShadow: "0 0 10px rgba(0,212,255,0.5)" }} />
               </div>
-              <button onClick={loadIntegrations} style={{ background: "none", border: "none", cursor: "pointer", color: "#334155", display: "flex", alignItems: "center", gap: 4, fontSize: 11, fontFamily: "inherit" }}>
-                <RefreshCw size={11} /> {lang === "es" ? "Actualizar" : "Refresh"}
-              </button>
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadIntegrations} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", cursor: "pointer", color: "white", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 600, padding: "6px 12px", transition: "background 0.2s" }}>
+                <RefreshCw size={12} /> {lang === "es" ? "Refrescar" : "Refresh"}
+              </motion.button>
             </>
           )}
         </div>
 
         {/* ── Card grid ─── */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(218px, 1fr))", gap: 14 }}>
+        <motion.div 
+          initial="hidden" animate="show"
+          variants={{
+            hidden: { opacity: 0 },
+            show: {
+              opacity: 1,
+              transition: { staggerChildren: 0.05 }
+            }
+          }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "18px" }}
+        >
           {ALL_CHANNELS.map((ch, idx) => {
             const state = getState(ch.provider);
             const connected = !loading && !!state?.connected;
             const isGradient = ch.iconBg.startsWith("linear");
 
             return (
-              <div
+              <motion.div
+                variants={{
+                  hidden: { opacity: 0, y: 20, scale: 0.95 },
+                  show: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 300, damping: 24 } }
+                }}
                 key={`${ch.provider}-${idx}`}
-                className="int-card"
                 data-soon={ch.comingSoon ? "true" : "false"}
                 style={{
                   display: "flex", flexDirection: "column",
-                  padding: "20px 18px 16px", borderRadius: 14,
-                  background: connected ? "rgba(16,185,129,0.04)" : "rgba(255,255,255,0.022)",
-                  border: connected ? "1px solid rgba(16,185,129,0.18)" : "1px solid rgba(255,255,255,0.07)",
+                  padding: "24px 22px 20px", borderRadius: "18px",
+                  background: connected ? "rgba(16, 185, 129, 0.05)" : "rgba(255, 255, 255, 0.02)",
+                  border: connected ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(255, 255, 255, 0.08)",
                   opacity: ch.comingSoon ? 0.55 : 1,
                   position: "relative", overflow: "hidden",
-                  animationDelay: `${idx * 0.03}s`,
+                  boxShadow: connected ? "0 10px 30px rgba(16,185,129,0.1), inset 0 0 0 1px rgba(16,185,129,0.1)" : "0 4px 14px rgba(0,0,0,0.2)",
+                  backdropFilter: "blur(12px)",
                 }}
               >
                 {/* top green accent when connected */}
@@ -383,27 +398,30 @@ export function IntegrationsView() {
                 )}
  
                 {/* Icon row */}
-                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
-                  <div style={{
-                    width: 48, height: 48, borderRadius: 13, flexShrink: 0,
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "16px" }}>
+                  <motion.div 
+                    whileHover={{ scale: 1.05, rotate: [-2, 2, 0] }}
+                    transition={{ duration: 0.3 }}
+                    style={{
+                    width: "52px", height: "52px", borderRadius: "14px", flexShrink: 0,
                     background: ch.iconBg,
                     border: ch.iconLight ? "1px solid rgba(0,0,0,0.08)" : "none",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     boxShadow: connected
                       ? ch.iconLight
-                        ? "0 0 0 3px rgba(16,185,129,0.14), 0 4px 16px rgba(0,0,0,0.15)"
-                        : `0 0 0 3px rgba(16,185,129,0.14), 0 4px 16px ${isGradient ? "rgba(0,100,224,0.3)" : ch.iconBg + "55"}`
+                        ? "0 0 0 3px rgba(16,185,129,0.14), 0 8px 24px rgba(0,0,0,0.15)"
+                        : `0 0 0 3px rgba(16,185,129,0.14), 0 8px 24px ${isGradient ? "rgba(0,100,224,0.3)" : ch.iconBg + "55"}`
                       : ch.iconLight
-                        ? "0 4px 16px rgba(0,0,0,0.1)"
-                        : `0 4px 16px ${isGradient ? "rgba(0,100,224,0.18)" : ch.iconBg + "33"}`,
+                        ? "0 8px 24px rgba(0,0,0,0.1)"
+                        : `0 8px 24px ${isGradient ? "rgba(0,100,224,0.18)" : ch.iconBg + "33"}`,
                   }}>
-                    <ch.Icon size={24} />
-                  </div>
+                    <ch.Icon size={26} />
+                  </motion.div>
  
                   {ch.badges && (
-                    <div style={{ display: "flex", flexDirection: "column", gap: 3, alignItems: "flex-end" }}>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px", alignItems: "flex-end" }}>
                       {ch.badges.map((b) => (
-                        <span key={b.label} style={{ fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: `${b.color}14`, border: `1px solid ${b.color}30`, color: b.color, letterSpacing: "0.07em" }}>
+                        <span key={b.label} style={{ fontSize: "9px", fontWeight: 800, padding: "3px 8px", borderRadius: "6px", background: `${b.color}14`, border: `1px solid ${b.color}30`, color: b.color, letterSpacing: "0.08em" }}>
                           {b.label}
                         </span>
                       ))}
@@ -413,56 +431,56 @@ export function IntegrationsView() {
  
                 {/* Name + description */}
                 <div style={{ flex: 1 }}>
-                  <p style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", margin: "0 0 5px", lineHeight: 1.2 }}>{ch.name}</p>
-                  <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0, lineHeight: 1.55 }}>
+                  <h3 style={{ fontSize: "16px", fontWeight: 800, color: "white", margin: "0 0 6px", letterSpacing: "-0.01em" }}>{ch.name}</h3>
+                  <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0, lineHeight: 1.6 }}>
                     {getTranslatedChannelDesc(ch.name, ch.description, lang)}
                   </p>
                 </div>
  
                 {/* Bottom: status + button */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: 18, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                     {loading ? (
-                      <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#1e293b" }} />
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
                     ) : connected ? (
                       <>
-                        <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#10b981", animation: "pulse-dot 2s infinite" }} />
-                        <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>{lang === "es" ? "Conectado" : "Connected"}</span>
+                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 10px #10b981" }} />
+                        <span style={{ fontSize: "12px", color: "#10b981", fontWeight: 700 }}>{lang === "es" ? "Conectado" : "Connected"}</span>
                       </>
                     ) : (
                       <>
-                        <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#334155" }} />
-                        <span style={{ fontSize: 11, color: "#475569" }}>{lang === "es" ? "Sin conectar" : "Not connected"}</span>
+                        <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#475569" }} />
+                        <span style={{ fontSize: "12px", color: "#64748b", fontWeight: 600 }}>{lang === "es" ? "Sin conectar" : "Not connected"}</span>
                       </>
                     )}
                   </div>
-                  {/* The small overlapping circles have been removed */}
  
                   {!ch.comingSoon && (
-                    <button
-                      className="int-btn"
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
                       onClick={() => {
                         if (connected && ch.managePage) router.push(ch.managePage);
                         else handleConnect(ch);
                       }}
                       style={{
-                        padding: "6px 16px", borderRadius: 7,
-                        fontSize: 11, fontWeight: 700,
-                        background: "linear-gradient(135deg,#4f46e5,#6d28d9)",
-                        border: "none", color: "white",
+                        padding: "8px 18px", borderRadius: "8px",
+                        fontSize: "12px", fontWeight: 700,
+                        background: connected ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, #00d4ff, #4f46e5)",
+                        border: connected ? "1px solid rgba(255,255,255,0.1)" : "none",
+                        color: connected ? "white" : "white",
                         cursor: "pointer", fontFamily: "inherit",
-                        boxShadow: "0 2px 8px rgba(79,70,229,0.3)",
-                        transition: "filter 0.15s",
+                        boxShadow: connected ? "none" : "0 4px 14px rgba(0,212,255,0.4)",
                       }}
                     >
                       {connected ? (lang === "es" ? "Configurar" : "Configure") : (lang === "es" ? "Conectar" : "Connect")}
-                    </button>
+                    </motion.button>
                   )}
                 </div>
-              </div>
+              </motion.div>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
       {/* ── Modals ─── */}

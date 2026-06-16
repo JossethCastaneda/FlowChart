@@ -12,6 +12,7 @@ import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
 import { PermissionsProvider } from "@/components/layout/PermissionsContext";
 import { getBaseUrl } from "@/lib/get-base-url";
 import { LanguageProvider } from "@/components/layout/LanguageContext";
+import { SodareBrandDefs } from "@/components/ui/SodareBrandDefs";
 
 // Solo inyectar los tags si el ID tiene el formato real (GTM-XXXX / G-XXXX);
 // así un placeholder en Vercel no genera scripts rotos en producción.
@@ -52,6 +53,7 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body className={`${inter.variable} font-sans antialiased`}>
+        <SodareBrandDefs />
         <AuthProvider>
           <LanguageProvider>
             <PermissionsProvider>

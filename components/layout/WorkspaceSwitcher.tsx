@@ -1,7 +1,8 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown, Plus, Check } from "lucide-react";
+import { HoloIcon } from "@/components/ui/HoloIcon";
 
 interface Workspace {
   id: string;
@@ -121,9 +122,8 @@ export function WorkspaceSwitcher() {
             {active.memberCount !== 1 ? "s" : ""}
           </p>
         </div>
-        <ChevronDown className="sidebar-hide-compact" style={{
+        <HoloIcon icon={ChevronDown} variant="cyan" isActive={open} className="sidebar-hide-compact" style={{
           width: 14, height: 14,
-          color: "#64748b",
           flexShrink: 0,
           transform: open ? "rotate(180deg)" : "none",
           transition: "transform 0.2s",
@@ -202,9 +202,8 @@ export function WorkspaceSwitcher() {
                 </p>
               </div>
               {ws.id === active.id && (
-                <Check style={{
-                  width: 12, height: 12,
-                  color: "#00d4ff", flexShrink: 0,
+                <HoloIcon icon={Check} variant="cyan" isActive={true} style={{
+                  width: 12, height: 12, flexShrink: 0,
                 }} />
               )}
             </button>
@@ -243,9 +242,8 @@ export function WorkspaceSwitcher() {
               justifyContent: "center",
               flexShrink: 0,
             }}>
-              <Plus style={{
-                width: 12, height: 12,
-                color: "rgba(0,212,255,0.5)",
+              <HoloIcon icon={Plus} variant="cyan" isActive={true} style={{
+                width: 12, height: 12, opacity: 0.5
               }} />
             </div>
             <span style={{ fontSize: "12px" }}>

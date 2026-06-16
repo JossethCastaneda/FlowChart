@@ -298,6 +298,7 @@ model Task {
   activities  TaskActivity[]
 
   @@index([workspaceId])
+  @@index([workspaceId, status])
   @@index([parentId])
 }
 
@@ -346,6 +347,7 @@ model Brief {
   project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
+  @@index([workspaceId, status])
 }
 
 // ------------------------------------------------------

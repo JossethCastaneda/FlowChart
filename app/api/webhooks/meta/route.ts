@@ -628,48 +628,69 @@ async function findProjectsForEvent(meta: {
     });
   }
 
-  // ── Slow path: scan de proyectos activos con canal Meta ──
-  const projects = await prisma.project.findMany({
-    where: { status: "Activo" },
+  // ── Slow path: Optimizado para escanear solo canales Meta ──
+  // Previene el colapso del Pool de Base de Datos al no cargar
+  // el árbol completo de todos los proyectos inactivos o no-Meta.
+  const metaChannels = await prisma.channel.findMany({
+    where: { type: "FACEBOOK" },
     select: {
-      id: true,
-      name: true,
-      workspaceId: true,
-      channels: { select: { type: true, config: true } },
-      workspace: {
-        select: { members: { select: { userId: true } } },
+      projectId: true,
+      config: true,
+      project: {
+        select: {
+          id: true,
+          name: true,
+          workspaceId: true,
+          status: true,
+          workspace: {
+            select: { members: { select: { userId: true } } },
+          },
+        },
       },
     },
   });
 
-  const matched = projects.filter((project) => {
-    const metaChannel = project.channels.find((c) => {
-      const cfg = c.config as Record<string, unknown> | null;
-      return cfg?.platformId === "meta" || c.type === "FACEBOOK";
-    });
-    if (!metaChannel) return false;
-    const cfg = metaChannel.config as Record<string, unknown> | null;
-    if (!cfg) return false;
+  type ProjectMatched = {
+    id: string;
+    name: string;
+    workspaceId: string;
+    workspace: {
+      members: { userId: string }[];
+    } | null;
+  };
 
+  const matchedProjects = new Map<string, ProjectMatched>();
+
+  for (const c of metaChannels) {
+    if (c.project.status !== "Activo") continue;
+
+    const cfg = c.config as Record<string, unknown> | null;
+    if (!cfg) continue;
+
+    let isMatch = false;
     if (meta.adAccountId) {
       const accounts = cfg.adAccounts as string[] | undefined;
-      return accounts?.some(
+      isMatch = accounts?.some(
         (a) => a.includes(meta.adAccountId!) || meta.adAccountId!.includes(a)
       ) ?? false;
-    }
-    if (meta.pageId) {
+    } else if (meta.pageId) {
       const pages = cfg.pages as Array<{ id: string }> | undefined;
-      return cfg.pageId === meta.pageId || pages?.some((p) => p.id === meta.pageId) === true;
-    }
-    if (meta.igAccountId) {
+      isMatch = cfg.pageId === meta.pageId || pages?.some((p) => p.id === meta.pageId) === true;
+    } else if (meta.igAccountId) {
       const accounts = cfg.instagramAccounts as Array<{ id: string }> | undefined;
-      return (
+      isMatch =
         cfg.igAccountId === meta.igAccountId ||
-        accounts?.some((a) => a.id === meta.igAccountId) === true
-      );
+        accounts?.some((a) => a.id === meta.igAccountId) === true;
     }
-    return false;
-  });
+
+    if (isMatch) {
+      // Remover status para cumplir con el tipo de retorno original
+      const { status, ...projectData } = c.project;
+      matchedProjects.set(c.projectId, projectData);
+    }
+  }
+
+  const matched = Array.from(matchedProjects.values());
 
   // Poblar el cache para resolver futuros eventos de esta fuente en O(1).
   if (matched.length > 0) {

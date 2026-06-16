@@ -85,8 +85,20 @@ export default function ResumenPage() {
     );
   }
 
-  const d = data!;
-  const taskDoneRate = d.tasks.total > 0 ? Math.round((d.tasks.done / d.tasks.total) * 100) : 0;
+  if (!data) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Inicio" description="Hubo un problema al cargar el workspace"
+          icon={<LayoutDashboard className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
+        <div style={{ textAlign: "center", padding: "60px 0", color: "#e2445c" }}>
+          No se pudieron cargar los datos del resumen. Verifica tu conexión.
+        </div>
+      </div>
+    );
+  }
+
+  const d = data;
+  const taskDoneRate = d.tasks?.total > 0 ? Math.round((d.tasks.done / d.tasks.total) * 100) : 0;
 
   // Build project cards data
   const activeProjects = d.projectsList?.filter((p: any) => p.status === "EN VUELO") || [];
