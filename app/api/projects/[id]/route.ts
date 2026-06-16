@@ -24,6 +24,7 @@ const UpdateProjectSchema = z.object({
   fanpage: z.array(z.string()).optional(),
   instagram: z.array(z.string()).optional(),
   whatsapp: z.array(z.string()).optional(),
+  webchat: z.array(z.string()).optional(),
   website: z.string().nullish(),
   persona: z.string().nullish(),
   geo: z.string().nullish(),

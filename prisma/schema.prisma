@@ -171,6 +171,7 @@ model Project {
   fanpage     String[]
   instagram   String[]
   whatsapp    String[]
+  webchat     String[] // ID(s) del widget de web chat (Cari/Botmaker/Google)
   website     String?
   persona     String?  @db.Text
   geo         String?

@@ -28,6 +28,7 @@ export async function getConfiguredProjectChannels(
       whatsapp: true,
       instagram: true,
       fanpage: true,
+      webchat: true,
       channels: { select: { type: true } },
     },
   });
@@ -54,6 +55,7 @@ export async function resolveProjectScope(
       whatsapp: true,
       instagram: true,
       fanpage: true,
+      webchat: true,
       channels: { select: { type: true } },
       crmIntegrationId: true,
       crmIntegrationIds: true,
@@ -93,6 +95,7 @@ export async function resolveProjectScopeView(
       whatsapp: true,
       instagram: true,
       fanpage: true,
+      webchat: true,
       channels: { select: { type: true } },
       crmIntegrationId: true,
       crmIntegrationIds: true,

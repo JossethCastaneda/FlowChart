@@ -52,6 +52,7 @@ const CreateProjectSchema = z.object({
   fanpage: z.array(z.string()).optional(),
   instagram: z.array(z.string()).optional(),
   whatsapp: z.array(z.string()).optional(),
+  webchat: z.array(z.string()).optional(),
   website: z.string().nullish(),
   persona: z.string().nullish(),
   geo: z.string().nullish(),
@@ -88,7 +89,7 @@ export const POST = withAuth(async (req, ctx) => {
   }
 
   const {
-    alias, client, vertical, fanpage, instagram, whatsapp, website,
+    alias, client, vertical, fanpage, instagram, whatsapp, webchat, website,
     persona, geo, status, dateStart, dateEnd, crmIntegrationId, crmIntegrationIds, crmType,
   } = fields;
 
@@ -111,6 +112,7 @@ export const POST = withAuth(async (req, ctx) => {
         ...(fanpage !== undefined && { fanpage }),
         ...(instagram !== undefined && { instagram }),
         ...(whatsapp !== undefined && { whatsapp }),
+        ...(webchat !== undefined && { webchat }),
         ...(website !== undefined && { website }),
         ...(persona !== undefined && { persona }),
         ...(geo !== undefined && { geo }),

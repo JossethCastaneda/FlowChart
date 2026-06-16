@@ -38,8 +38,8 @@ describe("deriveProjectChannels", () => {
 
 // ── normalizeChannelName: aliases de proveedor → canónico ────────────────────
 describe("normalizeChannelName", () => {
-  it("solo admite los 4 canales canónicos", () => {
-    expect(SUPPORTED_CHANNELS).toEqual(["whatsapp", "instagram", "facebook", "messenger"]);
+  it("admite los 5 canales canónicos (incluye webchat)", () => {
+    expect(SUPPORTED_CHANNELS).toEqual(["whatsapp", "instagram", "facebook", "messenger", "webchat"]);
   });
 
   it("WhatsApp: acepta sus aliases", () => {
@@ -66,8 +66,14 @@ describe("normalizeChannelName", () => {
     }
   });
 
+  it("Web Chat: acepta sus aliases", () => {
+    for (const a of ["webchat", "web_chat", "web", "widget", "Web Chat", "WEBCHAT", "website_chat"]) {
+      expect(normalizeChannelName(a)).toBe("webchat");
+    }
+  });
+
   it("canales no soportados → null (se excluyen de esta vista)", () => {
-    for (const a of ["webchat", "web_chat", "telegram", "sms", "email", "meta", "google", "tiktok", "", "  "]) {
+    for (const a of ["telegram", "sms", "email", "meta", "google", "tiktok", "", "  "]) {
       expect(normalizeChannelName(a)).toBeNull();
     }
     expect(normalizeChannelName(undefined)).toBeNull();
@@ -97,6 +103,13 @@ describe("collectProjectChannels", () => {
   it("sin nada configurado → [] (empty state)", () => {
     expect(collectProjectChannels({})).toEqual([]);
     expect(collectProjectChannels({ channels: [{ type: "telegram" }] })).toEqual([]);
+  });
+
+  it("incluye webchat desde los IDs de web chat o desde filas Channel", () => {
+    expect(collectProjectChannels({ webchat: ["w-123"] })).toEqual(["webchat"]);
+    expect(collectProjectChannels({ channels: [{ type: "WEBCHAT" }] })).toEqual(["webchat"]);
+    // orden canónico estable con webchat al final
+    expect(deriveProjectChannels({ whatsapp: ["a"], webchat: ["w-1"] })).toEqual(["whatsapp", "webchat"]);
   });
 
   it("devuelve siempre en orden canónico estable", () => {

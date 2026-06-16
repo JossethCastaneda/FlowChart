@@ -40,6 +40,7 @@ const CHANNEL_LABEL: Record<string, string> = {
   instagram: "Instagram",
   facebook: "Facebook",
   messenger: "Messenger",
+  webchat: "Web Chat",
 };
 
 function StatusBadge({ status }: { status: string }) {
