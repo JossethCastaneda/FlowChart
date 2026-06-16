@@ -270,7 +270,54 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Also update the generic "meta" integration so all modules can use it as fallback
+    // Also update the generic "meta" integration so all modules can use it as fallback.
+    // G5 FIX: cada módulo se conecta con su propio config_id (scopes distintos).
+    // Si sobrescribimos ciegamente el token genérico con el del último módulo,
+    // un caller que use el genérico (sin pasar `module`) puede perder scopes
+    // (ej. conectar Analytics pisaría el token con ads_management de Ads).
+    // Por eso: si el token genérico actual tiene scopes que el nuevo NO incluye,
+    // conservamos el token existente (más amplio) y solo unificamos el registro
+    // de scopes. Si el nuevo es igual o superset, sí lo promovemos.
+    const existingGeneric = await prisma.integration.findUnique({
+      where: {
+        workspaceId_provider_userId: {
+          workspaceId: resolvedWorkspaceId,
+          provider: "meta",
+          userId: "workspace",
+        },
+      },
+    });
+    const existingCreds = (existingGeneric?.credentials as Record<string, unknown> | null) ?? null;
+    const existingScopes = Array.isArray(existingCreds?.grantedScopes)
+      ? (existingCreds!.grantedScopes as string[])
+      : [];
+    const newScopeSet = new Set(userScopes);
+    const wouldLoseScopes =
+      existingGeneric?.connected === true &&
+      existingScopes.some((s) => !newScopeSet.has(s));
+    const unionScopes = [...new Set([...existingScopes, ...userScopes])];
+
+    const genericCredentials = wouldLoseScopes
+      ? {
+          // Conserva el token existente (más amplio); solo refresca metadatos.
+          ...existingCreds,
+          grantedScopes: unionScopes,
+          refreshedAt: new Date().toISOString(),
+        }
+      : {
+          accessToken: encryptedUserToken, // USER token
+          pages,
+          expiresAt,
+          refreshedAt: new Date().toISOString(),
+          grantedScopes: unionScopes,
+        };
+
+    if (wouldLoseScopes) {
+      console.warn(
+        `[CONNECT CALLBACK] ⚠️ Token genérico "meta" conservado (el módulo "${module}" no cubre scopes existentes: ${existingScopes.filter((s) => !newScopeSet.has(s)).join(", ")})`
+      );
+    }
+
     const metaIntegration = await prisma.integration.upsert({
       where: {
         workspaceId_provider_userId: {
@@ -280,13 +327,7 @@ export async function GET(request: NextRequest) {
         },
       },
       update: {
-        credentials: {
-          accessToken: encryptedUserToken, // USER token
-          pages,
-          expiresAt,
-          refreshedAt: new Date().toISOString(),
-          grantedScopes: userScopes,
-        },
+        credentials: genericCredentials,
         connected: true,
         connectedAt: new Date(),
         connectedBy: userId,
@@ -308,6 +349,12 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
+
+    // Invalida el cache de connection-status (F6) para que el estado refleje la
+    // nueva conexión de inmediato en vez de esperar el TTL.
+    await prisma.metaAnalyticsCache.deleteMany({
+      where: { workspaceId: resolvedWorkspaceId, endpoint: "connection-status" },
+    }).catch(() => {});
 
     // Dispatch background sync workflow to cache assets immediately
     try {

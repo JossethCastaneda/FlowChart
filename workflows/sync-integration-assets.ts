@@ -30,7 +30,15 @@ async function executeSyncStep(integrationId: string) {
     return { status: "skipped", reason: "Integration not found or not connected" };
   }
 
-  const token = decryptToken(integration.credentials as any);
+  // credentials es un objeto { accessToken: "enc:…", pages, … }; decryptToken
+  // exige el string cifrado, no el objeto completo.
+  const encryptedToken = (integration.credentials as { accessToken?: string } | null)?.accessToken;
+  let token: string;
+  try {
+    token = decryptToken(encryptedToken);
+  } catch {
+    return { status: "failed", reason: "Could not decrypt token" };
+  }
   if (!token) {
     return { status: "failed", reason: "Could not decrypt token" };
   }

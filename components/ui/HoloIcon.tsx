@@ -57,9 +57,13 @@ export function HoloIcon({ icon: Icon, variant = "cyan", isActive = false, class
     >
       <Icon
         stroke={gradientId}
-        className="transition-all duration-300"
+        strokeWidth={2.5} // Make the neon stroke slightly thicker
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="transition-all duration-300 overflow-visible"
         style={{
-          filter: `drop-shadow(0 0 3px ${glowColor}80)`, // 80 is hex for 50% opacity
+          // Increase drop shadow size and opacity for better "rounded neon contours"
+          filter: `drop-shadow(0 0 6px ${glowColor}) drop-shadow(0 0 2px ${glowColor})`,
           color: "transparent",
         }}
         {...props}
