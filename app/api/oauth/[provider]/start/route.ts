@@ -13,6 +13,7 @@ import { createHmac } from "crypto";
 import { getProvider } from "@/lib/integrations/registry";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { getAppBaseUrl } from "@/lib/app-url";
 import { env } from "@/lib/env";
 
 const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
@@ -85,7 +86,7 @@ export async function GET(
   const encodedState = Buffer.from(JSON.stringify({ payload, sig })).toString("base64url");
 
   // 6. Build authorization URL
-  const baseUrl = env.NEXTAUTH_URL || request.nextUrl.origin;
+  const baseUrl = getAppBaseUrl(request.nextUrl.origin);
   const redirectUri = `${baseUrl}/api/oauth/${provider}/callback`;
 
   const authUrl = new URL(config.authUrl);

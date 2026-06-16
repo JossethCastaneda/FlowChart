@@ -7,17 +7,19 @@ eliminaron en junio 2026).
 
 ## 1. Registro multi-provider (genérico)
 
-- `registry.ts` — catálogo `PROVIDERS` (google_ads, google_bigquery, linkedin,
-  tiktok, pinterest, snapchat, x…): scopes, URLs de OAuth, labels.
+- `registry.ts` — catálogo `PROVIDERS` (linkedin, tiktok, pinterest, snapchat,
+  x…): scopes, URLs de OAuth, labels. **Google NO está aquí** — vive en el Hub
+  (subsistema 2). Sus antiguos providers `google_ads`/`google_analytics`/
+  `google_bigquery` se eliminaron en junio 2026 (estaban muertos: `env.ts` no
+  exponía sus `*_CLIENT_ID` y duplicaban el Hub).
 - `oauth.ts` — flujo genérico usado por `app/api/oauth/[provider]/start|callback`.
-- `google-ads.ts` — cliente `createGoogleAdsClient()` con interfaz `AdsClient`
-  (`getInsights`), consumido por el cron `api/cron/sync-insights`.
 - `linkedin-ads.ts`, `tiktok-ads.ts`, `pinterest-ads.ts`, `snapchat-ads.ts`,
-  `x-ads.ts` — stubs pendientes de implementar (el cron los registra en
-  `CLIENT_FACTORIES` cuando existan).
+  `x-ads.ts` — stubs pendientes de implementar (el cron `api/cron/sync-insights`
+  los registra en `CLIENT_FACTORIES` cuando existan).
 - `types.ts` — `AdsClient`, `EMPTY_INSIGHTS`, tipos normalizados.
 
-**Propósito:** sincronización de insights de pauta multi-plataforma.
+**Propósito:** sincronización de insights de pauta multi-plataforma (ad-networks
+distintos a Google y Meta).
 
 ## 2. Google Hub (módulos por scope)
 

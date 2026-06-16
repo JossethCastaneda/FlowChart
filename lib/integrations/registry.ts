@@ -1,8 +1,16 @@
 /**
- * Provider Registry — single source of truth for all OAuth integrations.
+ * Provider Registry — OAuth integrations that use the generic
+ * app/api/oauth/[provider] flow.
  *
- * Meta and BotMaker are excluded here; they use their own established flows
- * (app/api/connect/[module] and lib/botmaker.ts respectively).
+ * Excluded (cada uno con su propio flujo establecido):
+ *   - Meta      → app/api/connect/[module]
+ *   - BotMaker  → lib/botmaker.ts
+ *   - Google    → el Google Hub (app/api/oauth/google + lib/integrations/google).
+ *                 Un único cliente OAuth (GOOGLE_CLIENT_ID) con consentimiento
+ *                 incremental por módulo. Los antiguos providers google_ads/
+ *                 google_analytics/google_bigquery se eliminaron de aquí en
+ *                 junio 2026: estaban muertos (env.ts no exponía sus *_CLIENT_ID)
+ *                 y duplicaban el Hub. NO volver a añadir Google a este registry.
  */
 
 export interface ProviderConfig {
@@ -20,45 +28,7 @@ export interface ProviderConfig {
 }
 
 export const PROVIDERS: Record<string, ProviderConfig> = {
-  google_ads: {
-    id: "google_ads",
-    label: "Google Ads",
-    authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-    tokenUrl: "https://oauth2.googleapis.com/token",
-    scopes: ["https://www.googleapis.com/auth/adwords"],
-    clientIdEnv: "GOOGLE_ADS_CLIENT_ID",
-    clientSecretEnv: "GOOGLE_ADS_CLIENT_SECRET",
-    capabilities: ["read", "manage"],
-    docsUrl: "https://developers.google.com/google-ads/api/docs/get-started/introduction",
-    extraAuthParams: { access_type: "offline", prompt: "consent" },
-  },
-
-  google_analytics: {
-    id: "google_analytics",
-    label: "Google Analytics 4",
-    authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-    tokenUrl: "https://oauth2.googleapis.com/token",
-    scopes: ["https://www.googleapis.com/auth/analytics.readonly"],
-    clientIdEnv: "GOOGLE_ANALYTICS_CLIENT_ID",
-    clientSecretEnv: "GOOGLE_ANALYTICS_CLIENT_SECRET",
-    capabilities: ["read"],
-    docsUrl: "https://developers.google.com/analytics/devguides/reporting/data/v1",
-    extraAuthParams: { access_type: "offline", prompt: "consent" },
-  },
-
-  google_bigquery: {
-    id: "google_bigquery",
-    label: "Google BigQuery",
-    authUrl: "https://accounts.google.com/o/oauth2/v2/auth",
-    tokenUrl: "https://oauth2.googleapis.com/token",
-    scopes: ["https://www.googleapis.com/auth/bigquery.readonly"],
-    clientIdEnv: "GOOGLE_BIGQUERY_CLIENT_ID",
-    clientSecretEnv: "GOOGLE_BIGQUERY_CLIENT_SECRET",
-    capabilities: ["read"],
-    docsUrl: "https://cloud.google.com/bigquery/docs/reference/rest",
-    extraAuthParams: { access_type: "offline", prompt: "consent" },
-  },
-
+  // Google vive en el Hub (app/api/oauth/google), no aquí. Ver comentario arriba.
   tiktok_ads: {
     id: "tiktok_ads",
     label: "TikTok Ads",
