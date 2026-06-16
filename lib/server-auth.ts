@@ -30,6 +30,9 @@ const MODULE_PROVIDER_MAP: Record<string, string> = {
   streams: "meta_community",
   // Aliases
   publisher: "meta_publisher_facebook",  // publisher defaults to FB publisher token
+  // Suscripción de webhooks: usa el token genérico de workspace (cualquier
+  // módulo conectado sirve para listar/suscribir páginas vía pages_show_list).
+  webhook: "meta",
 };
 
 /**

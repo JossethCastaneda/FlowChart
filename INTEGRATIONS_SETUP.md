@@ -204,6 +204,47 @@ npx prisma db push
 
 ---
 
+## Webhooks de Meta (páginas, Instagram, ad_account)
+
+### Suscripción automática (páginas + Instagram)
+
+Al conectar **cualquier** módulo de Meta vía `api/connect/[module]`, el callback
+suscribe automáticamente todas las páginas conectadas (y sus cuentas de IG
+vinculadas) a los webhooks — ya **no** es un paso manual. La lógica vive en
+`lib/meta-webhooks.ts` y se registra en `AuditLog` (`action: "subscribe_webhooks"`).
+
+Para re-suscribir manualmente o inspeccionar el estado:
+
+```bash
+# Estado actual de suscripciones por página
+GET  /api/webhooks/subscribe
+
+# Forzar re-suscripción de todas las páginas
+POST /api/webhooks/subscribe
+```
+
+| Campo | Valor |
+|---|---|
+| **Callback URL** | `https://TU_DOMINIO/api/webhooks/meta` |
+| **Verify Token** | `META_WEBHOOK_VERIFY_TOKEN` |
+| **Campos página** | `messages, messaging_postbacks, messaging_optins, messaging_referrals, message_deliveries, message_reads, feed, mention, ratings, leadgen` |
+| **Campos Instagram** | `messages, messaging_postbacks, comments, mentions, live_comments, story_insights` |
+
+### Suscripción de `ad_account` (MANUAL — nivel App)
+
+> ⚠️ Meta **no expone** `subscribed_apps` para cuentas publicitarias. La
+> suscripción de `ad_account` se configura **una sola vez a nivel App** en la
+> consola de Meta Developers, no por workspace ni programáticamente.
+
+1. Meta Developers → Tu App → **Webhooks** → objeto **Ad Account**
+2. Callback URL: `https://TU_DOMINIO/api/webhooks/meta`, Verify Token: `META_WEBHOOK_VERIFY_TOKEN`
+3. Suscribir campos: `campaigns, adsets, ads, account_spending_limit_reached, funding_source_removed, ad_review`
+
+Sin este paso manual NO llegan alertas de `ad_review` (anuncios rechazados),
+límite de gasto alcanzado ni método de pago removido.
+
+---
+
 ## Checklist por plataforma
 
 1. [ ] Crear developer app en el portal

@@ -8,8 +8,9 @@ import { env } from "@/lib/env";
 import { start } from "workflow/api";
 import { syncIntegrationAssetsWorkflow } from "@/workflows/sync-integration-assets";
 import { validateModulePermissions } from "@/lib/meta-scopes";
+import { subscribePages, logSubscriptionResults } from "@/lib/meta-webhooks";
 
-const META_API_VERSION = env.META_API_VERSION || "v25.0";
+const META_API_VERSION = env.META_API_VERSION;
 const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
 
 /**
@@ -137,7 +138,16 @@ export async function GET(request: NextRequest) {
       picture?: string | null;
       instagramId?: string | null;
     }> = [];
-    
+
+    // Page tokens EN TEXTO PLANO — solo en memoria, para suscribir webhooks
+    // tras la conexión. NUNCA se persisten ni se devuelven al client.
+    let rawPages: Array<{
+      id: string;
+      name: string;
+      accessToken: string;
+      instagramId: string | null;
+    }> = [];
+
     let userScopes: string[] = [];
     
     try {
@@ -174,6 +184,12 @@ export async function GET(request: NextRequest) {
           name: p.name,
           accessToken: encryptToken(p.access_token), // Encrypt PAGE token for storage
           picture: p.picture?.data?.url || null,
+          instagramId: p.instagram_business_account?.id || null,
+        }));
+        rawPages = pagesData.data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          accessToken: p.access_token, // PLAINTEXT — solo para suscribir webhooks
           instagramId: p.instagram_business_account?.id || null,
         }));
         console.log(`[CONNECT CALLBACK] Fetched ${pages.length} pages with user token`);
@@ -299,6 +315,33 @@ export async function GET(request: NextRequest) {
       console.log(`[CONNECT CALLBACK] ⚡ Dispatched asset sync for integration ${metaIntegration.id}`);
     } catch (syncErr) {
       console.error("[CONNECT CALLBACK] ❌ Failed to dispatch sync workflow:", syncErr);
+    }
+
+    // Auto-suscribir webhooks de todas las páginas/IG conectadas. Antes era un
+    // paso manual (api/webhooks/subscribe) y los módulos quedaban sin recibir
+    // eventos (comentarios, DMs, ad_review, leadgen). Se ejecuta en paralelo y
+    // nunca bloquea el éxito de la conexión: un fallo solo se loguea/audita.
+    try {
+      const subResults = await subscribePages(rawPages, META_API_VERSION);
+      const { subscribed, failed } = logSubscriptionResults(subResults, {
+        route: "api/connect/callback",
+        module,
+        workspaceId: resolvedWorkspaceId,
+      });
+      await prisma.auditLog.create({
+        data: {
+          workspaceId: resolvedWorkspaceId,
+          userId,
+          action: "subscribe_webhooks",
+          resourceType: "Integration",
+          resourceId: metaIntegration.id,
+          details: { module, pages: rawPages.length, subscribed, failed },
+        },
+      }).catch((auditErr) => {
+        console.error("[CONNECT CALLBACK] ❌ Failed to write AuditLog:", auditErr);
+      });
+    } catch (subErr) {
+      console.error("[CONNECT CALLBACK] ❌ Webhook auto-subscribe failed:", subErr);
     }
 
     // Always redirect to /connect/done — it handles popup close OR fallback navigation

@@ -2,6 +2,10 @@ import { sleep } from "workflow";
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
 import { botmakerFetch } from "@/lib/botmaker";
+import { env } from "@/lib/env";
+
+/** Versión centralizada de la Graph API (default v25.0 en lib/env.ts). */
+const META_GRAPH_VERSION = env.META_API_VERSION;
 
 /**
  * Workflow asíncrono para mantener sincronizados los activos de las integraciones 
@@ -55,7 +59,7 @@ async function executeSyncStep(integrationId: string) {
 
 async function syncMetaAssets(integration: any, token: string) {
   // 1. Sincronizar Páginas (Pages)
-  const pagesRes = await fetch(`https://graph.facebook.com/v19.0/me/accounts?fields=id,name,access_token,category,instagram_business_account&access_token=${token}`);
+  const pagesRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/accounts?fields=id,name,access_token,category,instagram_business_account&access_token=${token}`);
   if (!pagesRes.ok) throw await pagesRes.json();
   const pagesData = await pagesRes.json();
   
@@ -109,7 +113,7 @@ async function syncMetaAssets(integration: any, token: string) {
   }
 
   // 2. Sincronizar Cuentas Publicitarias (Ad Accounts)
-  const adRes = await fetch(`https://graph.facebook.com/v19.0/me/adaccounts?fields=id,name,account_status,amount_spent,currency&access_token=${token}`);
+  const adRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/adaccounts?fields=id,name,account_status,amount_spent,currency&access_token=${token}`);
   if (adRes.ok) {
     const adData = await adRes.json();
     for (const adAcc of adData.data) {
@@ -164,7 +168,7 @@ async function fetchPaginated(url: string, token: string): Promise<any[]> {
 }
 
 async function syncDeepMetaAdsData(adAccountId: string, token: string) {
-  const version = "v19.0";
+  const version = META_GRAPH_VERSION;
   const datePreset = "last_30d";
   const cacheKey = "last_30d";
 

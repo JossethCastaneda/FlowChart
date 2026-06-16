@@ -26,7 +26,7 @@ const envSchema = z.object({
   // vars de Meta, ya opcionales.
   FACEBOOK_CLIENT_ID: z.string().min(1).optional(),
   FACEBOOK_CLIENT_SECRET: z.string().min(1).optional(),
-  META_API_VERSION: z.string().default("v22.0"),
+  META_API_VERSION: z.string().default("v25.0"),
   META_WEBHOOK_VERIFY_TOKEN: z.string().min(1).optional(),
 
   // Meta Config IDs

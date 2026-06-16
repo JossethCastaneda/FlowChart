@@ -6,7 +6,7 @@ import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
 
-const META_API_VERSION = env.META_API_VERSION || "v25.0";
+const META_API_VERSION = env.META_API_VERSION;
 const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
 
 const CONFIG_MAP: Record<string, { envKey: keyof typeof env; label: string }> = {

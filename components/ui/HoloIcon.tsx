@@ -22,7 +22,7 @@ export function HoloIcon({ icon: Icon, variant = "cyan", isActive = false, class
   if (!isActive) {
     return (
       <Icon
-        className={className}
+        className={`transition-colors duration-200 ${className}`}
         style={{
           color: "rgba(148, 163, 184, 0.65)", // slate-400 with opacity
           ...style,
@@ -32,33 +32,34 @@ export function HoloIcon({ icon: Icon, variant = "cyan", isActive = false, class
     );
   }
 
-  // Active state: apply holographic gradient and glow
+  // Active state: apply holographic gradient and CSS drop-shadow glow (hardware accelerated)
   const gradientId = `url(#sodare-holo-${variant})`;
-  const filterId = `url(#sodare-glow-filter-${variant})`;
+  
+  // Map variants to actual CSS hex codes for the drop-shadow
+  const glowColors = {
+    cyan: "#00f0ff",
+    emerald: "#10b981",
+    pink: "#f472b6",
+    gold: "#fb923c"
+  };
+  const glowColor = glowColors[variant] || glowColors.cyan;
 
   return (
     <div
-      className={`holo-icon-wrapper ${className}`}
+      className={`holo-icon-wrapper transition-all duration-300 hover:scale-105 ${className}`}
       style={{
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
-        // Adding a subtle breathing animation to the container
-        animation: "sodare-icon-breathe 4s ease-in-out infinite",
+        willChange: "transform, filter",
         ...style,
       }}
     >
-      <style>{`
-        @keyframes sodare-icon-breathe {
-          0%, 100% { transform: scale(1); }
-          50% { transform: scale(1.05); }
-        }
-      `}</style>
       <Icon
         stroke={gradientId}
+        className="transition-all duration-300"
         style={{
-          filter: filterId,
-          // Overriding color so it doesn't conflict with stroke
+          filter: `drop-shadow(0 0 3px ${glowColor}80)`, // 80 is hex for 50% opacity
           color: "transparent",
         }}
         {...props}
