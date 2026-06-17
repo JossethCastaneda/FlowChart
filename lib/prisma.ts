@@ -34,7 +34,16 @@ function createMissingDatabaseClient(): PrismaClient {
 }
 
 function createPrismaClient(): PrismaClient {
-  let connectionString = env.DATABASE_URL || (env as any).STORAGE_DATABASE_URL;
+  // Resolve connection string — same priority as prisma.config.ts and db-sync.mjs.
+  // DATABASE_URL may be empty ("") in Vercel when the Neon integration uses STORAGE_* vars.
+  let connectionString =
+    (env.DATABASE_URL && env.DATABASE_URL !== "" ? env.DATABASE_URL : null) ||
+    env.STORAGE_POSTGRES_PRISMA_URL ||
+    env.STORAGE_DATABASE_URL ||
+    (process.env.STORAGE_POSTGRES_PRISMA_URL ?? "") ||
+    (process.env.STORAGE_DATABASE_URL ?? "") ||
+    (process.env.POSTGRES_PRISMA_URL ?? "") ||
+    "";
 
   if (!connectionString) {
     console.warn("[Prisma] DATABASE_URL not set - database queries will fail if executed");

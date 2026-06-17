@@ -14,9 +14,15 @@ const envSchema = z.object({
   AUTH_SECRET: z.string().min(1).optional(),
 
   // Base de Datos
-  DATABASE_URL: z.string().url(),
+  // DATABASE_URL puede llegar vacía desde Vercel (la Neon integration usa
+  // STORAGE_DATABASE_URL). La validamos solo si existe y no está vacía.
+  DATABASE_URL: z.string().url().optional().or(z.literal("")),
   DATABASE_URL_UNPOOLED: z.string().url().optional(),
   DIRECT_URL: z.string().url().optional(),
+  // Neon via Vercel Storage integration
+  STORAGE_DATABASE_URL: z.string().url().optional(),
+  STORAGE_POSTGRES_PRISMA_URL: z.string().url().optional(),
+  STORAGE_DATABASE_URL_UNPOOLED: z.string().url().optional(),
 
   // Meta (Facebook / Instagram)
   // Opcionales: NO todos los entornos (p. ej. Preview) tienen estos secretos.
