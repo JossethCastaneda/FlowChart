@@ -22,13 +22,14 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
       authorization: {
         url: `https://www.facebook.com/${META_API_VERSION}/dialog/oauth`,
         params: {
-          // Login OAuth: use plain scope (email + public_profile).
-          // Do NOT send config_id here — config_id overrides scope and can
-          // produce tokens without public_profile, causing 403 on /me.
-          // config_id is only for module-specific connections (ads, pages, etc.)
-          // via /api/connect/[module].
+          // Facebook Login for Business requires config_id — without it,
+          // the dialog shows "app needs at least one supported permission".
+          // The FACEBOOK_LOGIN_CONFIG_ID must include email + public_profile.
+          config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID || "",
           scope: "email,public_profile",
           auth_type: "rerequest",
+          // override_default_response_type is required by Meta to honor config_id
+          override_default_response_type: "true",
           display: "popup",
         },
       },
