@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { isWorkspaceAdmin } from "@/lib/analytics/rbac";
 import { writeAuditLog } from "@/lib/analytics/audit";
 import { AnalyticsAdapterFactory } from "@/lib/analytics/adapters/AnalyticsAdapterFactory";
+import { normalizeIntegrationProvider } from "@/lib/analytics/project-scope";
 
 // POST /api/analytics/integrations/:id/sync — dispara un sync manual (spec §28)
 // Crea un SyncJob trazable y ejecuta el adaptador (idempotente vía upsert).
@@ -15,14 +16,14 @@ export const POST = withWorkspace(async (req, ctx) => {
 
   let integration = await prisma.integration.findUnique({ where: { id } });
   
-  // Si no se encuentra por ID (ej. el front envió "cari_ai" en lugar del cuid), buscar por provider
+  // Si no se encuentra por ID (ej. el front envió "cari_ai" en lugar del cuid), buscar por provider normalizado
   if (!integration) {
-    integration = await prisma.integration.findFirst({
-      where: {
-        workspaceId: ctx.workspaceId,
-        provider: id,
-      }
+    const allIntegrations = await prisma.integration.findMany({
+      where: { workspaceId: ctx.workspaceId }
     });
+    integration = allIntegrations.find(i => 
+      i.provider === id || normalizeIntegrationProvider(i.provider) === id
+    ) || null;
   }
 
   if (!integration || integration.workspaceId !== ctx.workspaceId) {
