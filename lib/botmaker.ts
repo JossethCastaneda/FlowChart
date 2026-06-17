@@ -721,6 +721,85 @@ export function computeFirstMenuReaction(sessions: BmSession[], channelId?: stri
   return { total, byType };
 }
 
+// ── Motivos de rechazo de portabilidad (metodología BAIT, sección 10) ────────
+// Los 2 mensajes de rechazo son mensajes del BOT, así que se detectan en la
+// conversación. NO se reparten artificialmente: se cuenta cuál apareció.
+const REJECTION_REASONS: { key: string; label: string; re: RegExp }[] = [
+  { key: "registro_en_proceso", label: "Registro en proceso (3023)", re: /registro en proceso.*(n[uú]mero|telef[oó]nic)|\(3023\)|\b3023\b/i },
+  { key: "ya_registrado_activo", label: "Ya registrado con estatus activo", re: /ya est[aá] registrad.*(activo|estatus)|estatus activo reciente/i },
+];
+
+export interface RejectionStats {
+  total: number; // sesiones con algún mensaje de rechazo
+  byReason: { key: string; label: string; count: number }[];
+}
+
+/** Detecta los 2 mensajes de primer rechazo Botmaker en los mensajes del bot. */
+export function computeRejectionReasons(sessions: BmSession[], channelId?: string): RejectionStats {
+  const list = onlyChannel(sessions, channelId);
+  const counts: Record<string, number> = {};
+  let total = 0;
+  for (const s of list) {
+    const reasons = new Set<string>();
+    for (const m of s.messages || []) {
+      if (m.from === "user") continue;
+      const text = (m.content?.text || "").toString();
+      if (!text) continue;
+      for (const r of REJECTION_REASONS) if (r.re.test(text)) reasons.add(r.key);
+    }
+    if (reasons.size) { total++; for (const k of reasons) counts[k] = (counts[k] || 0) + 1; }
+  }
+  return { total, byReason: REJECTION_REASONS.map((r) => ({ key: r.key, label: r.label, count: counts[r.key] || 0 })) };
+}
+
+// ── SIM vs eSIM (sección 7, relevante en Lira) ───────────────────────────────
+export interface SimEsimStats { sim: number; esim: number; sinDato: number }
+
+/** Clasifica cada sesión como SIM física vs eSIM por menciones en los mensajes. */
+export function computeSimEsim(sessions: BmSession[], channelId?: string): SimEsimStats {
+  const list = onlyChannel(sessions, channelId);
+  let sim = 0, esim = 0;
+  for (const s of list) {
+    let isE = false, isS = false;
+    for (const m of s.messages || []) {
+      const t = (m.content?.text || "").toString().toLowerCase();
+      if (!t) continue;
+      if (/\besim\b|e-sim/.test(t)) isE = true;
+      else if (/\bsim\b|chip f[ií]sic|sim f[ií]sic/.test(t)) isS = true;
+    }
+    if (isE) esim++;
+    else if (isS) sim++;
+  }
+  return { sim, esim, sinDato: list.length - sim - esim };
+}
+
+// ── Reactivaciones (sección 8) ───────────────────────────────────────────────
+export interface ReactivationStats {
+  withGap: number;      // sesiones donde el bot reenganchó tras un silencio largo
+  reactivated: number;  // de esas, en cuántas el usuario volvió a responder
+  rate: number;         // reactivated / withGap (0–1)
+}
+
+/** Mide reenganche: mensaje del bot tras silencio ≥ gapMinutes y si el usuario respondió. */
+export function computeReactivations(sessions: BmSession[], channelId?: string, gapMinutes = 30): ReactivationStats {
+  const list = onlyChannel(sessions, channelId);
+  const gapMs = gapMinutes * 60 * 1000;
+  let withGap = 0, reactivated = 0;
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    for (let i = 1; i < msgs.length; i++) {
+      const prev = toMs(msgs[i - 1].creationTime);
+      const cur = toMs(msgs[i].creationTime);
+      if (msgs[i].from !== "user" && prev != null && cur != null && cur - prev >= gapMs) {
+        withGap++;
+        if (msgs.slice(i + 1).some((m) => m.from === "user")) reactivated++;
+        break;
+      }
+    }
+  }
+  return { withGap, reactivated, rate: withGap ? Math.round((reactivated / withGap) * 1000) / 1000 : 0 };
+}
+
 export interface BotBehavior {
   sampleSize: number;
   responseTimes: { avgBotSec: number; avgUserSec: number; avgFirstResponseSec: number };
@@ -732,6 +811,9 @@ export interface BotBehavior {
   timeToSale: TimeToSaleStats;
   nip: NipTiming;
   dataRequestFunnel: DataRequestFunnel;
+  rejections: RejectionStats;
+  simEsim: SimEsimStats;
+  reactivations: ReactivationStats;
 }
 
 /** Agrega TODO el análisis de comportamiento del bot en una sola pasada de alto nivel. */
@@ -766,6 +848,9 @@ export function computeBotBehavior(sessions: BmSession[], channelId?: string): B
     timeToSale: computeTimeToSale(list),
     nip: computeNipTiming(list),
     dataRequestFunnel: computeDataRequestOrderFunnel(list),
+    rejections: computeRejectionReasons(list),
+    simEsim: computeSimEsim(list),
+    reactivations: computeReactivations(list),
   };
 }
 

@@ -7,6 +7,9 @@ import {
   computeTimeToSale,
   computeNipTiming,
   computeFirstMenuReaction,
+  computeRejectionReasons,
+  computeSimEsim,
+  computeReactivations,
   computeDataRequestOrderFunnel,
   computeBotBehavior,
   type BmSession,
@@ -171,6 +174,54 @@ describe("computeFirstMenuReaction (Funnel 1)", () => {
     expect(by.boton).toBe(1);
     expect(by.texto).toBe(1);
     expect(by.sin_respuesta).toBe(1);
+  });
+});
+
+describe("computeRejectionReasons", () => {
+  it("detecta los 2 mensajes de rechazo en mensajes del bot", () => {
+    const s1: BmSession = {
+      id: "r1", creationTime: t(0), chat: { chat: { contactId: "r1", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(5), content: { type: "text", text: "Ya tenemos un registro en proceso con este número telefónico. (3023)" } }],
+      events: [],
+    };
+    const s2: BmSession = {
+      id: "r2", creationTime: t(0), chat: { chat: { contactId: "r2", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(5), content: { type: "text", text: "El número a portar ya está registrado en nuestro sistema con un estatus activo reciente." } }],
+      events: [],
+    };
+    const rej = computeRejectionReasons([s1, s2]);
+    expect(rej.total).toBe(2);
+    const by = Object.fromEntries(rej.byReason.map((r) => [r.key, r.count]));
+    expect(by.registro_en_proceso).toBe(1);
+    expect(by.ya_registrado_activo).toBe(1);
+  });
+});
+
+describe("computeSimEsim", () => {
+  it("clasifica SIM vs eSIM por menciones", () => {
+    const e: BmSession = { id: "e1", creationTime: t(0), chat: { chat: { contactId: "e1", channelId: "ch1" } }, messages: [{ from: "user", creationTime: t(1), content: { type: "text", text: "quiero una eSIM" } }], events: [] };
+    const sim: BmSession = { id: "sm1", creationTime: t(0), chat: { chat: { contactId: "sm1", channelId: "ch1" } }, messages: [{ from: "bot", creationTime: t(1), content: { type: "text", text: "Te enviamos tu SIM física" } }], events: [] };
+    const r = computeSimEsim([e, sim]);
+    expect(r.esim).toBe(1);
+    expect(r.sim).toBe(1);
+  });
+});
+
+describe("computeReactivations", () => {
+  it("cuenta reenganche tras silencio largo con respuesta", () => {
+    const s: BmSession = {
+      id: "ra1", creationTime: t(0), chat: { chat: { contactId: "ra1", channelId: "ch1" } },
+      messages: [
+        { from: "user", creationTime: t(0), content: { type: "text", text: "hola" } },
+        { from: "bot", creationTime: t(2 * 3600), content: { type: "text", text: "¿Sigues ahí? Continuemos." } },
+        { from: "user", creationTime: t(2 * 3600 + 60), content: { type: "text", text: "sí" } },
+      ],
+      events: [],
+    };
+    const r = computeReactivations([s]);
+    expect(r.withGap).toBe(1);
+    expect(r.reactivated).toBe(1);
+    expect(r.rate).toBe(1);
   });
 });
 

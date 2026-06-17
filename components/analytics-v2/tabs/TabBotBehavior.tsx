@@ -259,6 +259,43 @@ function BotmakerBehavior({ b }: { b: BotBehavior }) {
           </div>
         ) : <Empty text="Sin tipificaciones de cierre en este periodo." />}
       </div>
+
+      {/* Rechazos de portabilidad (mensajes del bot) */}
+      <div style={panel}>
+        <h3 style={h3}><AlertTriangle className="w-4 h-4" style={{ color: "#f87171" }} /> Rechazos de portabilidad (detectados en conversación)</h3>
+        <div style={{ color: "#64748b", fontSize: 11, marginBottom: 10 }}>
+          Sesiones con mensaje de rechazo del bot: <strong style={{ color: "#f87171" }}>{b.rejections.total.toLocaleString("es-MX")}</strong>. El conteo definitivo de &quot;primer rechazo Botmaker&quot; (ventas dashboard − ventas en sábana) requiere el cruce con la sábana de ventas.
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+          {b.rejections.byReason.map((r) => (
+            <div key={r.key} style={{ background: "rgba(248,113,113,0.08)", border: "1px solid rgba(248,113,113,0.25)", borderRadius: 8, padding: "8px 12px", fontSize: 12, color: "#cbd5e1" }}>
+              {r.label}: <strong style={{ color: "#f87171" }}>{r.count.toLocaleString("es-MX")}</strong>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* SIM/eSIM + reactivaciones */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+        <div style={panel}>
+          <h3 style={h3}><MessageSquare className="w-4 h-4 text-cyan-400" /> SIM vs eSIM</h3>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <Mini label="SIM física" value={b.simEsim.sim.toLocaleString("es-MX")} />
+            <Mini label="eSIM" value={b.simEsim.esim.toLocaleString("es-MX")} color="#06d6a0" />
+            <Mini label="Sin dato" value={b.simEsim.sinDato.toLocaleString("es-MX")} />
+          </div>
+          <div style={{ color: "#64748b", fontSize: 10, marginTop: 8 }}>Por menciones en la conversación. Relevante en Lira.</div>
+        </div>
+        <div style={panel}>
+          <h3 style={h3}><RefreshCw className="w-4 h-4 text-cyan-400" /> Reactivaciones</h3>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <Mini label="Reenganches del bot" value={b.reactivations.withGap.toLocaleString("es-MX")} />
+            <Mini label="Con respuesta" value={b.reactivations.reactivated.toLocaleString("es-MX")} color="#06d6a0" />
+            <Mini label="Tasa de éxito" value={`${Math.round(b.reactivations.rate * 1000) / 10}%`} />
+          </div>
+          <div style={{ color: "#64748b", fontSize: 10, marginTop: 8 }}>Mensaje del bot tras ≥30 min de silencio que logró respuesta.</div>
+        </div>
+      </div>
     </div>
   );
 }
