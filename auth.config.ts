@@ -22,21 +22,35 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
       authorization: {
         url: `https://www.facebook.com/${META_API_VERSION}/dialog/oauth`,
         params: {
-          // FACEBOOK_LOGIN_CONFIG_ID must point to a Meta config that requests
-          // email,public_profile only. No hardcoded fallback: if the env is
-          // missing the param goes empty and Meta rejects the dialog visibly.
-          config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID || "",
-          auth_type: "rerequest",
-          // Explicitly restrict scope to minimum — no ads_read, no pages_manage_posts, etc.
+          // Login OAuth: use plain scope (email + public_profile).
+          // Do NOT send config_id here — config_id overrides scope and can
+          // produce tokens without public_profile, causing 403 on /me.
+          // config_id is only for module-specific connections (ads, pages, etc.)
+          // via /api/connect/[module].
           scope: "email,public_profile",
-          // override_default_response_type is required by Meta to honor config_id
-          override_default_response_type: "true",
+          auth_type: "rerequest",
           display: "popup",
         },
+      },
+      // Explicit userinfo: use versioned Graph API endpoint with Authorization header.
+      // The default next-auth handler uses an unversioned URL that can fail with 403
+      // when the token was issued via a versioned authorization dialog.
+      userinfo: {
+        url: `https://graph.facebook.com/${META_API_VERSION}/me`,
+        params: { fields: "id,name,email,picture.type(large)" },
+      },
+      profile(profile: Record<string, any>) {
+        return {
+          id: profile.id,
+          name: profile.name ?? null,
+          email: profile.email ?? null,
+          image: profile.picture?.data?.url ?? null,
+        };
       },
     })
   );
 }
+
 
 if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
   providers.push(
