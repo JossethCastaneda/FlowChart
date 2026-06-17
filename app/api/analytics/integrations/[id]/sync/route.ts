@@ -63,7 +63,7 @@ export const POST = withWorkspace(async (req, ctx) => {
   });
 
   try {
-    const adapter = AnalyticsAdapterFactory.getAdapter(integration.provider);
+    const adapter = AnalyticsAdapterFactory.getAdapter(normProvider);
     const convResult = await adapter.syncConversations(ctx.workspaceId, startDate, endDate);
     const msgResult = await adapter.syncMessages(ctx.workspaceId, startDate, endDate);
     const recordsInserted = convResult.recordsInserted + msgResult.recordsInserted;
@@ -72,11 +72,11 @@ export const POST = withWorkspace(async (req, ctx) => {
     // Actualizamos los registros de la ventana de sync con el projectId si corresponde (best-effort para "guarda scope en datos")
     if (projectId && ok) {
       await prisma.normalizedConversation.updateMany({
-        where: { workspaceId: ctx.workspaceId, provider: integration.provider, conversationStartedAt: { gte: startDate, lte: endDate } },
+        where: { workspaceId: ctx.workspaceId, provider: normProvider, conversationStartedAt: { gte: startDate, lte: endDate } },
         data: { projectId }
       });
       await prisma.normalizedMessage.updateMany({
-        where: { workspaceId: ctx.workspaceId, provider: integration.provider, sentAt: { gte: startDate, lte: endDate } },
+        where: { workspaceId: ctx.workspaceId, provider: normProvider, sentAt: { gte: startDate, lte: endDate } },
         data: { projectId }
       });
     }
