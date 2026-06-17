@@ -62,8 +62,9 @@ export function HoloIcon({ icon: Icon, variant = "cyan", isActive = false, class
         strokeLinejoin="round"
         className="transition-all duration-300 overflow-visible"
         style={{
-          // Increase drop shadow size and opacity for better "rounded neon contours"
-          filter: `drop-shadow(0 0 6px ${glowColor}) drop-shadow(0 0 2px ${glowColor})`,
+          // Use a single drop shadow for performance instead of two.
+          // This fixes the "demasiado lento" issue caused by heavy SVG filters.
+          filter: `drop-shadow(0 0 5px ${glowColor})`,
           color: "transparent",
         }}
         {...props}

@@ -174,20 +174,25 @@ export class CariAiAnalyticsAdapter implements AnalyticsProviderAdapter {
       });
 
       // Normalizar per-fila si tenemos id_conversacion y canal
-      for (const raw of rows) {
-        if (raw.id_conversacion && raw.canal) {
-          try {
-            const normalized = this.normalizeRawData(raw, "conversations") as NormalizedConversationInput;
-            await prisma.normalizedConversation.upsert({
-              where: { providerConversationId: normalized.providerConversationId },
-              create: { workspaceId, provider: "cari_ai", ...normalized },
-              update: { ...normalized },
-            });
-            recordsInserted++;
-          } catch {
-            recordsFailed++;
-          }
-        }
+      const toUpsert = rows.filter((r) => r.id_conversacion && r.canal);
+      const chunkSize = 100;
+      for (let i = 0; i < toUpsert.length; i += chunkSize) {
+        const chunk = toUpsert.slice(i, i + chunkSize);
+        await Promise.all(
+          chunk.map(async (raw) => {
+            try {
+              const normalized = this.normalizeRawData(raw, "conversations") as NormalizedConversationInput;
+              await prisma.normalizedConversation.upsert({
+                where: { providerConversationId: normalized.providerConversationId },
+                create: { workspaceId, provider: "cari_ai", ...normalized },
+                update: { ...normalized },
+              });
+              recordsInserted++;
+            } catch {
+              recordsFailed++;
+            }
+          })
+        );
       }
 
       // 2. indicadoresAtencion → AnalyticsDailyMetric (claves PROVIDER-NATIVE cari_*).
@@ -218,13 +223,19 @@ export class CariAiAnalyticsAdapter implements AnalyticsProviderAdapter {
             cari_total: d.total, cari_bot_only: d.bot, cari_transferred: d.transferred,
             cari_attended: d.attended, cari_abandoned: d.abandoned,
           };
-          for (const [metricKey, metricValue] of Object.entries(metrics)) {
-            const existing = await prisma.analyticsDailyMetric.findFirst({
-              where: { workspaceId, projectId: null, date, provider: "cari_ai", botId: "", channel: "", metricKey },
-              select: { id: true },
-            });
-            if (existing) await prisma.analyticsDailyMetric.update({ where: { id: existing.id }, data: { metricValue } });
-            else await prisma.analyticsDailyMetric.create({ data: { workspaceId, date, provider: "cari_ai", botId: "", channel: "", metricKey, metricValue } });
+          const entries = Object.entries(metrics);
+          for (let i = 0; i < entries.length; i += chunkSize) {
+            const chunk = entries.slice(i, i + chunkSize);
+            await Promise.all(
+              chunk.map(async ([metricKey, metricValue]) => {
+                const existing = await prisma.analyticsDailyMetric.findFirst({
+                  where: { workspaceId, projectId: null, date, provider: "cari_ai", botId: "", channel: "", metricKey },
+                  select: { id: true },
+                });
+                if (existing) await prisma.analyticsDailyMetric.update({ where: { id: existing.id }, data: { metricValue } });
+                else await prisma.analyticsDailyMetric.create({ data: { workspaceId, date, provider: "cari_ai", botId: "", channel: "", metricKey, metricValue } });
+              })
+            );
           }
         }
       }
@@ -234,19 +245,28 @@ export class CariAiAnalyticsAdapter implements AnalyticsProviderAdapter {
       if (creds.conversaciones) {
         const frases = await fetchCariReport(creds.conversaciones, "frasesSinRespuesta", range, { status: 0 });
         const seen = new Set<string>();
-        for (const f of frases) {
+        const toProcess = frases.filter((f) => {
           const phrase = String(f.frase_sin_respuesta || "").trim().slice(0, 100);
-          if (!phrase || seen.has(phrase)) continue;
+          if (!phrase || seen.has(phrase)) return false;
           seen.add(phrase);
-          const existing = await prisma.dataQualityIssue.findFirst({
-            where: { workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", details: phrase, resolved: false },
-            select: { id: true },
-          });
-          if (!existing) {
-            await prisma.dataQualityIssue.create({
-              data: { workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", severity: "warning", details: phrase },
-            });
-          }
+          return true;
+        });
+        for (let i = 0; i < toProcess.length; i += chunkSize) {
+          const chunk = toProcess.slice(i, i + chunkSize);
+          await Promise.all(
+            chunk.map(async (f) => {
+              const phrase = String(f.frase_sin_respuesta || "").trim().slice(0, 100);
+              const existing = await prisma.dataQualityIssue.findFirst({
+                where: { workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", details: phrase, resolved: false },
+                select: { id: true },
+              });
+              if (!existing) {
+                await prisma.dataQualityIssue.create({
+                  data: { workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", severity: "warning", details: phrase },
+                });
+              }
+            })
+          );
         }
       }
 

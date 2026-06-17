@@ -16,15 +16,13 @@ async function handler(
   req: NextRequest,
   ctx: { params: Promise<{ nextauth: string[] }> }
 ) {
-  if (!process.env.NEXTAUTH_URL) {
-    const proto = req.headers.get("x-forwarded-proto") || "https";
-    const host =
-      req.headers.get("x-forwarded-host") ||
-      req.headers.get("host") ||
-      "sodare.xyz";
-    if (!host.includes("localhost")) {
-      process.env.NEXTAUTH_URL = `${proto}://${host}`;
-    }
+  // Always override NEXTAUTH_URL to match the current request host.
+  // This prevents NextAuth from redirecting to VERCEL_URL (e.g. dev.sodare.xyz)
+  // when the user is browsing on the main domain (sodare.xyz).
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "sodare.xyz";
+  if (!host.includes("localhost")) {
+    process.env.NEXTAUTH_URL = `${proto}://${host}`;
   }
 
   const nextAuth = NextAuth(authOptions);

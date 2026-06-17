@@ -207,6 +207,7 @@
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  border-radius: 16px;
 }
 .glass-panel::before {
   content: "";
@@ -231,6 +232,7 @@
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  border-radius: 16px;
 }
 .kpi-card::before {
   content: "";
