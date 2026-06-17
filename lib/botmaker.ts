@@ -479,33 +479,52 @@ export function computeBotErrors(sessions: BmSession[], channelId?: string): Bot
   };
 }
 
-/** Regex por defecto para clasificar una venta a partir de la tipificación de cierre. */
-const SALE_TYPIFICATION = /venta|vendid|compr|cerrad|ganad|pagad|sale|won|closed.?won/i;
+/**
+ * Señal de VENTA del dashboard (metodología BAIT): una sesión es venta si el bot
+ * envió un mensaje que contiene "felicidades" (confirmación de cierre). NO se usa
+ * la tipificación de cierre para esto.
+ */
+const SALE_PHRASE = /felicidad/i;
+
+/** Timestamp (ms) del primer mensaje de bot con "felicidades" en la sesión, o null. */
+function saleConfirmationAt(s: BmSession): number | null {
+  const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+  for (const m of msgs) {
+    if (m.from !== "user" && SALE_PHRASE.test((m.content?.text || "").toString())) return toMs(m.creationTime);
+  }
+  return null;
+}
+
+/** ¿La sesión es una venta? (el bot dijo "felicidades"). */
+export function isSaleSession(s: BmSession): boolean {
+  return saleConfirmationAt(s) != null;
+}
 
 export interface TimeToSaleStats {
-  count: number;       // # sesiones cerradas como venta
+  count: number;          // # ventas (sesiones con "felicidades")
+  conversionRate: number; // ventas / sesiones (0–1)
   avgSec: number;
   medianSec: number;
   /** Histograma por rangos de tiempo (min) para el reporte. */
   distribution: { bucket: string; count: number }[];
 }
 
-/** Tiempo desde el inicio de la sesión hasta el cierre, para sesiones de venta. */
-export function computeTimeToSale(sessions: BmSession[], channelId?: string, matcher: RegExp = SALE_TYPIFICATION): TimeToSaleStats {
+/** Ventas (regla "felicidades") y tiempo desde el inicio de la sesión hasta el cierre. */
+export function computeTimeToSale(sessions: BmSession[], channelId?: string): TimeToSaleStats {
   const list = onlyChannel(sessions, channelId);
   const durations: number[] = []; // segundos
+  let count = 0;
   for (const s of list) {
-    const closeEv = (s.events || []).find((e) => e.name === "conversation-close");
-    const typif = closeEv?.info?.typification || "";
-    if (!matcher.test(typif)) continue;
+    const saleAt = saleConfirmationAt(s);
+    if (saleAt == null) continue;
+    count++;
     const start = toMs(s.creationTime);
-    const close = toMs(closeEv?.creationTime) ?? toMs(s.messages?.[s.messages.length - 1]?.creationTime);
-    if (start != null && close != null && close >= start) durations.push(Math.round((close - start) / 1000));
+    if (start != null && saleAt >= start) durations.push(Math.round((saleAt - start) / 1000));
   }
   durations.sort((a, b) => a - b);
-  const count = durations.length;
-  const avgSec = count ? Math.round(durations.reduce((s, v) => s + v, 0) / count) : 0;
-  const medianSec = count ? durations[Math.floor((count - 1) / 2)] : 0;
+  const n = durations.length;
+  const avgSec = n ? Math.round(durations.reduce((s, v) => s + v, 0) / n) : 0;
+  const medianSec = n ? durations[Math.floor((n - 1) / 2)] : 0;
   const buckets: { bucket: string; min: number; max: number }[] = [
     { bucket: "<5 min", min: 0, max: 300 },
     { bucket: "5–15 min", min: 300, max: 900 },
@@ -514,17 +533,23 @@ export function computeTimeToSale(sessions: BmSession[], channelId?: string, mat
     { bucket: ">60 min", min: 3600, max: Infinity },
   ];
   const distribution = buckets.map((b) => ({ bucket: b.bucket, count: durations.filter((d) => d >= b.min && d < b.max).length }));
-  return { count, avgSec, medianSec, distribution };
+  return { count, conversionRate: list.length ? Math.round((count / list.length) * 1000) / 1000 : 0, avgSec, medianSec, distribution };
 }
 
-/** Patrones heurísticos para inferir qué dato pide el bot desde el texto del mensaje. */
+/**
+ * Patrones del flujo de portabilidad BAIT para inferir qué dato pide el bot.
+ * El orden canónico (Funnel 2 global) emerge de los datos: número → NIP → nombre
+ * → … → venta. El orden por tipo de bot (Prepago/Pospago) requiere el mapeo de
+ * bots, que se documenta aparte.
+ */
 const FIELD_PATTERNS: { key: string; label: string; re: RegExp }[] = [
-  { key: "nombre", label: "Nombre", re: /\bnombre\b|¿c[oó]mo te llamas|tu nombre/i },
-  { key: "telefono", label: "Teléfono", re: /tel[eé]fono|celular|whats?app|n[uú]mero de contacto/i },
-  { key: "email", label: "Correo", re: /correo|email|e-?mail/i },
-  { key: "direccion", label: "Dirección", re: /direcci[oó]n|domicilio|c[oó]digo postal|\bcp\b/i },
-  { key: "fecha", label: "Fecha/Cita", re: /fecha|d[ií]a|horario|cita|agendar/i },
-  { key: "documento", label: "Documento/ID", re: /\bcurp\b|\brfc\b|identificaci[oó]n|\bine\b|\bdni\b/i },
+  { key: "numero", label: "Número a cambiar/portar", re: /n[uú]mero (a|que).*(cambiar|portar)|n[uú]mero a (portar|cambiar)|tu n[uú]mero|10 d[ií]gitos/i },
+  { key: "nip", label: "NIP", re: /\bnip\b/i },
+  { key: "nombre", label: "Nombre completo", re: /nombre completo|\bnombre\b|¿c[oó]mo te llamas/i },
+  { key: "correo", label: "Correo", re: /correo|email|e-?mail/i },
+  { key: "fecha_nac", label: "Fecha de nacimiento", re: /fecha de nacimiento|nacimiento|naciste/i },
+  { key: "estado_nac", label: "Estado de nacimiento", re: /estado de nacimiento|entidad de nacimiento|estado donde naciste/i },
+  { key: "vigencia", label: "Vigencia", re: /vigencia/i },
 ];
 
 export interface DataRequestFunnel {
@@ -622,6 +647,80 @@ export function computeDataRequestOrderFunnel(sessions: BmSession[], channelId?:
   return { method, totalSessions: sequences.length, steps: out };
 }
 
+export interface NipTiming {
+  prompted: number;          // sesiones donde el bot pidió NIP
+  delivered: number;         // sesiones con primera entrega válida (numérica) de NIP
+  firstResponseRate: number; // delivered / prompted (0–1)
+  avgSec: number;            // tiempo prompt → entrega válida
+  medianSec: number;
+}
+
+/**
+ * Análisis de NIP (metodología BAIT): separa el prompt del bot de la primera
+ * ENTREGA VÁLIDA (numérica) del usuario. Tiempo de obtención = primer prompt
+ * claro de NIP → primera entrega válida posterior.
+ */
+export function computeNipTiming(sessions: BmSession[], channelId?: string): NipTiming {
+  const list = onlyChannel(sessions, channelId);
+  const NIP_PROMPT = /\bnip\b/i;
+  const VALID_NIP = /^\D*\d{4,8}\D*$/; // 4–8 dígitos (admite separadores)
+  const durations: number[] = [];
+  let prompted = 0, delivered = 0;
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    const prompt = msgs.find((m) => m.from !== "user" && NIP_PROMPT.test((m.content?.text || "").toString()));
+    if (!prompt) continue;
+    prompted++;
+    const promptAt = toMs(prompt.creationTime) || 0;
+    const delivery = msgs.find((m) => m.from === "user" && (toMs(m.creationTime) || 0) > promptAt && VALID_NIP.test((m.content?.text || "").toString().trim()));
+    if (delivery) {
+      delivered++;
+      const at = toMs(delivery.creationTime);
+      if (at != null && at >= promptAt) durations.push(Math.round((at - promptAt) / 1000));
+    }
+  }
+  durations.sort((a, b) => a - b);
+  const n = durations.length;
+  return {
+    prompted,
+    delivered,
+    firstResponseRate: prompted ? Math.round((delivered / prompted) * 1000) / 1000 : 0,
+    avgSec: n ? Math.round(durations.reduce((s, v) => s + v, 0) / n) : 0,
+    medianSec: n ? durations[Math.floor((n - 1) / 2)] : 0,
+  };
+}
+
+export interface FirstMenuReaction {
+  total: number;
+  byType: { type: string; label: string; count: number; pct: number }[];
+}
+
+/**
+ * Funnel 1 (metodología BAIT): reacción del usuario al PRIMER menú del bot.
+ * Clasifica la primera respuesta tras el primer mensaje del bot en: click en
+ * botón, texto libre, imagen/media, o sin respuesta.
+ */
+export function computeFirstMenuReaction(sessions: BmSession[], channelId?: string): FirstMenuReaction {
+  const list = onlyChannel(sessions, channelId);
+  const counts: Record<string, number> = { boton: 0, texto: 0, media: 0, sin_respuesta: 0 };
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    const firstBot = msgs.find((m) => m.from !== "user");
+    if (!firstBot) continue; // sin menú inicial rastreable
+    const firstBotAt = toMs(firstBot.creationTime) || 0;
+    const reply = msgs.find((m) => m.from === "user" && (toMs(m.creationTime) || 0) >= firstBotAt);
+    if (!reply) { counts.sin_respuesta++; continue; }
+    const t = canonicalMessageType(reply.content?.type);
+    if (t === "boton-elegido" || selectedButtonLabel(reply.content)) counts.boton++;
+    else if (["imagen", "audio", "video", "archivo"].includes(t)) counts.media++;
+    else counts.texto++;
+  }
+  const total = list.length;
+  const labels: Record<string, string> = { boton: "Click en botón", texto: "Texto libre", media: "Imagen/Media", sin_respuesta: "Sin respuesta" };
+  const byType = Object.entries(counts).map(([type, count]) => ({ type, label: labels[type], count, pct: total ? Math.round((count / total) * 1000) / 10 : 0 }));
+  return { total, byType };
+}
+
 export interface BotBehavior {
   sampleSize: number;
   responseTimes: { avgBotSec: number; avgUserSec: number; avgFirstResponseSec: number };
@@ -629,7 +728,9 @@ export interface BotBehavior {
   messageTypes: MessageTypeBreakdown;
   buttons: ButtonStats;
   errors: BotErrorStats;
+  firstMenu: FirstMenuReaction;
   timeToSale: TimeToSaleStats;
+  nip: NipTiming;
   dataRequestFunnel: DataRequestFunnel;
 }
 
@@ -661,7 +762,9 @@ export function computeBotBehavior(sessions: BmSession[], channelId?: string): B
     messageTypes: computeMessageTypeBreakdown(list),
     buttons: computeButtonStats(list),
     errors: computeBotErrors(list),
+    firstMenu: computeFirstMenuReaction(list),
     timeToSale: computeTimeToSale(list),
+    nip: computeNipTiming(list),
     dataRequestFunnel: computeDataRequestOrderFunnel(list),
   };
 }

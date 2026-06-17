@@ -2,7 +2,7 @@
 
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { RefreshCw, Clock, MousePointerClick, AlertTriangle, ShoppingCart, MessageSquare, GitBranch, Bot } from "lucide-react";
+import { RefreshCw, Clock, MousePointerClick, AlertTriangle, ShoppingCart, MessageSquare, GitBranch, Bot, KeyRound } from "lucide-react";
 import { useAnalyticsData } from "../useAnalyticsData";
 import type { BotBehavior } from "@/lib/botmaker";
 import type { CariResults } from "@/lib/crm/cari";
@@ -160,11 +160,12 @@ function BotmakerBehavior({ b }: { b: BotBehavior }) {
           ) : <Empty text="Sin errores registrados." />}
         </div>
 
-        {/* Tiempo a cierre de venta */}
+        {/* Ventas (felicidades) y tiempo a cierre */}
         <div style={panel}>
-          <h3 style={h3}><ShoppingCart className="w-4 h-4" style={{ color: "#06d6a0" }} /> Tiempo a cierre de venta</h3>
-          <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+          <h3 style={h3}><ShoppingCart className="w-4 h-4" style={{ color: "#06d6a0" }} /> Ventas (felicidades) y tiempo a cierre</h3>
+          <div style={{ display: "flex", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
             <Mini label="Ventas" value={b.timeToSale.count.toLocaleString("es-MX")} color="#06d6a0" />
+            <Mini label="Conversión" value={`${Math.round(b.timeToSale.conversionRate * 1000) / 10}%`} color="#06d6a0" />
             <Mini label="Tiempo prom." value={fmtDuration(b.timeToSale.avgSec)} />
             <Mini label="Mediana" value={fmtDuration(b.timeToSale.medianSec)} />
           </div>
@@ -177,7 +178,41 @@ function BotmakerBehavior({ b }: { b: BotBehavior }) {
                 <Bar dataKey="value" fill="#06d6a0" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          ) : <Empty text="Sin ventas tipificadas en este periodo." />}
+          ) : <Empty text="Sin ventas (felicidades) en este periodo." />}
+        </div>
+
+        {/* NIP */}
+        <div style={panel}>
+          <h3 style={h3}><KeyRound className="w-4 h-4" style={{ color: "#ffbe0b" }} /> NIP · obtención y tiempo</h3>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <Mini label="Bot pidió NIP" value={b.nip.prompted.toLocaleString("es-MX")} />
+            <Mini label="Entregaron NIP" value={b.nip.delivered.toLocaleString("es-MX")} color="#06d6a0" />
+            <Mini label="Tasa de entrega" value={`${Math.round(b.nip.firstResponseRate * 1000) / 10}%`} />
+            <Mini label="Tiempo prom." value={fmtDuration(b.nip.avgSec)} />
+            <Mini label="Mediana" value={fmtDuration(b.nip.medianSec)} />
+          </div>
+          {!b.nip.prompted && <Empty text="El bot no pidió NIP en este periodo (o no se detectó en el texto)." />}
+        </div>
+
+        {/* Funnel 1: reacción al primer menú */}
+        <div style={panel}>
+          <h3 style={h3}><MousePointerClick className="w-4 h-4 text-cyan-400" /> Funnel 1 · Reacción al primer menú</h3>
+          {b.firstMenu.total ? (
+            <div className="space-y-2">
+              {b.firstMenu.byType.map((r, i) => {
+                const w = b.firstMenu.total ? Math.round((r.count / b.firstMenu.total) * 100) : 0;
+                return (
+                  <div key={r.type} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 120, fontSize: 12, color: "#cbd5e1", textAlign: "right" }}>{r.label}</div>
+                    <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", borderRadius: 6, height: 24, position: "relative" }}>
+                      <div style={{ width: `${w}%`, background: PALETTE[i % PALETTE.length], height: "100%", borderRadius: 6 }} />
+                      <span style={{ position: "absolute", left: 8, top: 3, fontSize: 11, color: "white" }}>{r.count.toLocaleString("es-MX")} · {r.pct}%</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : <Empty />}
         </div>
       </div>
 

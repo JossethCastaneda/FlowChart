@@ -5,6 +5,8 @@ import {
   computeButtonStats,
   computeBotErrors,
   computeTimeToSale,
+  computeNipTiming,
+  computeFirstMenuReaction,
   computeDataRequestOrderFunnel,
   computeBotBehavior,
   type BmSession,
@@ -90,26 +92,85 @@ describe("computeBotErrors", () => {
   });
 });
 
-describe("computeTimeToSale", () => {
-  it("calcula duración hasta el cierre para sesiones de venta", () => {
+describe("computeTimeToSale (regla felicidades)", () => {
+  it("cuenta ventas por mensaje del bot con 'felicidades' y mide el tiempo", () => {
     const sale: BmSession = {
       id: "s3",
       creationTime: t(0),
       chat: { chat: { contactId: "c3", channelId: "ch1" } },
-      messages: [{ from: "user", creationTime: t(1), content: { type: "text", text: "comprar" } }],
-      events: [{ name: "conversation-close", creationTime: t(600), info: { typification: "Venta cerrada" } }],
+      messages: [
+        { from: "user", creationTime: t(1), content: { type: "text", text: "quiero portar" } },
+        { from: "bot", creationTime: t(600), content: { type: "text", text: "¡Felicidades! Tu portabilidad fue exitosa." } },
+      ],
+      events: [],
     };
     const noSale: BmSession = {
-      ...sale,
       id: "s3b",
-      events: [{ name: "conversation-close", creationTime: t(120), info: { typification: "Consulta" } }],
+      creationTime: t(0),
+      chat: { chat: { contactId: "c3b", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(120), content: { type: "text", text: "Gracias por tu consulta." } }],
+      events: [],
     };
     const tts = computeTimeToSale([sale, noSale]);
     expect(tts.count).toBe(1);
+    expect(tts.conversionRate).toBe(0.5);
     expect(tts.avgSec).toBe(600);
     expect(tts.medianSec).toBe(600);
     const buckets = Object.fromEntries(tts.distribution.map((x) => [x.bucket, x.count]));
     expect(buckets["5–15 min"]).toBe(1);
+  });
+});
+
+describe("computeNipTiming", () => {
+  it("mide prompt → primera entrega válida (numérica) del NIP", () => {
+    const s: BmSession = {
+      id: "n1",
+      creationTime: t(0),
+      chat: { chat: { contactId: "n1", channelId: "ch1" } },
+      messages: [
+        { from: "bot", creationTime: t(10), content: { type: "text", text: "Escribe tu NIP de portabilidad" } },
+        { from: "user", creationTime: t(15), content: { type: "text", text: "no lo tengo" } },
+        { from: "user", creationTime: t(40), content: { type: "text", text: "1234" } },
+      ],
+      events: [],
+    };
+    const nip = computeNipTiming([s]);
+    expect(nip.prompted).toBe(1);
+    expect(nip.delivered).toBe(1);
+    expect(nip.avgSec).toBe(30);
+    expect(nip.firstResponseRate).toBe(1);
+  });
+});
+
+describe("computeFirstMenuReaction (Funnel 1)", () => {
+  it("clasifica la primera respuesta al menú: botón / texto / sin respuesta", () => {
+    const botClick: BmSession = {
+      id: "f1", creationTime: t(0), chat: { chat: { contactId: "f1", channelId: "ch1" } },
+      messages: [
+        { from: "bot", creationTime: t(1), content: { type: "buttons", text: "Elige", buttons: ["A", "B"] } },
+        { from: "user", creationTime: t(2), content: { type: "button-click", text: "A", selectedButton: "A" } },
+      ],
+      events: [],
+    };
+    const txt: BmSession = {
+      id: "f2", creationTime: t(0), chat: { chat: { contactId: "f2", channelId: "ch1" } },
+      messages: [
+        { from: "bot", creationTime: t(1), content: { type: "text", text: "Hola" } },
+        { from: "user", creationTime: t(2), content: { type: "text", text: "quiero info" } },
+      ],
+      events: [],
+    };
+    const none: BmSession = {
+      id: "f3", creationTime: t(0), chat: { chat: { contactId: "f3", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(1), content: { type: "text", text: "Hola" } }],
+      events: [],
+    };
+    const fm = computeFirstMenuReaction([botClick, txt, none]);
+    expect(fm.total).toBe(3);
+    const by = Object.fromEntries(fm.byType.map((x) => [x.type, x.count]));
+    expect(by.boton).toBe(1);
+    expect(by.texto).toBe(1);
+    expect(by.sin_respuesta).toBe(1);
   });
 });
 
@@ -144,22 +205,22 @@ describe("computeDataRequestOrderFunnel", () => {
     expect(f.steps[2].dropOff).toBe(1);
   });
 
-  it("usa el fallback heurístico cuando no hay set-variable", () => {
+  it("usa el fallback heurístico (patrones BAIT) cuando no hay set-variable", () => {
     const h: BmSession = {
       id: "s6",
       creationTime: t(0),
       chat: { chat: { contactId: "c6", channelId: "ch1" } },
       messages: [
-        { from: "bot", creationTime: t(1), content: { type: "text", text: "¿Cuál es tu nombre?" } },
-        { from: "user", creationTime: t(2), content: { type: "text", text: "Juan" } },
-        { from: "bot", creationTime: t(3), content: { type: "text", text: "Dame tu teléfono o celular" } },
-        { from: "bot", creationTime: t(4), content: { type: "text", text: "¿Tu correo?" } },
+        { from: "bot", creationTime: t(1), content: { type: "text", text: "¿Cuál es el número que deseas portar?" } },
+        { from: "user", creationTime: t(2), content: { type: "text", text: "5512345678" } },
+        { from: "bot", creationTime: t(3), content: { type: "text", text: "Escribe tu NIP" } },
+        { from: "bot", creationTime: t(4), content: { type: "text", text: "¿Cuál es tu nombre completo?" } },
       ],
       events: [],
     };
     const f = computeDataRequestOrderFunnel([h]);
     expect(f.method).toBe("heuristic");
-    expect(f.steps.map((s) => s.key)).toEqual(["nombre", "telefono", "email"]);
+    expect(f.steps.map((s) => s.key)).toEqual(["numero", "nip", "nombre"]);
   });
 
   it("sin señales → method 'none' y pasos vacíos", () => {
@@ -176,14 +237,19 @@ describe("computeBotBehavior", () => {
       id: "s3",
       creationTime: t(0),
       chat: { chat: { contactId: "c3", channelId: "ch1" } },
-      messages: [{ from: "user", creationTime: t(1), content: { type: "text", text: "comprar" } }],
-      events: [{ name: "conversation-close", creationTime: t(600), info: { typification: "Venta cerrada" } }],
+      messages: [
+        { from: "user", creationTime: t(1), content: { type: "text", text: "comprar" } },
+        { from: "bot", creationTime: t(300), content: { type: "text", text: "¡Felicidades! Listo." } },
+      ],
+      events: [],
     };
     const bb = computeBotBehavior([convo, sale]);
     expect(bb.sampleSize).toBe(2);
     expect(bb.messageTypes.total).toBeGreaterThan(0);
     expect(bb.buttons.shownMessages).toBe(1);
     expect(bb.timeToSale.count).toBe(1);
+    expect(bb.firstMenu.total).toBe(2);
+    expect(bb.nip).toBeDefined();
     expect(bb.responseTimes.avgFirstResponseSec).toBeGreaterThanOrEqual(0);
   });
 });
