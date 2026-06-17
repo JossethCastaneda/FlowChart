@@ -12,10 +12,11 @@ import { IntegrationsView } from "@/app/dashboard/integrations/page";
 import { AreasManager } from "@/components/settings/AreasManager";
 import { PermissionsManager } from "@/components/settings/PermissionsManager";
 import { MemberPermissionsModal, type MemberPermissions } from "@/components/settings/MemberPermissionsModal";
+import { ClientPortalsManager } from "@/components/settings/ClientPortalsManager";
 
 // ── Settings catalogue: groups (menus) → sections (submenus) ──
 // Single source of truth — add a section here and render it in the switch below.
-type SectionKey = "profile" | "preferences" | "workspace" | "integrations" | "plan" | "danger";
+type SectionKey = "profile" | "preferences" | "workspace" | "clients" | "integrations" | "plan" | "danger";
 
 const SETTINGS_GROUPS: {
   group: string;
@@ -32,6 +33,7 @@ const SETTINGS_GROUPS: {
     group: "Workspace",
     items: [
       { key: "workspace", label: "Workspace", icon: Globe, desc: "Equipo, áreas y permisos" },
+      { key: "clients", label: "Portal de Clientes", icon: Users, desc: "Accesos públicos" },
     ],
   },
   {
@@ -575,6 +577,11 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
+          )}
+
+          {/* PORTAL DE CLIENTES */}
+          {activeSection === "clients" && (
+            <ClientPortalsManager workspaceId={workspaceId} />
           )}
 
           {/* PREFERENCIAS */}

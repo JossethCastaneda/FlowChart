@@ -179,6 +179,7 @@ model Project {
   dateStart   String?
   dateEnd     String?
   workspaceId String
+  publicToken String? @unique // Enlace mágico para acceso de clientes (solo lectura)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
