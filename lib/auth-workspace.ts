@@ -10,8 +10,20 @@ export async function verifyWorkspaceAccess(
   const membership = await prisma.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId } },
   });
-  if (!membership) return false;
-  return requiredRole.includes(membership.role as WorkspaceRole);
+  if (membership) {
+    return requiredRole.includes(membership.role as WorkspaceRole);
+  }
+
+  // Fallback para legacy workspaces donde el owner no está en WorkspaceMember
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    select: { ownerId: true },
+  });
+  if (workspace && workspace.ownerId === userId) {
+    return requiredRole.includes("OWNER");
+  }
+
+  return false;
 }
 
 export async function getUserRoleInWorkspace(
@@ -21,7 +33,15 @@ export async function getUserRoleInWorkspace(
   const membership = await prisma.workspaceMember.findUnique({
     where: { workspaceId_userId: { workspaceId, userId } },
   });
-  return (membership?.role as WorkspaceRole) || null;
+  if (membership) return membership.role as WorkspaceRole;
+
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    select: { ownerId: true },
+  });
+  if (workspace && workspace.ownerId === userId) return "OWNER";
+
+  return null;
 }
 
 export async function verifyProjectAccess(
