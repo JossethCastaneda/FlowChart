@@ -32,12 +32,26 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
           display: "popup",
         },
       },
-      // Explicit userinfo: use versioned Graph API endpoint with Authorization header.
-      // The default next-auth handler uses an unversioned URL that can fail with 403
-      // when the token was issued via a versioned authorization dialog.
+      // Custom userinfo: bypass openid-client's client.userinfo() which sends the
+      // token in ways Facebook rejects (403). Instead, do a direct fetch to the
+      // versioned Graph API with the token in the Authorization header — this
+      // matches exactly what the working facebook-sdk provider does.
       userinfo: {
         url: `https://graph.facebook.com/${META_API_VERSION}/me`,
         params: { fields: "id,name,email,picture.type(large)" },
+        async request({ tokens }: { tokens: { access_token?: string } }) {
+          const url = `https://graph.facebook.com/${META_API_VERSION}/me?fields=id,name,email,picture.type(large)`;
+          const res = await fetch(url, {
+            headers: { Authorization: `Bearer ${tokens.access_token}` },
+            signal: AbortSignal.timeout(8000),
+          });
+          if (!res.ok) {
+            const text = await res.text().catch(() => "");
+            console.error(`[AUTH facebook userinfo] ${res.status} ${res.statusText}`, text.slice(0, 200));
+            throw new Error(`Facebook userinfo failed: ${res.status} ${res.statusText}`);
+          }
+          return await res.json();
+        },
       },
       profile(profile: Record<string, any>) {
         return {
