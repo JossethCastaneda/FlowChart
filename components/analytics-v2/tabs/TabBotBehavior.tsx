@@ -1,0 +1,318 @@
+"use client";
+
+import React from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { RefreshCw, Clock, MousePointerClick, AlertTriangle, ShoppingCart, MessageSquare, GitBranch, Bot } from "lucide-react";
+import { useAnalyticsData } from "../useAnalyticsData";
+import type { BotBehavior } from "@/lib/botmaker";
+import type { CariResults } from "@/lib/crm/cari";
+
+interface BotBehaviorResponse {
+  provider: string | null;
+  connected: boolean;
+  channel: string;
+  behavior: BotBehavior | null;
+  cari: CariResults | null;
+}
+
+const PALETTE = ["#00d4ff", "#06d6a0", "#ffbe0b", "#a855f7", "#f472b6", "#fb923c", "#22d3ee", "#f87171"];
+
+function fmtDuration(sec: number): string {
+  if (!sec || sec < 0) return "—";
+  if (sec < 60) return `${sec}s`;
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  if (m < 60) return s ? `${m}m ${s}s` : `${m}m`;
+  const h = Math.floor(m / 60);
+  return `${h}h ${m % 60}m`;
+}
+
+const panel: React.CSSProperties = { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, padding: 20 };
+const h3: React.CSSProperties = { color: "white", fontSize: 14, fontWeight: 600, display: "flex", alignItems: "center", gap: 8, marginBottom: 16 };
+
+function Kpi({ label, value, sub, color = "#00d4ff", icon }: { label: string; value: string; sub?: string; color?: string; icon?: React.ReactNode }) {
+  return (
+    <div style={{ ...panel, padding: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#94a3b8", fontSize: 11, marginBottom: 8 }}>
+        {icon} {label}
+      </div>
+      <div style={{ color, fontSize: 24, fontWeight: 700, lineHeight: 1 }}>{value}</div>
+      {sub && <div style={{ color: "#64748b", fontSize: 11, marginTop: 6 }}>{sub}</div>}
+    </div>
+  );
+}
+
+export function TabBotBehavior({ query, base }: { query: string; base: string }) {
+  const { data, loading, error } = useAnalyticsData<BotBehaviorResponse>(`${base}/bot-behavior`, query);
+
+  if (loading && !data) {
+    return (
+      <div style={{ padding: 60, textAlign: "center", color: "#64748b" }}>
+        <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4" style={{ color: "#00d4ff" }} />
+        <p style={{ fontSize: 14 }}>Analizando comportamiento del bot…</p>
+      </div>
+    );
+  }
+  if (error) return <div style={{ padding: 60, textAlign: "center", color: "#f87171" }}>{error}</div>;
+  if (!data) return <div style={{ padding: 60, textAlign: "center", color: "#64748b" }}>Sin datos.</div>;
+
+  if (!data.connected) {
+    return (
+      <div style={{ ...panel, padding: 48, textAlign: "center" }}>
+        <Bot className="w-10 h-10 mx-auto mb-3" style={{ color: "#64748b" }} />
+        <p style={{ color: "#94a3b8", fontSize: 14 }}>La plataforma analítica del proyecto no está conectada.</p>
+        <p style={{ color: "#64748b", fontSize: 12, marginTop: 6 }}>Asocia Botmaker o Cari AI y sincroniza para ver el análisis.</p>
+      </div>
+    );
+  }
+
+  // ── Cari: solo reportes agregados ──────────────────────────────────────────
+  if (data.cari) return <CariBehavior cari={data.cari} />;
+
+  // ── Botmaker: análisis profundo ────────────────────────────────────────────
+  if (data.behavior) return <BotmakerBehavior b={data.behavior} />;
+
+  return <div style={{ padding: 60, textAlign: "center", color: "#64748b" }}>Sin resultados para este periodo.</div>;
+}
+
+function BotmakerBehavior({ b }: { b: BotBehavior }) {
+  const msgData = b.messageTypes.byType.map((t) => ({ name: t.type, value: t.count, pct: t.pct }));
+  const ttsData = b.timeToSale.distribution.map((d) => ({ name: d.bucket, value: d.count }));
+
+  return (
+    <div className="space-y-6">
+      {/* Tiempos de respuesta */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
+        <Kpi label="1ª respuesta (prom.)" value={fmtDuration(b.responseTimes.avgFirstResponseSec)} icon={<Clock className="w-3.5 h-3.5" />} color="#00d4ff" />
+        <Kpi label="Respuesta del bot (prom.)" value={fmtDuration(b.responseTimes.avgBotSec)} icon={<Clock className="w-3.5 h-3.5" />} color="#06d6a0" />
+        <Kpi label="Respuesta del usuario (prom.)" value={fmtDuration(b.responseTimes.avgUserSec)} icon={<Clock className="w-3.5 h-3.5" />} color="#a855f7" />
+        <Kpi label="Conversaciones analizadas" value={b.sampleSize.toLocaleString("es-MX")} icon={<MessageSquare className="w-3.5 h-3.5" />} color="#ffbe0b" />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 16 }}>
+        {/* Tipos de mensaje */}
+        <div style={panel}>
+          <h3 style={h3}><MessageSquare className="w-4 h-4 text-cyan-400" /> Tipos de mensaje</h3>
+          {msgData.length ? (
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={msgData} layout="vertical" margin={{ left: 12, right: 16 }}>
+                <XAxis type="number" tick={{ fill: "#64748b", fontSize: 11 }} />
+                <YAxis type="category" dataKey="name" width={92} tick={{ fill: "#94a3b8", fontSize: 11 }} />
+                <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} contentStyle={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} formatter={(value: unknown, _name: unknown, entry: unknown) => {
+                  const pct = (entry as { payload?: { pct?: number } })?.payload?.pct ?? 0;
+                  return [`${value} (${pct}%)`, "Mensajes"] as [string, string];
+                }} />
+                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                  {msgData.map((_, i) => <Cell key={i} fill={PALETTE[i % PALETTE.length]} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <Empty />}
+          <div style={{ color: "#64748b", fontSize: 11, marginTop: 8 }}>
+            {b.messageTypes.userTotal.toLocaleString("es-MX")} recibidos · {b.messageTypes.botTotal.toLocaleString("es-MX")} enviados
+          </div>
+        </div>
+
+        {/* Botones */}
+        <div style={panel}>
+          <h3 style={h3}><MousePointerClick className="w-4 h-4 text-cyan-400" /> Botones mostrados vs elegidos</h3>
+          <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+            <Mini label="Mensajes con botones" value={b.buttons.shownMessages.toLocaleString("es-MX")} />
+            <Mini label="Opciones mostradas" value={b.buttons.shownOptions.toLocaleString("es-MX")} />
+            <Mini label="Selecciones" value={b.buttons.selected.toLocaleString("es-MX")} />
+            <Mini label="Tasa de selección" value={`${Math.round(b.buttons.selectRate * 100)}%`} color="#06d6a0" />
+          </div>
+          {b.buttons.topButtons.length ? (
+            <div style={{ maxHeight: 200, overflowY: "auto" }}>
+              <table style={{ width: "100%", fontSize: 12, color: "#cbd5e1" }}>
+                <thead><tr style={{ color: "#64748b", textAlign: "left" }}><th style={{ padding: "4px 6px" }}>Botón</th><th>Mostrado</th><th>Elegido</th><th>CTR</th></tr></thead>
+                <tbody>
+                  {b.buttons.topButtons.map((bt) => (
+                    <tr key={bt.label} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                      <td style={{ padding: "4px 6px", maxWidth: 160, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{bt.label}</td>
+                      <td>{bt.shown}</td><td>{bt.selected}</td>
+                      <td style={{ color: bt.ctr >= 50 ? "#06d6a0" : bt.ctr > 0 ? "#ffbe0b" : "#64748b" }}>{bt.ctr}%</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : <Empty text="El bot no mostró botones en este periodo." />}
+        </div>
+
+        {/* Errores del bot */}
+        <div style={panel}>
+          <h3 style={h3}><AlertTriangle className="w-4 h-4" style={{ color: "#f87171" }} /> Errores del bot</h3>
+          <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+            <Mini label="Errores totales" value={b.errors.total.toLocaleString("es-MX")} color="#f87171" />
+            <Mini label="Sesiones con error" value={b.errors.sessionsWithError.toLocaleString("es-MX")} />
+            <Mini label="Prom. por sesión" value={String(b.errors.perSessionAvg)} />
+          </div>
+          {b.errors.byType.length ? (
+            <div style={{ maxHeight: 180, overflowY: "auto" }}>
+              {b.errors.byType.map((e) => (
+                <div key={e.type} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#cbd5e1", padding: "4px 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                  <span style={{ maxWidth: 240, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.type}</span>
+                  <span style={{ color: "#f87171" }}>{e.count}</span>
+                </div>
+              ))}
+            </div>
+          ) : <Empty text="Sin errores registrados." />}
+        </div>
+
+        {/* Tiempo a cierre de venta */}
+        <div style={panel}>
+          <h3 style={h3}><ShoppingCart className="w-4 h-4" style={{ color: "#06d6a0" }} /> Tiempo a cierre de venta</h3>
+          <div style={{ display: "flex", gap: 16, marginBottom: 12 }}>
+            <Mini label="Ventas" value={b.timeToSale.count.toLocaleString("es-MX")} color="#06d6a0" />
+            <Mini label="Tiempo prom." value={fmtDuration(b.timeToSale.avgSec)} />
+            <Mini label="Mediana" value={fmtDuration(b.timeToSale.medianSec)} />
+          </div>
+          {b.timeToSale.count ? (
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={ttsData} margin={{ left: 0, right: 8 }}>
+                <XAxis dataKey="name" tick={{ fill: "#94a3b8", fontSize: 10 }} />
+                <YAxis tick={{ fill: "#64748b", fontSize: 11 }} allowDecimals={false} />
+                <Tooltip cursor={{ fill: "rgba(255,255,255,0.04)" }} contentStyle={{ background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, fontSize: 12 }} />
+                <Bar dataKey="value" fill="#06d6a0" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : <Empty text="Sin ventas tipificadas en este periodo." />}
+        </div>
+      </div>
+
+      {/* Funnel del orden de captura de datos */}
+      <div style={panel}>
+        <h3 style={h3}><GitBranch className="w-4 h-4 text-cyan-400" /> Orden en que el bot pide los datos</h3>
+        {b.dataRequestFunnel.steps.length ? (
+          <>
+            <div style={{ color: "#64748b", fontSize: 11, marginBottom: 12 }}>
+              Método: {b.dataRequestFunnel.method === "set-variable" ? "variables capturadas por el bot" : b.dataRequestFunnel.method === "heuristic" ? "inferido del texto de los mensajes" : "—"} · {b.dataRequestFunnel.totalSessions.toLocaleString("es-MX")} sesiones
+            </div>
+            <div className="space-y-2">
+              {b.dataRequestFunnel.steps.map((s, i) => {
+                const top = b.dataRequestFunnel.steps[0]?.reached || 1;
+                const w = Math.round((s.reached / top) * 100);
+                return (
+                  <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 120, fontSize: 12, color: "#cbd5e1", textAlign: "right" }}>{i + 1}. {s.label}</div>
+                    <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", borderRadius: 6, height: 26, position: "relative" }}>
+                      <div style={{ width: `${w}%`, background: PALETTE[i % PALETTE.length], height: "100%", borderRadius: 6, transition: "width .3s" }} />
+                      <span style={{ position: "absolute", left: 8, top: 4, fontSize: 11, color: "white" }}>{s.reached.toLocaleString("es-MX")}</span>
+                    </div>
+                    <div style={{ width: 90, fontSize: 11, color: s.dropOff ? "#f87171" : "#64748b" }}>
+                      {s.dropOff ? `-${s.dropOff} (${s.dropOffPct}%)` : "—"}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : <Empty text="No se detectó un orden de captura de datos (sin eventos set-variable ni patrones en el texto)." />}
+      </div>
+
+      {/* Objeciones / tipificaciones */}
+      <div style={panel}>
+        <h3 style={h3}><MessageSquare className="w-4 h-4 text-cyan-400" /> Tipos de objeción / tipificación</h3>
+        {b.objections.length ? (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+            {b.objections.map((o, i) => (
+              <span key={o.label} style={{ background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", color: "#cbd5e1", padding: "6px 10px", borderRadius: 8, fontSize: 12 }}>
+                {o.label} <strong style={{ color: PALETTE[i % PALETTE.length] }}>{o.count}</strong>
+              </span>
+            ))}
+          </div>
+        ) : <Empty text="Sin tipificaciones de cierre en este periodo." />}
+      </div>
+    </div>
+  );
+}
+
+function CariBehavior({ cari }: { cari: CariResults }) {
+  return (
+    <div className="space-y-6">
+      <div style={{ ...panel, padding: 14, color: "#94a3b8", fontSize: 12 }}>
+        Cari AI reporta métricas <strong>agregadas</strong> (no a nivel mensaje), así que el análisis profundo de botones y tipos de mensaje no aplica para esta plataforma.
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 12 }}>
+        <Kpi label="Conversaciones" value={cari.kpis.totalConversations.toLocaleString("es-MX")} color="#00d4ff" />
+        <Kpi label="Contención del bot" value={`${cari.kpis.botContainmentPct}%`} color="#06d6a0" />
+        <Kpi label="Transferidas" value={cari.kpis.transferred.toLocaleString("es-MX")} color="#ffbe0b" />
+        <Kpi label="Abandonadas" value={`${cari.kpis.abandonedPct}%`} color="#f87171" />
+        <Kpi label="Interacciones (prom.)" value={String(cari.kpis.avgInteractions)} color="#a855f7" />
+      </div>
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 16 }}>
+        <div style={panel}>
+          <h3 style={h3}><GitBranch className="w-4 h-4 text-cyan-400" /> Funnel de contención</h3>
+          {cari.funnel.length ? (
+            <div className="space-y-2">
+              {cari.funnel.map((s, i) => {
+                const top = cari.funnel[0]?.count || 1;
+                const w = Math.round((s.count / top) * 100);
+                return (
+                  <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 160, fontSize: 12, color: "#cbd5e1", textAlign: "right" }}>{s.label}</div>
+                    <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", borderRadius: 6, height: 26, position: "relative" }}>
+                      <div style={{ width: `${w}%`, background: PALETTE[i % PALETTE.length], height: "100%", borderRadius: 6 }} />
+                      <span style={{ position: "absolute", left: 8, top: 4, fontSize: 11, color: "white" }}>{s.count.toLocaleString("es-MX")}</span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : <Empty />}
+        </div>
+
+        <div style={panel}>
+          <h3 style={h3}><AlertTriangle className="w-4 h-4" style={{ color: "#ffbe0b" }} /> Razones de no-finalización</h3>
+          {cari.dropOffReasons.length ? (
+            <div className="space-y-2">
+              {cari.dropOffReasons.map((r) => (
+                <div key={r.key} style={{ fontSize: 12, color: "#cbd5e1", padding: "6px 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}><span>{r.label}</span><span style={{ color: "#ffbe0b" }}>{r.count} ({r.pct}%)</span></div>
+                </div>
+              ))}
+            </div>
+          ) : <Empty />}
+        </div>
+      </div>
+
+      <div style={panel}>
+        <h3 style={h3}><MessageSquare className="w-4 h-4" style={{ color: "#f87171" }} /> Frases sin respuesta del bot ({cari.botErrors.totalUnanswered})</h3>
+        {cari.botErrors.unanswered.length ? (
+          <div style={{ maxHeight: 220, overflowY: "auto" }}>
+            {cari.botErrors.unanswered.slice(0, 20).map((u, i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", fontSize: 12, color: "#cbd5e1", padding: "4px 0", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+                <span style={{ maxWidth: 360, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.phrase}</span>
+                <span style={{ color: "#f87171" }}>{u.count}×</span>
+              </div>
+            ))}
+          </div>
+        ) : <Empty text="Sin frases sin respuesta registradas." />}
+      </div>
+
+      {cari.insights.length > 0 && (
+        <div style={panel}>
+          <h3 style={h3}><Bot className="w-4 h-4 text-cyan-400" /> Lecturas del periodo</h3>
+          <ul style={{ margin: 0, paddingLeft: 18, color: "#cbd5e1", fontSize: 12, lineHeight: 1.7 }}>
+            {cari.insights.map((ins, i) => <li key={i}>{ins}</li>)}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Mini({ label, value, color = "#e2e8f0" }: { label: string; value: string; color?: string }) {
+  return (
+    <div>
+      <div style={{ color: "#64748b", fontSize: 10 }}>{label}</div>
+      <div style={{ color, fontSize: 18, fontWeight: 700 }}>{value}</div>
+    </div>
+  );
+}
+
+function Empty({ text = "Sin datos para este periodo." }: { text?: string }) {
+  return <div style={{ color: "#64748b", fontSize: 12, padding: "24px 0", textAlign: "center" }}>{text}</div>;
+}

@@ -49,7 +49,8 @@ const NAV_ITEMS: { name: string; short: string; href: string; icon: any; color: 
   { name: "Planner", short: "PLAN", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b" },
   { name: "Inbox", short: "INBX", href: "/dashboard/inbox", icon: MessageSquare, color: "#a855f7" },
   { name: "Analytics", short: "DATA", href: "/dashboard/analytics", icon: BarChart3, color: "#f472b6" },
-  { name: "Resultados", short: "RES", href: "/dashboard/analisis-resultados", icon: Target, color: "#00d4ff" },
+  // "Análisis de Resultados" ya NO vive en el menú lateral: ahora es un tab dentro
+  // de cada proyecto (Clientes → proyecto → "Análisis de Resultados").
   { name: "Ads", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB" },
   { name: "Listening", short: "LIST", href: "/dashboard/listening", icon: Ear, color: "#fb923c" },
   { name: "Streams", short: "STRM", href: "/dashboard/streams", icon: Columns3, color: "#22d3ee" },

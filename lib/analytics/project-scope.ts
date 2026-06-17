@@ -139,6 +139,21 @@ export const PROVIDER_LABELS: Record<string, string> = {
   cari_ai: "Cari AI",
 };
 
+/**
+ * Canales que cada plataforma analítica puede REALMENTE reportar. Regla de
+ * producto: un proyecto envía a UNA sola plataforma (Botmaker o Cari), nunca a
+ * ambas. Botmaker maneja conversaciones por WhatsApp, Web Chat, Instagram y
+ * Facebook (fanpage → facebook + messenger). Cari solo opera WhatsApp y Web Chat.
+ *
+ * Se usa para INTERSECAR los canales configurados en el proyecto con los que su
+ * proveedor soporta: p. ej. un proyecto Cari con una cuenta de Instagram (para
+ * orgánico/ads) NO debe mostrar Instagram en el análisis conversacional.
+ */
+export const PROVIDER_CHANNELS: Record<string, CanonicalChannel[]> = {
+  botmaker: ["whatsapp", "webchat", "instagram", "facebook", "messenger"],
+  cari_ai: ["whatsapp", "webchat"],
+};
+
 /** Forma mínima de proyecto necesaria para derivar sus canales configurados. */
 export interface ProjectChannelConfig {
   whatsapp?: string[] | null;
@@ -161,8 +176,16 @@ export interface ProjectChannelConfig {
  *
  * No asume que todos los canales existen: solo devuelve los configurados.
  * El resultado se devuelve deduplicado y en orden canónico estable.
+ *
+ * Si se pasa `provider` (proveedor normalizado del proyecto), el resultado se
+ * INTERSECA con `PROVIDER_CHANNELS[provider]`: un canal configurado que el
+ * proveedor no soporta (p. ej. Instagram en un proyecto Cari) se excluye. Sin
+ * `provider` el comportamiento es el histórico (no interseca) — retrocompatible.
  */
-export function collectProjectChannels(p: ProjectChannelConfig): CanonicalChannel[] {
+export function collectProjectChannels(
+  p: ProjectChannelConfig,
+  provider?: string | null
+): CanonicalChannel[] {
   const found = new Set<CanonicalChannel>();
 
   for (const ch of p.channels ?? []) {
@@ -179,7 +202,13 @@ export function collectProjectChannels(p: ProjectChannelConfig): CanonicalChanne
   if (p.webchat && p.webchat.length > 0) found.add("webchat");
 
   // Orden canónico estable (whatsapp, instagram, facebook, messenger, webchat).
-  return SUPPORTED_CHANNELS.filter((c) => found.has(c));
+  let result = SUPPORTED_CHANNELS.filter((c) => found.has(c));
+
+  // Acotar a lo que la plataforma analítica del proyecto puede reportar.
+  const allowed = provider ? PROVIDER_CHANNELS[provider] : undefined;
+  if (allowed) result = result.filter((c) => allowed.includes(c));
+
+  return result;
 }
 
 /**

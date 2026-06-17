@@ -18,7 +18,7 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import { CreativeCard, CreativeLightbox } from "@/components/shared/CreativePreview";
 import { useInsightsStore } from "@/stores/insightsStore";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
-import { ResultsAnalytics } from "@/components/proyectos/ResultsAnalytics";
+import { AdvancedAnalyticsDashboard } from "@/components/analytics-v2/AdvancedAnalyticsDashboard";
 import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 
 /* ═══ TYPES ═══ */
@@ -518,24 +518,13 @@ export default function ProjectDashboardPage() {
           <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
           <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
           <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
-          {(!!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
-            <TabButton active={activeTab === "resultados"} label="Resultados por fuente" icon={<Activity style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
+          {(!!project.crmIntegrationIds?.length || !!project.crmIntegrationId || !!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
+            <TabButton active={activeTab === "resultados"} label="Análisis de Resultados" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
           )}
           {!!project.website && (
             <TabButton active={activeTab === "trafico"} label="Análisis de tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
           )}
           <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
-          <button
-            onClick={() => router.push(`/dashboard/proyectos/${project.id}/analisis-resultados`)}
-            style={{
-              display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", fontSize: 10, fontWeight: 600,
-              background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", color: "#00d4ff",
-              borderRadius: 4, cursor: "pointer", letterSpacing: "0.03em",
-            }}
-            title="KPIs conversacionales, funnels, ROI y calidad del bot acotados a este proyecto"
-          >
-            <BarChart2 style={{ width: 13, height: 13 }} /> Análisis de Resultados
-          </button>
         </div>
         <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
           {project.channels.map(c => {
@@ -1692,10 +1681,10 @@ export default function ProjectDashboardPage() {
       )}
 
 
-      {/* ═══ TAB: ANÁLISIS DE RESULTADOS (BotMaker) ═══ */}
+      {/* ═══ TAB: ANÁLISIS DE RESULTADOS (Botmaker / Cari AI) ═══ */}
       {activeTab === "resultados" && (
-        <ErrorBoundary name="Tab Resultados">
-          <ResultsAnalytics project={project as any} />
+        <ErrorBoundary name="Tab Análisis de Resultados">
+          <AdvancedAnalyticsDashboard projectId={project.id} clientId={project.client} />
         </ErrorBoundary>
       )}
 

@@ -1092,3 +1092,18 @@ model AnalyticsAlert {
   @@index([workspaceId, projectId])
   @@index([workspaceId, resolved])
 }
+
+// Vistas guardadas del dashboard de Análisis de Resultados: una combinación de
+// filtros (FilterState) reutilizable. userId = null → vista compartida del
+// workspace; con userId → privada del usuario.
+model AnalyticsSavedView {
+  id          String   @id @default(cuid())
+  workspaceId String
+  projectId   String?
+  userId      String?
+  name        String
+  filters     Json
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId, projectId])
+}

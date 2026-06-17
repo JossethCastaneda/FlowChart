@@ -17,9 +17,12 @@ import { normalizeIntegrationProvider, normalizeChannelName } from "@/lib/analyt
 // Validaciones: ownership de proyecto, permiso (admin = projects.analytics.sync),
 // channel ∈ canales configurados, provider ∈ proveedores del proyecto, rango válido.
 //
-// NOTA (límite real): los adapters sincronizan a nivel workspace+proveedor (las
-// tablas normalizadas aún no llevan projectId). El `channel` se valida pero el
-// adapter no filtra por canal todavía; ver plan de migración aditiva en el reporte.
+// NOTA (atribución): los adapters sincronizan a nivel workspace+proveedor. Tras
+// cada sync OK estampamos `projectId` en las filas normalizadas de la ventana que
+// aún no lo tienen (`projectId: null`), para que el dashboard del proyecto —que
+// filtra por `where.projectId`— vea sus datos sin robar filas de otro proyecto que
+// comparta el proveedor. El `channel` se valida pero el adapter no filtra por canal
+// todavía; ver plan de migración aditiva en el reporte.
 
 // GET /api/projects/[id]/analytics/sync — estado de configuración + último sync.
 // Lectura para miembros del workspace (ownership del proyecto verificado). Surte
@@ -176,6 +179,21 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       const msg = await adapter.syncMessages(ctx.workspaceId, startDate, endDate);
       const recordsInserted = conv.recordsInserted + msg.recordsInserted;
       const ok = conv.success && msg.success;
+
+      // Atribuir al proyecto las filas de la ventana recién sincronizada que aún
+      // no pertenezcan a ningún proyecto (no robamos las de otro proyecto del
+      // mismo proveedor). Habilita el filtro `where.projectId` del dashboard.
+      if (ok) {
+        await prisma.normalizedConversation.updateMany({
+          where: { workspaceId: ctx.workspaceId, provider: normalized, projectId: null, conversationStartedAt: { gte: startDate, lte: endDate } },
+          data: { projectId },
+        });
+        await prisma.normalizedMessage.updateMany({
+          where: { workspaceId: ctx.workspaceId, provider: normalized, projectId: null, sentAt: { gte: startDate, lte: endDate } },
+          data: { projectId },
+        });
+      }
+
       await prisma.syncJob.update({
         where: { id: job.id },
         data: {

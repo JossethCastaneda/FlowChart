@@ -91,14 +91,45 @@ export async function botmakerFetch(
 export interface BmMessage {
   from?: "bot" | "user" | "agent"; // who sent the message
   creationTime?: string | number;
-  content?: { type?: string; text?: string };
+  content?: {
+    type?: string;
+    text?: string;
+    /** Botones MOSTRADOS por el bot (array de strings u objetos {label/value}). */
+    buttons?: unknown;
+    /** Botón ELEGIDO por el usuario (string u objeto {label/value}). */
+    selectedButton?: unknown;
+    /** Adjunto multimedia (imagen/audio/video/archivo). */
+    media?: { type?: string; url?: string; caption?: string } | null;
+    /** Ítems de carrusel mostrados. */
+    carouselItems?: unknown;
+  } & Record<string, unknown>;
+}
+export interface BmEventInfo {
+  typification?: string;
+  /** notification-error: tipo/razón del error del bot. */
+  error?: string;
+  errorType?: string;
+  reason?: string;
+  messageId?: string;
+  /** set-variable: variable capturada por el bot (señal de "pidió este dato"). */
+  variableName?: string;
+  variableValue?: string;
+  /** find-intent: intención disparada / fallback. */
+  intentId?: string;
+  intentName?: string;
+  isFallback?: boolean;
+}
+export interface BmEvent {
+  name?: string;
+  creationTime?: string | number;
+  info?: BmEventInfo & Record<string, unknown>;
 }
 export interface BmSession {
   id?: string;
   creationTime?: string | number;
   chat?: { chat?: { contactId?: string; channelId?: string }; lastUserMessageDatetime?: string };
   messages?: BmMessage[];
-  events?: { name?: string; creationTime?: string | number; info?: { typification?: string } }[];
+  events?: BmEvent[];
 }
 
 /**
@@ -296,6 +327,347 @@ export function computeMetricsByChannel(
 
 /** Empty breakdown for the no-token / disconnected case. */
 export const EMPTY_CHANNEL_BREAKDOWN: ChannelBreakdown = computeMetricsByChannel([], new Map());
+
+// ── Comportamiento del Bot (análisis profundo, solo Botmaker) ────────────────
+// Métricas a nivel mensaje/evento que la API de Botmaker expone y que el panel
+// "Análisis de Resultados" necesita: tipos de mensaje, botones mostrados vs
+// elegidos, errores del bot, tiempo a cierre de venta y el funnel del ORDEN en
+// que el bot pide datos. Todas son funciones puras O(mensajes) — testeable sin red.
+
+const onlyChannel = (sessions: BmSession[], channelId?: string): BmSession[] =>
+  (Array.isArray(sessions) ? sessions : []).filter((s) => !channelId || s.chat?.chat?.channelId === channelId);
+
+/** Normaliza el `content.type` de Botmaker a un bucket canónico legible. */
+export function canonicalMessageType(raw?: string | null): string {
+  const t = (raw || "").toLowerCase().trim();
+  if (!t) return "otro";
+  if (t.includes("button-click") || t.includes("button_click")) return "boton-elegido";
+  if (t.includes("button")) return "botones";
+  if (t.includes("carousel")) return "carrusel";
+  if (t.includes("text")) return "texto";
+  if (t.includes("image") || t === "img" || t.includes("photo") || t.includes("sticker")) return "imagen";
+  if (t.includes("audio") || t.includes("voice")) return "audio";
+  if (t.includes("video")) return "video";
+  if (t.includes("file") || t.includes("document") || t.includes("pdf")) return "archivo";
+  if (t.includes("location")) return "ubicacion";
+  return "otro";
+}
+
+/** Extrae las etiquetas de los botones MOSTRADOS de un `content` (defensivo). */
+function buttonLabels(content: unknown): string[] {
+  const b = (content as { buttons?: unknown })?.buttons;
+  const arr = Array.isArray(b) ? b : [];
+  return arr
+    .map((x) => (typeof x === "string" ? x : (x as Record<string, unknown>)?.label ?? (x as Record<string, unknown>)?.text ?? (x as Record<string, unknown>)?.title ?? (x as Record<string, unknown>)?.value))
+    .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+    .map((s) => s.trim());
+}
+
+/** Etiqueta del botón ELEGIDO de un `content` (string u objeto), o null. */
+function selectedButtonLabel(content: unknown): string | null {
+  const s = (content as { selectedButton?: unknown })?.selectedButton;
+  if (!s) return null;
+  if (typeof s === "string") return s.trim() || null;
+  const o = s as Record<string, unknown>;
+  const v = o.label ?? o.text ?? o.title ?? o.value;
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+export interface MessageTypeBreakdown {
+  total: number;
+  byType: { type: string; count: number; pct: number }[];
+  /** Desglose por remitente para "mensajes recibidos" (user) vs enviados (bot). */
+  userTotal: number;
+  botTotal: number;
+}
+
+/** Distribución de tipos de mensaje (texto/imagen/botones/…) en las sesiones. */
+export function computeMessageTypeBreakdown(sessions: BmSession[], channelId?: string): MessageTypeBreakdown {
+  const list = onlyChannel(sessions, channelId);
+  const byType: Record<string, number> = {};
+  let total = 0, userTotal = 0, botTotal = 0;
+  for (const s of list) {
+    for (const msg of s.messages || []) {
+      const type = canonicalMessageType(msg.content?.type);
+      byType[type] = (byType[type] || 0) + 1;
+      total++;
+      if (msg.from === "user") userTotal++; else botTotal++;
+    }
+  }
+  const entries = Object.entries(byType)
+    .map(([type, count]) => ({ type, count, pct: total ? Math.round((count / total) * 1000) / 10 : 0 }))
+    .sort((a, b) => b.count - a.count);
+  return { total, byType: entries, userTotal, botTotal };
+}
+
+export interface ButtonStats {
+  /** # de mensajes del bot que mostraron botones. */
+  shownMessages: number;
+  /** # total de opciones de botón mostradas (suma de etiquetas). */
+  shownOptions: number;
+  /** # de selecciones de botón por el usuario. */
+  selected: number;
+  /** selected / shownMessages (0–1). */
+  selectRate: number;
+  /** Top botones por aparición, con su CTR (elegido/mostrado). */
+  topButtons: { label: string; shown: number; selected: number; ctr: number }[];
+}
+
+/** Estadística de botones mostrados vs elegidos. */
+export function computeButtonStats(sessions: BmSession[], channelId?: string): ButtonStats {
+  const list = onlyChannel(sessions, channelId);
+  let shownMessages = 0, shownOptions = 0, selected = 0;
+  const shownByLabel: Record<string, number> = {};
+  const selByLabel: Record<string, number> = {};
+  for (const s of list) {
+    for (const msg of s.messages || []) {
+      const labels = buttonLabels(msg.content);
+      if (labels.length) {
+        shownMessages++;
+        shownOptions += labels.length;
+        for (const l of labels) shownByLabel[l] = (shownByLabel[l] || 0) + 1;
+      }
+      const sel = selectedButtonLabel(msg.content) || (canonicalMessageType(msg.content?.type) === "boton-elegido" ? (msg.content?.text || "").trim() : null);
+      if (sel) {
+        selected++;
+        selByLabel[sel] = (selByLabel[sel] || 0) + 1;
+      }
+    }
+  }
+  const topButtons = Object.entries(shownByLabel)
+    .map(([label, shown]) => ({ label, shown, selected: selByLabel[label] || 0, ctr: shown ? Math.round(((selByLabel[label] || 0) / shown) * 1000) / 10 : 0 }))
+    .sort((a, b) => b.shown - a.shown)
+    .slice(0, 12);
+  return {
+    shownMessages,
+    shownOptions,
+    selected,
+    selectRate: shownMessages ? Math.round((selected / shownMessages) * 1000) / 1000 : 0,
+    topButtons,
+  };
+}
+
+export interface BotErrorStats {
+  total: number;
+  sessionsWithError: number;
+  perSessionAvg: number;
+  byType: { type: string; count: number }[];
+}
+
+/** Errores del bot a partir de eventos `notification-error` (defensivo). */
+export function computeBotErrors(sessions: BmSession[], channelId?: string): BotErrorStats {
+  const list = onlyChannel(sessions, channelId);
+  let total = 0, sessionsWithError = 0;
+  const byType: Record<string, number> = {};
+  for (const s of list) {
+    let inSession = 0;
+    for (const e of s.events || []) {
+      const name = (e.name || "").toLowerCase();
+      if (name === "notification-error" || name.includes("error")) {
+        inSession++;
+        const t = (e.info?.errorType || e.info?.error || e.info?.reason || "desconocido").toString().slice(0, 80);
+        byType[t] = (byType[t] || 0) + 1;
+      }
+    }
+    if (inSession > 0) { sessionsWithError++; total += inSession; }
+  }
+  return {
+    total,
+    sessionsWithError,
+    perSessionAvg: list.length ? Math.round((total / list.length) * 100) / 100 : 0,
+    byType: Object.entries(byType).map(([type, count]) => ({ type, count })).sort((a, b) => b.count - a.count).slice(0, 12),
+  };
+}
+
+/** Regex por defecto para clasificar una venta a partir de la tipificación de cierre. */
+const SALE_TYPIFICATION = /venta|vendid|compr|cerrad|ganad|pagad|sale|won|closed.?won/i;
+
+export interface TimeToSaleStats {
+  count: number;       // # sesiones cerradas como venta
+  avgSec: number;
+  medianSec: number;
+  /** Histograma por rangos de tiempo (min) para el reporte. */
+  distribution: { bucket: string; count: number }[];
+}
+
+/** Tiempo desde el inicio de la sesión hasta el cierre, para sesiones de venta. */
+export function computeTimeToSale(sessions: BmSession[], channelId?: string, matcher: RegExp = SALE_TYPIFICATION): TimeToSaleStats {
+  const list = onlyChannel(sessions, channelId);
+  const durations: number[] = []; // segundos
+  for (const s of list) {
+    const closeEv = (s.events || []).find((e) => e.name === "conversation-close");
+    const typif = closeEv?.info?.typification || "";
+    if (!matcher.test(typif)) continue;
+    const start = toMs(s.creationTime);
+    const close = toMs(closeEv?.creationTime) ?? toMs(s.messages?.[s.messages.length - 1]?.creationTime);
+    if (start != null && close != null && close >= start) durations.push(Math.round((close - start) / 1000));
+  }
+  durations.sort((a, b) => a - b);
+  const count = durations.length;
+  const avgSec = count ? Math.round(durations.reduce((s, v) => s + v, 0) / count) : 0;
+  const medianSec = count ? durations[Math.floor((count - 1) / 2)] : 0;
+  const buckets: { bucket: string; min: number; max: number }[] = [
+    { bucket: "<5 min", min: 0, max: 300 },
+    { bucket: "5–15 min", min: 300, max: 900 },
+    { bucket: "15–30 min", min: 900, max: 1800 },
+    { bucket: "30–60 min", min: 1800, max: 3600 },
+    { bucket: ">60 min", min: 3600, max: Infinity },
+  ];
+  const distribution = buckets.map((b) => ({ bucket: b.bucket, count: durations.filter((d) => d >= b.min && d < b.max).length }));
+  return { count, avgSec, medianSec, distribution };
+}
+
+/** Patrones heurísticos para inferir qué dato pide el bot desde el texto del mensaje. */
+const FIELD_PATTERNS: { key: string; label: string; re: RegExp }[] = [
+  { key: "nombre", label: "Nombre", re: /\bnombre\b|¿c[oó]mo te llamas|tu nombre/i },
+  { key: "telefono", label: "Teléfono", re: /tel[eé]fono|celular|whats?app|n[uú]mero de contacto/i },
+  { key: "email", label: "Correo", re: /correo|email|e-?mail/i },
+  { key: "direccion", label: "Dirección", re: /direcci[oó]n|domicilio|c[oó]digo postal|\bcp\b/i },
+  { key: "fecha", label: "Fecha/Cita", re: /fecha|d[ií]a|horario|cita|agendar/i },
+  { key: "documento", label: "Documento/ID", re: /\bcurp\b|\brfc\b|identificaci[oó]n|\bine\b|\bdni\b/i },
+];
+
+export interface DataRequestFunnel {
+  method: "set-variable" | "heuristic" | "none";
+  totalSessions: number;
+  steps: { key: string; label: string; reached: number; dropOff: number; dropOffPct: number }[];
+}
+
+/**
+ * Funnel del ORDEN en que el bot pide datos. Señal primaria: eventos
+ * `set-variable` (orden de primera aparición por sesión = orden de captura).
+ * Fallback: el texto de los mensajes del bot contra `FIELD_PATTERNS`.
+ *
+ * El orden canónico se determina por la posición media de cada paso entre las
+ * sesiones; el funnel cuenta sesiones que alcanzaron el prefijo [0..k].
+ */
+export function computeDataRequestOrderFunnel(sessions: BmSession[], channelId?: string): DataRequestFunnel {
+  const list = onlyChannel(sessions, channelId);
+
+  // Secuencia por sesión de claves capturadas (en orden), con su etiqueta.
+  const labels: Record<string, string> = {};
+  const sequences: string[][] = [];
+
+  // 1) set-variable
+  let usedVariables = false;
+  for (const s of list) {
+    const evs = (s.events || [])
+      .filter((e) => (e.name || "").toLowerCase() === "set-variable" && e.info?.variableName)
+      .slice()
+      .sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    if (!evs.length) continue;
+    usedVariables = true;
+    const seen = new Set<string>();
+    const seq: string[] = [];
+    for (const e of evs) {
+      const key = String(e.info!.variableName).trim();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      seq.push(key);
+      labels[key] = labels[key] || key;
+    }
+    if (seq.length) sequences.push(seq);
+  }
+
+  // 2) Fallback heurístico por texto de mensajes del bot.
+  let method: DataRequestFunnel["method"] = usedVariables ? "set-variable" : "none";
+  if (!usedVariables) {
+    for (const s of list) {
+      const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+      const seen = new Set<string>();
+      const seq: string[] = [];
+      for (const msg of msgs) {
+        if (msg.from === "user") continue;
+        const text = (msg.content?.text || "").toString();
+        if (!text) continue;
+        for (const fp of FIELD_PATTERNS) {
+          if (!seen.has(fp.key) && fp.re.test(text)) {
+            seen.add(fp.key);
+            seq.push(fp.key);
+            labels[fp.key] = fp.label;
+          }
+        }
+      }
+      if (seq.length) sequences.push(seq);
+    }
+    if (sequences.length) method = "heuristic";
+  }
+
+  if (!sequences.length) return { method: "none", totalSessions: list.length, steps: [] };
+
+  // Orden canónico por posición media de cada clave.
+  const posSum: Record<string, number> = {};
+  const posN: Record<string, number> = {};
+  for (const seq of sequences) {
+    seq.forEach((key, i) => {
+      posSum[key] = (posSum[key] || 0) + i;
+      posN[key] = (posN[key] || 0) + 1;
+    });
+  }
+  const canonical = Object.keys(posN).sort((a, b) => (posSum[a] / posN[a]) - (posSum[b] / posN[b]));
+
+  // Funnel de prefijo: una sesión "alcanza" el paso k si capturó canonical[0..k].
+  const captured = sequences.map((seq) => new Set(seq));
+  const steps = canonical.map((key, k) => {
+    const prefix = canonical.slice(0, k + 1);
+    const reached = captured.filter((set) => prefix.every((p) => set.has(p))).length;
+    return { key, label: labels[key] || key, reached };
+  });
+
+  const out = steps.map((s, i) => {
+    const prev = i === 0 ? sequences.length : steps[i - 1].reached;
+    const dropOff = Math.max(0, prev - s.reached);
+    return { key: s.key, label: s.label, reached: s.reached, dropOff, dropOffPct: prev ? Math.round((dropOff / prev) * 1000) / 10 : 0 };
+  });
+  return { method, totalSessions: sequences.length, steps: out };
+}
+
+export interface BotBehavior {
+  sampleSize: number;
+  responseTimes: { avgBotSec: number; avgUserSec: number; avgFirstResponseSec: number };
+  objections: { label: string; count: number }[];
+  messageTypes: MessageTypeBreakdown;
+  buttons: ButtonStats;
+  errors: BotErrorStats;
+  timeToSale: TimeToSaleStats;
+  dataRequestFunnel: DataRequestFunnel;
+}
+
+/** Agrega TODO el análisis de comportamiento del bot en una sola pasada de alto nivel. */
+export function computeBotBehavior(sessions: BmSession[], channelId?: string): BotBehavior {
+  const list = onlyChannel(sessions, channelId);
+  const base = computeResultsMetrics(list);
+
+  // Tiempo de primera respuesta: primer mensaje de usuario → primera respuesta bot/agente.
+  let frtSum = 0, frtN = 0;
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    const firstUser = msgs.find((m) => m.from === "user");
+    if (!firstUser) continue;
+    const firstUserAt = toMs(firstUser.creationTime);
+    const firstReply = msgs.find((m) => m.from !== "user" && (toMs(m.creationTime) || 0) >= (firstUserAt || 0));
+    const replyAt = toMs(firstReply?.creationTime);
+    if (firstUserAt != null && replyAt != null && replyAt >= firstUserAt) { frtSum += replyAt - firstUserAt; frtN++; }
+  }
+
+  return {
+    sampleSize: list.length,
+    responseTimes: {
+      avgBotSec: base.avgBotResponseTimeSec,
+      avgUserSec: base.avgUserResponseTimeSec,
+      avgFirstResponseSec: frtN ? Math.round(frtSum / frtN / 1000) : 0,
+    },
+    objections: base.topTypifications,
+    messageTypes: computeMessageTypeBreakdown(list),
+    buttons: computeButtonStats(list),
+    errors: computeBotErrors(list),
+    timeToSale: computeTimeToSale(list),
+    dataRequestFunnel: computeDataRequestOrderFunnel(list),
+  };
+}
+
+/** Comportamiento vacío (sin token / desconectado). */
+export const EMPTY_BOT_BEHAVIOR: BotBehavior = computeBotBehavior([]);
 
 // ── Lead Quality Scoring ─────────────────────────────────────────────────────
 // Measures how valuable / engaged the incoming leads are based purely on

@@ -99,9 +99,12 @@ const GOALS = [
 // Facebook/Instagram NO se filtran por plataforma: son cuentas Meta independientes
 // (van siempre en "Redes Sociales"). Google maneja Web Chat + tráfico de landing
 // (GA4/GTM/Ads) en la pestaña "Análisis de Tráfico" del proyecto.
-const BOT_PLATFORM_CHANNELS: Record<string, ("whatsapp" | "webchat")[]> = {
+type BotChannel = "whatsapp" | "webchat" | "instagram" | "facebook";
+const BOT_PLATFORM_CHANNELS: Record<string, BotChannel[]> = {
   cari_ai: ["whatsapp", "webchat"],
-  botmaker: ["whatsapp", "webchat"],
+  // Botmaker también conversa por Instagram y Facebook (se capturan manualmente
+  // abajo). Cari solo opera WhatsApp + Web Chat.
+  botmaker: ["whatsapp", "webchat", "instagram", "facebook"],
   // Google: solo Web Chat aquí; el tráfico de landing (GA4/GTM/Ads) se ve en la
   // pestaña "Análisis de Tráfico" del proyecto.
   google: ["webchat"],
@@ -1037,9 +1040,12 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
   })();
   const botChannels = selectedBotProvider
     ? BOT_PLATFORM_CHANNELS[selectedBotProvider] ?? ["whatsapp", "webchat"]
-    : (["whatsapp", "webchat"] as ("whatsapp" | "webchat")[]);
+    : (["whatsapp", "webchat"] as BotChannel[]);
   const showWhatsapp = botChannels.includes("whatsapp");
   const showWebchat = botChannels.includes("webchat");
+  // Instagram/Facebook del bot: manuales y SOLO para Botmaker (Cari no los reporta).
+  const showInstagram = botChannels.includes("instagram");
+  const showFacebook = botChannels.includes("facebook");
 
   // Sugerir/autoseleccionar cuando hay EXACTAMENTE una integración analítica y
   // el proyecto nuevo aún no tiene ninguna asociada. Con varias, selección manual.
@@ -1246,7 +1252,9 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
             } />
           </Row>
           {/* Canales del bot: solo los que ofrece la Plataforma Analítica elegida.
-              Facebook/Instagram (arriba) no se filtran: son cuentas Meta aparte. */}
+              WhatsApp + Web Chat para Cari/Botmaker; Instagram + Facebook del bot
+              solo para Botmaker (se capturan manualmente). Las cuentas Meta de
+              arriba ("Redes Sociales") son para orgánico/ads. */}
           {(showWhatsapp || showWebchat) && (
             <Row>
               {showWhatsapp && <Field l="WhatsApp" el={
@@ -1262,6 +1270,26 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                   values={Array.isArray(form.webchat) ? form.webchat : form.webchat ? [form.webchat] : []}
                   onChange={(vals) => setForm(prev => ({ ...prev, webchat: vals }))}
                   placeholder="ID del web chat (Enter para agregar)"
+                  ro={ro}
+                />
+              } />}
+            </Row>
+          )}
+          {(showInstagram || showFacebook) && (
+            <Row>
+              {showInstagram && <Field l="Instagram del bot" el={
+                <TagsInput
+                  values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
+                  onChange={(vals) => setForm(prev => ({ ...prev, instagram: vals }))}
+                  placeholder="@usuario de Instagram (Enter para agregar)"
+                  ro={ro}
+                />
+              } />}
+              {showFacebook && <Field l="Página de Facebook del bot" el={
+                <TagsInput
+                  values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
+                  onChange={(vals) => setForm(prev => ({ ...prev, fanpage: vals }))}
+                  placeholder="Página de Facebook (Enter para agregar)"
                   ro={ro}
                 />
               } />}

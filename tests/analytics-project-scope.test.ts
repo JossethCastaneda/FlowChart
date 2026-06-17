@@ -118,6 +118,33 @@ describe("collectProjectChannels", () => {
   });
 });
 
+// ── collectProjectChannels acotado por plataforma analítica (provider) ───────
+describe("collectProjectChannels con provider (canales por plataforma)", () => {
+  const all = { whatsapp: ["+52"], instagram: ["@x"], fanpage: ["Mi Página"], webchat: ["w-1"] };
+
+  it("Cari solo soporta whatsapp + webchat: excluye instagram/facebook/messenger", () => {
+    expect(collectProjectChannels(all, "cari_ai")).toEqual(["whatsapp", "webchat"]);
+  });
+
+  it("Botmaker soporta whatsapp/instagram/facebook/messenger/webchat", () => {
+    expect(collectProjectChannels(all, "botmaker")).toEqual([
+      "whatsapp",
+      "instagram",
+      "facebook",
+      "messenger",
+      "webchat",
+    ]);
+  });
+
+  it("sin provider mantiene comportamiento histórico (no interseca)", () => {
+    expect(collectProjectChannels({ instagram: ["@x"] })).toEqual(["instagram"]);
+  });
+
+  it("provider desconocido no interseca (devuelve lo configurado)", () => {
+    expect(collectProjectChannels({ instagram: ["@x"] }, "otro")).toEqual(["instagram"]);
+  });
+});
+
 // ── Derivación de proveedores normalizados (goal §3) ─────────────────────────
 describe("deriveNormalizedProviders", () => {
   it("mapea provider de integración a provider normalizado", () => {

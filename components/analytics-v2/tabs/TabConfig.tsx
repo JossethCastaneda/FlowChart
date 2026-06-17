@@ -4,16 +4,65 @@ import React, { useState, useEffect } from "react";
 import { AlertCircle, RefreshCw, Save, CheckCircle, Database, Lock, Settings } from "lucide-react";
 import { useAnalyticsScope } from "../AnalyticsScopeContext";
 
+interface KpiTargetRow {
+  kpiKey: string;
+  name: string;
+  description?: string;
+  unit?: string;
+  targetValue: number | null;
+  warningThreshold: number | null;
+  criticalThreshold: number | null;
+  enabled: boolean;
+  overridden: boolean;
+}
+
 export function TabConfig({ base, projectId, clientId }: { base: string; projectId?: string; clientId?: string | null }) {
   const scope = useAnalyticsScope();
-  const [loading, setLoading] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [successMsg, setSuccessMsg] = useState("");
-  const [targets, setTargets] = useState<any[]>([]);
+  const [targets, setTargets] = useState<KpiTargetRow[]>([]);
+  const [edits, setEdits] = useState<Record<string, { targetValue?: string; warningThreshold?: string }>>({});
+  const [savingKey, setSavingKey] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchTargets();
-  }, [base]);
+  const numOr = (v: string | undefined, fallback: number | null): number | null => {
+    if (v === undefined || v.trim() === "") return fallback;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+
+  const saveTarget = async (current: { kpiKey: string; name: string; targetValue: number | null; warningThreshold: number | null; criticalThreshold: number | null; enabled: boolean }) => {
+    setSavingKey(current.kpiKey);
+    setSuccessMsg("");
+    try {
+      const e = edits[current.kpiKey] || {};
+      const body = {
+        kpiKey: current.kpiKey,
+        projectId: projectId || undefined,
+        targetValue: numOr(e.targetValue, current.targetValue),
+        warningThreshold: numOr(e.warningThreshold, current.warningThreshold),
+        criticalThreshold: current.criticalThreshold ?? null,
+        enabled: current.enabled ?? true,
+      };
+      // Escritura al endpoint global con projectId explícito (override de proyecto).
+      const res = await fetch(`/api/analytics/kpi-targets`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      if (res.ok) {
+        setSuccessMsg(`Meta de "${current.name}" guardada.`);
+        setEdits((p) => { const n = { ...p }; delete n[current.kpiKey]; return n; });
+        fetchTargets();
+      } else {
+        const err = await res.json().catch(() => ({}));
+        alert("Error al guardar meta: " + (err.error || "Desconocido"));
+      }
+    } catch {
+      alert("Fallo al contactar al servidor");
+    } finally {
+      setSavingKey(null);
+    }
+  };
 
   const fetchTargets = async () => {
     try {
@@ -27,23 +76,36 @@ export function TabConfig({ base, projectId, clientId }: { base: string; project
     }
   };
 
+  useEffect(() => {
+    fetchTargets();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [base]);
+
   const handleManualSync = async () => {
+    if (!projectId) {
+      alert("La sincronización manual requiere un proyecto.");
+      return;
+    }
     setSyncing(true);
     setSuccessMsg("");
     try {
-      // Usamos el primer proveedor si hay uno, o disparamos global si es posible.
-      // En un entorno real, iteraríamos por provider o pediríamos elegir al usuario.
-      const providerId = scope.allowedProviders?.[0] || "cari_ai"; 
-      const res = await fetch(`/api/analytics/integrations/${providerId}/sync?projectId=${projectId || ""}`, {
-        method: "POST"
+      // Ruta de proyecto YA con scope (verifica ownership, valida proveedor/canal,
+      // crea SyncJob trazable y estampa projectId en las filas de la ventana).
+      // `base` = /api/projects/[id]/analytics → POST ${base}/sync.
+      const res = await fetch(`${base}/sync`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
       });
       if (res.ok) {
-        setSuccessMsg("Sincronización iniciada con éxito");
+        const json = await res.json().catch(() => null);
+        const inserted = json?.data?.jobs?.reduce((s: number, j: { recordsInserted?: number }) => s + (j.recordsInserted || 0), 0) ?? null;
+        setSuccessMsg(inserted != null ? `Sincronización completada (${inserted} registros).` : "Sincronización iniciada con éxito");
       } else {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         alert("Error de sincronización: " + (err.error || "Desconocido"));
       }
-    } catch (e) {
+    } catch {
       alert("Fallo al contactar al servidor");
     } finally {
       setSyncing(false);
@@ -97,26 +159,44 @@ export function TabConfig({ base, projectId, clientId }: { base: string; project
           <p style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "16px" }}>
             Los objetivos definidos a nivel proyecto sobreescriben la configuración global del workspace.
           </p>
-          <div className="space-y-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+          <div className="space-y-3 max-h-[360px] overflow-y-auto pr-2 custom-scrollbar">
             {targets.length === 0 && <p style={{ color: "#64748b", fontSize: "12px" }}>Cargando metas...</p>}
-            {targets.map(t => (
-              <div key={t.kpiKey} style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 500, color: "white" }}>{t.name}</span>
-                  <span style={{ fontSize: "11px", color: t.overridden ? "#00d4ff" : "#64748b" }}>{t.overridden ? "Override" : "Global"}</span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-                  <div>
-                    <span style={{ fontSize: "10px", color: "#94a3b8", display: "block" }}>Meta (Verde)</span>
-                    <span style={{ fontSize: "12px", color: "#4ade80" }}>{t.targetValue ?? "-"} {t.unit === "percent" ? "%" : ""}</span>
+            {targets.map((t) => {
+              const e = edits[t.kpiKey] || {};
+              const unit = t.unit === "percent" ? "%" : "";
+              const curTarget = t.targetValue != null ? String(t.targetValue) : "";
+              const curWarn = t.warningThreshold != null ? String(t.warningThreshold) : "";
+              const dirty = (e.targetValue !== undefined && e.targetValue !== curTarget) || (e.warningThreshold !== undefined && e.warningThreshold !== curWarn);
+              const inputStyle: React.CSSProperties = { width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 12, borderRadius: 6, padding: "4px 8px", outline: "none" };
+              return (
+                <div key={t.kpiKey} style={{ background: "rgba(255,255,255,0.03)", padding: "12px", borderRadius: "8px", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
+                    <span style={{ fontSize: "13px", fontWeight: 500, color: "white" }} title={t.description || ""}>{t.name}</span>
+                    <span style={{ fontSize: "11px", color: t.overridden ? "#00d4ff" : "#64748b" }}>{t.overridden ? "Override proyecto" : "Global"}</span>
                   </div>
-                  <div>
-                    <span style={{ fontSize: "10px", color: "#94a3b8", display: "block" }}>Advertencia (Rojo)</span>
-                    <span style={{ fontSize: "12px", color: "#f87171" }}>{t.warningThreshold ?? "-"} {t.unit === "percent" ? "%" : ""}</span>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "10px", alignItems: "end" }}>
+                    <label>
+                      <span style={{ fontSize: "10px", color: "#4ade80", display: "block", marginBottom: 4 }}>Meta (Verde){unit ? ` ${unit}` : ""}</span>
+                      <input type="number" step="any" style={inputStyle}
+                        value={e.targetValue ?? curTarget}
+                        onChange={(ev) => setEdits((p) => ({ ...p, [t.kpiKey]: { ...p[t.kpiKey], targetValue: ev.target.value } }))} />
+                    </label>
+                    <label>
+                      <span style={{ fontSize: "10px", color: "#f87171", display: "block", marginBottom: 4 }}>Advertencia (Rojo){unit ? ` ${unit}` : ""}</span>
+                      <input type="number" step="any" style={inputStyle}
+                        value={e.warningThreshold ?? curWarn}
+                        onChange={(ev) => setEdits((p) => ({ ...p, [t.kpiKey]: { ...p[t.kpiKey], warningThreshold: ev.target.value } }))} />
+                    </label>
+                    <button
+                      onClick={() => saveTarget(t)}
+                      disabled={!dirty || savingKey === t.kpiKey}
+                      style={{ background: dirty ? "var(--cyan)" : "rgba(255,255,255,0.05)", color: dirty ? "#0f172a" : "#64748b", border: "none", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 700, cursor: dirty ? "pointer" : "not-allowed", whiteSpace: "nowrap" }}>
+                      {savingKey === t.kpiKey ? "…" : "Guardar"}
+                    </button>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
