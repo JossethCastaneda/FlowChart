@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Shield, Check, Loader2, Zap, Calendar, MessageCircle, Megaphone, BarChart3, Target } from "lucide-react";
+import { Shield, Check, Loader2, Zap, Calendar, MessageCircle, Megaphone, BarChart3, Target, ChevronDown, ChevronRight, CheckSquare, Square } from "lucide-react";
 import { DEFAULT_MEMBER_PERMS, DEFAULT_LEADER_PERMS, DEFAULT_EXTERNAL_PERMS, type Area, type AreaPermissions } from "@/lib/workflow-config";
 
 const PERM_KEYS: { key: keyof AreaPermissions; label: string; icon: React.ElementType }[] = [
@@ -29,6 +29,7 @@ export function PermissionsManager() {
   const [dirty, setDirty] = useState(false);
   const [savedAt, setSavedAt] = useState(false);
   const [requireLeadReview, setRequireLeadReview] = useState(true);
+  const [expandedArea, setExpandedArea] = useState<string | null>(null);
 
   useEffect(() => {
     fetch("/api/workspace/settings")
@@ -57,6 +58,20 @@ export function PermissionsManager() {
         external: { ...DEFAULT_EXTERNAL_PERMS },
       };
       return { ...a, permissions: { ...perms, [scope]: { ...perms[scope], [key]: val } } };
+    })); mark();
+  };
+
+  const patchScope = (areaId: string, scope: PermScope, val: boolean) => {
+    setAreas((prev) => prev.map((a) => {
+      if (a.id !== areaId) return a;
+      const perms = a.permissions || {
+        leaders:  { ...DEFAULT_LEADER_PERMS },
+        members:  { ...DEFAULT_MEMBER_PERMS },
+        external: { ...DEFAULT_EXTERNAL_PERMS },
+      };
+      const newScopePerms = { ...perms[scope] };
+      PERM_KEYS.forEach(p => { (newScopePerms as any)[p.key] = val; });
+      return { ...a, permissions: { ...perms, [scope]: newScopePerms } };
     })); mark();
   };
 
@@ -101,82 +116,118 @@ export function PermissionsManager() {
           members:  { ...DEFAULT_MEMBER_PERMS },
           external: { ...DEFAULT_EXTERNAL_PERMS },
         };
+        const isExpanded = expandedArea === area.id;
+        
+        // Helper check for default
+        const isDefault = JSON.stringify(perms) === JSON.stringify({ leaders: DEFAULT_LEADER_PERMS, members: DEFAULT_MEMBER_PERMS, external: DEFAULT_EXTERNAL_PERMS });
+
         return (
-          <div key={area.id} style={{ borderRadius: 12, border: `1px solid ${area.color}25`, overflow: "hidden" }}>
-            {/* Area header */}
-            <div style={{
-              padding: "10px 16px", background: `${area.color}0a`,
-              borderBottom: `1px solid ${area.color}18`,
-              display: "flex", alignItems: "center", gap: 10,
-            }}>
+          <div key={area.id} style={{ borderRadius: 12, border: `1px solid ${area.color}25`, overflow: "hidden", background: isExpanded ? "transparent" : "rgba(255,255,255,0.01)", transition: "all 0.2s ease-in-out" }}>
+            {/* Area header (Accordion trigger) */}
+            <div 
+              onClick={() => setExpandedArea(isExpanded ? null : area.id)}
+              style={{
+                padding: "12px 16px", background: isExpanded ? `${area.color}10` : "transparent",
+                borderBottom: isExpanded ? `1px solid ${area.color}18` : "none",
+                display: "flex", alignItems: "center", gap: 10, cursor: "pointer",
+                transition: "background 0.2s ease-in-out"
+              }}>
+              {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />}
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: area.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", textTransform: "uppercase", letterSpacing: "0.05em", flex: 1 }}>
                 {area.name}
               </span>
-              <span style={{ fontSize: 10, color: "#64748b" }}>
-                {area.memberIds.length} miembros · {area.leadIds.length} líderes
-              </span>
+              <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                {isDefault && <span style={{ fontSize: 10, color: "#475569", fontStyle: "italic", border: "1px solid rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: 4 }}>Defaults</span>}
+                <span style={{ fontSize: 10, color: "#64748b" }}>
+                  {area.memberIds.length} miembros · {area.leadIds.length} líderes
+                </span>
+              </div>
             </div>
 
-            {/* 3-column permissions grid */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr" }}>
-              {SCOPES.map((scope, si) => {
-                const scopePerms = (perms as any)[scope.id] as AreaPermissions | undefined;
-                const effectivePerms = scopePerms || defaultsFor(scope.id);
-                return (
-                  <div key={scope.id} style={{
-                    display: "flex", flexDirection: "column",
-                    borderRight: si < SCOPES.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
-                  }}>
-                    {/* Column header */}
-                    <div style={{ padding: "10px 12px", background: "rgba(0,0,0,0.12)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                      <div style={{ fontSize: 11, fontWeight: 700, color: scope.color, letterSpacing: "0.04em" }}>
-                        {scope.emoji} {scope.label}
-                      </div>
-                      <div style={{ fontSize: 9, color: "#475569", marginTop: 2 }}>{scope.sub}</div>
-                    </div>
-                    {/* Permission rows */}
-                    <div style={{ padding: "4px 8px" }}>
-                      {PERM_KEYS.map((p) => {
-                        const checked = effectivePerms[p.key] ?? false;
-                        return (
-                          <div key={p.key} style={{
-                            display: "flex", alignItems: "center", justifyContent: "space-between",
-                            gap: 6, padding: "6px 4px",
-                            borderBottom: "1px solid rgba(255,255,255,0.04)",
-                          }}
-                            className="last:border-none"
-                          >
-                            <span style={{ fontSize: 11, color: checked ? "#e2e8f0" : "#475569", fontWeight: checked ? 500 : 400, flex: 1 }}>
-                              {p.label}
-                            </span>
-                            <button
-                              onClick={() => patchPerm(area.id, scope.id, p.key, !checked)}
-                              role="switch"
-                              aria-checked={checked}
-                              aria-label={`${scope.label} - ${p.label}`}
-                              style={{
-                                width: 30, height: 16, borderRadius: 8, border: "none",
-                                background: checked ? scope.color : "rgba(255,255,255,0.08)",
-                                cursor: "pointer", position: "relative", flexShrink: 0,
-                                transition: "background 0.2s",
-                              }}
-                            >
-                              <span style={{
-                                position: "absolute", top: 2,
-                                left: checked ? 14 : 2,
-                                width: 12, height: 12, borderRadius: "50%", background: "#fff",
-                                transition: "left 0.15s",
-                              }} />
-                            </button>
+            {/* Expandable Content */}
+            {isExpanded && (
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", animation: "fadeIn 0.2s ease-out" }}>
+                {SCOPES.map((scope, si) => {
+                  const scopePerms = (perms as any)[scope.id] as AreaPermissions | undefined;
+                  const effectivePerms = scopePerms || defaultsFor(scope.id);
+                  
+                  // Check if all are active or all are inactive
+                  let activeCount = 0;
+                  PERM_KEYS.forEach(p => { if (effectivePerms[p.key]) activeCount++; });
+                  const allActive = activeCount === PERM_KEYS.length;
+                  const noneActive = activeCount === 0;
+
+                  return (
+                    <div key={scope.id} style={{
+                      display: "flex", flexDirection: "column",
+                      borderRight: si < SCOPES.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                    }}>
+                      {/* Column header */}
+                      <div style={{ padding: "10px 12px", background: "rgba(0,0,0,0.12)", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                        <div>
+                          <div style={{ fontSize: 11, fontWeight: 700, color: scope.color, letterSpacing: "0.04em" }}>
+                            {scope.emoji} {scope.label}
                           </div>
-                        );
-                      })}
+                          <div style={{ fontSize: 9, color: "#475569", marginTop: 2 }}>{scope.sub}</div>
+                        </div>
+                        {/* Batch Action Buttons */}
+                        <div style={{ display: "flex", gap: 4 }}>
+                           {!allActive && (
+                             <button onClick={() => patchScope(area.id, scope.id, true)} title="Activar todos" style={{ background: "transparent", border: "none", cursor: "pointer", color: scope.color, opacity: 0.7, padding: 2 }} className="hover:opacity-100 hover:bg-white/5 rounded transition-all">
+                               <CheckSquare className="w-3.5 h-3.5" />
+                             </button>
+                           )}
+                           {!noneActive && (
+                             <button onClick={() => patchScope(area.id, scope.id, false)} title="Desactivar todos" style={{ background: "transparent", border: "none", cursor: "pointer", color: "#64748b", opacity: 0.7, padding: 2 }} className="hover:opacity-100 hover:text-red-400 hover:bg-white/5 rounded transition-all">
+                               <Square className="w-3.5 h-3.5" />
+                             </button>
+                           )}
+                        </div>
+                      </div>
+                      {/* Permission rows */}
+                      <div style={{ padding: "4px 8px" }}>
+                        {PERM_KEYS.map((p) => {
+                          const checked = effectivePerms[p.key] ?? false;
+                          return (
+                            <div key={p.key} style={{
+                              display: "flex", alignItems: "center", justifyContent: "space-between",
+                              gap: 6, padding: "6px 4px",
+                              borderBottom: "1px solid rgba(255,255,255,0.04)",
+                            }}
+                              className="last:border-none"
+                            >
+                              <span style={{ fontSize: 11, color: checked ? "#e2e8f0" : "#475569", fontWeight: checked ? 500 : 400, flex: 1 }}>
+                                {p.label}
+                              </span>
+                              <button
+                                onClick={() => patchPerm(area.id, scope.id, p.key, !checked)}
+                                role="switch"
+                                aria-checked={checked}
+                                aria-label={`${scope.label} - ${p.label}`}
+                                style={{
+                                  width: 30, height: 16, borderRadius: 8, border: "none",
+                                  background: checked ? scope.color : "rgba(255,255,255,0.08)",
+                                  cursor: "pointer", position: "relative", flexShrink: 0,
+                                  transition: "background 0.2s",
+                                }}
+                              >
+                                <span style={{
+                                  position: "absolute", top: 2,
+                                  left: checked ? 14 : 2,
+                                  width: 12, height: 12, borderRadius: "50%", background: "#fff",
+                                  transition: "left 0.15s",
+                                }} />
+                              </button>
+                            </div>
+                          );
+                        })}
+                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })}
