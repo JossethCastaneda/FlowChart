@@ -32,11 +32,7 @@ export const GET = withAuth(async (req, ctx) => {
   });
 
   if (!membership) {
-    const isOwner = await prisma.workspace.findFirst({
-      where: { id: targetWorkspaceId, ownerId: ctx.userId },
-      select: { id: true },
-    });
-    if (!isOwner) return apiSuccess([]);
+    return apiSuccess([]);
   }
 
   const projects = await prisma.project.findMany({
@@ -104,11 +100,7 @@ export const POST = withAuth(async (req, ctx) => {
     },
   });
   if (!membership) {
-    const isOwner = await prisma.workspace.findFirst({
-      where: { id: workspaceId, ownerId: ctx.userId },
-      select: { id: true },
-    });
-    if (!isOwner) return apiForbidden("No tienes acceso a este workspace");
+    return apiForbidden("No tienes acceso a este workspace");
   }
 
   const {

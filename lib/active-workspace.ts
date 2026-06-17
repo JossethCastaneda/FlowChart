@@ -28,13 +28,6 @@ export async function getActiveWorkspaceId(
       select: { workspaceId: true },
     });
     if (membership) return membership.workspaceId;
-
-    // Si no es miembro explícito, revisar si es el creador/dueño
-    const isOwner = await prisma.workspace.findFirst({
-      where: { id: cookieValue, ownerId: userId },
-      select: { id: true },
-    });
-    if (isOwner) return isOwner.id;
   }
 
   // Fallback: primer workspace del usuario
@@ -43,12 +36,5 @@ export async function getActiveWorkspaceId(
     orderBy: { workspace: { createdAt: "asc" } },
     select: { workspaceId: true },
   });
-  if (firstMembership) return firstMembership.workspaceId;
-
-  const firstOwned = await prisma.workspace.findFirst({
-    where: { ownerId: userId },
-    orderBy: { createdAt: "asc" },
-    select: { id: true },
-  });
-  return firstOwned?.id ?? null;
+  return firstMembership?.workspaceId ?? null;
 }
