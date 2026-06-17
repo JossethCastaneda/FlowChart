@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import {
   LayoutDashboard, FolderKanban, Users, Zap, Target, Plug, Loader2, ArrowRight,
-  DollarSign, TrendingUp, CheckCircle, AlertTriangle, Bell, BellOff
+  DollarSign, TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Bell, BellOff,
+  Activity, ShieldCheck, Clock, AlertCircle
 } from "lucide-react";
 import Link from "next/link";
 import { useInsightsStore, countResultsFromTimeSeries } from "@/stores/insightsStore";
@@ -217,99 +218,107 @@ export default function ResumenPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5 mt-4">
             {projectCards.map((pc: any) => {
-              const cColor = pc.cumplimiento >= 90 ? "#00c875" : pc.cumplimiento >= 60 ? "#fdab3d" : "#e2445c";
-              const sColor = pc.spendPct > 110 ? "#e2445c" : pc.spendPct > 100 ? "#fdab3d" : "#00c875";
-              const rColor = pc.resultsPct >= 90 ? "#00c875" : pc.resultsPct >= 60 ? "#fdab3d" : "#e2445c";
+              // Health classification
+              const isHealthy = pc.cumplimiento >= 90 && pc.spendPct <= 110;
+              const isWarning = (pc.cumplimiento >= 60 && pc.cumplimiento < 90) || (pc.spendPct > 110 && pc.spendPct <= 125);
+              
+              let healthConfig = { color: "#e2445c", text: "EN RIESGO", bg: "rgba(226,68,92,0.1)", icon: AlertCircle };
+              if (isHealthy) healthConfig = { color: "#00c875", text: "SALUDABLE", bg: "rgba(0,200,117,0.1)", icon: ShieldCheck };
+              else if (isWarning) healthConfig = { color: "#fdab3d", text: "PRECAUCIÓN", bg: "rgba(253,171,61,0.1)", icon: Clock };
+              
+              const HealthIcon = healthConfig.icon;
 
               return (
                 <Link key={pc.id} href={`/dashboard/proyectos/${pc.id}`} style={{ textDecoration: "none" }}>
-                  <div className="glass-panel group relative flex flex-col h-full hover:border-[rgba(0,212,255,0.3)] transition-colors overflow-hidden" style={{ padding: 0 }}>
+                  <div className="glass-panel group relative flex flex-col h-full overflow-hidden transition-all duration-300" 
+                       style={{ 
+                         padding: 0, 
+                         borderRadius: "16px",
+                         background: pc.hasData ? `radial-gradient(120% 120% at 50% 0%, ${healthConfig.bg} 0%, rgba(10,15,30,0.8) 100%)` : undefined,
+                         borderColor: "rgba(255,255,255,0.08)"
+                       }}>
+                    
+                    {/* Hover Glow */}
+                    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" 
+                         style={{ boxShadow: `inset 0 0 0 1px ${healthConfig.color}60` }} />
                     
                     {/* Header */}
-                    <div className="p-4 border-b border-white/5 flex justify-between items-start bg-white/[0.02]">
-                      <div className="flex-1 min-w-0 pr-4">
+                    <div className="p-5 pb-3 flex justify-between items-start">
+                      <div className="flex items-center gap-2 flex-1 min-w-0 pr-4">
+                        <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center shrink-0">
+                          <Activity className="w-3 h-3 text-[#00d4ff]" />
+                        </div>
                         <h3 className="text-sm font-bold text-white truncate m-0">{pc.alias}</h3>
                       </div>
                       {pc.hasData && (
-                        <div className="flex shrink-0 items-center justify-center rounded px-2 py-0.5 text-[10px] font-bold tracking-wider" style={{ color: cColor, background: `${cColor}15`, border: `1px solid ${cColor}30` }}>
-                          {pct(pc.cumplimiento)} CUMPL.
+                        <div className="flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-bold tracking-wider" 
+                             style={{ color: healthConfig.color, background: `${healthConfig.color}15`, border: `1px solid ${healthConfig.color}30` }}>
+                          <HealthIcon className="w-3 h-3" />
+                          {healthConfig.text}
                         </div>
                       )}
                     </div>
 
                     {/* Content */}
-                    <div className="p-4 flex-1 flex flex-col gap-5">
+                    <div className="px-5 pb-5 flex-1 flex flex-col">
                       {!pc.hasData ? (
-                        <div className="flex-1 flex items-center justify-center text-xs text-slate-500 py-8">
-                          Sin datos de Meta conectados
+                        <div className="flex-1 flex flex-col items-center justify-center text-xs text-slate-500 py-10 opacity-60">
+                          <AlertTriangle className="w-6 h-6 mb-2" />
+                          Sin datos de Meta
                         </div>
                       ) : (
                         <>
-                          {/* Row 1: Presupuesto & Gasto */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Presupuesto</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold text-[#00d4ff]">{fmtMXN0(pc.budgetTotal)}</span>
-                              </div>
-                              <p className="text-[10px] text-slate-400 mt-1">Al día: {fmtMXN0(pc.budgetToDate)}</p>
-                            </div>
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Gasto</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold" style={{ color: sColor }}>{fmtMXN0(pc.spendToDate)}</span>
-                                <span className="text-[10px] font-bold" style={{ color: sColor }}>({pct(pc.spendPct)})</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Row 2: Resultados */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Meta Resultados</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold text-[#7b61ff]">{Math.round(pc.goalMonth).toLocaleString()}</span>
-                              </div>
-                              <p className="text-[10px] text-slate-400 mt-1">Al día: {Math.round(pc.goalToDate).toLocaleString()}</p>
-                            </div>
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Resultados</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold" style={{ color: rColor }}>{pc.results.toLocaleString()}</span>
-                                <span className="text-[10px] font-bold" style={{ color: rColor }}>({pct(pc.resultsPct)})</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Row 3: Eficiencia (CPR) */}
-                          <div className="grid grid-cols-2 gap-4 pt-3 border-t border-white/5 mt-auto">
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">CPR Meta</p>
-                              <span className="text-xs font-bold text-[#fdab3d]">
-                                {pc.cprProjected > 0 ? fmtMXN(pc.cprProjected) : "—"}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">CPR Actual</p>
-                              <span className="text-xs font-bold" style={{ color: cColor }}>
+                          {/* HERO: CPR */}
+                          <div className="py-4 flex flex-col items-center justify-center text-center relative">
+                            <p className="text-[10px] text-slate-400 uppercase tracking-widest mb-1 font-semibold">Costo Por Resultado</p>
+                            <div className="flex items-center gap-3">
+                              <span className="text-4xl font-black tracking-tight" style={{ color: "white" }}>
                                 {pc.cprActual > 0 ? fmtMXN(pc.cprActual) : "—"}
                               </span>
+                              {pc.cprProjected > 0 && pc.cprActual > 0 && (
+                                <div className="flex flex-col items-start justify-center">
+                                  {pc.cprActual <= pc.cprProjected ? (
+                                    <TrendingDown className="w-4 h-4 text-[#00c875]" />
+                                  ) : (
+                                    <TrendingUp className="w-4 h-4 text-[#e2445c]" />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                            <div className="mt-1 flex items-center gap-2 text-xs font-medium" style={{ color: "rgba(148,163,184,0.8)" }}>
+                              <span>Meta: <span className="text-white">{pc.cprProjected > 0 ? fmtMXN(pc.cprProjected) : "—"}</span></span>
+                            </div>
+                          </div>
+
+                          {/* FOOTER: Pacing Bars */}
+                          <div className="mt-auto pt-4 flex flex-col gap-3">
+                            {/* Resultados Pacing */}
+                            <div>
+                              <div className="flex justify-between items-end mb-1">
+                                <span className="text-[10px] text-slate-400 font-semibold tracking-wide uppercase">Resultados</span>
+                                <span className="text-[10px] font-bold text-white">{pc.results.toLocaleString()} <span className="text-slate-500 font-normal">/ {Math.round(pc.goalToDate).toLocaleString()}</span></span>
+                              </div>
+                              <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full transition-all duration-1000" 
+                                     style={{ width: `${Math.min(100, pc.resultsPct)}%`, backgroundColor: pc.resultsPct >= 90 ? "#00c875" : pc.resultsPct >= 60 ? "#fdab3d" : "#e2445c" }} />
+                              </div>
+                            </div>
+                            
+                            {/* Inversión Pacing */}
+                            <div>
+                              <div className="flex justify-between items-end mb-1">
+                                <span className="text-[10px] text-slate-400 font-semibold tracking-wide uppercase">Inversión (Gasto)</span>
+                                <span className="text-[10px] font-bold text-white">{fmtMXN0(pc.spendToDate)} <span className="text-slate-500 font-normal">/ {fmtMXN0(pc.budgetToDate)}</span></span>
+                              </div>
+                              <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
+                                <div className="h-full rounded-full transition-all duration-1000" 
+                                     style={{ width: `${Math.min(100, pc.spendPct)}%`, backgroundColor: pc.spendPct > 110 ? "#e2445c" : pc.spendPct > 100 ? "#fdab3d" : "#00c875" }} />
+                              </div>
                             </div>
                           </div>
                         </>
                       )}
                     </div>
-
-                    {/* Progress Bar Footer */}
-                    {pc.hasData && (
-                      <div className="w-full bg-white/5 h-[3px]">
-                        <div 
-                          className="h-full rounded-r-full transition-all duration-1000 ease-out" 
-                          style={{ width: `${Math.min(100, pc.cumplimiento)}%`, backgroundColor: cColor }} 
-                        />
-                      </div>
-                    )}
-
                   </div>
                 </Link>
               );
