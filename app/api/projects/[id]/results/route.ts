@@ -182,4 +182,6 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   });
 });
 
-export const maxDuration = 60;
+// Cari/Botmaker descargan varios reportes paginados en vivo (hasta 10k filas
+// c/u). 60s no alcanzaba → 504. Fluid Compute permite hasta 300s.
+export const maxDuration = 300;
