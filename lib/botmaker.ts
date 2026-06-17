@@ -669,6 +669,54 @@ export function computeBotBehavior(sessions: BmSession[], channelId?: string): B
 /** Comportamiento vacío (sin token / desconectado). */
 export const EMPTY_BOT_BEHAVIOR: BotBehavior = computeBotBehavior([]);
 
+// ── Listado de canales (para autollenar el formulario de proyecto) ───────────
+export type ChannelCanonical = "whatsapp" | "webchat" | "instagram" | "facebook" | "messenger";
+
+export interface BmChannelInfo {
+  id: string;
+  platform: string;
+  canonical: ChannelCanonical | null;
+  name: string;
+  /** Número de línea (solo WhatsApp). */
+  number?: string;
+  active: boolean;
+}
+
+/** Mapea el `platform` de un canal Botmaker a su forma canónica (incluye webchat). */
+function channelCanonical(platform?: string | null): ChannelCanonical | null {
+  const p = (platform || "").toLowerCase();
+  if (!p) return null;
+  if (p.includes("whats")) return "whatsapp";
+  if (p.includes("insta")) return "instagram";
+  if (p.includes("messenger")) return "messenger";
+  if (p.includes("facebook") || p === "fb") return "facebook";
+  if (p.includes("web")) return "webchat"; // webchat / web / webwidget
+  return null;
+}
+
+/**
+ * GET /channels → canales del bot del workspace (números de WhatsApp, webchats,
+ * Instagram y Facebook). Se usa para AUTOLLENAR el formulario "Nuevo Proyecto"
+ * en vez de teclear los números a mano.
+ */
+export async function listBotmakerChannels(conn: BotmakerConnection): Promise<BmChannelInfo[]> {
+  const res = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
+  if (!res.ok) return [];
+  const data = await res.json().catch(() => null);
+  const items = (data?.items ?? data ?? []) as Record<string, unknown>[];
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((c) => ({
+      id: String(c.id ?? ""),
+      platform: String(c.platform ?? ""),
+      canonical: channelCanonical(c.platform as string),
+      name: String(c.name ?? ""),
+      number: typeof c.number === "string" ? c.number : undefined,
+      active: c.active !== false,
+    }))
+    .filter((c) => c.id);
+}
+
 // ── Lead Quality Scoring ─────────────────────────────────────────────────────
 // Measures how valuable / engaged the incoming leads are based purely on
 // conversational signal extracted from BotMaker sessions.

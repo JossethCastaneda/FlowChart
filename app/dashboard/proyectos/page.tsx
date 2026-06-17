@@ -1009,6 +1009,30 @@ function ProyectosContent() {
    MODAL
    ═══════════════════════════════════════ */
 
+/** Une dos listas de strings sin duplicar (preserva orden). */
+function mergeUnique(cur: string[] | undefined, add: string[]): string[] {
+  const out = Array.isArray(cur) ? [...cur] : [];
+  for (const v of add) if (v && !out.includes(v)) out.push(v);
+  return out;
+}
+
+/** Chips de canales disponibles (de Botmaker) que aún no están agregados al campo. */
+function ChannelSuggest({ options, values, onAdd }: { options: { label: string; value: string }[]; values: string[]; onAdd: (v: string) => void }) {
+  const remaining = options.filter((o) => !values.includes(o.value));
+  if (!remaining.length) return null;
+  return (
+    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
+      <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", alignSelf: "center" }}>Disponibles:</span>
+      {remaining.map((o) => (
+        <button key={o.value} type="button" onClick={() => onAdd(o.value)}
+          style={{ background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.25)", color: "#7dd3fc", borderRadius: 6, padding: "2px 8px", fontSize: 11, cursor: "pointer" }}>
+          + {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIntegrations, onClose, onSave }: {
   mode: "create" | "edit" | "view";
   initial: Omit<Project, "id" | "createdAt">;
@@ -1046,6 +1070,40 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
   // Instagram/Facebook del bot: manuales y SOLO para Botmaker (Cari no los reporta).
   const showInstagram = botChannels.includes("instagram");
   const showFacebook = botChannels.includes("facebook");
+
+  // Autollenado de canales del bot desde Botmaker: cuando la plataforma es
+  // Botmaker, traemos sus canales REALES (números de WhatsApp, webchats, IG, FB)
+  // para elegirlos con un clic en vez de teclearlos. Cari no expone listado de
+  // canales, así que ahí se mantiene la captura manual.
+  type ChanOpt = { label: string; value: string };
+  const [botChannelsAvail, setBotChannelsAvail] = useState<{ whatsapp: ChanOpt[]; webchat: ChanOpt[]; instagram: ChanOpt[]; facebook: ChanOpt[] } | null>(null);
+  const [loadingChannels, setLoadingChannels] = useState(false);
+  useEffect(() => {
+    if (mode === "view" || selectedBotProvider !== "botmaker") { setBotChannelsAvail(null); return; }
+    let cancelled = false;
+    setLoadingChannels(true);
+    fetch("/api/integrations/botmaker/channels")
+      .then((r) => r.json())
+      .then((j) => { if (!cancelled && j?.success) setBotChannelsAvail(j.data.channels); })
+      .catch(() => { /* best-effort */ })
+      .finally(() => { if (!cancelled) setLoadingChannels(false); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedBotProvider, mode]);
+
+  const totalAvail = botChannelsAvail
+    ? botChannelsAvail.whatsapp.length + botChannelsAvail.webchat.length + botChannelsAvail.instagram.length + botChannelsAvail.facebook.length
+    : 0;
+  const autoFillBotChannels = () => {
+    if (!botChannelsAvail) return;
+    setForm((prev) => ({
+      ...prev,
+      whatsapp: mergeUnique(prev.whatsapp, botChannelsAvail.whatsapp.map((o) => o.value)),
+      webchat: mergeUnique(prev.webchat, botChannelsAvail.webchat.map((o) => o.value)),
+      instagram: mergeUnique(prev.instagram, botChannelsAvail.instagram.map((o) => o.value)),
+      fanpage: mergeUnique(prev.fanpage, botChannelsAvail.facebook.map((o) => o.value)),
+    }));
+  };
 
   // Sugerir/autoseleccionar cuando hay EXACTAMENTE una integración analítica y
   // el proyecto nuevo aún no tiene ninguna asociada. Con varias, selección manual.
@@ -1253,45 +1311,69 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
           </Row>
           {/* Canales del bot: solo los que ofrece la Plataforma Analítica elegida.
               WhatsApp + Web Chat para Cari/Botmaker; Instagram + Facebook del bot
-              solo para Botmaker (se capturan manualmente). Las cuentas Meta de
-              arriba ("Redes Sociales") son para orgánico/ads. */}
+              solo para Botmaker. Para Botmaker se AUTOLLENAN desde su API (números,
+              webchats, IG, FB); Cari no expone listado → captura manual. */}
+          {selectedBotProvider === "botmaker" && (showWhatsapp || showWebchat || showInstagram || showFacebook) && (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0 6px", flexWrap: "wrap" }}>
+              <button
+                type="button"
+                onClick={autoFillBotChannels}
+                disabled={!totalAvail || ro}
+                style={{ background: totalAvail ? "rgba(0,212,255,0.12)" : "rgba(148,163,184,0.08)", border: "1px solid rgba(0,212,255,0.3)", color: totalAvail ? "#7dd3fc" : "rgba(148,163,184,0.6)", borderRadius: 6, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: totalAvail && !ro ? "pointer" : "not-allowed" }}
+              >
+                {loadingChannels ? "Cargando canales de Botmaker…" : totalAvail ? `⚡ Autollenar ${totalAvail} canales desde Botmaker` : "Sin canales detectados en Botmaker"}
+              </button>
+            </div>
+          )}
           {(showWhatsapp || showWebchat) && (
             <Row>
               {showWhatsapp && <Field l="WhatsApp" el={
-                <TagsInput
-                  values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
-                  onChange={(vals) => setForm(prev => ({ ...prev, whatsapp: vals }))}
-                  placeholder="+52 55 1234 5678 (Enter para agregar)"
-                  ro={ro}
-                />
+                <>
+                  <TagsInput
+                    values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
+                    onChange={(vals) => setForm(prev => ({ ...prev, whatsapp: vals }))}
+                    placeholder="+52 55 1234 5678 (Enter para agregar)"
+                    ro={ro}
+                  />
+                  {botChannelsAvail && <ChannelSuggest options={botChannelsAvail.whatsapp} values={Array.isArray(form.whatsapp) ? form.whatsapp : []} onAdd={(v) => setForm(prev => ({ ...prev, whatsapp: mergeUnique(prev.whatsapp, [v]) }))} />}
+                </>
               } />}
               {showWebchat && <Field l="Web Chat (ID del widget)" el={
-                <TagsInput
-                  values={Array.isArray(form.webchat) ? form.webchat : form.webchat ? [form.webchat] : []}
-                  onChange={(vals) => setForm(prev => ({ ...prev, webchat: vals }))}
-                  placeholder="ID del web chat (Enter para agregar)"
-                  ro={ro}
-                />
+                <>
+                  <TagsInput
+                    values={Array.isArray(form.webchat) ? form.webchat : form.webchat ? [form.webchat] : []}
+                    onChange={(vals) => setForm(prev => ({ ...prev, webchat: vals }))}
+                    placeholder="ID del web chat (Enter para agregar)"
+                    ro={ro}
+                  />
+                  {botChannelsAvail && <ChannelSuggest options={botChannelsAvail.webchat} values={Array.isArray(form.webchat) ? form.webchat : []} onAdd={(v) => setForm(prev => ({ ...prev, webchat: mergeUnique(prev.webchat, [v]) }))} />}
+                </>
               } />}
             </Row>
           )}
           {(showInstagram || showFacebook) && (
             <Row>
               {showInstagram && <Field l="Instagram del bot" el={
-                <TagsInput
-                  values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
-                  onChange={(vals) => setForm(prev => ({ ...prev, instagram: vals }))}
-                  placeholder="@usuario de Instagram (Enter para agregar)"
-                  ro={ro}
-                />
+                <>
+                  <TagsInput
+                    values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
+                    onChange={(vals) => setForm(prev => ({ ...prev, instagram: vals }))}
+                    placeholder="@usuario de Instagram (Enter para agregar)"
+                    ro={ro}
+                  />
+                  {botChannelsAvail && <ChannelSuggest options={botChannelsAvail.instagram} values={Array.isArray(form.instagram) ? form.instagram : []} onAdd={(v) => setForm(prev => ({ ...prev, instagram: mergeUnique(prev.instagram, [v]) }))} />}
+                </>
               } />}
               {showFacebook && <Field l="Página de Facebook del bot" el={
-                <TagsInput
-                  values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
-                  onChange={(vals) => setForm(prev => ({ ...prev, fanpage: vals }))}
-                  placeholder="Página de Facebook (Enter para agregar)"
-                  ro={ro}
-                />
+                <>
+                  <TagsInput
+                    values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
+                    onChange={(vals) => setForm(prev => ({ ...prev, fanpage: vals }))}
+                    placeholder="Página de Facebook (Enter para agregar)"
+                    ro={ro}
+                  />
+                  {botChannelsAvail && <ChannelSuggest options={botChannelsAvail.facebook} values={Array.isArray(form.fanpage) ? form.fanpage : []} onAdd={(v) => setForm(prev => ({ ...prev, fanpage: mergeUnique(prev.fanpage, [v]) }))} />}
+                </>
               } />}
             </Row>
           )}
