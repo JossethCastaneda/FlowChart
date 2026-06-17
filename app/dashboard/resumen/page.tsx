@@ -215,7 +215,7 @@ export default function ResumenPage() {
             <span className="section-title">Salud de Proyectos Activos</span>
             {insightsLoading && <Loader2 style={{ width: 14, height: 14, color: "#00d4ff", animation: "spin 1s linear infinite" }} />}
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5 mt-4">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {projectCards.map((pc: any) => {
               const cColor = pc.cumplimiento >= 90 ? "#00c875" : pc.cumplimiento >= 60 ? "#fdab3d" : "#e2445c";
               const sColor = pc.spendPct > 110 ? "#e2445c" : pc.spendPct > 100 ? "#fdab3d" : "#00c875";
@@ -223,93 +223,57 @@ export default function ResumenPage() {
 
               return (
                 <Link key={pc.id} href={`/dashboard/proyectos/${pc.id}`} style={{ textDecoration: "none" }}>
-                  <div className="glass-panel group relative flex flex-col h-full hover:border-[rgba(0,212,255,0.3)] transition-colors overflow-hidden" style={{ padding: 0 }}>
-                    
-                    {/* Header */}
-                    <div className="p-4 border-b border-white/5 flex justify-between items-start bg-white/[0.02]">
-                      <div className="flex-1 min-w-0 pr-4">
-                        <h3 className="text-sm font-bold text-white truncate m-0">{pc.alias}</h3>
-                      </div>
-                      {pc.hasData && (
-                        <div className="flex shrink-0 items-center justify-center rounded px-2 py-0.5 text-[10px] font-bold tracking-wider" style={{ color: cColor, background: `${cColor}15`, border: `1px solid ${cColor}30` }}>
-                          {pct(pc.cumplimiento)} CUMPL.
+                  <div className="glass-panel" style={{ padding: 0, overflow: "hidden", cursor: "pointer", transition: "border-color 0.2s" }}>
+                    {/* Single row: Name + all metrics */}
+                    <div style={{ display: "flex", alignItems: "stretch" }}>
+                      {/* Left: Project name + badge */}
+                      <div style={{ minWidth: 160, maxWidth: 200, padding: "10px 14px", display: "flex", flexDirection: "column", justifyContent: "center", borderRight: "1px solid rgba(255,255,255,0.04)", flexShrink: 0 }}>
+                        <h3 style={{ fontSize: 12, fontWeight: 700, color: "white", margin: 0, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{pc.alias}</h3>
+                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+                          <span style={{
+                            fontSize: 8, fontWeight: 700, padding: "2px 6px", borderRadius: 3, letterSpacing: "0.05em",
+                            color: cColor, background: `${cColor}12`, border: `1px solid ${cColor}25`,
+                          }}>{pc.hasData ? pct(pc.cumplimiento) : "—"}</span>
                         </div>
-                      )}
-                    </div>
+                      </div>
 
-                    {/* Content */}
-                    <div className="p-4 flex-1 flex flex-col gap-5">
                       {!pc.hasData ? (
-                        <div className="flex-1 flex items-center justify-center text-xs text-slate-500 py-8">
-                          Sin datos de Meta conectados
+                        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", padding: "10px", color: "rgba(148,163,184,0.25)", fontSize: 10 }}>
+                          Sin datos de Meta
                         </div>
                       ) : (
-                        <>
-                          {/* Row 1: Presupuesto & Gasto */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Presupuesto</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold text-[#00d4ff]">{fmtMXN0(pc.budgetTotal)}</span>
-                              </div>
-                              <p className="text-[10px] text-slate-400 mt-1">Al día: {fmtMXN0(pc.budgetToDate)}</p>
+                        /* Right: Metrics in horizontal flow */
+                        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(11, 1fr)", alignItems: "center", padding: "8px 0" }}>
+                          {([
+                            ["Presupuesto", fmtMXN0(pc.budgetTotal), "#00d4ff"],
+                            ["Pres. al día", fmtMXN0(pc.budgetToDate), "#00d4ff"],
+                            ["Gasto", fmtMXN0(pc.spendToDate), sColor],
+                            ["Gasto %", pct(pc.spendPct), sColor],
+                            ["Meta Mes", Math.round(pc.goalMonth).toLocaleString(), "#7b61ff"],
+                            ["Meta Día", Math.round(pc.goalToDate).toLocaleString(), "#7b61ff"],
+                            ["Resultados", pc.results.toLocaleString(), rColor],
+                            ["Res. %", pct(pc.resultsPct), rColor],
+                            ["CPR Meta", pc.cprProjected > 0 ? fmtMXN(pc.cprProjected) : "—", "#fdab3d"],
+                            ["CPR Actual", pc.cprActual > 0 ? fmtMXN(pc.cprActual) : "—", cColor],
+                            ["Cumpl.", pct(pc.cumplimiento), cColor],
+                          ] as [string, string, string][]).map(([label, value, color], i) => (
+                            <div key={i} style={{ textAlign: "center", padding: "0 4px" }}>
+                              <p style={{ fontSize: 7, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.04em", margin: "0 0 2px", whiteSpace: "nowrap" }}>{label}</p>
+                              <p style={{ fontSize: i >= 10 ? 12 : 10.5, fontWeight: i >= 10 ? 800 : 600, color, margin: 0, fontFamily: i >= 10 ? "'Orbitron',sans-serif" : "inherit", whiteSpace: "nowrap" }}>{value}</p>
                             </div>
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Gasto</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold" style={{ color: sColor }}>{fmtMXN0(pc.spendToDate)}</span>
-                                <span className="text-[10px] font-bold" style={{ color: sColor }}>({pct(pc.spendPct)})</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Row 2: Resultados */}
-                          <div className="grid grid-cols-2 gap-4">
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Meta Resultados</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold text-[#7b61ff]">{Math.round(pc.goalMonth).toLocaleString()}</span>
-                              </div>
-                              <p className="text-[10px] text-slate-400 mt-1">Al día: {Math.round(pc.goalToDate).toLocaleString()}</p>
-                            </div>
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">Resultados</p>
-                              <div className="flex items-baseline gap-2">
-                                <span className="text-sm font-bold" style={{ color: rColor }}>{pc.results.toLocaleString()}</span>
-                                <span className="text-[10px] font-bold" style={{ color: rColor }}>({pct(pc.resultsPct)})</span>
-                              </div>
-                            </div>
-                          </div>
-
-                          {/* Row 3: Eficiencia (CPR) */}
-                          <div className="grid grid-cols-2 gap-4 pt-3 border-t border-white/5 mt-auto">
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">CPR Meta</p>
-                              <span className="text-xs font-bold text-[#fdab3d]">
-                                {pc.cprProjected > 0 ? fmtMXN(pc.cprProjected) : "—"}
-                              </span>
-                            </div>
-                            <div>
-                              <p className="text-[9px] text-slate-500 uppercase tracking-widest mb-1">CPR Actual</p>
-                              <span className="text-xs font-bold" style={{ color: cColor }}>
-                                {pc.cprActual > 0 ? fmtMXN(pc.cprActual) : "—"}
-                              </span>
-                            </div>
-                          </div>
-                        </>
+                          ))}
+                        </div>
                       )}
                     </div>
-
-                    {/* Progress Bar Footer */}
+                    {/* Thin progress bar */}
                     {pc.hasData && (
-                      <div className="w-full bg-white/5 h-[3px]">
-                        <div 
-                          className="h-full rounded-r-full transition-all duration-1000 ease-out" 
-                          style={{ width: `${Math.min(100, pc.cumplimiento)}%`, backgroundColor: cColor }} 
-                        />
+                      <div style={{ height: 2, background: "rgba(255,255,255,0.03)" }}>
+                        <div style={{
+                          height: "100%", width: `${Math.min(100, pc.cumplimiento)}%`, transition: "width 0.6s ease",
+                          background: cColor,
+                        }} />
                       </div>
                     )}
-
                   </div>
                 </Link>
               );
