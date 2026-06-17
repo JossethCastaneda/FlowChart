@@ -12,6 +12,8 @@ import {
   computeReactivations,
   computeFlowFunnel,
   FLOW_ORDERS,
+  normalizePhone,
+  saleSessionPhones,
   computeDataRequestOrderFunnel,
   computeBotBehavior,
   type BmSession,
@@ -306,6 +308,24 @@ describe("computeFlowFunnel (Funnel 2 por tipo de bot)", () => {
     expect(f.steps[0].reached).toBe(2); // ambos piden número
     expect(f.steps[1].reached).toBe(1); // solo el full llega a NIP
     expect(f.steps[2].reached).toBe(1);
+  });
+});
+
+describe("normalizePhone + saleSessionPhones (cruce con sábana)", () => {
+  it("normaliza a 10 dígitos y extrae teléfonos de ventas (felicidades)", () => {
+    expect(normalizePhone("+52 1 55 1234 5678")).toBe("5512345678");
+    expect(normalizePhone("5512345678")).toBe("5512345678");
+    const sale: BmSession = {
+      id: "v1", creationTime: t(0), chat: { chat: { contactId: "5215512345678", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(10), content: { type: "text", text: "¡Felicidades! Listo." } }],
+      events: [],
+    };
+    const noSale: BmSession = {
+      id: "v2", creationTime: t(0), chat: { chat: { contactId: "5219998887777", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(10), content: { type: "text", text: "Hola" } }],
+      events: [],
+    };
+    expect(saleSessionPhones([sale, noSale])).toEqual(["5512345678"]);
   });
 });
 

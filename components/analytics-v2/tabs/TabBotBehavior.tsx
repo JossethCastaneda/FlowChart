@@ -70,12 +70,12 @@ export function TabBotBehavior({ query, base }: { query: string; base: string })
   if (data.cari) return <CariBehavior cari={data.cari} />;
 
   // ── Botmaker: análisis profundo ────────────────────────────────────────────
-  if (data.behavior) return <BotmakerBehavior b={data.behavior} />;
+  if (data.behavior) return <BotmakerBehavior b={data.behavior} base={base} query={query} />;
 
   return <div style={{ padding: 60, textAlign: "center", color: "#64748b" }}>Sin resultados para este periodo.</div>;
 }
 
-function BotmakerBehavior({ b }: { b: BotBehavior }) {
+function BotmakerBehavior({ b, base, query }: { b: BotBehavior; base: string; query: string }) {
   const msgData = b.messageTypes.byType.map((t) => ({ name: t.type, value: t.count, pct: t.pct }));
   const ttsData = b.timeToSale.distribution.map((d) => ({ name: d.bucket, value: d.count }));
 
@@ -275,6 +275,9 @@ function BotmakerBehavior({ b }: { b: BotBehavior }) {
         </div>
       </div>
 
+      {/* Cruce con sábana de ventas (secciones 9-10) */}
+      <SalesReconciliation base={base} query={query} />
+
       {/* SIM/eSIM + reactivaciones */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
         <div style={panel}>
@@ -370,6 +373,93 @@ function CariBehavior({ cari }: { cari: CariResults }) {
           <ul style={{ margin: 0, paddingLeft: 18, color: "#cbd5e1", fontSize: 12, lineHeight: 1.7 }}>
             {cari.insights.map((ins, i) => <li key={i}>{ins}</li>)}
           </ul>
+        </div>
+      )}
+    </div>
+  );
+}
+
+interface ReconResult {
+  columns: { phone: string; bot: string | null; capturista: string | null };
+  sheetRows: number;
+  sheetPhones: number;
+  dashboardSales: number;
+  exitosas: number;
+  firstRejection: number;
+  byBot: { key: string; count: number }[];
+  byCapturista: { key: string; count: number }[];
+  rejectionReasons: string[];
+}
+
+// Cruce con sábana de ventas: sube CSV/XLSX → ventas exitosas (en sábana) y
+// primer rechazo Botmaker (ventas dashboard − exitosas). Claridad de fuente.
+function SalesReconciliation({ base, query }: { base: string; query: string }) {
+  const [result, setResult] = React.useState<ReconResult | null>(null);
+  const [loading, setLoading] = React.useState(false);
+  const [error, setError] = React.useState<string | null>(null);
+  const [fileName, setFileName] = React.useState("");
+
+  const onFile = async (file: File) => {
+    setLoading(true); setError(null); setResult(null); setFileName(file.name);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`${base}/sales-reconciliation?${query}`, { method: "POST", body: fd });
+      const j = await res.json();
+      if (j.success) setResult(j.data as ReconResult); else setError(j.error || "Error en el cruce");
+    } catch { setError("Error de red"); } finally { setLoading(false); }
+  };
+
+  const chip: React.CSSProperties = { background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, padding: "4px 8px", fontSize: 11, color: "#cbd5e1" };
+
+  return (
+    <div style={panel}>
+      <h3 style={h3}><ShoppingCart className="w-4 h-4" style={{ color: "#06d6a0" }} /> Cruce con sábana de ventas (éxitos y rechazos)</h3>
+      <div style={{ color: "#64748b", fontSize: 11, marginBottom: 10 }}>
+        Sube tu sábana (CSV/XLSX); detectamos la columna de teléfono automáticamente. <strong>Exitosas</strong> = ventas del dashboard (felicidades) que aparecen en la sábana; <strong>primer rechazo Botmaker</strong> = ventas dashboard − exitosas.
+      </div>
+      <label style={{ display: "inline-flex", alignItems: "center", gap: 8, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.3)", color: "#7dd3fc", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 600, cursor: loading ? "not-allowed" : "pointer" }}>
+        {loading ? "Procesando…" : "Subir sábana (CSV/XLSX)"}
+        <input type="file" accept=".csv,.xlsx,.xls" style={{ display: "none" }} disabled={loading}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) onFile(f); }} />
+      </label>
+      {fileName && <span style={{ marginLeft: 10, fontSize: 11, color: "#94a3b8" }}>{fileName}</span>}
+      {error && <div style={{ color: "#f87171", fontSize: 12, marginTop: 10 }}>{error}</div>}
+      {result && (
+        <div style={{ marginTop: 14 }}>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginBottom: 12 }}>
+            <Mini label="Ventas dashboard (felicidades)" value={result.dashboardSales.toLocaleString("es-MX")} color="#00d4ff" />
+            <Mini label="Exitosas (en sábana)" value={result.exitosas.toLocaleString("es-MX")} color="#06d6a0" />
+            <Mini label="Primer rechazo Botmaker" value={result.firstRejection.toLocaleString("es-MX")} color="#f87171" />
+            <Mini label="Filas en sábana" value={result.sheetRows.toLocaleString("es-MX")} />
+          </div>
+          <div style={{ color: "#64748b", fontSize: 11, marginBottom: 10 }}>
+            Columna de teléfono: <strong>{result.columns.phone}</strong>{result.columns.bot ? ` · bot: ${result.columns.bot}` : ""}{result.columns.capturista ? ` · capturista: ${result.columns.capturista}` : ""}. Fuente ventas: Botmaker (felicidades); fuente exitosas: cruce con sábana.
+          </div>
+          {result.firstRejection > 0 && (
+            <div style={{ background: "rgba(248,113,113,0.06)", border: "1px solid rgba(248,113,113,0.2)", borderRadius: 8, padding: 12 }}>
+              <div style={{ fontSize: 12, color: "#cbd5e1", marginBottom: 6 }}>El primer rechazo Botmaker puede corresponder a estos 2 motivos (sin reparto artificial):</div>
+              <ul style={{ margin: 0, paddingLeft: 18, color: "#cbd5e1", fontSize: 12, lineHeight: 1.6 }}>
+                {result.rejectionReasons.map((r, i) => <li key={i}>{r}</li>)}
+              </ul>
+            </div>
+          )}
+          {result.byCapturista.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>Exitosas por capturista</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {result.byCapturista.map((c) => <span key={c.key} style={chip}>{c.key}: <strong style={{ color: "#06d6a0" }}>{c.count}</strong></span>)}
+              </div>
+            </div>
+          )}
+          {result.byBot.length > 0 && (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 6 }}>Exitosas por bot</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {result.byBot.map((c) => <span key={c.key} style={chip}>{c.key}: <strong style={{ color: "#00d4ff" }}>{c.count}</strong></span>)}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

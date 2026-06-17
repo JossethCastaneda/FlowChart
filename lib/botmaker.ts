@@ -500,6 +500,27 @@ export function isSaleSession(s: BmSession): boolean {
   return saleConfirmationAt(s) != null;
 }
 
+/** Normaliza un teléfono a sus últimos 10 dígitos (para cruce con sábana de ventas). */
+export function normalizePhone(raw: unknown): string {
+  const digits = String(raw ?? "").replace(/\D/g, "");
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+}
+
+/**
+ * Teléfonos (últimos 10 dígitos) de las sesiones de VENTA (felicidades). El
+ * teléfono del cliente se toma del contactId del chat (BSUID de WhatsApp).
+ */
+export function saleSessionPhones(sessions: BmSession[], channelId?: string): string[] {
+  const list = onlyChannel(sessions, channelId);
+  const out: string[] = [];
+  for (const s of list) {
+    if (saleConfirmationAt(s) == null) continue;
+    const phone = normalizePhone(s.chat?.chat?.contactId);
+    if (phone.length === 10) out.push(phone);
+  }
+  return out;
+}
+
 export interface TimeToSaleStats {
   count: number;          // # ventas (sesiones con "felicidades")
   conversionRate: number; // ventas / sesiones (0–1)
