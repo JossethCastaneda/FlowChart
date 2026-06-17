@@ -1,5 +1,19 @@
 import { z } from "zod";
 
+// ---------------------------------------------------------------------------
+// Vercel sets empty env vars as "" instead of leaving them undefined.
+// Zod's .optional() only accepts undefined, not "". So "" values fail
+// validation for .url(), .min(1), etc. and crash the entire server.
+// Fix: strip all "" values to undefined BEFORE Zod sees them.
+// ---------------------------------------------------------------------------
+function cleanEnv(raw: Record<string, string | undefined>): Record<string, string | undefined> {
+  const cleaned: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(raw)) {
+    cleaned[key] = value === "" ? undefined : value;
+  }
+  return cleaned;
+}
+
 const envSchema = z.object({
   // Entorno de ejecución
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
@@ -13,13 +27,11 @@ const envSchema = z.object({
   NEXTAUTH_SECRET: z.string().min(1),
   AUTH_SECRET: z.string().min(1).optional(),
 
-  // Base de Datos
-  // DATABASE_URL puede llegar vacía desde Vercel (la Neon integration usa
-  // STORAGE_DATABASE_URL). La validamos solo si existe y no está vacía.
-  DATABASE_URL: z.string().url().optional().or(z.literal("")),
+  // Base de Datos — all optional because Vercel/Neon may provide them under
+  // different names (STORAGE_*). Resolution happens in lib/prisma.ts.
+  DATABASE_URL: z.string().url().optional(),
   DATABASE_URL_UNPOOLED: z.string().url().optional(),
   DIRECT_URL: z.string().url().optional(),
-  // Neon via Vercel Storage integration
   STORAGE_DATABASE_URL: z.string().url().optional(),
   STORAGE_POSTGRES_PRISMA_URL: z.string().url().optional(),
   STORAGE_DATABASE_URL_UNPOOLED: z.string().url().optional(),
@@ -87,25 +99,13 @@ const envSchema = z.object({
  * Falla rápido en el inicio del servidor si falta alguna variable crítica.
  */
 function parseEnv() {
-  const parsed = envSchema.safeParse(process.env);
+  // Strip empty strings → undefined so Zod .optional() works correctly.
+  const cleaned = cleanEnv(process.env as Record<string, string | undefined>);
+  const parsed = envSchema.safeParse(cleaned);
   
   if (!parsed.success) {
-    const errors = parsed.error.flatten().fieldErrors;
-    // DB vars may be missing in Vercel (they come as STORAGE_*) — warn but don't crash.
-    // All other missing vars are fatal.
-    const dbVars = new Set(['DATABASE_URL', 'STORAGE_DATABASE_URL', 'STORAGE_POSTGRES_PRISMA_URL']);
-    const fatalErrors = Object.entries(errors).filter(([k]) => !dbVars.has(k));
-    if (fatalErrors.length > 0) {
-      console.error("❌ Faltan variables de entorno críticas o son inválidas:", Object.fromEntries(fatalErrors));
-      throw new Error("Invalid environment variables");
-    }
-    // DB warnings only
-    const dbErrors = Object.entries(errors).filter(([k]) => dbVars.has(k));
-    if (dbErrors.length > 0) {
-      console.warn("[env] DB env vars may be missing — Prisma will use STORAGE_* fallbacks:", Object.fromEntries(dbErrors));
-    }
-    // Return partial data (db fields will be undefined, handled in prisma.ts)
-    return (parsed as any).error?.issues ? (envSchema.partial().parse(process.env) as any) : parsed.data;
+    console.error("❌ Faltan variables de entorno críticas o son inválidas:", parsed.error.flatten().fieldErrors);
+    throw new Error("Invalid environment variables");
   }
   
   return parsed.data;
