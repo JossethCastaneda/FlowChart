@@ -15,7 +15,7 @@ if (process.env.SKIP_DB_SYNC === "1") {
 
 // Resolve the database URL the same way prisma.config.ts does. Prefer a direct
 // (unpooled) connection for DDL; fall back to the pooled URL.
-const dbUrl =
+const dbUrlRaw =
   process.env.DIRECT_URL ||
   process.env.DATABASE_URL ||
   process.env.STORAGE_DATABASE_URL_UNPOOLED ||
@@ -25,6 +25,21 @@ const dbUrl =
   process.env.STORAGE_DATABASE_URL ||
   process.env.POSTGRES_PRISMA_URL ||
   "";
+
+let dbUrl = dbUrlRaw;
+const baseDbUrl = process.env.DATABASE_URL || process.env.STORAGE_POSTGRES_PRISMA_URL || process.env.STORAGE_DATABASE_URL || "";
+if (baseDbUrl && dbUrlRaw) {
+  try {
+    const dbHost = new URL(baseDbUrl).host;
+    const dirHost = new URL(dbUrlRaw).host;
+    if (dbHost !== dirHost) {
+      console.warn(`[db-sync] Host mismatch! DATABASE_URL (${dbHost}) != DIRECT_URL (${dirHost}). Forcing dbUrl to match DATABASE_URL.`);
+      dbUrl = baseDbUrl;
+    }
+  } catch (e) {
+    // Ignore parse errors
+  }
+}
 
 if (!dbUrl) {
   console.log("[db-sync] No database URL in env — skipping db push.");
