@@ -4,6 +4,7 @@ import { authOptions } from "@/auth.config";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { apiUnauthorized, apiError, apiServerError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
 
 /**
  * Wrappers para route handlers de la API.
@@ -54,6 +55,22 @@ export function withAuth(handler: Handler<AuthContext>) {
         return apiUnauthorized("Sesión inválida. Por favor vuelve a iniciar sesión.");
       }
       if (!session?.user?.id) return apiUnauthorized();
+
+      // Guard against orphan sessions: verify the userId actually exists in the DB.
+      // This can happen when the app switched databases (e.g., c-8 → c-7) and the
+      // JWT still references a userId from the old database.
+      const userExists = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { id: true },
+      });
+      if (!userExists) {
+        logger.warn("Orphan session: userId not found in DB", {
+          url: req.nextUrl?.pathname,
+          userId: session.user.id,
+        });
+        return apiUnauthorized("Tu sesión expiró. Por favor cierra sesión y vuelve a iniciar sesión.");
+      }
+
       return await handler(req, {
         userId: session.user.id,
         params: routeCtx?.params ?? Promise.resolve({}),
@@ -64,6 +81,7 @@ export function withAuth(handler: Handler<AuthContext>) {
     }
   };
 }
+
 
 
 /** Requiere sesión + workspace activo (membresía verificada en getActiveWorkspaceId). */
