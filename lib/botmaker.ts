@@ -890,7 +890,20 @@ export interface BotBehavior {
 export function computeBotBehavior(sessions: BmSession[], channelId?: string, flowType?: string | null): BotBehavior {
   const list = onlyChannel(sessions, channelId);
   const base = computeResultsMetrics(list);
-  const order = flowType ? FLOW_ORDERS[flowType] : undefined;
+
+  let resolvedFlowType = flowType;
+  if (flowType === "google_bait" && list.length > 0) {
+    // Regla de Fecha de Google Bait: 1 de Junio 2026
+    const CUTOFF_MS = new Date("2026-06-01T00:00:00-06:00").getTime();
+    // Usar la sesión más reciente del conjunto para decidir el embudo
+    const lastSessionAt = list.reduce((latest, s) => {
+      const t = toMs(s.creationTime) || 0;
+      return t > latest ? t : latest;
+    }, 0);
+    resolvedFlowType = lastSessionAt >= CUTOFF_MS ? "pospago_simplificado" : "pospago_alineado";
+  }
+
+  const order = resolvedFlowType ? FLOW_ORDERS[resolvedFlowType] : undefined;
 
   // Tiempo de primera respuesta: primer mensaje de usuario → primera respuesta bot/agente.
   let frtSum = 0, frtN = 0;

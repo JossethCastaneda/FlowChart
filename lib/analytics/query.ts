@@ -84,12 +84,8 @@ export function buildConversationWhere(
     conversationStartedAt: { gte: f.startDate, lte: f.endDate },
   };
   if (scope) {
-    // El alcance por proyecto se materializa con provider + canal (NO con
-    // projectId). Las conversaciones normalizadas de Cari/Botmaker se sincronizan
-    // a nivel workspace+proveedor y NO se pueden atribuir de forma fiable a un
-    // proyecto concreto (varios proyectos comparten el mismo proveedor+canal), por
-    // eso `NormalizedConversation.projectId` queda null. Filtrar por projectId aquí
-    // devolvía SIEMPRE 0 filas (write null vs read = id). Ver lib/analytics/project-scope.ts.
+    where.projectId = scope.projectId;
+    // Seguridad en profundidad: restringimos al provider/channel configurado
     where.provider = { in: scope.providers };
     where.channel = { in: scope.channels };
   }
@@ -147,9 +143,7 @@ export function buildProjectAnalyticsWhere(
     channels: args.allowedChannels as CanonicalChannel[],
   };
   const where = buildConversationWhere(args.workspaceId, args.filters, scope);
-  // NOTA: no se filtra por clientId — NormalizedConversation.clientId se escribe
-  // null (igual que projectId), así que filtrar por él vaciaría el resultado.
-  // El aislamiento real es workspace + provider + channel.
+  // NOTA: ya se filtra por projectId dentro de buildConversationWhere.
   return where;
 }
 
@@ -159,8 +153,7 @@ export function applyScopeToMessageWhere(
   scope?: ProjectScope | null
 ): Prisma.NormalizedMessageWhereInput {
   if (scope) {
-    // Igual que en conversaciones: scope por provider (NormalizedMessage.projectId
-    // se escribe null, filtrar por él vaciaría el resultado).
+    where.projectId = scope.projectId;
     where.provider = { in: scope.providers };
   }
   return where;
