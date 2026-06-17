@@ -101,6 +101,7 @@ model Workspace {
   drafts          DraftPost[]
   transmissions   Transmission[]
   auditLogs       AuditLog[]
+  objectives      Objective[]
 }
 
 // ------------------------------------------------------
@@ -266,6 +267,44 @@ model Channel {
 }
 
 // ------------------------------------------------------
+// OKR (Objectives and Key Results)
+// ------------------------------------------------------
+
+model Objective {
+  id          String   @id @default(cuid())
+  workspaceId String
+  areaId      String?  // Reference to an area in WorkspaceSettings if applicable, or just a string name
+  title       String
+  description String?  @db.Text
+  quarter     String   // e.g., "2026-Q3"
+  status      String   @default("active") // active, completed, archived
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  keyResults  KeyResult[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, areaId])
+}
+
+model KeyResult {
+  id          String   @id @default(cuid())
+  objectiveId String
+  title       String
+  targetValue Float
+  currentValue Float   @default(0)
+  unit        String?  // e.g. "%", "$", "leads"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  objective   Objective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+
+  @@index([objectiveId])
+}
+
+// ------------------------------------------------------
 // OPS / TASKS
 // ------------------------------------------------------
 
@@ -289,11 +328,13 @@ model Task {
   requestType  String? // request type label/id within the target area
   requesterId  String? // userId who raised the request
   workspaceId String
+  keyResultId String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   closedAt    DateTime? // stamped when status → Done (for auto-SLA)
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  keyResult   KeyResult? @relation(fields: [keyResultId], references: [id], onDelete: SetNull)
   parent      Task?     @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
   children    Task[]    @relation("SubTasks")
   comments    TaskComment[]

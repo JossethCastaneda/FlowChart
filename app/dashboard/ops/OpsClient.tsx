@@ -7,7 +7,7 @@ import {
   Users, Plus, Trash2, Loader2, ChevronDown, ChevronRight, Search,
   Calendar as CalendarIcon, X, Clock, AlertTriangle, CheckCircle2, Tag, FileText,
   LayoutGrid, List, ChevronLeft, MessageSquare, Paperclip, History,
-  Send, Upload, ExternalLink, Image as ImageIcon, CheckSquare, Square, Target,
+  Send, Upload, ExternalLink, Image as ImageIcon, CheckSquare, Square, Target, TrendingUp,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { useSession } from "next-auth/react";
@@ -690,6 +690,7 @@ function KanbanCard({ task, onEdit }: { task: Task; onEdit: (t: Task) => void })
           </div>
         </div>
       )}
+
     </div>
   );
 }
@@ -730,7 +731,7 @@ export default function OpsPage() {
   const [addingSubIn, setAddingSubIn] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
 
-  const [viewMode, setViewMode] = useState<"kanban" | "table" | "metrics">("kanban");
+  const [viewMode, setViewMode] = useState<"kanban" | "table" | "metrics" | "okrs">("kanban");
   const [groupBy, setGroupBy] = useState<"status" | "assignee" | "priority">("status");
   const [fAssignee, setFAssignee] = useState("");
   const [fPriority, setFPriority] = useState("");
@@ -1177,7 +1178,7 @@ export default function OpsPage() {
           </button>
           <button
             onClick={() => setViewMode("metrics")}
-            title={lang === "es" ? "Métricas y OKRs" : "Metrics & OKRs"}
+            title={lang === "es" ? "Métricas de Salud" : "Health Metrics"}
             style={{
               display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "none",
               background: viewMode === "metrics" ? "var(--surface-hover)" : "transparent",
@@ -1186,7 +1187,20 @@ export default function OpsPage() {
             }}
           >
             <Target style={{ width: 14, height: 14 }} />
-            <span className="hidden sm:inline">{lang === "es" ? "Métricas y OKRs" : "Metrics & OKRs"}</span>
+            <span className="hidden sm:inline">{lang === "es" ? "Salud (KPIs)" : "Health (KPIs)"}</span>
+          </button>
+          <button
+            onClick={() => setViewMode("okrs")}
+            title={lang === "es" ? "Estrategia (OKRs)" : "Strategy (OKRs)"}
+            style={{
+              display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 6, border: "none",
+              background: viewMode === "okrs" ? "var(--surface-hover)" : "transparent",
+              color: viewMode === "okrs" ? "var(--cyan)" : "var(--text-secondary)",
+              cursor: "pointer", fontSize: 12, fontWeight: 600, fontFamily: "inherit"
+            }}
+          >
+            <TrendingUp style={{ width: 14, height: 14 }} />
+            <span className="hidden sm:inline">{lang === "es" ? "Estrategia (OKRs)" : "Strategy (OKRs)"}</span>
           </button>
         </div>
       </div>
@@ -1509,7 +1523,7 @@ export default function OpsPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
             <div className="glass-panel" style={{ padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "'Orbitron',sans-serif", letterSpacing: "0.05em" }}>OKR GLOBAL SLA</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "'Orbitron',sans-serif", letterSpacing: "0.05em" }}>KPI GLOBAL SLA</span>
                 <Target style={{ width: 16, height: 16, color: "var(--cyan)" }} />
               </div>
               <p style={{ fontSize: 32, fontWeight: 800, color: globalSlaStats.globalSlaPct >= 95 ? "var(--emerald)" : "var(--amber)", fontFamily: "'Orbitron',sans-serif", margin: "4px 0" }}>
@@ -1556,7 +1570,7 @@ export default function OpsPage() {
             {/* Area SLA OKR */}
             <div className="glass-panel" style={{ padding: 20 }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "'Orbitron',sans-serif" }}>
-                {lang === "es" ? "Cumplimiento de SLA por Área (OKR: >= 95%)" : "Area SLA Compliance (OKR: >= 95%)"}
+                {lang === "es" ? "Salud Operativa: SLA por Área (Meta: >= 95%)" : "Health: Area SLA Compliance (Target: >= 95%)"}
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                 {areaSlaStats.map(stat => (
@@ -1575,7 +1589,7 @@ export default function OpsPage() {
                           background: stat.okrStatus === "success" ? "rgba(6,214,160,0.12)" : "rgba(253,171,61,0.12)",
                           color: stat.okrStatus === "success" ? "var(--emerald)" : "var(--amber)"
                         }}>
-                          {stat.slaPct}% {stat.okrStatus === "success" ? "🟢 OKR" : "⚠️ En Riesgo"}
+                          {stat.slaPct}% {stat.okrStatus === "success" ? "🟢 OK" : "⚠️ En Riesgo"}
                         </span>
                       </div>
                     </div>
@@ -1590,7 +1604,7 @@ export default function OpsPage() {
             {/* User Workload OKR */}
             <div className="glass-panel" style={{ padding: 20 }}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "'Orbitron',sans-serif" }}>
-                {lang === "es" ? "Distribución de Carga (OKR: <= 5 Activas)" : "Workload Distribution (OKR: <= 5 Active)"}
+                {lang === "es" ? "Salud Operativa: Carga de Equipo (Límite: <= 5 Activas)" : "Health: Workload Distribution (Limit: <= 5 Active)"}
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 14, maxHeight: 300, overflowY: "auto", paddingRight: 6 }}>
                 {memberLoadStats.map(stat => (
@@ -1637,6 +1651,26 @@ export default function OpsPage() {
           onSubtaskPatch={patchSubtask}
           onSubtaskDelete={deleteSubtask}
         />
+      )}
+
+      {/* STRATEGY OKRS VIEW */}
+      {!loading && viewMode === "okrs" && (
+        <div style={{ padding: 20 }} className="glass-panel">
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <TrendingUp style={{ width: 20, height: 20, color: "var(--cyan)" }} />
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", fontFamily: "'Orbitron',sans-serif" }}>
+              {lang === "es" ? "Estrategia Trimestral (OKRs)" : "Quarterly Strategy (OKRs)"}
+            </h2>
+          </div>
+          <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24, lineHeight: 1.5 }}>
+            {lang === "es" 
+              ? "Aquí podrás visualizar los Objetivos y Resultados Clave (OKRs) de tu equipo y cómo las tareas operativas aportan a su cumplimiento. Esta funcionalidad está en fase beta y pronto se integrará completamente con tus tareas."
+              : "Here you can visualize your team's Objectives and Key Results (OKRs) and how operational tasks contribute to their achievement. This feature is in beta and will soon be fully integrated with your tasks."}
+          </p>
+          <div style={{ padding: 24, background: "rgba(255,255,255,0.02)", border: "1px dashed var(--border)", borderRadius: 8, textAlign: "center" }}>
+             <span style={{ fontSize: 12, color: "var(--text-muted)" }}>[Modulo de OKRs en construcción]</span>
+          </div>
+        </div>
       )}
     </div>
   );
