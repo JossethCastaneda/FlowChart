@@ -49,6 +49,17 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
           if (!res.ok) {
             const text = await res.text().catch(() => "");
             console.error(`[AUTH facebook userinfo] ${res.status} ${res.statusText}`, text.slice(0, 200));
+            
+            try {
+              const errData = JSON.parse(text);
+              if (errData?.error?.code === 4 || errData?.error?.message?.includes("request limit")) {
+                throw new Error("MetaRateLimit");
+              }
+            } catch (e) {
+              if (e instanceof Error && e.message === "MetaRateLimit") throw e;
+              // JSON parse failed or not a rate limit error
+            }
+            
             throw new Error(`Facebook userinfo failed: ${res.status} ${res.statusText}`);
           }
           return await res.json();

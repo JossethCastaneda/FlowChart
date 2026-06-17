@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
 import { botmakerFetch } from "@/lib/botmaker";
 import { env } from "@/lib/env";
+import { metaFetch } from "@/lib/server-auth";
 
 /** Versión centralizada de la Graph API (default v25.0 en lib/env.ts). */
 const META_GRAPH_VERSION = env.META_API_VERSION;
@@ -67,7 +68,7 @@ async function executeSyncStep(integrationId: string) {
 
 async function syncMetaAssets(integration: any, token: string) {
   // 1. Sincronizar Páginas (Pages)
-  const pagesRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/accounts?fields=id,name,access_token,category,instagram_business_account&access_token=${token}`);
+  const pagesRes = await metaFetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/accounts?fields=id,name,category,instagram_business_account`, token);
   if (!pagesRes.ok) throw await pagesRes.json();
   const pagesData = await pagesRes.json();
   
@@ -121,7 +122,7 @@ async function syncMetaAssets(integration: any, token: string) {
   }
 
   // 2. Sincronizar Cuentas Publicitarias (Ad Accounts)
-  const adRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/adaccounts?fields=id,name,account_status,amount_spent,currency&access_token=${token}`);
+  const adRes = await metaFetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/adaccounts?fields=id,name,account_status,amount_spent,currency`, token);
   if (adRes.ok) {
     const adData = await adRes.json();
     for (const adAcc of adData.data) {
@@ -160,7 +161,7 @@ async function fetchPaginated(url: string, token: string): Promise<any[]> {
   let nextUrl: string | null = url;
 
   while (nextUrl) {
-    const res: Response = await fetch(nextUrl, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await metaFetch(nextUrl, token);
     if (!res.ok) {
       const err: any = await res.json().catch(()=>({}));
       throw err;

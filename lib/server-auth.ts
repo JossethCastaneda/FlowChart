@@ -119,14 +119,42 @@ export async function metaFetch(
     return suffix ? prefix : '';
   }).replace(/[?&]$/, '');
 
-  return fetch(cleanUrl, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  });
+  let retries = 0;
+  const maxRetries = 3;
+  const isGet = !options.method || options.method === "GET";
+
+  while (true) {
+    const res = await fetch(cleanUrl, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+      ...(isGet && !options.cache ? { next: { revalidate: 3600, ...(options as any).next } } : {}),
+    });
+
+    if (!res.ok) {
+      const isRateLimit = res.status === 429 || res.status === 403;
+      
+      if (isRateLimit && retries < maxRetries) {
+        // Log headers for debugging Meta's specific rate limit buckets
+        const usageHeader = res.headers.get("x-business-use-case-usage") || res.headers.get("x-app-usage");
+        if (usageHeader) {
+          console.log(`[META FETCH] Usage Header: ${usageHeader}`);
+        }
+
+        retries++;
+        // Exponential backoff: 2s, 4s, 8s + jitter
+        const delay = Math.pow(2, retries) * 1000 + Math.random() * 500;
+        console.warn(`[META FETCH] Rate limit (status ${res.status}) on ${cleanUrl.split('?')[0]}. Retry ${retries}/${maxRetries} in ${Math.round(delay)}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue; // Try again
+      }
+    }
+
+    return res;
+  }
 }
 
 /**
