@@ -42,6 +42,14 @@ function createPrismaClient(): PrismaClient {
     env.STORAGE_DATABASE_URL ||
     "";
 
+  // Log which DB we're actually connecting to
+  if (connectionString) {
+    try {
+      const host = new URL(connectionString).host;
+      console.log(`[Prisma] Connecting to DB host: ${host} (source: ${env.DATABASE_URL ? 'DATABASE_URL' : env.STORAGE_POSTGRES_PRISMA_URL ? 'STORAGE_POSTGRES_PRISMA_URL' : 'STORAGE_DATABASE_URL'})`);
+    } catch { /* ignore */ }
+  }
+
   if (!connectionString) {
     console.warn("[Prisma] DATABASE_URL not set - database queries will fail if executed");
     return createMissingDatabaseClient();
