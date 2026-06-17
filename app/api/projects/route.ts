@@ -72,8 +72,12 @@ const CreateProjectSchema = z.object({
   dateStart: z.string().nullish(),
   dateEnd: z.string().nullish(),
   crmIntegrationId: z.string().nullish(),
-  crmIntegrationIds: z.array(z.string()).optional(),
+  // Invariante de producto: un proyecto envía a UNA sola plataforma analítica
+  // (Botmaker o Cari, nunca ambas).
+  crmIntegrationIds: z.array(z.string()).max(1, "Un proyecto envía a una sola plataforma analítica").optional(),
   crmType: z.string().nullish(),
+  // Tipo de flujo del bot (metodología BAIT) para el Funnel 2 por bot.
+  botFlowType: z.string().nullish(),
   channels: z.array(ChannelSchema).optional(),
 });
 
@@ -101,7 +105,7 @@ export const POST = withAuth(async (req, ctx) => {
 
   const {
     alias, client, vertical, fanpage, instagram, whatsapp, webchat, website,
-    persona, geo, status, dateStart, dateEnd, crmIntegrationId, crmIntegrationIds, crmType,
+    persona, geo, status, dateStart, dateEnd, crmIntegrationId, crmIntegrationIds, crmType, botFlowType,
   } = fields;
 
   // Defensa tenant en escritura: solo se asocian integraciones de ESTE workspace
@@ -133,6 +137,7 @@ export const POST = withAuth(async (req, ctx) => {
         ...(crm ? { crmIntegrationIds: crm.crmIntegrationIds, crmIntegrationId: crm.crmIntegrationId } : {}),
         // crmType solo se conserva si la integración asociada es válida del workspace.
         ...(crmType !== undefined && { crmType: crm && crm.crmIntegrationId ? crmType : null }),
+        ...(botFlowType !== undefined && { botFlowType }),
       },
     });
 

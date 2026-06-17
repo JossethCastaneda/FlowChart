@@ -91,14 +91,45 @@ export async function botmakerFetch(
 export interface BmMessage {
   from?: "bot" | "user" | "agent"; // who sent the message
   creationTime?: string | number;
-  content?: { type?: string; text?: string };
+  content?: {
+    type?: string;
+    text?: string;
+    /** Botones MOSTRADOS por el bot (array de strings u objetos {label/value}). */
+    buttons?: unknown;
+    /** Botón ELEGIDO por el usuario (string u objeto {label/value}). */
+    selectedButton?: unknown;
+    /** Adjunto multimedia (imagen/audio/video/archivo). */
+    media?: { type?: string; url?: string; caption?: string } | null;
+    /** Ítems de carrusel mostrados. */
+    carouselItems?: unknown;
+  } & Record<string, unknown>;
+}
+export interface BmEventInfo {
+  typification?: string;
+  /** notification-error: tipo/razón del error del bot. */
+  error?: string;
+  errorType?: string;
+  reason?: string;
+  messageId?: string;
+  /** set-variable: variable capturada por el bot (señal de "pidió este dato"). */
+  variableName?: string;
+  variableValue?: string;
+  /** find-intent: intención disparada / fallback. */
+  intentId?: string;
+  intentName?: string;
+  isFallback?: boolean;
+}
+export interface BmEvent {
+  name?: string;
+  creationTime?: string | number;
+  info?: BmEventInfo & Record<string, unknown>;
 }
 export interface BmSession {
   id?: string;
   creationTime?: string | number;
   chat?: { chat?: { contactId?: string; channelId?: string }; lastUserMessageDatetime?: string };
   messages?: BmMessage[];
-  events?: { name?: string; creationTime?: string | number; info?: { typification?: string } }[];
+  events?: BmEvent[];
 }
 
 /**
@@ -296,6 +327,654 @@ export function computeMetricsByChannel(
 
 /** Empty breakdown for the no-token / disconnected case. */
 export const EMPTY_CHANNEL_BREAKDOWN: ChannelBreakdown = computeMetricsByChannel([], new Map());
+
+// ── Comportamiento del Bot (análisis profundo, solo Botmaker) ────────────────
+// Métricas a nivel mensaje/evento que la API de Botmaker expone y que el panel
+// "Análisis de Resultados" necesita: tipos de mensaje, botones mostrados vs
+// elegidos, errores del bot, tiempo a cierre de venta y el funnel del ORDEN en
+// que el bot pide datos. Todas son funciones puras O(mensajes) — testeable sin red.
+
+const onlyChannel = (sessions: BmSession[], channelId?: string): BmSession[] =>
+  (Array.isArray(sessions) ? sessions : []).filter((s) => !channelId || s.chat?.chat?.channelId === channelId);
+
+/** Normaliza el `content.type` de Botmaker a un bucket canónico legible. */
+export function canonicalMessageType(raw?: string | null): string {
+  const t = (raw || "").toLowerCase().trim();
+  if (!t) return "otro";
+  if (t.includes("button-click") || t.includes("button_click")) return "boton-elegido";
+  if (t.includes("button")) return "botones";
+  if (t.includes("carousel")) return "carrusel";
+  if (t.includes("text")) return "texto";
+  if (t.includes("image") || t === "img" || t.includes("photo") || t.includes("sticker")) return "imagen";
+  if (t.includes("audio") || t.includes("voice")) return "audio";
+  if (t.includes("video")) return "video";
+  if (t.includes("file") || t.includes("document") || t.includes("pdf")) return "archivo";
+  if (t.includes("location")) return "ubicacion";
+  return "otro";
+}
+
+/** Extrae las etiquetas de los botones MOSTRADOS de un `content` (defensivo). */
+function buttonLabels(content: unknown): string[] {
+  const b = (content as { buttons?: unknown })?.buttons;
+  const arr = Array.isArray(b) ? b : [];
+  return arr
+    .map((x) => (typeof x === "string" ? x : (x as Record<string, unknown>)?.label ?? (x as Record<string, unknown>)?.text ?? (x as Record<string, unknown>)?.title ?? (x as Record<string, unknown>)?.value))
+    .filter((s): s is string => typeof s === "string" && s.trim().length > 0)
+    .map((s) => s.trim());
+}
+
+/** Etiqueta del botón ELEGIDO de un `content` (string u objeto), o null. */
+function selectedButtonLabel(content: unknown): string | null {
+  const s = (content as { selectedButton?: unknown })?.selectedButton;
+  if (!s) return null;
+  if (typeof s === "string") return s.trim() || null;
+  const o = s as Record<string, unknown>;
+  const v = o.label ?? o.text ?? o.title ?? o.value;
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+export interface MessageTypeBreakdown {
+  total: number;
+  byType: { type: string; count: number; pct: number }[];
+  /** Desglose por remitente para "mensajes recibidos" (user) vs enviados (bot). */
+  userTotal: number;
+  botTotal: number;
+}
+
+/** Distribución de tipos de mensaje (texto/imagen/botones/…) en las sesiones. */
+export function computeMessageTypeBreakdown(sessions: BmSession[], channelId?: string): MessageTypeBreakdown {
+  const list = onlyChannel(sessions, channelId);
+  const byType: Record<string, number> = {};
+  let total = 0, userTotal = 0, botTotal = 0;
+  for (const s of list) {
+    for (const msg of s.messages || []) {
+      const type = canonicalMessageType(msg.content?.type);
+      byType[type] = (byType[type] || 0) + 1;
+      total++;
+      if (msg.from === "user") userTotal++; else botTotal++;
+    }
+  }
+  const entries = Object.entries(byType)
+    .map(([type, count]) => ({ type, count, pct: total ? Math.round((count / total) * 1000) / 10 : 0 }))
+    .sort((a, b) => b.count - a.count);
+  return { total, byType: entries, userTotal, botTotal };
+}
+
+export interface ButtonStats {
+  /** # de mensajes del bot que mostraron botones. */
+  shownMessages: number;
+  /** # total de opciones de botón mostradas (suma de etiquetas). */
+  shownOptions: number;
+  /** # de selecciones de botón por el usuario. */
+  selected: number;
+  /** selected / shownMessages (0–1). */
+  selectRate: number;
+  /** Top botones por aparición, con su CTR (elegido/mostrado). */
+  topButtons: { label: string; shown: number; selected: number; ctr: number }[];
+}
+
+/** Estadística de botones mostrados vs elegidos. */
+export function computeButtonStats(sessions: BmSession[], channelId?: string): ButtonStats {
+  const list = onlyChannel(sessions, channelId);
+  let shownMessages = 0, shownOptions = 0, selected = 0;
+  const shownByLabel: Record<string, number> = {};
+  const selByLabel: Record<string, number> = {};
+  for (const s of list) {
+    for (const msg of s.messages || []) {
+      const labels = buttonLabels(msg.content);
+      if (labels.length) {
+        shownMessages++;
+        shownOptions += labels.length;
+        for (const l of labels) shownByLabel[l] = (shownByLabel[l] || 0) + 1;
+      }
+      const sel = selectedButtonLabel(msg.content) || (canonicalMessageType(msg.content?.type) === "boton-elegido" ? (msg.content?.text || "").trim() : null);
+      if (sel) {
+        selected++;
+        selByLabel[sel] = (selByLabel[sel] || 0) + 1;
+      }
+    }
+  }
+  const topButtons = Object.entries(shownByLabel)
+    .map(([label, shown]) => ({ label, shown, selected: selByLabel[label] || 0, ctr: shown ? Math.round(((selByLabel[label] || 0) / shown) * 1000) / 10 : 0 }))
+    .sort((a, b) => b.shown - a.shown)
+    .slice(0, 12);
+  return {
+    shownMessages,
+    shownOptions,
+    selected,
+    selectRate: shownMessages ? Math.round((selected / shownMessages) * 1000) / 1000 : 0,
+    topButtons,
+  };
+}
+
+export interface BotErrorStats {
+  total: number;
+  sessionsWithError: number;
+  perSessionAvg: number;
+  byType: { type: string; count: number }[];
+}
+
+/** Errores del bot a partir de eventos `notification-error` (defensivo). */
+export function computeBotErrors(sessions: BmSession[], channelId?: string): BotErrorStats {
+  const list = onlyChannel(sessions, channelId);
+  let total = 0, sessionsWithError = 0;
+  const byType: Record<string, number> = {};
+  for (const s of list) {
+    let inSession = 0;
+    for (const e of s.events || []) {
+      const name = (e.name || "").toLowerCase();
+      if (name === "notification-error" || name.includes("error")) {
+        inSession++;
+        const t = (e.info?.errorType || e.info?.error || e.info?.reason || "desconocido").toString().slice(0, 80);
+        byType[t] = (byType[t] || 0) + 1;
+      }
+    }
+    if (inSession > 0) { sessionsWithError++; total += inSession; }
+  }
+  return {
+    total,
+    sessionsWithError,
+    perSessionAvg: list.length ? Math.round((total / list.length) * 100) / 100 : 0,
+    byType: Object.entries(byType).map(([type, count]) => ({ type, count })).sort((a, b) => b.count - a.count).slice(0, 12),
+  };
+}
+
+/**
+ * Señal de VENTA del dashboard (metodología BAIT): una sesión es venta si el bot
+ * envió un mensaje que contiene "felicidades" (confirmación de cierre). NO se usa
+ * la tipificación de cierre para esto.
+ */
+const SALE_PHRASE = /felicidad/i;
+
+/** Timestamp (ms) del primer mensaje de bot con "felicidades" en la sesión, o null. */
+function saleConfirmationAt(s: BmSession): number | null {
+  const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+  for (const m of msgs) {
+    if (m.from !== "user" && SALE_PHRASE.test((m.content?.text || "").toString())) return toMs(m.creationTime);
+  }
+  return null;
+}
+
+/** ¿La sesión es una venta? (el bot dijo "felicidades"). */
+export function isSaleSession(s: BmSession): boolean {
+  return saleConfirmationAt(s) != null;
+}
+
+/** Normaliza un teléfono a sus últimos 10 dígitos (para cruce con sábana de ventas). */
+export function normalizePhone(raw: unknown): string {
+  const digits = String(raw ?? "").replace(/\D/g, "");
+  return digits.length >= 10 ? digits.slice(-10) : digits;
+}
+
+/**
+ * Teléfonos (últimos 10 dígitos) de las sesiones de VENTA (felicidades). El
+ * teléfono del cliente se toma del contactId del chat (BSUID de WhatsApp).
+ */
+export function saleSessionPhones(sessions: BmSession[], channelId?: string): string[] {
+  const list = onlyChannel(sessions, channelId);
+  const out: string[] = [];
+  for (const s of list) {
+    if (saleConfirmationAt(s) == null) continue;
+    const phone = normalizePhone(s.chat?.chat?.contactId);
+    if (phone.length === 10) out.push(phone);
+  }
+  return out;
+}
+
+export interface TimeToSaleStats {
+  count: number;          // # ventas (sesiones con "felicidades")
+  conversionRate: number; // ventas / sesiones (0–1)
+  avgSec: number;
+  medianSec: number;
+  /** Histograma por rangos de tiempo (min) para el reporte. */
+  distribution: { bucket: string; count: number }[];
+}
+
+/** Ventas (regla "felicidades") y tiempo desde el inicio de la sesión hasta el cierre. */
+export function computeTimeToSale(sessions: BmSession[], channelId?: string): TimeToSaleStats {
+  const list = onlyChannel(sessions, channelId);
+  const durations: number[] = []; // segundos
+  let count = 0;
+  for (const s of list) {
+    const saleAt = saleConfirmationAt(s);
+    if (saleAt == null) continue;
+    count++;
+    const start = toMs(s.creationTime);
+    if (start != null && saleAt >= start) durations.push(Math.round((saleAt - start) / 1000));
+  }
+  durations.sort((a, b) => a - b);
+  const n = durations.length;
+  const avgSec = n ? Math.round(durations.reduce((s, v) => s + v, 0) / n) : 0;
+  const medianSec = n ? durations[Math.floor((n - 1) / 2)] : 0;
+  const buckets: { bucket: string; min: number; max: number }[] = [
+    { bucket: "<5 min", min: 0, max: 300 },
+    { bucket: "5–15 min", min: 300, max: 900 },
+    { bucket: "15–30 min", min: 900, max: 1800 },
+    { bucket: "30–60 min", min: 1800, max: 3600 },
+    { bucket: ">60 min", min: 3600, max: Infinity },
+  ];
+  const distribution = buckets.map((b) => ({ bucket: b.bucket, count: durations.filter((d) => d >= b.min && d < b.max).length }));
+  return { count, conversionRate: list.length ? Math.round((count / list.length) * 1000) / 1000 : 0, avgSec, medianSec, distribution };
+}
+
+/**
+ * Patrones del flujo de portabilidad BAIT para inferir qué dato pide el bot.
+ * El orden canónico (Funnel 2 global) emerge de los datos: número → NIP → nombre
+ * → … → venta. El orden por tipo de bot (Prepago/Pospago) requiere el mapeo de
+ * bots, que se documenta aparte.
+ */
+const FIELD_PATTERNS: { key: string; label: string; re: RegExp }[] = [
+  { key: "numero", label: "Número a cambiar/portar", re: /n[uú]mero (a|que).*(cambiar|portar)|n[uú]mero a (portar|cambiar)|tu n[uú]mero|10 d[ií]gitos/i },
+  { key: "nip", label: "NIP", re: /\bnip\b/i },
+  { key: "nombre", label: "Nombre completo", re: /nombre completo|\bnombre\b|¿c[oó]mo te llamas/i },
+  { key: "correo", label: "Correo", re: /correo|email|e-?mail/i },
+  { key: "fecha_nac", label: "Fecha de nacimiento", re: /fecha de nacimiento|nacimiento|naciste/i },
+  { key: "estado_nac", label: "Estado de nacimiento", re: /estado de nacimiento|entidad de nacimiento|estado donde naciste/i },
+  { key: "vigencia", label: "Vigencia", re: /vigencia/i },
+];
+
+export interface DataRequestFunnel {
+  method: "set-variable" | "heuristic" | "configured" | "none";
+  totalSessions: number;
+  steps: { key: string; label: string; reached: number; dropOff: number; dropOffPct: number }[];
+}
+
+/** Etiquetas legibles de cada campo del flujo (desde FIELD_PATTERNS). */
+const FIELD_LABELS: Record<string, string> = Object.fromEntries(FIELD_PATTERNS.map((f) => [f.key, f.label]));
+
+/**
+ * Orden REAL del Funnel 2 por tipo de bot (metodología BAIT). "google_bait" se
+ * deja en auto (mezcla alineado/simplificado según fechas).
+ */
+export const FLOW_ORDERS: Record<string, string[]> = {
+  prepago: ["numero", "nip", "nombre"],
+  pospago_alineado: ["numero", "nombre", "nip", "vigencia", "estado_nac", "fecha_nac", "correo"],
+  pospago_simplificado: ["numero", "nombre", "nip", "estado_nac", "fecha_nac", "correo"],
+};
+
+/** Conjunto de campos que el bot pidió por sesión (heurística de texto, FIELD_PATTERNS). */
+function capturedFieldsPerSession(sessions: BmSession[]): Set<string>[] {
+  return sessions.map((s) => {
+    const set = new Set<string>();
+    for (const m of s.messages || []) {
+      if (m.from === "user") continue;
+      const text = (m.content?.text || "").toString();
+      if (!text) continue;
+      for (const fp of FIELD_PATTERNS) if (fp.re.test(text)) set.add(fp.key);
+    }
+    return set;
+  });
+}
+
+/** Funnel 2 con ORDEN FIJO por tipo de bot (funnel de prefijo). */
+export function computeFlowFunnel(sessions: BmSession[], order: string[], channelId?: string): DataRequestFunnel {
+  const list = onlyChannel(sessions, channelId);
+  const captured = capturedFieldsPerSession(list);
+  const total = list.length;
+  const base = order.map((key, k) => {
+    const prefix = order.slice(0, k + 1);
+    const reached = captured.filter((set) => prefix.every((p) => set.has(p))).length;
+    return { key, label: FIELD_LABELS[key] || key, reached };
+  });
+  const steps = base.map((s, i) => {
+    const prev = i === 0 ? total : base[i - 1].reached;
+    const dropOff = Math.max(0, prev - s.reached);
+    return { key: s.key, label: s.label, reached: s.reached, dropOff, dropOffPct: prev ? Math.round((dropOff / prev) * 1000) / 10 : 0 };
+  });
+  return { method: "configured", totalSessions: total, steps };
+}
+
+/**
+ * Funnel del ORDEN en que el bot pide datos. Señal primaria: eventos
+ * `set-variable` (orden de primera aparición por sesión = orden de captura).
+ * Fallback: el texto de los mensajes del bot contra `FIELD_PATTERNS`.
+ *
+ * El orden canónico se determina por la posición media de cada paso entre las
+ * sesiones; el funnel cuenta sesiones que alcanzaron el prefijo [0..k].
+ */
+export function computeDataRequestOrderFunnel(sessions: BmSession[], channelId?: string): DataRequestFunnel {
+  const list = onlyChannel(sessions, channelId);
+
+  // Secuencia por sesión de claves capturadas (en orden), con su etiqueta.
+  const labels: Record<string, string> = {};
+  const sequences: string[][] = [];
+
+  // 1) set-variable
+  let usedVariables = false;
+  for (const s of list) {
+    const evs = (s.events || [])
+      .filter((e) => (e.name || "").toLowerCase() === "set-variable" && e.info?.variableName)
+      .slice()
+      .sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    if (!evs.length) continue;
+    usedVariables = true;
+    const seen = new Set<string>();
+    const seq: string[] = [];
+    for (const e of evs) {
+      const key = String(e.info!.variableName).trim();
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      seq.push(key);
+      labels[key] = labels[key] || key;
+    }
+    if (seq.length) sequences.push(seq);
+  }
+
+  // 2) Fallback heurístico por texto de mensajes del bot.
+  let method: DataRequestFunnel["method"] = usedVariables ? "set-variable" : "none";
+  if (!usedVariables) {
+    for (const s of list) {
+      const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+      const seen = new Set<string>();
+      const seq: string[] = [];
+      for (const msg of msgs) {
+        if (msg.from === "user") continue;
+        const text = (msg.content?.text || "").toString();
+        if (!text) continue;
+        for (const fp of FIELD_PATTERNS) {
+          if (!seen.has(fp.key) && fp.re.test(text)) {
+            seen.add(fp.key);
+            seq.push(fp.key);
+            labels[fp.key] = fp.label;
+          }
+        }
+      }
+      if (seq.length) sequences.push(seq);
+    }
+    if (sequences.length) method = "heuristic";
+  }
+
+  if (!sequences.length) return { method: "none", totalSessions: list.length, steps: [] };
+
+  // Orden canónico por posición media de cada clave.
+  const posSum: Record<string, number> = {};
+  const posN: Record<string, number> = {};
+  for (const seq of sequences) {
+    seq.forEach((key, i) => {
+      posSum[key] = (posSum[key] || 0) + i;
+      posN[key] = (posN[key] || 0) + 1;
+    });
+  }
+  const canonical = Object.keys(posN).sort((a, b) => (posSum[a] / posN[a]) - (posSum[b] / posN[b]));
+
+  // Funnel de prefijo: una sesión "alcanza" el paso k si capturó canonical[0..k].
+  const captured = sequences.map((seq) => new Set(seq));
+  const steps = canonical.map((key, k) => {
+    const prefix = canonical.slice(0, k + 1);
+    const reached = captured.filter((set) => prefix.every((p) => set.has(p))).length;
+    return { key, label: labels[key] || key, reached };
+  });
+
+  const out = steps.map((s, i) => {
+    const prev = i === 0 ? sequences.length : steps[i - 1].reached;
+    const dropOff = Math.max(0, prev - s.reached);
+    return { key: s.key, label: s.label, reached: s.reached, dropOff, dropOffPct: prev ? Math.round((dropOff / prev) * 1000) / 10 : 0 };
+  });
+  return { method, totalSessions: sequences.length, steps: out };
+}
+
+export interface NipTiming {
+  prompted: number;          // sesiones donde el bot pidió NIP
+  delivered: number;         // sesiones con primera entrega válida (numérica) de NIP
+  firstResponseRate: number; // delivered / prompted (0–1)
+  avgSec: number;            // tiempo prompt → entrega válida
+  medianSec: number;
+}
+
+/**
+ * Análisis de NIP (metodología BAIT): separa el prompt del bot de la primera
+ * ENTREGA VÁLIDA (numérica) del usuario. Tiempo de obtención = primer prompt
+ * claro de NIP → primera entrega válida posterior.
+ */
+export function computeNipTiming(sessions: BmSession[], channelId?: string): NipTiming {
+  const list = onlyChannel(sessions, channelId);
+  const NIP_PROMPT = /\bnip\b/i;
+  const VALID_NIP = /^\D*\d{4,8}\D*$/; // 4–8 dígitos (admite separadores)
+  const durations: number[] = [];
+  let prompted = 0, delivered = 0;
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    const prompt = msgs.find((m) => m.from !== "user" && NIP_PROMPT.test((m.content?.text || "").toString()));
+    if (!prompt) continue;
+    prompted++;
+    const promptAt = toMs(prompt.creationTime) || 0;
+    const delivery = msgs.find((m) => m.from === "user" && (toMs(m.creationTime) || 0) > promptAt && VALID_NIP.test((m.content?.text || "").toString().trim()));
+    if (delivery) {
+      delivered++;
+      const at = toMs(delivery.creationTime);
+      if (at != null && at >= promptAt) durations.push(Math.round((at - promptAt) / 1000));
+    }
+  }
+  durations.sort((a, b) => a - b);
+  const n = durations.length;
+  return {
+    prompted,
+    delivered,
+    firstResponseRate: prompted ? Math.round((delivered / prompted) * 1000) / 1000 : 0,
+    avgSec: n ? Math.round(durations.reduce((s, v) => s + v, 0) / n) : 0,
+    medianSec: n ? durations[Math.floor((n - 1) / 2)] : 0,
+  };
+}
+
+export interface FirstMenuReaction {
+  total: number;
+  byType: { type: string; label: string; count: number; pct: number }[];
+}
+
+/**
+ * Funnel 1 (metodología BAIT): reacción del usuario al PRIMER menú del bot.
+ * Clasifica la primera respuesta tras el primer mensaje del bot en: click en
+ * botón, texto libre, imagen/media, o sin respuesta.
+ */
+export function computeFirstMenuReaction(sessions: BmSession[], channelId?: string): FirstMenuReaction {
+  const list = onlyChannel(sessions, channelId);
+  const counts: Record<string, number> = { boton: 0, texto: 0, media: 0, sin_respuesta: 0 };
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    const firstBot = msgs.find((m) => m.from !== "user");
+    if (!firstBot) continue; // sin menú inicial rastreable
+    const firstBotAt = toMs(firstBot.creationTime) || 0;
+    const reply = msgs.find((m) => m.from === "user" && (toMs(m.creationTime) || 0) >= firstBotAt);
+    if (!reply) { counts.sin_respuesta++; continue; }
+    const t = canonicalMessageType(reply.content?.type);
+    if (t === "boton-elegido" || selectedButtonLabel(reply.content)) counts.boton++;
+    else if (["imagen", "audio", "video", "archivo"].includes(t)) counts.media++;
+    else counts.texto++;
+  }
+  const total = list.length;
+  const labels: Record<string, string> = { boton: "Click en botón", texto: "Texto libre", media: "Imagen/Media", sin_respuesta: "Sin respuesta" };
+  const byType = Object.entries(counts).map(([type, count]) => ({ type, label: labels[type], count, pct: total ? Math.round((count / total) * 1000) / 10 : 0 }));
+  return { total, byType };
+}
+
+// ── Motivos de rechazo de portabilidad (metodología BAIT, sección 10) ────────
+// Los 2 mensajes de rechazo son mensajes del BOT, así que se detectan en la
+// conversación. NO se reparten artificialmente: se cuenta cuál apareció.
+const REJECTION_REASONS: { key: string; label: string; re: RegExp }[] = [
+  { key: "registro_en_proceso", label: "Registro en proceso (3023)", re: /registro en proceso.*(n[uú]mero|telef[oó]nic)|\(3023\)|\b3023\b/i },
+  { key: "ya_registrado_activo", label: "Ya registrado con estatus activo", re: /ya est[aá] registrad.*(activo|estatus)|estatus activo reciente/i },
+];
+
+export interface RejectionStats {
+  total: number; // sesiones con algún mensaje de rechazo
+  byReason: { key: string; label: string; count: number }[];
+}
+
+/** Detecta los 2 mensajes de primer rechazo Botmaker en los mensajes del bot. */
+export function computeRejectionReasons(sessions: BmSession[], channelId?: string): RejectionStats {
+  const list = onlyChannel(sessions, channelId);
+  const counts: Record<string, number> = {};
+  let total = 0;
+  for (const s of list) {
+    const reasons = new Set<string>();
+    for (const m of s.messages || []) {
+      if (m.from === "user") continue;
+      const text = (m.content?.text || "").toString();
+      if (!text) continue;
+      for (const r of REJECTION_REASONS) if (r.re.test(text)) reasons.add(r.key);
+    }
+    if (reasons.size) { total++; for (const k of reasons) counts[k] = (counts[k] || 0) + 1; }
+  }
+  return { total, byReason: REJECTION_REASONS.map((r) => ({ key: r.key, label: r.label, count: counts[r.key] || 0 })) };
+}
+
+// ── SIM vs eSIM (sección 7, relevante en Lira) ───────────────────────────────
+export interface SimEsimStats { sim: number; esim: number; sinDato: number }
+
+/** Clasifica cada sesión como SIM física vs eSIM por menciones en los mensajes. */
+export function computeSimEsim(sessions: BmSession[], channelId?: string): SimEsimStats {
+  const list = onlyChannel(sessions, channelId);
+  let sim = 0, esim = 0;
+  for (const s of list) {
+    let isE = false, isS = false;
+    for (const m of s.messages || []) {
+      const t = (m.content?.text || "").toString().toLowerCase();
+      if (!t) continue;
+      if (/\besim\b|e-sim/.test(t)) isE = true;
+      else if (/\bsim\b|chip f[ií]sic|sim f[ií]sic/.test(t)) isS = true;
+    }
+    if (isE) esim++;
+    else if (isS) sim++;
+  }
+  return { sim, esim, sinDato: list.length - sim - esim };
+}
+
+// ── Reactivaciones (sección 8) ───────────────────────────────────────────────
+export interface ReactivationStats {
+  withGap: number;      // sesiones donde el bot reenganchó tras un silencio largo
+  reactivated: number;  // de esas, en cuántas el usuario volvió a responder
+  rate: number;         // reactivated / withGap (0–1)
+}
+
+/** Mide reenganche: mensaje del bot tras silencio ≥ gapMinutes y si el usuario respondió. */
+export function computeReactivations(sessions: BmSession[], channelId?: string, gapMinutes = 30): ReactivationStats {
+  const list = onlyChannel(sessions, channelId);
+  const gapMs = gapMinutes * 60 * 1000;
+  let withGap = 0, reactivated = 0;
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    for (let i = 1; i < msgs.length; i++) {
+      const prev = toMs(msgs[i - 1].creationTime);
+      const cur = toMs(msgs[i].creationTime);
+      if (msgs[i].from !== "user" && prev != null && cur != null && cur - prev >= gapMs) {
+        withGap++;
+        if (msgs.slice(i + 1).some((m) => m.from === "user")) reactivated++;
+        break;
+      }
+    }
+  }
+  return { withGap, reactivated, rate: withGap ? Math.round((reactivated / withGap) * 1000) / 1000 : 0 };
+}
+
+export interface BotBehavior {
+  sampleSize: number;
+  responseTimes: { avgBotSec: number; avgUserSec: number; avgFirstResponseSec: number };
+  objections: { label: string; count: number }[];
+  messageTypes: MessageTypeBreakdown;
+  buttons: ButtonStats;
+  errors: BotErrorStats;
+  firstMenu: FirstMenuReaction;
+  timeToSale: TimeToSaleStats;
+  nip: NipTiming;
+  dataRequestFunnel: DataRequestFunnel;
+  rejections: RejectionStats;
+  simEsim: SimEsimStats;
+  reactivations: ReactivationStats;
+}
+
+/**
+ * Agrega TODO el análisis de comportamiento del bot. Si `flowType` está definido
+ * y tiene un orden conocido (FLOW_ORDERS), el Funnel 2 usa el orden REAL de ese
+ * tipo de bot; si no, se infiere de los datos.
+ */
+export function computeBotBehavior(sessions: BmSession[], channelId?: string, flowType?: string | null): BotBehavior {
+  const list = onlyChannel(sessions, channelId);
+  const base = computeResultsMetrics(list);
+  const order = flowType ? FLOW_ORDERS[flowType] : undefined;
+
+  // Tiempo de primera respuesta: primer mensaje de usuario → primera respuesta bot/agente.
+  let frtSum = 0, frtN = 0;
+  for (const s of list) {
+    const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
+    const firstUser = msgs.find((m) => m.from === "user");
+    if (!firstUser) continue;
+    const firstUserAt = toMs(firstUser.creationTime);
+    const firstReply = msgs.find((m) => m.from !== "user" && (toMs(m.creationTime) || 0) >= (firstUserAt || 0));
+    const replyAt = toMs(firstReply?.creationTime);
+    if (firstUserAt != null && replyAt != null && replyAt >= firstUserAt) { frtSum += replyAt - firstUserAt; frtN++; }
+  }
+
+  return {
+    sampleSize: list.length,
+    responseTimes: {
+      avgBotSec: base.avgBotResponseTimeSec,
+      avgUserSec: base.avgUserResponseTimeSec,
+      avgFirstResponseSec: frtN ? Math.round(frtSum / frtN / 1000) : 0,
+    },
+    objections: base.topTypifications,
+    messageTypes: computeMessageTypeBreakdown(list),
+    buttons: computeButtonStats(list),
+    errors: computeBotErrors(list),
+    firstMenu: computeFirstMenuReaction(list),
+    timeToSale: computeTimeToSale(list),
+    nip: computeNipTiming(list),
+    dataRequestFunnel: order ? computeFlowFunnel(list, order) : computeDataRequestOrderFunnel(list),
+    rejections: computeRejectionReasons(list),
+    simEsim: computeSimEsim(list),
+    reactivations: computeReactivations(list),
+  };
+}
+
+/** Comportamiento vacío (sin token / desconectado). */
+export const EMPTY_BOT_BEHAVIOR: BotBehavior = computeBotBehavior([]);
+
+// ── Listado de canales (para autollenar el formulario de proyecto) ───────────
+export type ChannelCanonical = "whatsapp" | "webchat" | "instagram" | "facebook" | "messenger";
+
+export interface BmChannelInfo {
+  id: string;
+  platform: string;
+  canonical: ChannelCanonical | null;
+  name: string;
+  /** Número de línea (solo WhatsApp). */
+  number?: string;
+  active: boolean;
+}
+
+/** Mapea el `platform` de un canal Botmaker a su forma canónica (incluye webchat). */
+function channelCanonical(platform?: string | null): ChannelCanonical | null {
+  const p = (platform || "").toLowerCase();
+  if (!p) return null;
+  if (p.includes("whats")) return "whatsapp";
+  if (p.includes("insta")) return "instagram";
+  if (p.includes("messenger")) return "messenger";
+  if (p.includes("facebook") || p === "fb") return "facebook";
+  if (p.includes("web")) return "webchat"; // webchat / web / webwidget
+  return null;
+}
+
+/**
+ * GET /channels → canales del bot del workspace (números de WhatsApp, webchats,
+ * Instagram y Facebook). Se usa para AUTOLLENAR el formulario "Nuevo Proyecto"
+ * en vez de teclear los números a mano.
+ */
+export async function listBotmakerChannels(conn: BotmakerConnection): Promise<BmChannelInfo[]> {
+  const res = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
+  if (!res.ok) return [];
+  const data = await res.json().catch(() => null);
+  const items = (data?.items ?? data ?? []) as Record<string, unknown>[];
+  if (!Array.isArray(items)) return [];
+  return items
+    .map((c) => ({
+      id: String(c.id ?? ""),
+      platform: String(c.platform ?? ""),
+      canonical: channelCanonical(c.platform as string),
+      name: String(c.name ?? ""),
+      number: typeof c.number === "string" ? c.number : undefined,
+      active: c.active !== false,
+    }))
+    .filter((c) => c.id);
+}
 
 // ── Lead Quality Scoring ─────────────────────────────────────────────────────
 // Measures how valuable / engaged the incoming leads are based purely on

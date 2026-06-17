@@ -196,6 +196,9 @@ model Project {
   alertEmails   String[]
   crmIntegrationId String? // Legacy: single analytics integration (kept for back-compat)
   crmType          String? // custom_crm, botmaker, etc.
+  /// Tipo de flujo del bot (metodología BAIT) para el Funnel 2 por bot:
+  /// prepago | pospago_alineado | pospago_simplificado | google_bait. Vacío = auto.
+  botFlowType      String?
   /// CRMs conectados al proyecto (ids de Integration). Un proyecto puede enviar
   /// tráfico a varias herramientas (ej. botmaker + cari) y el análisis de
   /// resultados se segmenta por cada una de forma independiente.
@@ -1154,4 +1157,19 @@ model IntegrationAssetCache {
 
   @@unique([integrationId, assetType, externalId])
   @@index([workspaceId, assetType])
+}
+
+// Vistas guardadas del dashboard de Análisis de Resultados: una combinación de
+// filtros (FilterState) reutilizable. userId = null → vista compartida del
+// workspace; con userId → privada del usuario.
+model AnalyticsSavedView {
+  id          String   @id @default(cuid())
+  workspaceId String
+  projectId   String?
+  userId      String?
+  name        String
+  filters     Json
+  createdAt   DateTime @default(now())
+
+  @@index([workspaceId, projectId])
 }

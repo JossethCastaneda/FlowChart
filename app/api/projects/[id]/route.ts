@@ -32,8 +32,11 @@ const UpdateProjectSchema = z.object({
   dateStart: z.string().nullish(),
   dateEnd: z.string().nullish(),
   crmIntegrationId: z.string().nullish(),
-  crmIntegrationIds: z.array(z.string()).nullish(),
+  // Invariante de producto: un proyecto envía a UNA sola plataforma analítica
+  // (Botmaker o Cari, nunca ambas).
+  crmIntegrationIds: z.array(z.string()).max(1, "Un proyecto envía a una sola plataforma analítica").nullish(),
   crmType: z.string().nullish(),
+  botFlowType: z.string().nullish(),
   channels: z.array(ChannelSchema).optional(),
 });
 

@@ -1,3 +1,4 @@
+import ExcelJS from "exceljs";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiError } from "@/lib/api-response";
 import prisma from "@/lib/prisma";
@@ -27,7 +28,8 @@ function toCsv(rows: Row[]): string {
 export const GET = withWorkspace(async (req, ctx) => {
   const sp = req.nextUrl.searchParams;
   const type = sp.get("type") || "conversations";
-  const format = sp.get("format") === "json" ? "json" : "csv";
+  const fmtParam = sp.get("format");
+  const format = fmtParam === "json" ? "json" : fmtParam === "xlsx" ? "xlsx" : "csv";
   const filters = parseFilters(sp);
   const scopeRes = await scopeFromRequest(sp, ctx.workspaceId);
   if (!scopeRes.ok) return apiError("Proyecto no encontrado", "NOT_FOUND", 404);
@@ -92,6 +94,24 @@ export const GET = withWorkspace(async (req, ctx) => {
       headers: {
         "Content-Type": "application/json",
         "Content-Disposition": `attachment; filename="analytics_${type}_${stamp}.json"`,
+      },
+    });
+  }
+  if (format === "xlsx") {
+    const wb = new ExcelJS.Workbook();
+    wb.creator = "Sodare";
+    const ws = wb.addWorksheet(type === "kpis" ? "KPIs" : "Conversaciones");
+    if (rows.length) {
+      const headers = Object.keys(rows[0]);
+      ws.columns = headers.map((h) => ({ header: h, key: h, width: Math.min(40, Math.max(12, h.length + 2)) }));
+      ws.getRow(1).font = { bold: true };
+      for (const r of rows) ws.addRow(r);
+    }
+    const xbuf = await wb.xlsx.writeBuffer();
+    return new Response(Buffer.from(xbuf as ArrayBuffer), {
+      headers: {
+        "Content-Type": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "Content-Disposition": `attachment; filename="analytics_${type}_${stamp}.xlsx"`,
       },
     });
   }

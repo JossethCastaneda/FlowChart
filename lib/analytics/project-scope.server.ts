@@ -30,10 +30,13 @@ export async function getConfiguredProjectChannels(
       fanpage: true,
       webchat: true,
       channels: { select: { type: true } },
+      crmIntegrationId: true,
+      crmIntegrationIds: true,
     },
   });
   if (!project) return [];
-  return collectProjectChannels(project);
+  const providers = await resolveProjectProviders(workspaceId, project);
+  return collectProjectChannels(project, providers.length === 1 ? providers[0] : undefined);
 }
 
 /**
@@ -63,10 +66,11 @@ export async function resolveProjectScope(
   });
   if (!project) return null;
 
+  const providers = await resolveProjectProviders(workspaceId, project);
   return {
     projectId: project.id,
-    providers: await resolveProjectProviders(workspaceId, project),
-    channels: collectProjectChannels(project),
+    providers,
+    channels: collectProjectChannels(project, providers.length === 1 ? providers[0] : undefined),
   };
 }
 
@@ -103,24 +107,25 @@ export async function resolveProjectScopeView(
   });
   if (!project) return null;
 
+  const providers = await resolveProjectProviders(workspaceId, project);
   return {
     projectId: project.id,
     name: project.name,
     alias: project.alias,
     clientId: project.client,
-    providers: await resolveProjectProviders(workspaceId, project),
-    channels: collectProjectChannels(project),
+    providers,
+    channels: collectProjectChannels(project, providers.length === 1 ? providers[0] : undefined),
   };
 }
 
 /** Resuelve los proveedores normalizados del proyecto desde sus integraciones CRM. */
 async function resolveProjectProviders(
   workspaceId: string,
-  project: { crmIntegrationId: string | null; crmIntegrationIds: string[] }
+  project: { crmIntegrationId?: string | null; crmIntegrationIds?: string[] | null }
 ): Promise<string[]> {
   const ids =
-    project.crmIntegrationIds.length > 0
-      ? project.crmIntegrationIds
+    (project.crmIntegrationIds?.length ?? 0) > 0
+      ? project.crmIntegrationIds!
       : project.crmIntegrationId
         ? [project.crmIntegrationId]
         : [];

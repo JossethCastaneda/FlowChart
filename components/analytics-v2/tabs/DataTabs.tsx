@@ -1,13 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import {
   ResponsiveContainer, AreaChart, Area, BarChart, Bar, Line,
   XAxis, YAxis, CartesianGrid, Tooltip,
 } from "recharts";
-import { MessageSquare, Bot, User, Clock, DollarSign, Database, ShieldCheck, AlertTriangle } from "lucide-react";
+import { MessageSquare, Bot, User, Clock, DollarSign, Database, ShieldCheck, AlertTriangle, Plus, Trash2 } from "lucide-react";
 import { KpiTooltipCard } from "../KpiTooltipCard";
 import { useAnalyticsData } from "../useAnalyticsData";
+import { useAnalyticsScope } from "../AnalyticsScopeContext";
 
 // ── Helpers de estado compartidos ───────────────────────────────────────────
 const card = { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "20px" } as const;
@@ -203,25 +204,148 @@ export function TabServices({ query, base = "/api/analytics" }: { query: string;
 }
 
 // ── Funnels (spec §24) ───────────────────────────────────────────────────────
+type FunnelAvailable = { id: string; name: string; steps: number };
+type FunnelResp = {
+  mode: string;
+  name?: string;
+  steps: { name: string; count: number; conversionFromPrev?: number }[];
+  available: FunnelAvailable[];
+};
+
 export function TabFunnels({ query, base = "/api/analytics" }: { query: string; base?: string }) {
-  type Resp = { steps: { name: string; count: number; conversionFromPrev: number }[] };
-  const { data, loading, error } = useAnalyticsData<Resp>(`${base}/funnels`, query);
-  if (loading && !data) return <State kind="loading" />;
-  if (error) return <State kind="error" msg={error} />;
-  if (!data || data.steps.length === 0) return <State kind="empty" />;
+  const scope = useAnalyticsScope();
+  const [selectedId, setSelectedId] = useState("");
+  const [showBuilder, setShowBuilder] = useState(false);
+  const [reloadNonce, setReloadNonce] = useState(0);
+  const funnelQuery = `${query}&_fb=${reloadNonce}${selectedId ? `&funnelId=${encodeURIComponent(selectedId)}` : ""}`;
+  const { data, loading, error } = useAnalyticsData<FunnelResp>(`${base}/funnels`, funnelQuery);
+
+  const available = data?.available ?? [];
+
+  return (
+    <div className="space-y-4">
+      <div style={{ ...card, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
+          <span style={{ color: "#94a3b8", fontSize: 12 }}>Funnel:</span>
+          <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)} className="bg-black/20 border border-white/10 text-white text-xs rounded-lg px-3 py-2 outline-none">
+            <option value="">Canónico (bot → resolución)</option>
+            {available.map((f) => <option key={f.id} value={f.id}>{f.name} ({f.steps} pasos)</option>)}
+          </select>
+        </div>
+        <button onClick={() => setShowBuilder((s) => !s)} style={{ background: showBuilder ? "rgba(255,255,255,0.05)" : "var(--cyan)", color: showBuilder ? "#94a3b8" : "#0f172a", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+          <Plus className="w-3.5 h-3.5" /> {showBuilder ? "Cerrar" : "Crear funnel"}
+        </button>
+      </div>
+
+      {showBuilder && (
+        <FunnelBuilder
+          projectId={scope.projectId}
+          onSaved={() => { setShowBuilder(false); setReloadNonce((n) => n + 1); }}
+        />
+      )}
+
+      {loading && !data ? <State kind="loading" />
+        : error ? <State kind="error" msg={error} />
+        : !data || data.steps.length === 0 ? <State kind="empty" />
+        : (
+          <div style={card}>
+            <h3 className="text-white text-sm font-bold mb-4">
+              {selectedId ? data.name || "Funnel configurado" : "Funnel de conversión (bot → resolución)"}
+            </h3>
+            <div style={{ height: 320 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data.steps} layout="vertical" margin={{ left: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
+                  <XAxis type="number" stroke="#64748b" fontSize={11} />
+                  <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={11} width={110} />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(value) => [String(value), "Conversaciones"]} />
+                  <Bar dataKey="count" fill="#06b6d4" radius={[0, 4, 4, 0]} barSize={28} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+    </div>
+  );
+}
+
+const CONDITION_TYPES: { value: string; label: string }[] = [
+  { value: "intent", label: "Intención" },
+  { value: "event", label: "Evento" },
+  { value: "message_text", label: "Texto de mensaje" },
+  { value: "tag", label: "Etiqueta" },
+  { value: "status", label: "Estado" },
+];
+
+// Constructor de funnels personalizados: define una secuencia ordenada de pasos
+// (condición sobre intención/evento/texto/etiqueta/estado). Guarda vía el CRUD
+// global (admin) con projectId explícito para acotar el funnel al proyecto.
+function FunnelBuilder({ projectId, onSaved }: { projectId?: string; onSaved: () => void }) {
+  const [name, setName] = useState("");
+  const [steps, setSteps] = useState<{ name: string; conditionType: string; conditionValue: string }[]>([
+    { name: "", conditionType: "intent", conditionValue: "" },
+  ]);
+  const [saving, setSaving] = useState(false);
+
+  const setStep = (i: number, patch: Partial<{ name: string; conditionType: string; conditionValue: string }>) =>
+    setSteps((s) => s.map((st, idx) => (idx === i ? { ...st, ...patch } : st)));
+
+  const save = async () => {
+    if (!name.trim() || steps.some((s) => !s.name.trim() || !s.conditionValue.trim())) {
+      alert("Completa el nombre del funnel y de cada paso (nombre + valor de condición).");
+      return;
+    }
+    setSaving(true);
+    try {
+      const body = {
+        name: name.trim(),
+        projectId: projectId || undefined,
+        steps: steps.map((s, i) => ({ name: s.name.trim(), orderIndex: i, conditionType: s.conditionType, conditionValue: s.conditionValue.trim() })),
+      };
+      const res = await fetch(`/api/analytics/funnels`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      if (res.ok) {
+        setName("");
+        setSteps([{ name: "", conditionType: "intent", conditionValue: "" }]);
+        onSaved();
+      } else {
+        const e = await res.json().catch(() => ({}));
+        alert("No se pudo crear el funnel: " + (e.error || "Desconocido"));
+      }
+    } catch {
+      alert("Fallo al contactar al servidor.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const inp: React.CSSProperties = { background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 12, borderRadius: 6, padding: "6px 8px", outline: "none" };
+
   return (
     <div style={card}>
-      <h3 className="text-white text-sm font-bold mb-4">Funnel de conversión (bot → resolución)</h3>
-      <div style={{ height: 320 }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart data={data.steps} layout="vertical" margin={{ left: 20 }}>
-            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-            <XAxis type="number" stroke="#64748b" fontSize={11} />
-            <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={11} width={110} />
-            <Tooltip contentStyle={tooltipStyle} formatter={(value) => [String(value), "Conversaciones"]} />
-            <Bar dataKey="count" fill="#06b6d4" radius={[0, 4, 4, 0]} barSize={28} />
-          </BarChart>
-        </ResponsiveContainer>
+      <h3 className="text-white text-sm font-bold mb-3">Nuevo funnel personalizado</h3>
+      <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Nombre del funnel (p. ej. Captura de datos)" style={{ ...inp, width: "100%", marginBottom: 12 }} />
+      <div className="space-y-2">
+        {steps.map((s, i) => (
+          <div key={i} style={{ display: "grid", gridTemplateColumns: "24px 1fr 150px 1fr 32px", gap: 8, alignItems: "center" }}>
+            <span style={{ color: "#64748b", fontSize: 12, textAlign: "center" }}>{i + 1}</span>
+            <input value={s.name} onChange={(e) => setStep(i, { name: e.target.value })} placeholder="Nombre del paso" style={inp} />
+            <select value={s.conditionType} onChange={(e) => setStep(i, { conditionType: e.target.value })} style={inp}>
+              {CONDITION_TYPES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+            </select>
+            <input value={s.conditionValue} onChange={(e) => setStep(i, { conditionValue: e.target.value })} placeholder="Valor de la condición" style={inp} />
+            <button onClick={() => setSteps((st) => st.length > 1 ? st.filter((_, idx) => idx !== i) : st)} disabled={steps.length === 1} title="Eliminar paso" style={{ background: "transparent", border: "none", color: steps.length === 1 ? "#475569" : "#f87171", cursor: steps.length === 1 ? "not-allowed" : "pointer" }}>
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+        <button onClick={() => setSteps((s) => [...s, { name: "", conditionType: "intent", conditionValue: "" }])} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#cbd5e1", borderRadius: 8, padding: "6px 12px", fontSize: 12, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+          <Plus className="w-3.5 h-3.5" /> Agregar paso
+        </button>
+        <button onClick={save} disabled={saving} style={{ background: "var(--cyan)", color: "#0f172a", border: "none", borderRadius: 8, padding: "6px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+          {saving ? "Guardando…" : "Guardar funnel"}
+        </button>
       </div>
     </div>
   );

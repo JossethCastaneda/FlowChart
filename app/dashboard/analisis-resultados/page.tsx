@@ -1,19 +1,9 @@
-import { PageHeader } from "@/components/ui/PageHeader";
-import { MessageSquareShare, BarChart2 } from "lucide-react";
-import { AdvancedAnalyticsDashboard } from "@/components/analytics-v2/AdvancedAnalyticsDashboard";
-import { PermissionGuard } from "@/components/layout/PermissionsContext";
+import { redirect } from "next/navigation";
 
+// "Análisis de Resultados" dejó de ser una vista GLOBAL del menú lateral: ahora
+// es un tab dentro de cada proyecto (un proyecto envía a una sola plataforma
+// analítica, así que el análisis vive acotado al proyecto). Esta ruta índice
+// queda como redirect para no romper enlaces antiguos.
 export default function AnalisisResultadosPage() {
-  return (
-    <PermissionGuard permKey="canAccessAnalytics">
-      <div className="space-y-6">
-        <PageHeader
-          title="Análisis de Resultados (Avanzado)"
-          description="Métricas consolidadas de Cari AI y Botmaker."
-          icon={<BarChart2 className="w-6 h-6" style={{ color: "#00d4ff" }} />}
-        />
-        <AdvancedAnalyticsDashboard />
-      </div>
-    </PermissionGuard>
-  );
+  redirect("/dashboard/proyectos");
 }
