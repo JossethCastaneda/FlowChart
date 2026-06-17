@@ -1,17 +1,34 @@
 import { NextRequest } from "next/server";
+import type { Prisma } from "@prisma/client";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { cancelPublishJob } from "@/lib/qstash";
-import { start } from "workflow/api";
-import { publishPostWorkflow } from "@/workflows/publish-post";
+import {
+  cancelLegacyQstashSchedule,
+  startPublishWorkflowSchedule,
+  validatePublisherScheduledAt,
+} from "@/lib/publisher/schedule";
+import { logger } from "@/lib/logger";
+
+const updatePostSchema = z.object({
+  content: z.string().optional(),
+  channels: z.array(z.string()).min(1).optional(),
+  mediaUrls: z.array(z.string()).optional(),
+  scheduledAt: z.string().nullable().optional(),
+  status: z.enum(["Draft", "Scheduled"]).optional(),
+  type: z.string().optional(),
+  hashtags: z.array(z.string()).optional(),
+  projectId: z.string().nullable().optional(),
+  pageName: z.string().nullable().optional(),
+  pageId: z.string().nullable().optional(),
+});
 
 // GET /api/publisher/posts/[id]
-export const GET = withWorkspace(async (req: NextRequest, ctx) => {
+export const GET = withWorkspace(async (_req: NextRequest, ctx) => {
   const { id } = await ctx.params;
-  
+
   const post = await prisma.scheduledPost.findFirst({
     where: { id, workspaceId: ctx.workspaceId },
   });
@@ -26,72 +43,94 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
 // PUT /api/publisher/posts/[id]
 export const PUT = withWorkspace(async (req: NextRequest, ctx) => {
   const { id } = await ctx.params;
-  
-  // Verify post belongs to workspace
+
   const existing = await prisma.scheduledPost.findFirst({
     where: { id, workspaceId: ctx.workspaceId },
   });
-  
+
   if (!existing) {
     return apiError("Post no encontrado", "NOT_FOUND", 404);
   }
 
-  // Only allow editing Draft or Scheduled posts
   if (!["Draft", "Scheduled"].includes(existing.status)) {
     return apiError("Solo puedes editar posts en borrador o programados", "VALIDATION_ERROR", 400);
   }
 
-  const _validate = await validateBody(req, z.any());
-  if (!_validate.ok) return _validate.response;
-  const body = _validate.data;
+  const parsed = await validateBody(req, updatePostSchema);
+  if (!parsed.ok) return parsed.response;
+  const body = parsed.data;
 
-  const updateData: any = {};
+  const updateData: Prisma.ScheduledPostUpdateInput = {};
 
-  if (body.content !== undefined) updateData.content = body.content;
+  if (body.content !== undefined) {
+    const content = body.content.trim();
+    if (!content) return apiError("El contenido es obligatorio", "VALIDATION_ERROR", 400);
+    updateData.content = content;
+  }
   if (body.channels !== undefined) updateData.channels = body.channels;
   if (body.mediaUrls !== undefined) updateData.mediaUrls = body.mediaUrls;
-  if (body.scheduledAt !== undefined) updateData.scheduledAt = body.scheduledAt ? new Date(body.scheduledAt) : null;
   if (body.status !== undefined) updateData.status = body.status;
   if (body.type !== undefined) updateData.type = body.type;
   if (body.hashtags !== undefined) updateData.hashtags = body.hashtags;
-  if (body.projectId !== undefined) updateData.projectId = body.projectId;
-  if (body.pageName !== undefined) updateData.pageName = body.pageName;
-  if (body.pageId !== undefined) updateData.pageId = body.pageId;
+  if (body.projectId !== undefined) updateData.projectId = body.projectId || null;
+  if (body.pageName !== undefined) updateData.pageName = body.pageName || null;
+  if (body.pageId !== undefined) updateData.pageId = body.pageId || null;
 
-  if (updateData.status === "Scheduled" && !updateData.scheduledAt && !existing.scheduledAt) {
-    return apiError("Fecha requerida para programar", "VALIDATION_ERROR", 400);
+  let requestedTime: Date | null | undefined;
+  if (body.scheduledAt !== undefined) {
+    requestedTime = body.scheduledAt ? new Date(body.scheduledAt) : null;
+    if (requestedTime && Number.isNaN(requestedTime.getTime())) {
+      return apiError("Fecha de publicacion invalida", "VALIDATION_ERROR", 400);
+    }
+    updateData.scheduledAt = requestedTime;
   }
 
-  let newQstashMessageId = existing.qStashMessageId;
-  const statusChanged = updateData.status !== undefined && updateData.status !== existing.status;
-  const timeChanged = updateData.scheduledAt !== undefined && 
-    (updateData.scheduledAt === null || updateData.scheduledAt.getTime() !== existing.scheduledAt?.getTime());
+  const finalStatus = body.status || existing.status;
+  const finalTime = requestedTime !== undefined ? requestedTime : existing.scheduledAt;
 
-  // Cancel old schedule if status or time changed
-  if (existing.qStashMessageId && (statusChanged || timeChanged)) {
-    await cancelPublishJob(existing.qStashMessageId);
-    newQstashMessageId = null;
-  }
-
-  const finalStatus = updateData.status || existing.status;
-  const finalTime = updateData.scheduledAt !== undefined ? updateData.scheduledAt : existing.scheduledAt;
-
-  // Create new schedule if it should be scheduled
-  if (finalStatus === "Scheduled" && finalTime && !newQstashMessageId) {
-    try {
-      const delaySeconds = Math.max(0, Math.floor((finalTime.getTime() - Date.now()) / 1000));
-      const { runId } = await start(publishPostWorkflow, [id, delaySeconds]);
-      newQstashMessageId = runId;
-      updateData.error = null;
-    } catch (e) {
-      console.error("[WORKFLOW_ERROR] Failed to schedule new workflow:", e);
-      // Hacemos visible el fallo en lugar de dejar un post programado que nunca correrá.
-      updateData.error =
-        "No se pudo reprogramar en Workflow; el post no se publicará automáticamente.";
+  if (finalStatus === "Scheduled") {
+    if (!finalTime) {
+      return apiError("Fecha requerida para programar", "VALIDATION_ERROR", 400);
     }
   }
 
-  updateData.qStashMessageId = newQstashMessageId;
+  let scheduleId = existing.qStashMessageId;
+  const statusChanged = body.status !== undefined && body.status !== existing.status;
+  const existingTime = existing.scheduledAt?.getTime() ?? null;
+  const nextTime = finalTime?.getTime() ?? null;
+  const timeChanged = body.scheduledAt !== undefined && nextTime !== existingTime;
+  const scheduleChanged = statusChanged || timeChanged;
+
+  if (finalStatus === "Scheduled" && (scheduleChanged || !scheduleId) && finalTime) {
+    const scheduleError = validatePublisherScheduledAt(finalTime);
+    if (scheduleError) return apiError(scheduleError, "VALIDATION_ERROR", 400);
+  }
+
+  if (scheduleChanged) {
+    await cancelLegacyQstashSchedule(existing.qStashMessageId);
+    scheduleId = null;
+  }
+
+  if (finalStatus !== "Scheduled") {
+    scheduleId = null;
+  } else if (finalTime && (!scheduleId || scheduleChanged)) {
+    try {
+      scheduleId = await startPublishWorkflowSchedule(id, finalTime);
+      updateData.error = null;
+    } catch (error) {
+      logger.error("Failed to reschedule publisher workflow", {
+        route: "api/publisher/posts/[id]",
+        postId: id,
+        workspaceId: ctx.workspaceId,
+        error,
+      });
+      scheduleId = null;
+      updateData.error =
+        "No se pudo reprogramar en Workflow; el post no se publicara automaticamente.";
+    }
+  }
+
+  updateData.qStashMessageId = scheduleId;
 
   const post = await prisma.scheduledPost.update({
     where: { id },
@@ -102,19 +141,18 @@ export const PUT = withWorkspace(async (req: NextRequest, ctx) => {
 });
 
 // DELETE /api/publisher/posts/[id]
-export const DELETE = withWorkspace(async (req: NextRequest, ctx) => {
+export const DELETE = withWorkspace(async (_req: NextRequest, ctx) => {
   const { id } = await ctx.params;
-  
+
   const existing = await prisma.scheduledPost.findFirst({
     where: { id, workspaceId: ctx.workspaceId },
   });
-  
+
   if (!existing) {
     return apiError("Post no encontrado", "NOT_FOUND", 404);
   }
 
-  await cancelPublishJob(existing.qStashMessageId);
-
+  await cancelLegacyQstashSchedule(existing.qStashMessageId);
   await prisma.scheduledPost.delete({ where: { id } });
 
   return apiSuccess({ success: true });

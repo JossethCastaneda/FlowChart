@@ -92,7 +92,7 @@ export default function LoginPage() {
     // botón usa el flujo redirect de NextAuth (que valida config en servidor).
     const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID;
     if (!APP_ID) {
-      console.error("[LOGIN] NEXT_PUBLIC_META_APP_ID no configurado — SDK de Facebook deshabilitado, se usará redirect OAuth.");
+      console.warn("[LOGIN] NEXT_PUBLIC_META_APP_ID no configurado — SDK de Facebook deshabilitado, se usará redirect OAuth.");
       return () => { isActive = false; };
     }
 

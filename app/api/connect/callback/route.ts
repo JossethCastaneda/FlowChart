@@ -3,10 +3,14 @@ import { createHmac, timingSafeEqual } from "crypto";
 import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
-import { validateModulePermissions } from "@/lib/meta-scopes";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { env } from "@/lib/env";
+import { start } from "workflow/api";
+import { syncIntegrationAssetsWorkflow } from "@/workflows/sync-integration-assets";
+import { validateModulePermissions } from "@/lib/meta-scopes";
+import { subscribePages, logSubscriptionResults } from "@/lib/meta-webhooks";
 
-const META_API_VERSION = env.META_API_VERSION || "v25.0";
+const META_API_VERSION = env.META_API_VERSION;
 const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
 
 /**
@@ -134,7 +138,16 @@ export async function GET(request: NextRequest) {
       picture?: string | null;
       instagramId?: string | null;
     }> = [];
-    
+
+    // Page tokens EN TEXTO PLANO — solo en memoria, para suscribir webhooks
+    // tras la conexión. NUNCA se persisten ni se devuelven al client.
+    let rawPages: Array<{
+      id: string;
+      name: string;
+      accessToken: string;
+      instagramId: string | null;
+    }> = [];
+
     let userScopes: string[] = [];
     
     try {
@@ -171,6 +184,12 @@ export async function GET(request: NextRequest) {
           name: p.name,
           accessToken: encryptToken(p.access_token), // Encrypt PAGE token for storage
           picture: p.picture?.data?.url || null,
+          instagramId: p.instagram_business_account?.id || null,
+        }));
+        rawPages = pagesData.data.map((p: any) => ({
+          id: p.id,
+          name: p.name,
+          accessToken: p.access_token, // PLAINTEXT — solo para suscribir webhooks
           instagramId: p.instagram_business_account?.id || null,
         }));
         console.log(`[CONNECT CALLBACK] Fetched ${pages.length} pages with user token`);
@@ -251,8 +270,55 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Also update the generic "meta" integration so all modules can use it as fallback
-    await prisma.integration.upsert({
+    // Also update the generic "meta" integration so all modules can use it as fallback.
+    // G5 FIX: cada módulo se conecta con su propio config_id (scopes distintos).
+    // Si sobrescribimos ciegamente el token genérico con el del último módulo,
+    // un caller que use el genérico (sin pasar `module`) puede perder scopes
+    // (ej. conectar Analytics pisaría el token con ads_management de Ads).
+    // Por eso: si el token genérico actual tiene scopes que el nuevo NO incluye,
+    // conservamos el token existente (más amplio) y solo unificamos el registro
+    // de scopes. Si el nuevo es igual o superset, sí lo promovemos.
+    const existingGeneric = await prisma.integration.findUnique({
+      where: {
+        workspaceId_provider_userId: {
+          workspaceId: resolvedWorkspaceId,
+          provider: "meta",
+          userId: "workspace",
+        },
+      },
+    });
+    const existingCreds = (existingGeneric?.credentials as Record<string, unknown> | null) ?? null;
+    const existingScopes = Array.isArray(existingCreds?.grantedScopes)
+      ? (existingCreds!.grantedScopes as string[])
+      : [];
+    const newScopeSet = new Set(userScopes);
+    const wouldLoseScopes =
+      existingGeneric?.connected === true &&
+      existingScopes.some((s) => !newScopeSet.has(s));
+    const unionScopes = [...new Set([...existingScopes, ...userScopes])];
+
+    const genericCredentials = wouldLoseScopes
+      ? {
+          // Conserva el token existente (más amplio); solo refresca metadatos.
+          ...existingCreds,
+          grantedScopes: unionScopes,
+          refreshedAt: new Date().toISOString(),
+        }
+      : {
+          accessToken: encryptedUserToken, // USER token
+          pages,
+          expiresAt,
+          refreshedAt: new Date().toISOString(),
+          grantedScopes: unionScopes,
+        };
+
+    if (wouldLoseScopes) {
+      console.warn(
+        `[CONNECT CALLBACK] ⚠️ Token genérico "meta" conservado (el módulo "${module}" no cubre scopes existentes: ${existingScopes.filter((s) => !newScopeSet.has(s)).join(", ")})`
+      );
+    }
+
+    const metaIntegration = await prisma.integration.upsert({
       where: {
         workspaceId_provider_userId: {
           workspaceId: resolvedWorkspaceId,
@@ -261,13 +327,7 @@ export async function GET(request: NextRequest) {
         },
       },
       update: {
-        credentials: {
-          accessToken: encryptedUserToken, // USER token
-          pages,
-          expiresAt,
-          refreshedAt: new Date().toISOString(),
-          grantedScopes: userScopes,
-        },
+        credentials: genericCredentials,
         connected: true,
         connectedAt: new Date(),
         connectedBy: userId,
@@ -289,6 +349,47 @@ export async function GET(request: NextRequest) {
     });
 
     console.log(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
+
+    // Invalida el cache de connection-status (F6) para que el estado refleje la
+    // nueva conexión de inmediato en vez de esperar el TTL.
+    await prisma.metaAnalyticsCache.deleteMany({
+      where: { workspaceId: resolvedWorkspaceId, endpoint: "connection-status" },
+    }).catch(() => {});
+
+    // Dispatch background sync workflow to cache assets immediately
+    try {
+      await start(syncIntegrationAssetsWorkflow, [metaIntegration.id]);
+      console.log(`[CONNECT CALLBACK] ⚡ Dispatched asset sync for integration ${metaIntegration.id}`);
+    } catch (syncErr) {
+      console.error("[CONNECT CALLBACK] ❌ Failed to dispatch sync workflow:", syncErr);
+    }
+
+    // Auto-suscribir webhooks de todas las páginas/IG conectadas. Antes era un
+    // paso manual (api/webhooks/subscribe) y los módulos quedaban sin recibir
+    // eventos (comentarios, DMs, ad_review, leadgen). Se ejecuta en paralelo y
+    // nunca bloquea el éxito de la conexión: un fallo solo se loguea/audita.
+    try {
+      const subResults = await subscribePages(rawPages, META_API_VERSION);
+      const { subscribed, failed } = logSubscriptionResults(subResults, {
+        route: "api/connect/callback",
+        module,
+        workspaceId: resolvedWorkspaceId,
+      });
+      await prisma.auditLog.create({
+        data: {
+          workspaceId: resolvedWorkspaceId,
+          userId,
+          action: "subscribe_webhooks",
+          resourceType: "Integration",
+          resourceId: metaIntegration.id,
+          details: { module, pages: rawPages.length, subscribed, failed },
+        },
+      }).catch((auditErr) => {
+        console.error("[CONNECT CALLBACK] ❌ Failed to write AuditLog:", auditErr);
+      });
+    } catch (subErr) {
+      console.error("[CONNECT CALLBACK] ❌ Webhook auto-subscribe failed:", subErr);
+    }
 
     // Always redirect to /connect/done — it handles popup close OR fallback navigation
     return NextResponse.redirect(`${baseUrl}/connect/done?module=${module}`);

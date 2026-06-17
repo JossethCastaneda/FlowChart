@@ -54,6 +54,24 @@ export async function GET(req: NextRequest) {
 
     const requestedModule = req.nextUrl.searchParams.get("module") || "meta";
     const provider = MODULE_PROVIDER_MAP[requestedModule] || "meta";
+
+    // ── Cache corto (90s) para evitar 2 llamadas Graph en vivo por request ──
+    // Se invalida al conectar/desconectar (deleteMany en callback y disconnect).
+    const CACHE_ENDPOINT = "connection-status";
+    const CACHE_TTL_MS = 90 * 1000;
+    const cached = await prisma.metaAnalyticsCache.findUnique({
+      where: {
+        workspaceId_endpoint_paramsKey: {
+          workspaceId,
+          endpoint: CACHE_ENDPOINT,
+          paramsKey: requestedModule,
+        },
+      },
+    });
+    if (cached && Date.now() - new Date(cached.updatedAt).getTime() < CACHE_TTL_MS) {
+      return NextResponse.json(cached.data as Record<string, unknown>);
+    }
+
     const moduleIntegration = provider === "meta"
       ? null
       : await prisma.integration.findUnique({
@@ -151,7 +169,7 @@ export async function GET(req: NextRequest) {
     // instagram_content_publish) para tokens conectados con nombres viejos.
     const actuallyMissing = requiredScopes.filter((scope) => !scopeGranted(scope, scopes));
 
-    return NextResponse.json({
+    const payload = {
       connected: true,
       tokenValid,
       module: requestedModule,
@@ -165,7 +183,30 @@ export async function GET(req: NextRequest) {
       igAccounts: igAccountsCount,
       connectedAt: integration.connectedAt?.toISOString() || null,
       connectedBy: integration.connectedBy || null,
-    });
+    };
+
+    // Cachear solo el camino caro (token válido). Un token inválido cambia en
+    // cuanto el usuario reconecta, así que no lo persistimos.
+    if (tokenValid) {
+      await prisma.metaAnalyticsCache.upsert({
+        where: {
+          workspaceId_endpoint_paramsKey: {
+            workspaceId,
+            endpoint: CACHE_ENDPOINT,
+            paramsKey: requestedModule,
+          },
+        },
+        update: { data: payload },
+        create: {
+          workspaceId,
+          endpoint: CACHE_ENDPOINT,
+          paramsKey: requestedModule,
+          data: payload,
+        },
+      }).catch((err) => console.error("[META STATUS] cache write failed:", err));
+    }
+
+    return NextResponse.json(payload);
   } catch (err: unknown) {
     console.error("[META STATUS] Error:", err);
     return NextResponse.json({ error: err instanceof Error ? err.message : "Error" }, { status: 500 });

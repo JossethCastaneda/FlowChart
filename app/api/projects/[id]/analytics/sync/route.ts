@@ -217,4 +217,6 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   return apiSuccess({ projectId, jobs: results });
 });
 
-export const maxDuration = 60;
+// El sync real de Cari descarga varios reportes paginados (hasta 10k filas) +
+// upserts; 60s daba 504. Fluid Compute permite hasta 300s.
+export const maxDuration = 300;

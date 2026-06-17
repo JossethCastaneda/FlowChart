@@ -49,6 +49,10 @@ export async function POST(request: NextRequest) {
       const result = await prisma.integration.deleteMany({
         where: { workspaceId, provider: `meta_${provider}` },
       });
+      // Invalida el cache de connection-status (F6) para reflejar la desconexión.
+      await prisma.metaAnalyticsCache.deleteMany({
+        where: { workspaceId, endpoint: "connection-status" },
+      }).catch(() => {});
       return NextResponse.json({ success: true, scope: provider, removed: result.count });
     }
 
@@ -67,6 +71,10 @@ export async function POST(request: NextRequest) {
     const result = await prisma.integration.deleteMany({
       where: { workspaceId, provider: { startsWith: "meta" } },
     });
+    // Invalida el cache de connection-status (F6).
+    await prisma.metaAnalyticsCache.deleteMany({
+      where: { workspaceId, endpoint: "connection-status" },
+    }).catch(() => {});
 
     return NextResponse.json({ success: true, scope: "all", removed: result.count });
   } catch (err: any) {

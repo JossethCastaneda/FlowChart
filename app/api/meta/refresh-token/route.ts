@@ -41,6 +41,27 @@ async function exchangeToken(currentToken: string): Promise<
   return { ok: true, token: data.access_token, expiresIn: data.expires_in || 5_184_000 };
 }
 
+/** Notifica a los OWNER/ADMIN del workspace que un token Meta expiró. */
+async function notifyTokenExpired(workspaceId: string): Promise<void> {
+  const admins = await prisma.workspaceMember.findMany({
+    where: { workspaceId, role: { in: ["OWNER", "ADMIN"] } },
+    select: { userId: true },
+  });
+  if (admins.length === 0) return;
+
+  await prisma.notification.createMany({
+    data: admins.map((m) => ({
+      userId: m.userId,
+      type: "meta_token_expired",
+      title: "🔌 Conexión de Meta expirada",
+      message:
+        "Una o más conexiones de Meta expiraron y se desconectaron. Reconéctalas en Integraciones para no perder publicaciones, métricas ni alertas.",
+      link: "/dashboard/integrations",
+    })),
+    skipDuplicates: true,
+  });
+}
+
 async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshResult> {
   const allIntegrations = await prisma.integration.findMany({
     where: {
@@ -115,6 +136,14 @@ async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshR
   console.log(
     `[META REFRESH] workspace ${workspaceId}: ${refreshedCount}/${allIntegrations.length} refreshed, ${expiredCount} expired${errors.length ? " — " + errors.join("; ") : ""}`
   );
+
+  // Si algún token expiró (code 190 → integración marcada connected:false), avisa
+  // a los OWNER/ADMIN para que reconecten — antes la desconexión era silenciosa.
+  if (expiredCount > 0) {
+    await notifyTokenExpired(workspaceId).catch((err) =>
+      console.error(`[META REFRESH] Failed to notify expiry for ${workspaceId}:`, err)
+    );
+  }
 
   if (refreshedCount > 0) {
     return {

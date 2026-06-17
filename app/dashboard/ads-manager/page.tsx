@@ -8,6 +8,7 @@ import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, Chevr
 import { PermissionGuard } from "@/components/layout/PermissionsContext";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import { AccountSelector } from "@/components/ads-manager/AccountSelector";
+import { BotSelector } from "@/components/shared/BotSelector";
 import { CreateCampaignModal } from "@/components/ads-manager/CreateCampaignModal";
 import { CreateAdSetModal } from "@/components/ads-manager/CreateAdSetModal";
 import { BreakdownSelector } from "@/components/ads-manager/BreakdownSelector";
@@ -120,6 +121,21 @@ function AdsManagerContent() {
   // Meta Ads connection status
   const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
   const [justConnected, setJustConnected] = useState(false);
+
+  const [selectedBotId, setSelectedBotId] = useState("");
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      await fetch("/api/integrations/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}) // Omitting integrationId triggers sync for all active integrations
+      });
+    } catch (e) {}
+    setTimeout(() => setIsSyncing(false), 2000);
+  };
 
   // Platform and Google integrations status
   const [platform, setPlatform] = useState<"meta" | "google">("meta");
@@ -1215,11 +1231,34 @@ function AdsManagerContent() {
         ) : loadingAccounts ? (
           <div style={{ fontSize: "11px", color: "#64748b" }}>Cargando cuentas...</div>
         ) : (
-          <AccountSelector
-            accounts={accounts}
-            selectedAccountId={selectedAccountId}
-            onSelectAccount={setSelectedAccountId}
-          />
+          <>
+            <AccountSelector
+              accounts={accounts}
+              selectedAccountId={selectedAccountId}
+              onSelectAccount={setSelectedAccountId}
+            />
+            <BotSelector
+              selectedBotId={selectedBotId}
+              onSelectBot={setSelectedBotId}
+              platformFilter={platform}
+            />
+            <button
+              onClick={handleManualSync}
+              disabled={isSyncing}
+              title="Sincronizar cuentas y bots"
+              style={{
+                display: "flex", alignItems: "center", gap: "6px",
+                padding: "8px 12px", borderRadius: "6px",
+                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+                color: "white", fontSize: "12px", cursor: isSyncing ? "wait" : "pointer",
+                transition: "all 0.2s"
+              }}
+              onMouseEnter={e => { if(!isSyncing) e.currentTarget.style.background = "rgba(255,255,255,0.1)" }}
+              onMouseLeave={e => { if(!isSyncing) e.currentTarget.style.background = "rgba(255,255,255,0.05)" }}
+            >
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? "animate-spin" : ""}`} />
+            </button>
+          </>
         )}
 
         {/* Create campaign — only for a specific account (not "Todas") */}

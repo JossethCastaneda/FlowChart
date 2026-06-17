@@ -12,16 +12,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
 import prisma from "@/lib/prisma";
 import { PROVIDERS } from "@/lib/integrations/registry";
-import { createGoogleAdsClient } from "@/lib/integrations/google-ads";
 
-// TODO: Import other clients as they are implemented
+// NOTA: Google NO se sincroniza aquí. Vive en el Google Hub (provider "google"):
+// sus insights se sirven on-demand vía app/api/integrations/google/resources/*.
+// Este cron es el skeleton para los ad-networks del registry genérico
+// (tiktok, linkedin, pinterest, snapchat, x) cuando implementen AdsClient.
 // import { createTikTokAdsClient } from "@/lib/integrations/tiktok-ads";
-// ...
 
 /** Map provider → client factory. Only providers with implemented getInsights. */
 const CLIENT_FACTORIES: Record<string, (workspaceId: string) => { getInsights: (params: { since: string; until: string; accountId?: string }) => Promise<unknown> }> = {
-  google_ads: createGoogleAdsClient,
-  // TODO: Add more as they are implemented
+  // TODO: registrar clientes a medida que se implementen (tiktok_ads, etc.)
 };
 
 export async function GET(req: NextRequest) {

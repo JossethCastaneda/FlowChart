@@ -1,35 +1,82 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";// This endpoint is meant to be called by a Vercel Cron Job every 30-60 minutes
-export async function GET(req: NextRequest) {
+import { start } from "workflow/api";
+import { verifyCronAuth } from "@/lib/cron-auth";
+import { syncIntegrationAssetsWorkflow } from "@/workflows/sync-integration-assets";
+import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
+
+/**
+ * GET /api/cron/sync-ads  (Vercel Cron)
+ *
+ * Pre-cachea MetaAdsCache (campañas/adsets/ads con insights last_30d) de cada
+ * workspace con Meta conectado, despachando el workflow de deep-sync que ya
+ * mantiene esa caché. Se ejecuta en background vía Vercel Workflow, de modo que
+ * el dashboard de Ads lea de caché fresca en vez de pegarle a Graph en vivo.
+ *
+ * Se dispara UN workflow por workspace (no por integración) para no duplicar el
+ * trabajo: todos los módulos meta_* del workspace comparten las mismas cuentas
+ * publicitarias. Se prefiere la integración genérica "meta"; si no existe, se
+ * usa "meta_ads".
+ */
+export async function GET(request: NextRequest) {
+  if (!verifyCronAuth(request)) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   try {
-    // 1. Fetch all distinct adAccountIds currently in the cache
-    const cachedAccounts = await prisma.metaAdsCache.findMany({
-      select: { adAccountId: true },
-      distinct: ['adAccountId'],
+    // Integraciones Meta conectadas que pueden listar cuentas publicitarias.
+    const integrations = await prisma.integration.findMany({
+      where: { provider: { in: ["meta", "meta_ads"] }, connected: true },
+      select: { id: true, workspaceId: true, provider: true },
     });
 
-    if (!cachedAccounts || cachedAccounts.length === 0) {
-      return NextResponse.json({ status: "success", message: "No active accounts to sync" });
+    // Una integración por workspace, prefiriendo "meta" sobre "meta_ads".
+    const byWorkspace = new Map<string, { id: string; provider: string }>();
+    for (const intg of integrations) {
+      const current = byWorkspace.get(intg.workspaceId);
+      if (!current || (current.provider !== "meta" && intg.provider === "meta")) {
+        byWorkspace.set(intg.workspaceId, { id: intg.id, provider: intg.provider });
+      }
     }
 
-    // A more robust way is to re-fetch, but since we don't have the user token in the cron context,
-    // we actually can't fetch from Meta directly without an integration token!
-    // We need to fetch the integrations table to get a system token.
+    let dispatched = 0;
+    const failures: string[] = [];
+    for (const [workspaceId, intg] of byWorkspace) {
+      try {
+        await start(syncIntegrationAssetsWorkflow, [intg.id]);
+        dispatched++;
+      } catch (err) {
+        failures.push(workspaceId);
+        logger.error("sync-ads: failed to dispatch workflow", {
+          route: "api/cron/sync-ads",
+          workspaceId,
+          integrationId: intg.id,
+          error: err,
+        });
+      }
+    }
 
-    const integrations = await prisma.integration.findMany({
-      where: { provider: "meta_ads", connected: true }
+    logger.info("sync-ads cron complete", {
+      route: "api/cron/sync-ads",
+      workspaces: byWorkspace.size,
+      dispatched,
+      failed: failures.length,
     });
 
-    // For now, we will simply invalidate old caches so the next user visit triggers a fresh fetch.
-    // Or we rely on the users visiting to keep it fresh.
-    // To truly pre-warm, we need the decryptToken logic.
-
-    return NextResponse.json({ 
-      status: "success", 
-      message: "Sync cron endpoint initialized. To fully sync, token decryption logic needs to be attached.",
-      accounts: cachedAccounts.length 
+    return NextResponse.json({
+      success: true,
+      workspaces: byWorkspace.size,
+      dispatched,
+      failed: failures.length,
     });
-  } catch (error: any) {
-    return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
+  } catch (err) {
+    logger.error("sync-ads cron error", { route: "api/cron/sync-ads", error: err });
+    return NextResponse.json(
+      { error: err instanceof Error ? err.message : "Error" },
+      { status: 500 }
+    );
   }
 }

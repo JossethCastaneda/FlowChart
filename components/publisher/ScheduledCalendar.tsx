@@ -109,11 +109,11 @@ export function ScheduledCalendar() {
       ]);
       if (resPosts.ok) {
         const data = await resPosts.json();
-        setPosts(data.posts || []);
+        setPosts(data.data?.posts || []);
       }
       if (resFilters.ok) {
         const data = await resFilters.json();
-        setChannels(data.channels || []);
+        setChannels(data.data?.channels || []);
       }
     } catch { /* silent */ }
     setLoading(false);

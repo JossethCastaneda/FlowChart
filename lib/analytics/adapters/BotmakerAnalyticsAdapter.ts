@@ -272,19 +272,28 @@ export class BotmakerAnalyticsAdapter implements AnalyticsProviderAdapter {
       });
 
       // 2. Normalizar + upsert idempotente (clave: session.id).
-      for (const s of sessions) {
-        try {
-          const normalized = this.mapSession(s);
-          if (!normalized.providerConversationId) continue;
-          await prisma.normalizedConversation.upsert({
-            where: { providerConversationId: normalized.providerConversationId },
-            create: { workspaceId, provider: "botmaker", ...normalized },
-            update: { ...normalized },
-          });
-          recordsInserted++;
-        } catch {
-          recordsFailed++;
-        }
+      const toUpsert = sessions.filter(s => {
+        const normalized = this.mapSession(s);
+        return normalized.providerConversationId;
+      });
+      const chunkSize = 100;
+      for (let i = 0; i < toUpsert.length; i += chunkSize) {
+        const chunk = toUpsert.slice(i, i + chunkSize);
+        await Promise.all(
+          chunk.map(async (s) => {
+            try {
+              const normalized = this.mapSession(s);
+              await prisma.normalizedConversation.upsert({
+                where: { providerConversationId: normalized.providerConversationId },
+                create: { workspaceId, provider: "botmaker", ...normalized },
+                update: { ...normalized },
+              });
+              recordsInserted++;
+            } catch {
+              recordsFailed++;
+            }
+          })
+        );
       }
       return { success: true, recordsInserted, recordsFailed };
     } catch (error) {
@@ -349,27 +358,33 @@ export class BotmakerAnalyticsAdapter implements AnalyticsProviderAdapter {
         const sessionId = String(s.id || "");
         if (!sessionId) continue;
         const msgs: BmMessage[] = s.messages || [];
-        for (let i = 0; i < msgs.length; i++) {
-          try {
-            const m = msgs[i];
-            // /sessions no trae id de mensaje → id determinístico (idempotente) por sesión+índice.
-            const normalized: NormalizedMessageInput = {
-              providerMessageId: `${sessionId}::${i}`,
-              conversationId: sessionId,
-              senderType: m.from === "user" ? "user" : m.from === "agent" ? "agent" : "bot",
-              messageType: m.content?.type || "text",
-              // TODO: intent / isFallback no vienen en /sessions (requieren endpoint NLU).
-              sentAt: toMs(m.creationTime) != null ? new Date(toMs(m.creationTime) as number) : new Date(),
-            };
-            await prisma.normalizedMessage.upsert({
-              where: { providerMessageId: normalized.providerMessageId },
-              create: { workspaceId, provider: "botmaker", ...normalized },
-              update: { ...normalized },
-            });
-            recordsInserted++;
-          } catch {
-            recordsFailed++;
-          }
+        const chunkSize = 100;
+        for (let i = 0; i < msgs.length; i += chunkSize) {
+          const chunk = msgs.slice(i, i + chunkSize);
+          await Promise.all(
+            chunk.map(async (m, chunkIndex) => {
+              const absoluteIndex = i + chunkIndex;
+              try {
+                // /sessions no trae id de mensaje → id determinístico (idempotente) por sesión+índice.
+                const normalized: NormalizedMessageInput = {
+                  providerMessageId: `${sessionId}::${absoluteIndex}`,
+                  conversationId: sessionId,
+                  senderType: m.from === "user" ? "user" : m.from === "agent" ? "agent" : "bot",
+                  messageType: m.content?.type || "text",
+                  // TODO: intent / isFallback no vienen en /sessions (requieren endpoint NLU).
+                  sentAt: toMs(m.creationTime) != null ? new Date(toMs(m.creationTime) as number) : new Date(),
+                };
+                await prisma.normalizedMessage.upsert({
+                  where: { providerMessageId: normalized.providerMessageId },
+                  create: { workspaceId, provider: "botmaker", ...normalized },
+                  update: { ...normalized },
+                });
+                recordsInserted++;
+              } catch {
+                recordsFailed++;
+              }
+            })
+          );
         }
       }
       return { success: true, recordsInserted, recordsFailed };

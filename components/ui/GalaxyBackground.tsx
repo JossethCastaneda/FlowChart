@@ -42,8 +42,8 @@ export function GalaxyBackground() {
       stars.length = 0;
       nebulae.length = 0;
 
-      // Stars — multiple layers for parallax depth
-      for (let i = 0; i < 400; i++) {
+      // Stars — reduced count for performance, depth preserved
+      for (let i = 0; i < 150; i++) {
         stars.push({
           x: Math.random() * w,
           y: Math.random() * h,
@@ -55,27 +55,44 @@ export function GalaxyBackground() {
         });
       }
 
-      // Nebulae — floating color clouds
-      const nebulaColors: [number, number, number][] = [
-        [0, 80, 180],    // deep blue
-        [60, 0, 140],    // purple
-        [0, 140, 200],   // cyan
-        [120, 0, 80],    // magenta
-        [0, 60, 120],    // dark blue
-      ];
-      for (let i = 0; i < 5; i++) {
-        nebulae.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          rx: 200 + Math.random() * 300,
-          ry: 150 + Math.random() * 200,
-          color: nebulaColors[i % nebulaColors.length],
-          alpha: 0.03 + Math.random() * 0.04,
-          speed: 0.1 + Math.random() * 0.2,
-          angle: Math.random() * Math.PI * 2,
-          drift: 0.0003 + Math.random() * 0.0005,
-        });
+      // Pre-render nebulae into an offscreen canvas
+      const offscreen = document.createElement("canvas");
+      offscreen.width = w;
+      offscreen.height = h;
+      const offCtx = offscreen.getContext("2d");
+      if (offCtx) {
+        const nebulaColors: [number, number, number][] = [
+          [0, 80, 180],    // deep blue
+          [60, 0, 140],    // purple
+          [0, 140, 200],   // cyan
+          [120, 0, 80],    // magenta
+          [0, 60, 120],    // dark blue
+        ];
+        
+        for (let i = 0; i < 5; i++) {
+          const nx = Math.random() * w;
+          const ny = Math.random() * h;
+          const rx = 300 + Math.random() * 400;
+          const ry = 250 + Math.random() * 300;
+          const alpha = 0.03 + Math.random() * 0.04;
+          const angle = Math.random() * Math.PI * 2;
+          
+          const grad = offCtx.createRadialGradient(nx, ny, 0, nx, ny, rx);
+          const [r, g, b] = nebulaColors[i % nebulaColors.length];
+          grad.addColorStop(0, `rgba(${r},${g},${b},${alpha})`);
+          grad.addColorStop(0.5, `rgba(${r},${g},${b},${alpha * 0.4})`);
+          grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+
+          offCtx.beginPath();
+          offCtx.ellipse(nx, ny, rx, ry, angle, 0, Math.PI * 2);
+          offCtx.fillStyle = grad;
+          offCtx.fill();
+        }
       }
+      // Store the pre-rendered nebulae as an Image for lightning-fast 60fps rendering
+      const nebulaeImg = new Image();
+      nebulaeImg.src = offscreen.toDataURL();
+      nebulae.push({ img: nebulaeImg } as any);
     }
 
     function draw() {
@@ -83,22 +100,9 @@ export function GalaxyBackground() {
       ctx.clearRect(0, 0, w, h);
       const t = performance.now() / 1000;
 
-      // Draw nebulae
-      for (const n of nebulae) {
-        n.angle += n.drift;
-        const nx = n.x + Math.cos(n.angle) * 40;
-        const ny = n.y + Math.sin(n.angle * 0.7) * 30;
-
-        const grad = ctx.createRadialGradient(nx, ny, 0, nx, ny, n.rx);
-        const [r, g, b] = n.color;
-        grad.addColorStop(0, `rgba(${r},${g},${b},${n.alpha})`);
-        grad.addColorStop(0.5, `rgba(${r},${g},${b},${n.alpha * 0.4})`);
-        grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
-
-        ctx.beginPath();
-        ctx.ellipse(nx, ny, n.rx, n.ry, n.angle * 0.3, 0, Math.PI * 2);
-        ctx.fillStyle = grad;
-        ctx.fill();
+      // Draw pre-rendered nebulae (static but extremely fast)
+      if (nebulae[0] && (nebulae[0] as any).img) {
+        ctx.drawImage((nebulae[0] as any).img, 0, 0);
       }
 
       // Draw stars

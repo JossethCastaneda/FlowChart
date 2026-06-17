@@ -25,43 +25,48 @@ Tokens se cifran con **AES-256-GCM** vía `lib/encryption.ts` y se almacenan **p
 
 ## Plataformas
 
-### 1. Google Ads
+### 1. Google (Hub unificado — GA4, Search Console, Tag Manager, Ads, BigQuery)
+
+> **Modelo SaaS:** se registra **UN solo cliente OAuth** en Google Cloud y los
+> módulos se piden con **consentimiento incremental** (`/api/oauth/google/start?modules=…`).
+> Cada workspace conecta SU propia cuenta de Google; nunca manejas tokens de
+> cliente a mano. Ruta de callback única: **`/api/oauth/google/callback`**.
 
 | Campo | Valor |
 |---|---|
-| **Portal** | [Google Cloud Console](https://console.cloud.google.com) |
-| **APIs a habilitar** | Google Ads API |
-| **Redirect URI** | `https://TU_DOMINIO/api/oauth/google_ads/callback` |
-| **Scopes** | `https://www.googleapis.com/auth/adwords` |
-| **Variables Vercel** | `GOOGLE_ADS_CLIENT_ID`, `GOOGLE_ADS_CLIENT_SECRET`, `GOOGLE_ADS_DEVELOPER_TOKEN` |
+| **Portal** | [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials |
+| **Tipo de credencial** | OAuth client ID → **Web application** |
+| **APIs a habilitar** | Google Analytics Data API, Google Analytics Admin API, Search Console API, Tag Manager API, Google Ads API, BigQuery API |
+| **Variables Vercel** | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_ADS_DEVELOPER_TOKEN` |
 
-> **Developer Token**: Se obtiene desde la cuenta MCC (Manager) → API Center → Apply for token. Inicia en "Test Account" (solo tu cuenta), luego solicitar "Basic Access" para producción.
+**Authorized redirect URIs** (regístralas EXACTAS, sin espacios ni slash final):
 
----
+```
+https://sodare.xyz/api/oauth/google/callback
+https://dev.sodare.xyz/api/oauth/google/callback
+http://localhost:3000/api/oauth/google/callback
+```
 
-### 2. Google Analytics 4 (Data API)
+**Authorized JavaScript origins:**
 
-| Campo | Valor |
-|---|---|
-| **Portal** | [Google Cloud Console](https://console.cloud.google.com) |
-| **APIs a habilitar** | Google Analytics Data API |
-| **Redirect URI** | `https://TU_DOMINIO/api/oauth/google_analytics/callback` |
-| **Scopes** | `https://www.googleapis.com/auth/analytics.readonly` |
-| **Variables Vercel** | `GOOGLE_ANALYTICS_CLIENT_ID`, `GOOGLE_ANALYTICS_CLIENT_SECRET` |
+```
+https://sodare.xyz
+https://dev.sodare.xyz
+http://localhost:3000
+```
 
----
+> **Developer Token (solo Google Ads):** cuenta MCC (Manager) → Herramientas → API Center → Apply.
+> Inicia en "Test Access" (solo cuentas de prueba); solicita "Basic/Standard Access" para producción.
 
-### 3. Google BigQuery
+> **Scopes por módulo** (se piden solo los activados — `lib/integrations/google/registry.ts`):
+> GA4/Search Console → `analytics.readonly`, `webmasters.readonly` · Tag Manager → `tagmanager.readonly` ·
+> Google Ads → `adwords` · BigQuery → `bigquery.readonly`.
 
-| Campo | Valor |
-|---|---|
-| **Portal** | [Google Cloud Console](https://console.cloud.google.com) |
-| **APIs a habilitar** | BigQuery API |
-| **Redirect URI** | `https://TU_DOMINIO/api/oauth/google_bigquery/callback` |
-| **Scopes** | `https://www.googleapis.com/auth/bigquery.readonly` |
-| **Variables Vercel** | `GOOGLE_BIGQUERY_CLIENT_ID`, `GOOGLE_BIGQUERY_CLIENT_SECRET` |
-
-> **Alternativa**: En lugar de OAuth del cliente, puedes usar una **service account** con `GOOGLE_SERVICE_ACCOUNT_JSON` (base64-encoded).
+> ⚠️ **NEXTAUTH_URL sin espacios:** el `redirect_uri` se deriva de `NEXTAUTH_URL`.
+> Si esa variable tiene un espacio al inicio/fin en Vercel, Google lo recibe como
+> `%20` y rechaza con `redirect_uri_mismatch`. El código ya lo sanea
+> (`lib/app-url.ts`), pero igual debe estar limpia: `https://sodare.xyz` en
+> Production y `https://dev.sodare.xyz` en Preview.
 
 ---
 
@@ -201,6 +206,47 @@ npx prisma db push
 
 # NO usar prisma migrate deploy — el proyecto usa db push exclusivamente
 ```
+
+---
+
+## Webhooks de Meta (páginas, Instagram, ad_account)
+
+### Suscripción automática (páginas + Instagram)
+
+Al conectar **cualquier** módulo de Meta vía `api/connect/[module]`, el callback
+suscribe automáticamente todas las páginas conectadas (y sus cuentas de IG
+vinculadas) a los webhooks — ya **no** es un paso manual. La lógica vive en
+`lib/meta-webhooks.ts` y se registra en `AuditLog` (`action: "subscribe_webhooks"`).
+
+Para re-suscribir manualmente o inspeccionar el estado:
+
+```bash
+# Estado actual de suscripciones por página
+GET  /api/webhooks/subscribe
+
+# Forzar re-suscripción de todas las páginas
+POST /api/webhooks/subscribe
+```
+
+| Campo | Valor |
+|---|---|
+| **Callback URL** | `https://TU_DOMINIO/api/webhooks/meta` |
+| **Verify Token** | `META_WEBHOOK_VERIFY_TOKEN` |
+| **Campos página** | `messages, messaging_postbacks, messaging_optins, messaging_referrals, message_deliveries, message_reads, feed, mention, ratings, leadgen` |
+| **Campos Instagram** | `messages, messaging_postbacks, comments, mentions, live_comments, story_insights` |
+
+### Suscripción de `ad_account` (MANUAL — nivel App)
+
+> ⚠️ Meta **no expone** `subscribed_apps` para cuentas publicitarias. La
+> suscripción de `ad_account` se configura **una sola vez a nivel App** en la
+> consola de Meta Developers, no por workspace ni programáticamente.
+
+1. Meta Developers → Tu App → **Webhooks** → objeto **Ad Account**
+2. Callback URL: `https://TU_DOMINIO/api/webhooks/meta`, Verify Token: `META_WEBHOOK_VERIFY_TOKEN`
+3. Suscribir campos: `campaigns, adsets, ads, account_spending_limit_reached, funding_source_removed, ad_review`
+
+Sin este paso manual NO llegan alertas de `ad_review` (anuncios rechazados),
+límite de gasto alcanzado ni método de pago removido.
 
 ---
 

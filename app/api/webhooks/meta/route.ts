@@ -628,48 +628,69 @@ async function findProjectsForEvent(meta: {
     });
   }
 
-  // ── Slow path: scan de proyectos activos con canal Meta ──
-  const projects = await prisma.project.findMany({
-    where: { status: "Activo" },
+  // ── Slow path: Optimizado para escanear solo canales Meta ──
+  // Previene el colapso del Pool de Base de Datos al no cargar
+  // el árbol completo de todos los proyectos inactivos o no-Meta.
+  const metaChannels = await prisma.channel.findMany({
+    where: { type: "FACEBOOK" },
     select: {
-      id: true,
-      name: true,
-      workspaceId: true,
-      channels: { select: { type: true, config: true } },
-      workspace: {
-        select: { members: { select: { userId: true } } },
+      projectId: true,
+      config: true,
+      project: {
+        select: {
+          id: true,
+          name: true,
+          workspaceId: true,
+          status: true,
+          workspace: {
+            select: { members: { select: { userId: true } } },
+          },
+        },
       },
     },
   });
 
-  const matched = projects.filter((project) => {
-    const metaChannel = project.channels.find((c) => {
-      const cfg = c.config as Record<string, unknown> | null;
-      return cfg?.platformId === "meta" || c.type === "FACEBOOK";
-    });
-    if (!metaChannel) return false;
-    const cfg = metaChannel.config as Record<string, unknown> | null;
-    if (!cfg) return false;
+  type ProjectMatched = {
+    id: string;
+    name: string;
+    workspaceId: string;
+    workspace: {
+      members: { userId: string }[];
+    } | null;
+  };
 
+  const matchedProjects = new Map<string, ProjectMatched>();
+
+  for (const c of metaChannels) {
+    if (c.project.status !== "Activo") continue;
+
+    const cfg = c.config as Record<string, unknown> | null;
+    if (!cfg) continue;
+
+    let isMatch = false;
     if (meta.adAccountId) {
       const accounts = cfg.adAccounts as string[] | undefined;
-      return accounts?.some(
+      isMatch = accounts?.some(
         (a) => a.includes(meta.adAccountId!) || meta.adAccountId!.includes(a)
       ) ?? false;
-    }
-    if (meta.pageId) {
+    } else if (meta.pageId) {
       const pages = cfg.pages as Array<{ id: string }> | undefined;
-      return cfg.pageId === meta.pageId || pages?.some((p) => p.id === meta.pageId) === true;
-    }
-    if (meta.igAccountId) {
+      isMatch = cfg.pageId === meta.pageId || pages?.some((p) => p.id === meta.pageId) === true;
+    } else if (meta.igAccountId) {
       const accounts = cfg.instagramAccounts as Array<{ id: string }> | undefined;
-      return (
+      isMatch =
         cfg.igAccountId === meta.igAccountId ||
-        accounts?.some((a) => a.id === meta.igAccountId) === true
-      );
+        accounts?.some((a) => a.id === meta.igAccountId) === true;
     }
-    return false;
-  });
+
+    if (isMatch) {
+      // Remover status para cumplir con el tipo de retorno original
+      const { status, ...projectData } = c.project;
+      matchedProjects.set(c.projectId, projectData);
+    }
+  }
+
+  const matched = Array.from(matchedProjects.values());
 
   // Poblar el cache para resolver futuros eventos de esta fuente en O(1).
   if (matched.length > 0) {
@@ -711,6 +732,16 @@ async function createAlert(alert: {
       igAccountId: alert.meta?.igAccountId as string | undefined,
       adAccountId: alert.meta?.adAccountId as string | undefined,
     });
+
+    // ── Fallback para alertas CRÍTICAS sin proyecto resuelto ──────────────
+    // Eventos como account_spending_limit_reached / funding_source_removed /
+    // ad_disapproved son críticos: si la fuente no está mapeada a ningún
+    // proyecto, antes la alerta se perdía en un console.log. Ahora resolvemos
+    // el workspace dueño de la cuenta y notificamos a sus OWNER/ADMIN.
+    if (projects.length === 0 && alert.severity === "critical") {
+      await notifyWorkspaceFallback(alert);
+      return;
+    }
 
     for (const project of projects) {
       // Create ProjectAlert for tracking
@@ -755,6 +786,94 @@ async function createAlert(alert: {
 }
 
 
+
+/**
+ * Fallback para alertas críticas cuyo origen (página / IG / ad_account) no se
+ * resolvió a ningún proyecto. Localiza el workspace dueño del activo vía
+ * IntegrationAssetCache (cualquier tipo) o MetaSource y notifica a OWNER/ADMIN.
+ * Si no hay workspace identificable, deja un logger.error (visible/alertable).
+ */
+async function notifyWorkspaceFallback(alert: {
+  type: string;
+  severity: string;
+  title: string;
+  message: string;
+  meta?: Record<string, unknown>;
+  channel?: string;
+}) {
+  const externalId =
+    (alert.meta?.adAccountId as string | undefined) ??
+    (alert.meta?.pageId as string | undefined) ??
+    (alert.meta?.igAccountId as string | undefined);
+
+  if (!externalId) {
+    logger.error("Critical Meta alert without resolvable source", {
+      type: alert.type,
+      title: alert.title,
+    });
+    return;
+  }
+
+  const normalizedId = externalId.replace(/^act_/, "");
+  const candidates = [...new Set([externalId, normalizedId, `act_${normalizedId}`])];
+
+  // 1. IntegrationAssetCache (activos cacheados al conectar/sincronizar)
+  let workspaceId: string | null = null;
+  const asset = await prisma.integrationAssetCache.findFirst({
+    where: { externalId: { in: candidates } },
+    select: { workspaceId: true },
+  });
+  workspaceId = asset?.workspaceId ?? null;
+
+  // 2. MetaSource → proyecto → workspace (fuente mapeada a proyecto inactivo, etc.)
+  if (!workspaceId) {
+    const source = await prisma.metaSource.findFirst({
+      where: { externalId: { in: candidates } },
+      select: { project: { select: { workspaceId: true } } },
+    });
+    workspaceId = source?.project?.workspaceId ?? null;
+  }
+
+  if (!workspaceId) {
+    logger.error("Critical Meta alert: no workspace owns the source", {
+      type: alert.type,
+      title: alert.title,
+      externalId: normalizedId,
+    });
+    return;
+  }
+
+  const admins = await prisma.workspaceMember.findMany({
+    where: { workspaceId, role: { in: ["OWNER", "ADMIN"] } },
+    select: { userId: true },
+  });
+
+  if (admins.length === 0) {
+    logger.error("Critical Meta alert: workspace has no OWNER/ADMIN", {
+      type: alert.type,
+      workspaceId,
+    });
+    return;
+  }
+
+  await prisma.notification.createMany({
+    data: admins.map((m) => ({
+      userId: m.userId,
+      type: alert.type,
+      title: alert.title,
+      message: alert.message,
+      link: "/dashboard/proyectos",
+    })),
+    skipDuplicates: true,
+  });
+
+  logger.warn("Critical Meta alert routed to workspace admins (no project match)", {
+    type: alert.type,
+    workspaceId,
+    externalId: normalizedId,
+    notified: admins.length,
+  });
+}
 
 /**
  * Determine the best link for the notification based on alert type

@@ -57,8 +57,7 @@ const OVERVIEW_TABS = new Set(["operacion", "calidad", "roi"]);
 
 const inputCls = "bg-black/20 border border-white/10 text-white text-xs rounded-lg px-3 py-2 outline-none";
 
-// Filtro de texto para dimensiones de alta cardinalidad (bot, agente, campaña…).
-// Confirma con Enter o al perder el foco para no refetch por cada tecla.
+// Filtro de texto para otras dimensiones.
 function TextFilter({ value, placeholder, onCommit }: { value: string; placeholder: string; onCommit: (v: string) => void }) {
   const [draft, setDraft] = useState(value);
   useEffect(() => { setDraft(value); }, [value]);
@@ -73,6 +72,33 @@ function TextFilter({ value, placeholder, onCommit }: { value: string; placehold
       onKeyDown={(e) => { if (e.key === "Enter") { commit(); (e.target as HTMLInputElement).blur(); } }}
       className={inputCls}
     />
+  );
+}
+
+// Select asíncrono para dimensiones de alta cardinalidad (bot, agente, campaña…)
+function AsyncDimensionSelect({ 
+  dimension, 
+  value, 
+  placeholder, 
+  onChange, 
+  baseQuery 
+}: { 
+  dimension: string; 
+  value: string; 
+  placeholder: string; 
+  onChange: (v: string) => void; 
+  baseQuery: string; 
+}) {
+  const q = baseQuery ? `${baseQuery}&dimension=${dimension}` : `dimension=${dimension}`;
+  const { data: options } = useAnalyticsData<string[]>("/api/analytics/dimensions", q);
+  
+  return (
+    <select value={value} onChange={(e) => onChange(e.target.value)} className={inputCls}>
+      <option value="">{placeholder}</option>
+      {(options || []).map(opt => (
+        <option key={opt} value={opt}>{opt}</option>
+      ))}
+    </select>
   );
 }
 
@@ -208,10 +234,10 @@ export function AdvancedAnalyticsDashboard({
             <option value="agent">Agente</option>
             <option value="mixed">Mixto</option>
           </select>
-          <TextFilter value={filters.botId} placeholder="Bot (id)…" onCommit={(v) => set({ botId: v })} />
-          <TextFilter value={filters.campaign} placeholder="Campaña (id)…" onCommit={(v) => set({ campaign: v })} />
+          <AsyncDimensionSelect dimension="botId" value={filters.botId} placeholder="Todos los Bots" onChange={(v) => set({ botId: v })} baseQuery={query} />
+          <AsyncDimensionSelect dimension="campaignId" value={filters.campaign} placeholder="Todas las Campañas" onChange={(v) => set({ campaign: v })} baseQuery={query} />
+          <AsyncDimensionSelect dimension="agentId" value={filters.agent} placeholder="Todos los Agentes" onChange={(v) => set({ agent: v })} baseQuery={query} />
           <TextFilter value={filters.service} placeholder="Servicio (id)…" onCommit={(v) => set({ service: v })} />
-          <TextFilter value={filters.agent} placeholder="Agente (id)…" onCommit={(v) => set({ agent: v })} />
           <TextFilter value={filters.queue} placeholder="Cola…" onCommit={(v) => set({ queue: v })} />
           <TextFilter value={filters.skill} placeholder="Skill…" onCommit={(v) => set({ skill: v })} />
           <TextFilter value={filters.tag} placeholder="Tag…" onCommit={(v) => set({ tag: v })} />

@@ -233,7 +233,7 @@ providers.push(
 // On localhost, browsers reject __Secure- cookies over HTTP and ignore domain:.sodare.xyz,
 // so enabling the production cookie config locally has no effect on dev sessions.
 const productionCookies: NextAuthOptions["cookies"] =
-  process.env.VERCEL_ENV === "production"
+  process.env.VERCEL_ENV === "production" && process.env.NODE_ENV !== "development"
     ? {
         sessionToken: {
           name: "__Secure-next-auth.session-token",

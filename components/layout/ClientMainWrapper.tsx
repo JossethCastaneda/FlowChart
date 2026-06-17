@@ -43,18 +43,20 @@ import {
 import { showToast } from "@/components/ui/Toast";
 import { useLanguage } from "@/components/layout/LanguageContext";
 
-const NAV_ITEMS: { name: string; short: string; href: string; icon: any; color: string; roles?: string[] }[] = [
-  { name: "Inicio", short: "HOME", href: "/dashboard/resumen", icon: LayoutDashboard, color: "#00d4ff" },
-  { name: "Clientes", short: "CLI", href: "/dashboard/proyectos", icon: FolderKanban, color: "#06d6a0" },
-  { name: "Planner", short: "PLAN", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b" },
-  { name: "Inbox", short: "INBX", href: "/dashboard/inbox", icon: MessageSquare, color: "#a855f7" },
-  { name: "Analytics", short: "DATA", href: "/dashboard/analytics", icon: BarChart3, color: "#f472b6" },
-  { name: "Resultados", short: "RES", href: "/dashboard/analisis-resultados", icon: Target, color: "#00d4ff" },
-  { name: "Ads", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB" },
-  { name: "Listening", short: "LIST", href: "/dashboard/listening", icon: Ear, color: "#fb923c" },
-  { name: "Streams", short: "STRM", href: "/dashboard/streams", icon: Columns3, color: "#22d3ee" },
-  { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500" },
-  { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55" },
+import { HoloIcon } from "@/components/ui/HoloIcon";
+
+const NAV_ITEMS: { name: string; short: string; href: string; icon: any; color: string; holoVariant: "cyan" | "emerald" | "pink" | "gold"; roles?: string[] }[] = [
+  { name: "Inicio", short: "HOME", href: "/dashboard/resumen", icon: LayoutDashboard, color: "#00d4ff", holoVariant: "cyan" },
+  { name: "Clientes", short: "CLI", href: "/dashboard/proyectos", icon: FolderKanban, color: "#06d6a0", holoVariant: "emerald" },
+  { name: "Planner", short: "PLAN", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b", holoVariant: "gold" },
+  { name: "Inbox", short: "INBX", href: "/dashboard/inbox", icon: MessageSquare, color: "#a855f7", holoVariant: "pink" },
+  { name: "Analytics", short: "DATA", href: "/dashboard/analytics", icon: BarChart3, color: "#f472b6", holoVariant: "pink" },
+  { name: "Resultados", short: "RES", href: "/dashboard/analisis-resultados", icon: Target, color: "#00d4ff", holoVariant: "cyan" },
+  { name: "Ads", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB", holoVariant: "cyan" },
+  { name: "Listening", short: "LIST", href: "/dashboard/listening", icon: Ear, color: "#fb923c", holoVariant: "gold" },
+  { name: "Streams", short: "STRM", href: "/dashboard/streams", icon: Columns3, color: "#22d3ee", holoVariant: "cyan" },
+  { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500", holoVariant: "emerald" },
+  { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55", holoVariant: "pink" },
 ];
 
 
@@ -360,17 +362,16 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                 onClick={() => setSidebarOpen(false)}
                 style={isActive ? { "--nav-color": item.color } as React.CSSProperties : undefined}
               >
-                <Icon
+                <HoloIcon
+                  icon={Icon}
+                  variant={item.holoVariant}
+                  isActive={isActive}
                   className="w-[18px] h-[18px]"
-                  style={{
-                    color: isActive ? item.color : undefined,
-                    filter: isActive ? `drop-shadow(0 0 6px ${item.color})` : undefined,
-                  }}
                 />
                 <span className="flex-1 nav-full-name">{translatedName}</span>
                 <span className="nav-short-name">{item.short}</span>
                 {isActive && (
-                  <ChevronRight className="w-3 h-3" style={{ color: item.color, opacity: 0.5 }} />
+                  <HoloIcon icon={ChevronRight} variant="cyan" isActive={true} className="w-3 h-3" style={{ opacity: 0.5 }} />
                 )}
               </Link>
             );
@@ -426,13 +427,13 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         }}>
           {/* Quick actions */}
           <Link href="/dashboard/inbox" className="text-slate-400 hover:text-white transition-colors" title="Conversaciones">
-            <MessageSquarePlus className="w-[18px] h-[18px]" />
+            <HoloIcon icon={MessageSquarePlus} variant="cyan" isActive={true} className="w-[18px] h-[18px]" />
           </Link>
 
           <NotificationBell />
 
           <button className="text-slate-400 hover:text-white transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-            <HelpCircle className="w-[18px] h-[18px]" />
+            <HoloIcon icon={HelpCircle} variant="emerald" isActive={true} className="w-[18px] h-[18px]" />
           </button>
 
           {/* User Menu Trigger */}
@@ -471,7 +472,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                 </span>
               </div>
 
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              <HoloIcon icon={ChevronDown} variant="cyan" isActive={true} className="w-3.5 h-3.5 opacity-50" />
             </button>
 
             {/* Dropdown Panel */}
@@ -591,7 +592,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                         className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-white/5 transition-colors"
                         style={{ background: "transparent", border: "none", cursor: "pointer", color: theme === 'claro' ? "#475569" : "#e2e8f0" }}
                       >
-                        <Languages className="w-4 h-4 text-slate-400" />
+                        <HoloIcon icon={Languages} variant="cyan" isActive={true} className="w-4 h-4" />
                         <span style={{ fontSize: 12 }}>{t.idioma}</span>
                       </button>
                       <button
@@ -599,24 +600,24 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                         className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-white/5 transition-colors"
                         style={{ background: "transparent", border: "none", cursor: "pointer", color: theme === 'claro' ? "#475569" : "#e2e8f0" }}
                       >
-                        <Palette className="w-4 h-4 text-slate-400" />
+                        <HoloIcon icon={Palette} variant="gold" isActive={true} className="w-4 h-4" />
                         <span style={{ fontSize: 12 }}>{t.apariencia}</span>
                       </button>
                       <Link
                         href="/dashboard/settings"
                         onClick={() => setUserMenuOpen(false)}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-left"
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-left hover:bg-white/5"
                         style={{ color: theme === 'claro' ? "#475569" : "#e2e8f0" }}
                       >
-                        <Settings className="w-4 h-4 text-slate-400" />
+                        <HoloIcon icon={Settings} variant="pink" isActive={true} className="w-4 h-4" />
                         <span style={{ fontSize: 12 }}>{t.config}</span>
                       </Link>
                       <button
                         onClick={() => signOut({ callbackUrl: "/login" })}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-red-500 hover:text-red-400 hover:bg-red-500/10 transition-colors text-left"
-                        style={{ background: "transparent", border: "none", cursor: "pointer" }}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-500/10 transition-colors text-left"
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "#ff2d55" }}
                       >
-                        <LogOut className="w-4 h-4 text-red-500" />
+                        <LogOut className="w-4 h-4" />
                         <span style={{ fontSize: 12, fontWeight: 500 }}>{t.logout}</span>
                       </button>
                     </div>
@@ -641,7 +642,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                         style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
                       >
                         <span>Español (ES)</span>
-                        {lang === 'es' && <Check className="w-4 h-4 text-[#00c875]" />}
+                        {lang === 'es' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
                         onClick={() => changeLang('en')}
@@ -649,7 +650,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                         style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
                       >
                         <span>English (EN)</span>
-                        {lang === 'en' && <Check className="w-4 h-4 text-[#00c875]" />}
+                        {lang === 'en' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                     </div>
                   </div>
@@ -662,7 +663,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       className="flex items-center gap-2 text-xs font-semibold mb-4 hover:opacity-80 transition-opacity"
                       style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "rgba(148, 163, 184, 0.7)", cursor: "pointer" }}
                     >
-                      <ChevronLeft className="w-4 h-4" />
+                      <HoloIcon icon={ChevronLeft} variant="cyan" isActive={true} className="w-4 h-4" />
                       Volver / Back
                     </button>
                     <p style={{ fontSize: 12, fontWeight: 700, color: theme === 'claro' ? "#0f172a" : "white", marginBottom: 12 }}>{t.aparienciaTitulo}</p>
@@ -673,7 +674,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                         style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
                       >
                         <span>{t.modoOscuro}</span>
-                        {theme === 'original' && <Check className="w-4 h-4 text-[#00c875]" />}
+                        {theme === 'original' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
                         onClick={() => changeTheme('claro')}
@@ -681,7 +682,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                         style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
                       >
                         <span>{t.modoClaro}</span>
-                        {theme === 'claro' && <Check className="w-4 h-4 text-[#00c875]" />}
+                        {theme === 'claro' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
                         onClick={() => changeTheme('azul_medianoche')}

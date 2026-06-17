@@ -1,29 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 import { getMetaAccessToken } from "@/lib/server-auth";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
-import { cancelPublishJob } from "@/lib/qstash";
 import { publishPostToMeta, type PublishMode } from "@/lib/publisher/publish-to-meta";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
+import { cancelLegacyQstashSchedule } from "@/lib/publisher/schedule";
+import { logger } from "@/lib/logger";
 
 export const maxDuration = 60;
 
 /**
  * POST /api/publisher/publish
  *
- * Publicación INMEDIATA/manual a Facebook Page e/o Instagram. Comparte la lógica
- * de publicación con el worker de QStash vía lib/publisher/publish-to-meta.
- *
- * - Post normal → modo "now" (publica ya en FB e IG).
- * - Post "Scheduled" → modo "fb_scheduled": usa la programación nativa de Meta
- *   en Facebook y deja el post como Scheduled (IG no soporta programación).
+ * Publishes a saved post immediately to Facebook Page and/or Instagram.
  */
 export const POST = withWorkspace(async (req: NextRequest, ctx) => {
-  const _validate = await validateBody(req, z.object({ postId: z.string() }));
-  if (!_validate.ok) return _validate.response;
-  const { postId } = _validate.data;
+  const parsed = await validateBody(req, z.object({ postId: z.string() }));
+  if (!parsed.ok) return parsed.response;
+  const { postId } = parsed.data;
 
   const post = await prisma.scheduledPost.findFirst({
     where: { id: postId, workspaceId: ctx.workspaceId },
@@ -37,7 +34,6 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError("Este post ya fue publicado", "VALIDATION_ERROR", 400);
   }
 
-  // Token: publisher_facebook → publisher → social → genérico meta
   let accessToken = await getMetaAccessToken(req, "publisher_facebook");
   if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher");
   if (!accessToken) accessToken = await getMetaAccessToken(req, "social");
@@ -51,40 +47,33 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     );
   }
 
-  const mode: PublishMode = post.status === "Scheduled" ? "fb_scheduled" : "now";
-
+  const mode: PublishMode = "now";
   const { externalIds, errors, targetPage } = await publishPostToMeta({
     post,
     accessToken,
     mode,
   });
 
-  console.log(
-    "[PUBLISHER] postId:",
+  logger.info("Publisher post publish attempted", {
+    route: "api/publisher/publish",
     postId,
-    "mode:",
+    workspaceId: ctx.workspaceId,
     mode,
-    "page:",
-    targetPage?.id || "none",
-    "published:",
-    Object.keys(externalIds).join(",") || "none",
-    "errors:",
-    errors.length
-  );
+    pageId: targetPage?.id,
+    publishedChannels: Object.keys(externalIds),
+    errorCount: errors.length,
+  });
 
-  // ── Persistencia ──
   const hasAnySuccess = Object.keys(externalIds).length > 0;
-  const newStatus =
-    post.status === "Scheduled" ? "Scheduled" : hasAnySuccess ? "Published" : "Failed";
+  const newStatus = hasAnySuccess ? "Published" : "Failed";
 
-  // Si se publica YA con éxito, cancelamos su versión programada en QStash.
   if (newStatus === "Published" && post.qStashMessageId) {
-    await cancelPublishJob(post.qStashMessageId);
+    await cancelLegacyQstashSchedule(post.qStashMessageId);
   }
 
-  const updateData: any = {
+  const updateData: Prisma.ScheduledPostUpdateInput = {
     externalIds,
-    publishedAt: hasAnySuccess && post.status !== "Scheduled" ? new Date() : null,
+    publishedAt: hasAnySuccess ? new Date() : null,
     status: newStatus,
     error: errors.length > 0 ? errors.join(" | ") : null,
     pageName: targetPage?.name ?? post.pageName,
@@ -98,7 +87,6 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   });
 
   if (!hasAnySuccess) {
-    // NextResponse directo: apiError no admite payload adicional por defecto.
     return NextResponse.json(
       {
         success: false,
@@ -111,7 +99,6 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   }
 
   return apiSuccess({
-    success: true,
     post: updated,
     published: externalIds,
     warnings: errors.length > 0 ? errors : undefined,

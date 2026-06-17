@@ -11,6 +11,7 @@ import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
 import { getProvider } from "@/lib/integrations/registry";
+import { getAppBaseUrl } from "@/lib/app-url";
 import { env } from "@/lib/env";
 
 const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
@@ -24,7 +25,7 @@ export async function GET(
   const stateParam = request.nextUrl.searchParams.get("state");
   const error = request.nextUrl.searchParams.get("error");
 
-  const baseUrl = env.NEXTAUTH_URL || request.nextUrl.origin;
+  const baseUrl = getAppBaseUrl(request.nextUrl.origin);
   const integrationsUrl = `${baseUrl}/dashboard/integrations`;
 
   // User cancelled

@@ -13,6 +13,10 @@
       "schedule": "0 3 */7 * *"
     },
     {
+      "path": "/api/cron/sync-ads",
+      "schedule": "0 6 * * *"
+    },
+    {
       "path": "/api/cron/sync-insights",
       "schedule": "0 4 * * *"
     },
