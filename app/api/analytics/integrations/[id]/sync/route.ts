@@ -30,7 +30,7 @@ export const POST = withWorkspace(async (req, ctx) => {
     return apiNotFound("Integración no encontrada");
   }
   const normProvider = normalizeIntegrationProvider(integration.provider);
-  if (!["cari_ai", "botmaker"].includes(normProvider)) {
+  if (!normProvider || !["cari_ai", "botmaker"].includes(normProvider)) {
     return apiNotFound("La integración no es un proveedor de analítica soportado");
   }
 
