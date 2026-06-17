@@ -98,4 +98,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   return apiSuccess({ provider: null, connected: false, channel: channel || "all", behavior: EMPTY_BOT_BEHAVIOR, cari: null });
 });
 
-export const maxDuration = 60;
+// La vista EN VIVO descarga sesiones de Botmaker (paginadas) o reportes de Cari
+// (hasta 10k filas × varios reportes). Con 60s se agota → 504 "Vercel Runtime
+// Timeout" → HTML de error → la UI se queda cargando. Fluid Compute permite 300s.
+export const maxDuration = 300;

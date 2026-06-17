@@ -235,4 +235,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   return apiSuccess({ projectId, jobs: results });
 });
 
-export const maxDuration = 60;
+// El sync REAL descarga sesiones de Botmaker y reportes de Cari (hasta 10k filas
+// × varios reportes) + upserts. Con 60s se agota → 504 → el botón se queda en
+// "Sincronizando…" sin estampar projectId. Fluid Compute permite 300s.
+export const maxDuration = 300;
