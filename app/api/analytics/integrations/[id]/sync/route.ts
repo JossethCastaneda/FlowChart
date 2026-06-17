@@ -13,7 +13,18 @@ export const POST = withWorkspace(async (req, ctx) => {
   }
   const { id } = await ctx.params;
 
-  const integration = await prisma.integration.findUnique({ where: { id } });
+  let integration = await prisma.integration.findUnique({ where: { id } });
+  
+  // Si no se encuentra por ID (ej. el front envió "cari_ai" en lugar del cuid), buscar por provider
+  if (!integration) {
+    integration = await prisma.integration.findFirst({
+      where: {
+        workspaceId: ctx.workspaceId,
+        provider: id,
+      }
+    });
+  }
+
   if (!integration || integration.workspaceId !== ctx.workspaceId) {
     return apiNotFound("Integración no encontrada");
   }
