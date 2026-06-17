@@ -17,15 +17,26 @@ export const dynamic = "force-dynamic";
 // ---------------------------------------------------------------------------
 // GET /api/projects — list all projects the user has access to
 // ---------------------------------------------------------------------------
-export const GET = withAuth(async (_req, ctx) => {
-  // Filtrar por workspace ACTIVO (no todos los workspaces)
-  const activeWorkspaceId = await getActiveWorkspaceId(ctx.userId);
-  if (!activeWorkspaceId) {
+export const GET = withAuth(async (req, ctx) => {
+  const targetWorkspaceId = req.nextUrl.searchParams.get("workspaceId") || await getActiveWorkspaceId(ctx.userId);
+
+  if (!targetWorkspaceId) {
+    return apiSuccess([]);
+  }
+
+  // Verificar que el usuario pertenece al workspace solicitado
+  const membership = await prisma.workspaceMember.findUnique({
+    where: {
+      workspaceId_userId: { workspaceId: targetWorkspaceId, userId: ctx.userId },
+    },
+  });
+
+  if (!membership) {
     return apiSuccess([]);
   }
 
   const projects = await prisma.project.findMany({
-    where: { workspaceId: activeWorkspaceId },
+    where: { workspaceId: targetWorkspaceId },
     include: { channels: true },
     orderBy: { createdAt: "desc" },
   });

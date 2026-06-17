@@ -273,7 +273,8 @@ model Task {
   id          String   @id @default(cuid())
   title       String
   description String?  @db.Text
-  assignee    String?
+  assignee    String?  // legacy name field
+  assigneeId  String?  // robust userId
   priority    String   @default("P2")  // P0, P1, P2, P3
   status      String   @default("Backlog") // Backlog, WIP, Review, Done
   dueDate     DateTime?

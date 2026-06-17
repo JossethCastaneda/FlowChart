@@ -17,7 +17,7 @@ export function ClientPortalsManager({ workspaceId }: { workspaceId: string }) {
 
   const fetchProjects = async () => {
     try {
-      const res = await fetch(`/api/projects?workspaceId=${workspaceId}`);
+      const res = await fetch(`/api/projects?workspaceId=${workspaceId}`, { cache: "no-store" });
       if (!res.ok) return;
       const data = await res.json();
       setProjects(data.data || []);

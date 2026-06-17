@@ -1,4 +1,4 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
+import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
@@ -19,9 +19,38 @@ export async function GET() {
       return NextResponse.json({ data: [], members: [] });
     }
 
+    // Prepare visibility filters based on roles and areas
+    const member = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
+    });
+    const settings = await prisma.workspaceSettings.findUnique({ where: { workspaceId } });
+    const config = parseWorkflow(settings || {});
+    
+    const ledAreaIds = config.areas.filter((a) => a.leadIds.includes(session.user.id)).map((a) => a.id);
+    const role = member?.role || "MEMBER";
+    const isGlobalViewer = role === "OWNER" || role === "ADMIN";
+
+    const visibilityFilter = isGlobalViewer
+      ? {} // Owners and Admins see all tasks
+      : {
+          OR: [
+            { createdBy: session.user.id },
+            { requesterId: session.user.id },
+            { assigneeId: session.user.id },
+            // Legacy support for older tasks
+            { assignee: session.user.name || "N/A" },
+            // Leader sees all tasks directed to their area
+            { targetAreaId: { in: ledAreaIds } },
+          ],
+        };
+
     // Fetch top-level tasks (no parent) with their children
     const tasks = await prisma.task.findMany({
-      where: { workspaceId, parentId: null },
+      where: { 
+        workspaceId, 
+        parentId: null,
+        ...visibilityFilter
+      },
       include: {
         children: {
           orderBy: [{ order: "asc" }, { createdAt: "asc" }],
@@ -76,7 +105,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const { title, description, assignee, priority, status, projectId, dueDate, tags, parentId, targetAreaId, requestType } = body;
+    const { title, description, assignee, assigneeId, priority, status, projectId, dueDate, tags, parentId, targetAreaId, requestType } = body;
 
     if (!title || typeof title !== "string" || title.trim().length < 1) {
       return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
@@ -88,8 +117,7 @@ export async function POST(req: NextRequest) {
     const member = await prisma.workspaceMember.findUnique({
       where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
     });
-    // Determine the area to check permissions against: the target area (cross-area
-    // request) or the user's own area.
+    // Determine the area to check permissions against: the target area (cross-area request) or the user's own area.
     const permArea = targetAreaId
       ? config.areas.find((a) => a.id === targetAreaId) || null
       : findUserArea(config, session.user.id);
@@ -115,18 +143,25 @@ export async function POST(req: NextRequest) {
 
     // Cross-area request: auto-assign if no assignee specified.
     let finalAssignee = assignee || null;
-    if (targetAreaId && !finalAssignee) {
+    let finalAssigneeId = assigneeId || null;
+    if (targetAreaId && !finalAssigneeId && !finalAssignee) {
       const picked = await pickAssignee(targetAreaId, workspaceId);
-      if (picked) finalAssignee = picked.name;
+      if (picked) {
+        finalAssignee = picked.name;
+        finalAssigneeId = picked.userId;
+      }
     }
 
     // Auto-calculate SLA / dueDate if not provided
     let finalDueDate = dueDate ? new Date(dueDate) : null;
-    if (!finalDueDate && (targetAreaId || finalAssignee)) {
+    if (!finalDueDate && (targetAreaId || finalAssignee || finalAssigneeId)) {
       let areaForSla = targetAreaId ? config.areas.find((a) => a.id === targetAreaId) : null;
-      if (!areaForSla && finalAssignee) {
+      if (!areaForSla && (finalAssigneeId || finalAssignee)) {
         const assigneeMember = await prisma.workspaceMember.findFirst({
-          where: { workspaceId, user: { name: finalAssignee } },
+          where: { 
+            workspaceId, 
+            ...(finalAssigneeId ? { userId: finalAssigneeId } : { user: { name: finalAssignee } })
+          },
           select: { userId: true },
         });
         if (assigneeMember) {
@@ -139,7 +174,7 @@ export async function POST(req: NextRequest) {
           where: {
             workspaceId,
             status: { not: "Done" },
-            ...(targetAreaId ? { targetAreaId } : { assignee: finalAssignee }),
+            ...(targetAreaId ? { targetAreaId } : { assigneeId: finalAssigneeId }),
           },
         });
         
@@ -160,6 +195,7 @@ export async function POST(req: NextRequest) {
         title: title.trim(),
         description: description || null,
         assignee: finalAssignee,
+        assigneeId: finalAssigneeId,
         priority: priority || "P2",
         status: status || "Backlog",
         dueDate: finalDueDate,
@@ -167,10 +203,11 @@ export async function POST(req: NextRequest) {
         order: nextOrder,
         projectId: projectId || null,
         parentId: parentId || null,
-        // Cross-area request: server stamps the requester (the creator).
         targetAreaId: targetAreaId || null,
         requestType: requestType || null,
+        // Cross-area request: server stamps the requester (the creator).
         requesterId: targetAreaId ? session.user.id : null,
+        createdBy: session.user.id,
       },
       include: { children: true },
     });

@@ -1,4 +1,4 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
+import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
@@ -40,23 +40,36 @@ export async function PATCH(
       : findUserArea(config, session.user.id);
     const perms = getPermissions(permArea, session.user.id, member?.role || "MEMBER");
     if (!perms.canAccessOps) {
-      return NextResponse.json({ error: "No tienes permiso para editar tareas en esta área" }, { status: 403 });
+      return NextResponse.json({ error: "No tienes permiso para acceder a Ops" }, { status: 403 });
+    }
+
+    // STRICT EDITING RULES
+    const isGlobalViewer = member?.role === "OWNER" || member?.role === "ADMIN";
+    const ledAreaIds = config.areas.filter((a) => a.leadIds.includes(session.user.id)).map((a) => a.id);
+    const isLeader = task.targetAreaId ? ledAreaIds.includes(task.targetAreaId) : false;
+    const isAssignee = task.assigneeId === session.user.id || task.assignee === (session.user.name || "N/A");
+    const isCreator = task.createdBy === session.user.id || task.requesterId === session.user.id;
+    const creatorCanEdit = isCreator && task.status === "Backlog";
+
+    if (!isGlobalViewer && !isLeader && !isAssignee && !creatorCanEdit) {
+      return NextResponse.json({ error: "Edición bloqueada: Solo el responsable (asignado), líderes de área o el creador (en Backlog) pueden editar esta tarea." }, { status: 403 });
     }
 
     const body = await req.json();
-    let { title, description, assignee, priority, status, dueDate, tags, order, parentId, attachments } = body;
+    let { title, description, assignee, assigneeId, priority, status, dueDate, tags, order, parentId, attachments } = body;
 
     // Auto-reassign to Area Lead if moving to Review by non-lead
     if (status === "Review" && task.status !== "Review") {
       const isLead = permArea?.leadIds.includes(session.user.id) || member?.role === "OWNER" || member?.role === "ADMIN";
       if (!isLead && permArea && permArea.leadIds.length > 0) {
-        // Find the lead user member to get their name
+        // Find the lead user member to get their name and id
         const leadMember = await prisma.workspaceMember.findFirst({
           where: { workspaceId: task.workspaceId, userId: permArea.leadIds[0] },
           include: { user: true }
         });
         if (leadMember?.user?.name) {
           assignee = leadMember.user.name;
+          assigneeId = leadMember.user.id;
         }
       }
     }
@@ -72,6 +85,7 @@ export async function PATCH(
         ...(title !== undefined && { title: title.trim() }),
         ...(description !== undefined && { description }),
         ...(assignee !== undefined && { assignee }),
+        ...(assigneeId !== undefined && { assigneeId }),
         ...(priority !== undefined && { priority }),
         ...(status !== undefined && { status }),
         ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
@@ -169,8 +183,16 @@ export async function DELETE(
       ? delConfig.areas.find((a) => a.id === task.targetAreaId) || null
       : findUserArea(delConfig, session.user.id);
     const delPerms = getPermissions(delPermArea, session.user.id, delMember?.role || "MEMBER");
-    if (!delPerms.canAccessOps) {
-      return NextResponse.json({ error: "No tienes permiso para eliminar tareas en esta área" }, { status: 403 });
+    
+    // STRICT DELETE RULES
+    const isGlobalViewer = delMember?.role === "OWNER" || delMember?.role === "ADMIN";
+    const ledAreaIds = delConfig.areas.filter((a) => a.leadIds.includes(session.user.id)).map((a) => a.id);
+    const isLeader = task.targetAreaId ? ledAreaIds.includes(task.targetAreaId) : false;
+    const isCreator = task.createdBy === session.user.id || task.requesterId === session.user.id;
+    const creatorCanDelete = isCreator && task.status === "Backlog";
+
+    if (!isGlobalViewer && !isLeader && !creatorCanDelete) {
+      return NextResponse.json({ error: "Eliminación bloqueada: Solo líderes de área o el creador (en Backlog) pueden eliminar tareas." }, { status: 403 });
     }
 
     await prisma.task.delete({ where: { id } });

@@ -21,7 +21,7 @@ interface Comment { id: string; userId: string; userName: string; userImage: str
 interface Activity { id: string; userName: string; action: string; field: string | null; oldValue: string | null; newValue: string | null; createdAt: string }
 interface Attachment { name: string; url: string; type: string; size: number; uploadedAt: string }
 interface Task {
-  id: string; title: string; description: string | null; assignee: string | null;
+  id: string; title: string; description: string | null; assignee: string | null; assigneeId?: string | null;
   priority: string; status: string; dueDate: string | null; tags: string[];
   order: number; parentId: string | null; children: Task[]; createdAt: string;
   closedAt?: string | null;
@@ -227,7 +227,7 @@ function TaskDetailModal({ task, onClose, onSave, members, onRefresh, onSubtaskC
   const t = TRANSLATIONS[lang];
   const [tab, setTab] = useState<"details" | "subtasks" | "comments" | "activity">("details");
   const [form, setForm] = useState({
-    title: task.title, description: task.description || "", assignee: task.assignee || "",
+    title: task.title, description: task.description || "", assignee: task.assignee || "", assigneeId: task.assigneeId || "",
     priority: task.priority, status: task.status,
     dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "", tags: task.tags || [] as string[],
   });
@@ -341,7 +341,10 @@ function TaskDetailModal({ task, onClose, onSave, members, onRefresh, onSubtaskC
             <div><label style={lbl}>{t.taskTitle}</label><input style={inp} value={form.title} onChange={e => set("title", e.target.value)} /></div>
             <div><label style={lbl}>{t.description}</label><textarea rows={3} style={{ ...inp, resize: "vertical" }} value={form.description} onChange={e => set("description", e.target.value)} placeholder="Contexto, instrucciones, links..." /></div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div><label style={lbl}>{t.assignee}</label><select style={{ ...inp, cursor: "pointer" }} value={form.assignee} onChange={e => set("assignee", e.target.value)}><option value="">Sin asignar</option>{members.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}</select></div>
+              <div><label style={lbl}>{t.assignee}</label><select style={{ ...inp, cursor: "pointer" }} value={form.assigneeId} onChange={e => {
+                set("assigneeId", e.target.value);
+                set("assignee", members.find(m => m.id === e.target.value)?.name || "");
+              }}><option value="">Sin asignar</option>{members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>
               <div><label style={lbl}>{t.priority}</label><select style={{ ...inp, cursor: "pointer" }} value={form.priority} onChange={e => set("priority", e.target.value)}>{PRIORITIES.map(p => <option key={p} value={p}>{PRIO_CFG[p].label}</option>)}</select></div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -522,7 +525,7 @@ function TaskDetailModal({ task, onClose, onSave, members, onRefresh, onSubtaskC
 function CreateModal({ onClose, onSave, members }: { onClose: () => void; onSave: (d: any) => void; members: Member[] }) {
   const { lang } = useLanguage();
   const t = TRANSLATIONS[lang];
-  const [form, setForm] = useState({ title: "", description: "", assignee: "", priority: "P2", status: "Backlog", dueDate: "", tags: [] as string[] });
+  const [form, setForm] = useState({ title: "", description: "", assignee: "", assigneeId: "", priority: "P2", status: "Backlog", dueDate: "", tags: [] as string[] });
   const [tagInput, setTagInput] = useState("");
   const [saving, setSaving] = useState(false);
   const set = (k: string, v: any) => setForm(p => ({ ...p, [k]: v }));
@@ -540,7 +543,10 @@ function CreateModal({ onClose, onSave, members }: { onClose: () => void; onSave
           <div><label style={lbl}>{t.taskTitle} *</label><input style={inp} placeholder="¿Qué necesitas hacer?" value={form.title} onChange={e => set("title", e.target.value)} autoFocus /></div>
           <div><label style={lbl}>{t.description}</label><textarea rows={2} style={{ ...inp, resize: "vertical" }} value={form.description} onChange={e => set("description", e.target.value)} placeholder="Contexto..." /></div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            <div><label style={lbl}>{t.assignee}</label><select style={{ ...inp, cursor: "pointer" }} value={form.assignee} onChange={e => set("assignee", e.target.value)}><option value="">Sin asignar</option>{members.map(m => <option key={m.id} value={m.name}>{m.name}</option>)}</select></div>
+            <div><label style={lbl}>{t.assignee}</label><select style={{ ...inp, cursor: "pointer" }} value={form.assigneeId} onChange={e => {
+              set("assigneeId", e.target.value);
+              set("assignee", members.find(m => m.id === e.target.value)?.name || "");
+            }}><option value="">Sin asignar</option>{members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}</select></div>
             <div><label style={lbl}>{t.priority}</label><select style={{ ...inp, cursor: "pointer" }} value={form.priority} onChange={e => set("priority", e.target.value)}>{PRIORITIES.map(p => <option key={p} value={p}>{PRIO_CFG[p].label}</option>)}</select></div>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
