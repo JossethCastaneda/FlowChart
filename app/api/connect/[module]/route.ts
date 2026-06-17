@@ -68,7 +68,7 @@ export async function GET(
   const configId = env[config.envKey];
   if (!configId) {
     return NextResponse.json(
-      { error: `${config.envKey} not configured for ${config.label}` },
+      { error: `${String(config.envKey)} not configured for ${config.label}` },
       { status: 500 }
     );
   }

@@ -90,8 +90,22 @@ function parseEnv() {
   const parsed = envSchema.safeParse(process.env);
   
   if (!parsed.success) {
-    console.error("❌ Faltan variables de entorno críticas o son inválidas:", parsed.error.flatten().fieldErrors);
-    throw new Error("Invalid environment variables");
+    const errors = parsed.error.flatten().fieldErrors;
+    // DB vars may be missing in Vercel (they come as STORAGE_*) — warn but don't crash.
+    // All other missing vars are fatal.
+    const dbVars = new Set(['DATABASE_URL', 'STORAGE_DATABASE_URL', 'STORAGE_POSTGRES_PRISMA_URL']);
+    const fatalErrors = Object.entries(errors).filter(([k]) => !dbVars.has(k));
+    if (fatalErrors.length > 0) {
+      console.error("❌ Faltan variables de entorno críticas o son inválidas:", Object.fromEntries(fatalErrors));
+      throw new Error("Invalid environment variables");
+    }
+    // DB warnings only
+    const dbErrors = Object.entries(errors).filter(([k]) => dbVars.has(k));
+    if (dbErrors.length > 0) {
+      console.warn("[env] DB env vars may be missing — Prisma will use STORAGE_* fallbacks:", Object.fromEntries(dbErrors));
+    }
+    // Return partial data (db fields will be undefined, handled in prisma.ts)
+    return (parsed as any).error?.issues ? (envSchema.partial().parse(process.env) as any) : parsed.data;
   }
   
   return parsed.data;
