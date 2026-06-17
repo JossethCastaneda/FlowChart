@@ -51,6 +51,7 @@ interface Project {
   crmIntegrationId?: string | null;
   crmIntegrationIds?: string[];
   crmType?: string | null;
+  botFlowType?: string | null;
 }
 
 interface MetaPage {
@@ -1309,6 +1310,26 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
               />
             } />
           </Row>
+          {/* Tipo de flujo del bot (metodología BAIT): define el orden del Funnel 2
+              por bot en Análisis de Resultados. Solo aplica a Botmaker. */}
+          {selectedBotProvider === "botmaker" && (
+            <Row>
+              <Field l="Tipo de flujo (bot)" el={
+                <select
+                  value={form.botFlowType || ""}
+                  disabled={ro}
+                  style={{ ...inp, appearance: "auto" }}
+                  onChange={(e) => setForm(prev => ({ ...prev, botFlowType: e.target.value || null }))}
+                >
+                  <option value="">Auto (inferir del flujo)</option>
+                  <option value="prepago">Prepago (número → NIP → nombre)</option>
+                  <option value="pospago_alineado">Pospago alineado</option>
+                  <option value="pospago_simplificado">Pospago simplificado</option>
+                  <option value="google_bait">Google Bait Pospago</option>
+                </select>
+              } />
+            </Row>
+          )}
           {/* Canales del bot: solo los que ofrece la Plataforma Analítica elegida.
               WhatsApp + Web Chat para Cari/Botmaker; Instagram + Facebook del bot
               solo para Botmaker. Para Botmaker se AUTOLLENAN desde su API (números,

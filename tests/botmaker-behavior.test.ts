@@ -10,6 +10,8 @@ import {
   computeRejectionReasons,
   computeSimEsim,
   computeReactivations,
+  computeFlowFunnel,
+  FLOW_ORDERS,
   computeDataRequestOrderFunnel,
   computeBotBehavior,
   type BmSession,
@@ -279,6 +281,31 @@ describe("computeDataRequestOrderFunnel", () => {
     const f = computeDataRequestOrderFunnel([empty]);
     expect(f.method).toBe("none");
     expect(f.steps).toEqual([]);
+  });
+});
+
+describe("computeFlowFunnel (Funnel 2 por tipo de bot)", () => {
+  it("respeta el orden fijo del tipo de bot (Prepago: número→NIP→nombre)", () => {
+    const full: BmSession = {
+      id: "p1", creationTime: t(0), chat: { chat: { contactId: "p1", channelId: "ch1" } },
+      messages: [
+        { from: "bot", creationTime: t(1), content: { type: "text", text: "¿Cuál es el número a portar?" } },
+        { from: "bot", creationTime: t(2), content: { type: "text", text: "Escribe tu NIP" } },
+        { from: "bot", creationTime: t(3), content: { type: "text", text: "Tu nombre completo" } },
+      ],
+      events: [],
+    };
+    const partial: BmSession = {
+      id: "p2", creationTime: t(0), chat: { chat: { contactId: "p2", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(1), content: { type: "text", text: "¿Cuál es el número a portar?" } }],
+      events: [],
+    };
+    const f = computeFlowFunnel([full, partial], FLOW_ORDERS.prepago);
+    expect(f.method).toBe("configured");
+    expect(f.steps.map((s) => s.key)).toEqual(["numero", "nip", "nombre"]);
+    expect(f.steps[0].reached).toBe(2); // ambos piden número
+    expect(f.steps[1].reached).toBe(1); // solo el full llega a NIP
+    expect(f.steps[2].reached).toBe(1);
   });
 });
 

@@ -553,9 +553,54 @@ const FIELD_PATTERNS: { key: string; label: string; re: RegExp }[] = [
 ];
 
 export interface DataRequestFunnel {
-  method: "set-variable" | "heuristic" | "none";
+  method: "set-variable" | "heuristic" | "configured" | "none";
   totalSessions: number;
   steps: { key: string; label: string; reached: number; dropOff: number; dropOffPct: number }[];
+}
+
+/** Etiquetas legibles de cada campo del flujo (desde FIELD_PATTERNS). */
+const FIELD_LABELS: Record<string, string> = Object.fromEntries(FIELD_PATTERNS.map((f) => [f.key, f.label]));
+
+/**
+ * Orden REAL del Funnel 2 por tipo de bot (metodología BAIT). "google_bait" se
+ * deja en auto (mezcla alineado/simplificado según fechas).
+ */
+export const FLOW_ORDERS: Record<string, string[]> = {
+  prepago: ["numero", "nip", "nombre"],
+  pospago_alineado: ["numero", "nombre", "nip", "vigencia", "estado_nac", "fecha_nac", "correo"],
+  pospago_simplificado: ["numero", "nombre", "nip", "estado_nac", "fecha_nac", "correo"],
+};
+
+/** Conjunto de campos que el bot pidió por sesión (heurística de texto, FIELD_PATTERNS). */
+function capturedFieldsPerSession(sessions: BmSession[]): Set<string>[] {
+  return sessions.map((s) => {
+    const set = new Set<string>();
+    for (const m of s.messages || []) {
+      if (m.from === "user") continue;
+      const text = (m.content?.text || "").toString();
+      if (!text) continue;
+      for (const fp of FIELD_PATTERNS) if (fp.re.test(text)) set.add(fp.key);
+    }
+    return set;
+  });
+}
+
+/** Funnel 2 con ORDEN FIJO por tipo de bot (funnel de prefijo). */
+export function computeFlowFunnel(sessions: BmSession[], order: string[], channelId?: string): DataRequestFunnel {
+  const list = onlyChannel(sessions, channelId);
+  const captured = capturedFieldsPerSession(list);
+  const total = list.length;
+  const base = order.map((key, k) => {
+    const prefix = order.slice(0, k + 1);
+    const reached = captured.filter((set) => prefix.every((p) => set.has(p))).length;
+    return { key, label: FIELD_LABELS[key] || key, reached };
+  });
+  const steps = base.map((s, i) => {
+    const prev = i === 0 ? total : base[i - 1].reached;
+    const dropOff = Math.max(0, prev - s.reached);
+    return { key: s.key, label: s.label, reached: s.reached, dropOff, dropOffPct: prev ? Math.round((dropOff / prev) * 1000) / 10 : 0 };
+  });
+  return { method: "configured", totalSessions: total, steps };
 }
 
 /**
@@ -816,10 +861,15 @@ export interface BotBehavior {
   reactivations: ReactivationStats;
 }
 
-/** Agrega TODO el análisis de comportamiento del bot en una sola pasada de alto nivel. */
-export function computeBotBehavior(sessions: BmSession[], channelId?: string): BotBehavior {
+/**
+ * Agrega TODO el análisis de comportamiento del bot. Si `flowType` está definido
+ * y tiene un orden conocido (FLOW_ORDERS), el Funnel 2 usa el orden REAL de ese
+ * tipo de bot; si no, se infiere de los datos.
+ */
+export function computeBotBehavior(sessions: BmSession[], channelId?: string, flowType?: string | null): BotBehavior {
   const list = onlyChannel(sessions, channelId);
   const base = computeResultsMetrics(list);
+  const order = flowType ? FLOW_ORDERS[flowType] : undefined;
 
   // Tiempo de primera respuesta: primer mensaje de usuario → primera respuesta bot/agente.
   let frtSum = 0, frtN = 0;
@@ -847,7 +897,7 @@ export function computeBotBehavior(sessions: BmSession[], channelId?: string): B
     firstMenu: computeFirstMenuReaction(list),
     timeToSale: computeTimeToSale(list),
     nip: computeNipTiming(list),
-    dataRequestFunnel: computeDataRequestOrderFunnel(list),
+    dataRequestFunnel: order ? computeFlowFunnel(list, order) : computeDataRequestOrderFunnel(list),
     rejections: computeRejectionReasons(list),
     simEsim: computeSimEsim(list),
     reactivations: computeReactivations(list),

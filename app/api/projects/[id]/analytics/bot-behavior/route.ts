@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import prisma from "@/lib/prisma";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
@@ -38,6 +39,8 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   if (!scope) return apiError("Proyecto no encontrado", "NOT_FOUND", 404);
 
   const provider = scope.providers[0] || null;
+  const proj = await prisma.project.findFirst({ where: { id, workspaceId: ctx.workspaceId }, select: { botFlowType: true } });
+  const flowType = proj?.botFlowType || null;
 
   if (provider === "botmaker") {
     const conn = await getBotmakerConnection(ctx.workspaceId);
@@ -68,11 +71,12 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
         });
       }
 
-      const behavior = computeBotBehavior(sessions);
+      const behavior = computeBotBehavior(sessions, undefined, flowType);
       return apiSuccess({
         provider,
         connected: true,
         channel: channel || "all",
+        flowType,
         range: { from: range.fromISO, to: range.toISO, timezone: "America/Mexico_City" },
         behavior,
         cari: null,

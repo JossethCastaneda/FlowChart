@@ -222,7 +222,7 @@ function BotmakerBehavior({ b }: { b: BotBehavior }) {
         {b.dataRequestFunnel.steps.length ? (
           <>
             <div style={{ color: "#64748b", fontSize: 11, marginBottom: 12 }}>
-              Método: {b.dataRequestFunnel.method === "set-variable" ? "variables capturadas por el bot" : b.dataRequestFunnel.method === "heuristic" ? "inferido del texto de los mensajes" : "—"} · {b.dataRequestFunnel.totalSessions.toLocaleString("es-MX")} sesiones
+              Método: {b.dataRequestFunnel.method === "configured" ? "orden fijo del tipo de bot" : b.dataRequestFunnel.method === "set-variable" ? "variables capturadas por el bot" : b.dataRequestFunnel.method === "heuristic" ? "inferido del texto de los mensajes" : "—"} · {b.dataRequestFunnel.totalSessions.toLocaleString("es-MX")} sesiones
             </div>
             <div className="space-y-2">
               {b.dataRequestFunnel.steps.map((s, i) => {
