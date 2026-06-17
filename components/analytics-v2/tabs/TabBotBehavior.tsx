@@ -81,6 +81,8 @@ function BotmakerBehavior({ b, base, query }: { b: BotBehavior; base: string; qu
 
   return (
     <div className="space-y-6">
+      <ExecutiveSummary b={b} />
+
       {/* Tiempos de respuesta */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
         <Kpi label="1ª respuesta (prom.)" value={fmtDuration(b.responseTimes.avgFirstResponseSec)} icon={<Clock className="w-3.5 h-3.5" />} color="#00d4ff" />
@@ -375,6 +377,59 @@ function CariBehavior({ cari }: { cari: CariResults }) {
           </ul>
         </div>
       )}
+    </div>
+  );
+}
+
+/** Hallazgos accionables autogenerados desde las métricas en vivo (sección 11). */
+function buildFindings(b: BotBehavior): string[] {
+  const out: string[] = [];
+  if (b.sampleSize > 0) {
+    const conv = Math.round(b.timeToSale.conversionRate * 1000) / 10;
+    out.push(`Conversión a venta (felicidades): ${conv}% — ${b.timeToSale.count.toLocaleString("es-MX")} de ${b.sampleSize.toLocaleString("es-MX")} sesiones.`);
+  }
+  const noResp = b.firstMenu.byType.find((x) => x.type === "sin_respuesta");
+  if (noResp && noResp.pct >= 20) out.push(`${noResp.pct}% no responde al primer menú: revisar el mensaje/CTA inicial.`);
+  if (b.nip.prompted > 0) {
+    const rate = Math.round(b.nip.firstResponseRate * 1000) / 10;
+    if (rate < 70) out.push(`Solo ${rate}% entrega un NIP válido tras pedirlo: el NIP es un cuello de botella.`);
+  }
+  const steps = b.dataRequestFunnel.steps;
+  if (steps.length) {
+    const worst = steps.reduce((a, c) => (c.dropOffPct > a.dropOffPct ? c : a), steps[0]);
+    if (worst.dropOffPct > 0) out.push(`Mayor caída en captura de datos: "${worst.label}" pierde ${worst.dropOffPct}%.`);
+  }
+  if (b.errors.total > 0) out.push(`${b.errors.total.toLocaleString("es-MX")} errores del bot en ${b.errors.sessionsWithError.toLocaleString("es-MX")} sesiones: revisar los flujos con error.`);
+  if (b.rejections.total > 0) out.push(`${b.rejections.total.toLocaleString("es-MX")} sesiones con mensaje de rechazo de portabilidad detectado (cruzar con sábana para el conteo definitivo).`);
+  if (b.buttons.shownMessages > 0 && b.buttons.selectRate < 0.5) out.push(`Tasa de selección de botones ${Math.round(b.buttons.selectRate * 100)}%: muchos usuarios ignoran los botones mostrados.`);
+  return out.slice(0, 6);
+}
+
+/** Resumen ejecutivo (sección 1) + hallazgos accionables (sección 11). */
+function ExecutiveSummary({ b }: { b: BotBehavior }) {
+  const findings = buildFindings(b);
+  const conv = Math.round(b.timeToSale.conversionRate * 1000) / 10;
+  const nipRate = b.nip.prompted ? Math.round(b.nip.firstResponseRate * 1000) / 10 : 0;
+  return (
+    <div style={{ ...panel, borderColor: "rgba(0,212,255,0.25)" }}>
+      <h3 style={h3}><Bot className="w-4 h-4 text-cyan-400" /> Resumen ejecutivo</h3>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 12, marginBottom: 14 }}>
+        <Mini label="Sesiones" value={b.sampleSize.toLocaleString("es-MX")} color="#00d4ff" />
+        <Mini label="Ventas (felicidades)" value={b.timeToSale.count.toLocaleString("es-MX")} color="#06d6a0" />
+        <Mini label="Conversión" value={`${conv}%`} color="#06d6a0" />
+        <Mini label="NIP entregado" value={`${nipRate}%`} color="#ffbe0b" />
+        <Mini label="Rechazos detectados" value={b.rejections.total.toLocaleString("es-MX")} color="#f87171" />
+        <Mini label="Errores del bot" value={b.errors.total.toLocaleString("es-MX")} color="#f87171" />
+      </div>
+      {findings.length > 0 && (
+        <div>
+          <div style={{ fontSize: 12, color: "#94a3b8", marginBottom: 6 }}>Hallazgos accionables</div>
+          <ul style={{ margin: 0, paddingLeft: 18, color: "#cbd5e1", fontSize: 12, lineHeight: 1.7 }}>
+            {findings.map((f, i) => <li key={i}>{f}</li>)}
+          </ul>
+        </div>
+      )}
+      <div style={{ color: "#64748b", fontSize: 10, marginTop: 10 }}>Fuente: conversaciones Botmaker en vivo (regla de venta = mensaje del bot con &quot;felicidades&quot;).</div>
     </div>
   );
 }
