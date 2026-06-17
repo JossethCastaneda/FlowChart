@@ -18,30 +18,41 @@ export const dynamic = "force-dynamic";
 // GET /api/projects — list all projects the user has access to
 // ---------------------------------------------------------------------------
 export const GET = withAuth(async (req, ctx) => {
-  const targetWorkspaceId = req.nextUrl.searchParams.get("workspaceId") || await getActiveWorkspaceId(ctx.userId);
+  try {
+    console.log("[projects:GET] step=1 resolving workspace for userId=", ctx.userId);
+    const targetWorkspaceId = req.nextUrl.searchParams.get("workspaceId") || await getActiveWorkspaceId(ctx.userId);
+    console.log("[projects:GET] step=2 targetWorkspaceId=", targetWorkspaceId);
 
-  if (!targetWorkspaceId) {
-    return apiSuccess([]);
+    if (!targetWorkspaceId) {
+      return apiSuccess([]);
+    }
+
+    console.log("[projects:GET] step=3 checking membership");
+    const membership = await prisma.workspaceMember.findUnique({
+      where: {
+        workspaceId_userId: { workspaceId: targetWorkspaceId, userId: ctx.userId },
+      },
+    });
+    console.log("[projects:GET] step=4 membership=", membership ? "found" : "null");
+
+    if (!membership) {
+      return apiSuccess([]);
+    }
+
+    console.log("[projects:GET] step=5 querying projects");
+    const projects = await prisma.project.findMany({
+      where: { workspaceId: targetWorkspaceId },
+      include: { channels: true },
+      orderBy: { createdAt: "desc" },
+    });
+    console.log("[projects:GET] step=6 found", projects.length, "projects");
+
+    return apiSuccess(projects);
+  } catch (err) {
+    console.error("[projects:GET] CRASH:", err instanceof Error ? err.message : String(err));
+    console.error("[projects:GET] STACK:", err instanceof Error ? err.stack : "no stack");
+    return apiServerError(err, "GET /api/projects");
   }
-
-  // Verificar que el usuario pertenece al workspace solicitado
-  const membership = await prisma.workspaceMember.findUnique({
-    where: {
-      workspaceId_userId: { workspaceId: targetWorkspaceId, userId: ctx.userId },
-    },
-  });
-
-  if (!membership) {
-    return apiSuccess([]);
-  }
-
-  const projects = await prisma.project.findMany({
-    where: { workspaceId: targetWorkspaceId },
-    include: { channels: true },
-    orderBy: { createdAt: "desc" },
-  });
-
-  return apiSuccess(projects);
 });
 
 // ---------------------------------------------------------------------------
