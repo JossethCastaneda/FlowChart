@@ -1147,33 +1147,83 @@ function AdsManagerContent() {
           </div>
         ) : (
           <div style={{
-            display: "flex", alignItems: "center", gap: "12px",
-            padding: "12px 16px",
-            background: "rgba(251,191,36,0.07)",
-            border: "1px solid rgba(251,191,36,0.25)",
-            borderRadius: "6px",
+            position: "relative",
+            display: "flex", alignItems: "center", gap: "16px",
+            padding: "16px 20px",
+            background: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.06) 50%, rgba(236,72,153,0.08) 100%)",
+            border: "1px solid rgba(168,85,247,0.2)",
+            borderRadius: "12px",
+            overflow: "hidden",
+            backdropFilter: "blur(12px)",
           }}>
-            <AlertTriangle className="w-4 h-4" style={{ color: "#fbbf24", flexShrink: 0 }} />
-            <span style={{ fontSize: "12px", color: "rgba(251,191,36,0.9)", flex: 1 }}>
-              Ads Manager no está conectado. Conecta tu cuenta de Meta Ads para ver campañas, conjuntos y anuncios.
-            </span>
+            {/* Animated gradient accent line */}
+            <div style={{
+              position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+              background: "linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #6366f1)",
+              backgroundSize: "200% 100%",
+              animation: "shimmer 3s linear infinite",
+            }} />
+            <div style={{
+              display: "flex", alignItems: "center", justifyContent: "center",
+              width: "40px", height: "40px", borderRadius: "10px", flexShrink: 0,
+              background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
+              boxShadow: "0 0 20px rgba(168,85,247,0.15)",
+            }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 2L2 7l10 5 10-5-10-5z" />
+                <path d="M2 17l10 5 10-5" />
+                <path d="M2 12l10 5 10-5" />
+              </svg>
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)", margin: 0, lineHeight: 1.3 }}>
+                Conecta Meta Ads Manager
+              </p>
+              <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.8)", margin: "3px 0 0", lineHeight: 1.4 }}>
+                Vincula tu cuenta de Meta Ads para ver campañas, conjuntos y anuncios en tiempo real.
+              </p>
+            </div>
             <a
               href="/api/connect/ads"
               style={{
-                display: "inline-flex", alignItems: "center", gap: "6px",
-                padding: "7px 16px",
-                background: "rgba(251,191,36,0.15)",
-                border: "1px solid rgba(251,191,36,0.4)",
-                color: "#fbbf24",
-                fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em",
-                borderRadius: "4px", cursor: "pointer", textDecoration: "none",
+                display: "inline-flex", alignItems: "center", gap: "8px",
+                padding: "10px 20px",
+                background: "linear-gradient(135deg, #6366f1, #a855f7)",
+                color: "#fff",
+                fontSize: "12px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" as const,
+                borderRadius: "8px", cursor: "pointer", textDecoration: "none",
                 whiteSpace: "nowrap",
+                boxShadow: "0 4px 15px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.15)",
+                border: "none",
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                const el = e.currentTarget;
+                el.style.transform = "translateY(-1px)";
+                el.style.boxShadow = "0 6px 20px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.2)";
+              }}
+              onMouseLeave={(e) => {
+                const el = e.currentTarget;
+                el.style.transform = "translateY(0)";
+                el.style.boxShadow = "0 4px 15px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.15)";
               }}
             >
-              Conectar Ads Manager
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+                <polyline points="15 3 21 3 21 9" />
+                <line x1="10" y1="14" x2="21" y2="3" />
+              </svg>
+              Conectar
             </a>
+            <style>{`
+              @keyframes shimmer {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+              }
+            `}</style>
           </div>
         )}
+
 
         <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
           <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.65)" }} />

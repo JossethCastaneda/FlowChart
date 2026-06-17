@@ -147,8 +147,11 @@ async function fetchProjectsFromAPI(retries = 2): Promise<FetchResult> {
           message = json.error || message;
         } catch { /* ignore parse error */ }
         if (res.status === 401) {
-          message = "Tu sesión expiró. Vuelve a iniciar sesión.";
-          return { ok: false, status: res.status, code, message };
+          // Stale/orphan session — redirect to login automatically
+          if (typeof window !== "undefined") {
+            window.location.href = "/login?reason=session_expired";
+          }
+          return { ok: false, status: res.status, code, message: "Tu sesión expiró. Redirigiendo al login..." };
         }
         // Retry on server errors (500+) if we have attempts left
         if (res.status >= 500 && attempt < retries) {
