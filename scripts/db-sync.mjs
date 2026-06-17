@@ -30,11 +30,13 @@ let dbUrl = dbUrlRaw;
 const baseDbUrl = process.env.DATABASE_URL || process.env.STORAGE_POSTGRES_PRISMA_URL || process.env.STORAGE_DATABASE_URL || "";
 if (baseDbUrl && dbUrlRaw) {
   try {
-    const dbHost = new URL(baseDbUrl).host;
-    const dirHost = new URL(dbUrlRaw).host;
+    const dbHost = new URL(baseDbUrl).host.replace("-pooler", "");
+    const dirHost = new URL(dbUrlRaw).host.replace("-pooler", "");
     if (dbHost !== dirHost) {
       console.warn(`[db-sync] Host mismatch! DATABASE_URL (${dbHost}) != DIRECT_URL (${dirHost}). Forcing dbUrl to match DATABASE_URL.`);
-      dbUrl = baseDbUrl;
+      const url = new URL(baseDbUrl);
+      url.host = url.host.replace("-pooler", "");
+      dbUrl = url.toString();
     }
   } catch (e) {
     // Ignore parse errors

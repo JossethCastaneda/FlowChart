@@ -22,11 +22,13 @@ const directUrlRaw =
 let directUrl = directUrlRaw;
 if (databaseUrl && directUrlRaw) {
   try {
-    const dbHost = new URL(databaseUrl).host;
-    const dirHost = new URL(directUrlRaw).host;
+    const dbHost = new URL(databaseUrl).host.replace("-pooler", "");
+    const dirHost = new URL(directUrlRaw).host.replace("-pooler", "");
     if (dbHost !== dirHost) {
       console.warn(`[Prisma] Host mismatch! DATABASE_URL (${dbHost}) != DIRECT_URL (${dirHost}). Forcing directUrl to match DATABASE_URL.`);
-      directUrl = databaseUrl;
+      const url = new URL(databaseUrl);
+      url.host = url.host.replace("-pooler", "");
+      directUrl = url.toString();
     }
   } catch (e) {
     // Ignore parse errors
