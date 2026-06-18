@@ -144,7 +144,7 @@ export async function POST(req: NextRequest) {
     if (baseUrl) credentials.baseUrl = baseUrl;
     if (refreshToken) credentials.refreshToken = encryptToken(refreshToken);
 
-    await prisma.integration.upsert({
+    const integration = await prisma.integration.upsert({
       where: {
         workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" },
       },
@@ -163,6 +163,23 @@ export async function POST(req: NextRequest) {
         connectedBy: session.user.id,
       },
     });
+
+    // Extracción de canales AL CONECTAR: para Botmaker descargamos sus canales
+    // (números WhatsApp, webchats, IG, FB) y los cacheamos para que el formulario
+    // "Nuevo Proyecto" los ofrezca de inmediato. Best-effort: si la API falla, el
+    // connect NO se rompe y el formulario cae al fetch en vivo. Cari no expone un
+    // listado de canales en su Report API → se capturan a mano en el formulario.
+    if (provider === "botmaker") {
+      try {
+        const { normalizeBotmakerBase, listBotmakerChannels, cacheBotmakerChannels } = await import("@/lib/botmaker");
+        const conn = { baseUrl: normalizeBotmakerBase(baseUrl), accessToken: token };
+        const channels = await listBotmakerChannels(conn);
+        if (channels.length > 0) await cacheBotmakerChannels(integration.id, workspaceId, channels);
+        console.log(`[INTEGRATIONS] Botmaker: ${channels.length} canales extraídos al conectar (workspace ${workspaceId})`);
+      } catch (e) {
+        console.warn("[INTEGRATIONS] Botmaker: no se pudieron extraer canales al conectar (se usará fetch en vivo)", e);
+      }
+    }
 
     console.log(`[INTEGRATIONS] ✅ ${provider} connected by ${session.user.id} for workspace ${workspaceId}`);
     return NextResponse.json({ success: true });

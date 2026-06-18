@@ -113,6 +113,8 @@ const BOT_PLATFORM_CHANNELS: Record<string, BotChannel[]> = {
 
 /** Valor centinela del selector para elegir "Google" (no es una Integration). */
 const GOOGLE_PLATFORM = "__google__";
+/** Valor centinela para "No aplica": el proyecto no envía a ninguna plataforma de bot. */
+const NO_BOT_PLATFORM = "__none__";
 const CPR_MAP: Record<string, string> = {
   "Conversaciones": "Costo / conversación",
   "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
@@ -1113,7 +1115,10 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
   // Plataforma analítica seleccionada → canales de bot que ofrece el formulario.
   // Sin plataforma elegida se muestran los comunes (WhatsApp + Web Chat).
   const isGooglePlatform = form.crmType === "google" && !(form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds.length));
+  // "No aplica": el usuario eligió explícitamente NO asociar plataforma de bot.
+  const isNoBot = form.crmType === "no_aplica";
   const selectedBotProvider = (() => {
+    if (isNoBot) return null;
     if (isGooglePlatform) return "google";
     const selId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
     const intg = analyticsIntegrations.find((i) => i.id === selId);
@@ -1236,6 +1241,31 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
 
   const verticalOptions = VERTICALS.map(v => ({ value: v, label: v }));
 
+  // ── Revelado progresivo ──
+  // En modo "create" las secciones aparecen conforme se llenan los datos: el
+  // formulario empieza minimal (solo Identidad) y va revelando lo siguiente.
+  // En edit/view se muestran siempre (ya hay datos que enseñar) o si la sección
+  // ya tiene contenido. Esto simplifica el alta sin esconder datos existentes.
+  const progressive = mode === "create";
+  const filled = (...vals: unknown[]) => vals.some((v) => (Array.isArray(v) ? v.length > 0 : Boolean(v)));
+  const aliasFilled = Boolean(form.alias && form.alias.trim());
+  const botSelectionId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
+  // El usuario tomó una decisión sobre la plataforma del bot (incluye "No aplica").
+  const botChoiceMade = Boolean(botSelectionId) || isGooglePlatform || isNoBot;
+  // El flujo arranca al nombrar el proyecto; lo siguiente se revela tras elegir
+  // plataforma del bot. `aliasFilled` evita que el auto-seleccionar de plataforma
+  // (cuando hay 1 sola integración) revele secciones antes de tiempo.
+  const flowStarted = aliasFilled && botChoiceMade;
+  const reveal = {
+    identityRest: !progressive || aliasFilled,
+    botPlatform: !progressive || aliasFilled,
+    botChannels:
+      (!progressive || flowStarted) && !isNoBot && (showWhatsapp || showWebchat || showInstagram || showFacebook),
+    redes: !progressive || flowStarted || filled(form.fanpage, form.instagram, form.website),
+    adChannels: !progressive || flowStarted || form.channels.length > 0,
+    audiencia: !progressive || form.channels.length > 0 || filled(form.persona, form.geo, form.dateStart, form.dateEnd),
+  };
+
   return createPortal(
     <div onClick={onClose} style={{
       position: "fixed", inset: 0, zIndex: 9999,
@@ -1272,21 +1302,23 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                 onChange={e => set("client", e.target.value)} />
             } />
           </Row>
+          {reveal.botPlatform && (
           <Row>
             <Field l="Vertical" el={
-              <CustomCreatableSelect 
-                value={form.vertical} 
-                options={verticalOptions} 
-                onChange={(val: string) => set("vertical", val)} 
-                placeholder="Seleccionar o escribir..." 
-                ro={ro} 
+              <CustomCreatableSelect
+                value={form.vertical}
+                options={verticalOptions}
+                onChange={(val: string) => set("vertical", val)}
+                placeholder="Seleccionar o escribir..."
+                ro={ro}
               />
             } />
             <Field l="Plataforma Analítica (Bot)" el={
               (() => {
                 const selectedId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
-                const selectValue = isGooglePlatform ? GOOGLE_PLATFORM : selectedId;
+                const selectValue = isNoBot ? NO_BOT_PLATFORM : isGooglePlatform ? GOOGLE_PLATFORM : selectedId;
                 const hasChannel = (form.whatsapp?.length || 0) > 0 || (form.instagram?.length || 0) > 0 || (form.fanpage?.length || 0) > 0;
+                // "No aplica" es una elección válida → no advertir. Solo "Ninguna" (sin elegir) con un canal cargado dispara la alerta.
                 const showNeedsBotWarning = hasChannel && !selectValue;
                 return (
                   <div>
@@ -1297,7 +1329,12 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                         if (sel === GOOGLE_PLATFORM) {
                           // Google no es una Integration: se marca por crmType y
                           // su analítica vive en la pestaña "Análisis de Tráfico".
-                          setForm(prev => ({ ...prev, crmIntegrationId: null, crmIntegrationIds: [], crmType: "google" }));
+                          setForm(prev => ({ ...prev, crmIntegrationId: null, crmIntegrationIds: [], crmType: "google", botFlowType: null }));
+                          return;
+                        }
+                        if (sel === NO_BOT_PLATFORM) {
+                          // No aplica: el proyecto no envía a ninguna plataforma de bot.
+                          setForm(prev => ({ ...prev, crmIntegrationId: null, crmIntegrationIds: [], crmType: "no_aplica", botFlowType: null }));
                           return;
                         }
                         const intg = analyticsIntegrations.find(i => i.id === sel);
@@ -1312,6 +1349,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                       style={{ ...inp, appearance: "auto" }}
                     >
                       <option value="">Ninguna</option>
+                      <option value={NO_BOT_PLATFORM}>No aplica (sin bot)</option>
                       {analyticsIntegrations.map(i => {
                         const norm = normalizeIntegrationProvider(i.provider) as string;
                         return (
@@ -1322,14 +1360,19 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                       })}
                       <option value={GOOGLE_PLATFORM}>Google (Web Chat + Landing)</option>
                     </select>
-                    {!ro && analyticsIntegrations.length === 0 && (
+                    {!ro && analyticsIntegrations.length === 0 && !isNoBot && (
                       <p style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>
-                        Conecta Cari AI o Botmaker en Integraciones para ver Análisis de Resultados.
+                        Conecta Cari AI o Botmaker en Integraciones, o elige "No aplica" si este proyecto no usa bot.
                       </p>
                     )}
-                    {!ro && analyticsIntegrations.length > 1 && !selectedId && (
+                    {!ro && analyticsIntegrations.length > 1 && !selectedId && !isNoBot && (
                       <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>
                         Selecciona la plataforma del bot (Cari AI o Botmaker) para este proyecto.
+                      </p>
+                    )}
+                    {!ro && isNoBot && (
+                      <p style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>
+                        Sin Análisis de Resultados conversacional. El proyecto seguirá midiendo Ads y redes.
                       </p>
                     )}
                     {!ro && showNeedsBotWarning && (
@@ -1343,29 +1386,17 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
               })()
             } />
           </Row>
+          )}
 
-          {/* ── Redes ── */}
-          <Sec icon={<Globe className="w-3 h-3" />} text="Redes Sociales" />
-          <Row>
-            <Field l="Fanpages" el={
-              <CustomMultiSelectPictures 
-                values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []} 
-                options={fanpageOptions} 
-                onChange={(vals: string[]) => setForm(prev => ({ ...prev, fanpage: vals }))} 
-                placeholder="Seleccionar Fanpages..." 
-                ro={ro} 
-              />
-            } />
-            <Field l="Instagram" el={
-              <CustomMultiSelectPictures 
-                values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []} 
-                options={instagramOptions} 
-                onChange={(vals: string[]) => setForm(prev => ({ ...prev, instagram: vals }))} 
-                placeholder="Seleccionar Instagram..." 
-                ro={ro} 
-              />
-            } />
-          </Row>
+          {/* ── Canales del Bot ── (solo si hay plataforma de bot elegida) */}
+          {reveal.botChannels && (
+          <>
+          <Sec icon={<Globe className="w-3 h-3" />} text="Canales del Bot" />
+          {selectedBotProvider === "cari_ai" && (
+            <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", margin: "0 0 10px" }}>
+              Cari AI no expone un listado de canales en su API: ingresa el número de WhatsApp y/o el ID del web chat manualmente.
+            </p>
+          )}
           {/* Tipo de flujo del bot (metodología BAIT): define el orden del Funnel 2
               por bot en Análisis de Resultados. Solo aplica a Botmaker. */}
           {selectedBotProvider === "botmaker" && (
@@ -1454,11 +1485,42 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
               } />}
             </Row>
           )}
+          </>
+          )}
+
+          {/* ── Redes Sociales (Meta) ── */}
+          {reveal.redes && (
+          <>
+          <Sec icon={<Globe className="w-3 h-3" />} text="Redes Sociales" />
+          <Row>
+            <Field l="Fanpages" el={
+              <CustomMultiSelectPictures
+                values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
+                options={fanpageOptions}
+                onChange={(vals: string[]) => setForm(prev => ({ ...prev, fanpage: vals }))}
+                placeholder="Seleccionar Fanpages..."
+                ro={ro}
+              />
+            } />
+            <Field l="Instagram" el={
+              <CustomMultiSelectPictures
+                values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
+                options={instagramOptions}
+                onChange={(vals: string[]) => setForm(prev => ({ ...prev, instagram: vals }))}
+                placeholder="Seleccionar Instagram..."
+                ro={ro}
+              />
+            } />
+          </Row>
           <Row>
             <Field l="Página Web" el={<input type="url" value={form.website} readOnly={ro} placeholder="https://sitio.com" style={inp} onChange={e => set("website", e.target.value)} />} />
           </Row>
+          </>
+          )}
 
           {/* ── Channel selector ── */}
+          {reveal.adChannels && (
+          <>
           <Sec icon={<DollarSign className="w-3 h-3" />} text={`Canales Publicitarios${errors.includes("channels") ? " — Selecciona al menos 1" : ""}`} />
 
           {/* Platform checkboxes */}
@@ -1560,8 +1622,12 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
               </div>
             );
           })}
+          </>
+          )}
 
           {/* ── Audiencia ── */}
+          {reveal.audiencia && (
+          <>
           <Sec icon={<Users className="w-3 h-3" />} text="Audiencia & Calendario" />
           <Row>
             <Field l="Buyer Persona" el={<input type="text" value={form.persona} readOnly={ro} placeholder="Mujeres 25-40, fitness" style={inp} onChange={e => set("persona", e.target.value)} />} />
@@ -1571,6 +1637,8 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
             <Field l="Fecha Inicio" el={<input type="date" value={form.dateStart} readOnly={ro} style={{ ...inp, colorScheme: "dark" }} onChange={e => set("dateStart", e.target.value)} />} />
             <Field l="Fecha Fin" el={<input type="date" value={form.dateEnd} readOnly={ro} style={{ ...inp, colorScheme: "dark" }} onChange={e => set("dateEnd", e.target.value)} />} />
           </Row>
+          </>
+          )}
 
           {/* Actions */}
           {!ro ? (

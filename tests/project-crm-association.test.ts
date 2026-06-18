@@ -8,7 +8,7 @@ vi.mock("@/lib/prisma", () => ({
 }));
 
 import prisma from "@/lib/prisma";
-import { resolveProjectCrmAssociation, sanitizeWorkspaceIntegrationIds } from "../lib/projects/crm";
+import { resolveProjectCrmAssociation, sanitizeWorkspaceIntegrationIds, persistableCrmType } from "../lib/projects/crm";
 import { resolveProjectScope } from "../lib/analytics/project-scope.server";
 
 const p = prisma as unknown as {
@@ -47,6 +47,32 @@ describe("escritura: asociación CRM saneada por workspace", () => {
   it("sanitize deduplica y conserva orden", async () => {
     p.integration.findMany.mockResolvedValue([{ id: "a" }, { id: "b" }]);
     expect(await sanitizeWorkspaceIntegrationIds("ws1", ["a", "b", "a", "x"])).toEqual(["a", "b"]);
+  });
+});
+
+describe("persistableCrmType: conserva sentinels sin integración", () => {
+  it("botmaker/cari CON integración válida → se conserva", () => {
+    expect(persistableCrmType("botmaker", true)).toBe("botmaker");
+    expect(persistableCrmType("cari", true)).toBe("cari");
+  });
+
+  it("botmaker/cari SIN integración → null (no deja analítica fantasma)", () => {
+    expect(persistableCrmType("botmaker", false)).toBeNull();
+    expect(persistableCrmType("cari", false)).toBeNull();
+  });
+
+  it("google SIN integración → se conserva (su analítica vive en Análisis de Tráfico)", () => {
+    expect(persistableCrmType("google", false)).toBe("google");
+  });
+
+  it("no_aplica SIN integración → se conserva (elección explícita de sin bot)", () => {
+    expect(persistableCrmType("no_aplica", false)).toBe("no_aplica");
+  });
+
+  it("vacío/null → null", () => {
+    expect(persistableCrmType("", false)).toBeNull();
+    expect(persistableCrmType(null, true)).toBeNull();
+    expect(persistableCrmType(undefined, true)).toBeNull();
   });
 });
 

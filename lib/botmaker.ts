@@ -989,6 +989,59 @@ export async function listBotmakerChannels(conn: BotmakerConnection): Promise<Bm
     .filter((c) => c.id);
 }
 
+/**
+ * Persiste los canales del bot en `IntegrationAssetCache` (assetType "bot") al
+ * CONECTAR la integración, para que el formulario "Nuevo Proyecto" los tenga
+ * disponibles de inmediato (y como respaldo si la API en vivo falla/tarda).
+ */
+export async function cacheBotmakerChannels(
+  integrationId: string,
+  workspaceId: string,
+  channels: BmChannelInfo[]
+): Promise<void> {
+  for (const c of channels) {
+    if (!c.id) continue;
+    const metadata = { platform: c.platform, number: c.number ?? null, active: c.active };
+    await prisma.integrationAssetCache.upsert({
+      where: { integrationId_assetType_externalId: { integrationId, assetType: "bot", externalId: c.id } },
+      update: { name: c.name || c.id, metadata, syncedAt: new Date() },
+      create: { integrationId, workspaceId, provider: "botmaker", assetType: "bot", externalId: c.id, name: c.name || c.id, metadata },
+    });
+  }
+}
+
+/**
+ * Lee los canales del bot cacheados (poblados al conectar / por el sync workflow)
+ * y los reconstruye al mismo contrato que `listBotmakerChannels`. Respaldo para
+ * cuando la API en vivo de Botmaker no responde. Tolera el `metadata` histórico
+ * del sync workflow (`{ platform, phoneNumber }`) además del nuevo (`{ number }`).
+ */
+export async function getCachedBotmakerChannels(workspaceId: string): Promise<BmChannelInfo[]> {
+  try {
+    const rows = await prisma.integrationAssetCache.findMany({
+      where: { workspaceId, provider: "botmaker", assetType: "bot" },
+      orderBy: { name: "asc" },
+    });
+    return rows.map((r) => {
+      const meta = (r.metadata as Record<string, unknown>) || {};
+      const platform = String(meta.platform ?? "");
+      const number =
+        typeof meta.number === "string" ? meta.number :
+        typeof meta.phoneNumber === "string" ? meta.phoneNumber : undefined;
+      return {
+        id: r.externalId,
+        platform,
+        canonical: channelCanonical(platform),
+        name: r.name || r.externalId,
+        number,
+        active: meta.active !== false,
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 // ── Lead Quality Scoring ─────────────────────────────────────────────────────
 // Measures how valuable / engaged the incoming leads are based purely on
 // conversational signal extracted from BotMaker sessions.
