@@ -1,7 +1,7 @@
 import { sleep } from "workflow";
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
-import { botmakerFetch } from "@/lib/botmaker";
+import { botmakerFetch, normalizeBotmakerBase } from "@/lib/botmaker";
 import { env } from "@/lib/env";
 import { metaFetch } from "@/lib/server-auth";
 
@@ -52,7 +52,9 @@ async function executeSyncStep(integrationId: string) {
     if (integration.provider.startsWith("meta")) {
       await syncMetaAssets(integration, token);
     } else if (integration.provider === "botmaker") {
-      await syncBotmakerAssets(integration, token);
+      // Respetar el host Botmaker propio del workspace (igual que getBotmakerConnection).
+      const baseUrl = normalizeBotmakerBase((integration.credentials as { baseUrl?: string } | null)?.baseUrl);
+      await syncBotmakerAssets(integration, token, baseUrl);
     } else if (integration.provider === "google") {
       await syncGoogleAssets(integration, token);
     }
@@ -281,10 +283,10 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
 }
 
 
-async function syncBotmakerAssets(integration: any, token: string) {
+async function syncBotmakerAssets(integration: any, token: string, baseUrl?: string) {
   // Sincronizar Canales de Botmaker (WhatsApp, Messenger, etc.)
   try {
-    const res = await botmakerFetch("/channels", token);
+    const res = await botmakerFetch("/channels", token, {}, 2, baseUrl);
     // Suponemos que retorna un arreglo de canales
     if (res && Array.isArray(res)) {
       for (const channel of res) {
