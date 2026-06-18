@@ -52,7 +52,7 @@ export default function LoginPage() {
       const oauthError = params.get("error");
       if (oauthError) {
         const errorMessages: Record<string, string> = {
-          OAuthCallback: "Error al conectar con el proveedor. Verifica que las credenciales estén correctas.",
+          OAuthCallback: "Error de conexión. Si usas Facebook, Meta podría estar limitando las peticiones (rate limit), o tus credenciales son inválidas.",
           OAuthSignin: "No se pudo iniciar la autenticación con el proveedor.",
           OAuthAccountNotLinked: "Este email ya está vinculado a otro método de inicio de sesión.",
           AccessDenied: "Acceso denegado. No tienes permisos para acceder.",

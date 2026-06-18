@@ -1056,6 +1056,7 @@ function ProyectosContent() {
           adAccountsByPlatform={adAccounts}
           metaPages={metaPages}
           activeIntegrations={activeIntegrations}
+          projects={projects}
           onClose={() => { setModalMode("closed"); setEditingId(null); }}
           onSave={editingId ? handleUpdate : handleCreate}
         />
@@ -1092,12 +1093,13 @@ function ChannelSuggest({ options, values, onAdd }: { options: { label: string; 
   );
 }
 
-function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIntegrations, onClose, onSave }: {
+function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIntegrations, projects, onClose, onSave }: {
   mode: "create" | "edit" | "view";
   initial: Omit<Project, "id" | "createdAt">;
   adAccountsByPlatform: Record<string, { id: string; name: string; portfolio?: string }[]>;
   metaPages: MetaPage[];
   activeIntegrations: {id: string, provider: string}[];
+  projects: Project[];
   onClose: () => void;
   onSave: (d: Omit<Project, "id" | "createdAt">) => void;
 }) {
@@ -1239,7 +1241,11 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
       portfolio: p.portfolio
     }));
 
-  const verticalOptions = VERTICALS.map(v => ({ value: v, label: v }));
+  const uniqueVerticals = Array.from(new Set([...VERTICALS, ...projects.map(p => p.vertical).filter(Boolean)]));
+  const verticalOptions = uniqueVerticals.map(v => ({ value: v, label: v }));
+  
+  const uniqueClients = Array.from(new Set(projects.map(p => p.client).filter(Boolean)));
+  const clientOptions = uniqueClients.map(c => ({ value: c, label: c }));
 
   // ── Revelado progresivo ──
   // En modo "create" las secciones aparecen conforme se llenan los datos: el
@@ -1297,9 +1303,13 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                 onChange={e => set("alias", e.target.value)} />
             } />
             <Field l="Cliente" el={
-              <input type="text" value={form.client} readOnly={ro} placeholder="Nombre de la marca"
-                style={inp}
-                onChange={e => set("client", e.target.value)} />
+              <CustomCreatableSelect
+                value={form.client}
+                options={clientOptions}
+                onChange={(val: string) => set("client", val)}
+                placeholder="Nombre de la marca o seleccionar..."
+                ro={ro}
+              />
             } />
           </Row>
           {reveal.botPlatform && (

@@ -144,6 +144,30 @@ export async function POST(req: NextRequest) {
     if (baseUrl) credentials.baseUrl = baseUrl;
     if (refreshToken) credentials.refreshToken = encryptToken(refreshToken);
 
+    // Extracción de canales y validación de Botmaker ANTES de guardar:
+    // Evitamos guardar un token inválido que resulte en 0 canales de forma silenciosa.
+    if (provider === "botmaker") {
+      try {
+        const { normalizeBotmakerBase, listBotmakerChannels } = await import("@/lib/botmaker");
+        const conn = { baseUrl: normalizeBotmakerBase(baseUrl), accessToken: token };
+        
+        // Esta llamada fallará o devolverá [] si el token es inválido
+        const channels = await listBotmakerChannels(conn);
+        if (channels.length === 0) {
+          return NextResponse.json(
+            { error: "El token de Botmaker es inválido o la cuenta no tiene canales configurados." },
+            { status: 400 }
+          );
+        }
+      } catch (e: any) {
+        console.error("[INTEGRATIONS] Fallo al validar Botmaker:", e);
+        return NextResponse.json(
+          { error: "Error de red al validar con Botmaker. Revisa tu token o URL base." },
+          { status: 400 }
+        );
+      }
+    }
+
     const integration = await prisma.integration.upsert({
       where: {
         workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" },
@@ -164,20 +188,17 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Extracción de canales AL CONECTAR: para Botmaker descargamos sus canales
-    // (números WhatsApp, webchats, IG, FB) y los cacheamos para que el formulario
-    // "Nuevo Proyecto" los ofrezca de inmediato. Best-effort: si la API falla, el
-    // connect NO se rompe y el formulario cae al fetch en vivo. Cari no expone un
-    // listado de canales en su Report API → se capturan a mano en el formulario.
     if (provider === "botmaker") {
       try {
         const { normalizeBotmakerBase, listBotmakerChannels, cacheBotmakerChannels } = await import("@/lib/botmaker");
         const conn = { baseUrl: normalizeBotmakerBase(baseUrl), accessToken: token };
         const channels = await listBotmakerChannels(conn);
-        if (channels.length > 0) await cacheBotmakerChannels(integration.id, workspaceId, channels);
-        console.log(`[INTEGRATIONS] Botmaker: ${channels.length} canales extraídos al conectar (workspace ${workspaceId})`);
+        if (channels.length > 0) {
+          await cacheBotmakerChannels(integration.id, workspaceId, channels);
+          console.log(`[INTEGRATIONS] Botmaker: ${channels.length} canales extraídos y cacheados (workspace ${workspaceId})`);
+        }
       } catch (e) {
-        console.warn("[INTEGRATIONS] Botmaker: no se pudieron extraer canales al conectar (se usará fetch en vivo)", e);
+        console.warn("[INTEGRATIONS] Botmaker: no se pudieron extraer canales tras guardar", e);
       }
     }
 

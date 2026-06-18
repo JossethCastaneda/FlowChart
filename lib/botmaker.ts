@@ -1121,11 +1121,11 @@ export interface BmChannelInfo {
 function channelCanonical(platform?: string | null): ChannelCanonical | null {
   const p = (platform || "").toLowerCase();
   if (!p) return null;
-  if (p.includes("whats")) return "whatsapp";
+  if (p.includes("whats") || p === "waba") return "whatsapp";
   if (p.includes("insta")) return "instagram";
   if (p.includes("messenger")) return "messenger";
   if (p.includes("facebook") || p === "fb") return "facebook";
-  if (p.includes("web")) return "webchat"; // webchat / web / webwidget
+  if (p.includes("web") || p === "api" || p === "botmaker") return "webchat"; // webchat / web / webwidget
   return null;
 }
 
@@ -1138,8 +1138,12 @@ export async function listBotmakerChannels(conn: BotmakerConnection): Promise<Bm
   const res = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
   if (!res.ok) return [];
   const data = await res.json().catch(() => null);
+  console.log(`[BOTMAKER] /channels response for token prefix ${conn.accessToken.substring(0, 10)}:`, JSON.stringify(data).substring(0, 500));
   const items = (data?.items ?? data ?? []) as Record<string, unknown>[];
-  if (!Array.isArray(items)) return [];
+  if (!Array.isArray(items)) {
+    console.warn(`[BOTMAKER] /channels did not return an array. Data:`, data);
+    return [];
+  }
   return items
     .map((c) => ({
       id: String(c.id ?? ""),
