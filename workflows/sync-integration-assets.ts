@@ -12,8 +12,12 @@ const META_GRAPH_VERSION = env.META_API_VERSION;
  * Workflow asíncrono para mantener sincronizados los activos de las integraciones 
  * (Cuentas Publicitarias, Páginas, Bots) sin bloquear la interfaz del usuario.
  */
-export async function syncIntegrationAssetsWorkflow(integrationId: string) {
+export async function syncIntegrationAssetsWorkflow(integrationId: string, delaySeconds: number = 0) {
   "use workflow";
+
+  if (delaySeconds > 0) {
+    await sleep("stagger-delay", delaySeconds);
+  }
 
   // Este step aislado maneja la lógica y posibles reintentos ante Rate Limits
   const result = await executeSyncStep(integrationId);
@@ -153,6 +157,33 @@ async function syncMetaAssets(integration: any, token: string) {
       // EXTRACCIÓN PROFUNDA: Descargar datos reales de Anuncios
       await syncDeepMetaAdsData(adAcc.id, token);
     }
+  }
+
+  // 3. Pre-calculate Analytics (Background Syncing)
+  try {
+    const fallbackUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL 
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : "http://localhost:3000";
+        
+    const appUrl = env.NEXT_PUBLIC_APP_URL || fallbackUrl;
+    const headers = { 
+      "Authorization": `Bearer ${env.CRON_SECRET}`,
+      "x-meta-token": token 
+    };
+
+    // Trigger organic for 28 and 7 days
+    await fetch(`${appUrl}/api/analytics/organic?force=true&days=28&workspaceId=${integration.workspaceId}`, { headers });
+    await fetch(`${appUrl}/api/analytics/organic?force=true&days=7&workspaceId=${integration.workspaceId}`, { headers });
+    
+    // Trigger posts and audience
+    await fetch(`${appUrl}/api/analytics/posts?force=true&workspaceId=${integration.workspaceId}`, { headers });
+    await fetch(`${appUrl}/api/analytics/audience?force=true&workspaceId=${integration.workspaceId}`, { headers });
+    
+    console.log(`[SYNC] Pre-calculated analytics for workspace ${integration.workspaceId}`);
+  } catch (error) {
+    console.error(`Error in precalculating analytics for ${integration.workspaceId}:`, error);
   }
 }
 

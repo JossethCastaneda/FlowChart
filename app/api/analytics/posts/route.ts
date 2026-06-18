@@ -51,14 +51,23 @@ async function processInChunks<T, R>(
 // ── Main handler ───────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
-  // Auth gate
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
+  // Auth gate with CRON bypass
+  let workspaceId: string | null = null;
+  const authHeader = request.headers.get("Authorization");
+  const isCron = authHeader === `Bearer ${process.env.CRON_SECRET}` && process.env.CRON_SECRET;
+  
+  if (isCron) {
+    workspaceId = request.nextUrl.searchParams.get("workspaceId");
+  } else {
+    const jwt = await getToken({ req: request });
+    if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
+    workspaceId = await getActiveWorkspaceId(jwt.sub);
+  }
+
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
   // BUG 1 FIX — Token fallback multi-módulo
-  let token = await getMetaAccessToken(request, "analytics");
+  let token = request.headers.get("x-meta-token") || await getMetaAccessToken(request, "analytics");
   if (!token) token = await getMetaAccessToken(request, "social");
   if (!token) token = await getMetaAccessToken(request, "publisher_facebook");
   if (!token) token = await getMetaAccessToken(request);

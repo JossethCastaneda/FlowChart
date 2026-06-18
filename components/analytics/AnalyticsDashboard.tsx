@@ -86,27 +86,17 @@ export function AnalyticsDashboard() {
     if (filterPageIds.length === 0) return;
     setIsForceRefreshing(true);
     try {
-      const pageIdParam = filterPageIds.length > 0 ? `pageIds=${filterPageIds.join(",")}` : "";
-      const platformParamStr = filterPlatform !== "all" ? `platform=${filterPlatform}` : "";
-      const compareParamStr = compareMode !== "none" ? `compare=${compareMode}` : "";
-
-      const qOrganic = [`days=${period}`, pageIdParam, platformParamStr, compareParamStr].filter(Boolean).join("&");
-      const qAudience = [pageIdParam, platformParamStr].filter(Boolean).join("&");
-      const qPosts = [`limit=25`, pageIdParam, platformParamStr].filter(Boolean).join("&");
-      const qStories = [platformParamStr].filter(Boolean).join("&");
-
-      await Promise.all([
-        fetch(`/api/analytics/organic?${qOrganic}&force=true`),
-        fetch(`/api/analytics/audience?${qAudience}&force=true`),
-        fetch(`/api/analytics/posts?${qPosts}&force=true`),
-        fetch(`/api/analytics/stories?${qStories}&force=true`),
-        fetch(`/api/analytics/reels?${qStories}&force=true`),
-        fetch(`/api/analytics/growth?${qAudience}&force=true`),
-        fetch(`/api/analytics/best-time?${qAudience}&force=true`)
-      ]);
-      await queryClient.invalidateQueries({ queryKey: ["analytics"] });
+      // Send request to trigger the background sync workflow
+      const res = await fetch("/api/analytics/sync", { method: "POST" });
+      if (!res.ok) throw new Error("Failed to trigger sync");
+      
+      addDataNotice("Sincronización iniciada en segundo plano. Los datos se actualizarán en un par de minutos.");
+      
+      // We don't invalidate queries immediately since the background sync takes time.
+      // The user will see the old cached data until they refresh or until React Query auto-refetches.
     } catch (e) {
-      console.error("Error bypassing cache:", e);
+      console.error("Error triggering sync:", e);
+      addDataNotice("Error al iniciar sincronización. Intenta de nuevo más tarde.");
     } finally {
       setIsForceRefreshing(false);
     }

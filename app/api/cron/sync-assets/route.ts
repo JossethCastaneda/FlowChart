@@ -19,8 +19,10 @@ export async function GET(req: NextRequest) {
       where: { connected: true }
     });
 
+    let delay = 0;
     for (const integration of integrations) {
-      await start(syncIntegrationAssetsWorkflow, [integration.id]);
+      await start(syncIntegrationAssetsWorkflow, [integration.id, delay]);
+      delay += 30; // 30 seconds delay between each integration
     }
 
     logger.info(`Cron disparó sync para ${integrations.length} integraciones`);
