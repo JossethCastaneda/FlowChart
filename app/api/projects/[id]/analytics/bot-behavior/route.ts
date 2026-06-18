@@ -8,12 +8,14 @@ import { resolveProjectScope } from "@/lib/analytics/project-scope.server";
 import { getCariCredentials, computeCariResults, EMPTY_CARI_RESULTS } from "@/lib/crm/cari";
 import {
   getBotmakerConnection,
-  botmakerFetch,
   listSessions,
+  listBotmakerChannels,
   canonicalPlatform,
   computeBotBehavior,
+  computeBehaviorByBot,
   EMPTY_BOT_BEHAVIOR,
   type BmSession,
+  type BmChannelInfo,
 } from "@/lib/botmaker";
 
 /**
@@ -45,24 +47,26 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   if (provider === "botmaker") {
     const conn = await getBotmakerConnection(ctx.workspaceId);
     if (!conn) {
-      return apiSuccess({ provider, connected: false, channel: channel || "all", behavior: EMPTY_BOT_BEHAVIOR, cari: null });
+      return apiSuccess({ provider, connected: false, channel: channel || "all", behavior: EMPTY_BOT_BEHAVIOR, byBot: [], cari: null });
     }
     const range = cdmxRange(days);
     try {
-      // Mapa channelId → platform para poder filtrar por canal canónico.
+      // Canales del bot: alimentan el mapa channelId→platform (filtro por canal)
+      // y el desglose POR BOT (cada canal = un bot).
+      let channels: BmChannelInfo[] = [];
+      try { channels = await listBotmakerChannels(conn); } catch { /* canales best-effort */ }
       const channelPlatform = new Map<string, string>();
-      try {
-        const chRes = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
-        if (chRes.ok) {
-          const chData = await chRes.json();
-          const items = chData.items || chData || [];
-          for (const c of items) if (c?.id) channelPlatform.set(String(c.id), String(c.platform || ""));
-        }
-      } catch { /* canales best-effort */ }
+      for (const c of channels) if (c.id) channelPlatform.set(c.id, c.platform);
 
-      let sessions = await listSessions(conn.accessToken, range.fromISO, range.toISO, 6, conn.baseUrl);
+      const allSessions = await listSessions(conn.accessToken, range.fromISO, range.toISO, 6, conn.baseUrl);
+
+      // Desglose por bot sobre el universo COMPLETO (sin filtrar por canal), para
+      // que la vista "Por bot" sea total. El Funnel 2 por bot usa el tipo de flujo
+      // del proyecto como default (mapeo explícito por canal = follow-up).
+      const byBot = computeBehaviorByBot(allSessions, channels, { defaultFlowType: flowType });
 
       // Filtro por canal canónico (whatsapp/instagram/facebook/messenger) cuando aplica.
+      let sessions = allSessions;
       const canonReq = ["whatsapp", "instagram", "facebook", "messenger"].includes(channel) ? channel : null;
       if (canonReq) {
         sessions = sessions.filter((s: BmSession) => {
@@ -79,6 +83,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
         flowType,
         range: { from: range.fromISO, to: range.toISO, timezone: "America/Mexico_City" },
         behavior,
+        byBot,
         cari: null,
       });
     } catch (error) {
@@ -91,7 +96,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
     try {
       const creds = await getCariCredentials(ctx.workspaceId);
       const cari = creds ? await computeCariResults(creds, days) : EMPTY_CARI_RESULTS;
-      return apiSuccess({ provider, connected: !!creds, channel: channel || "all", behavior: null, cari });
+      return apiSuccess({ provider, connected: !!creds, channel: channel || "all", behavior: null, byBot: [], cari });
     } catch (error) {
       logger.error("bot-behavior: cari failed", { workspaceId: ctx.workspaceId, error });
       return apiError("Error al consultar Cari AI", "CARI_ERROR", 502);
@@ -99,7 +104,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   }
 
   // Sin plataforma analítica asociada.
-  return apiSuccess({ provider: null, connected: false, channel: channel || "all", behavior: EMPTY_BOT_BEHAVIOR, cari: null });
+  return apiSuccess({ provider: null, connected: false, channel: channel || "all", behavior: EMPTY_BOT_BEHAVIOR, byBot: [], cari: null });
 });
 
 // La vista EN VIVO descarga sesiones de Botmaker (paginadas) o reportes de Cari

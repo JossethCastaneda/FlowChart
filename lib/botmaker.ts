@@ -625,6 +625,35 @@ export function computeFlowFunnel(sessions: BmSession[], order: string[], channe
 }
 
 /**
+ * Funnel 2 GLOBAL (metodología BAIT): orden FIJO número → NIP → nombre → venta,
+ * independiente del tipo de bot. Los 3 primeros pasos son un funnel de prefijo
+ * sobre los datos que el bot pidió (heurística FIELD_PATTERNS); el paso final
+ * "venta" usa la regla del dashboard (mensaje del bot con "felicidades").
+ */
+export function computeGlobalFunnel2(sessions: BmSession[], channelId?: string): DataRequestFunnel {
+  const list = onlyChannel(sessions, channelId);
+  const captured = capturedFieldsPerSession(list);
+  const total = list.length;
+  const order = ["numero", "nip", "nombre"];
+  const labels: Record<string, string> = {
+    numero: "Número a cambiar", nip: "NIP", nombre: "Nombre completo", venta: "Venta (felicidades)",
+  };
+  const base = order.map((key, k) => {
+    const prefix = order.slice(0, k + 1);
+    return { key, reached: captured.filter((set) => prefix.every((p) => set.has(p))).length };
+  });
+  // Paso terminal: la VENTA (regla "felicidades"), no un dato capturado.
+  const ventaReached = list.filter((s) => saleConfirmationAt(s) != null).length;
+  const all = [...base, { key: "venta", reached: ventaReached }];
+  const steps = all.map((s, i) => {
+    const prev = i === 0 ? total : all[i - 1].reached;
+    const dropOff = Math.max(0, prev - s.reached);
+    return { key: s.key, label: labels[s.key] || s.key, reached: s.reached, dropOff, dropOffPct: prev ? Math.round((dropOff / prev) * 1000) / 10 : 0 };
+  });
+  return { method: "configured", totalSessions: total, steps };
+}
+
+/**
  * Funnel del ORDEN en que el bot pide datos. Señal primaria: eventos
  * `set-variable` (orden de primera aparición por sesión = orden de captura).
  * Fallback: el texto de los mensajes del bot contra `FIELD_PATTERNS`.
@@ -719,25 +748,40 @@ export interface NipTiming {
   firstResponseRate: number; // delivered / prompted (0–1)
   avgSec: number;            // tiempo prompt → entrega válida
   medianSec: number;
+  // BAIT G3: separar la primera RESPUESTA (cualquier texto) de la primera ENTREGA
+  // VÁLIDA. `responded` puede ser > `delivered` (el usuario respondió algo no válido).
+  responded: number;         // sesiones donde el usuario respondió algo tras el prompt
+  respondedRate: number;     // responded / prompted (0–1)
+  avgRespondedSec: number;   // tiempo prompt → primera respuesta (cualquiera)
 }
 
 /**
- * Análisis de NIP (metodología BAIT): separa el prompt del bot de la primera
- * ENTREGA VÁLIDA (numérica) del usuario. Tiempo de obtención = primer prompt
- * claro de NIP → primera entrega válida posterior.
+ * Análisis de NIP (metodología BAIT): separa el prompt del bot de (a) la primera
+ * RESPUESTA del usuario (cualquier texto) y (b) la primera ENTREGA VÁLIDA
+ * (numérica). Tiempo de obtención = primer prompt claro de NIP → primera entrega
+ * válida posterior; el tiempo de respuesta usa la primera respuesta cualquiera.
  */
 export function computeNipTiming(sessions: BmSession[], channelId?: string): NipTiming {
   const list = onlyChannel(sessions, channelId);
   const NIP_PROMPT = /\bnip\b/i;
   const VALID_NIP = /^\D*\d{4,8}\D*$/; // 4–8 dígitos (admite separadores)
-  const durations: number[] = [];
-  let prompted = 0, delivered = 0;
+  const durations: number[] = [];        // prompt → entrega válida
+  const respondedDurations: number[] = []; // prompt → primera respuesta cualquiera
+  let prompted = 0, delivered = 0, responded = 0;
   for (const s of list) {
     const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
     const prompt = msgs.find((m) => m.from !== "user" && NIP_PROMPT.test((m.content?.text || "").toString()));
     if (!prompt) continue;
     prompted++;
     const promptAt = toMs(prompt.creationTime) || 0;
+    // (a) Primera respuesta del usuario tras el prompt (cualquier texto no vacío).
+    const anyReply = msgs.find((m) => m.from === "user" && (toMs(m.creationTime) || 0) > promptAt && (m.content?.text || "").toString().trim());
+    if (anyReply) {
+      responded++;
+      const at = toMs(anyReply.creationTime);
+      if (at != null && at >= promptAt) respondedDurations.push(Math.round((at - promptAt) / 1000));
+    }
+    // (b) Primera entrega VÁLIDA (4–8 dígitos) posterior al prompt.
     const delivery = msgs.find((m) => m.from === "user" && (toMs(m.creationTime) || 0) > promptAt && VALID_NIP.test((m.content?.text || "").toString().trim()));
     if (delivery) {
       delivered++;
@@ -747,12 +791,16 @@ export function computeNipTiming(sessions: BmSession[], channelId?: string): Nip
   }
   durations.sort((a, b) => a - b);
   const n = durations.length;
+  const rn = respondedDurations.length;
   return {
     prompted,
     delivered,
     firstResponseRate: prompted ? Math.round((delivered / prompted) * 1000) / 1000 : 0,
     avgSec: n ? Math.round(durations.reduce((s, v) => s + v, 0) / n) : 0,
     medianSec: n ? durations[Math.floor((n - 1) / 2)] : 0,
+    responded,
+    respondedRate: prompted ? Math.round((responded / prompted) * 1000) / 1000 : 0,
+    avgRespondedSec: rn ? Math.round(respondedDurations.reduce((s, v) => s + v, 0) / rn) : 0,
   };
 }
 
@@ -866,6 +914,30 @@ export function computeReactivations(sessions: BmSession[], channelId?: string, 
   return { withGap, reactivated, rate: withGap ? Math.round((reactivated / withGap) * 1000) / 1000 : 0 };
 }
 
+// ── Derivaciones a agente (sección 8: ventas, derivaciones y reactivaciones) ──
+export interface DerivationStats {
+  count: number; // sesiones derivadas a un agente humano
+  rate: number;  // count / sesiones (0–1)
+}
+
+/**
+ * Derivaciones (metodología BAIT, sección 8): sesiones transferidas a un agente
+ * humano. Señal: algún mensaje `from === "agent"` o un evento de transferencia.
+ */
+export function computeDerivations(sessions: BmSession[], channelId?: string): DerivationStats {
+  const list = onlyChannel(sessions, channelId);
+  let count = 0;
+  for (const s of list) {
+    const hasAgent = (s.messages || []).some((m) => m.from === "agent");
+    const transferred = (s.events || []).some((e) => {
+      const n = (e.name || "").toLowerCase();
+      return n.includes("transfer") || n.includes("handoff") || n.includes("derivac") || n.includes("agent-assign") || n.includes("assign-agent");
+    });
+    if (hasAgent || transferred) count++;
+  }
+  return { count, rate: list.length ? Math.round((count / list.length) * 1000) / 1000 : 0 };
+}
+
 export interface BotBehavior {
   sampleSize: number;
   responseTimes: { avgBotSec: number; avgUserSec: number; avgFirstResponseSec: number };
@@ -877,9 +949,30 @@ export interface BotBehavior {
   timeToSale: TimeToSaleStats;
   nip: NipTiming;
   dataRequestFunnel: DataRequestFunnel;
+  /** Funnel 2 GLOBAL de orden fijo número → NIP → nombre → venta (BAIT G2). */
+  globalFunnel2: DataRequestFunnel;
   rejections: RejectionStats;
   simEsim: SimEsimStats;
   reactivations: ReactivationStats;
+  /** Derivaciones a agente (BAIT G4, sección 8). */
+  derivations: DerivationStats;
+}
+
+/**
+ * Resuelve el tipo de flujo efectivo. "google_bait" es una mezcla
+ * alineado/simplificado según fecha de corte (1-jun-2026): se decide con la
+ * sesión más reciente del conjunto. Los demás tipos se devuelven tal cual.
+ */
+function resolveFlowType(flowType: string | null | undefined, list: BmSession[]): string | null | undefined {
+  if (flowType === "google_bait" && list.length > 0) {
+    const CUTOFF_MS = new Date("2026-06-01T00:00:00-06:00").getTime();
+    const lastSessionAt = list.reduce((latest, s) => {
+      const t = toMs(s.creationTime) || 0;
+      return t > latest ? t : latest;
+    }, 0);
+    return lastSessionAt >= CUTOFF_MS ? "pospago_simplificado" : "pospago_alineado";
+  }
+  return flowType;
 }
 
 /**
@@ -891,18 +984,7 @@ export function computeBotBehavior(sessions: BmSession[], channelId?: string, fl
   const list = onlyChannel(sessions, channelId);
   const base = computeResultsMetrics(list);
 
-  let resolvedFlowType = flowType;
-  if (flowType === "google_bait" && list.length > 0) {
-    // Regla de Fecha de Google Bait: 1 de Junio 2026
-    const CUTOFF_MS = new Date("2026-06-01T00:00:00-06:00").getTime();
-    // Usar la sesión más reciente del conjunto para decidir el embudo
-    const lastSessionAt = list.reduce((latest, s) => {
-      const t = toMs(s.creationTime) || 0;
-      return t > latest ? t : latest;
-    }, 0);
-    resolvedFlowType = lastSessionAt >= CUTOFF_MS ? "pospago_simplificado" : "pospago_alineado";
-  }
-
+  const resolvedFlowType = resolveFlowType(flowType, list);
   const order = resolvedFlowType ? FLOW_ORDERS[resolvedFlowType] : undefined;
 
   // Tiempo de primera respuesta: primer mensaje de usuario → primera respuesta bot/agente.
@@ -932,14 +1014,95 @@ export function computeBotBehavior(sessions: BmSession[], channelId?: string, fl
     timeToSale: computeTimeToSale(list),
     nip: computeNipTiming(list),
     dataRequestFunnel: order ? computeFlowFunnel(list, order) : computeDataRequestOrderFunnel(list),
+    globalFunnel2: computeGlobalFunnel2(list),
     rejections: computeRejectionReasons(list),
     simEsim: computeSimEsim(list),
     reactivations: computeReactivations(list),
+    derivations: computeDerivations(list),
   };
 }
 
 /** Comportamiento vacío (sin token / desconectado). */
 export const EMPTY_BOT_BEHAVIOR: BotBehavior = computeBotBehavior([]);
+
+// ── Desglose POR BOT (BAIT G1: global Y por bot) ─────────────────────────────
+// Cada "bot" es un canal Botmaker (channelId). Se agrupan las sesiones por canal
+// y se calcula un resumen COMPACTO por bot (no el BotBehavior completo, para no
+// inflar el payload). El Funnel 2 por bot respeta el orden real de su tipo de
+// flujo cuando se conoce (mapa por canal o default del proyecto), o se infiere.
+
+export interface BotSummary {
+  channelId: string;
+  name: string;
+  platform: string;
+  canonical: ChannelCanonical | null;
+  number?: string;
+  sampleSize: number;
+  sales: number;             // ventas (felicidades)
+  conversionRate: number;    // ventas / sesiones (0–1)
+  nipPrompted: number;
+  nipDeliveredRate: number;  // entrega válida / pidió NIP (0–1)
+  derivations: DerivationStats;
+  reactivations: ReactivationStats;
+  firstMenu: FirstMenuReaction;   // Funnel 1 por bot
+  funnel2: DataRequestFunnel;     // Funnel 2 por bot (orden por tipo de flujo)
+  flowType: string | null;        // tipo de flujo efectivo usado (o null = inferido)
+}
+
+export interface BehaviorByBotOptions {
+  /** Mapa explícito channelId → tipo de flujo (mapeo de bots). */
+  flowTypeByChannel?: Record<string, string>;
+  /** Tipo de flujo por defecto (p. ej. Project.botFlowType) si no hay mapa. */
+  defaultFlowType?: string | null;
+}
+
+/**
+ * Agrupa las sesiones por canal Botmaker y devuelve un resumen por bot, ordenado
+ * por volumen de sesiones (desc). Reusa las funciones puras ya existentes.
+ */
+export function computeBehaviorByBot(
+  sessions: BmSession[],
+  channels: BmChannelInfo[],
+  opts: BehaviorByBotOptions = {}
+): BotSummary[] {
+  const list = Array.isArray(sessions) ? sessions : [];
+  const groups = new Map<string, BmSession[]>();
+  for (const s of list) {
+    const cid = s.chat?.chat?.channelId;
+    if (!cid) continue;
+    const g = groups.get(cid);
+    if (g) g.push(s); else groups.set(cid, [s]);
+  }
+  const info = new Map((channels || []).map((c) => [c.id, c]));
+  const out: BotSummary[] = [];
+  for (const [cid, group] of groups) {
+    if (group.length === 0) continue;
+    const tts = computeTimeToSale(group);
+    const nip = computeNipTiming(group);
+    const rawFlow = opts.flowTypeByChannel?.[cid] ?? opts.defaultFlowType ?? null;
+    const resolved = resolveFlowType(rawFlow, group);
+    const order = resolved ? FLOW_ORDERS[resolved] : undefined;
+    const ch = info.get(cid);
+    out.push({
+      channelId: cid,
+      name: ch?.name || cid,
+      platform: ch?.platform || "",
+      canonical: ch?.canonical ?? null,
+      number: ch?.number,
+      sampleSize: group.length,
+      sales: tts.count,
+      conversionRate: tts.conversionRate,
+      nipPrompted: nip.prompted,
+      nipDeliveredRate: nip.firstResponseRate,
+      derivations: computeDerivations(group),
+      reactivations: computeReactivations(group),
+      firstMenu: computeFirstMenuReaction(group),
+      funnel2: order ? computeFlowFunnel(group, order) : computeDataRequestOrderFunnel(group),
+      flowType: resolved ?? null,
+    });
+  }
+  return out.sort((a, b) => b.sampleSize - a.sampleSize);
+}
 
 // ── Listado de canales (para autollenar el formulario de proyecto) ───────────
 export type ChannelCanonical = "whatsapp" | "webchat" | "instagram" | "facebook" | "messenger";
