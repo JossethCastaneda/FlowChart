@@ -16,7 +16,7 @@ export async function syncIntegrationAssetsWorkflow(integrationId: string, delay
   "use workflow";
 
   if (delaySeconds > 0) {
-    await sleep("stagger-delay", delaySeconds);
+    await sleep(`${delaySeconds}s`);
   }
 
   // Este step aislado maneja la lógica y posibles reintentos ante Rate Limits
