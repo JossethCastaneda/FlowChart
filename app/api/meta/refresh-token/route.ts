@@ -6,6 +6,11 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { encryptToken, decryptToken } from "@/lib/encryption";
 import { env } from "@/lib/env";
 
+// El cron (GET) refresca en SECUENCIA todos los workspaces × integraciones meta_*,
+// cada uno con un fetch a Meta. Con 60s podría cortarse a escala dejando workspaces
+// sin refrescar. Igual que los demás crons de trabajo real (analytics-sync, etc.).
+export const maxDuration = 300;
+
 type RefreshResult =
   | { status: "refreshed"; workspaceId: string; expiresAt: string; integrationsUpdated: number; expiresInDays: number }
   | { status: "missing"; workspaceId: string; error: string }

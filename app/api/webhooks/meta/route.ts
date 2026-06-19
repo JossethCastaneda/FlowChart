@@ -631,8 +631,12 @@ async function findProjectsForEvent(meta: {
   // ── Slow path: Optimizado para escanear solo canales Meta ──
   // Previene el colapso del Pool de Base de Datos al no cargar
   // el árbol completo de todos los proyectos inactivos o no-Meta.
+  // El formulario de proyecto guarda los canales Meta como type "META"
+  // (platformId.toUpperCase()); "FACEBOOK" es la forma legacy. Sin "META" el
+  // ruteo de eventos (comentarios/leads/ads) a proyectos del formulario fallaba.
+  // Mismo criterio que app/api/alerts/check (platformId "meta" || type FACEBOOK).
   const metaChannels = await prisma.channel.findMany({
-    where: { type: "FACEBOOK" },
+    where: { type: { in: ["FACEBOOK", "META"] } },
     select: {
       projectId: true,
       config: true,
