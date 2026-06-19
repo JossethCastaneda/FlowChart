@@ -134,10 +134,24 @@ export async function metaFetch(
       ...(isGet && !options.cache ? { next: { revalidate: 3600, ...(options as any).next } } : {}),
     });
 
-    if (!res.ok) {
-      const isRateLimit = res.status === 429 || res.status === 403;
-      
-      if (isRateLimit && retries < maxRetries) {
+    if (!res.ok && retries < maxRetries) {
+      // Distinguir un rate limit REAL de un 403 por permisos/token. 429 siempre es
+      // throttle; un 403 SOLO es throttle si el error trae un código de rate limit
+      // de Meta (4/17/32/613) — mismo criterio que auth.config.ts. Reintentar un 403
+      // de token/permisos gastaría ~14s de backoff antes de fallar igual.
+      let isRateLimit = res.status === 429;
+      if (res.status === 403) {
+        try {
+          const errJson = await res.clone().json();
+          const code = errJson?.error?.code;
+          const msg = String(errJson?.error?.message || "").toLowerCase();
+          isRateLimit = [4, 17, 32, 613].includes(code) || msg.includes("request limit") || msg.includes("rate limit");
+        } catch {
+          isRateLimit = false; // 403 sin cuerpo JSON → no es throttle, no reintentar
+        }
+      }
+
+      if (isRateLimit) {
         // Log headers for debugging Meta's specific rate limit buckets
         const usageHeader = res.headers.get("x-business-use-case-usage") || res.headers.get("x-app-usage");
         if (usageHeader) {
