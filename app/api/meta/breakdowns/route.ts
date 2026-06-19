@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
+import { logger } from "@/lib/logger";
 
 /**
  * Meta Breakdowns API — Robust implementation
@@ -124,11 +125,12 @@ export async function GET(req: NextRequest) {
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
-      console.error(
-        `[BREAKDOWNS:${breakdownKey}] Error:`,
-        err?.error?.message || `HTTP ${res.status}`,
-        `| fields: ${fields}`
-      );
+      logger.error(`[BREAKDOWNS:${breakdownKey}] API error`, {
+        breakdownKey,
+        fields,
+        status: res.status,
+        error: err?.error?.message || `HTTP ${res.status}`,
+      });
       return NextResponse.json(
         { error: err?.error?.message || "Meta API error", data: [] },
         { status: res.status }
@@ -155,7 +157,7 @@ export async function GET(req: NextRequest) {
       breakdownType: mapping.time_increment ? "time" : "dimension",
     });
   } catch (error: any) {
-    console.error(`[BREAKDOWNS:${breakdownKey}] Exception:`, error.message);
+    logger.error(`[BREAKDOWNS:${breakdownKey}] Exception`, { error });
     return NextResponse.json(
       { error: error.message, data: [] },
       { status: 500 }

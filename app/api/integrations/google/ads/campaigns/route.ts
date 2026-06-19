@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getAdsCampaigns, updateCampaignStatus } from "@/lib/integrations/google/google-ads";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -58,7 +59,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ data: mappedCampaigns });
   } catch (err: any) {
-    console.error("[Google Ads campaigns GET error]", err);
+    logger.error("[Google Ads campaigns GET error]", err);
     return NextResponse.json(
       { error: err.message || "Failed to fetch Google Ads campaigns" },
       { status: 500 }
@@ -106,7 +107,7 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error("[Google Ads campaigns POST error]", err);
+    logger.error("[Google Ads campaigns POST error]", err);
     return NextResponse.json(
       { error: err.message || "Failed to update campaign status" },
       { status: 500 }

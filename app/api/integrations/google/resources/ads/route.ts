@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google/oauth";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -36,7 +37,7 @@ export async function GET(request: NextRequest) {
 
     const data = await res.json();
     if (!res.ok) {
-      console.error("[Google Ads API] Failed to fetch customers", data);
+      logger.error("[Google Ads API] Failed to fetch customers", data);
       return NextResponse.json({ error: data.error?.message || "Failed to fetch accessible Ads customers" }, { status: 502 });
     }
 
@@ -73,7 +74,7 @@ export async function GET(request: NextRequest) {
             }
           }
         } catch (e) {
-          console.warn(`[Google Ads API] Failed to fetch name for ${customerId}`, e);
+          logger.warn(`[Google Ads API] Failed to fetch name for ${customerId}`, e);
         }
         
         // Fallback if detail fetch fails
@@ -87,7 +88,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ customers });
   } catch (err: any) {
-    console.error("[Google Ads API] Exception", err);
+    logger.error("[Google Ads API] Exception", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -6,6 +6,7 @@ import { rateLimit, getClientIP } from "@/lib/ratelimit";
 
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { logger } from "@/lib/logger";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Email inválido").max(255).transform((e) => e.toLowerCase().trim()),
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     // Siempre devolver success (no revelar si el email existe)
     if (!user) {
-      console.log("[FORGOT-PASSWORD] Email not found:", normalizedEmail);
+      logger.info("[FORGOT-PASSWORD] Email not found:", normalizedEmail);
       // Equalize response timing to prevent email enumeration via timing analysis
       await new Promise(r => setTimeout(r, 100 + Math.random() * 200));
       return NextResponse.json({ success: true });
@@ -72,7 +73,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error("[FORGOT-PASSWORD] Error:", err);
+    logger.error("[FORGOT-PASSWORD] Error:", err);
     return NextResponse.json(
       { error: "Error al procesar solicitud" },
       { status: 500 }

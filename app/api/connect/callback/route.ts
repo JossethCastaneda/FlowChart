@@ -9,6 +9,7 @@ import { start } from "workflow/api";
 import { syncIntegrationAssetsWorkflow } from "@/workflows/sync-integration-assets";
 import { validateModulePermissions } from "@/lib/meta-scopes";
 import { subscribePages, logSubscriptionResults } from "@/lib/meta-webhooks";
+import { logger } from "@/lib/logger";
 
 const META_API_VERSION = env.META_API_VERSION;
 const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
@@ -33,7 +34,7 @@ export async function GET(request: NextRequest) {
 
   // User cancelled or error
   if (error) {
-    console.error("[CONNECT CALLBACK] Facebook error:", error);
+    logger.error("[CONNECT CALLBACK] Facebook error:", error);
     return NextResponse.redirect(`${baseUrl}/connect/done?error=${error}`);
   }
 
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
 
   // ── SECURITY: Verify HMAC signature on state ──
   if (!NEXTAUTH_SECRET) {
-    console.error("[CONNECT CALLBACK] NEXTAUTH_SECRET/AUTH_SECRET not configured");
+    logger.error("[CONNECT CALLBACK] NEXTAUTH_SECRET/AUTH_SECRET not configured");
     return NextResponse.redirect(`${baseUrl}/connect/done?error=server_error_auth_secret`);
   }
 
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
     const expBuf = Buffer.from(expected, "hex");
 
     if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
-      console.warn("[CONNECT CALLBACK] ❌ HMAC signature mismatch — possible CSRF attack");
+      logger.warn("[CONNECT CALLBACK] ❌ HMAC signature mismatch — possible CSRF attack");
       return NextResponse.redirect(`${baseUrl}/connect/done?error=invalid_state`);
     }
 
@@ -82,7 +83,7 @@ export async function GET(request: NextRequest) {
 
     // Verify that the userId in the state matches the current JWT session
     if (userId !== jwt.sub) {
-      console.warn(`[CONNECT CALLBACK] ❌ User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
+      logger.warn(`[CONNECT CALLBACK] ❌ User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
       return NextResponse.redirect(`${baseUrl}/connect/done?error=user_mismatch`);
     }
   } catch {
@@ -105,7 +106,7 @@ export async function GET(request: NextRequest) {
     const tokenData = await tokenRes.json();
 
     if (!tokenRes.ok || !tokenData.access_token) {
-      console.error("[CONNECT CALLBACK] Token exchange failed:", tokenData);
+      logger.error("[CONNECT CALLBACK] Token exchange failed:", tokenData);
       return NextResponse.redirect(`${baseUrl}/connect/done?error=token_exchange_failed&details=${encodeURIComponent(tokenData.error?.message || "Unknown error")}`);
     }
 
@@ -123,10 +124,10 @@ export async function GET(request: NextRequest) {
       const llData = await llRes.json();
       if (llRes.ok && llData.access_token) {
         userAccessToken = llData.access_token;
-        console.log(`[CONNECT CALLBACK] Long-lived user token obtained for module: ${module}`);
+        logger.info(`[CONNECT CALLBACK] Long-lived user token obtained for module: ${module}`);
       }
     } catch (e) {
-      console.warn("[CONNECT CALLBACK] Long-lived exchange failed, using short-lived:", e);
+      logger.warn("[CONNECT CALLBACK] Long-lived exchange failed, using short-lived:", e);
     }
 
     // FIX: Use USER access token to fetch pages, then validate
@@ -166,7 +167,7 @@ export async function GET(request: NextRequest) {
         // FIX: Validate permissions match module requirements
         const validation = validateModulePermissions(module, userScopes);
         if (!validation.valid) {
-          console.warn(`[CONNECT CALLBACK] ⚠️ Missing scopes for ${module}:`, validation.missing);
+          logger.warn(`[CONNECT CALLBACK] ⚠️ Missing scopes for ${module}:`, validation.missing);
           // Don't fail yet — proceed but log warning
         }
       }
@@ -192,10 +193,10 @@ export async function GET(request: NextRequest) {
           accessToken: p.access_token, // PLAINTEXT — solo para suscribir webhooks
           instagramId: p.instagram_business_account?.id || null,
         }));
-        console.log(`[CONNECT CALLBACK] Fetched ${pages.length} pages with user token`);
+        logger.info(`[CONNECT CALLBACK] Fetched ${pages.length} pages with user token`);
       }
     } catch (e) {
-      console.warn("[CONNECT CALLBACK] Failed to fetch pages:", e);
+      logger.warn("[CONNECT CALLBACK] Failed to fetch pages:", e);
       return NextResponse.redirect(`${baseUrl}/connect/done?error=fetch_pages_failed`);
     }
 
@@ -208,7 +209,7 @@ export async function GET(request: NextRequest) {
         where: { userId, workspaceId: resolvedWorkspaceId, role: { in: ["OWNER", "ADMIN"] } },
       });
       if (!member) {
-        console.warn(`[CONNECT CALLBACK] ❌ User ${userId} is not OWNER/ADMIN of workspace ${resolvedWorkspaceId}`);
+        logger.warn(`[CONNECT CALLBACK] ❌ User ${userId} is not OWNER/ADMIN of workspace ${resolvedWorkspaceId}`);
         return NextResponse.redirect(`${baseUrl}/connect/done?error=insufficient_role`);
       }
     } else {
@@ -313,7 +314,7 @@ export async function GET(request: NextRequest) {
         };
 
     if (wouldLoseScopes) {
-      console.warn(
+      logger.warn(
         `[CONNECT CALLBACK] ⚠️ Token genérico "meta" conservado (el módulo "${module}" no cubre scopes existentes: ${existingScopes.filter((s) => !newScopeSet.has(s)).join(", ")})`
       );
     }
@@ -348,7 +349,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
+    logger.info(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
 
     // Invalida el cache de connection-status (F6) para que el estado refleje la
     // nueva conexión de inmediato en vez de esperar el TTL.
@@ -359,9 +360,9 @@ export async function GET(request: NextRequest) {
     // Dispatch background sync workflow to cache assets immediately
     try {
       await start(syncIntegrationAssetsWorkflow, [metaIntegration.id]);
-      console.log(`[CONNECT CALLBACK] ⚡ Dispatched asset sync for integration ${metaIntegration.id}`);
+      logger.info(`[CONNECT CALLBACK] ⚡ Dispatched asset sync for integration ${metaIntegration.id}`);
     } catch (syncErr) {
-      console.error("[CONNECT CALLBACK] ❌ Failed to dispatch sync workflow:", syncErr);
+      logger.error("[CONNECT CALLBACK] ❌ Failed to dispatch sync workflow:", syncErr);
     }
 
     // Auto-suscribir webhooks de todas las páginas/IG conectadas. Antes era un
@@ -385,17 +386,17 @@ export async function GET(request: NextRequest) {
           details: { module, pages: rawPages.length, subscribed, failed },
         },
       }).catch((auditErr) => {
-        console.error("[CONNECT CALLBACK] ❌ Failed to write AuditLog:", auditErr);
+        logger.error("[CONNECT CALLBACK] ❌ Failed to write AuditLog:", auditErr);
       });
     } catch (subErr) {
-      console.error("[CONNECT CALLBACK] ❌ Webhook auto-subscribe failed:", subErr);
+      logger.error("[CONNECT CALLBACK] ❌ Webhook auto-subscribe failed:", subErr);
     }
 
     // Always redirect to /connect/done — it handles popup close OR fallback navigation
     return NextResponse.redirect(`${baseUrl}/connect/done?module=${module}`);
 
   } catch (err: any) {
-    console.error("[CONNECT CALLBACK] Error:", err);
+    logger.error("[CONNECT CALLBACK] Error:", err);
     return NextResponse.redirect(`${baseUrl}/connect/done?module=&error=server_error`);
   }
 }

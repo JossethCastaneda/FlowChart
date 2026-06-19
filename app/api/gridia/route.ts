@@ -1,8 +1,9 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
+import { withWorkspace } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { apiError } from "@/lib/api-response";
 import { rateLimit, getClientIP } from "@/lib/ratelimit";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/gridia
@@ -173,44 +174,32 @@ Your output must be professional, strategic, and ready for a high-performance ma
 `;
 }
 
-export async function POST(req: NextRequest) {
-  // 1. Auth check
-  const session = await safeGetSession();
-  if (!session?.user?.id) {
-    return NextResponse.json({ error: "No autorizado" }, { status: 401 });
-  }
-
-  // 2. Workspace membership check
-  const workspaceId = await getActiveWorkspaceId(session.user.id);
-  if (!workspaceId) {
-    return NextResponse.json({ error: "Sin workspace activo" }, { status: 400 });
-  }
-
-  // 3. Rate limit — 10 requests per minute per user
+export const POST = withWorkspace(async (req: NextRequest, ctx) => {
+  // Rate limit — 10 requests per minute per user
   const ip = getClientIP(req);
-  const { ok } = rateLimit(`gridia:${session.user.id}:${ip}`, 10, 60_000);
+  const { ok } = rateLimit(`gridia:${ctx.userId}:${ip}`, 10, 60_000);
   if (!ok) {
-    return NextResponse.json({ error: "Demasiadas solicitudes. Intenta en un momento." }, { status: 429 });
+    return apiError("Demasiadas solicitudes. Intenta en un momento.", "RATE_LIMITED", 429);
   }
 
-  // 4. Validate input
+  // Validate input
   let rawBody: unknown;
   try {
     rawBody = await req.json();
   } catch {
-    return NextResponse.json({ error: "JSON inválido" }, { status: 400 });
+    return apiError("JSON inválido", "INVALID_JSON", 400);
   }
   const parsed = BodySchema.safeParse(rawBody);
   if (!parsed.success) {
     const msg = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
-    return NextResponse.json({ error: `Datos inválidos: ${msg}` }, { status: 422 });
+    return apiError(`Datos inválidos: ${msg}`, "VALIDATION_ERROR", 422);
   }
 
-  // 5. API key — stays server-side only
+  // API key — stays server-side only
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
-    console.error("[GridIA] GEMINI_API_KEY not configured");
-    return NextResponse.json({ error: "IA no configurada en el servidor" }, { status: 500 });
+    logger.error("[GridIA] GEMINI_API_KEY not configured");
+    return apiError("IA no configurada en el servidor", "SERVER_CONFIG", 500);
   }
 
   // 6. Build request to Gemini
@@ -230,7 +219,6 @@ export async function POST(req: NextRequest) {
     },
   };
 
-  // 7. Call Gemini — server to server, key never exposed to client
   let geminiRes: Response;
   try {
     geminiRes = await fetch(
@@ -242,29 +230,29 @@ export async function POST(req: NextRequest) {
       }
     );
   } catch (err) {
-    console.error("[GridIA] Network error calling Gemini:", err);
-    return NextResponse.json({ error: "Error de conexión con el servicio de IA" }, { status: 502 });
+    logger.error("[GridIA] Network error calling Gemini:", err);
+    return apiError("Error de conexión con el servicio de IA", "UPSTREAM_ERROR", 502);
   }
 
   if (!geminiRes.ok) {
     const errData = await geminiRes.json().catch(() => ({}));
-    console.error("[GridIA] Gemini API error:", errData?.error?.message || geminiRes.status);
-    return NextResponse.json({ error: "Error del servicio de IA. Intenta de nuevo." }, { status: 502 });
+    logger.error("[GridIA] Gemini API error:", errData?.error?.message || geminiRes.status);
+    return apiError("Error del servicio de IA. Intenta de nuevo.", "UPSTREAM_ERROR", 502);
   }
 
   const geminiData = await geminiRes.json();
   const jsonText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
 
   if (!jsonText) {
-    console.error("[GridIA] Empty response from Gemini");
-    return NextResponse.json({ error: "Respuesta inválida del servicio de IA" }, { status: 502 });
+    logger.error("[GridIA] Empty response from Gemini");
+    return apiError("Respuesta inválida del servicio de IA", "UPSTREAM_EMPTY", 502);
   }
 
   try {
     const result = JSON.parse(jsonText);
     return NextResponse.json(result);
   } catch {
-    console.error("[GridIA] Failed to parse Gemini JSON response");
-    return NextResponse.json({ error: "Respuesta de IA con formato inválido" }, { status: 502 });
+    logger.error("[GridIA] Failed to parse Gemini JSON response");
+    return apiError("Respuesta de IA con formato inválido", "UPSTREAM_PARSE_ERROR", 502);
   }
-}
+});

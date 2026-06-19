@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { randomUUID } from "crypto";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/publisher/upload
@@ -60,7 +61,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       const blob = await put(finalName, file, { access: 'public' });
       fileUrl = blob.url;
     } catch (uploadError) {
-      console.warn("[PUBLISHER] Vercel Blob upload failed, falling back to base64:", uploadError);
+      logger.warn("[PUBLISHER] Vercel Blob upload failed, falling back to base64:", uploadError);
       // Read file buffer and convert to base64 data URL
       const buffer = Buffer.from(await file.arrayBuffer());
       const base64 = buffer.toString("base64");

@@ -4,6 +4,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -121,7 +122,7 @@ export async function GET(req: NextRequest) {
         );
         const data = await res.json();
         if (!res.ok || data.error) {
-          console.error(`[REELS] Error for ${igUserId}:`, data?.error?.message);
+          logger.error(`[REELS] Error for ${igUserId}:`, data?.error?.message);
           return [];
         }
         // Filter to only VIDEO (Reels) and normalize.
@@ -190,11 +191,11 @@ export async function GET(req: NextRequest) {
       },
       update: { data: responseData as any, updatedAt: now },
       create: { workspaceId, endpoint: "reels", paramsKey, data: responseData as any },
-    }).catch((err: any) => console.error("[REELS] Cache save error:", err));
+    }).catch((err: any) => logger.error("[REELS] Cache save error:", err));
 
     return NextResponse.json({ ...responseData, cached: false });
   } catch (err: any) {
-    console.error("[ANALYTICS/REELS] Error:", err.message);
+    logger.error("[ANALYTICS/REELS] Error:", err.message);
     return NextResponse.json({ error: err.message || "Error interno" }, { status: 500 });
   }
 }

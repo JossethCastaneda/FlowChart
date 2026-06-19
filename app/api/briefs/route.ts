@@ -1,75 +1,50 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
+import { withWorkspace } from "@/lib/api-handler";
+import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiCreated } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
+import { Prisma } from "@/lib/prisma";
 import prisma from "@/lib/prisma";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { z } from "zod";
+
+export const dynamic = "force-dynamic";
+
+const CreateBriefSchema = z.object({
+  title: z.string().min(1, "El título es obligatorio").max(500).transform((s) => s.trim()),
+  content: z.record(z.string(), z.unknown()).optional().default({}),
+  projectId: z.string().nullable().optional(),
+  status: z.enum(["Draft", "Review", "Approved"]).default("Draft"),
+});
 
 // GET /api/briefs — list briefs for the active workspace
-export async function GET() {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = withWorkspace(async (_req, ctx) => {
+  const briefs = await prisma.brief.findMany({
+    where: { workspaceId: ctx.workspaceId },
+    include: {
+      project: { select: { id: true, name: true, alias: true } },
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ data: [] });
-    }
-
-    const briefs = await prisma.brief.findMany({
-      where: { workspaceId },
-      include: {
-        project: { select: { id: true, name: true, alias: true } },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    return NextResponse.json({ data: briefs });
-  } catch (err: any) {
-    console.error("[BRIEFS] GET error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-  }
-}
+  return apiSuccess(briefs);
+});
 
 // POST /api/briefs — create a brief
-export async function POST(req: NextRequest) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const POST = withWorkspace(async (req, ctx) => {
+  const result = await validateBody(req, CreateBriefSchema);
+  if (!result.ok) return result.response;
+  const { title, content, projectId, status } = result.data;
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No tienes workspace activo" }, { status: 400 });
-    }
+  const brief = await prisma.brief.create({
+    data: {
+      workspaceId: ctx.workspaceId,
+      title,
+      content: (content ?? {}) as Prisma.InputJsonValue,
+      projectId: projectId || null,
+      status,
+    },
+  });
 
-    const hasAccess = await verifyWorkspaceAccess(workspaceId, session.user.id);
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+  logger.info("Brief created", { briefId: brief.id, workspaceId: ctx.workspaceId, byUserId: ctx.userId });
 
-    const body = await req.json();
-    const { title, content, projectId, status } = body;
-
-    if (!title || typeof title !== "string" || title.trim().length < 1) {
-      return NextResponse.json({ error: "El título es obligatorio" }, { status: 400 });
-    }
-
-    const brief = await prisma.brief.create({
-      data: {
-        workspaceId,
-        title: title.trim(),
-        content: content || {},
-        projectId: projectId || null,
-        status: status || "Draft",
-      },
-    });
-
-    return NextResponse.json({ data: brief }, { status: 201 });
-  } catch (err: any) {
-    console.error("[BRIEFS] POST error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-  }
-}
+  return apiCreated(brief);
+});

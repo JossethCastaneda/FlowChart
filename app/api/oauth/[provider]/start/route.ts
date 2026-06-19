@@ -15,6 +15,7 @@ import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getAppBaseUrl } from "@/lib/app-url";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
 
@@ -106,7 +107,7 @@ export async function GET(
     }
   }
 
-  console.log(`[OAUTH] Redirecting to ${config.label} OAuth for workspace ${workspaceId}`);
+  logger.info(`[OAUTH] Redirecting to ${config.label} OAuth for workspace ${workspaceId}`);
 
   return NextResponse.redirect(authUrl.toString());
 }

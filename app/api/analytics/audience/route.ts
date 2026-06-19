@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -190,7 +191,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(fbUrl, pageToken).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[AUDIENCE] FB demographics error for page ${page.id}:`, err?.error?.message);
+                logger.error(`[AUDIENCE] FB demographics error for page ${page.id}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -198,19 +199,19 @@ export async function GET(request: NextRequest) {
           : Promise.resolve(null),
         igCityUrl
           ? metaFetch(igCityUrl, token).then(async (r) => {
-              if (!r.ok) { console.error(`[AUDIENCE] IG city error`); return null; }
+              if (!r.ok) { logger.error(`[AUDIENCE] IG city error`); return null; }
               return r.json();
             })
           : Promise.resolve(null),
         igGenderAgeUrl
           ? metaFetch(igGenderAgeUrl, token).then(async (r) => {
-              if (!r.ok) { console.error(`[AUDIENCE] IG gender_age error`); return null; }
+              if (!r.ok) { logger.error(`[AUDIENCE] IG gender_age error`); return null; }
               return r.json();
             })
           : Promise.resolve(null),
         igCountryUrl
           ? metaFetch(igCountryUrl, token).then(async (r) => {
-              if (!r.ok) { console.error(`[AUDIENCE] IG country error`); return null; }
+              if (!r.ok) { logger.error(`[AUDIENCE] IG country error`); return null; }
               return r.json();
             })
           : Promise.resolve(null),
@@ -262,11 +263,11 @@ export async function GET(request: NextRequest) {
       },
       update: { data: responseData as any, updatedAt: now },
       create: { workspaceId, endpoint: "audience", paramsKey, data: responseData as any },
-    }).catch((err: any) => console.error("[AUDIENCE] Cache save error:", err));
+    }).catch((err: any) => logger.error("[AUDIENCE] Cache save error:", err));
 
     return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
-    console.error("[AUDIENCE] Unhandled error:", error);
+    logger.error("[AUDIENCE] Unhandled error:", error);
     return NextResponse.json(
       { error: error?.message || "Internal server error" },
       { status: 500 }

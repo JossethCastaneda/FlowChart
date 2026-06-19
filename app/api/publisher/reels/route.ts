@@ -6,6 +6,7 @@ import { mapMetaError } from "@/lib/meta-errors";
 import { decryptToken } from "@/lib/encryption";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { logger } from "@/lib/logger";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -116,7 +117,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       return apiError(mapMetaError(finishData?.error).user_message, "META_API_ERROR", 422);
     }
 
-    console.log(`[REELS] ✅ Facebook Reel published: ${finishData.video_id || videoId}`);
+    logger.info(`[REELS] ✅ Facebook Reel published: ${finishData.video_id || videoId}`);
     return apiSuccess({
       success: true,
       reelId: finishData.video_id || videoId,
@@ -169,7 +170,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
         break;
       }
       if (statusData.status_code === "ERROR") {
-        console.error("[REELS] IG container error:", statusData);
+        logger.error("[REELS] IG container error:", statusData);
         return apiError("Error procesando el Reel en Instagram. Verifica el formato del video.", "META_API_ERROR", 422);
       }
       // IN_PROGRESS — continue polling
@@ -193,7 +194,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       return apiError(mapMetaError(publishData?.error).user_message, "META_API_ERROR", 422);
     }
 
-    console.log(`[REELS] ✅ Instagram Reel published: ${publishData.id}`);
+    logger.info(`[REELS] ✅ Instagram Reel published: ${publishData.id}`);
     return apiSuccess({
       success: true,
       reelId: publishData.id,

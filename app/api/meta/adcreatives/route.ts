@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
+import { logger } from "@/lib/logger";
 
 /**
  * Meta Ad Creatives API — Robust implementation
@@ -161,12 +162,12 @@ export async function GET(req: NextRequest) {
   // Helper: safely parse a response
   const parseRes = async (result: PromiseSettledResult<Response>, tag: string) => {
     if (result.status === "rejected") {
-      console.error(`[ADCREATIVES:${tag}] Fetch rejected:`, result.reason);
+      logger.error(`[ADCREATIVES:${tag}] Fetch rejected:`, result.reason);
       return { data: [] };
     }
     if (!result.value.ok) {
       const err = await result.value.json().catch(() => ({}));
-      console.error(`[ADCREATIVES:${tag}] HTTP error:`, err?.error?.message || `HTTP ${result.value.status}`);
+      logger.error(`[ADCREATIVES:${tag}] HTTP error:`, err?.error?.message || `HTTP ${result.value.status}`);
       return { data: [] };
     }
     return result.value.json().catch(() => ({ data: [] }));
@@ -228,9 +229,9 @@ export async function GET(req: NextRequest) {
         } catch { /* ignore parse errors */ }
       } else if (result.status === "fulfilled") {
         const err = await result.value.json().catch(() => ({}));
-        console.error(`[ADCREATIVES:batch] HTTP error:`, err?.error?.message || `HTTP ${result.value.status}`);
+        logger.error(`[ADCREATIVES:batch] HTTP error:`, err?.error?.message || `HTTP ${result.value.status}`);
       } else {
-        console.error(`[ADCREATIVES:batch] Fetch rejected:`, result.reason);
+        logger.error(`[ADCREATIVES:batch] Fetch rejected:`, result.reason);
       }
     }
   }

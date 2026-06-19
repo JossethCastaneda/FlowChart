@@ -12,6 +12,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
 import prisma from "@/lib/prisma";
 import { PROVIDERS } from "@/lib/integrations/registry";
+import { logger } from "@/lib/logger";
 
 // NOTA: Google NO se sincroniza aquí. Vive en el Google Hub (provider "google"):
 // sus insights se sirven on-demand vía app/api/integrations/google/resources/*.
@@ -72,11 +73,11 @@ export async function GET(req: NextRequest) {
       // });
 
       // For now, just log success
-      console.log(`[SYNC] ✅ ${integ.provider} for workspace ${integ.workspaceId}`, JSON.stringify(insights).slice(0, 200));
+      logger.info(`[SYNC] ✅ ${integ.provider} for workspace ${integ.workspaceId}`, JSON.stringify(insights).slice(0, 200));
       results.push({ workspaceId: integ.workspaceId, provider: integ.provider, status: "ok" });
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown error";
-      console.error(`[SYNC] ❌ ${integ.provider} for workspace ${integ.workspaceId}:`, message);
+      logger.error(`[SYNC] ❌ ${integ.provider} for workspace ${integ.workspaceId}:`, message);
       results.push({ workspaceId: integ.workspaceId, provider: integ.provider, status: "error", error: message });
     }
   }

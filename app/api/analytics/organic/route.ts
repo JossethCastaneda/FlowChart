@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -264,7 +265,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(fbInsightsUrl, pageToken).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[ORGANIC] FB insights error for page ${page.id}:`, err?.error?.message);
+                logger.error(`[ORGANIC] FB insights error for page ${page.id}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -274,7 +275,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(fbFansUrl, pageToken).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[ORGANIC] FB fans error for page ${page.id}:`, err?.error?.message);
+                logger.error(`[ORGANIC] FB fans error for page ${page.id}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -284,7 +285,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(igInsightsUrl, token).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[ORGANIC] IG insights error for ${igAccountId}:`, err?.error?.message);
+                logger.error(`[ORGANIC] IG insights error for ${igAccountId}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -429,11 +430,11 @@ export async function GET(request: NextRequest) {
       },
       update: { data: responseData as any, updatedAt: now },
       create: { workspaceId, endpoint: "organic", paramsKey, data: responseData as any },
-    }).catch((err: any) => console.error("[ORGANIC] Cache save error:", err));
+    }).catch((err: any) => logger.error("[ORGANIC] Cache save error:", err));
 
     return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
-    console.error("[ORGANIC] Unhandled error:", error);
+    logger.error("[ORGANIC] Unhandled error:", error);
     return NextResponse.json(
       { error: error?.message || "Internal server error" },
       { status: 500 }

@@ -13,7 +13,7 @@ const VERIFY_TOKEN = env.META_WEBHOOK_VERIFY_TOKEN;
  */
 export async function GET(req: NextRequest) {
   if (!VERIFY_TOKEN) {
-    console.error("[WEBHOOK] META_WEBHOOK_VERIFY_TOKEN not configured");
+    logger.error("[WEBHOOK] META_WEBHOOK_VERIFY_TOKEN not configured");
     return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
   }
 
@@ -23,11 +23,11 @@ export async function GET(req: NextRequest) {
   const challenge = searchParams.get("hub.challenge");
 
   if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    console.log("[WEBHOOK] ✅ Verification successful");
+    logger.info("[WEBHOOK] ✅ Verification successful");
     return new Response(challenge, { status: 200, headers: { "Content-Type": "text/plain" } });
   }
 
-  console.warn("[WEBHOOK] ❌ Verification failed — token mismatch");
+  logger.warn("[WEBHOOK] ❌ Verification failed — token mismatch");
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }
 
@@ -61,13 +61,13 @@ export async function POST(req: NextRequest) {
 
     // Reject if app secret is not configured
     if (!appSecret) {
-      console.error("[WEBHOOK] FACEBOOK_CLIENT_SECRET not set");
+      logger.error("[WEBHOOK] FACEBOOK_CLIENT_SECRET not set");
       return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
     }
 
     // Reject if signature is missing
     if (!signature) {
-      console.warn("[WEBHOOK] ❌ Missing X-Hub-Signature-256 — rejecting");
+      logger.warn("[WEBHOOK] ❌ Missing X-Hub-Signature-256 — rejecting");
       return NextResponse.json({ error: "Missing signature" }, { status: 403 });
     }
 
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     const sigBuf = Buffer.from(signature);
     const expBuf = Buffer.from(expected);
     if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
-      console.warn("[WEBHOOK] ❌ HMAC mismatch — possible spoofed request");
+      logger.warn("[WEBHOOK] ❌ HMAC mismatch — possible spoofed request");
       return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
     }
 
@@ -114,12 +114,12 @@ export async function POST(req: NextRequest) {
 
           // Message delivery confirmation
           if (msg.delivery) {
-            console.log(`[WEBHOOK] 📧 Delivery: ${msg.delivery.mids?.length || 0} msgs delivered to ${msg.sender?.id}`);
+            logger.info(`[WEBHOOK] 📧 Delivery: ${msg.delivery.mids?.length || 0} msgs delivered to ${msg.sender?.id}`);
           }
 
           // Message read confirmation
           if (msg.read) {
-            console.log(`[WEBHOOK] 👁️ Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
+            logger.info(`[WEBHOOK] 👁️ Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
           }
 
           // Postback (button click in Messenger)
@@ -361,7 +361,7 @@ export async function POST(req: NextRequest) {
 
           // Story insights (impressions, exits, etc.)
           if (field === "story_insights") {
-            console.log(`[WEBHOOK] 📊 Story insights for IG ${entryId}:`, JSON.stringify(value).slice(0, 200));
+            logger.info(`[WEBHOOK] 📊 Story insights for IG ${entryId}:`, JSON.stringify(value).slice(0, 200));
           }
         }
       }
@@ -374,7 +374,7 @@ export async function POST(req: NextRequest) {
           const field = change.field;
           const value = change.value;
 
-          console.log(`[WEBHOOK] 📊 Ad Account ${entryId} — field: ${field}`, JSON.stringify(value).slice(0, 200));
+          logger.info(`[WEBHOOK] 📊 Ad Account ${entryId} — field: ${field}`, JSON.stringify(value).slice(0, 200));
 
           // Spending limit reached
           if (field === "account_spending_limit_reached") {
@@ -540,7 +540,7 @@ export async function POST(req: NextRequest) {
                 });
               }
               // Log other statuses
-              console.log(`[WEBHOOK] 📱 WhatsApp status: ${status.status} for ${status.recipient_id}`);
+              logger.info(`[WEBHOOK] 📱 WhatsApp status: ${status.status} for ${status.recipient_id}`);
             }
           }
 
@@ -577,7 +577,7 @@ export async function POST(req: NextRequest) {
     // Meta requires 200 response within 20 seconds
     return NextResponse.json({ received: true });
   } catch (error: any) {
-    console.error("[WEBHOOK] Processing error:", error);
+    logger.error("[WEBHOOK] Processing error:", error);
     // Always return 200 to Meta to prevent retries on processing errors
     return NextResponse.json({ received: true, error: error.message });
   }
@@ -728,7 +728,7 @@ async function createAlert(alert: {
   channel?: string;
 }) {
   try {
-    console.log(`[WEBHOOK] 📌 Alert: [${alert.severity.toUpperCase()}] ${alert.title}`);
+    logger.info(`[WEBHOOK] 📌 Alert: [${alert.severity.toUpperCase()}] ${alert.title}`);
 
     // Resolve only the projects related to this specific event source
     const projects = await findProjectsForEvent({
@@ -760,7 +760,7 @@ async function createAlert(alert: {
           },
         });
       } catch (dbErr) {
-        console.error("[WEBHOOK] Failed to create ProjectAlert:", dbErr);
+        logger.error("[WEBHOOK] Failed to create ProjectAlert:", dbErr);
       }
 
       // Create in-app notifications for all workspace members — batched
@@ -778,14 +778,14 @@ async function createAlert(alert: {
             skipDuplicates: true,
           });
         } catch (notifErr) {
-          console.error("[WEBHOOK] Failed to create notifications:", notifErr);
+          logger.error("[WEBHOOK] Failed to create notifications:", notifErr);
         }
       }
 
-      console.log(`[WEBHOOK] ✅ Alert saved for "${project.name}": ${alert.title}`);
+      logger.info(`[WEBHOOK] ✅ Alert saved for "${project.name}": ${alert.title}`);
     }
   } catch (err) {
-    console.error("[WEBHOOK] Failed to create alert:", err);
+    logger.error("[WEBHOOK] Failed to create alert:", err);
   }
 }
 

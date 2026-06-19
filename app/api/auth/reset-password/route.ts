@@ -6,6 +6,7 @@ import { rateLimit, getClientIP } from "@/lib/ratelimit";
 
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { logger } from "@/lib/logger";
 
 const ResetPasswordSchema = z.object({
   token: z.string().min(1, "Token requerido"),
@@ -61,7 +62,7 @@ export async function POST(req: NextRequest) {
 
       await tx.verificationToken.delete({ where: { token: tokenHash } });
 
-      console.log("[RESET-PASSWORD] Password updated for:", user.email);
+      logger.info("[RESET-PASSWORD] Password updated for:", user.email);
       return { success: true };
     });
 
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error("[RESET-PASSWORD] Error:", err);
+    logger.error("[RESET-PASSWORD] Error:", err);
     return NextResponse.json(
       { error: "Error al restablecer contraseña" },
       { status: 500 }

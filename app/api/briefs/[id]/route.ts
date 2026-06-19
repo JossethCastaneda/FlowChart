@@ -1,112 +1,78 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { withAuth } from "@/lib/api-handler";
+import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiNotFound, apiForbidden } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { Prisma } from "@/lib/prisma";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+
+const PatchBriefSchema = z.object({
+  title: z.string().min(1).max(500).transform((s) => s.trim()).optional(),
+  content: z.record(z.string(), z.unknown()).optional(),
+  status: z.enum(["Draft", "Review", "Approved"]).optional(),
+  projectId: z.string().nullable().optional(),
+});
 
 // GET /api/briefs/[id] — get a single brief
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = withAuth(async (_req, ctx) => {
+  const { id } = await ctx.params;
 
-    const { id } = await params;
-    const brief = await prisma.brief.findUnique({
-      where: { id },
-      include: {
-        project: { select: { id: true, name: true, alias: true } },
-      },
-    });
-    if (!brief) {
-      return NextResponse.json({ error: "Brief no encontrado" }, { status: 404 });
-    }
+  const brief = await prisma.brief.findUnique({
+    where: { id },
+    include: {
+      project: { select: { id: true, name: true, alias: true } },
+    },
+  });
+  if (!brief) return apiNotFound("Brief no encontrado");
 
-    const hasAccess = await verifyWorkspaceAccess(brief.workspaceId, session.user.id);
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+  const hasAccess = await verifyWorkspaceAccess(brief.workspaceId, ctx.userId);
+  if (!hasAccess) return apiForbidden();
 
-    return NextResponse.json({ data: brief });
-  } catch (err: any) {
-    console.error("[BRIEFS] GET/id error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-  }
-}
+  return apiSuccess(brief);
+});
 
 // PATCH /api/briefs/[id] — update a brief
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const PATCH = withAuth(async (req, ctx) => {
+  const { id } = await ctx.params;
 
-    const { id } = await params;
-    const brief = await prisma.brief.findUnique({ where: { id } });
-    if (!brief) {
-      return NextResponse.json({ error: "Brief no encontrado" }, { status: 404 });
-    }
+  const brief = await prisma.brief.findUnique({ where: { id } });
+  if (!brief) return apiNotFound("Brief no encontrado");
 
-    const hasAccess = await verifyWorkspaceAccess(brief.workspaceId, session.user.id);
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+  const hasAccess = await verifyWorkspaceAccess(brief.workspaceId, ctx.userId);
+  if (!hasAccess) return apiForbidden();
 
-    const body = await req.json();
-    const { title, content, status, projectId } = body;
+  const result = await validateBody(req, PatchBriefSchema);
+  if (!result.ok) return result.response;
 
-    const updated = await prisma.brief.update({
-      where: { id },
-      data: {
-        ...(title !== undefined && { title: title.trim() }),
-        ...(content !== undefined && { content }),
-        ...(status !== undefined && { status }),
-        ...(projectId !== undefined && { projectId }),
-      },
-    });
+  const updated = await prisma.brief.update({
+    where: { id },
+    data: {
+      ...(result.data.title !== undefined && { title: result.data.title }),
+      ...(result.data.content !== undefined && { content: result.data.content as Prisma.InputJsonValue }),
+      ...(result.data.status !== undefined && { status: result.data.status }),
+      ...(result.data.projectId !== undefined && {
+        projectId: result.data.projectId === null ? null : result.data.projectId,
+      }),
+    },
+  });
 
-    return NextResponse.json({ data: updated });
-  } catch (err: any) {
-    console.error("[BRIEFS] PATCH error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-  }
-}
+  return apiSuccess(updated);
+});
 
-// DELETE /api/briefs/[id] — delete a brief
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// DELETE /api/briefs/[id] — delete a brief (OWNER/ADMIN only)
+export const DELETE = withAuth(async (_req, ctx) => {
+  const { id } = await ctx.params;
 
-    const { id } = await params;
-    const brief = await prisma.brief.findUnique({ where: { id } });
-    if (!brief) {
-      return NextResponse.json({ error: "Brief no encontrado" }, { status: 404 });
-    }
+  const brief = await prisma.brief.findUnique({ where: { id } });
+  if (!brief) return apiNotFound("Brief no encontrado");
 
-    const hasAccess = await verifyWorkspaceAccess(
-      brief.workspaceId, session.user.id, ["OWNER", "ADMIN"]
-    );
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+  const hasAccess = await verifyWorkspaceAccess(brief.workspaceId, ctx.userId, ["OWNER", "ADMIN"]);
+  if (!hasAccess) return apiForbidden("Solo OWNER/ADMIN pueden eliminar briefs");
 
-    await prisma.brief.delete({ where: { id } });
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error("[BRIEFS] DELETE error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-  }
-}
+  await prisma.brief.delete({ where: { id } });
+
+  logger.info("Brief deleted", { briefId: id, workspaceId: brief.workspaceId, byUserId: ctx.userId });
+
+  return apiSuccess({ deleted: true });
+});

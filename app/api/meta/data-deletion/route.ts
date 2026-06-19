@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { verifySignedRequest } from "@/lib/meta-signed-request";
 import { deleteMetaDataForUser } from "@/lib/meta-data-deletion";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 /**
  * Meta Data Deletion Request Callback
@@ -41,11 +42,11 @@ export async function POST(req: NextRequest) {
       if (decoded) {
         metaUserId = decoded.user_id || "unknown";
       } else {
-        console.warn("[Meta Data Deletion] ⚠️ signed_request HMAC verification failed — rejecting.");
+        logger.warn("[Meta Data Deletion] ⚠️ signed_request HMAC verification failed — rejecting.");
         return NextResponse.json({ error: "Invalid signed_request" }, { status: 403 });
       }
     } else if (!appSecret) {
-      console.error("[Meta Data Deletion] ⚠️ FACEBOOK_CLIENT_SECRET not set, cannot verify signed_request");
+      logger.error("[Meta Data Deletion] ⚠️ FACEBOOK_CLIENT_SECRET not set, cannot verify signed_request");
       // Still persist with unknown user — we can't verify but Meta expects a response
     }
 
@@ -71,14 +72,14 @@ export async function POST(req: NextRequest) {
             data: { status: "completed", completedAt: new Date() },
           });
         } catch (deletionErr) {
-          console.error("[Meta Data Deletion] Deletion processing failed:", deletionErr);
+          logger.error("[Meta Data Deletion] Deletion processing failed:", deletionErr);
           await prisma.dataDeletionRequest
             .update({ where: { confirmationCode }, data: { status: "failed" } })
             .catch(() => {});
         }
       }
     } catch (dbErr) {
-      console.error("[Meta Data Deletion] Failed to persist deletion request:", dbErr);
+      logger.error("[Meta Data Deletion] Failed to persist deletion request:", dbErr);
       // Still respond to Meta with a code — we log for manual follow-up
     }
 
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
       confirmation_code: confirmationCode,
     });
   } catch (error) {
-    console.error("[Meta Data Deletion] Error:", error);
+    logger.error("[Meta Data Deletion] Error:", error);
     // Still return a valid response so Meta does not retry indefinitely
     return NextResponse.json({
       url: `${APP_URL}/data-deletion?code=${confirmationCode}`,
@@ -122,7 +123,7 @@ export async function GET(req: NextRequest) {
       completedAt: request.completedAt ?? null,
     });
   } catch (err) {
-    console.error("[Meta Data Deletion] GET error:", err);
+    logger.error("[Meta Data Deletion] GET error:", err);
     return NextResponse.json({ error: "Error interno" }, { status: 500 });
   }
 }

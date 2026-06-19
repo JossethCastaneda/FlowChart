@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess } from "@/lib/api-response";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/publisher/filters
@@ -76,7 +77,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
       }
     }
   } catch (e) {
-    console.warn("[FILTERS] Failed to fetch channels from integrations:", e);
+    logger.warn("[FILTERS] Failed to fetch channels from integrations:", e);
   }
 
   return apiSuccess({ clients, verticals, channels });

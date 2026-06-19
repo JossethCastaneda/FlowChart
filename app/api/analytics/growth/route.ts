@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/analytics/growth
@@ -226,11 +227,11 @@ export async function GET(request: NextRequest) {
       },
       update: { data: responseData as any, updatedAt: now },
       create: { workspaceId, endpoint: "growth", paramsKey, data: responseData as any },
-    }).catch((err: any) => console.error("[GROWTH] Cache save error:", err));
+    }).catch((err: any) => logger.error("[GROWTH] Cache save error:", err));
 
     return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
-    console.error("[GROWTH] Unhandled error:", error);
+    logger.error("[GROWTH] Unhandled error:", error);
     // Degrade gracefully — never crash the tab.
     return NextResponse.json({ series: [], current: 0, totalGained: 0 });
   }

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMetaAccessToken, metaGetAll , META_API_VERSION } from "@/lib/server-auth";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
       source: "meta_api",
     });
   } catch (error: any) {
-    console.error("Error in Meta adaccounts API:", error);
+    logger.error("Error in Meta adaccounts API:", error);
     return NextResponse.json({
       data: [],
       source: "catch_error",

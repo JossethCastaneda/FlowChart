@@ -6,6 +6,7 @@ import { mapMetaError } from "@/lib/meta-errors";
 import { decryptToken } from "@/lib/encryption";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { logger } from "@/lib/logger";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -122,7 +123,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
         return apiError(mapMetaError(finishData?.error).user_message, "META_API_ERROR", 422);
       }
 
-      console.log(`[STORIES] ✅ FB Video Story published: ${finishData.post_id || initData.video_id}`);
+      logger.info(`[STORIES] ✅ FB Video Story published: ${finishData.post_id || initData.video_id}`);
       return apiSuccess({
         success: true,
         storyId: finishData.post_id || initData.video_id,
@@ -158,7 +159,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
         return apiError(mapMetaError(data?.error).user_message, "META_API_ERROR", 422);
       }
 
-      console.log(`[STORIES] ✅ FB Photo Story published: ${data.post_id || data.id}`);
+      logger.info(`[STORIES] ✅ FB Photo Story published: ${data.post_id || data.id}`);
       return apiSuccess({
         success: true,
         storyId: data.post_id || data.id,
@@ -240,7 +241,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       return apiError(mapMetaError(publishData?.error).user_message, "META_API_ERROR", 422);
     }
 
-    console.log(`[STORIES] ✅ IG Story published: ${publishData.id}`);
+    logger.info(`[STORIES] ✅ IG Story published: ${publishData.id}`);
     return apiSuccess({
       success: true,
       storyId: publishData.id,

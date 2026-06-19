@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
 import { verifyQstashRequest } from "@/lib/qstash";
 import { publishSinglePost } from "@/lib/publisher/publish-single-post";
+import { logger } from "@/lib/logger";
 
 // El polling de video de IG puede tardar hasta ~50s; dejamos margen sobre 60s.
 export const maxDuration = 120;
@@ -39,7 +40,7 @@ export async function POST(req: NextRequest) {
     const result = await publishSinglePost(publishJobId);
     return NextResponse.json(result);
   } catch (err: any) {
-    console.error("[WORKER POST] Error:", err);
+    logger.error("[WORKER POST] Error:", err);
     return NextResponse.json({ error: err?.message || "Error" }, { status: 500 });
   }
 }

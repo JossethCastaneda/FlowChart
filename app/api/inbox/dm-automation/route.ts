@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/inbox/dm-automation
@@ -27,7 +28,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ rules });
   } catch (err: any) {
-    console.error("[DM-AUTOMATION] GET error:", err.message);
+    logger.error("[DM-AUTOMATION] GET error:", err.message);
     return NextResponse.json(
       { error: err.message || "Error interno" },
       { status: 500 }
@@ -82,7 +83,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ rule }, { status: 201 });
   } catch (err: any) {
-    console.error("[DM-AUTOMATION] POST error:", err.message);
+    logger.error("[DM-AUTOMATION] POST error:", err.message);
     return NextResponse.json(
       { error: err.message || "Error interno" },
       { status: 500 }
@@ -143,7 +144,7 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ rule });
   } catch (err: any) {
-    console.error("[DM-AUTOMATION] PUT error:", err.message);
+    logger.error("[DM-AUTOMATION] PUT error:", err.message);
     return NextResponse.json(
       { error: err.message || "Error interno" },
       { status: 500 }
@@ -190,7 +191,7 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true, id });
   } catch (err: any) {
-    console.error("[DM-AUTOMATION] DELETE error:", err.message);
+    logger.error("[DM-AUTOMATION] DELETE error:", err.message);
     return NextResponse.json(
       { error: err.message || "Error interno" },
       { status: 500 }

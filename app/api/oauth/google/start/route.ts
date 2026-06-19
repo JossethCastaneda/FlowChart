@@ -6,6 +6,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { GOOGLE_BASE_SCOPES, scopesForModules } from "@/lib/integrations/google/registry";
 import { getAppBaseUrl } from "@/lib/app-url";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
 
@@ -75,7 +76,7 @@ export async function GET(request: NextRequest) {
   authUrl.searchParams.set("prompt", "consent");
   authUrl.searchParams.set("include_granted_scopes", "true");
 
-  console.log(`[OAUTH GOOGLE] Redirecting to Google OAuth for workspace ${workspaceId} with scopes:`, allScopes);
+  logger.info(`[OAUTH GOOGLE] Redirecting to Google OAuth for workspace ${workspaceId} with scopes:`, allScopes);
 
   return NextResponse.redirect(authUrl.toString());
 }

@@ -4,6 +4,7 @@ import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
 import { validateBody } from "@/lib/validate";
 import { AdsetUpdateSchema } from "@/lib/ads-schemas";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "ads");
@@ -138,7 +139,7 @@ export async function GET(req: NextRequest) {
         dateRange: cacheKey,
         data: responsePayload as any
       }
-    }).catch((e: any) => console.error("Cache save error:", e));
+    }).catch((e: any) => logger.error("Cache save error:", e));
 
     return NextResponse.json(responsePayload);
   } catch (error: any) {

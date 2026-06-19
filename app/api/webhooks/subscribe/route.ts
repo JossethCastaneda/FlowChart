@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl, META_API_VERSION as META_VERSION } from "@/lib/server-auth";
 import { subscribePages } from "@/lib/meta-webhooks";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/webhooks/subscribe
@@ -81,7 +82,7 @@ export async function POST(request: NextRequest) {
       },
     });
   } catch (err: any) {
-    console.error("[WEBHOOK-SUBSCRIBE] Error:", err);
+    logger.error("[WEBHOOK-SUBSCRIBE] Error:", err);
     return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
   }
 }

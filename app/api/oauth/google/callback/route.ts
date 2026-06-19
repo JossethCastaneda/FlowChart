@@ -5,6 +5,7 @@ import { encryptToken } from "@/lib/encryption";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { getAppBaseUrl } from "@/lib/app-url";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
 
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
   const error = searchParams.get("error");
 
   if (error) {
-    console.error("[OAUTH GOOGLE] Error from Google:", error);
+    logger.error("[OAUTH GOOGLE] Error from Google:", error);
     return NextResponse.redirect(new URL("/dashboard/integrations?error=google_auth_failed", request.url));
   }
 
@@ -43,7 +44,7 @@ export async function GET(request: NextRequest) {
       throw new Error("Invalid provider in state");
     }
   } catch (err) {
-    console.error("[OAUTH GOOGLE] State validation failed:", err);
+    logger.error("[OAUTH GOOGLE] State validation failed:", err);
     return NextResponse.json({ error: "Invalid state parameter" }, { status: 400 });
   }
 
@@ -80,7 +81,7 @@ export async function GET(request: NextRequest) {
 
     const tokenData = await tokenRes.json();
     if (!tokenRes.ok) {
-      console.error("[OAUTH GOOGLE] Token exchange failed:", tokenData);
+      logger.error("[OAUTH GOOGLE] Token exchange failed:", tokenData);
       return NextResponse.redirect(new URL("/dashboard/integrations?error=google_token_exchange", request.url));
     }
 
@@ -129,11 +130,11 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    console.log(`[OAUTH GOOGLE] Successfully connected Google for workspace ${workspaceId}`);
+    logger.info(`[OAUTH GOOGLE] Successfully connected Google for workspace ${workspaceId}`);
     return NextResponse.redirect(new URL(`/dashboard/integrations?success=google_connected`, request.url));
 
   } catch (err: any) {
-    console.error("[OAUTH GOOGLE] Unexpected error:", err);
+    logger.error("[OAUTH GOOGLE] Unexpected error:", err);
     return NextResponse.redirect(new URL("/dashboard/integrations?error=google_internal_error", request.url));
   }
 }
