@@ -1239,13 +1239,25 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
   // plataforma del bot. `aliasFilled` evita que el auto-seleccionar de plataforma
   // (cuando hay 1 sola integración) revele secciones antes de tiempo.
   const flowStarted = aliasFilled && botChoiceMade;
+
+  // Captura MANUAL de canales (TagsInput) en vez de multi-select: Cari nunca lista
+  // canales, y Botmaker cuando su API no devolvió ninguno (para no bloquear el alta).
+  const manualBotChannels =
+    selectedBotProvider === "cari_ai" ||
+    (selectedBotProvider === "botmaker" && !loadingChannels && totalAvail === 0);
+  const hasBotChannelUI = !isNoBot && (showWhatsapp || showWebchat || showInstagram || showFacebook);
+  const anyBotChannelSelected = filled(form.whatsapp, form.webchat, form.instagram, form.fanpage);
+  // Revelado SECUENCIAL: cada sección se habilita al completar la anterior, no todas
+  // de golpe. El paso de canales del bot se "resuelve" al elegir/teclear ≥1 canal
+  // (o si no hay UI de canales — p. ej. "No aplica"). El fallback manual asegura que
+  // siempre se pueda completar aunque la API de Botmaker no traiga canales.
+  const botStepDone = flowStarted && (!hasBotChannelUI || anyBotChannelSelected);
   const reveal = {
     identityRest: !progressive || aliasFilled,
     botPlatform: !progressive || aliasFilled,
-    botChannels:
-      (!progressive || flowStarted) && !isNoBot && (showWhatsapp || showWebchat || showInstagram || showFacebook),
-    redes: !progressive || flowStarted || filled(form.fanpage, form.instagram, form.website),
-    adChannels: !progressive || flowStarted || form.channels.length > 0,
+    botChannels: (!progressive || flowStarted) && hasBotChannelUI,
+    redes: !progressive || botStepDone || filled(form.fanpage, form.instagram, form.website),
+    adChannels: !progressive || botStepDone || form.channels.length > 0,
     audiencia: !progressive || form.channels.length > 0 || filled(form.persona, form.geo, form.dateStart, form.dateEnd),
   };
 
@@ -1410,13 +1422,13 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
               webchats, IG, FB); Cari no expone listado → captura manual. */}
           {selectedBotProvider === "botmaker" && (showWhatsapp || showWebchat || showInstagram || showFacebook) && totalAvail === 0 && !loadingChannels && (
             <p style={{ fontSize: 10, color: "#f59e0b", margin: "2px 0 6px" }}>
-              No se encontraron canales en esta cuenta de Botmaker. Verifica en tu panel de Botmaker.
+              No se detectaron canales en esta cuenta de Botmaker (revisa tu panel). Mientras tanto, ingrésalos manualmente abajo.
             </p>
           )}
           {(showWhatsapp || showWebchat) && (
             <Row>
               {showWhatsapp && <Field l="WhatsApp" el={
-                selectedBotProvider === "cari_ai" ? (
+                manualBotChannels ? (
                   <TagsInput
                     values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
                     onChange={(vals) => setForm(prev => ({ ...prev, whatsapp: vals }))}
@@ -1434,7 +1446,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                 )
               } />}
               {showWebchat && <Field l="Web Chat (ID del widget)" el={
-                selectedBotProvider === "cari_ai" ? (
+                manualBotChannels ? (
                   <TagsInput
                     values={Array.isArray(form.webchat) ? form.webchat : form.webchat ? [form.webchat] : []}
                     onChange={(vals) => setForm(prev => ({ ...prev, webchat: vals }))}
@@ -1456,7 +1468,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
           {(showInstagram || showFacebook) && (
             <Row>
               {showInstagram && <Field l="Instagram del bot" el={
-                selectedBotProvider === "cari_ai" ? (
+                manualBotChannels ? (
                   <TagsInput
                     values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
                     onChange={(vals) => setForm(prev => ({ ...prev, instagram: vals }))}
@@ -1474,7 +1486,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                 )
               } />}
               {showFacebook && <Field l="Página de Facebook del bot" el={
-                selectedBotProvider === "cari_ai" ? (
+                manualBotChannels ? (
                   <TagsInput
                     values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
                     onChange={(vals) => setForm(prev => ({ ...prev, fanpage: vals }))}

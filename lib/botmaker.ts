@@ -1136,23 +1136,36 @@ function channelCanonical(platform?: string | null): ChannelCanonical | null {
  */
 export async function listBotmakerChannels(conn: BotmakerConnection): Promise<BmChannelInfo[]> {
   const res = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
-  if (!res.ok) return [];
-  const data = await res.json().catch(() => null);
-  console.log(`[BOTMAKER] /channels response for token prefix ${conn.accessToken.substring(0, 10)}:`, JSON.stringify(data).substring(0, 500));
-  const items = (data?.items ?? data ?? []) as Record<string, unknown>[];
-  if (!Array.isArray(items)) {
-    console.warn(`[BOTMAKER] /channels did not return an array. Data:`, data);
+  if (!res.ok) {
+    console.warn(`[BOTMAKER] /channels HTTP ${res.status}`);
     return [];
   }
+  const data = await res.json().catch(() => null);
+  console.log(`[BOTMAKER] /channels response for token prefix ${conn.accessToken.substring(0, 10)}:`, JSON.stringify(data).substring(0, 500));
+  // Botmaker puede envolver los canales en distintas claves según versión/cuenta
+  // (items / channels / data / result) o devolver un arreglo plano. Toleramos todas.
+  const raw = Array.isArray(data)
+    ? data
+    : (data?.items ?? data?.channels ?? data?.data ?? data?.result ?? []);
+  const items = (Array.isArray(raw) ? raw : []) as Record<string, unknown>[];
+  if (items.length === 0) {
+    const keys = data && typeof data === "object" ? Object.keys(data).join(",") : typeof data;
+    console.warn(`[BOTMAKER] /channels sin canales tras parsear (keys=${keys})`);
+    return [];
+  }
+  const str = (v: unknown): string => (typeof v === "string" ? v : "");
   return items
-    .map((c) => ({
-      id: String(c.id ?? ""),
-      platform: String(c.platform ?? ""),
-      canonical: channelCanonical(c.platform as string),
-      name: String(c.name ?? ""),
-      number: typeof c.number === "string" ? c.number : undefined,
-      active: c.active !== false,
-    }))
+    .map((c) => {
+      const platform = str(c.platform) || str(c.type) || str(c.channelType);
+      return {
+        id: str(c.id) || str(c.channelId) || str(c._id),
+        platform,
+        canonical: channelCanonical(platform),
+        name: str(c.name) || str(c.displayName) || str(c.title),
+        number: str(c.number) || str(c.phoneNumber) || str(c.phone) || undefined,
+        active: c.active !== false && c.enabled !== false,
+      };
+    })
     .filter((c) => c.id);
 }
 
