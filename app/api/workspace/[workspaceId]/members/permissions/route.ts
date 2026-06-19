@@ -1,75 +1,57 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
-import { z } from "zod";
+import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiNotFound, apiForbidden } from "@/lib/api-response";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
+import { z } from "zod";
 
-const ModuleAccessSchema = z.object({
-  view: z.boolean(),
-  edit: z.boolean(),
+export const dynamic = "force-dynamic";
+
+const PermissionsBodySchema = z.object({
+  userId: z.string().min(1, "userId requerido"),
+  permissions: z
+    .object({
+      ops: z.object({ view: z.boolean(), edit: z.boolean() }),
+      publisher: z.object({ view: z.boolean(), edit: z.boolean() }),
+      inbox: z.object({ view: z.boolean(), edit: z.boolean() }),
+      ads: z.object({ view: z.boolean(), edit: z.boolean() }),
+      analytics: z.object({ view: z.boolean(), edit: z.boolean() }),
+      briefing: z.object({ view: z.boolean(), edit: z.boolean() }),
+    })
+    .nullable(),
 });
 
-const MemberPermissionsSchema = z.object({
-  ops: ModuleAccessSchema,
-  publisher: ModuleAccessSchema,
-  inbox: ModuleAccessSchema,
-  ads: ModuleAccessSchema,
-  analytics: ModuleAccessSchema,
-  briefing: ModuleAccessSchema,
+// PATCH /api/workspace/[workspaceId]/members/permissions
+// Update granular module-level permissions for a member (OWNER/ADMIN)
+export const PATCH = withAuth(async (req, ctx) => {
+  const { workspaceId } = await ctx.params;
+
+  const hasAccess = await verifyWorkspaceAccess(workspaceId, ctx.userId, ["OWNER", "ADMIN"]);
+  if (!hasAccess) return apiForbidden("Solo OWNER o ADMIN pueden editar permisos");
+
+  const result = await validateBody(req, PermissionsBodySchema);
+  if (!result.ok) return result.response;
+  const { userId, permissions } = result.data;
+
+  const target = await prisma.workspaceMember.findUnique({
+    where: { workspaceId_userId: { workspaceId, userId } },
+    select: { id: true },
+  });
+  if (!target) return apiNotFound("Miembro no encontrado");
+
+  await prisma.workspaceMember.update({
+    where: { workspaceId_userId: { workspaceId, userId } },
+    data: { permissions: permissions ?? Prisma.JsonNull },
+  });
+
+  logger.info("Member permissions updated", {
+    workspaceId,
+    targetUserId: userId,
+    byUserId: ctx.userId,
+    clearedPermissions: permissions === null,
+  });
+
+  return apiSuccess({ updated: true });
 });
-
-const RequestSchema = z.object({
-  userId: z.string().min(1, "Missing userId"),
-  permissions: MemberPermissionsSchema.nullable(),
-});
-
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ workspaceId: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const { workspaceId } = await params;
-    const hasAccess = await verifyWorkspaceAccess(workspaceId, session.user.id, [
-      "OWNER",
-      "ADMIN",
-    ]);
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const result = await validateBody(req, RequestSchema);
-    if (!result.ok) return result.response;
-    
-    const { userId, permissions } = result.data;
-
-    const target = await prisma.workspaceMember.findUnique({
-      where: { workspaceId_userId: { workspaceId, userId } },
-    });
-    
-    if (!target) {
-      return NextResponse.json({ error: "Miembro no encontrado" }, { status: 404 });
-    }
-
-    // Actualizamos el JSON de permisos en la base de datos
-    await prisma.workspaceMember.update({
-      where: { workspaceId_userId: { workspaceId, userId } },
-      data: {
-        permissions: permissions ? (permissions as any) : null,
-      },
-    });
-
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error("[MEMBERS_PERMISSIONS] Patch error:", err);
-    return NextResponse.json(
-      { error: "Error al actualizar permisos" },
-      { status: 500 }
-    );
-  }
-}

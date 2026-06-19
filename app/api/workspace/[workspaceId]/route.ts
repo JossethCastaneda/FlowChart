@@ -1,128 +1,74 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
-import { z } from "zod";
+import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiError, apiNotFound, apiForbidden, apiServerError } from "@/lib/api-response";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ workspaceId: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const dynamic = "force-dynamic";
 
-    const { workspaceId } = await params;
-    const hasAccess = await verifyWorkspaceAccess(workspaceId, session.user.id);
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+const UpdateWorkspaceSchema = z.object({
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(80),
+});
 
-    const workspace = await prisma.workspace.findUnique({
-      where: { id: workspaceId },
-      include: {
-        members: {
-          include: {
-            user: { select: { id: true, name: true, email: true, image: true } },
-          },
-          orderBy: { role: "asc" },
+// GET /api/workspace/[workspaceId] — get workspace details
+export const GET = withAuth(async (_req, ctx) => {
+  const { workspaceId } = await ctx.params;
+
+  const hasAccess = await verifyWorkspaceAccess(workspaceId, ctx.userId);
+  if (!hasAccess) return apiForbidden();
+
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    include: {
+      members: {
+        include: {
+          user: { select: { id: true, name: true, email: true, image: true } },
         },
-        _count: { select: { projects: true, invites: true } },
+        orderBy: { role: "asc" },
       },
-    });
+      _count: { select: { projects: true, invites: true } },
+    },
+  });
 
-    if (!workspace) {
-      return NextResponse.json({ error: "Workspace not found" }, { status: 404 });
-    }
+  if (!workspace) return apiNotFound("Workspace no encontrado");
 
-    return NextResponse.json({ data: workspace });
-  } catch (err: any) {
-    console.error("[WORKSPACE GET] Error:", err);
-    return NextResponse.json(
-      { error: "Error al obtener workspace" },
-      { status: 500 }
-    );
-  }
-}
+  return apiSuccess(workspace);
+});
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ workspaceId: string }> }
-) {
-    try {
-          const result = await validateBody(req, RequestSchema);
-          if (!result.ok) return result.response;
-          const { name } = result.data;
-          
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+// PATCH /api/workspace/[workspaceId] — update workspace name (OWNER or ADMIN)
+export const PATCH = withAuth(async (req, ctx) => {
+  const { workspaceId } = await ctx.params;
 
-    const { workspaceId } = await params;
-    const hasAccess = await verifyWorkspaceAccess(
-      workspaceId,
-      session.user.id,
-      ["OWNER", "ADMIN"]
-    );
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+  const hasAccess = await verifyWorkspaceAccess(workspaceId, ctx.userId, ["OWNER", "ADMIN"]);
+  if (!hasAccess) return apiForbidden("Solo OWNER o ADMIN pueden editar el workspace");
 
+  const result = await validateBody(req, UpdateWorkspaceSchema);
+  if (!result.ok) return result.response;
+  const { name } = result.data;
 
+  const updated = await prisma.workspace.update({
+    where: { id: workspaceId },
+    data: { name: name.trim() },
+    select: { id: true, name: true, slug: true, plan: true, updatedAt: true },
+  });
 
+  logger.info("Workspace updated", { workspaceId, userId: ctx.userId });
 
-    if (!name || typeof name !== "string" || name.trim().length < 2) {
-      return NextResponse.json({ error: "Nombre inválido" }, { status: 400 });
-    }
+  return apiSuccess(updated);
+});
 
-    const updated = await prisma.workspace.update({
-      where: { id: workspaceId },
-      data: { name: name.trim() },
-    });
+// DELETE /api/workspace/[workspaceId] — delete workspace (OWNER only)
+export const DELETE = withAuth(async (_req, ctx) => {
+  const { workspaceId } = await ctx.params;
 
-    return NextResponse.json({ data: updated });
-    } catch (err: any) {
-    console.error("[WORKSPACE PATCH] Error:", err);
-    return NextResponse.json(
-      { error: "Error al actualizar workspace" },
-      { status: 500 }
-    );
-    }
-}
+  const hasAccess = await verifyWorkspaceAccess(workspaceId, ctx.userId, ["OWNER"]);
+  if (!hasAccess) return apiForbidden("Solo el OWNER puede eliminar el workspace");
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ workspaceId: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  await prisma.workspace.delete({ where: { id: workspaceId } });
 
-    const { workspaceId } = await params;
-    const hasAccess = await verifyWorkspaceAccess(
-      workspaceId,
-      session.user.id,
-      ["OWNER"]
-    );
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Solo el OWNER puede eliminar el workspace" }, { status: 403 });
-    }
+  logger.info("Workspace deleted", { workspaceId, userId: ctx.userId });
 
-    await prisma.workspace.delete({ where: { id: workspaceId } });
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error("[WORKSPACE DELETE] Error:", err);
-    return NextResponse.json(
-      { error: "Error al eliminar workspace" },
-      { status: 500 }
-    );
-  }
-}
-
-let RequestSchema = z.object({ name: z.string().min(1, "Name required") });
+  return apiSuccess({ deleted: true });
+});

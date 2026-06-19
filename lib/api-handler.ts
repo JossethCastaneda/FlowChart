@@ -1,10 +1,11 @@
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/auth.config";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { apiUnauthorized, apiError, apiServerError } from "@/lib/api-response";
+import { apiUnauthorized, apiError, apiServerError, apiForbidden } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import { cookies } from "next/headers";
+import { ACTIVE_WORKSPACE_COOKIE } from "@/lib/active-workspace";
 
 /**
  * Wrappers para route handlers de la API.
@@ -34,6 +35,8 @@ export interface AuthContext {
 
 export interface WorkspaceContext extends AuthContext {
   workspaceId: string;
+  /** Rol del usuario en el workspace activo: "OWNER" | "ADMIN" | "MEMBER" */
+  role: string;
 }
 
 type Handler<C> = (req: NextRequest, ctx: C) => Promise<Response>;
@@ -46,8 +49,8 @@ export function withAuth(handler: Handler<AuthContext>) {
       try {
         session = await getServerSession(authOptions);
       } catch (sessionError) {
-        // getServerSession can throw if NEXTAUTH_SECRET is wrong, JWT is malformed,
-        // or cookie cannot be verified. Treat as unauthenticated (not server error).
+        // getServerSession puede lanzar si NEXTAUTH_SECRET es incorrecto o el JWT está malformado.
+        // Tratamos como no autenticado (no como error de servidor).
         logger.warn("getServerSession error — treating as unauthenticated", {
           url: req.nextUrl?.pathname,
           error: sessionError instanceof Error ? sessionError.message : String(sessionError),
@@ -56,9 +59,9 @@ export function withAuth(handler: Handler<AuthContext>) {
       }
       if (!session?.user?.id) return apiUnauthorized();
 
-      // Guard against orphan sessions: verify the userId actually exists in the DB.
-      // This can happen when the app switched databases (e.g., c-8 → c-7) and the
-      // JWT still references a userId from the old database.
+      // Guard against orphan sessions: verifica que el userId exista en la DB.
+      // Ocurre cuando la app cambia de base de datos y el JWT sigue referenciando
+      // un userId de la anterior.
       const userExists = await prisma.user.findUnique({
         where: { id: session.user.id },
         select: { id: true },
@@ -82,23 +85,79 @@ export function withAuth(handler: Handler<AuthContext>) {
   };
 }
 
-
-
-/** Requiere sesión + workspace activo (membresía verificada en getActiveWorkspaceId). */
+/**
+ * Requiere sesión + workspace activo (membresía verificada).
+ * Inyecta workspaceId y role en el contexto.
+ *
+ * Orden de prioridad para resolver el workspace:
+ *   1. Cookie sodare_active_workspace (si existe y el usuario es miembro)
+ *   2. Primer workspace del usuario (fallback)
+ */
 export function withWorkspace(handler: Handler<WorkspaceContext>) {
   return withAuth(async (req, ctx) => {
-    const workspaceId = await getActiveWorkspaceId(ctx.userId);
+    const cookieStore = await cookies();
+    const cookieWsId = cookieStore.get(ACTIVE_WORKSPACE_COOKIE)?.value;
+
+    let workspaceId: string | null = null;
+    let role: string = "MEMBER";
+
+    if (cookieWsId) {
+      const cookieMembership = await prisma.workspaceMember.findUnique({
+        where: { workspaceId_userId: { workspaceId: cookieWsId, userId: ctx.userId } },
+        select: { workspaceId: true, role: true },
+      });
+      if (cookieMembership) {
+        workspaceId = cookieMembership.workspaceId;
+        role = cookieMembership.role;
+      }
+    }
+
+    if (!workspaceId) {
+      const firstMembership = await prisma.workspaceMember.findFirst({
+        where: { userId: ctx.userId },
+        orderBy: { workspace: { createdAt: "asc" } },
+        select: { workspaceId: true, role: true },
+      });
+      if (firstMembership) {
+        workspaceId = firstMembership.workspaceId;
+        role = firstMembership.role;
+      }
+    }
+
     if (!workspaceId) {
       return apiError("No tienes un workspace activo", "NO_WORKSPACE", 400);
     }
-    return handler(req, { ...ctx, workspaceId });
+
+    return handler(req, { ...ctx, workspaceId, role });
   });
+}
+
+/**
+ * Requiere sesión + workspace activo + rol específico.
+ *
+ * @param allowedRoles Roles que tienen acceso (e.g., ["OWNER", "ADMIN"])
+ *
+ * @example
+ *   export const DELETE = withWorkspaceRole(["OWNER", "ADMIN"])(async (req, ctx) => { ... });
+ */
+export function withWorkspaceRole(allowedRoles: string[]) {
+  return (handler: Handler<WorkspaceContext>) =>
+    withWorkspace(async (req, ctx) => {
+      if (!allowedRoles.includes(ctx.role)) {
+        return apiForbidden(
+          `Esta acción requiere uno de los siguientes roles: ${allowedRoles.join(", ")}`
+        );
+      }
+      return handler(req, ctx);
+    });
 }
 
 /**
  * Safe wrapper around getServerSession that returns null instead of throwing.
  * Use this in routes that call getServerSession directly (not through withAuth).
- * 
+ *
+ * @deprecated Prefer `withAuth` or `withWorkspace` wrappers when possible.
+ *
  * Example:
  *   const session = await safeGetSession();
  *   if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

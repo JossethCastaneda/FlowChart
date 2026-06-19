@@ -1,45 +1,25 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { withAuth } from "@/lib/api-handler";
+import { apiSuccess, apiNotFound, apiForbidden } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
 
-export async function DELETE(
-  _req: NextRequest,
-  { params }: { params: Promise<{ workspaceId: string; inviteId: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const dynamic = "force-dynamic";
 
-    const { workspaceId, inviteId } = await params;
-    const hasAccess = await verifyWorkspaceAccess(
-      workspaceId,
-      session.user.id,
-      ["OWNER", "ADMIN"]
-    );
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+// DELETE /api/workspace/[workspaceId]/invite/[inviteId] — revoke an invite (OWNER/ADMIN)
+export const DELETE = withAuth(async (_req, ctx) => {
+  const { workspaceId, inviteId } = await ctx.params;
 
-    const result = await prisma.workspaceInvite.deleteMany({
-      where: { id: inviteId, workspaceId },
-    });
+  const hasAccess = await verifyWorkspaceAccess(workspaceId, ctx.userId, ["OWNER", "ADMIN"]);
+  if (!hasAccess) return apiForbidden();
 
-    if (result.count === 0) {
-      return NextResponse.json(
-        { error: "Invitación no encontrada" },
-        { status: 404 }
-      );
-    }
+  const result = await prisma.workspaceInvite.deleteMany({
+    where: { id: inviteId, workspaceId },
+  });
 
-    return NextResponse.json({ success: true });
-  } catch (err: any) {
-    console.error("[INVITE DELETE] Error:", err);
-    return NextResponse.json(
-      { error: "Error al cancelar invitación" },
-      { status: 500 }
-    );
-  }
-}
+  if (result.count === 0) return apiNotFound("Invitación no encontrada");
+
+  logger.info("Workspace invite revoked", { workspaceId, inviteId, byUserId: ctx.userId });
+
+  return apiSuccess({ revoked: true });
+});

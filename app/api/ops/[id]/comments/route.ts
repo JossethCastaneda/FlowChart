@@ -1,94 +1,87 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { withAuth } from "@/lib/api-handler";
+import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiCreated, apiNotFound, apiForbidden } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
+
+const AddCommentSchema = z.object({
+  content: z.string().min(1, "El contenido no puede estar vacío").max(5000),
+});
 
 // GET /api/ops/[id]/comments — get comments + activity for a task
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = withAuth(async (_req, ctx) => {
+  const { id } = await ctx.params;
 
-    const { id } = await params;
-    const task = await prisma.task.findUnique({ where: { id }, select: { workspaceId: true } });
-    if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const task = await prisma.task.findUnique({
+    where: { id },
+    select: { workspaceId: true },
+  });
+  if (!task) return apiNotFound("Tarea no encontrada");
 
-    const hasAccess = await verifyWorkspaceAccess(task.workspaceId, session.user.id);
-    if (!hasAccess) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const hasAccess = await verifyWorkspaceAccess(task.workspaceId, ctx.userId);
+  if (!hasAccess) return apiForbidden();
 
-    const [comments, activities] = await Promise.all([
-      prisma.taskComment.findMany({
-        where: { taskId: id },
-        orderBy: { createdAt: "asc" },
-      }),
-      prisma.taskActivity.findMany({
-        where: { taskId: id },
-        orderBy: { createdAt: "desc" },
-        take: 50,
-      }),
-    ]);
+  const [comments, activities] = await Promise.all([
+    prisma.taskComment.findMany({
+      where: { taskId: id },
+      orderBy: { createdAt: "asc" },
+    }),
+    prisma.taskActivity.findMany({
+      where: { taskId: id },
+      orderBy: { createdAt: "desc" },
+      take: 50,
+    }),
+  ]);
 
-    return NextResponse.json({ comments, activities });
-  } catch (err: any) {
-    console.error("[COMMENTS] GET error:", err);
-    return NextResponse.json({ error: err?.message || "Error" }, { status: 500 });
-  }
-}
+  return apiSuccess({ comments, activities });
+});
 
 // POST /api/ops/[id]/comments — add a comment
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const POST = withAuth(async (req, ctx) => {
+  const { id } = await ctx.params;
 
-    const { id } = await params;
-    const task = await prisma.task.findUnique({ where: { id }, select: { workspaceId: true } });
-    if (!task) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  const task = await prisma.task.findUnique({
+    where: { id },
+    select: { workspaceId: true },
+  });
+  if (!task) return apiNotFound("Tarea no encontrada");
 
-    const hasAccess = await verifyWorkspaceAccess(task.workspaceId, session.user.id);
-    if (!hasAccess) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const hasAccess = await verifyWorkspaceAccess(task.workspaceId, ctx.userId);
+  if (!hasAccess) return apiForbidden();
 
-    const { content } = await req.json();
-    if (!content?.trim()) {
-      return NextResponse.json({ error: "Contenido vacio" }, { status: 400 });
-    }
+  const result = await validateBody(req, AddCommentSchema);
+  if (!result.ok) return result.response;
+  const { content } = result.data;
 
-    const userName = session.user.name || session.user.email?.split("@")[0] || "Usuario";
+  // Get the user's display name for the comment
+  const user = await prisma.user.findUnique({
+    where: { id: ctx.userId },
+    select: { name: true, email: true, image: true },
+  });
+  const userName = user?.name || user?.email?.split("@")[0] || "Usuario";
 
-    const [comment] = await Promise.all([
-      prisma.taskComment.create({
-        data: {
-          taskId: id,
-          userId: session.user.id,
-          userName,
-          userImage: session.user.image || null,
-          content: content.trim(),
-        },
-      }),
-      prisma.taskActivity.create({
-        data: {
-          taskId: id,
-          userId: session.user.id,
-          userName,
-          action: "commented",
-          newValue: content.trim().slice(0, 100),
-        },
-      }),
-    ]);
+  const [comment] = await Promise.all([
+    prisma.taskComment.create({
+      data: {
+        taskId: id,
+        userId: ctx.userId,
+        userName,
+        userImage: user?.image || null,
+        content,
+      },
+    }),
+    prisma.taskActivity.create({
+      data: {
+        taskId: id,
+        userId: ctx.userId,
+        userName,
+        action: "commented",
+        newValue: content.slice(0, 100),
+      },
+    }),
+  ]);
 
-    return NextResponse.json({ data: comment }, { status: 201 });
-  } catch (err: any) {
-    console.error("[COMMENTS] POST error:", err);
-    return NextResponse.json({ error: err?.message || "Error" }, { status: 500 });
-  }
-}
+  return apiCreated(comment);
+});

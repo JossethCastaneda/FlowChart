@@ -1,31 +1,32 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
+import { apiSuccess, apiServerError } from "@/lib/api-response";
+import { verifyCronAuth } from "@/lib/cron-auth";
 import { checkSLAWarnings } from "@/lib/notifications";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { verifyCronAuth } from "@/lib/cron-auth";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
+import { safeGetSession } from "@/lib/api-handler";
 
 /**
  * GET /api/notifications/check-sla
  *
- * Vercel Cron invoca este endpoint con GET + Authorization: Bearer <CRON_SECRET>.
- * También puede ser invocado manualmente por un usuario autenticado para revisar
- * su propio workspace.
+ * Two modes:
+ * 1. Cron: Vercel invokes with Authorization: Bearer <CRON_SECRET>
+ *    → checks SLA for all workspaces.
+ * 2. Manual: authenticated user triggers check for their own workspace.
  *
  * Cron schedule: 0 8 * * * (vercel.json)
  */
 export async function GET(req: NextRequest) {
   try {
-    // Cron job: verificar con CRON_SECRET via Bearer header (método Vercel estándar)
     if (verifyCronAuth(req)) {
       const workspaces = await prisma.workspace.findMany({ select: { id: true } });
-      for (const ws of workspaces) {
-        await checkSLAWarnings(ws.id);
-      }
-      return NextResponse.json({ success: true, checked: workspaces.length });
+      await Promise.allSettled(workspaces.map((ws) => checkSLAWarnings(ws.id)));
+      logger.info("SLA check completed (cron)", { workspaceCount: workspaces.length });
+      return apiSuccess({ checked: workspaces.length });
     }
 
-    // Invocación manual: verificar sesión de usuario
+    // Manual invocation: user must be authenticated
     const session = await safeGetSession();
     if (!session?.user?.id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -37,15 +38,14 @@ export async function GET(req: NextRequest) {
     }
 
     await checkSLAWarnings(workspaceId);
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Error interno";
-    console.error("[SLA CHECK] error:", err);
-    return NextResponse.json({ error: message }, { status: 500 });
+    return apiSuccess({ checked: 1 });
+  } catch (err) {
+    logger.error("SLA check failed", { error: err });
+    return apiServerError(err);
   }
 }
 
-// Mantener POST para compatibilidad con invocaciones manuales existentes desde el dashboard
+// Keep POST for backward compatibility with manual dashboard calls
 export async function POST(req: NextRequest) {
   return GET(req);
 }

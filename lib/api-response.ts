@@ -6,7 +6,7 @@ import { logger } from "@/lib/logger";
  * Use these in all API routes for consistent error/success formatting.
  */
 
-interface SuccessResponse<T = any> {
+interface SuccessResponse<T = unknown> {
   success: true;
   data: T;
 }
@@ -17,8 +17,19 @@ interface ErrorResponse {
   code: string;
 }
 
-export function apiSuccess<T = any>(data: T, status = 200) {
+/** 200 OK with data */
+export function apiSuccess<T = unknown>(data: T, status = 200) {
   return NextResponse.json({ success: true, data } as SuccessResponse<T>, { status });
+}
+
+/** 201 Created with data */
+export function apiCreated<T = unknown>(data: T) {
+  return apiSuccess(data, 201);
+}
+
+/** 204 No Content */
+export function apiNoContent() {
+  return new NextResponse(null, { status: 204 });
 }
 
 export function apiError(error: string, code: string, status = 400) {

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import prisma from "@/lib/prisma";
+import prisma, { type Prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
 import {
@@ -101,7 +101,7 @@ export const PUT = withAuth(async (req, ctx) => {
 
   await prisma.project.update({
     where: { id },
-    data: updatePayload as any,
+    data: updatePayload as Prisma.ProjectUpdateInput,
   });
 
   if (channels !== undefined) {
