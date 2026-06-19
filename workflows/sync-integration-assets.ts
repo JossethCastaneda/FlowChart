@@ -286,10 +286,16 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
 async function syncBotmakerAssets(integration: any, token: string, baseUrl?: string) {
   // Sincronizar Canales de Botmaker (WhatsApp, Messenger, etc.)
   try {
-    const res = await botmakerFetch("/channels", token, {}, 2, baseUrl);
-    // Suponemos que retorna un arreglo de canales
-    if (res && Array.isArray(res)) {
-      for (const channel of res) {
+    const res = await botmakerFetch("/channels", token, {}, 2, normalizeBotmakerBase(baseUrl));
+    if (!res.ok) {
+      console.error(`Botmaker /channels sync failed: HTTP ${res.status}`);
+      return;
+    }
+    // La API puede devolver { items: [...] } o un arreglo directo (ver listBotmakerChannels).
+    const data = await res.json().catch(() => null);
+    const channels = (data?.items ?? data ?? []) as any[];
+    if (Array.isArray(channels)) {
+      for (const channel of channels) {
         await prisma.integrationAssetCache.upsert({
           where: {
             integrationId_assetType_externalId: {
