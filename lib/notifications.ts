@@ -1,18 +1,19 @@
 import prisma from "@/lib/prisma";
 import { Resend } from "resend";
+import { env } from "@/lib/env";
 import { getTaskAssignedEmailHtml, getSLAWarningEmailHtml } from "@/lib/email-templates";
 import { getBaseUrl } from "@/lib/get-base-url";
 
 let _resend: Resend | null = null;
 function getResend(): Resend | null {
-  if (!process.env.RESEND_API_KEY) {
+  if (!env.RESEND_API_KEY) {
     console.warn("[NOTIFICATIONS] RESEND_API_KEY not set — email sending disabled");
     return null;
   }
-  if (!_resend) _resend = new Resend(process.env.RESEND_API_KEY);
+  if (!_resend) _resend = new Resend(env.RESEND_API_KEY);
   return _resend;
 }
-const FROM_EMAIL = process.env.EMAIL_FROM || "SODARE <noreply@sodare.xyz>";
+const FROM_EMAIL = env.RESEND_FROM_EMAIL || env.EMAIL_FROM || "SODARE <noreply@sodare.xyz>";
 const BASE_URL = getBaseUrl();
 
 /**

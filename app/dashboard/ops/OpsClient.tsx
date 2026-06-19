@@ -779,10 +779,10 @@ export default function OpsPage() {
     try {
       const r = await fetch("/api/ops");
       const d = await r.json();
-      if (d.data) setTasks(d.data);
-      if (d.members) setMembers(d.members);
-    } catch (e) {
-      console.error("[OPS]", e);
+      if (Array.isArray(d.data?.tasks)) setTasks(d.data.tasks);
+      if (Array.isArray(d.data?.members)) setMembers(d.data.members);
+    } catch {
+      /* silent — error will surface as empty state */
     } finally {
       setLoading(false);
     }

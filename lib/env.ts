@@ -89,6 +89,20 @@ const envSchema = z.object({
   // Vercel Blob
   BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
 
+  // Email (Resend)
+  RESEND_API_KEY: z.string().min(1).optional(),
+  RESEND_FROM_EMAIL: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().min(1).optional(),
+
+  // Google Ads
+  GOOGLE_ADS_DEVELOPER_TOKEN: z.string().min(1).optional(),
+
+  // Análisis de Resultados — sal para hashear PII (teléfono/email)
+  ANALYTICS_PII_SALT: z.string().min(1).optional(),
+
+  // Botmaker (opcional)
+  BOTMAKER_ACCESS_TOKEN: z.string().optional(),
+  BOTMAKER_BASE_URL: z.string().url().optional(),
 
   // Config extra
   APP_TIMEZONE: z.string().default("America/Mexico_City"),

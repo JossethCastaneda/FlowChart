@@ -647,7 +647,7 @@ function ProyectosContent() {
       const res = await fetch("/api/workspace/integrations");
       if (res.ok) {
         const json = await res.json();
-        if (json.data) setActiveIntegrations(json.data.filter((i: any) => i.connected));
+        if (Array.isArray(json.data?.data)) setActiveIntegrations(json.data.data.filter((i: any) => i.connected));
       }
     } catch (err) { console.error("Failed to fetch integrations", err); }
   }, []);

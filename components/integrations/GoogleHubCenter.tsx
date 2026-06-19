@@ -38,8 +38,8 @@ export function GoogleHubCenter() {
     fetch("/api/workspace/integrations")
       .then(r => r.json())
       .then(res => {
-        if (res.data) {
-          const g = res.data.find((i: any) => i.provider === "google");
+        if (Array.isArray(res.data?.data)) {
+          const g = res.data.data.find((i: any) => i.provider === "google");
           setGoogleState(g || null);
         }
         setLoading(false);

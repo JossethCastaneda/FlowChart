@@ -272,7 +272,7 @@ export function IntegrationsView() {
     setLoading(true);
     fetch("/api/workspace/integrations")
       .then((r) => r.json())
-      .then((res) => { if (res.data) setIntegrations(res.data); setLoading(false); })
+      .then((res) => { if (Array.isArray(res.data?.data)) setIntegrations(res.data.data); setLoading(false); })
       .catch(() => setLoading(false));
   }, []);
 

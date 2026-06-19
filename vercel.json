@@ -1,4 +1,6 @@
 {
+  "maxDuration": 60,
+  "regions": ["iad1"],
   "crons": [
     {
       "path": "/api/notifications/check-sla",
