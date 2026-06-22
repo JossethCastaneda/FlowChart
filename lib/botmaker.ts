@@ -1119,14 +1119,24 @@ export interface BmChannelInfo {
 
 /** Mapea el `platform` de un canal Botmaker a su forma canónica (incluye webchat). */
 function channelCanonical(platform?: string | null): ChannelCanonical | null {
-  const p = (platform || "").toLowerCase();
+  const p = (platform || "").toLowerCase().trim();
   if (!p) return null;
-  if (p.includes("whats") || p === "waba") return "whatsapp";
-  if (p.includes("insta")) return "instagram";
-  if (p.includes("messenger")) return "messenger";
-  if (p.includes("facebook") || p === "fb") return "facebook";
-  if (p.includes("web") || p === "api" || p === "botmaker") return "webchat"; // webchat / web / webwidget
+  // Alineado con canonicalPlatform (sesiones) + alias reales de Botmaker.
+  if (p.includes("whats") || p.includes("wapp") || p === "wa" || p === "waba" || p === "wsp" || p === "wpp") return "whatsapp";
+  if (p.includes("insta") || p === "ig") return "instagram";
+  if (p.includes("messenger") || p === "fbm") return "messenger";
+  if (p.includes("facebook") || p === "fb" || p === "fbk") return "facebook";
+  if (p.includes("web") || p.includes("chat") || p.includes("widget") || p === "api" || p === "botmaker") return "webchat";
   return null;
+}
+
+/**
+ * Canónico de un canal con INFERENCIA por forma cuando el `platform` no se
+ * reconoce: si trae número de teléfono → WhatsApp; si no → Web Chat. Evita que un
+ * canal real se pierda solo porque Botmaker reporta un `platform` no visto.
+ */
+function resolveChannelCanonical(platform: string, number?: string): ChannelCanonical {
+  return channelCanonical(platform) ?? (number ? "whatsapp" : "webchat");
 }
 
 /**
@@ -1134,39 +1144,61 @@ function channelCanonical(platform?: string | null): ChannelCanonical | null {
  * Instagram y Facebook). Se usa para AUTOLLENAR el formulario "Nuevo Proyecto"
  * en vez de teclear los números a mano.
  */
-export async function listBotmakerChannels(conn: BotmakerConnection): Promise<BmChannelInfo[]> {
+/** Resultado de `/channels` con metadatos de diagnóstico (rawCount/platforms/HTTP). */
+export interface BotmakerChannelsResult {
+  channels: BmChannelInfo[];
+  /** # de items que Botmaker devolvió ANTES de filtrar/clasificar. */
+  rawCount: number;
+  /** Valores distintos de `platform` vistos en la respuesta (para mapear). */
+  platforms: string[];
+  httpStatus: number;
+}
+
+/**
+ * Descarga y parsea `/channels` devolviendo además metadatos para diagnóstico.
+ * Tolera múltiples shapes (items/channels/data/result/arreglo plano) y campos
+ * alternos, e INFIERE el canónico cuando el `platform` no se reconoce (no se
+ * descarta ningún canal en silencio). `listBotmakerChannels` envuelve esto.
+ */
+export async function fetchBotmakerChannels(conn: BotmakerConnection): Promise<BotmakerChannelsResult> {
   const res = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
   if (!res.ok) {
     console.warn(`[BOTMAKER] /channels HTTP ${res.status}`);
-    return [];
+    return { channels: [], rawCount: 0, platforms: [], httpStatus: res.status };
   }
   const data = await res.json().catch(() => null);
   console.log(`[BOTMAKER] /channels response for token prefix ${conn.accessToken.substring(0, 10)}:`, JSON.stringify(data).substring(0, 500));
-  // Botmaker puede envolver los canales en distintas claves según versión/cuenta
-  // (items / channels / data / result) o devolver un arreglo plano. Toleramos todas.
   const raw = Array.isArray(data)
     ? data
     : (data?.items ?? data?.channels ?? data?.data ?? data?.result ?? []);
   const items = (Array.isArray(raw) ? raw : []) as Record<string, unknown>[];
-  if (items.length === 0) {
-    const keys = data && typeof data === "object" ? Object.keys(data).join(",") : typeof data;
-    console.warn(`[BOTMAKER] /channels sin canales tras parsear (keys=${keys})`);
-    return [];
-  }
   const str = (v: unknown): string => (typeof v === "string" ? v : "");
-  return items
+  const channels = items
     .map((c) => {
       const platform = str(c.platform) || str(c.type) || str(c.channelType);
+      const number = str(c.number) || str(c.phoneNumber) || str(c.phone) || undefined;
       return {
         id: str(c.id) || str(c.channelId) || str(c._id),
         platform,
-        canonical: channelCanonical(platform),
+        canonical: resolveChannelCanonical(platform, number),
         name: str(c.name) || str(c.displayName) || str(c.title),
-        number: str(c.number) || str(c.phoneNumber) || str(c.phone) || undefined,
+        number,
         active: c.active !== false && c.enabled !== false,
       };
     })
     .filter((c) => c.id);
+  const platforms = [...new Set(
+    items.map((c) => str(c.platform) || str(c.type) || str(c.channelType)).filter(Boolean)
+  )];
+  if (channels.length === 0) {
+    const keys = data && typeof data === "object" ? Object.keys(data).join(",") : typeof data;
+    console.warn(`[BOTMAKER] /channels sin canales tras parsear (keys=${keys}, raw=${items.length})`);
+  }
+  return { channels, rawCount: items.length, platforms, httpStatus: res.status };
+}
+
+export async function listBotmakerChannels(conn: BotmakerConnection): Promise<BmChannelInfo[]> {
+  return (await fetchBotmakerChannels(conn)).channels;
 }
 
 /**
@@ -1211,7 +1243,7 @@ export async function getCachedBotmakerChannels(workspaceId: string): Promise<Bm
       return {
         id: r.externalId,
         platform,
-        canonical: channelCanonical(platform),
+        canonical: resolveChannelCanonical(platform, number),
         name: r.name || r.externalId,
         number,
         active: meta.active !== false,
