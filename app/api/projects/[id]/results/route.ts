@@ -7,7 +7,7 @@ import { cdmxRange } from "@/lib/crm/timezone";
 import { getCariCredentials, computeCariResults, EMPTY_CARI_RESULTS } from "@/lib/crm/cari";
 import {
   getBotmakerConnection,
-  botmakerFetch,
+  listBotmakerChannels,
   listSessions,
   computeMetricsByChannel,
   computeLeadQuality,
@@ -60,15 +60,13 @@ async function botmakerSegment(workspaceId: string, integrationId: string, days:
   const range = cdmxRange(days);
   try {
     const channelPlatform = new Map<string, string>();
-    let channels: { id: string; name: string; platform: string; active: boolean }[] = [];
+    let channels: { id: string; name: string; platform: string; canonical: string | null; active: boolean }[] = [];
     try {
-      const chRes = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
-      if (chRes.ok) {
-        const chData = await chRes.json();
-        const items = chData.items || chData || [];
-        channels = items.map((c: any) => ({ id: c.id, name: c.name, platform: c.platform, active: c.active }));
-        for (const c of items) if (c?.id) channelPlatform.set(String(c.id), String(c.platform || ""));
-      }
+      // Reutiliza el parser robusto de lib/botmaker.ts que tolera todos los shapes
+      // de la respuesta de Botmaker (items / channels / data / result / arreglo plano).
+      const bmChannels = await listBotmakerChannels(conn);
+      channels = bmChannels.map((c) => ({ id: c.id, name: c.name, platform: c.platform, canonical: c.canonical, active: c.active }));
+      for (const c of bmChannels) if (c.id) channelPlatform.set(c.id, c.platform);
     } catch { /* canales best-effort */ }
 
     const sessions = await listSessions(conn.accessToken, range.fromISO, range.toISO, 6, conn.baseUrl);
