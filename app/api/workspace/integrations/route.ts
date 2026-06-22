@@ -81,16 +81,27 @@ export const POST = withWorkspace(async (req, ctx) => {
   if (!result.ok) return result.response;
   const { provider, token, baseUrl, refreshToken } = result.data;
 
-  // Validate Botmaker token BEFORE saving to avoid storing invalid credentials
+  // Validate Botmaker token BEFORE saving to avoid storing invalid credentials.
+  // A 401/403 from Botmaker means the token is invalid.
+  // Getting 0 channels with a 200 is valid (account with no channels yet) — we still save the token.
   if (provider === "botmaker") {
     try {
-      const { normalizeBotmakerBase, listBotmakerChannels } = await import("@/lib/botmaker");
-      const conn = { baseUrl: normalizeBotmakerBase(baseUrl), accessToken: token };
-      const channels = await listBotmakerChannels(conn);
-      if (channels.length === 0) {
+      const { normalizeBotmakerBase, botmakerFetch } = await import("@/lib/botmaker");
+      const validationBaseUrl = normalizeBotmakerBase(baseUrl);
+      const res = await botmakerFetch("/channels", token, {}, 1, validationBaseUrl);
+      if (res.status === 401 || res.status === 403) {
         return apiError(
-          "El token de Botmaker es inválido o la cuenta no tiene canales configurados.",
+          "El token de Botmaker es inválido o no tiene permisos. Revisa tus credenciales.",
           "INVALID_TOKEN",
+          400
+        );
+      }
+      if (!res.ok && res.status !== 404) {
+        // 4xx distinto de 401/403 o 5xx — podría ser un error de red o URL incorrecta.
+        logger.warn("Botmaker token validation: unexpected status", { workspaceId: ctx.workspaceId, status: res.status });
+        return apiError(
+          `Error al validar con Botmaker (HTTP ${res.status}). Verifica la URL base si usas una instancia propia.`,
+          "BOTMAKER_VALIDATION_ERROR",
           400
         );
       }

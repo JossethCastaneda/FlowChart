@@ -1167,7 +1167,8 @@ export async function fetchBotmakerChannels(conn: BotmakerConnection): Promise<B
     return { channels: [], rawCount: 0, platforms: [], httpStatus: res.status };
   }
   const data = await res.json().catch(() => null);
-  console.log(`[BOTMAKER] /channels response for token prefix ${conn.accessToken.substring(0, 10)}:`, JSON.stringify(data).substring(0, 500));
+  // Botmaker puede envolver los canales en distintas claves según versión/cuenta
+  // (items / channels / data / result) o devolver un arreglo plano. Toleramos todas.
   const raw = Array.isArray(data)
     ? data
     : (data?.items ?? data?.channels ?? data?.data ?? data?.result ?? []);
