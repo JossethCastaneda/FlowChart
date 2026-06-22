@@ -100,18 +100,30 @@ function TokenModal({ provider, label, onClose, onSuccess }: {
 }) {
   const [token, setToken] = useState("");
   const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const save = async () => {
     if (!token.trim()) return;
     setSaving(true);
+    setError(null);
     try {
-      await fetch("/api/workspace/integrations", {
+      // El backend (ConnectSchema) espera { provider, token } — NO credentials.accessToken
+      // (eso devolvía 422). Para Botmaker valida el token (channels>0) antes de guardar.
+      const res = await fetch("/api/workspace/integrations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider, credentials: { accessToken: token.trim() } }),
+        body: JSON.stringify({ provider, token: token.trim() }),
       });
-      onSuccess();
-    } catch { /* silent */ }
-    setSaving(false);
+      const json = await res.json().catch(() => ({}));
+      if (res.ok && json.success) {
+        onSuccess();
+      } else {
+        setError(json.error || `No se pudo conectar (HTTP ${res.status}).`);
+      }
+    } catch {
+      setError("Error de red al conectar.");
+    } finally {
+      setSaving(false);
+    }
   };
   return (
     <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
@@ -123,6 +135,9 @@ function TokenModal({ provider, label, onClose, onSuccess }: {
           placeholder="Token de acceso..."
           style={{ width: "100%", padding: "9px 12px", borderRadius: 8, fontSize: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#e2e8f0", outline: "none", fontFamily: "inherit", boxSizing: "border-box" }}
         />
+        {error && (
+          <p style={{ fontSize: 11, color: "#f87171", margin: "10px 0 0", lineHeight: 1.4 }}>{error}</p>
+        )}
         <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
           <button onClick={onClose} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "transparent", border: "1px solid rgba(255,255,255,0.08)", color: "#64748b", cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
           <button onClick={save} disabled={!token.trim() || saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "rgba(0,212,255,0.12)", border: "1px solid rgba(0,212,255,0.25)", color: "#00d4ff", cursor: !token.trim() || saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: !token.trim() || saving ? 0.6 : 1 }}>
