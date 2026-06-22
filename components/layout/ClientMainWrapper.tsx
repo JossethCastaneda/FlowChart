@@ -39,6 +39,7 @@ import {
   MinusCircle,
   Languages,
   Palette,
+  Bot,
 } from "lucide-react";
 import { showToast } from "@/components/ui/Toast";
 import { useLanguage } from "@/components/layout/LanguageContext";
@@ -56,6 +57,7 @@ const NAV_ITEMS: { name: string; short: string; href: string; icon: any; color: 
   { name: "Streams", short: "STRM", href: "/dashboard/streams", icon: Columns3, color: "#22d3ee", holoVariant: "cyan" },
   { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500", holoVariant: "emerald" },
   { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55", holoVariant: "pink" },
+  { name: "Botmaker", short: "BOT", href: "/dashboard/botmaker", icon: Bot, color: "#7c3aed", holoVariant: "pink" },
 ];
 
 
