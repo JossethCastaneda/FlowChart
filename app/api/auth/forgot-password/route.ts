@@ -64,6 +64,14 @@ export async function POST(req: NextRequest) {
     const baseUrl = getBaseUrl();
     const resetUrl = `${baseUrl}/reset-password/${token}`;
 
+    // En desarrollo (sin RESEND_API_KEY), retornar el enlace directamente
+    // para que los desarrolladores puedan testear sin configurar email.
+    const isDev = process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY;
+    if (isDev) {
+      logger.info("[FORGOT-PASSWORD] Dev mode: returning reset URL directly (no email configured)");
+      return NextResponse.json({ success: true, devResetUrl: resetUrl });
+    }
+
     const { sendPasswordResetEmail } = await import("@/lib/email");
     await sendPasswordResetEmail({
       to: normalizedEmail,
