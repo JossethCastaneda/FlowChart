@@ -1,12 +1,21 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { openConnectPopup } from "@/lib/connect-popup";
-import { useLanguage } from "@/components/layout/LanguageContext";
-import { SodareLogo } from "@/components/ui/SodareLogo";
+/**
+ * SODARE · Login "Puente de Mando"
+ * Drop-in replacement for app/login/page.tsx.
+ *
+ * Conserva TODA la lógica de auth existente (NextAuth facebook-sdk/popup,
+ * google popup, credentials, registro vía /api/auth/register) — solo cambia
+ * la capa visual. Requiere el componente Orbi (ver handoff/Orbi.tsx → muévelo
+ * a components/ui/Orbi.tsx) y SodareLogo ya existente.
+ *
+ * Fuente Orbitron: ya se usa en SodareLogo, así que está disponible.
+ */
 
-// Los tipos de Window.FB y FbLoginResponse viven en types/facebook-sdk.d.ts
+import React, { useState, useEffect, useRef } from "react";
+import { Orbi } from "@/components/ui/Orbi";
+import { SodareLogo } from "@/components/ui/SodareLogo";
+import { useLanguage } from "@/components/layout/LanguageContext";
 
 type AuthProviders = Record<string, unknown>;
 
@@ -26,680 +35,397 @@ function getSafeCallbackUrl() {
   return "/dashboard/resumen";
 }
 
+// ── i18n local (puedes migrarlo a tu LanguageContext) ──────────────────────
+const STRINGS = {
+  es: {
+    hook: "Menos pestañas. Más ventas.",
+    h1: "El centro de mando", h2: "de tu marketing.",
+    sub: "Campañas, conversaciones y resultados de todos tus canales en una sola pantalla, en tiempo real.",
+    bubblePre: "Hola 👋 Conecto ", bubblePost: " para que tú solo veas resultados.",
+    metricsLabel: "RESULTADOS DE NUESTROS CLIENTES · HOY",
+    roas: "ROAS promedio", convs: "conversaciones", campaigns: "campañas activas",
+    trust: "CONFÍAN:",
+    returningHi: (n: string) => `Hola otra vez, ${n}`, pwReturning: "Tu contraseña",
+    forgot: "¿Olvidaste tu contraseña?", useOther: "Usar otra cuenta",
+    title: "Acceso al sistema", subtitle: "Inicia sesión para entrar al puente de mando.",
+    orEmail: "o con tu email", tabLogin: "INICIAR SESIÓN", tabReg: "CREAR CUENTA",
+    name: "Nombre completo", confirmPw: "Confirmar contraseña",
+    ctaLogin: "ENTRAR AL PUENTE", ctaReg: "CREAR CUENTA GRATIS",
+    demo: "¿Aún no usas Sodare? Ver demo · 2 min",
+    secure: "Acceso seguro · cifrado de extremo a extremo",
+    successTitle: "Acceso concedido", successSub: "Entrando al puente de mando…",
+  },
+  en: {
+    hook: "Fewer tabs. More sales.",
+    h1: "The command center", h2: "for your marketing.",
+    sub: "Campaigns, conversations and results from every channel on one screen, in real time.",
+    bubblePre: "Hi 👋 I connect ", bubblePost: " so you only see results.",
+    metricsLabel: "OUR CLIENTS' RESULTS · TODAY",
+    roas: "avg. ROAS", convs: "conversations", campaigns: "active campaigns",
+    trust: "TRUSTED BY:",
+    returningHi: (n: string) => `Welcome back, ${n}`, pwReturning: "Your password",
+    forgot: "Forgot your password?", useOther: "Use another account",
+    title: "System access", subtitle: "Sign in to enter the command bridge.",
+    orEmail: "or with your email", tabLogin: "SIGN IN", tabReg: "CREATE ACCOUNT",
+    name: "Full name", confirmPw: "Confirm password",
+    ctaLogin: "ENTER THE BRIDGE", ctaReg: "CREATE FREE ACCOUNT",
+    demo: "New to Sodare? Watch demo · 2 min",
+    secure: "Secure access · end-to-end encryption",
+    successTitle: "Access granted", successSub: "Entering the command bridge…",
+  },
+};
+
+const ACCENT = "#00d4ff";
+const ORB = "Orbitron, sans-serif";
+
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [providers, setProviders] = useState<AuthProviders | null>(null);
-  const [showCredentials, setShowCredentials] = useState(false);
   const [isRegister, setIsRegister] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [name, setName] = useState("");
   const [credError, setCredError] = useState("");
-  const [fbReady, setFbReady] = useState(false);
+  const [showPw, setShowPw] = useState(false);
+  const { lang, setLang } = useLanguage();
+  const [success, setSuccess] = useState(false);
   const autoLoginAttempted = useRef(false);
-  const [status, setStatus] = useState<{
-    type: "idle" | "connecting" | "success" | "error";
-    message: string;
-  }>({ type: "idle", message: "Esperando autenticación..." });
+
+  // Cliente recurrente: recordamos el último correo usado.
+  const [savedEmail, setSavedEmail] = useState<string | null>(null);
+  const [savedName, setSavedName] = useState<string>("");
+  const [useOther, setUseOther] = useState(false);
+
+  const t = STRINGS[lang];
 
   useEffect(() => {
     let isActive = true;
 
-    // Detect OAuth errors from NextAuth redirect (e.g., ?error=OAuthCallback)
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       const oauthError = params.get("error");
       if (oauthError) {
-        const errorMessages: Record<string, string> = {
-          OAuthCallback: "Error de conexión. Si usas Facebook, Meta podría estar limitando las peticiones (rate limit), o tus credenciales son inválidas.",
+        const map: Record<string, string> = {
+          OAuthCallback: "Error de conexión. Meta podría estar limitando peticiones, o las credenciales no son válidas.",
           OAuthSignin: "No se pudo iniciar la autenticación con el proveedor.",
           OAuthAccountNotLinked: "Este email ya está vinculado a otro método de inicio de sesión.",
-          AccessDenied: "Acceso denegado. No tienes permisos para acceder.",
-          Verification: "El enlace de verificación ha expirado o ya fue utilizado.",
+          AccessDenied: "Acceso denegado.",
+          Verification: "El enlace de verificación expiró o ya fue utilizado.",
           Configuration: "Error de configuración del servidor de autenticación.",
-          Default: `Error de autenticación: ${oauthError}`,
         };
-        setStatus({
-          type: "error",
-          message: errorMessages[oauthError] || errorMessages.Default,
-        });
+        setCredError(map[oauthError] || `Error de autenticación: ${oauthError}`);
         window.history.replaceState({}, "", "/login");
       }
+      try {
+        const le = window.localStorage.getItem("sodare:lastEmail");
+        const ln = window.localStorage.getItem("sodare:lastName");
+        if (le) { setSavedEmail(le); setEmail(le); }
+        if (ln) setSavedName(ln);
+      } catch { /* noop */ }
     }
 
-    async function loadProviders() {
+    (async () => {
       try {
         const res = await fetch("/api/auth/providers");
-        if (!res.ok) throw new Error("Unable to load providers");
+        if (!res.ok) throw new Error("providers");
         const data = await res.json();
         if (isActive) setProviders(data || {});
       } catch {
         if (isActive) {
           setProviders({});
-          setStatus({
-            type: "error",
-            message: "No se pudo verificar la configuración de login.",
-          });
+          setCredError("No se pudo verificar la configuración de login.");
         }
       }
-    }
+    })();
 
-    loadProviders();
-
-    // ── Cargar FB SDK ──────────────────────────────────────────
-    // Sin fallback hardcodeado: si falta el env, no se carga el SDK y el
-    // botón usa el flujo redirect de NextAuth (que valida config en servidor).
+    // FB SDK (igual que tu implementación previa)
     const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID;
-    if (!APP_ID) {
-      console.warn("[LOGIN] NEXT_PUBLIC_META_APP_ID no configurado — SDK de Facebook deshabilitado, se usará redirect OAuth.");
-      return () => { isActive = false; };
-    }
-
+    if (!APP_ID) return () => { isActive = false; };
     const initSdk = () => {
-      window.FB!.init({
-        appId: APP_ID,
-        cookie: true,
-        xfbml: false,
-        version: process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0",
-      });
+      window.FB!.init({ appId: APP_ID, cookie: true, xfbml: false, version: process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0" });
       window.FB!.AppEvents.logPageView();
-      if (isActive) setFbReady(true);
     };
-
-    if (window.FB) {
-      // SDK ya cargado (p.ej. hot-reload / segunda visita)
-      initSdk();
-    } else {
+    if (window.FB) initSdk();
+    else {
       window.fbAsyncInit = initSdk;
       if (!document.getElementById("facebook-jssdk")) {
         const js = document.createElement("script");
-        js.id = "facebook-jssdk";
-        js.src = "https://connect.facebook.net/en_US/sdk.js";
-        js.async = true;
+        js.id = "facebook-jssdk"; js.src = "https://connect.facebook.net/en_US/sdk.js"; js.async = true;
         document.head.appendChild(js);
       }
     }
-
     return () => { isActive = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  // ── Autenticar con el accessToken obtenido del SDK ──────────
-  async function handleFbTokenInternal(accessToken: string) {
-    setIsLoading(true);
-    setStatus({ type: "connecting", message: "Autenticando con Facebook..." });
-    const { signIn } = await import("next-auth/react");
-    console.log("[FB LOGIN] Calling NextAuth signIn with facebook-sdk credentials provider...");
-    const result = await signIn("facebook-sdk", {
-      accessToken,
-      redirect: false,
-    });
-    console.log("[FB LOGIN] NextAuth signIn result:", JSON.stringify(result));
-    if (!result?.ok || result?.error) {
-      setIsLoading(false);
-      let errorMsg = "";
-      if (result?.error === "MetaRateLimit") {
-        errorMsg = " (Límite de peticiones de Meta alcanzado. Espera 60 minutos sin reintentar para permitir que se restablezca)";
-      } else {
-        errorMsg = result?.error ? ` (${result.error})` : `. Intenta de nuevo`;
-      }
-      setStatus({
-        type: "error",
-        message: `Error al autenticar con Facebook${errorMsg}.`
-      });
-      return;
-    }
-    setStatus({ type: "success", message: "Acceso autorizado" });
-    window.location.href = getSafeCallbackUrl();
-  }
 
   const providerStatusLoaded = providers !== null;
   const hasFacebookProvider = Boolean(providers?.facebook);
   const hasGoogleProvider = Boolean(providers?.google);
 
-  async function handleFacebookLogin() {
-    if (!hasFacebookProvider) {
-      setStatus({
-        type: "error",
-        message: "Facebook Login no está configurado en este entorno.",
-      });
-      return;
-    }
+  // Auto-login logic (credentials)
+  function rememberAndGo() {
+    try {
+      window.localStorage.setItem("sodare:lastEmail", email);
+      if (name) window.localStorage.setItem("sodare:lastName", name);
+    } catch { /* noop */ }
+    setSuccess(true);
+    setTimeout(() => { window.location.href = getSafeCallbackUrl(); }, 700);
+  }
 
+  function popupLogin(provider: "facebook" | "google") {
     setIsLoading(true);
-    setStatus({ type: "connecting", message: "Conectando con Facebook..." });
-    
+    setCredError("");
     const w = 520, h = 660;
     const left = Math.max(0, (window.screen.width - w) / 2);
     const top = Math.max(0, (window.screen.height - h) / 2);
     const features = `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`;
-    
-    // Abrimos el popup directo a nuestra ruta delegada para que NextAuth redirija EL POPUP, no la ventana principal
-    const popup = window.open("/login/popup?provider=facebook", "connect_oauth", features);
-
+    const popup = window.open(`/login/popup?provider=${provider}`, `connect_oauth_${provider}`, features);
     if (popup) {
       const handler = (event: MessageEvent) => {
         if (event.origin !== window.location.origin) return;
         if (event.data?.type === "CONNECT_DONE") {
           window.removeEventListener("message", handler);
-          if (event.data.module === "login") {
-            setStatus({ type: "success", message: "Acceso autorizado" });
-            window.location.href = getSafeCallbackUrl();
-          }
+          if (event.data.module === "login") rememberAndGo();
           popup.close();
         }
       };
       window.addEventListener("message", handler);
-
       const timer = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(timer);
-          window.removeEventListener("message", handler);
-          setIsLoading(false);
-          setStatus({ type: "idle", message: "Inicio de sesión cancelado." });
-        }
+        if (popup.closed) { clearInterval(timer); window.removeEventListener("message", handler); setIsLoading(false); }
       }, 500);
     } else {
-      // Fallback si el popup se bloqueó por el navegador
-      window.location.href = "/login/popup?provider=facebook";
+      window.location.href = `/login/popup?provider=${provider}`;
     }
   }
 
-
-  async function handleGoogleLogin() {
-    if (!hasGoogleProvider) {
-      setStatus({
-        type: "error",
-        message: "Google Login no está configurado en este entorno.",
-      });
-      return;
-    }
-    setIsLoading(true);
-    setStatus({ type: "connecting", message: "Conectando con Google..." });
-
-    const w = 520, h = 660;
-    const left = Math.max(0, (window.screen.width - w) / 2);
-    const top = Math.max(0, (window.screen.height - h) / 2);
-    const features = `width=${w},height=${h},left=${left},top=${top},scrollbars=yes,resizable=yes`;
-    
-    const popup = window.open("/login/popup?provider=google", "connect_oauth_google", features);
-
-    if (popup) {
-      const handler = (event: MessageEvent) => {
-        if (event.origin !== window.location.origin) return;
-        if (event.data?.type === "CONNECT_DONE") {
-          window.removeEventListener("message", handler);
-          if (event.data.module === "login") {
-            setStatus({ type: "success", message: "Acceso autorizado" });
-            window.location.href = getSafeCallbackUrl();
-          }
-          popup.close();
-        }
-      };
-      window.addEventListener("message", handler);
-
-      const timer = setInterval(() => {
-        if (popup.closed) {
-          clearInterval(timer);
-          window.removeEventListener("message", handler);
-          setIsLoading(false);
-          setStatus({ type: "idle", message: "Inicio de sesión cancelado." });
-        }
-      }, 500);
-    } else {
-      window.location.href = "/login/popup?provider=google";
-    }
+  function handleFacebookLogin() {
+    if (!hasFacebookProvider) { setCredError("Facebook Login no está configurado en este entorno."); return; }
+    popupLogin("facebook");
+  }
+  function handleGoogleLogin() {
+    if (!hasGoogleProvider) { setCredError("Google Login no está configurado en este entorno."); return; }
+    popupLogin("google");
   }
 
   async function handleCredentialsLogin() {
-    if (!email || !password) {
-      setCredError("Completa todos los campos");
-      return;
-    }
-    setIsLoading(true);
-    setCredError("");
-    setStatus({ type: "connecting", message: "Autenticando..." });
+    if (!email || !password) { setCredError("Completa todos los campos"); return; }
+    setIsLoading(true); setCredError("");
     const { signIn } = await import("next-auth/react");
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-    if (result?.error) {
-      setIsLoading(false);
-      setCredError("Email o contraseña incorrectos");
-      setStatus({ type: "error", message: "Authentication failed" });
-      return;
-    }
-    setStatus({ type: "success", message: "Access granted" });
-    window.location.href = getSafeCallbackUrl();
+    const result = await signIn("credentials", { email, password, redirect: false });
+    if (result?.error) { setIsLoading(false); setCredError("Email o contraseña incorrectos"); return; }
+    rememberAndGo();
   }
 
   async function handleRegister() {
-    if (!name || !email || !password) {
-      setCredError("Completa todos los campos");
-      return;
-    }
-    if (password.length < 8) {
-      setCredError("La contraseña debe tener al menos 8 caracteres");
-      return;
-    }
-    if (password !== confirmPassword) {
-      setCredError("Las contraseñas no coinciden");
-      return;
-    }
-    setIsLoading(true);
-    setCredError("");
-    setStatus({ type: "connecting", message: "Creating account..." });
+    if (!name || !email || !password) { setCredError("Completa todos los campos"); return; }
+    if (password.length < 8) { setCredError("La contraseña debe tener al menos 8 caracteres"); return; }
+    if (password !== confirmPassword) { setCredError("Las contraseñas no coinciden"); return; }
+    setIsLoading(true); setCredError("");
     const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+      method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name, email, password }),
     });
     const data = await res.json();
-    if (!res.ok) {
-      setIsLoading(false);
-      setCredError(data.error || "Error al registrar");
-      setStatus({ type: "error", message: "Registration failed" });
-      return;
-    }
-    // Auto-login después del registro
+    if (!res.ok) { setIsLoading(false); setCredError(data.error || "Error al registrar"); return; }
     const { signIn } = await import("next-auth/react");
-    const result = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
-    if (result?.error) {
-      setIsLoading(false);
-      setCredError("Cuenta creada. Inicia sesión.");
-      setIsRegister(false);
-      setStatus({ type: "idle", message: "Esperando autenticación..." });
-      return;
-    }
-    setStatus({ type: "success", message: "Access granted" });
-    window.location.href = getSafeCallbackUrl();
+    const result = await signIn("credentials", { email, password, redirect: false });
+    if (result?.error) { setIsLoading(false); setCredError("Cuenta creada. Inicia sesión."); setIsRegister(false); return; }
+    rememberAndGo();
   }
 
+  const submit = () => (isRegister ? handleRegister() : handleCredentialsLogin());
+  const showReturning = !!savedEmail && !useOther && !isRegister;
+
+  // ── estilos ──
+  const input: React.CSSProperties = {
+    width: "100%", padding: "12px 14px", marginBottom: 12, background: "rgba(0,212,255,0.03)",
+    border: "1px solid rgba(0,212,255,0.15)", color: "#e2e8f0", fontSize: 13, outline: "none",
+    boxSizing: "border-box", borderRadius: 5, transition: "border-color .15s,box-shadow .15s",
+  };
+  const cta: React.CSSProperties = {
+    width: "100%", marginTop: 6, padding: 15, border: "none", cursor: "pointer",
+    background: `linear-gradient(135deg,${ACCENT},#0080ff)`, color: "#03121a", fontWeight: 700,
+    letterSpacing: "0.02em", borderRadius: 6, display: "flex", alignItems: "center",
+    justifyContent: "center", gap: 10, minHeight: 50, fontSize: 14,
+  };
+  const tab = (active: boolean): React.CSSProperties => ({
+    flex: 1, padding: 9, fontFamily: ORB, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em",
+    cursor: "pointer", borderRadius: 3,
+    background: active ? "rgba(0,212,255,0.12)" : "transparent",
+    border: `1px solid ${active ? "rgba(0,212,255,0.45)" : "rgba(0,212,255,0.12)"}`,
+    color: active ? ACCENT : "#7d97b5",
+  });
+  const langBtn = (active: boolean): React.CSSProperties => ({
+    padding: "5px 12px", border: "none", borderRadius: 100, cursor: "pointer", fontSize: 11,
+    fontWeight: active ? 700 : 600, background: active ? "rgba(0,212,255,0.18)" : "transparent",
+    color: active ? ACCENT : "#7d97b5",
+  });
+  const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "rgba(0,212,255,0.55)";
+    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,212,255,0.12)";
+  };
+  const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.currentTarget.style.borderColor = "rgba(0,212,255,0.15)";
+    e.currentTarget.style.boxShadow = "none";
+  };
+
+  const EyeBtn = (
+    <button type="button" onClick={() => setShowPw((v) => !v)}
+      style={{ position: "absolute", right: 10, top: "50%", transform: "translateY(-50%)", background: "none", border: "none", cursor: "pointer", color: "#7d97b5", display: "flex", padding: 6 }}>
+      {showPw ? (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
+      ) : (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z" /><circle cx="12" cy="12" r="3" /></svg>
+      )}
+    </button>
+  );
+
+  const ErrorRow = credError ? (
+    <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 6, fontSize: 12, color: "#ff6b6b" }}>
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
+      {credError}
+    </div>
+  ) : null;
+
+  const leftBg = "radial-gradient(ellipse 600px 500px at 22% 14%,rgba(0,120,220,0.2) 0%,transparent 60%),radial-gradient(ellipse 540px 540px at 80% 100%,rgba(110,0,190,0.15) 0%,transparent 62%),linear-gradient(135deg,#061021,#04060c)";
+
   return (
-    <div className="login-page">
-      {/* Starfield */}
-      <StarfieldCanvas />
+    <div style={{ position: "relative", minHeight: "100vh", display: "flex", flexWrap: "wrap", background: "#04060c", fontFamily: "var(--font-inter),system-ui,sans-serif", overflow: "hidden" }}>
+      <style>{`
+        @keyframes f-headglow{0%,100%{text-shadow:0 0 30px rgba(0,212,255,.22)}50%{text-shadow:0 0 46px rgba(0,212,255,.42)}}
+        @keyframes f-pulse{0%,100%{opacity:1}50%{opacity:.35}}
+        @keyframes f-bubble{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+        @keyframes f-seam{0%{opacity:.25;transform:translateY(-30%)}50%{opacity:.8}100%{opacity:.25;transform:translateY(30%)}}
+        @keyframes f-spin{to{transform:rotate(360deg)}}
+        .login-left{width:50%;padding:52px}
+        .login-right{width:50%;padding:56px 64px;border-left:1px solid rgba(0,212,255,.1)}
+        @media (max-width:820px){
+          .login-left{width:100%;padding:32px 24px}
+          .login-right{width:100%;padding:32px 24px 44px;border-left:none;border-top:1px solid rgba(0,212,255,.1)}
+          .login-hero{display:none}
+          .login-headline{font-size:26px !important}
+        }
+        @media (prefers-reduced-motion:reduce){*{animation:none !important}}
+      `}</style>
 
-      {/* Animated nebula gradients */}
-      <div className="nebula nebula-1" />
-      <div className="nebula nebula-2" />
-      <div className="nebula nebula-3" />
+      {/* Language toggle */}
+      <div style={{ position: "absolute", top: 18, right: 22, zIndex: 20, display: "flex", gap: 2, padding: 3, background: "rgba(8,14,26,0.7)", border: "1px solid rgba(0,212,255,0.18)", borderRadius: 100 }}>
+        <button onClick={() => setLang("es")} style={langBtn(lang === "es")}>ES</button>
+        <button onClick={() => setLang("en")} style={langBtn(lang === "en")}>EN</button>
+      </div>
 
-      {/* Grid overlay */}
-      <div className="grid-overlay" />
+      {/* LEFT · brand + proof */}
+      <div className="login-left" style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 26, background: leftBg }}>
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px)", backgroundSize: "48px 48px", pointerEvents: "none", maskImage: "radial-gradient(ellipse 90% 80% at 45% 42%,#000 30%,transparent 95%)" }} />
+        <div style={{ position: "relative" }}><SodareLogo size="lg" /></div>
 
-      {/* Scanlines */}
-      <div className="scanlines" />
-
-      {/* Main content */}
-      <div className="login-wrapper is-visible">
-        {/* Decorative corner brackets */}
-        <div className="corner-brackets">
-          <span className="corner tl" />
-          <span className="corner tr" />
-          <span className="corner bl" />
-          <span className="corner br" />
+        <div style={{ position: "relative" }}>
+          <div className="login-hero" style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24 }}>
+            <Orbi scale={0.82} />
+            <div style={{ position: "relative", marginTop: 30, marginLeft: -18, maxWidth: 270, padding: "16px 18px", background: "rgba(8,18,34,0.92)", border: "1px solid rgba(0,212,255,0.28)", borderRadius: "14px 14px 14px 4px", boxShadow: "0 0 28px rgba(0,212,255,0.14)", animation: "f-bubble 4s ease-in-out infinite" }}>
+              <div style={{ fontSize: 9, fontFamily: "monospace", letterSpacing: "0.24em", color: "#7fb4cc", marginBottom: 7 }}>ORBI <span style={{ color: "#5e7790" }}>{lang === "es" ? "// tu copiloto" : "// your copilot"}</span></div>
+              <div style={{ fontSize: 13.5, lineHeight: 1.55, color: "#dbe7f5" }}>{t.bubblePre}<b style={{ color: "#fff" }}>Meta, Google, WhatsApp &amp; TikTok</b>{t.bubblePost}</div>
+            </div>
+          </div>
+          <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, color: ACCENT, background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", padding: "6px 12px", borderRadius: 100, marginBottom: 16 }}>{t.hook}</div>
+          <div className="login-headline" style={{ fontFamily: ORB, fontSize: 36, fontWeight: 700, lineHeight: 1.16, color: "#eaf4ff", animation: "f-headglow 4.5s ease-in-out infinite" }}>{t.h1}<br />{t.h2}</div>
+          <div style={{ fontSize: 15, color: "#9fb3c9", lineHeight: 1.6, marginTop: 16, maxWidth: 420 }}>{t.sub}</div>
         </div>
 
-        {/* Card */}
-        <div className="login-card">
-          {/* Top accent line */}
-          <div className="card-accent-top" />
-
-          {/* Logo section */}
-          <div className="logo-section">
-            <SodareLogo size="xl" />
-            <div className="logo-underline">
-              <span className="line-segment" />
-              <span className="line-diamond">◆</span>
-              <span className="line-segment" />
-            </div>
-            <p className="logo-subtitle">INTELIGENCIA MULTICANAL</p>
-          </div>
-
-          {/* Tagline */}
-          <p className="tagline">Navega la galaxia del marketing</p>
-
-          {/* Facebook button */}
-          <button
-            onClick={handleFacebookLogin}
-            disabled={isLoading || !providerStatusLoaded || !hasFacebookProvider}
-            className="fb-btn"
-            title={!hasFacebookProvider && providerStatusLoaded ? "Faltan FACEBOOK_CLIENT_ID/FACEBOOK_CLIENT_SECRET" : undefined}
-          >
-            <div className="fb-btn-bg" />
-            <div className="fb-btn-content">
-              {!isLoading ? (
-                <>
-                  <svg viewBox="0 0 24 24" className="fb-icon">
-                    <path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" />
-                  </svg>
-                  <span>
-                    {!providerStatusLoaded
-                      ? "VERIFICANDO FACEBOOK"
-                      : hasFacebookProvider
-                        ? status.type === "error" ? "REINTENTAR" : "INICIAR SESIÓN CON FACEBOOK"
-                        : "FACEBOOK NO CONFIGURADO"}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span>INICIANDO SESIÓN</span>
-                  <span className="loader-dots">
-                    <i /><i /><i />
-                  </span>
-                </>
-              )}
-            </div>
-          </button>
-
-          {/* Divider */}
-          <div className="divider-or">
-            <span className="divider-line" />
-            <span className="divider-text">O</span>
-            <span className="divider-line" />
-          </div>
-
-          {/* Google Login */}
-          <button
-            onClick={handleGoogleLogin}
-            disabled={isLoading || !providerStatusLoaded || !hasGoogleProvider}
-            className="google-btn"
-            title={!hasGoogleProvider && providerStatusLoaded ? "Faltan GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET" : undefined}
-          >
-            <div className="fb-btn-bg" />
-            <div className="fb-btn-content">
-              {!isLoading ? (
-                <>
-                  <svg viewBox="0 0 24 24" className="fb-icon" style={{ fill: "white" }}>
-                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
-                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" />
-                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
-                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
-                  </svg>
-                  <span>
-                    {!providerStatusLoaded
-                      ? "VERIFICANDO GOOGLE"
-                      : hasGoogleProvider
-                        ? "INICIAR SESIÓN CON GOOGLE"
-                        : "GOOGLE NO CONFIGURADO"}
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span>INICIANDO SESIÓN</span>
-                  <span className="loader-dots">
-                    <i /><i /><i />
-                  </span>
-                </>
-              )}
-            </div>
-          </button>
-
-          {/* Divider */}
-          <div className="divider-or">
-            <span className="divider-line" />
-            <span className="divider-text">O</span>
-            <span className="divider-line" />
-          </div>
-
-          {/* Email/Password toggle */}
-          {!showCredentials ? (
-            <button
-              onClick={() => setShowCredentials(true)}
-              className="google-btn"
-              style={{ opacity: 0.7 }}
-            >
-              <div className="fb-btn-bg" />
-              <div className="fb-btn-content">
-                <svg viewBox="0 0 24 24" className="fb-icon" style={{ fill: "white" }}>
-                  <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" />
-                </svg>
-                <span>INICIAR CON EMAIL</span>
+        <div style={{ position: "relative" }}>
+          <div style={{ fontSize: 9, fontFamily: "monospace", letterSpacing: "0.3em", color: "#6b86a6", marginBottom: 12 }}>{t.metricsLabel}</div>
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+            {[["+34%", t.roas], ["2,400", t.convs], ["118", t.campaigns]].map(([v, l]) => (
+              <div key={l} style={{ flex: 1, minWidth: 120, padding: "15px 18px", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.12)", borderRadius: 8 }}>
+                <div style={{ fontFamily: ORB, fontSize: 28, fontWeight: 700, color: "#fff" }}>{v}</div>
+                <div style={{ fontSize: 11, color: "#90a8c2", marginTop: 4 }}>{l}</div>
               </div>
-            </button>
-          ) : (
-            <div style={{ width: "100%" }}>
-              {/* Toggle login/register */}
-              <div style={{ display: "flex", gap: "8px", marginBottom: "16px" }}>
-                <button
-                  onClick={() => { setIsRegister(false); setCredError(""); }}
-                  style={{
-                    flex: 1, padding: "8px", fontSize: "10px",
-                    fontFamily: "'Orbitron', monospace", letterSpacing: "0.1em",
-                    background: !isRegister ? "rgba(0,212,255,0.1)" : "transparent",
-                    border: `1px solid ${!isRegister ? "rgba(0,212,255,0.4)" : "rgba(0,212,255,0.1)"}`,
-                    color: !isRegister ? "#00d4ff" : "#64748b",
-                    cursor: "pointer",
-                  }}
-                >
-                  INICIAR SESIÓN
-                </button>
-                <button
-                  onClick={() => { setIsRegister(true); setCredError(""); }}
-                  style={{
-                    flex: 1, padding: "8px", fontSize: "10px",
-                    fontFamily: "'Orbitron', monospace", letterSpacing: "0.1em",
-                    background: isRegister ? "rgba(0,212,255,0.1)" : "transparent",
-                    border: `1px solid ${isRegister ? "rgba(0,212,255,0.4)" : "rgba(0,212,255,0.1)"}`,
-                    color: isRegister ? "#00d4ff" : "#64748b",
-                    cursor: "pointer",
-                  }}
-                >
-                  REGISTRARSE
-                </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* RIGHT · acceso */}
+      <div className="login-right" style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "center", background: "rgba(4,7,14,0.6)" }}>
+        <span style={{ position: "absolute", left: -1, top: 0, width: 2, height: "50%", background: "linear-gradient(180deg,transparent,rgba(0,212,255,0.7),transparent)", animation: "f-seam 6s ease-in-out infinite" }} />
+        <div style={{ width: "100%", maxWidth: 392, margin: "0 auto", padding: "38px 34px", background: "rgba(8,14,26,0.55)", border: `1px solid ${ACCENT}33`, borderRadius: 16, boxShadow: `0 0 56px ${ACCENT}1f,inset 0 1px 0 rgba(255,255,255,0.04)` }}>
+
+          {success ? (
+            <div style={{ textAlign: "center", padding: "24px 0" }}>
+              <div style={{ width: 64, height: 64, margin: "0 auto 18px", borderRadius: "50%", background: "rgba(6,214,160,0.12)", border: "1.5px solid rgba(6,214,160,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#06d6a0" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
               </div>
-
-              {/* Name (register only) */}
-              {isRegister && (
-                <input
-                  type="text"
-                  placeholder="Nombre completo"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  disabled={isLoading}
-                  style={{
-                    width: "100%", padding: "10px 14px", marginBottom: "8px",
-                    background: "rgba(0,212,255,0.03)",
-                    border: "1px solid rgba(0,212,255,0.15)",
-                    color: "white", fontSize: "13px", outline: "none",
-                    boxSizing: "border-box",
-                  }}
-                />
-              )}
-
-              <input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={isLoading}
-                style={{
-                  width: "100%", padding: "10px 14px", marginBottom: "8px",
-                  background: "rgba(0,212,255,0.03)",
-                  border: "1px solid rgba(0,212,255,0.15)",
-                  color: "white", fontSize: "13px", outline: "none",
-                  boxSizing: "border-box",
-                }}
-              />
-
-              <input
-                type="password"
-                placeholder="Contraseña"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={isLoading}
-                onKeyDown={(e) => !isRegister && e.key === "Enter" && handleCredentialsLogin()}
-                style={{
-                  width: "100%", padding: "10px 14px", marginBottom: isRegister ? "8px" : "4px",
-                  background: "rgba(0,212,255,0.03)",
-                  border: "1px solid rgba(0,212,255,0.15)",
-                  color: "white", fontSize: "13px", outline: "none",
-                  boxSizing: "border-box",
-                }}
-              />
-
-              {!isRegister && (
-                <div style={{ textAlign: "right", marginBottom: "12px" }}>
-                  <a
-                    href="/forgot-password"
-                    style={{
-                      fontSize: "11px",
-                      color: "rgba(0, 240, 255, 0.6)",
-                      textDecoration: "none",
-                    }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "#00f0ff"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = "rgba(0, 240, 255, 0.6)"; }}
-                  >
-                    ¿Olvidaste tu contraseña?
-                  </a>
-                </div>
-              )}
-
-              {/* Confirm password (register only) */}
-              {isRegister && (
-                <input
-                  type="password"
-                  placeholder="Confirmar contraseña"
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isLoading}
-                  onKeyDown={(e) => e.key === "Enter" && handleRegister()}
-                  style={{
-                    width: "100%", padding: "10px 14px", marginBottom: "12px",
-                    background: "rgba(0,212,255,0.03)",
-                    border: "1px solid rgba(0,212,255,0.15)",
-                    color: "white", fontSize: "13px", outline: "none",
-                    boxSizing: "border-box",
-                  }}
-                />
-              )}
-
-              {credError && (
-                <p style={{ fontSize: "11px", color: "#ff2d55", marginBottom: "8px" }}>
-                  {credError}
-                </p>
-              )}
-
-              <button
-                onClick={isRegister ? handleRegister : handleCredentialsLogin}
-                disabled={isLoading}
-                className="fb-btn"
-                style={{ width: "100%" }}
-              >
-                <div className="fb-btn-bg" />
-                <div className="fb-btn-content">
-                  {!isLoading ? (
-                    <span>{isRegister ? "CREAR CUENTA" : "INICIAR SESIÓN →"}</span>
-                  ) : (
-                    <>
-                      <span>{isRegister ? "CREANDO CUENTA" : "AUTENTICANDO"}</span>
-                      <span className="loader-dots"><i /><i /><i /></span>
-                    </>
-                  )}
-                </div>
+              <div style={{ fontFamily: ORB, fontSize: 18, fontWeight: 700, color: "#fff" }}>{t.successTitle}</div>
+              <div style={{ fontSize: 13, color: "#9fb3c9", marginTop: 8 }}>{t.successSub}</div>
+            </div>
+          ) : showReturning ? (
+            <>
+              <div style={{ textAlign: "center", marginBottom: 6 }}>
+                <div style={{ width: 60, height: 60, margin: "0 auto 12px", borderRadius: "50%", background: "linear-gradient(135deg,#0a3a52,#062235)", border: "1.5px solid rgba(0,212,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: ORB, fontSize: 22, fontWeight: 700, color: ACCENT, boxShadow: "0 0 22px rgba(0,212,255,0.18)" }}>{(savedName || savedEmail || "U").trim().charAt(0).toUpperCase()}</div>
+                <div style={{ fontFamily: ORB, fontSize: 17, fontWeight: 700, color: "#fff" }}>{t.returningHi(savedName || "")}</div>
+                <div style={{ fontSize: 12, color: "#90a8c2", marginTop: 5, marginBottom: 22 }}>{savedEmail}</div>
+              </div>
+              <div style={{ position: "relative", marginBottom: 8 }}>
+                <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder={t.pwReturning} onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, padding: "12px 44px 12px 14px" }} />
+                {EyeBtn}
+              </div>
+              {ErrorRow}
+              <div style={{ textAlign: "right", marginBottom: 8 }}><a href="/forgot-password" style={{ fontSize: 12, color: "rgba(0,212,255,0.7)", textDecoration: "none" }}>{t.forgot}</a></div>
+              <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1 }}>
+                {isLoading ? <span style={{ width: 16, height: 16, border: "2px solid rgba(3,18,26,0.35)", borderTopColor: "#03121a", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : t.ctaLogin}
               </button>
-            </div>
+              <div style={{ textAlign: "center", marginTop: 16 }}>
+                <a href="#" onClick={(e) => { e.preventDefault(); setUseOther(true); setPassword(""); setCredError(""); }} style={{ fontSize: 12, color: "#90a8c2", textDecoration: "none", cursor: "pointer" }}>{t.useOther}</a>
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ fontFamily: ORB, fontSize: 22, fontWeight: 700, letterSpacing: "0.06em", color: "#fff", textAlign: "center" }}>{t.title}</div>
+              <div style={{ fontSize: 13, color: "#9fb3c9", marginTop: 8, marginBottom: 24, textAlign: "center" }}>{t.subtitle}</div>
+
+              <div style={{ display: "flex", gap: 10 }}>
+                <button onClick={handleFacebookLogin} disabled={isLoading || !providerStatusLoaded || !hasFacebookProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(0,212,255,0.16)", cursor: "pointer", background: "rgba(10,15,28,0.6)", color: "#e2e8f0", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 6 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" /></svg>Facebook
+                </button>
+                <button onClick={handleGoogleLogin} disabled={isLoading || !providerStatusLoaded || !hasGoogleProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(0,212,255,0.16)", cursor: "pointer", background: "rgba(10,15,28,0.6)", color: "#e2e8f0", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 6 }}>
+                  <svg width="15" height="15" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>Google
+                </button>
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
+                <span style={{ flex: 1, height: 1, background: "rgba(0,212,255,0.12)" }} /><span style={{ fontSize: 11, color: "#6b86a6" }}>{t.orEmail}</span><span style={{ flex: 1, height: 1, background: "rgba(0,212,255,0.12)" }} />
+              </div>
+
+              <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
+                <button onClick={() => { setIsRegister(false); setCredError(""); }} style={tab(!isRegister)}>{t.tabLogin}</button>
+                <button onClick={() => { setIsRegister(true); setCredError(""); }} style={tab(isRegister)}>{t.tabReg}</button>
+              </div>
+
+              {isRegister && <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t.name} onFocus={onFocus} onBlur={onBlur} style={input} />}
+              <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setCredError(""); }} placeholder="tu@empresa.com" onFocus={onFocus} onBlur={onBlur} style={input} />
+              <div style={{ position: "relative", marginBottom: 8 }}>
+                <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder="••••••••" onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, padding: "12px 44px 12px 14px" }} />
+                {EyeBtn}
+              </div>
+              {isRegister && <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t.confirmPw} onFocus={onFocus} onBlur={onBlur} style={input} />}
+              {ErrorRow}
+              {!isRegister && <div style={{ textAlign: "right", marginBottom: 6 }}><a href="/forgot-password" style={{ fontSize: 12, color: "rgba(0,212,255,0.7)", textDecoration: "none" }}>{t.forgot}</a></div>}
+
+              <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1 }}>
+                {isLoading ? <span style={{ width: 16, height: 16, border: "2px solid rgba(3,18,26,0.35)", borderTopColor: "#03121a", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : (isRegister ? t.ctaReg : t.ctaLogin)}
+              </button>
+            </>
           )}
 
-          {/* Status */}
-          <div className="status-section">
-            <div className="status-line" />
-            <div className="status-content">
-              <span className={`status-dot status-${status.type}`} />
-              <span className={`status-msg status-${status.type}`}>
-                {status.message}
-              </span>
+          {!success && (
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 22 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#06d6a0", boxShadow: "0 0 8px rgba(6,214,160,0.6)", animation: "f-pulse 2.4s infinite" }} />
+              <span style={{ fontSize: 11, color: "#7ba593" }}>{t.secure}</span>
             </div>
-          </div>
-
-          {/* Bottom accent */}
-          <div className="card-accent-bottom" />
+          )}
         </div>
-
-        {/* Version footer */}
-        <div className="version-footer">
-          <span className="vf-line" />
-          <span className="vf-text">
-            v{process.env.NEXT_PUBLIC_APP_VERSION || "2.0.0"} — &quot;{process.env.NEXT_PUBLIC_APP_CODENAME || "The Empire Strikes Back"}&quot;
-          </span>
-          <span className="vf-line" />
-        </div>
-        <p className="copyright">© {new Date().getFullYear()} Sodare · All Systems Operational</p>
       </div>
     </div>
   );
-}
-
-/* ─── Starfield ──────────────────────────────────── */
-function StarfieldCanvas() {
-  const canvasRef = React.useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
-    let animId: number;
-    interface Star {
-      x: number; y: number; r: number; speed: number;
-      opacity: number; twinkle: number; offset: number;
-    }
-    const stars: Star[] = [];
-
-    function resize() {
-      canvas!.width = window.innerWidth;
-      canvas!.height = window.innerHeight;
-    }
-
-    resize();
-    for (let i = 0; i < 300; i++) {
-      stars.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * canvas.height,
-        r: Math.random() * 1.8 + 0.1,
-        speed: Math.random() * 0.4 + 0.02,
-        opacity: Math.random() * 0.8 + 0.2,
-        twinkle: Math.random() * 0.03 + 0.005,
-        offset: Math.random() * Math.PI * 2,
-      });
-    }
-
-    function draw() {
-      if (!ctx || !canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      const t = Date.now() / 1000;
-      for (const s of stars) {
-        const tw = Math.sin(t * s.twinkle * 60 + s.offset) * 0.35 + 0.65;
-        const a = s.opacity * tw;
-        // Glow for bigger stars
-        if (s.r > 1) {
-          ctx.beginPath();
-          ctx.arc(s.x, s.y, s.r * 3, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(150, 200, 255, ${a * 0.08})`;
-          ctx.fill();
-        }
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(200, 230, 255, ${a})`;
-        ctx.fill();
-        s.y += s.speed;
-        if (s.y > canvas.height) { s.y = -2; s.x = Math.random() * canvas.width; }
-      }
-      animId = requestAnimationFrame(draw);
-    }
-
-    draw();
-    window.addEventListener("resize", resize);
-    return () => { cancelAnimationFrame(animId); window.removeEventListener("resize", resize); };
-  }, []);
-
-  return <canvas ref={canvasRef} className="starfield" />;
 }

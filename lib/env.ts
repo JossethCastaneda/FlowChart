@@ -118,6 +118,11 @@ function parseEnv() {
   const parsed = envSchema.safeParse(cleaned);
   
   if (!parsed.success) {
+    const isBuild = process.env.npm_lifecycle_event === "build" || process.env.NEXT_PHASE === "phase-production-build";
+    if (isBuild) {
+      console.warn("⚠️ Saltando validación estricta de entorno durante el build:", parsed.error.flatten().fieldErrors);
+      return cleaned as any;
+    }
     console.error("❌ Faltan variables de entorno críticas o son inválidas:", parsed.error.flatten().fieldErrors);
     throw new Error("Invalid environment variables");
   }

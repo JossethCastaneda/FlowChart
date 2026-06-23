@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "node scripts/db-sync.mjs && prisma generate && next build",
     "db:sync": "node scripts/db-sync.mjs",
     "release": "node scripts/db-sync.mjs && prisma generate && next build",

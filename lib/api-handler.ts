@@ -43,7 +43,7 @@ type Handler<C> = (req: NextRequest, ctx: C) => Promise<Response>;
 
 /** Requiere sesión. Inyecta userId. */
 export function withAuth(handler: Handler<AuthContext>) {
-  return async (req: NextRequest, routeCtx?: RouteContext): Promise<Response> => {
+  return async (req: NextRequest, routeCtx: any): Promise<Response> => {
     try {
       let session;
       try {

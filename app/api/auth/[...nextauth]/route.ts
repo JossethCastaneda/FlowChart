@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { authOptions } from "@/auth.config";
 import type { NextRequest } from "next/server";
 
+export const dynamic = "force-dynamic";
 /**
  * NextAuth v4 route handler.
  * We intercept the request to derive the actual host so that OAuth callbacks

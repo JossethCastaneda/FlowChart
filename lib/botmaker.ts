@@ -68,7 +68,14 @@ export async function botmakerFetch(
   retries = 2,
   baseUrl: string = BASE
 ): Promise<Response> {
-  const res = await fetch(`${baseUrl}${path}`, {
+  let cleanPath = path;
+  if (cleanPath.startsWith("/v2.0/") && baseUrl.endsWith("/v2.0")) {
+    cleanPath = cleanPath.substring(5);
+  }
+  if (!cleanPath.startsWith("/")) {
+    cleanPath = "/" + cleanPath;
+  }
+  const res = await fetch(`${baseUrl}${cleanPath}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -83,6 +90,7 @@ export async function botmakerFetch(
   }
   return res;
 }
+
 
 // ── Session metrics ─────────────────────────────────────────────────────────
 // Shapes match the account Swagger (GET /sessions → SessionsPage.items →

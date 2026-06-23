@@ -33,13 +33,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: (() => {
-    try {
-      return new URL(getBaseUrl());
-    } catch {
-      return new URL("https://sodare.xyz");
-    }
-  })(),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://sodare.xyz"),
   title: "Sodare — Inteligencia Multicanal",
   description: "Plataforma avanzada de CRM, Analytics, Ads Manager y operaciones para agencias de marketing digital.",
 };

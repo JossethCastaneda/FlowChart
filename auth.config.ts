@@ -7,7 +7,8 @@ import bcrypt from "bcryptjs";
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
-if (!AUTH_SECRET && process.env.NODE_ENV === "production") {
+const isBuild = process.env.npm_lifecycle_event === "build" || process.env.NEXT_PHASE === "phase-production-build";
+if (!AUTH_SECRET && process.env.NODE_ENV === "production" && !isBuild) {
   throw new Error("[AUTH] NEXTAUTH_SECRET or AUTH_SECRET must be set in production");
 }
 

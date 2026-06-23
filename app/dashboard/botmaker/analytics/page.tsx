@@ -116,6 +116,8 @@ interface AnalyticsResult {
   channelsDonut?: { name: string, value: number }[];
   typifications?: { list: { name: string, count: number }[], sinTipificacion: number };
   heatmap?: number[][];
+  flowTransitions?: { source: string, target: string, value: number }[];
+  dropoffs?: { state: string, count: number }[];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -233,10 +235,34 @@ const getChannelDisplayName = (chId: string, apiChannels: any[], metaNamesMap?: 
   return formatChannelDisplay({ id: chId, name: chId }, metaNamesMap);
 };
 
-const getCdmxDateString = (date: Date): string => {
+const getTimezoneOffsetHours = (tz: string, date: Date): number => {
+  try {
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: tz,
+      year: 'numeric', month: 'numeric', day: 'numeric',
+      hour: 'numeric', minute: 'numeric', second: 'numeric', hour12: false
+    });
+    const parts = formatter.formatToParts(date);
+    const getVal = (type: string) => parseInt(parts.find(p => p.type === type)!.value, 10);
+    
+    const year = getVal('year');
+    const month = getVal('month');
+    const day = getVal('day');
+    const hour = getVal('hour');
+    const minute = getVal('minute');
+    const second = getVal('second');
+    
+    const utcLocal = Date.UTC(year, month - 1, day, hour, minute, second);
+    return (utcLocal - date.getTime()) / (60 * 60 * 1000);
+  } catch (e) {
+    return -6; // Fallback to Mexico City
+  }
+};
+
+const getTzDateString = (date: Date, timezone: string): string => {
   try {
     const formatter = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'America/Mexico_City',
+      timeZone: timezone,
       year: 'numeric',
       month: '2-digit',
       day: '2-digit'
@@ -247,22 +273,25 @@ const getCdmxDateString = (date: Date): string => {
   }
 };
 
-const getCdmxBoundary = (date: Date, type: 'start' | 'end'): Date => {
+const getTzBoundary = (date: Date, type: 'start' | 'end', timezone: string): Date => {
   try {
     const y = date.getUTCFullYear();
-    const m = String(date.getUTCMonth() + 1).padStart(2, '0');
-    const d = String(date.getUTCDate()).padStart(2, '0');
-    const dateStr = `${y}-${m}-${d}`;
+    const m = date.getUTCMonth();
+    const d = date.getUTCDate();
+    
+    const midDayUtc = new Date(Date.UTC(y, m, d, 12, 0, 0));
+    const offsetHours = getTimezoneOffsetHours(timezone, midDayUtc);
+    const offsetMs = offsetHours * 60 * 60 * 1000;
+    
+    const localStartMs = Date.UTC(y, m, d, 0, 0, 0);
+    const utcStart = new Date(localStartMs - offsetMs);
     
     if (type === 'start') {
-      return new Date(`${dateStr}T06:00:00.000Z`);
+      return utcStart;
     } else {
-      const nextDay = new Date(`${dateStr}T06:00:00.000Z`);
-      nextDay.setUTCDate(nextDay.getUTCDate() + 1);
-      return new Date(nextDay.getTime() - 1);
+      return new Date(utcStart.getTime() + 24 * 60 * 60 * 1000 - 1);
     }
   } catch (e) {
-    // Fallback if formatting fails
     const fallback = new Date(date);
     if (type === 'start') {
       fallback.setUTCHours(6, 0, 0, 0);
@@ -273,24 +302,24 @@ const getCdmxBoundary = (date: Date, type: 'start' | 'end'): Date => {
   }
 };
 
-function getCdmxDateRange(period: string, customFrom?: string, customTo?: string) {
+const getTzDateWithOffset = (offset: number, timezone: string, now = new Date()) => {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: timezone,
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  });
+  const dateStr = formatter.format(now);
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const tzDate = new Date(Date.UTC(y, m - 1, d));
+  tzDate.setUTCDate(tzDate.getUTCDate() - offset);
+  return tzDate;
+};
+
+function getTzDateRange(period: string, timezone: string, customFrom?: string, customTo?: string) {
   const now = new Date();
   let from: string | undefined;
   let to: string | undefined;
 
   const toISO = (d: Date) => d.toISOString();
-
-  const getCdmxDateWithOffset = (offset: number) => {
-    const formatter = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'America/Mexico_City',
-      year: 'numeric', month: '2-digit', day: '2-digit'
-    });
-    const dateStr = formatter.format(now);
-    const [y, m, d] = dateStr.split('-').map(Number);
-    const cdmxDate = new Date(Date.UTC(y, m - 1, d));
-    cdmxDate.setUTCDate(cdmxDate.getUTCDate() - offset);
-    return cdmxDate;
-  };
 
   switch (period) {
     case "1m":
@@ -329,44 +358,44 @@ function getCdmxDateRange(period: string, customFrom?: string, customTo?: string
       break;
     }
     case "Hoy": {
-      from = toISO(getCdmxBoundary(getCdmxDateWithOffset(0), 'start'));
-      to = toISO(getCdmxBoundary(getCdmxDateWithOffset(0), 'end'));
+      from = toISO(getTzBoundary(getTzDateWithOffset(0, timezone, now), 'start', timezone));
+      to = toISO(getTzBoundary(getTzDateWithOffset(0, timezone, now), 'end', timezone));
       break;
     }
     case "Ayer": {
-      from = toISO(getCdmxBoundary(getCdmxDateWithOffset(1), 'start'));
-      to = toISO(getCdmxBoundary(getCdmxDateWithOffset(1), 'end'));
+      from = toISO(getTzBoundary(getTzDateWithOffset(1, timezone, now), 'start', timezone));
+      to = toISO(getTzBoundary(getTzDateWithOffset(1, timezone, now), 'end', timezone));
       break;
     }
     case "7d": {
-      from = toISO(getCdmxBoundary(getCdmxDateWithOffset(7), 'start'));
+      from = toISO(getTzBoundary(getTzDateWithOffset(7, timezone, now), 'start', timezone));
       to = toISO(now);
       break;
     }
     case "week_mon": {
-      const cdmxToday = getCdmxDateWithOffset(0);
-      const day = cdmxToday.getUTCDay();
+      const tzToday = getTzDateWithOffset(0, timezone, now);
+      const day = tzToday.getUTCDay();
       const diff = day === 0 ? 6 : day - 1;
-      const monday = new Date(cdmxToday);
+      const monday = new Date(tzToday);
       monday.setUTCDate(monday.getUTCDate() - diff);
-      from = toISO(getCdmxBoundary(monday, 'start'));
+      from = toISO(getTzBoundary(monday, 'start', timezone));
       to = toISO(now);
       break;
     }
     case "week_sun": {
-      const cdmxToday = getCdmxDateWithOffset(0);
-      const day = cdmxToday.getUTCDay();
-      const sunday = new Date(cdmxToday);
+      const tzToday = getTzDateWithOffset(0, timezone, now);
+      const day = tzToday.getUTCDay();
+      const sunday = new Date(tzToday);
       sunday.setUTCDate(sunday.getUTCDate() - day);
-      from = toISO(getCdmxBoundary(sunday, 'start'));
+      from = toISO(getTzBoundary(sunday, 'start', timezone));
       to = toISO(now);
       break;
     }
     case "last_week": {
-      const cdmxToday = getCdmxDateWithOffset(0);
-      const day = cdmxToday.getUTCDay();
+      const tzToday = getTzDateWithOffset(0, timezone, now);
+      const day = tzToday.getUTCDay();
       const diff = day === 0 ? 6 : day - 1;
-      const thisMonday = new Date(cdmxToday);
+      const thisMonday = new Date(tzToday);
       thisMonday.setUTCDate(thisMonday.getUTCDate() - diff);
       
       const lastMonday = new Date(thisMonday);
@@ -374,49 +403,49 @@ function getCdmxDateRange(period: string, customFrom?: string, customTo?: string
       const lastSunday = new Date(thisMonday);
       lastSunday.setUTCDate(lastSunday.getUTCDate() - 1);
       
-      from = toISO(getCdmxBoundary(lastMonday, 'start'));
-      to = toISO(getCdmxBoundary(lastSunday, 'end'));
+      from = toISO(getTzBoundary(lastMonday, 'start', timezone));
+      to = toISO(getTzBoundary(lastSunday, 'end', timezone));
       break;
     }
     case "this_month": {
-      const cdmxToday = getCdmxDateWithOffset(0);
-      const firstOfMonth = new Date(cdmxToday);
+      const tzToday = getTzDateWithOffset(0, timezone, now);
+      const firstOfMonth = new Date(tzToday);
       firstOfMonth.setUTCDate(1);
-      from = toISO(getCdmxBoundary(firstOfMonth, 'start'));
+      from = toISO(getTzBoundary(firstOfMonth, 'start', timezone));
       to = toISO(now);
       break;
     }
     case "last_month": {
-      const cdmxToday = getCdmxDateWithOffset(0);
-      const firstOfLastMonth = new Date(cdmxToday);
+      const tzToday = getTzDateWithOffset(0, timezone, now);
+      const firstOfLastMonth = new Date(tzToday);
       firstOfLastMonth.setUTCMonth(firstOfLastMonth.getUTCMonth() - 1, 1);
       
-      const lastOfLastMonth = new Date(cdmxToday);
+      const lastOfLastMonth = new Date(tzToday);
       lastOfLastMonth.setUTCDate(1);
       lastOfLastMonth.setUTCDate(0);
       
-      from = toISO(getCdmxBoundary(firstOfLastMonth, 'start'));
-      to = toISO(getCdmxBoundary(lastOfLastMonth, 'end'));
+      from = toISO(getTzBoundary(firstOfLastMonth, 'start', timezone));
+      to = toISO(getTzBoundary(lastOfLastMonth, 'end', timezone));
       break;
     }
     case "this_year": {
-      const cdmxToday = getCdmxDateWithOffset(0);
-      const firstOfYear = new Date(cdmxToday);
+      const tzToday = getTzDateWithOffset(0, timezone, now);
+      const firstOfYear = new Date(tzToday);
       firstOfYear.setUTCMonth(0, 1);
-      from = toISO(getCdmxBoundary(firstOfYear, 'start'));
+      from = toISO(getTzBoundary(firstOfYear, 'start', timezone));
       to = toISO(now);
       break;
     }
     case "custom": {
       if (customFrom) {
         const [y, m, d] = customFrom.split('-').map(Number);
-        const cdmxCustomFrom = new Date(Date.UTC(y, m - 1, d));
-        from = toISO(getCdmxBoundary(cdmxCustomFrom, 'start'));
+        const tzCustomFrom = new Date(Date.UTC(y, m - 1, d));
+        from = toISO(getTzBoundary(tzCustomFrom, 'start', timezone));
       }
       if (customTo) {
         const [y, m, d] = customTo.split('-').map(Number);
-        const cdmxCustomTo = new Date(Date.UTC(y, m - 1, d));
-        to = toISO(getCdmxBoundary(cdmxCustomTo, 'end'));
+        const tzCustomTo = new Date(Date.UTC(y, m - 1, d));
+        to = toISO(getTzBoundary(tzCustomTo, 'end', timezone));
       }
       break;
     }
@@ -464,7 +493,8 @@ function splitDateRange(fromStr: string, toStr: string): { from: string; to: str
 function buildAnalytics(
   chats: BotmakerChat[],
   apiChannels: any[] = [],
-  metaNames: Record<string, string> = {}
+  metaNames: Record<string, string> = {},
+  timezone: string = "America/Mexico_City"
 ): AnalyticsResult {
   const total = chats.length;
   if (total === 0) {
@@ -742,7 +772,7 @@ function buildAnalytics(
     
     if (minTime !== Infinity && maxTime !== -Infinity) {
       const formatter = new Intl.DateTimeFormat('es-MX', {
-        timeZone: 'America/Mexico_City',
+        timeZone: timezone,
         year: 'numeric', month: '2-digit', day: '2-digit',
         hour: '2-digit', minute: '2-digit'
       });
@@ -868,8 +898,8 @@ function buildAnalytics(
     if (tStr) {
       const date = new Date(tStr);
       try {
-        const formatterHour = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Mexico_City', hour: 'numeric', hour12: false });
-        const formatterDay = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Mexico_City', weekday: 'short' });
+        const formatterHour = new Intl.DateTimeFormat('en-US', { timeZone: timezone, hour: 'numeric', hour12: false });
+        const formatterDay = new Intl.DateTimeFormat('en-US', { timeZone: timezone, weekday: 'short' });
         
         const hourStr = formatterHour.format(date);
         const dayStr = formatterDay.format(date);
@@ -924,7 +954,9 @@ function buildAnalytics(
       list: typificationsList,
       sinTipificacion
     },
-    heatmap
+    heatmap,
+    flowTransitions: [],
+    dropoffs: []
   };
 }
 
@@ -1404,26 +1436,28 @@ function FunnelStep({ label, count, pct, color, isLast }: any) {
 interface Widget {
   id: string;
   title: string;
-  type: "bar" | "line" | "pie" | "kpi" | "table" | "custom_chart" | "standard_funnel_1" | "standard_funnel_2" | "standard_nip" | "standard_cruce" | "standard_rechazos" | "standard_hallazgos" | "standard_sim" | "standard_universo" | "standard_botmaker_summary" | "standard_botmaker_donuts" | "standard_botmaker_tipificaciones" | "standard_botmaker_heatmap";
+  type: "bar" | "line" | "pie" | "kpi" | "table" | "custom_chart" | "standard_funnel_1" | "standard_funnel_2" | "standard_nip" | "standard_cruce" | "standard_rechazos" | "standard_hallazgos" | "standard_sim" | "standard_universo" | "standard_botmaker_summary" | "standard_botmaker_donuts" | "standard_botmaker_tipificaciones" | "standard_botmaker_heatmap" | "standard_botmaker_flow_sankey" | "standard_botmaker_dropoffs";
   metric?: string;
   dimension?: string;
   w: number; // 1 = 25%, 2 = 50%, 3 = 75%, 4 = 100%
 }
 
 const DEFAULT_WIDGETS: Widget[] = [
-  { id: "w-kpis", title: "Resumen Ejecutivo", type: "kpi", w: 4 },
-  { id: "w-botmaker-summary", title: "Resumen Operativo (Botmaker)", type: "standard_botmaker_summary", w: 4 },
-  { id: "w-botmaker-donuts", title: "Comportamiento y Canales", type: "standard_botmaker_donuts", w: 4 },
-  { id: "w-botmaker-tipificaciones", title: "Tipificaciones del Flujo", type: "standard_botmaker_tipificaciones", w: 2 },
-  { id: "w-botmaker-heatmap", title: "Sesiones por Horas (Densidad)", type: "standard_botmaker_heatmap", w: 2 },
-  { id: "w-universo", title: "Universo Global", type: "standard_universo", w: 2 },
-  { id: "w-sim", title: "SIM / eSIM en Lira", type: "standard_sim", w: 2 },
-  { id: "w-funnel1", title: "Funnel 1 — Reacción al Primer Menú", type: "standard_funnel_1", w: 4 },
-  { id: "w-funnel2", title: "Funnel 2 — Pasos del Embudo", type: "standard_funnel_2", w: 4 },
-  { id: "w-nips", title: "Análisis de NIP y Tiempos", type: "standard_nip", w: 4 },
-  { id: "w-cruce", title: "Cruce con Sábana de Ventas (CRM Intelix)", type: "standard_cruce", w: 4 },
-  { id: "w-rechazos", title: "Motivos Posibles de Rechazo", type: "standard_rechazos", w: 2 },
-  { id: "w-hallazgos", title: "Hallazgos Accionables", type: "standard_hallazgos", w: 2 },
+  { id: "w-kpis", title: "Resumen Ejecutivo", type: "kpi", w: 12 },
+  { id: "w-botmaker-summary", title: "Resumen Operativo (Botmaker)", type: "standard_botmaker_summary", w: 6 },
+  { id: "w-botmaker-donuts", title: "Comportamiento y Canales", type: "standard_botmaker_donuts", w: 6 },
+  { id: "w-botmaker-tipificaciones", title: "Tipificaciones del Flujo", type: "standard_botmaker_tipificaciones", w: 6 },
+  { id: "w-botmaker-heatmap", title: "Sesiones por Horas (Densidad)", type: "standard_botmaker_heatmap", w: 6 },
+  { id: "w-universo", title: "Universo Global", type: "standard_universo", w: 6 },
+  { id: "w-sim", title: "SIM / eSIM en Lira", type: "standard_sim", w: 6 },
+  { id: "w-funnel1", title: "Funnel 1 — Reacción al Primer Menú", type: "standard_funnel_1", w: 6 },
+  { id: "w-funnel2", title: "Funnel 2 — Pasos del Embudo", type: "standard_funnel_2", w: 6 },
+  { id: "w-nips", title: "Análisis de NIP y Tiempos", type: "standard_nip", w: 6 },
+  { id: "w-cruce", title: "Cruce con Sábana de Ventas (CRM Intelix)", type: "standard_cruce", w: 6 },
+  { id: "w-rechazos", title: "Motivos Posibles de Rechazo", type: "standard_rechazos", w: 6 },
+  { id: "w-hallazgos", title: "Hallazgos Accionables", type: "standard_hallazgos", w: 6 },
+  { id: "w-flow-sankey", title: "Rutas Principales (Sankey)", type: "standard_botmaker_flow_sankey", w: 12 },
+  { id: "w-flow-dropoffs", title: "Puntos de Quiebre (Drop-offs)", type: "standard_botmaker_dropoffs", w: 6 },
 ];
 
 const METRIC_LABELS: Record<string, string> = {
@@ -1489,7 +1523,7 @@ function getMetricValueForChat(c: BotmakerChat, metric: string): number {
   }
 }
 
-function getDimensionValueForChat(c: BotmakerChat, dimension: string, apiChannels: any[], metaNames: Record<string, string>): string {
+function getDimensionValueForChat(c: BotmakerChat, dimension: string, apiChannels: any[], metaNames: Record<string, string>, timezone: string = "America/Mexico_City"): string {
   const vars = c.variables || {};
   switch (dimension) {
     case "bot":
@@ -1514,7 +1548,11 @@ function getDimensionValueForChat(c: BotmakerChat, dimension: string, apiChannel
       const tStr = c.lastMessageAt || c.lastMessageDate || c.createdAt || c.creationTime;
       if (tStr) {
         try {
-          return new Date(tStr).toISOString().split('T')[0];
+          const d = new Date(tStr);
+          return new Intl.DateTimeFormat('es-MX', {
+            timeZone: timezone,
+            year: 'numeric', month: '2-digit', day: '2-digit'
+          }).format(d).split('/').reverse().join('-'); // returns YYYY-MM-DD
         } catch {}
       }
       return "Desconocida";
@@ -1529,12 +1567,13 @@ function buildCustomChartData(
   metric: string,
   dimension: string,
   apiChannels: any[],
-  metaNames: Record<string, string>
+  metaNames: Record<string, string>,
+  timezone: string = "America/Mexico_City"
 ) {
   const groups: Record<string, { label: string, sum: number, totalConvs: number }> = {};
   
   chats.forEach(c => {
-    const label = getDimensionValueForChat(c, dimension, apiChannels, metaNames);
+    const label = getDimensionValueForChat(c, dimension, apiChannels, metaNames, timezone);
     const vars = c.variables || {};
     
     let mVal = 0;
@@ -1615,7 +1654,8 @@ function renderWidgetContent(
   metaNames: Record<string, string>,
   filteredChats: BotmakerChat[],
   loading: boolean = false,
-  index: number = 0
+  index: number = 0,
+  timezone: string = "America/Mexico_City"
 ): React.ReactNode {
   switch (w.type) {
     case "kpi":
@@ -2305,13 +2345,85 @@ function renderWidgetContent(
         </div>
       );
 
+    case "standard_botmaker_flow_sankey":
+      return (
+        <div style={{ width: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
+          <SectionHeader num={index + 1} title={w.title} badge="Transiciones de Estados" />
+          <div style={{ flex: 1, minHeight: 250, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            {loading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%" }}>
+                <div style={{ flex: 1, background: "linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.02) 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.8s infinite linear", borderRadius: 8 }} />
+              </div>
+            ) : data.flowTransitions && data.flowTransitions.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 12, overflowY: "auto", maxHeight: 300, paddingRight: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "rgba(148,163,184,0.6)", padding: "0 8px" }}>
+                  <span>Origen</span>
+                  <span>Destino</span>
+                  <span>Frecuencia</span>
+                </div>
+                {data.flowTransitions.slice(0, 15).map((t, idx) => {
+                  const maxVal = data.flowTransitions![0].value;
+                  const pct = Math.max(5, (t.value / maxVal) * 100);
+                  return (
+                    <div key={idx} style={{ display: "flex", alignItems: "center", gap: 12, background: "rgba(255,255,255,0.02)", padding: "8px 12px", borderRadius: 8, border: "1px solid rgba(255,255,255,0.05)" }}>
+                      <div style={{ flex: 1, fontSize: 11, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.source}</div>
+                      <div style={{ flex: 1, position: "relative", height: 2, background: "rgba(255,255,255,0.1)", margin: "0 8px" }}>
+                        <div style={{ position: "absolute", top: -2, right: -4, width: 0, height: 0, borderTop: "3px solid transparent", borderBottom: "3px solid transparent", borderLeft: "4px solid rgba(255,255,255,0.2)" }} />
+                        <div style={{ width: `${pct}%`, height: "100%", background: "#a855f7", margin: "0 auto", borderRadius: 2 }} />
+                      </div>
+                      <div style={{ flex: 1, fontSize: 11, color: "white", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{t.target}</div>
+                      <div style={{ width: 40, textAlign: "right", fontSize: 12, fontWeight: 700, color: "#a855f7" }}>{t.value}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: 16, color: "rgba(148,163,184,0.6)", fontSize: 11, textAlign: "center" }}>No hay datos de flujo disponibles.</div>
+            )}
+          </div>
+        </div>
+      );
+
+    case "standard_botmaker_dropoffs":
+      return (
+        <div style={{ width: "100%", flex: 1, display: "flex", flexDirection: "column" }}>
+          <SectionHeader num={index + 1} title={w.title} badge="Último Estado" />
+          <div style={{ flex: 1, minHeight: 250, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+            {loading ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[1, 2, 3, 4].map(i => <div key={i} style={{ height: 24, background: "linear-gradient(90deg, rgba(255,255,255,0.02) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.02) 75%)", backgroundSize: "200% 100%", animation: "shimmer 1.8s infinite linear", borderRadius: 4 }} />)}
+              </div>
+            ) : data.dropoffs && data.dropoffs.length > 0 ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, overflowY: "auto", maxHeight: 300, paddingRight: 8 }}>
+                {data.dropoffs.slice(0, 10).map((d, idx) => {
+                  const maxDrop = data.dropoffs![0].count;
+                  return (
+                    <BarRow 
+                      key={idx} 
+                      label={d.state.length > 25 ? `${d.state.substring(0, 25)}...` : d.state} 
+                      value={d.count} 
+                      maxValue={maxDrop} 
+                      color="#ff2d55" 
+                      showPct={false} 
+                      loading={loading} 
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ padding: 16, color: "rgba(148,163,184,0.6)", fontSize: 11, textAlign: "center" }}>No hay puntos de quiebre registrados.</div>
+            )}
+          </div>
+        </div>
+      );
+
     default:
       if (w.type.startsWith("custom_chart_") || w.type === "table" || w.type.startsWith("table_")) {
         const visualType = w.type.startsWith("custom_chart_") ? w.type.replace("custom_chart_", "") : "table";
         const metric = w.metric || "conversations";
         const dimension = w.dimension || "bot";
         
-        const chartData = loading ? [] : buildCustomChartData(filteredChats, metric, dimension, apiChannels, metaNames);
+        const chartData = loading ? [] : buildCustomChartData(filteredChats, metric, dimension, apiChannels, metaNames, timezone);
         
         return (
           <div style={{ width: "100%", display: "flex", flexDirection: "column", flex: 1 }}>
@@ -2467,6 +2579,79 @@ interface SessionMetricsData {
   heatmap: number[][];
   dailySessions: { date: string; sessions: number; users: number; agentSessions: number }[];
   channelCounts: Record<string, number>;
+  universe?: {
+    total: number;
+    withInteraction: number;
+    noInteraction: number;
+    completedFunnel: number;
+    abandoned: number;
+  };
+  funnel1?: {
+    button: number;
+    text: number;
+    media: number;
+    none: number;
+  };
+  funnel1ByBot?: {
+    botName: string;
+    button: number;
+    text: number;
+    media: number;
+    none: number;
+  }[];
+  funnel2Global?: {
+    label: string;
+    count: number;
+    pct: number;
+  }[];
+  funnel2ByBot?: {
+    botName: string;
+    flowType: "prepago" | "pospago-alineado" | "pospago-simplificado";
+    steps: {
+      label: string;
+      count: number;
+      pct: number;
+    }[];
+  }[];
+  nip?: {
+    prompted: number;
+    firstAttemptValid: number;
+    firstAttemptInvalid: number;
+    neverValid: number;
+    validAfterRetry: number;
+  };
+  nipTiming?: {
+    medianMin: number;
+    avgMin: number;
+    p90Min: number;
+    distribution: {
+      bucket: string;
+      count: number;
+    }[];
+  };
+  simEsim?: {
+    botName: string;
+    sim: number;
+    esim: number;
+  };
+  salesData?: {
+    dashboardSales: number;
+    derivations: number;
+    reactivations: number;
+    byBot: { bot: string; count: number }[];
+    byCapturista: { name: string; count: number }[];
+  };
+  crossRef?: {
+    dashboardSales: number;
+    confirmedSales: number;
+    firstRejections: number;
+    byBot: { bot: string; dashboard: number; confirmed: number; rejected: number }[];
+  };
+  rejections?: {
+    total: number;
+  };
+  flowTransitions?: { source: string; target: string; value: number }[];
+  dropoffs?: { state: string; count: number }[];
 }
 
 function Dashboard({
@@ -2479,7 +2664,9 @@ function Dashboard({
   setCustomFrom,
   customTo,
   setCustomTo,
-  sessionMetrics
+  sessionMetrics,
+  timezone,
+  setTimezone
 }: {
   rawChats: BotmakerChat[];
   onReset: () => void;
@@ -2491,6 +2678,8 @@ function Dashboard({
   customTo: string;
   setCustomTo: (val: string) => void;
   sessionMetrics: SessionMetricsData | null;
+  timezone: string;
+  setTimezone: (val: string) => void;
 }) {
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [selectedQueues, setSelectedQueues] = useState<string[]>([]);
@@ -2503,6 +2692,22 @@ function Dashboard({
   const [onlyNew, setOnlyNew] = useState(false);
   const [currentPeriod, setCurrentPeriod] = useState(true);
 
+  // Helper to normalize widths from old 1-4 system to 3,6,9,12 system
+  const normalizeWidgets = (list: Widget[]): Widget[] => {
+    if (!Array.isArray(list)) return [];
+    return list.map(widget => {
+      if (!widget) return widget;
+      let newW = widget.w;
+      if (widget.w <= 4) {
+        if (widget.w === 1) newW = 3;
+        else if (widget.w === 2) newW = 6;
+        else if (widget.w === 3) newW = 9;
+        else if (widget.w === 4) newW = 12;
+      }
+      return { ...widget, w: newW };
+    });
+  };
+
   // Dashboard Builder States
   const [widgets, setWidgets] = useState<Widget[]>([]);
   const [isEditing, setIsEditing] = useState(false);
@@ -2512,13 +2717,14 @@ function Dashboard({
     type: "bar" as "bar" | "line" | "pie" | "table",
     metric: "conversations",
     dimension: "bot",
-    w: 2 as number
+    w: 6 as number
   });
   const [savedViews, setSavedViews] = useState<{ id: string; name: string; widgets: Widget[] }[]>([]);
   const [currentViewId, setCurrentViewId] = useState<string>("default");
 
   // Drag and Drop State
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 
   // Load widgets and saved views from localStorage
   React.useEffect(() => {
@@ -2528,8 +2734,12 @@ function Dashboard({
       try {
         const parsed = JSON.parse(localViews);
         if (Array.isArray(parsed)) {
-          parsedViews = parsed;
-          setSavedViews(parsed);
+          const normalized = parsed.map((v: any) => ({
+            ...v,
+            widgets: normalizeWidgets(v.widgets)
+          }));
+          parsedViews = normalized;
+          setSavedViews(normalized);
         } else {
           setSavedViews([]);
         }
@@ -2547,7 +2757,7 @@ function Dashboard({
       const matched = parsedViews.find((v: any) => v.id === localCurrentView);
       if (matched) {
         if (Array.isArray(matched.widgets)) {
-          setWidgets(matched.widgets);
+          setWidgets(normalizeWidgets(matched.widgets));
           return;
         }
       }
@@ -2563,7 +2773,7 @@ function Dashboard({
             setWidgets(DEFAULT_WIDGETS);
             localStorage.setItem("botmaker_analytics_widgets", JSON.stringify(DEFAULT_WIDGETS));
           } else {
-            setWidgets(parsedWidgets);
+            setWidgets(normalizeWidgets(parsedWidgets));
           }
         } else {
           setWidgets(DEFAULT_WIDGETS);
@@ -2630,7 +2840,7 @@ function Dashboard({
     } else {
       const matched = savedViews.find(v => v.id === id);
       if (matched) {
-        setWidgets(matched.widgets);
+        setWidgets(normalizeWidgets(matched.widgets));
       }
     }
   };
@@ -2695,10 +2905,18 @@ function Dashboard({
 
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
+    if (dragOverIndex !== index) {
+      setDragOverIndex(index);
+    }
+  };
+
+  const handleDragLeave = () => {
+    setDragOverIndex(null);
   };
 
   const handleDrop = (e: React.DragEvent, targetIndex: number) => {
     e.preventDefault();
+    setDragOverIndex(null);
     if (draggedIndex === null || draggedIndex === targetIndex) return;
     
     const reordered = [...widgets];
@@ -2707,6 +2925,15 @@ function Dashboard({
     
     saveWidgetsState(reordered);
     setDraggedIndex(null);
+  };
+
+  const handleMoveWidget = (index: number, direction: "left" | "right") => {
+    const targetIndex = direction === "left" ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= widgets.length) return;
+    const reordered = [...widgets];
+    const [removed] = reordered.splice(index, 1);
+    reordered.splice(targetIndex, 0, removed);
+    saveWidgetsState(reordered);
   };
 
   const [apiChannels, setApiChannels] = useState<{id: string, name: string, displayName?: string}[]>([]);
@@ -2822,13 +3049,13 @@ function Dashboard({
     if (!Array.isArray(rawChats)) return [];
     
     const now = new Date();
-    const todayStr = getCdmxDateString(now);
+    const todayStr = getTzDateString(now, timezone);
     const yesterday = new Date(now);
     yesterday.setDate(yesterday.getDate() - 1);
-    const yesterdayStr = getCdmxDateString(yesterday);
+    const yesterdayStr = getTzDateString(yesterday, timezone);
     
     // Parse UTC filter boundaries once
-    const { from: filterFrom, to: filterTo } = getCdmxDateRange(timePeriod, customFrom, customTo);
+    const { from: filterFrom, to: filterTo } = getTzDateRange(timePeriod, timezone, customFrom, customTo);
     const filterFromMs = filterFrom ? new Date(filterFrom).getTime() : null;
     const filterToMs = filterTo ? new Date(filterTo).getTime() : null;
     
@@ -2894,7 +3121,7 @@ function Dashboard({
       if (!currentPeriod) {
         const tStr = c.lastSessionCreationTime || c.creationTime;
         if (tStr) {
-          const d = getCdmxDateString(new Date(tStr));
+          const d = getTzDateString(new Date(tStr), timezone);
           if (d === todayStr) return false;
         }
       }
@@ -2909,10 +3136,10 @@ function Dashboard({
 
       return true;
     });
-  }, [rawChats, apiChannels, apiAgents, selectedChannels, selectedAgents, selectedQueues, selectedTags, selectedTopics, selectedVariables, timePeriod, customFrom, customTo, nps, activity, onlyNew, currentPeriod, getAgentName, getQueueName, metaNames]);
+  }, [rawChats, apiChannels, apiAgents, selectedChannels, selectedAgents, selectedQueues, selectedTags, selectedTopics, selectedVariables, timePeriod, timezone, customFrom, customTo, nps, activity, onlyNew, currentPeriod, getAgentName, getQueueName, metaNames]);
 
   const data = useMemo(() => {
-    const baseData = buildAnalytics(filteredChats, apiChannels, metaNames);
+    const baseData = buildAnalytics(filteredChats, apiChannels, metaNames, timezone);
     // Override with REAL session metrics from the Botmaker /sessions API when available
     if (sessionMetrics) {
       baseData.botmakerSummary = {
@@ -2924,17 +3151,56 @@ function Dashboard({
         botMessages: sessionMetrics.botMessages,
         agentMessages: sessionMetrics.agentMessages,
       };
-      if (sessionMetrics.topicsList.length > 0) {
+      if (sessionMetrics.topicsList && sessionMetrics.topicsList.length > 0) {
         baseData.topicsList = sessionMetrics.topicsList;
       }
-      if (sessionMetrics.agentSessionsDonut.length > 0) {
+      if (sessionMetrics.agentSessionsDonut && sessionMetrics.agentSessionsDonut.length > 0) {
         baseData.agentSessionsDonut = sessionMetrics.agentSessionsDonut;
       }
-      if (sessionMetrics.channelsDonut.length > 0) {
+      if (sessionMetrics.channelsDonut && sessionMetrics.channelsDonut.length > 0) {
         baseData.channelsDonut = sessionMetrics.channelsDonut;
       }
       if (sessionMetrics.heatmap) {
         baseData.heatmap = sessionMetrics.heatmap;
+      }
+      if (sessionMetrics.universe) {
+        baseData.universe = sessionMetrics.universe;
+      }
+      if (sessionMetrics.funnel1) {
+        baseData.funnel1 = sessionMetrics.funnel1;
+      }
+      if (sessionMetrics.funnel1ByBot) {
+        baseData.funnel1ByBot = sessionMetrics.funnel1ByBot;
+      }
+      if (sessionMetrics.funnel2Global) {
+        baseData.funnel2Global = sessionMetrics.funnel2Global;
+      }
+      if (sessionMetrics.funnel2ByBot) {
+        baseData.funnel2ByBot = sessionMetrics.funnel2ByBot;
+      }
+      if (sessionMetrics.nip) {
+        baseData.nip = sessionMetrics.nip;
+      }
+      if (sessionMetrics.nipTiming) {
+        baseData.nipTiming = sessionMetrics.nipTiming;
+      }
+      if (sessionMetrics.simEsim) {
+        baseData.simEsim = sessionMetrics.simEsim;
+      }
+      if (sessionMetrics.salesData) {
+        baseData.salesData = sessionMetrics.salesData;
+      }
+      if (sessionMetrics.crossRef) {
+        baseData.crossRef = sessionMetrics.crossRef;
+      }
+      if (sessionMetrics.rejections) {
+        baseData.rejections = sessionMetrics.rejections;
+      }
+      if (sessionMetrics.flowTransitions) {
+        baseData.flowTransitions = sessionMetrics.flowTransitions;
+      }
+      if (sessionMetrics.dropoffs) {
+        baseData.dropoffs = sessionMetrics.dropoffs;
       }
     }
     return baseData;
@@ -3056,6 +3322,18 @@ function Dashboard({
             <select value={activity} onChange={e => setActivity(e.target.value)} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", color: "white", borderRadius: 6, padding: "6px 10px", fontSize: 12, outline: "none", height: 32 }}>
               <option value="all">Buscar</option>
               <option value="active">Activos</option>
+            </select>
+          </div>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 180 }}>
+            <span style={{ fontSize: 11, color: "rgba(148,163,184,0.8)", fontWeight: 600 }}>Zona Horaria (Botmaker)</span>
+            <select value={timezone} onChange={e => setTimezone(e.target.value)} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", color: "white", borderRadius: 6, padding: "6px 10px", fontSize: 12, outline: "none", height: 32 }}>
+              <option value="America/Mexico_City">México (UTC-6)</option>
+              <option value="America/Caracas">Venezuela (UTC-4)</option>
+              <option value="America/Bogota">Colombia/Perú (UTC-5)</option>
+              <option value="America/Santiago">Chile (UTC-4/UTC-3)</option>
+              <option value="America/Argentina/Buenos_Aires">Argentina (UTC-3)</option>
+              <option value="UTC">UTC (00:00)</option>
             </select>
           </div>
 
@@ -3271,7 +3549,7 @@ function Dashboard({
         </div>
       </div>
 
-      <div style={{ padding: "32px", maxWidth: 1200, width: "100%", margin: "0 auto" }}>
+      <div style={{ padding: "32px 40px", maxWidth: "100%", width: "100%", margin: 0 }}>
         {!loading && !data.totalConvs ? (
           <div style={{
             display: "flex",
@@ -3349,7 +3627,7 @@ function Dashboard({
           /* Customizable Dashboard Grid */
           <div style={{
             display: "grid",
-            gridTemplateColumns: "repeat(4, 1fr)",
+            gridTemplateColumns: "repeat(12, 1fr)",
             gap: "24px",
             width: "100%"
           }}>
@@ -3364,20 +3642,27 @@ function Dashboard({
                   draggable={isEditing}
                   onDragStart={e => handleDragStart(e, index)}
                   onDragOver={e => handleDragOver(e, index)}
+                  onDragLeave={handleDragLeave}
                   onDrop={e => handleDrop(e, index)}
                   style={{
                     ...gridSpanStyle,
-                    background: isEditing ? "rgba(168,85,247,0.03)" : "rgba(255,255,255,0.02)",
-                    border: isEditing ? "1px dashed rgba(168,85,247,0.4)" : "1px solid rgba(255,255,255,0.05)",
+                    background: isEditing
+                      ? (dragOverIndex === index ? "rgba(0,212,255,0.06)" : "rgba(168,85,247,0.03)")
+                      : "rgba(255,255,255,0.02)",
+                    border: isEditing 
+                      ? (dragOverIndex === index ? "2px dashed #00d4ff" : "1px dashed rgba(168,85,247,0.4)") 
+                      : "1px solid rgba(255,255,255,0.05)",
                     borderRadius: 16,
-                    padding: w.w === 4 ? "24px 32px" : "20px 24px",
+                    padding: w.w === 12 ? "24px 32px" : "20px 24px",
                     position: "relative",
                     transition: "all 0.2s ease",
                     display: "flex",
                     flexDirection: "column",
                     minHeight: 280,
                     opacity: draggedIndex === index ? 0.4 : 1,
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.15)"
+                    transform: isEditing && dragOverIndex === index ? "scale(1.02)" : "none",
+                    boxShadow: isEditing && dragOverIndex === index ? "0 0 20px rgba(0,212,255,0.2)" : "0 8px 32px rgba(0,0,0,0.15)",
+                    cursor: isEditing ? (draggedIndex === index ? "grabbing" : "grab") : "default"
                   }}
                 >
                   {/* Drag handle & Configuration toolbar (Visible ONLY in Edit Mode) */}
@@ -3399,18 +3684,128 @@ function Dashboard({
                         <span style={{ fontSize: 10, fontWeight: 700, color: "#d8b4fe" }}>Arrastrar para ordenar</span>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)" }}>Ancho:</span>
-                        <button onClick={() => handleChangeWidgetWidth(w.id, 1)} style={{ background: w.w === 1 ? "#a855f7" : "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "white", padding: "1px 5px", borderRadius: 4, fontSize: 9, cursor: "pointer" }}>25%</button>
-                        <button onClick={() => handleChangeWidgetWidth(w.id, 2)} style={{ background: w.w === 2 ? "#a855f7" : "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "white", padding: "1px 5px", borderRadius: 4, fontSize: 9, cursor: "pointer" }}>50%</button>
-                        <button onClick={() => handleChangeWidgetWidth(w.id, 3)} style={{ background: w.w === 3 ? "#a855f7" : "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "white", padding: "1px 5px", borderRadius: 4, fontSize: 9, cursor: "pointer" }}>75%</button>
-                        <button onClick={() => handleChangeWidgetWidth(w.id, 4)} style={{ background: w.w === 4 ? "#a855f7" : "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "white", padding: "1px 5px", borderRadius: 4, fontSize: 9, cursor: "pointer" }}>100%</button>
-                        <button onClick={() => handleRemoveWidget(w.id)} style={{ background: "rgba(239,68,68,0.2)", border: "1px solid rgba(239,68,68,0.4)", color: "#fca5a5", padding: "1px 5px", borderRadius: 4, fontSize: 9, cursor: "pointer" }}>Eliminar</button>
+                        
+                        {/* Direct Reordering Buttons */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 4, marginRight: 4 }}>
+                          <button
+                            disabled={index === 0}
+                            onClick={(e) => { e.stopPropagation(); handleMoveWidget(index, 'left'); }}
+                            draggable={false}
+                            onDragStart={e => e.stopPropagation()}
+                            title="Mover a la izquierda"
+                            style={{
+                              background: "rgba(255, 255, 255, 0.05)",
+                              border: "1px solid rgba(255, 255, 255, 0.1)",
+                              color: index === 0 ? "rgba(255, 255, 255, 0.2)" : "white",
+                              borderRadius: 4,
+                              width: 20,
+                              height: 20,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: index === 0 ? "not-allowed" : "pointer",
+                              fontSize: 11,
+                              outline: "none"
+                            }}
+                          >
+                            ←
+                          </button>
+                          <button
+                            disabled={index === widgets.length - 1}
+                            onClick={(e) => { e.stopPropagation(); handleMoveWidget(index, 'right'); }}
+                            draggable={false}
+                            onDragStart={e => e.stopPropagation()}
+                            title="Mover a la derecha"
+                            style={{
+                              background: "rgba(255, 255, 255, 0.05)",
+                              border: "1px solid rgba(255, 255, 255, 0.1)",
+                              color: index === widgets.length - 1 ? "rgba(255, 255, 255, 0.2)" : "white",
+                              borderRadius: 4,
+                              width: 20,
+                              height: 20,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              cursor: index === widgets.length - 1 ? "not-allowed" : "pointer",
+                              fontSize: 11,
+                              outline: "none"
+                            }}
+                          >
+                            →
+                          </button>
+                        </div>
+
+                        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.5)" }}>Tamaño:</span>
+                        <div style={{
+                          display: "inline-flex",
+                          background: "rgba(0,0,0,0.2)",
+                          borderRadius: 6,
+                          padding: 2,
+                          border: "1px solid rgba(255,255,255,0.05)"
+                        }}>
+                          {[3, 4, 6, 8, 9, 12].map(size => {
+                            const pct = Math.round((size / 12) * 100);
+                            const isActive = w.w === size;
+                            let label = "";
+                            if (size === 3) label = "¼";
+                            else if (size === 4) label = "⅓";
+                            else if (size === 6) label = "½";
+                            else if (size === 8) label = "⅔";
+                            else if (size === 9) label = "¾";
+                            else if (size === 12) label = "Full";
+
+                            return (
+                              <button
+                                key={size}
+                                onClick={(e) => { e.stopPropagation(); handleChangeWidgetWidth(w.id, size); }}
+                                draggable={false}
+                                onDragStart={ev => ev.stopPropagation()}
+                                title={`Ajustar ancho al ${pct}%`}
+                                style={{
+                                  background: isActive ? "#a855f7" : "transparent",
+                                  border: "none",
+                                  color: isActive ? "white" : "rgba(255,255,255,0.5)",
+                                  padding: "2px 6px",
+                                  borderRadius: 4,
+                                  fontSize: 10,
+                                  fontWeight: 700,
+                                  cursor: "pointer",
+                                  transition: "all 0.15s ease",
+                                  outline: "none"
+                                }}
+                              >
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        <button
+                          onClick={(e) => { e.stopPropagation(); handleRemoveWidget(w.id); }}
+                          draggable={false}
+                          onDragStart={ev => ev.stopPropagation()}
+                          style={{
+                            background: "rgba(239,68,68,0.15)",
+                            border: "1px solid rgba(239,68,68,0.3)",
+                            color: "#fca5a5",
+                            padding: "3px 8px",
+                            borderRadius: 6,
+                            fontSize: 10,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            transition: "all 0.15s ease",
+                            outline: "none",
+                            display: "flex",
+                            alignItems: "center"
+                          }}
+                        >
+                          ✕
+                        </button>
                       </div>
                     </div>
                   )}
 
                   {/* Render widget content */}
-                  {renderWidgetContent(w, data, apiChannels, metaNames, filteredChats, loading, index)}
+                  {renderWidgetContent(w, data, apiChannels, metaNames, filteredChats, loading, index, timezone)}
                 </div>
               );
             })}
@@ -3552,10 +3947,12 @@ function Dashboard({
                       outline: "none"
                     }}
                   >
-                    <option value={1}>25% (Chico)</option>
-                    <option value={2}>50% (Mediano)</option>
-                    <option value={3}>75% (Grande)</option>
-                    <option value={4}>100% (Completo)</option>
+                    <option value={3}>25% (¼)</option>
+                    <option value={4}>33% (⅓)</option>
+                    <option value={6}>50% (½)</option>
+                    <option value={8}>66% (⅔)</option>
+                    <option value={9}>75% (¾)</option>
+                    <option value={12}>100% (Completo)</option>
                   </select>
                 </div>
               </div>
@@ -3613,36 +4010,41 @@ export default function BotAnalyticsPage() {
   const [sessionMetrics, setSessionMetrics] = useState<SessionMetricsData | null>(null);
 
   // Lifted date filter states
-  const [timePeriod, setTimePeriod] = useState("this_month");
+  const [timePeriod, setTimePeriod] = useState("Hoy");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
-  // Fetch REAL session metrics from the server-side API
-  const fetchSessionMetrics = async (from: string, to: string) => {
-    try {
-      // 10-minute timeout to accommodate full-month fetching (276 chunks at ~2s each)
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 600_000);
-      const res = await fetch(
-        `/api/botmaker/analytics/metrics?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`,
-        { signal: controller.signal }
-      );
-      clearTimeout(timeout);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data?.metrics) {
-          setSessionMetrics(json.data.metrics);
-          console.log("[ANALYTICS] Real session metrics loaded:", json.data.metrics.totalSessions, "sessions,", json.data.metrics.usersCount, "users");
-        }
-      } else {
-        console.warn("[ANALYTICS] Failed to fetch session metrics:", res.status);
-      }
-    } catch (e) {
-      console.warn("[ANALYTICS] Error fetching session metrics:", e);
+  const [timezone, setTimezone] = useState<string>(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("botmaker_analytics_timezone");
+      if (stored) return stored;
+      
+      // Auto-detect browser timezone
+      try {
+        const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        if (browserTz) return browserTz;
+      } catch (e) {}
+    }
+    return process.env.NEXT_PUBLIC_APP_TIMEZONE || "America/Mexico_City";
+  });
+
+  const handleTimezoneChange = (newTz: string) => {
+    setTimezone(newTz);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("botmaker_analytics_timezone", newTz);
     }
   };
 
+  const abortControllerRef = React.useRef<AbortController | null>(null);
+
   const fetchChats = async (from?: string, to?: string, isManualOrAuto = false) => {
+    // Abort any ongoing request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     if (!isManualOrAuto) {
       setLoading(true);
     } else {
@@ -3661,81 +4063,53 @@ export default function BotAnalyticsPage() {
         cleanTo = nowVal.toISOString();
       }
 
-      // Fetch REAL session metrics in parallel with chats
-      if (cleanFrom && cleanTo) {
-        fetchSessionMetrics(cleanFrom, cleanTo);
+      if (!cleanFrom || !cleanTo) {
+        throw new Error("Fechas inválidas para la consulta.");
       }
 
-      // Generate date-range chunks for parallel queries if both bounds are defined
-      let chunks: { from: string; to: string }[] = [];
-      if (cleanFrom && cleanTo) {
-        chunks = splitDateRange(cleanFrom, cleanTo);
+      // 10-minute timeout to accommodate full-month fetching (276 chunks at ~2s each)
+      const timeout = setTimeout(() => {
+        if (abortControllerRef.current === controller) controller.abort("TIMEOUT");
+      }, 600_000);
+
+      const res = await fetch(
+        `/api/botmaker/analytics/metrics?from=${encodeURIComponent(cleanFrom)}&to=${encodeURIComponent(cleanTo)}&timezone=${encodeURIComponent(timezone)}`,
+        { signal: controller.signal }
+      );
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        throw new Error(`Error al obtener métricas (HTTP ${res.status}).`);
+      }
+
+      const json = await res.json();
+      if (!json.data) {
+        throw new Error(json.error || json.message || "No se recibieron datos de la API.");
+      }
+
+      if (json.data.metrics) {
+        setSessionMetrics(json.data.metrics);
+        console.log("[ANALYTICS] Real session metrics loaded:", json.data.metrics.totalSessions, "sessions,", json.data.metrics.usersCount, "users");
+      }
+      if (Array.isArray(json.data.chats)) {
+        setChats(json.data.chats);
       } else {
-        chunks = [{ from: cleanFrom || "", to: cleanTo || "" }];
+        setChats([]);
       }
-
-      // Fetch each chunk in parallel
-      const chunkPromises = chunks.map(async (chunk) => {
-        const chunkChats: BotmakerChat[] = [];
-        let nextPath: string | null = `/chats?limit=200&long-term-search=true`;
-        if (chunk.from) nextPath += `&from=${encodeURIComponent(chunk.from)}`;
-        if (chunk.to) nextPath += `&to=${encodeURIComponent(chunk.to)}`;
-
-        let pageCount = 1;
-        const maxPagesPerChunk = 50; // Up to 10,000 chats per chunk para capturar todo el volumen diario
-
-        while (nextPath && pageCount <= maxPagesPerChunk) {
-          const res = await callProxy("GET", nextPath);
-          if (!res.ok) {
-            throw new Error(res.data?.error || res.data?.message || `Error al obtener chats.`);
-          }
-
-          const items: BotmakerChat[] = Array.isArray(res.data?.items) ? res.data.items
-            : Array.isArray(res.data) ? res.data : [];
-          const mappedItems = items.map(c => ({
-            ...c,
-            id: c.id || c.chat?.chatId || ""
-          }));
-          chunkChats.push(...mappedItems);
-
-          const nextPageUrl: string | null = res.data?.nextPage || null;
-          if (nextPageUrl) {
-            try {
-              let relativePath = nextPageUrl;
-              if (nextPageUrl.startsWith("http")) {
-                const parsedUrl = new URL(nextPageUrl);
-                relativePath = parsedUrl.pathname + parsedUrl.search;
-              }
-              nextPath = relativePath.replace(/^\/v[0-9]+(?:\.[0-9]+)?\//, "/");
-            } catch (e) {
-              nextPath = null;
-            }
-          } else {
-            nextPath = null;
-          }
-          pageCount++;
-        }
-        return chunkChats;
-      });
-
-      const results = await Promise.all(chunkPromises);
-      const allChatsRaw = results.flat();
-      
-      // Deduplicar por ID — los chunks paralelos pueden tener chats repetidos en los bordes
-      const seenIds = new Set<string>();
-      const allChats = allChatsRaw.filter(c => {
-        const chatId = c.id || c.chat?.chatId || "";
-        if (!chatId || seenIds.has(chatId)) return false;
-        seenIds.add(chatId);
-        return true;
-      });
-      
-      setChats(allChats);
     } catch (err: any) {
-      setError(err.message);
+      if (err.name === 'AbortError') {
+        if (err.message === "TIMEOUT" || err === "TIMEOUT") {
+          setError("La sincronización ha tomado demasiado tiempo (tiempo de espera agotado).");
+        }
+        // Otherwise, it was aborted by a new request, do nothing
+      } else {
+        setError(err.message);
+      }
     } finally {
-      setLoading(false);
-      setSyncing(false);
+      if (abortControllerRef.current === controller) {
+        setLoading(false);
+        setSyncing(false);
+      }
     }
   };
 
@@ -3744,17 +4118,17 @@ export default function BotAnalyticsPage() {
       return;
     }
 
-    const { from, to } = getCdmxDateRange(timePeriod, customFrom, customTo);
+    const { from, to } = getTzDateRange(timePeriod, timezone, customFrom, customTo);
     fetchChats(from, to);
 
     // Auto-refresh every 5 minutes with the current date parameters
     const interval = setInterval(() => {
-      const { from: currentFrom, to: currentTo } = getCdmxDateRange(timePeriod, customFrom, customTo);
+      const { from: currentFrom, to: currentTo } = getTzDateRange(timePeriod, timezone, customFrom, customTo);
       fetchChats(currentFrom, currentTo, true);
     }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [timePeriod, customFrom, customTo]);
+  }, [timePeriod, timezone, customFrom, customTo]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--background, #030508)" }}>
@@ -3774,7 +4148,7 @@ export default function BotAnalyticsPage() {
 
         <button
           onClick={() => {
-            const { from, to } = getCdmxDateRange(timePeriod, customFrom, customTo);
+            const { from, to } = getTzDateRange(timePeriod, timezone, customFrom, customTo);
             fetchChats(from, to, true);
           }}
           disabled={loading || syncing}
@@ -3815,7 +4189,7 @@ export default function BotAnalyticsPage() {
           <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, maxWidth: 400 }}>{error}</p>
           <button
             onClick={() => {
-              const { from, to } = getCdmxDateRange(timePeriod, customFrom, customTo);
+              const { from, to } = getTzDateRange(timePeriod, timezone, customFrom, customTo);
               fetchChats(from, to);
             }}
             style={{
@@ -3849,6 +4223,8 @@ export default function BotAnalyticsPage() {
           customTo={customTo}
           setCustomTo={setCustomTo}
           sessionMetrics={sessionMetrics}
+          timezone={timezone}
+          setTimezone={handleTimezoneChange}
         />
       )}
     </div>

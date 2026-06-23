@@ -56,6 +56,7 @@ function mockFetch(status: number, body: unknown, ok = status < 400): void {
       ok,
       status,
       json: () => Promise.resolve(body),
+      text: () => Promise.resolve(typeof body === "string" ? body : JSON.stringify(body)),
     })
   );
 }
@@ -70,6 +71,7 @@ function makeStub(body: unknown, status = 200, ok = status < 400) {
     ok,
     status,
     json: () => Promise.resolve(body),
+    text: () => Promise.resolve(typeof body === "string" ? body : JSON.stringify(body)),
   });
 }
 

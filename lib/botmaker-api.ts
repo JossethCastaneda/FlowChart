@@ -59,7 +59,18 @@ export async function bmFetch(
   init: RequestInit = {},
   retries = 5
 ): Promise<Response> {
-  const url = `${conn.baseUrl || DEFAULT_BASE}${path}`;
+  let url = path;
+  if (!path.startsWith("http")) {
+    const base = conn.baseUrl || DEFAULT_BASE;
+    let cleanPath = path;
+    if (cleanPath.startsWith("/v2.0/") && base.endsWith("/v2.0")) {
+      cleanPath = cleanPath.substring(5);
+    }
+    if (!cleanPath.startsWith("/")) {
+      cleanPath = "/" + cleanPath;
+    }
+    url = `${base}${cleanPath}`;
+  }
   const res = await fetch(url, {
     ...init,
     headers: {
@@ -69,12 +80,13 @@ export async function bmFetch(
       ...(init.headers ?? {}),
     },
   });
-  // Retry on rate limit (429) and transient server errors (5xx)
-  const retryable = res.status === 429 || (res.status >= 500 && res.status <= 504);
+  // Retry on rate limit (429) and transient gateway errors (502, 503, 504).
+  // Botmaker routinely throws 500 for end-of-pagination or bad inputs, do not retry 500s.
+  const retryable = res.status === 429 || (res.status >= 502 && res.status <= 504);
   if (retryable && retries > 0) {
-    // Exponential backoff: 2s, 4s, 8s, 16s, 32s
+    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
     const attempt = 6 - retries;
-    const delay = Math.min(2000 * Math.pow(2, attempt - 1), 32000);
+    const delay = Math.min(1000 * Math.pow(2, attempt - 1), 16000);
     await new Promise((r) => setTimeout(r, delay));
     return bmFetch(conn, path, init, retries - 1);
   }
@@ -183,17 +195,24 @@ export async function listSessions(
   });
   if (channelId) qs.set("channelId", channelId);
 
+  // Botmaker's API seems to fail/ignore date filters if colons are url-encoded
+  const qsStr = qs.toString().replace(/%3A/g, ":");
+
   const all: BmSession[] = [];
-  let next: string | null = `/sessions?${qs}`;
+  let next: string | null = `/sessions?${qsStr}`;
   let pages = 0;
 
   while (next && pages < maxPages) {
-    const path = next.startsWith("http")
-      ? new URL(next).pathname + new URL(next).search
-      : next;
+    const path = next;
+    
+    if (pages > 0) {
+      console.log(`[listSessions DEBUG] Fetching Page ${pages + 1} with path: ${path}`);
+    }
+    
     const res = await bmFetch(conn, path);
     if (!res.ok) {
-      console.warn(`[listSessions] Page ${pages + 1} returned ${res.status} for ${from} → ${to}, stopping pagination`);
+      const errText = await res.text();
+      console.warn(`[listSessions] Page ${pages + 1} returned ${res.status} for ${from} → ${to}, stopping pagination. Response: ${errText.substring(0, 200)}`);
       break;
     }
     const data: BmSessionsPage = await res.json().catch(() => ({}));
