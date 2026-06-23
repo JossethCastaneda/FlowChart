@@ -2827,6 +2827,11 @@ function Dashboard({
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = getCdmxDateString(yesterday);
     
+    // Parse UTC filter boundaries once
+    const { from: filterFrom, to: filterTo } = getCdmxDateRange(timePeriod, customFrom, customTo);
+    const filterFromMs = filterFrom ? new Date(filterFrom).getTime() : null;
+    const filterToMs = filterTo ? new Date(filterTo).getTime() : null;
+    
     return rawChats.filter(c => {
       if (!c) return false;
       
@@ -2894,9 +2899,13 @@ function Dashboard({
         }
       }
       
-      // ✅ Filtro de fecha REMOVIDO — la API ya filtra por rango de fechas en getCdmxDateRange().
-      // Aplicar un segundo filtro aquí causaba pérdida de datos por diferencias de timezone
-      // entre el campo usado por la API vs lastSessionCreationTime/creationTime del cliente.
+      // Date filter (restored using timezone-safe UTC timestamps comparison)
+      const tStr = c.lastSessionCreationTime || c.creationTime;
+      if (tStr) {
+        const chatTime = new Date(tStr).getTime();
+        if (filterFromMs !== null && chatTime < filterFromMs) return false;
+        if (filterToMs !== null && chatTime > filterToMs) return false;
+      }
 
       return true;
     });
