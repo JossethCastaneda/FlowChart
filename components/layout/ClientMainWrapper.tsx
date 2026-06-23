@@ -408,7 +408,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
             <SodareLogo size="sm" showText={true} />
           </Link>
-          <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white">
+          <button onClick={() => { setPinned(false); setSidebarOpen(false); }} className="text-slate-500 hover:text-white cursor-pointer" title={t.colapsar}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -469,20 +469,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* NO collapse button — removed per user request */}
       </aside>
 
-      {/* CSS layout shift for sidebar */}
-      <style>{`
-        .main-content-layout {
-          transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        @media (min-width: 1024px) {
-          .main-content-layout.sidebar-visible {
-            margin-left: 280px;
-          }
-        }
-      `}</style>
-
       {/* ─── Main Content ─── */}
-      <main className={`flex-1 flex flex-col min-w-0 relative z-[1] main-content-layout ${sidebarVisible ? "sidebar-visible" : ""}`}>
+      <main className="flex-1 flex flex-col min-w-0 relative z-[1]">
         {/* Mobile header */}
         <header className="lg:hidden flex items-center justify-between px-5 py-4 z-10"
           style={{
