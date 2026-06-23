@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import { authOptions } from "@/auth.config";
 import type { NextRequest } from "next/server";
 
+export const dynamic = "force-dynamic";
 /**
  * NextAuth v4 route handler.
  * We intercept the request to derive the actual host so that OAuth callbacks
@@ -18,12 +19,11 @@ async function handler(
 ) {
   // Always override NEXTAUTH_URL to match the current request host.
   // This prevents NextAuth from redirecting to VERCEL_URL (e.g. dev.sodare.xyz)
-  // when the user is browsing on the main domain (sodare.xyz).
-  const proto = req.headers.get("x-forwarded-proto") || "https";
+  // when the user is browsing on the main domain (sodare.xyz), and ensures
+  // dynamic port fallback (e.g. localhost:3001) works in development.
   const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "sodare.xyz";
-  if (!host.includes("localhost")) {
-    process.env.NEXTAUTH_URL = `${proto}://${host}`;
-  }
+  const proto = host.includes("localhost") ? "http" : (req.headers.get("x-forwarded-proto") || "https");
+  process.env.NEXTAUTH_URL = `${proto}://${host}`;
 
   const nextAuth = NextAuth(authOptions);
   // NextAuth v4 handler accepts (req, res) — pass through with resolved params

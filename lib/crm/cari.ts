@@ -27,10 +27,16 @@ export type CariCredentialKey =
 
 export type CariCredentials = Partial<Record<CariCredentialKey, string>>;
 
-/** Resuelve las credenciales Cari del workspace (Integration provider "cari"). */
+/**
+ * Resuelve las credenciales Cari del workspace. Tolerante al provider: la ruta de
+ * producción (CariConnectModal) guarda "cari", pero el modal de analítica v1
+ * (AnalyticsIntegrationModal) guardó "cari_ai". Aceptamos ambos, prefiriendo
+ * "cari", para que la analítica encuentre las credenciales sin importar el origen.
+ */
 export async function getCariCredentials(workspaceId: string): Promise<CariCredentials | null> {
-  const integ = await prisma.integration.findUnique({
-    where: { workspaceId_provider_userId: { workspaceId, provider: "cari", userId: "workspace" } },
+  const integ = await prisma.integration.findFirst({
+    where: { workspaceId, userId: "workspace", connected: true, provider: { in: ["cari", "cari_ai"] } },
+    orderBy: { provider: "asc" }, // "cari" antes que "cari_ai"
   });
   const creds = integ?.credentials as Record<string, unknown> | null;
   if (!integ?.connected || !creds?.accessToken) return null;

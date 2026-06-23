@@ -30,6 +30,30 @@ export async function sanitizeWorkspaceIntegrationIds(
 }
 
 /**
+ * crmType que por diseño NO tienen una fila Integration asociada: el proyecto
+ * elige la plataforma pero su analítica no vive en `Integration`.
+ *   - "google"    → analítica en la pestaña "Análisis de Tráfico" (GA4/GTM/Ads).
+ *   - "no_aplica" → el proyecto no usa ninguna plataforma de bot.
+ */
+const NON_INTEGRATION_CRM_TYPES = new Set(["google", "no_aplica"]);
+
+/**
+ * Resuelve el `crmType` a persistir. Se conserva si hay una integración válida
+ * asociada O si es un crmType-sin-integración por diseño ("google"/"no_aplica").
+ * Si es un crmType que IMPLICA integración (botmaker/cari) pero no quedó ninguna
+ * válida → `null`, para no dejar una analítica fantasma apuntando a la nada.
+ */
+export function persistableCrmType(
+  crmType: string | null | undefined,
+  hasIntegration: boolean
+): string | null {
+  if (!crmType) return null; // "" o null → sin plataforma
+  if (hasIntegration) return crmType;
+  if (NON_INTEGRATION_CRM_TYPES.has(crmType)) return crmType;
+  return null;
+}
+
+/**
  * Normaliza la asociación CRM de un payload de proyecto: combina
  * `crmIntegrationIds` + el legacy `crmIntegrationId`, los sanea contra el
  * workspace y devuelve el arreglo final y el legacy (primer id válido).

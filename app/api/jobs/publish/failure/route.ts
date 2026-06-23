@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { verifyQstashSignature } from "@/lib/qstash";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/jobs/publish/failure
@@ -41,7 +42,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!publishJobId) {
-      console.error(
+      logger.error(
         "[QSTASH_FAILURE] No se pudo extraer publishJobId del payload:",
         JSON.stringify(payload)
       );
@@ -60,7 +61,7 @@ export async function POST(req: NextRequest) {
       data: { status: "Failed", error: errMsg, qStashMessageId: null },
     });
 
-    console.error(
+    logger.error(
       `[QSTASH_FAILURE] post=${publishJobId} marcado Failed (filas=${updated.count}). dlqId=${
         payload.dlqId ?? "-"
       }`
@@ -68,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true, updated: updated.count });
   } catch (e: any) {
-    console.error("[QSTASH_FAILURE] Error procesando callback:", e);
+    logger.error("[QSTASH_FAILURE] Error procesando callback:", e);
     // 200 para evitar bucles de reintento del callback de fallo.
     return NextResponse.json({ ok: false, error: e?.message || "Error" });
   }

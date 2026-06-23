@@ -1,39 +1,51 @@
 import { NextRequest, NextResponse } from "next/server";
 import { env } from "@/lib/env";
 import { parseInstagramState } from "@/lib/integrations/instagram/state";
-import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
 import { safeGetSession } from "@/lib/api-handler";
+import { logger } from "@/lib/logger";
+import { Prisma } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
+const FRONTEND_URL = env.NEXT_PUBLIC_APP_URL || "https://sodare.xyz";
+const redirect = (error?: string) =>
+  NextResponse.redirect(`${FRONTEND_URL}/connect/done?module=instagram${error ? `&error=${error}` : ""}`);
+
+/**
+ * GET /api/integrations/instagram/callback
+ * OAuth callback from Instagram. Exchanges the auth code for a long-lived token
+ * and persists it encrypted to the workspace's integration record.
+ *
+ * NOTE: This endpoint cannot use `withWorkspace` because it is an OAuth redirect —
+ * the session is validated against the PKCE state token rather than the cookie path.
+ */
 export async function GET(request: NextRequest) {
   try {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get("code");
     const stateToken = searchParams.get("state");
-    const error = searchParams.get("error");
+    const errorParam = searchParams.get("error");
     const errorReason = searchParams.get("error_reason");
     const errorDescription = searchParams.get("error_description");
 
-    const frontendUrl = env.NEXT_PUBLIC_APP_URL || "https://sodare.xyz";
-
-    if (error) {
-      console.error("[INSTAGRAM CALLBACK] Error from Meta:", error, errorReason, errorDescription);
-      return NextResponse.redirect(`${frontendUrl}/connect/done?module=instagram&error=instagram_auth_failed`);
+    if (errorParam) {
+      logger.warn("Instagram OAuth error from Meta", { error: errorParam, reason: errorReason, description: errorDescription });
+      return redirect("instagram_auth_failed");
     }
 
-    if (!code || !stateToken) {
-      return NextResponse.redirect(`${frontendUrl}/connect/done?module=instagram&error=missing_params`);
-    }
+    if (!code || !stateToken) return redirect("missing_params");
 
     const state = parseInstagramState(stateToken);
-    if (!state) {
-      return NextResponse.redirect(`${frontendUrl}/connect/done?module=instagram&error=invalid_state`);
-    }
+    if (!state) return redirect("invalid_state");
 
-    // Verify session matches state
+    // Verify the current session matches the user who initiated the OAuth flow
     const session = await safeGetSession();
     if (!session?.user?.id || session.user.id !== state.userId) {
-      return NextResponse.redirect(`${frontendUrl}/connect/done?module=instagram&error=unauthorized`);
+      logger.warn("Instagram callback session mismatch", {
+        sessionUserId: session?.user?.id,
+        stateUserId: state.userId,
+      });
+      return redirect("unauthorized");
     }
 
     const appId = env.INSTAGRAM_APP_ID;
@@ -42,27 +54,27 @@ export async function GET(request: NextRequest) {
     const tokenUrl = env.INSTAGRAM_TOKEN_URL || "https://api.instagram.com/oauth/access_token";
 
     if (!appId || !appSecret || !redirectUri) {
-      console.error("[INSTAGRAM CALLBACK] Missing env vars");
-      return NextResponse.redirect(`${frontendUrl}/connect/done?module=instagram&error=server_config_error`);
+      logger.error("Instagram callback missing env vars", {
+        appId: !!appId,
+        appSecret: !!appSecret,
+        redirectUri: !!redirectUri,
+      });
+      return redirect("server_config_error");
     }
 
     // 1. Exchange code for short-lived token
-    const body = new FormData();
-    body.append("client_id", appId);
-    body.append("client_secret", appSecret);
-    body.append("grant_type", "authorization_code");
-    body.append("redirect_uri", redirectUri);
-    body.append("code", code);
+    const formBody = new FormData();
+    formBody.append("client_id", appId);
+    formBody.append("client_secret", appSecret);
+    formBody.append("grant_type", "authorization_code");
+    formBody.append("redirect_uri", redirectUri);
+    formBody.append("code", code);
 
-    const tokenRes = await fetch(tokenUrl, {
-      method: "POST",
-      body,
-    });
-
+    const tokenRes = await fetch(tokenUrl, { method: "POST", body: formBody });
     if (!tokenRes.ok) {
       const errText = await tokenRes.text().catch(() => "unknown");
-      console.error("[INSTAGRAM CALLBACK] Token exchange failed:", tokenRes.status, errText);
-      return NextResponse.redirect(`${frontendUrl}/connect/done?module=instagram&error=token_exchange_failed`);
+      logger.error("Instagram token exchange failed", { status: tokenRes.status, error: errText });
+      return redirect("token_exchange_failed");
     }
 
     const tokenData = await tokenRes.json();
@@ -70,7 +82,8 @@ export async function GET(request: NextRequest) {
     const instagramUserId = tokenData.user_id;
 
     if (!shortLivedToken) {
-      throw new Error("No access_token returned from Instagram");
+      logger.error("Instagram token exchange returned no access_token");
+      return redirect("token_exchange_failed");
     }
 
     // 2. Exchange short-lived token for long-lived token
@@ -80,9 +93,8 @@ export async function GET(request: NextRequest) {
     longLivedUrl.searchParams.set("access_token", shortLivedToken);
 
     const longLivedRes = await fetch(longLivedUrl.toString());
-    
     let finalToken = shortLivedToken;
-    let expiresAt = null;
+    let expiresAt: string | null = null;
 
     if (longLivedRes.ok) {
       const longLivedData = await longLivedRes.json();
@@ -91,16 +103,25 @@ export async function GET(request: NextRequest) {
         expiresAt = new Date(Date.now() + longLivedData.expires_in * 1000).toISOString();
       }
     } else {
-      console.warn("[INSTAGRAM CALLBACK] Failed to get long-lived token, falling back to short-lived", await longLivedRes.text());
+      logger.warn("Instagram: failed to get long-lived token, using short-lived fallback", {
+        workspaceId: state.workspaceId,
+      });
     }
 
-    // 3. Save to database
+    // 3. Persist encrypted token to the workspace integration record
+    const credentials = {
+      accessToken: encryptToken(finalToken),
+      expiresAt,
+      instagramUserId,
+      scopes: env.INSTAGRAM_SCOPES?.split(",") ?? [],
+    } satisfies Record<string, unknown>;
+
     await prisma.integration.upsert({
       where: {
         workspaceId_provider_userId: {
           workspaceId: state.workspaceId,
           provider: "instagram",
-          userId: "workspace", // Shared integration for the workspace
+          userId: "workspace",
         },
       },
       create: {
@@ -109,35 +130,28 @@ export async function GET(request: NextRequest) {
         userId: "workspace",
         connected: true,
         connectedAt: new Date(),
-        credentials: {
-          accessToken: encryptToken(finalToken),
-          expiresAt,
-          instagramUserId, // Useful for future API calls
-          scopes: env.INSTAGRAM_SCOPES.split(","),
-        },
-        config: {
-          instagramUserId,
-        }
+        connectedBy: state.userId,
+        credentials: credentials as Prisma.InputJsonValue,
+        config: { instagramUserId } as Prisma.InputJsonValue,
       },
       update: {
         connected: true,
         connectedAt: new Date(),
-        credentials: {
-          accessToken: encryptToken(finalToken),
-          expiresAt,
-          instagramUserId,
-          scopes: env.INSTAGRAM_SCOPES.split(","),
-        },
-        config: {
-          instagramUserId,
-        }
+        connectedBy: state.userId,
+        credentials: credentials as Prisma.InputJsonValue,
+        config: { instagramUserId } as Prisma.InputJsonValue,
       },
     });
 
-    return NextResponse.redirect(`${frontendUrl}/connect/done?module=instagram`);
+    logger.info("Instagram integration connected", {
+      workspaceId: state.workspaceId,
+      userId: state.userId,
+      expiresAt,
+    });
+
+    return redirect();
   } catch (error) {
-    console.error("[INSTAGRAM CALLBACK]", error);
-    const frontendUrl = env.NEXT_PUBLIC_APP_URL || "https://sodare.xyz";
-    return NextResponse.redirect(`${frontendUrl}/connect/done?module=instagram&error=internal_error`);
+    logger.error("Instagram callback unexpected error", { error });
+    return redirect("internal_error");
   }
 }

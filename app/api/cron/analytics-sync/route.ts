@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyCronAuth } from "@/lib/cron-auth";
 import { runScheduledSync } from "@/lib/analytics/cron/sync";
+import { logger } from "@/lib/logger";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
     };
     return NextResponse.json({ ok: true, ...summary });
   } catch (e) {
-    console.error("[cron/analytics-sync] error", e instanceof Error ? e.message : e);
+    logger.error("[cron/analytics-sync] error", e instanceof Error ? e.message : e);
     return NextResponse.json({ ok: false, error: "sync failed" }, { status: 500 });
   }
 }

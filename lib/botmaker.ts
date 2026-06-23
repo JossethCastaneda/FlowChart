@@ -68,7 +68,14 @@ export async function botmakerFetch(
   retries = 2,
   baseUrl: string = BASE
 ): Promise<Response> {
-  const res = await fetch(`${baseUrl}${path}`, {
+  let cleanPath = path;
+  if (cleanPath.startsWith("/v2.0/") && baseUrl.endsWith("/v2.0")) {
+    cleanPath = cleanPath.substring(5);
+  }
+  if (!cleanPath.startsWith("/")) {
+    cleanPath = "/" + cleanPath;
+  }
+  const res = await fetch(`${baseUrl}${cleanPath}`, {
     ...init,
     headers: {
       "Content-Type": "application/json",
@@ -83,6 +90,7 @@ export async function botmakerFetch(
   }
   return res;
 }
+
 
 // ── Session metrics ─────────────────────────────────────────────────────────
 // Shapes match the account Swagger (GET /sessions → SessionsPage.items →
@@ -625,6 +633,35 @@ export function computeFlowFunnel(sessions: BmSession[], order: string[], channe
 }
 
 /**
+ * Funnel 2 GLOBAL (metodología BAIT): orden FIJO número → NIP → nombre → venta,
+ * independiente del tipo de bot. Los 3 primeros pasos son un funnel de prefijo
+ * sobre los datos que el bot pidió (heurística FIELD_PATTERNS); el paso final
+ * "venta" usa la regla del dashboard (mensaje del bot con "felicidades").
+ */
+export function computeGlobalFunnel2(sessions: BmSession[], channelId?: string): DataRequestFunnel {
+  const list = onlyChannel(sessions, channelId);
+  const captured = capturedFieldsPerSession(list);
+  const total = list.length;
+  const order = ["numero", "nip", "nombre"];
+  const labels: Record<string, string> = {
+    numero: "Número a cambiar", nip: "NIP", nombre: "Nombre completo", venta: "Venta (felicidades)",
+  };
+  const base = order.map((key, k) => {
+    const prefix = order.slice(0, k + 1);
+    return { key, reached: captured.filter((set) => prefix.every((p) => set.has(p))).length };
+  });
+  // Paso terminal: la VENTA (regla "felicidades"), no un dato capturado.
+  const ventaReached = list.filter((s) => saleConfirmationAt(s) != null).length;
+  const all = [...base, { key: "venta", reached: ventaReached }];
+  const steps = all.map((s, i) => {
+    const prev = i === 0 ? total : all[i - 1].reached;
+    const dropOff = Math.max(0, prev - s.reached);
+    return { key: s.key, label: labels[s.key] || s.key, reached: s.reached, dropOff, dropOffPct: prev ? Math.round((dropOff / prev) * 1000) / 10 : 0 };
+  });
+  return { method: "configured", totalSessions: total, steps };
+}
+
+/**
  * Funnel del ORDEN en que el bot pide datos. Señal primaria: eventos
  * `set-variable` (orden de primera aparición por sesión = orden de captura).
  * Fallback: el texto de los mensajes del bot contra `FIELD_PATTERNS`.
@@ -719,25 +756,40 @@ export interface NipTiming {
   firstResponseRate: number; // delivered / prompted (0–1)
   avgSec: number;            // tiempo prompt → entrega válida
   medianSec: number;
+  // BAIT G3: separar la primera RESPUESTA (cualquier texto) de la primera ENTREGA
+  // VÁLIDA. `responded` puede ser > `delivered` (el usuario respondió algo no válido).
+  responded: number;         // sesiones donde el usuario respondió algo tras el prompt
+  respondedRate: number;     // responded / prompted (0–1)
+  avgRespondedSec: number;   // tiempo prompt → primera respuesta (cualquiera)
 }
 
 /**
- * Análisis de NIP (metodología BAIT): separa el prompt del bot de la primera
- * ENTREGA VÁLIDA (numérica) del usuario. Tiempo de obtención = primer prompt
- * claro de NIP → primera entrega válida posterior.
+ * Análisis de NIP (metodología BAIT): separa el prompt del bot de (a) la primera
+ * RESPUESTA del usuario (cualquier texto) y (b) la primera ENTREGA VÁLIDA
+ * (numérica). Tiempo de obtención = primer prompt claro de NIP → primera entrega
+ * válida posterior; el tiempo de respuesta usa la primera respuesta cualquiera.
  */
 export function computeNipTiming(sessions: BmSession[], channelId?: string): NipTiming {
   const list = onlyChannel(sessions, channelId);
   const NIP_PROMPT = /\bnip\b/i;
   const VALID_NIP = /^\D*\d{4,8}\D*$/; // 4–8 dígitos (admite separadores)
-  const durations: number[] = [];
-  let prompted = 0, delivered = 0;
+  const durations: number[] = [];        // prompt → entrega válida
+  const respondedDurations: number[] = []; // prompt → primera respuesta cualquiera
+  let prompted = 0, delivered = 0, responded = 0;
   for (const s of list) {
     const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
     const prompt = msgs.find((m) => m.from !== "user" && NIP_PROMPT.test((m.content?.text || "").toString()));
     if (!prompt) continue;
     prompted++;
     const promptAt = toMs(prompt.creationTime) || 0;
+    // (a) Primera respuesta del usuario tras el prompt (cualquier texto no vacío).
+    const anyReply = msgs.find((m) => m.from === "user" && (toMs(m.creationTime) || 0) > promptAt && (m.content?.text || "").toString().trim());
+    if (anyReply) {
+      responded++;
+      const at = toMs(anyReply.creationTime);
+      if (at != null && at >= promptAt) respondedDurations.push(Math.round((at - promptAt) / 1000));
+    }
+    // (b) Primera entrega VÁLIDA (4–8 dígitos) posterior al prompt.
     const delivery = msgs.find((m) => m.from === "user" && (toMs(m.creationTime) || 0) > promptAt && VALID_NIP.test((m.content?.text || "").toString().trim()));
     if (delivery) {
       delivered++;
@@ -747,12 +799,16 @@ export function computeNipTiming(sessions: BmSession[], channelId?: string): Nip
   }
   durations.sort((a, b) => a - b);
   const n = durations.length;
+  const rn = respondedDurations.length;
   return {
     prompted,
     delivered,
     firstResponseRate: prompted ? Math.round((delivered / prompted) * 1000) / 1000 : 0,
     avgSec: n ? Math.round(durations.reduce((s, v) => s + v, 0) / n) : 0,
     medianSec: n ? durations[Math.floor((n - 1) / 2)] : 0,
+    responded,
+    respondedRate: prompted ? Math.round((responded / prompted) * 1000) / 1000 : 0,
+    avgRespondedSec: rn ? Math.round(respondedDurations.reduce((s, v) => s + v, 0) / rn) : 0,
   };
 }
 
@@ -866,6 +922,30 @@ export function computeReactivations(sessions: BmSession[], channelId?: string, 
   return { withGap, reactivated, rate: withGap ? Math.round((reactivated / withGap) * 1000) / 1000 : 0 };
 }
 
+// ── Derivaciones a agente (sección 8: ventas, derivaciones y reactivaciones) ──
+export interface DerivationStats {
+  count: number; // sesiones derivadas a un agente humano
+  rate: number;  // count / sesiones (0–1)
+}
+
+/**
+ * Derivaciones (metodología BAIT, sección 8): sesiones transferidas a un agente
+ * humano. Señal: algún mensaje `from === "agent"` o un evento de transferencia.
+ */
+export function computeDerivations(sessions: BmSession[], channelId?: string): DerivationStats {
+  const list = onlyChannel(sessions, channelId);
+  let count = 0;
+  for (const s of list) {
+    const hasAgent = (s.messages || []).some((m) => m.from === "agent");
+    const transferred = (s.events || []).some((e) => {
+      const n = (e.name || "").toLowerCase();
+      return n.includes("transfer") || n.includes("handoff") || n.includes("derivac") || n.includes("agent-assign") || n.includes("assign-agent");
+    });
+    if (hasAgent || transferred) count++;
+  }
+  return { count, rate: list.length ? Math.round((count / list.length) * 1000) / 1000 : 0 };
+}
+
 export interface BotBehavior {
   sampleSize: number;
   responseTimes: { avgBotSec: number; avgUserSec: number; avgFirstResponseSec: number };
@@ -877,9 +957,30 @@ export interface BotBehavior {
   timeToSale: TimeToSaleStats;
   nip: NipTiming;
   dataRequestFunnel: DataRequestFunnel;
+  /** Funnel 2 GLOBAL de orden fijo número → NIP → nombre → venta (BAIT G2). */
+  globalFunnel2: DataRequestFunnel;
   rejections: RejectionStats;
   simEsim: SimEsimStats;
   reactivations: ReactivationStats;
+  /** Derivaciones a agente (BAIT G4, sección 8). */
+  derivations: DerivationStats;
+}
+
+/**
+ * Resuelve el tipo de flujo efectivo. "google_bait" es una mezcla
+ * alineado/simplificado según fecha de corte (1-jun-2026): se decide con la
+ * sesión más reciente del conjunto. Los demás tipos se devuelven tal cual.
+ */
+function resolveFlowType(flowType: string | null | undefined, list: BmSession[]): string | null | undefined {
+  if (flowType === "google_bait" && list.length > 0) {
+    const CUTOFF_MS = new Date("2026-06-01T00:00:00-06:00").getTime();
+    const lastSessionAt = list.reduce((latest, s) => {
+      const t = toMs(s.creationTime) || 0;
+      return t > latest ? t : latest;
+    }, 0);
+    return lastSessionAt >= CUTOFF_MS ? "pospago_simplificado" : "pospago_alineado";
+  }
+  return flowType;
 }
 
 /**
@@ -891,18 +992,7 @@ export function computeBotBehavior(sessions: BmSession[], channelId?: string, fl
   const list = onlyChannel(sessions, channelId);
   const base = computeResultsMetrics(list);
 
-  let resolvedFlowType = flowType;
-  if (flowType === "google_bait" && list.length > 0) {
-    // Regla de Fecha de Google Bait: 1 de Junio 2026
-    const CUTOFF_MS = new Date("2026-06-01T00:00:00-06:00").getTime();
-    // Usar la sesión más reciente del conjunto para decidir el embudo
-    const lastSessionAt = list.reduce((latest, s) => {
-      const t = toMs(s.creationTime) || 0;
-      return t > latest ? t : latest;
-    }, 0);
-    resolvedFlowType = lastSessionAt >= CUTOFF_MS ? "pospago_simplificado" : "pospago_alineado";
-  }
-
+  const resolvedFlowType = resolveFlowType(flowType, list);
   const order = resolvedFlowType ? FLOW_ORDERS[resolvedFlowType] : undefined;
 
   // Tiempo de primera respuesta: primer mensaje de usuario → primera respuesta bot/agente.
@@ -932,14 +1022,95 @@ export function computeBotBehavior(sessions: BmSession[], channelId?: string, fl
     timeToSale: computeTimeToSale(list),
     nip: computeNipTiming(list),
     dataRequestFunnel: order ? computeFlowFunnel(list, order) : computeDataRequestOrderFunnel(list),
+    globalFunnel2: computeGlobalFunnel2(list),
     rejections: computeRejectionReasons(list),
     simEsim: computeSimEsim(list),
     reactivations: computeReactivations(list),
+    derivations: computeDerivations(list),
   };
 }
 
 /** Comportamiento vacío (sin token / desconectado). */
 export const EMPTY_BOT_BEHAVIOR: BotBehavior = computeBotBehavior([]);
+
+// ── Desglose POR BOT (BAIT G1: global Y por bot) ─────────────────────────────
+// Cada "bot" es un canal Botmaker (channelId). Se agrupan las sesiones por canal
+// y se calcula un resumen COMPACTO por bot (no el BotBehavior completo, para no
+// inflar el payload). El Funnel 2 por bot respeta el orden real de su tipo de
+// flujo cuando se conoce (mapa por canal o default del proyecto), o se infiere.
+
+export interface BotSummary {
+  channelId: string;
+  name: string;
+  platform: string;
+  canonical: ChannelCanonical | null;
+  number?: string;
+  sampleSize: number;
+  sales: number;             // ventas (felicidades)
+  conversionRate: number;    // ventas / sesiones (0–1)
+  nipPrompted: number;
+  nipDeliveredRate: number;  // entrega válida / pidió NIP (0–1)
+  derivations: DerivationStats;
+  reactivations: ReactivationStats;
+  firstMenu: FirstMenuReaction;   // Funnel 1 por bot
+  funnel2: DataRequestFunnel;     // Funnel 2 por bot (orden por tipo de flujo)
+  flowType: string | null;        // tipo de flujo efectivo usado (o null = inferido)
+}
+
+export interface BehaviorByBotOptions {
+  /** Mapa explícito channelId → tipo de flujo (mapeo de bots). */
+  flowTypeByChannel?: Record<string, string>;
+  /** Tipo de flujo por defecto (p. ej. Project.botFlowType) si no hay mapa. */
+  defaultFlowType?: string | null;
+}
+
+/**
+ * Agrupa las sesiones por canal Botmaker y devuelve un resumen por bot, ordenado
+ * por volumen de sesiones (desc). Reusa las funciones puras ya existentes.
+ */
+export function computeBehaviorByBot(
+  sessions: BmSession[],
+  channels: BmChannelInfo[],
+  opts: BehaviorByBotOptions = {}
+): BotSummary[] {
+  const list = Array.isArray(sessions) ? sessions : [];
+  const groups = new Map<string, BmSession[]>();
+  for (const s of list) {
+    const cid = s.chat?.chat?.channelId;
+    if (!cid) continue;
+    const g = groups.get(cid);
+    if (g) g.push(s); else groups.set(cid, [s]);
+  }
+  const info = new Map((channels || []).map((c) => [c.id, c]));
+  const out: BotSummary[] = [];
+  for (const [cid, group] of groups) {
+    if (group.length === 0) continue;
+    const tts = computeTimeToSale(group);
+    const nip = computeNipTiming(group);
+    const rawFlow = opts.flowTypeByChannel?.[cid] ?? opts.defaultFlowType ?? null;
+    const resolved = resolveFlowType(rawFlow, group);
+    const order = resolved ? FLOW_ORDERS[resolved] : undefined;
+    const ch = info.get(cid);
+    out.push({
+      channelId: cid,
+      name: ch?.name || cid,
+      platform: ch?.platform || "",
+      canonical: ch?.canonical ?? null,
+      number: ch?.number,
+      sampleSize: group.length,
+      sales: tts.count,
+      conversionRate: tts.conversionRate,
+      nipPrompted: nip.prompted,
+      nipDeliveredRate: nip.firstResponseRate,
+      derivations: computeDerivations(group),
+      reactivations: computeReactivations(group),
+      firstMenu: computeFirstMenuReaction(group),
+      funnel2: order ? computeFlowFunnel(group, order) : computeDataRequestOrderFunnel(group),
+      flowType: resolved ?? null,
+    });
+  }
+  return out.sort((a, b) => b.sampleSize - a.sampleSize);
+}
 
 // ── Listado de canales (para autollenar el formulario de proyecto) ───────────
 export type ChannelCanonical = "whatsapp" | "webchat" | "instagram" | "facebook" | "messenger";
@@ -956,14 +1127,24 @@ export interface BmChannelInfo {
 
 /** Mapea el `platform` de un canal Botmaker a su forma canónica (incluye webchat). */
 function channelCanonical(platform?: string | null): ChannelCanonical | null {
-  const p = (platform || "").toLowerCase();
+  const p = (platform || "").toLowerCase().trim();
   if (!p) return null;
-  if (p.includes("whats")) return "whatsapp";
-  if (p.includes("insta")) return "instagram";
-  if (p.includes("messenger")) return "messenger";
-  if (p.includes("facebook") || p === "fb") return "facebook";
-  if (p.includes("web")) return "webchat"; // webchat / web / webwidget
+  // Alineado con canonicalPlatform (sesiones) + alias reales de Botmaker.
+  if (p.includes("whats") || p.includes("wapp") || p === "wa" || p === "waba" || p === "wsp" || p === "wpp") return "whatsapp";
+  if (p.includes("insta") || p === "ig") return "instagram";
+  if (p.includes("messenger") || p === "fbm") return "messenger";
+  if (p.includes("facebook") || p === "fb" || p === "fbk") return "facebook";
+  if (p.includes("web") || p.includes("chat") || p.includes("widget") || p === "api" || p === "botmaker") return "webchat";
   return null;
+}
+
+/**
+ * Canónico de un canal con INFERENCIA por forma cuando el `platform` no se
+ * reconoce: si trae número de teléfono → WhatsApp; si no → Web Chat. Evita que un
+ * canal real se pierda solo porque Botmaker reporta un `platform` no visto.
+ */
+function resolveChannelCanonical(platform: string, number?: string): ChannelCanonical {
+  return channelCanonical(platform) ?? (number ? "whatsapp" : "webchat");
 }
 
 /**
@@ -971,22 +1152,115 @@ function channelCanonical(platform?: string | null): ChannelCanonical | null {
  * Instagram y Facebook). Se usa para AUTOLLENAR el formulario "Nuevo Proyecto"
  * en vez de teclear los números a mano.
  */
-export async function listBotmakerChannels(conn: BotmakerConnection): Promise<BmChannelInfo[]> {
+/** Resultado de `/channels` con metadatos de diagnóstico (rawCount/platforms/HTTP). */
+export interface BotmakerChannelsResult {
+  channels: BmChannelInfo[];
+  /** # de items que Botmaker devolvió ANTES de filtrar/clasificar. */
+  rawCount: number;
+  /** Valores distintos de `platform` vistos en la respuesta (para mapear). */
+  platforms: string[];
+  httpStatus: number;
+}
+
+/**
+ * Descarga y parsea `/channels` devolviendo además metadatos para diagnóstico.
+ * Tolera múltiples shapes (items/channels/data/result/arreglo plano) y campos
+ * alternos, e INFIERE el canónico cuando el `platform` no se reconoce (no se
+ * descarta ningún canal en silencio). `listBotmakerChannels` envuelve esto.
+ */
+export async function fetchBotmakerChannels(conn: BotmakerConnection): Promise<BotmakerChannelsResult> {
   const res = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
-  if (!res.ok) return [];
+  if (!res.ok) {
+    console.warn(`[BOTMAKER] /channels HTTP ${res.status}`);
+    return { channels: [], rawCount: 0, platforms: [], httpStatus: res.status };
+  }
   const data = await res.json().catch(() => null);
-  const items = (data?.items ?? data ?? []) as Record<string, unknown>[];
-  if (!Array.isArray(items)) return [];
-  return items
-    .map((c) => ({
-      id: String(c.id ?? ""),
-      platform: String(c.platform ?? ""),
-      canonical: channelCanonical(c.platform as string),
-      name: String(c.name ?? ""),
-      number: typeof c.number === "string" ? c.number : undefined,
-      active: c.active !== false,
-    }))
+  // Botmaker puede envolver los canales en distintas claves según versión/cuenta
+  // (items / channels / data / result) o devolver un arreglo plano. Toleramos todas.
+  const raw = Array.isArray(data)
+    ? data
+    : (data?.items ?? data?.channels ?? data?.data ?? data?.result ?? []);
+  const items = (Array.isArray(raw) ? raw : []) as Record<string, unknown>[];
+  const str = (v: unknown): string => (typeof v === "string" ? v : "");
+  const channels = items
+    .map((c) => {
+      const platform = str(c.platform) || str(c.type) || str(c.channelType);
+      const number = str(c.number) || str(c.phoneNumber) || str(c.phone) || undefined;
+      return {
+        id: str(c.id) || str(c.channelId) || str(c._id),
+        platform,
+        canonical: resolveChannelCanonical(platform, number),
+        name: str(c.name) || str(c.displayName) || str(c.title),
+        number,
+        active: c.active !== false && c.enabled !== false,
+      };
+    })
     .filter((c) => c.id);
+  const platforms = [...new Set(
+    items.map((c) => str(c.platform) || str(c.type) || str(c.channelType)).filter(Boolean)
+  )];
+  if (channels.length === 0) {
+    const keys = data && typeof data === "object" ? Object.keys(data).join(",") : typeof data;
+    console.warn(`[BOTMAKER] /channels sin canales tras parsear (keys=${keys}, raw=${items.length})`);
+  }
+  return { channels, rawCount: items.length, platforms, httpStatus: res.status };
+}
+
+export async function listBotmakerChannels(conn: BotmakerConnection): Promise<BmChannelInfo[]> {
+  return (await fetchBotmakerChannels(conn)).channels;
+}
+
+/**
+ * Persiste los canales del bot en `IntegrationAssetCache` (assetType "bot") al
+ * CONECTAR la integración, para que el formulario "Nuevo Proyecto" los tenga
+ * disponibles de inmediato (y como respaldo si la API en vivo falla/tarda).
+ */
+export async function cacheBotmakerChannels(
+  integrationId: string,
+  workspaceId: string,
+  channels: BmChannelInfo[]
+): Promise<void> {
+  for (const c of channels) {
+    if (!c.id) continue;
+    const metadata = { platform: c.platform, number: c.number ?? null, active: c.active };
+    await prisma.integrationAssetCache.upsert({
+      where: { integrationId_assetType_externalId: { integrationId, assetType: "bot", externalId: c.id } },
+      update: { name: c.name || c.id, metadata, syncedAt: new Date() },
+      create: { integrationId, workspaceId, provider: "botmaker", assetType: "bot", externalId: c.id, name: c.name || c.id, metadata },
+    });
+  }
+}
+
+/**
+ * Lee los canales del bot cacheados (poblados al conectar / por el sync workflow)
+ * y los reconstruye al mismo contrato que `listBotmakerChannels`. Respaldo para
+ * cuando la API en vivo de Botmaker no responde. Tolera el `metadata` histórico
+ * del sync workflow (`{ platform, phoneNumber }`) además del nuevo (`{ number }`).
+ */
+export async function getCachedBotmakerChannels(workspaceId: string): Promise<BmChannelInfo[]> {
+  try {
+    const rows = await prisma.integrationAssetCache.findMany({
+      where: { workspaceId, provider: "botmaker", assetType: "bot" },
+      orderBy: { name: "asc" },
+    });
+    return rows.map((r) => {
+      const meta = (r.metadata as Record<string, unknown>) || {};
+      const platform = String(meta.platform ?? "");
+      const number =
+        typeof meta.number === "string" ? meta.number :
+        typeof meta.phoneNumber === "string" ? meta.phoneNumber : undefined;
+      return {
+        id: r.externalId,
+        platform,
+        canonical: resolveChannelCanonical(platform, number),
+        name: r.name || r.externalId,
+        number,
+        active: meta.active !== false,
+      };
+    });
+  } catch {
+    return [];
+  }
 }
 
 // ── Lead Quality Scoring ─────────────────────────────────────────────────────

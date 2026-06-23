@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google/oauth";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const data = await res.json();
     if (!res.ok) {
-      console.error("[GA4 API] Failed to fetch properties", data);
+      logger.error("[GA4 API] Failed to fetch properties", data);
       return NextResponse.json({ error: "Failed to fetch GA4 properties from Google" }, { status: 502 });
     }
 
@@ -48,7 +49,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ properties });
   } catch (err: any) {
-    console.error("[GA4 API] Exception", err);
+    logger.error("[GA4 API] Exception", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

@@ -43,4 +43,34 @@ describe("metaFetch — camino único a la Graph API", () => {
     expect(url).toContain("fields=id%2Cname");
     expect(url).not.toContain("access_token");
   });
+
+  it("403 por token/permisos (no rate-limit) NO se reintenta — falla rápido", async () => {
+    const body = JSON.stringify({ error: { code: 190, message: "Error validating access token" } });
+    const fetchMock = vi.fn().mockResolvedValue(new Response(body, { status: 403 }));
+    global.fetch = fetchMock;
+
+    const res = await metaFetch("https://graph.facebook.com/v25.0/me", "T");
+
+    expect(res.status).toBe(403);
+    expect(fetchMock.mock.calls.length).toBe(1); // sin reintentos (antes eran 4 intentos / ~14s)
+  });
+
+  it("403 con código de rate-limit (4) sí reintenta hasta tener éxito", async () => {
+    vi.useFakeTimers();
+    try {
+      const rl = () => new Response(JSON.stringify({ error: { code: 4, message: "request limit reached" } }), { status: 403 });
+      const ok = () => new Response("{}", { status: 200 });
+      const fetchMock = vi.fn().mockResolvedValueOnce(rl()).mockResolvedValueOnce(ok());
+      global.fetch = fetchMock;
+
+      const p = metaFetch("https://graph.facebook.com/v25.0/me", "T");
+      await vi.runAllTimersAsync();
+      const res = await p;
+
+      expect(res.status).toBe(200);
+      expect(fetchMock.mock.calls.length).toBe(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 });

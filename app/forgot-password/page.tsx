@@ -7,6 +7,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false);
   const [sent, setSent] = useState(false);
   const [error, setError] = useState("");
+  const [devResetUrl, setDevResetUrl] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -32,6 +33,11 @@ export default function ForgotPasswordPage() {
         return;
       }
 
+      const data = await res.json();
+      // Dev mode: el API devuelve el enlace directamente cuando no hay email configurado
+      if (data.devResetUrl) {
+        setDevResetUrl(data.devResetUrl);
+      }
       setSent(true);
     } catch {
       setError("Error de red");
@@ -53,7 +59,7 @@ export default function ForgotPasswordPage() {
     border: "1px solid rgba(0, 240, 255, 0.1)",
     borderRadius: "16px",
     padding: "40px",
-    maxWidth: "420px",
+    maxWidth: "440px",
     width: "100%",
     backdropFilter: "blur(20px)",
   };
@@ -90,13 +96,67 @@ export default function ForgotPasswordPage() {
       <div style={containerStyle}>
         <div style={cardStyle}>
           <h1 style={{ color: "#00f0ff", fontSize: "20px", marginBottom: "16px", textAlign: "center" }}>
-            📧 Revisa tu email
+            {devResetUrl ? "🔧 Modo Desarrollo" : "📧 Revisa tu email"}
           </h1>
-          <p style={{ color: "#94a3b8", textAlign: "center", fontSize: "14px", lineHeight: "1.6" }}>
-            Si <strong style={{ color: "#e2e8f0" }}>{email}</strong> está registrado,
-            recibirás un enlace para restablecer tu contraseña.
-          </p>
-          <p style={{ color: "#64748b", textAlign: "center", fontSize: "12px", marginTop: "24px" }}>
+
+          {devResetUrl ? (
+            // ── Modo desarrollo: mostrar el enlace directamente ──────────────
+            <div>
+              <p style={{ color: "#94a3b8", textAlign: "center", fontSize: "14px", lineHeight: "1.6", marginBottom: "20px" }}>
+                El servicio de email no está configurado en este entorno.
+                Usa el siguiente enlace para restablecer la contraseña:
+              </p>
+              <div style={{
+                background: "rgba(0, 240, 255, 0.05)",
+                border: "1px solid rgba(0, 240, 255, 0.2)",
+                borderRadius: "8px",
+                padding: "16px",
+                marginBottom: "16px",
+                wordBreak: "break-all",
+              }}>
+                <p style={{ color: "#64748b", fontSize: "10px", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                  Enlace de reset (expira en 1 hora)
+                </p>
+                <a
+                  href={devResetUrl}
+                  style={{
+                    color: "#00f0ff",
+                    fontSize: "13px",
+                    wordBreak: "break-all",
+                    textDecoration: "none",
+                  }}
+                >
+                  {devResetUrl}
+                </a>
+              </div>
+              <a
+                href={devResetUrl}
+                style={{
+                  display: "block",
+                  textAlign: "center",
+                  padding: "12px",
+                  background: "linear-gradient(135deg, #00f0ff, #0080ff)",
+                  color: "#030508",
+                  fontWeight: 700,
+                  fontSize: "14px",
+                  borderRadius: "8px",
+                  textDecoration: "none",
+                  letterSpacing: "1px",
+                  marginBottom: "16px",
+                }}
+              >
+                RESTABLECER CONTRASEÑA →
+              </a>
+            </div>
+          ) : (
+            // ── Modo producción: instrucciones de email ──────────────────────
+            <p style={{ color: "#94a3b8", textAlign: "center", fontSize: "14px", lineHeight: "1.6" }}>
+              Si <strong style={{ color: "#e2e8f0" }}>{email}</strong> está registrado,
+              recibirás un enlace para restablecer tu contraseña.
+            </p>
+          )}
+
+          <p style={{ color: "#64748b", textAlign: "center", fontSize: "12px", marginTop: "16px" }}>
             El enlace expira en 1 hora.
           </p>
           <div style={{ textAlign: "center", marginTop: "24px" }}>

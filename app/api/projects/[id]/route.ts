@@ -1,5 +1,5 @@
 import { z } from "zod";
-import prisma from "@/lib/prisma";
+import prisma, { type Prisma } from "@/lib/prisma";
 import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
 import {
@@ -8,7 +8,7 @@ import {
   apiForbidden,
 } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
-import { resolveProjectCrmAssociation } from "@/lib/projects/crm";
+import { resolveProjectCrmAssociation, persistableCrmType } from "@/lib/projects/crm";
 
 const ChannelSchema = z.object({
   name: z.string().min(1),
@@ -90,15 +90,18 @@ export const PUT = withAuth(async (req, ctx) => {
       ? {
           crmIntegrationIds: crm.crmIntegrationIds,
           crmIntegrationId: crm.crmIntegrationId,
-          // crmType solo válido si quedó una integración asociada.
-          ...(updateData.crmType !== undefined ? { crmType: crm.crmIntegrationId ? updateData.crmType : null } : {}),
         }
+      : {}),
+    // crmType se conserva si hay integración válida o si es un sentinel sin
+    // integración por diseño (google/no_aplica); botmaker/cari sin integración → null.
+    ...(updateData.crmType !== undefined
+      ? { crmType: persistableCrmType(updateData.crmType, !!crm?.crmIntegrationId) }
       : {}),
   };
 
   await prisma.project.update({
     where: { id },
-    data: updatePayload as any,
+    data: updatePayload as Prisma.ProjectUpdateInput,
   });
 
   if (channels !== undefined) {

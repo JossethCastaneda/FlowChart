@@ -1,108 +1,68 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { z } from "zod";
+import { withWorkspace } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
-import { parseWorkflow, findUserArea, getPermissions, type AreaPermissions, DEFAULT_MEMBER_PERMS } from "@/lib/workflow-config";
+import { apiSuccess, apiServerError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
+import {
+  parseWorkflow,
+  findUserArea,
+  getPermissions,
+  type AreaPermissions,
+  DEFAULT_MEMBER_PERMS,
+} from "@/lib/workflow-config";
+import { z } from "zod";
 
-const VALID_STATUSES = ["disponible", "ocupado", "ausente", "offline"];
+export const dynamic = "force-dynamic";
+
+const UpdateStatusSchema = z.object({
+  status: z.enum(["disponible", "ocupado", "ausente", "offline"]),
+});
 
 /**
  * PUT /api/workspace/members/status
- * Allows a user to update their own activity status within their active workspace.
+ * Update the current user's activity status within their active workspace.
  */
-export async function PUT(req: NextRequest) {
-    try {
-          const result = await validateBody(req, RequestSchema);
-          if (!result.ok) return result.response;
-          const { status } = result.data;
-          
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const PUT = withWorkspace(async (req, ctx) => {
+  const result = await validateBody(req, UpdateStatusSchema);
+  if (!result.ok) return result.response;
+  const { status } = result.data;
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
-    }
+  const updated = await prisma.workspaceMember.update({
+    where: { workspaceId_userId: { workspaceId: ctx.workspaceId, userId: ctx.userId } },
+    data: { activityStatus: status, lastActiveAt: new Date() },
+    select: { activityStatus: true, lastActiveAt: true },
+  });
 
-
-
-
-    if (!status || !VALID_STATUSES.includes(status)) {
-      return NextResponse.json(
-        { error: `Estatus inválido. Opciones: ${VALID_STATUSES.join(", ")}` },
-        { status: 400 }
-      );
-    }
-
-    const updated = await prisma.workspaceMember.update({
-      where: {
-        workspaceId_userId: { workspaceId, userId: session.user.id },
-      },
-      data: {
-        activityStatus: status,
-        lastActiveAt: new Date(),
-      },
-    });
-
-    return NextResponse.json({
-      activityStatus: updated.activityStatus,
-      lastActiveAt: updated.lastActiveAt,
-    });
-    } catch (err: any) {
-    console.error("[MEMBER_STATUS] PUT error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-    }
-}
+  return apiSuccess(updated);
+});
 
 /**
  * GET /api/workspace/members/status
- * Returns the current user's activity status.
+ * Returns the current user's activity status and resolved permissions.
  */
-export async function GET() {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
-    }
-
-    const member = await prisma.workspaceMember.findUnique({
-      where: {
-        workspaceId_userId: { workspaceId, userId: session.user.id },
-      },
+export const GET = withWorkspace(async (_req, ctx) => {
+  const [member, settingsRow] = await Promise.all([
+    prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId: ctx.workspaceId, userId: ctx.userId } },
       select: { activityStatus: true, lastActiveAt: true, role: true, permissions: true },
-    });
-
-    const settingsRow = await prisma.workspaceSettings.findUnique({
-      where: { workspaceId },
+    }),
+    prisma.workspaceSettings.findUnique({
+      where: { workspaceId: ctx.workspaceId },
       select: { areas: true, requireLeadReview: true },
-    });
+    }),
+  ]);
 
-    let userPerms: AreaPermissions = { ...DEFAULT_MEMBER_PERMS };
-    if (member) {
-      const config = parseWorkflow(settingsRow);
-      const userArea = findUserArea(config, session.user.id);
-      userPerms = getPermissions(userArea, session.user.id, member.role, member.permissions as any);
-    }
-
-    return NextResponse.json({
-      activityStatus: member?.activityStatus || "disponible",
-      lastActiveAt: member?.lastActiveAt || null,
-      role: member?.role || "MEMBER",
-      permissions: userPerms,
-    });
-  } catch (err: any) {
-    console.error("[MEMBER_STATUS] GET error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
+  let userPerms: AreaPermissions = { ...DEFAULT_MEMBER_PERMS };
+  if (member) {
+    const config = parseWorkflow(settingsRow);
+    const userArea = findUserArea(config, ctx.userId);
+    userPerms = getPermissions(userArea, ctx.userId, member.role, member.permissions as Parameters<typeof getPermissions>[3]);
   }
-}
 
-const RequestSchema = z.object({ status: z.enum(["disponible", "ocupado", "ausente", "offline"]) });
+  return apiSuccess({
+    activityStatus: member?.activityStatus || "disponible",
+    lastActiveAt: member?.lastActiveAt || null,
+    role: member?.role || "MEMBER",
+    permissions: userPerms,
+  });
+});

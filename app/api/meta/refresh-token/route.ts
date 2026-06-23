@@ -1,10 +1,17 @@
-import { safeGetSession } from "@/lib/api-handler";
+import { withWorkspace } from "@/lib/api-handler";
+import { apiSuccess, apiError, apiServerError } from "@/lib/api-response";
 import { META_API_VERSION } from "@/lib/server-auth";
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { encryptToken, decryptToken } from "@/lib/encryption";
+import { verifyCronAuth } from "@/lib/cron-auth";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
+
+// El cron (GET) refresca en SECUENCIA todos los workspaces × integraciones meta_*,
+// cada uno con un fetch a Meta. Con 60s podría cortarse a escala dejando workspaces
+// sin refrescar. Igual que los demás crons de trabajo real (analytics-sync, etc.).
+export const maxDuration = 300;
 
 type RefreshResult =
   | { status: "refreshed"; workspaceId: string; expiresAt: string; integrationsUpdated: number; expiresInDays: number }
@@ -12,13 +19,7 @@ type RefreshResult =
   | { status: "expired"; workspaceId: string; error: string }
   | { status: "failed"; workspaceId: string; error: string };
 
-function verifyCronAuth(req: NextRequest): boolean {
-  const cronSecret = env.CRON_SECRET;
-  if (!cronSecret) return process.env.NODE_ENV !== "production";
-  return req.headers.get("authorization") === `Bearer ${cronSecret}`;
-}
-
-/** Intercambia UN token por su versión long-lived. */
+/** Exchanges ONE token for its long-lived version. */
 async function exchangeToken(currentToken: string): Promise<
   | { ok: true; token: string; expiresIn: number }
   | { ok: false; code: number | null; error: string }
@@ -41,7 +42,7 @@ async function exchangeToken(currentToken: string): Promise<
   return { ok: true, token: data.access_token, expiresIn: data.expires_in || 5_184_000 };
 }
 
-/** Notifica a los OWNER/ADMIN del workspace que un token Meta expiró. */
+/** Notifies OWNER/ADMIN members that a Meta token expired. */
 async function notifyTokenExpired(workspaceId: string): Promise<void> {
   const admins = await prisma.workspaceMember.findMany({
     where: { workspaceId, role: { in: ["OWNER", "ADMIN"] } },
@@ -55,7 +56,7 @@ async function notifyTokenExpired(workspaceId: string): Promise<void> {
       type: "meta_token_expired",
       title: "🔌 Conexión de Meta expirada",
       message:
-        "Una o más conexiones de Meta expiraron y se desconectaron. Reconéctalas en Integraciones para no perder publicaciones, métricas ni alertas.",
+        "Una o más conexiones de Meta expiraron y se desconectaron. Reconéctalas en Integraciones.",
       link: "/dashboard/integrations",
     })),
     skipDuplicates: true,
@@ -64,21 +65,13 @@ async function notifyTokenExpired(workspaceId: string): Promise<void> {
 
 async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshResult> {
   const allIntegrations = await prisma.integration.findMany({
-    where: {
-      workspaceId,
-      provider: { startsWith: "meta" },
-      connected: true,
-    },
+    where: { workspaceId, provider: { startsWith: "meta" }, connected: true },
   });
 
   if (allIntegrations.length === 0) {
     return { status: "missing", workspaceId, error: "No connected Meta integrations" };
   }
 
-  // Cada integración (meta_ads, meta_community, meta_publisher_*) se conectó
-  // con su propio config_id y scopes: se refresca CADA token individualmente.
-  // Nunca se sobrescribe un módulo con el token de otro, y un token expirado
-  // solo desconecta SU integración.
   let refreshedCount = 0;
   let expiredCount = 0;
   const errors: string[] = [];
@@ -91,7 +84,7 @@ async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshR
     try {
       currentToken = decryptToken(typeof creds.accessToken === "string" ? creds.accessToken : "");
     } catch {
-      errors.push(`${intg.provider}: token ilegible (texto plano o corrupto)`);
+      errors.push(`${intg.provider}: token ilegible`);
       continue;
     }
     if (!currentToken || currentToken.startsWith("enc:")) {
@@ -103,10 +96,7 @@ async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshR
 
     if (!exchange.ok) {
       if (exchange.code === 190) {
-        await prisma.integration.update({
-          where: { id: intg.id },
-          data: { connected: false },
-        });
+        await prisma.integration.update({ where: { id: intg.id }, data: { connected: false } });
         expiredCount++;
         errors.push(`${intg.provider}: token expirado — requiere reconexión`);
       } else {
@@ -133,15 +123,17 @@ async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshR
     lastExpiresIn = exchange.expiresIn;
   }
 
-  console.log(
-    `[META REFRESH] workspace ${workspaceId}: ${refreshedCount}/${allIntegrations.length} refreshed, ${expiredCount} expired${errors.length ? " — " + errors.join("; ") : ""}`
-  );
+  logger.info("Meta tokens refresh completed", {
+    workspaceId,
+    total: allIntegrations.length,
+    refreshed: refreshedCount,
+    expired: expiredCount,
+    errors: errors.length > 0 ? errors : undefined,
+  });
 
-  // Si algún token expiró (code 190 → integración marcada connected:false), avisa
-  // a los OWNER/ADMIN para que reconecten — antes la desconexión era silenciosa.
   if (expiredCount > 0) {
     await notifyTokenExpired(workspaceId).catch((err) =>
-      console.error(`[META REFRESH] Failed to notify expiry for ${workspaceId}:`, err)
+      logger.warn("Failed to notify Meta token expiry", { workspaceId, error: err })
     );
   }
 
@@ -161,47 +153,25 @@ async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshR
 }
 
 /**
- * POST /api/meta/refresh-token
- *
- * Manual/user-triggered refresh for the active workspace.
+ * POST /api/meta/refresh-token — user-triggered refresh for the active workspace.
  */
-export async function POST() {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const POST = withWorkspace(async (_req, ctx) => {
+  const result = await refreshWorkspaceMetaTokens(ctx.workspaceId);
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
-    }
-
-    const result = await refreshWorkspaceMetaTokens(workspaceId);
-
-    if (result.status === "refreshed") {
-      return NextResponse.json({
-        success: true,
-        expiresAt: result.expiresAt,
-        expiresInDays: result.expiresInDays,
-        integrationsUpdated: result.integrationsUpdated,
-      });
-    }
-
-    return NextResponse.json(
-      { error: result.error, expired: result.status === "expired" },
-      { status: result.status === "expired" ? 401 : 400 }
-    );
-  } catch (err: unknown) {
-    console.error("[META REFRESH] Error:", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Error" }, { status: 500 });
+  if (result.status === "refreshed") {
+    return apiSuccess({
+      expiresAt: result.expiresAt,
+      expiresInDays: result.expiresInDays,
+      integrationsUpdated: result.integrationsUpdated,
+    });
   }
-}
+
+  return apiError(result.error, result.status === "expired" ? "TOKEN_EXPIRED" : "REFRESH_FAILED", result.status === "expired" ? 401 : 400);
+});
 
 /**
- * GET /api/meta/refresh-token
- *
- * Vercel Cron entrypoint. Refreshes every workspace with connected Meta integrations.
+ * GET /api/meta/refresh-token — Vercel Cron entrypoint.
+ * Refreshes all workspaces with connected Meta integrations.
  */
 export async function GET(req: NextRequest) {
   if (!verifyCronAuth(req)) {
@@ -210,29 +180,28 @@ export async function GET(req: NextRequest) {
 
   try {
     const workspaces = await prisma.integration.findMany({
-      where: {
-        provider: { startsWith: "meta" },
-        connected: true,
-      },
+      where: { provider: { startsWith: "meta" }, connected: true },
       distinct: ["workspaceId"],
       select: { workspaceId: true },
     });
 
-    const results: RefreshResult[] = [];
-    for (const workspace of workspaces) {
-      results.push(await refreshWorkspaceMetaTokens(workspace.workspaceId));
-    }
+    // Parallel refresh across all workspaces with allSettled (no one blocks another)
+    const settled = await Promise.allSettled(
+      workspaces.map((ws) => refreshWorkspaceMetaTokens(ws.workspaceId))
+    );
+    const results = settled.map((r) =>
+      r.status === "fulfilled" ? r.value : { status: "failed", workspaceId: "unknown", error: String(r.reason) }
+    );
 
     return NextResponse.json({
       processed: results.length,
-      refreshed: results.filter((result) => result.status === "refreshed").length,
-      expired: results.filter((result) => result.status === "expired").length,
-      failed: results.filter((result) => result.status === "failed").length,
-      missing: results.filter((result) => result.status === "missing").length,
-      results,
+      refreshed: results.filter((r) => r.status === "refreshed").length,
+      expired: results.filter((r) => r.status === "expired").length,
+      failed: results.filter((r) => r.status === "failed").length,
+      missing: results.filter((r) => r.status === "missing").length,
     });
-  } catch (err: unknown) {
-    console.error("[META REFRESH CRON] Error:", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Error" }, { status: 500 });
+  } catch (err) {
+    logger.error("Meta refresh-token cron failed", { error: err });
+    return apiServerError(err);
   }
 }

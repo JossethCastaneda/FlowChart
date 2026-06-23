@@ -4,6 +4,7 @@ import { authOptions } from "@/auth.config";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+export const dynamic = "force-dynamic";
 
 /**
  * GET /api/health

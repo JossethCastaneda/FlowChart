@@ -7,6 +7,7 @@ import { decryptToken } from "@/lib/encryption";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { logger } from "@/lib/logger";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -127,7 +128,7 @@ export async function POST(req: NextRequest) {
 
     if (!replyRes.ok || replyData.error) {
       const mapped = mapMetaError(replyData?.error);
-      console.error("[INBOX-REPLY] Meta API error:", replyData?.error?.message);
+      logger.error("[INBOX-REPLY] Meta API error:", replyData?.error?.message);
       return NextResponse.json(
         { error: mapped.user_message },
         { status: 422 }
@@ -157,7 +158,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.log(`[INBOX-REPLY] ✅ Reply sent to conversation ${conversationId}`);
+    logger.info(`[INBOX-REPLY] ✅ Reply sent to conversation ${conversationId}`);
     return NextResponse.json({
       success: true,
       messageId: replyData.id || null,
@@ -165,7 +166,7 @@ export async function POST(req: NextRequest) {
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Error interno";
-    console.error("[INBOX-REPLY] Error:", message);
+    logger.error("[INBOX-REPLY] Error:", message);
     return NextResponse.json(
       { error: message },
       { status: 500 }

@@ -1,103 +1,80 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
-import { z } from "zod";
+import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiCreated, apiError, apiNotFound, apiForbidden, apiServerError } from "@/lib/api-response";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ workspaceId: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const { workspaceId } = await params;
-    const hasAccess = await verifyWorkspaceAccess(workspaceId, session.user.id);
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    const members = await prisma.workspaceMember.findMany({
-      where: { workspaceId },
-      include: {
-        user: {
-          select: { id: true, name: true, email: true, image: true },
-        },
+export const dynamic = "force-dynamic";
+
+const RemoveMemberSchema = z.object({
+  userId: z.string().min(1, "userId requerido"),
+});
+
+// GET /api/workspace/[workspaceId]/members — list all members (any member)
+export const GET = withAuth(async (_req, ctx) => {
+  const { workspaceId } = await ctx.params;
+
+  const hasAccess = await verifyWorkspaceAccess(workspaceId, ctx.userId);
+  if (!hasAccess) return apiForbidden();
+
+  const members = await prisma.workspaceMember.findMany({
+    where: { workspaceId },
+    include: {
+      user: {
+        select: { id: true, name: true, email: true, image: true },
       },
-      orderBy: { role: "asc" },
-    });
-    return NextResponse.json({ data: members });
-  } catch (err: any) {
-    console.error("[MEMBERS] Error:", err);
-    return NextResponse.json({ error: "Error al obtener miembros" }, { status: 500 });
+    },
+    orderBy: { role: "asc" },
+  });
+
+  return apiSuccess(members);
+});
+
+// DELETE /api/workspace/[workspaceId]/members — remove a member (OWNER/ADMIN)
+export const DELETE = withAuth(async (req, ctx) => {
+  const { workspaceId } = await ctx.params;
+
+  // Auth check before body parsing
+  const requester = await prisma.workspaceMember.findUnique({
+    where: { workspaceId_userId: { workspaceId, userId: ctx.userId } },
+    select: { role: true },
+  });
+  if (!requester || !["OWNER", "ADMIN"].includes(requester.role)) {
+    return apiForbidden("Solo OWNER o ADMIN pueden eliminar miembros");
   }
-}
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ workspaceId: string }> }
-) {
-    try {
-          const result = await validateBody(req, RequestSchema);
-          if (!result.ok) return result.response;
-          const { userId } = result.data;
-          
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const { workspaceId } = await params;
-    const hasAccess = await verifyWorkspaceAccess(
-      workspaceId, session.user.id, ["OWNER", "ADMIN"]
-    );
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+  const result = await validateBody(req, RemoveMemberSchema);
+  if (!result.ok) return result.response;
+  const { userId } = result.data;
 
-    if (!userId) {
-      return NextResponse.json({ error: "Missing userId" }, { status: 400 });
-    }
-    const target = await prisma.workspaceMember.findUnique({
-      where: { workspaceId_userId: { workspaceId, userId } },
+  const target = await prisma.workspaceMember.findUnique({
+    where: { workspaceId_userId: { workspaceId, userId } },
+    select: { role: true },
+  });
+  if (!target) return apiNotFound("Miembro no encontrado");
+
+  // ADMIN can only remove MEMBERs. Only OWNER can remove ADMINs/OWNERs.
+  if (requester.role === "ADMIN" && target.role !== "MEMBER") {
+    return apiForbidden("Solo el OWNER puede eliminar ADMINs u OWNERs");
+  }
+
+  // Protect the last OWNER
+  if (target.role === "OWNER") {
+    const ownerCount = await prisma.workspaceMember.count({
+      where: { workspaceId, role: "OWNER" },
     });
-    if (!target) {
-      return NextResponse.json({ error: "Miembro no encontrado" }, { status: 404 });
+    if (ownerCount <= 1) {
+      return apiError("No puedes eliminar al único OWNER del workspace", "LAST_OWNER", 400);
     }
+  }
 
-    // Get the requesting user's role
-    const requester = await prisma.workspaceMember.findUnique({
-      where: { workspaceId_userId: { workspaceId, userId: session.user.id } },
-    });
+  await prisma.workspaceMember.delete({
+    where: { workspaceId_userId: { workspaceId, userId } },
+  });
 
-    // ADMIN can only remove MEMBERs. Only OWNER can remove ADMINs/OWNERs.
-    if (requester?.role === "ADMIN" && target.role !== "MEMBER") {
-      return NextResponse.json(
-        { error: "Solo el OWNER puede eliminar ADMINs u OWNERs" },
-        { status: 403 }
-      );
-    }
+  logger.info("Workspace member removed", { workspaceId, removedUserId: userId, byUserId: ctx.userId });
 
-    if (target.role === "OWNER") {
-      const ownerCount = await prisma.workspaceMember.count({
-        where: { workspaceId, role: "OWNER" },
-      });
-      if (ownerCount <= 1) {
-        return NextResponse.json(
-          { error: "No puedes eliminar al único OWNER" },
-          { status: 400 }
-        );
-      }
-    }
-    await prisma.workspaceMember.delete({
-      where: { workspaceId_userId: { workspaceId, userId } },
-    });
-    return NextResponse.json({ success: true });
-    } catch (err: any) {
-    console.error("[MEMBERS] Delete error:", err);
-    return NextResponse.json({ error: "Error al eliminar miembro" }, { status: 500 });
-    }
-}
-
-let RequestSchema = z.object({ userId: z.string().min(1, "Missing userId") });
+  return apiSuccess({ removed: true });
+});

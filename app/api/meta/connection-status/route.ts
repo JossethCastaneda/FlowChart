@@ -1,10 +1,11 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { withWorkspace } from "@/lib/api-handler";
+import { apiSuccess, apiError } from "@/lib/api-response";
 import { metaFetch, META_API_VERSION } from "@/lib/server-auth";
 import { decryptToken } from "@/lib/encryption";
 import { getRequiredScopes, scopeGranted } from "@/lib/meta-scopes";
+import { logger } from "@/lib/logger";
+import prisma from "@/lib/prisma";
+import { NextRequest } from "next/server";
 
 const MODULE_PROVIDER_MAP: Record<string, string> = {
   publisher_facebook: "meta_publisher_facebook",
@@ -14,8 +15,6 @@ const MODULE_PROVIDER_MAP: Record<string, string> = {
   analytics: "meta_analytics",
   community: "meta_community",
 };
-
-// Los scopes requeridos por módulo viven en lib/meta-scopes.ts (fuente única).
 
 type IntegrationCredentials = {
   accessToken?: unknown;
@@ -28,187 +27,162 @@ type MetaPermission = {
 };
 
 type MetaPage = {
-  instagram_business_account?: {
-    id?: string;
-  };
+  instagram_business_account?: { id?: string };
 };
+
+const CACHE_ENDPOINT = "connection-status";
+const CACHE_TTL_MS = 90 * 1000; // 90 seconds
 
 /**
  * GET /api/meta/connection-status?module=ads
  *
- * Validates the active workspace Meta integration. When module is provided,
- * the module-specific token is checked first (for example meta_ads), then the
- * generic meta token is used only as a fallback.
+ * Validates the active workspace Meta integration for a given module.
+ * Module-specific token is checked first, then the generic meta token as fallback.
+ * Results are cached for 90s to avoid redundant Graph API calls per request.
  */
-export async function GET(req: NextRequest) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const GET = withWorkspace(async (req: NextRequest, ctx) => {
+  const { workspaceId } = ctx;
+  const requestedModule = req.nextUrl.searchParams.get("module") || "meta";
+  const provider = MODULE_PROVIDER_MAP[requestedModule] || "meta";
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
-    }
-
-    const requestedModule = req.nextUrl.searchParams.get("module") || "meta";
-    const provider = MODULE_PROVIDER_MAP[requestedModule] || "meta";
-
-    // ── Cache corto (90s) para evitar 2 llamadas Graph en vivo por request ──
-    // Se invalida al conectar/desconectar (deleteMany en callback y disconnect).
-    const CACHE_ENDPOINT = "connection-status";
-    const CACHE_TTL_MS = 90 * 1000;
-    const cached = await prisma.metaAnalyticsCache.findUnique({
-      where: {
-        workspaceId_endpoint_paramsKey: {
-          workspaceId,
-          endpoint: CACHE_ENDPOINT,
-          paramsKey: requestedModule,
-        },
+  // Short cache (90s) to avoid 2 live Graph calls per request.
+  // Cache is invalidated on connect/disconnect.
+  const cached = await prisma.metaAnalyticsCache.findUnique({
+    where: {
+      workspaceId_endpoint_paramsKey: {
+        workspaceId,
+        endpoint: CACHE_ENDPOINT,
+        paramsKey: requestedModule,
       },
-    });
-    if (cached && Date.now() - new Date(cached.updatedAt).getTime() < CACHE_TTL_MS) {
-      return NextResponse.json(cached.data as Record<string, unknown>);
-    }
+    },
+  });
+  if (cached && Date.now() - new Date(cached.updatedAt).getTime() < CACHE_TTL_MS) {
+    return apiSuccess(cached.data as Record<string, unknown>);
+  }
 
-    const moduleIntegration = provider === "meta"
+  const [moduleIntegration, genericIntegration] = await Promise.all([
+    provider === "meta"
       ? null
-      : await prisma.integration.findUnique({
+      : prisma.integration.findUnique({
           where: { workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" } },
-        });
-    const genericIntegration = await prisma.integration.findUnique({
+        }),
+    prisma.integration.findUnique({
       where: { workspaceId_provider_userId: { workspaceId, provider: "meta", userId: "workspace" } },
+    }),
+  ]);
+
+  const integration = moduleIntegration || genericIntegration;
+  const providerUsed = integration?.provider || null;
+
+  if (!integration?.connected || !integration.credentials) {
+    return apiSuccess({
+      connected: false,
+      tokenValid: false,
+      module: requestedModule,
+      provider,
+      providerUsed,
+      expiresAt: null,
+      scopes: [],
+      pages: 0,
+      igAccounts: 0,
+      message: `No hay integración de Meta conectada para ${requestedModule}`,
     });
-    const integration = moduleIntegration || genericIntegration;
-    const providerUsed = integration?.provider || null;
+  }
 
-    if (!integration?.connected || !integration.credentials) {
-      return NextResponse.json({
-        connected: false,
-        tokenValid: false,
-        module: requestedModule,
-        provider,
-        providerUsed,
-        expiresAt: null,
-        scopes: [],
-        pages: 0,
-        igAccounts: 0,
-        message: `No hay integracion de Meta conectada para ${requestedModule}`,
-      });
-    }
+  const creds = integration.credentials as IntegrationCredentials;
+  const encryptedAccessToken = typeof creds.accessToken === "string" ? creds.accessToken : undefined;
+  const accessToken = decryptToken(encryptedAccessToken);
+  const expiresAt = typeof creds.expiresAt === "string" ? creds.expiresAt : null;
 
-    const creds = integration.credentials as IntegrationCredentials;
-    const encryptedAccessToken = typeof creds.accessToken === "string" ? creds.accessToken : undefined;
-    const accessToken = decryptToken(encryptedAccessToken);
-    const expiresAt = typeof creds.expiresAt === "string" ? creds.expiresAt : null;
-
-    if (!accessToken || accessToken.startsWith("enc:")) {
-      return NextResponse.json({
-        connected: true,
-        tokenValid: false,
-        module: requestedModule,
-        provider,
-        providerUsed,
-        expiresAt,
-        scopes: [],
-        pages: 0,
-        igAccounts: 0,
-        message: "Token no encontrado o no se pudo descifrar",
-      });
-    }
-
-    let tokenValid = false;
-    let scopes: string[] = [];
-    let pagesCount = 0;
-    let igAccountsCount = 0;
-
-    try {
-      const permissionsRes = await metaFetch(
-        `https://graph.facebook.com/${META_API_VERSION}/me/permissions`,
-        accessToken
-      );
-      const permissionsData = await permissionsRes.json() as { data?: MetaPermission[] };
-
-      if (permissionsRes.ok && permissionsData.data) {
-        tokenValid = true;
-        scopes = permissionsData.data
-          .filter((permission) => permission.status === "granted" && typeof permission.permission === "string")
-          .map((permission) => permission.permission as string);
-      }
-
-      const pagesRes = await metaFetch(
-        `https://graph.facebook.com/${META_API_VERSION}/me/accounts?fields=id,instagram_business_account{id}&limit=100`,
-        accessToken
-      );
-      const pagesData = await pagesRes.json() as { data?: MetaPage[] };
-      if (pagesRes.ok && pagesData.data) {
-        pagesCount = pagesData.data.length;
-        igAccountsCount = pagesData.data.filter(
-          (page) => page.instagram_business_account?.id
-        ).length;
-      }
-    } catch {
-      tokenValid = false;
-    }
-
-    let expiringWarning: string | null = null;
-    if (expiresAt) {
-      const daysUntilExpiry = Math.floor(
-        (new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-      );
-      if (daysUntilExpiry < 0) {
-        expiringWarning = "Token expirado. Reconecta tu cuenta.";
-      } else if (daysUntilExpiry < 7) {
-        expiringWarning = `Token expira en ${daysUntilExpiry} dias. Reconecta para renovar.`;
-      }
-    }
-
-    const requiredScopes = getRequiredScopes(requestedModule);
-    // scopeGranted resuelve alias legacy (instagram_business_content_publish ↔
-    // instagram_content_publish) para tokens conectados con nombres viejos.
-    const actuallyMissing = requiredScopes.filter((scope) => !scopeGranted(scope, scopes));
-
-    const payload = {
+  if (!accessToken || accessToken.startsWith("enc:")) {
+    return apiSuccess({
       connected: true,
-      tokenValid,
+      tokenValid: false,
       module: requestedModule,
       provider,
       providerUsed,
       expiresAt,
-      expiringWarning,
-      scopes,
-      missingScopes: actuallyMissing.length > 0 ? actuallyMissing : undefined,
-      pages: pagesCount,
-      igAccounts: igAccountsCount,
-      connectedAt: integration.connectedAt?.toISOString() || null,
-      connectedBy: integration.connectedBy || null,
-    };
+      scopes: [],
+      pages: 0,
+      igAccounts: 0,
+      message: "Token no encontrado o no se pudo descifrar",
+    });
+  }
 
-    // Cachear solo el camino caro (token válido). Un token inválido cambia en
-    // cuanto el usuario reconecta, así que no lo persistimos.
-    if (tokenValid) {
-      await prisma.metaAnalyticsCache.upsert({
-        where: {
-          workspaceId_endpoint_paramsKey: {
-            workspaceId,
-            endpoint: CACHE_ENDPOINT,
-            paramsKey: requestedModule,
-          },
-        },
-        update: { data: payload },
-        create: {
-          workspaceId,
-          endpoint: CACHE_ENDPOINT,
-          paramsKey: requestedModule,
-          data: payload,
-        },
-      }).catch((err) => console.error("[META STATUS] cache write failed:", err));
+  let tokenValid = false;
+  let scopes: string[] = [];
+  let pagesCount = 0;
+  let igAccountsCount = 0;
+
+  try {
+    const [permissionsRes, pagesRes] = await Promise.all([
+      metaFetch(`https://graph.facebook.com/${META_API_VERSION}/me/permissions`, accessToken),
+      metaFetch(
+        `https://graph.facebook.com/${META_API_VERSION}/me/accounts?fields=id,instagram_business_account{id}&limit=100`,
+        accessToken
+      ),
+    ]);
+
+    const permissionsData = await permissionsRes.json() as { data?: MetaPermission[] };
+    if (permissionsRes.ok && permissionsData.data) {
+      tokenValid = true;
+      scopes = permissionsData.data
+        .filter((p) => p.status === "granted" && typeof p.permission === "string")
+        .map((p) => p.permission as string);
     }
 
-    return NextResponse.json(payload);
-  } catch (err: unknown) {
-    console.error("[META STATUS] Error:", err);
-    return NextResponse.json({ error: err instanceof Error ? err.message : "Error" }, { status: 500 });
+    const pagesData = await pagesRes.json() as { data?: MetaPage[] };
+    if (pagesRes.ok && pagesData.data) {
+      pagesCount = pagesData.data.length;
+      igAccountsCount = pagesData.data.filter((page) => page.instagram_business_account?.id).length;
+    }
+  } catch {
+    tokenValid = false;
   }
-}
+
+  let expiringWarning: string | null = null;
+  if (expiresAt) {
+    const daysUntilExpiry = Math.floor(
+      (new Date(expiresAt).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+    );
+    if (daysUntilExpiry < 0) {
+      expiringWarning = "Token expirado. Reconecta tu cuenta.";
+    } else if (daysUntilExpiry < 7) {
+      expiringWarning = `Token expira en ${daysUntilExpiry} días. Reconecta para renovar.`;
+    }
+  }
+
+  const requiredScopes = getRequiredScopes(requestedModule);
+  const actuallyMissing = requiredScopes.filter((scope) => !scopeGranted(scope, scopes));
+
+  const payload = {
+    connected: true,
+    tokenValid,
+    module: requestedModule,
+    provider,
+    providerUsed,
+    expiresAt,
+    expiringWarning,
+    scopes,
+    missingScopes: actuallyMissing.length > 0 ? actuallyMissing : undefined,
+    pages: pagesCount,
+    igAccounts: igAccountsCount,
+    connectedAt: integration.connectedAt?.toISOString() || null,
+    connectedBy: integration.connectedBy || null,
+  };
+
+  // Cache only valid-token responses (invalid tokens change on reconnect)
+  if (tokenValid) {
+    prisma.metaAnalyticsCache
+      .upsert({
+        where: {
+          workspaceId_endpoint_paramsKey: { workspaceId, endpoint: CACHE_ENDPOINT, paramsKey: requestedModule },
+        },
+        update: { data: payload },
+        create: { workspaceId, endpoint: CACHE_ENDPOINT, paramsKey: requestedModule, data: payload },
+      })
+      .catch((err) => logger.warn("Meta connection-status cache write failed", { workspaceId, error: err }));
+  }
+
+  return apiSuccess(payload);
+});

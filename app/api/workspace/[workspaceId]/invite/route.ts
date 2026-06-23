@@ -1,137 +1,117 @@
-import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
-import crypto from "crypto";
-import { getBaseUrl } from "@/lib/get-base-url";
-import { z } from "zod";
+import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiCreated, apiError, apiNotFound, apiForbidden } from "@/lib/api-response";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
+import { getBaseUrl } from "@/lib/get-base-url";
+import prisma from "@/lib/prisma";
+import crypto from "crypto";
+import { z } from "zod";
 
-const RequestSchema = z.object({ email: z.string().email("Email inválido"), role: z.enum(["OWNER", "ADMIN", "MEMBER"]).default("MEMBER") });
+export const dynamic = "force-dynamic";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ workspaceId: string }> }
-) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const { workspaceId } = await params;
-    const hasAccess = await verifyWorkspaceAccess(
-      workspaceId, session.user.id, ["OWNER", "ADMIN"]
-    );
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-    const invites = await prisma.workspaceInvite.findMany({
-      where: {
-        workspaceId,
-        acceptedAt: null,
-        expires: { gt: new Date() },
-      },
-      orderBy: { expires: "asc" },
+const CreateInviteSchema = z.object({
+  email: z.string().email("Email inválido"),
+  role: z.enum(["ADMIN", "MEMBER"]).default("MEMBER"),
+});
+
+// GET /api/workspace/[workspaceId]/invite — list pending invites (OWNER/ADMIN)
+export const GET = withAuth(async (_req, ctx) => {
+  const { workspaceId } = await ctx.params;
+
+  const hasAccess = await verifyWorkspaceAccess(workspaceId, ctx.userId, ["OWNER", "ADMIN"]);
+  if (!hasAccess) return apiForbidden();
+
+  const invites = await prisma.workspaceInvite.findMany({
+    where: {
+      workspaceId,
+      acceptedAt: null,
+      expires: { gt: new Date() },
+    },
+    orderBy: { expires: "asc" },
+  });
+
+  return apiSuccess(invites);
+});
+
+// POST /api/workspace/[workspaceId]/invite — send invite (OWNER/ADMIN)
+export const POST = withAuth(async (req, ctx) => {
+  const { workspaceId } = await ctx.params;
+
+  // Auth before body parsing
+  const hasAccess = await verifyWorkspaceAccess(workspaceId, ctx.userId, ["OWNER", "ADMIN"]);
+  if (!hasAccess) return apiForbidden();
+
+  const result = await validateBody(req, CreateInviteSchema);
+  if (!result.ok) return result.response;
+  const { email, role } = result.data;
+
+  // Verify the user isn't already a member
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true },
+  });
+  if (existingUser) {
+    const alreadyMember = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: existingUser.id } },
+      select: { id: true },
     });
-    return NextResponse.json({ data: invites });
-  } catch (err: any) {
-    console.error("[INVITE] List error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
+    if (alreadyMember) {
+      return apiError("Este usuario ya es miembro del workspace", "ALREADY_MEMBER", 409);
+    }
   }
-}
 
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ workspaceId: string }> }
-) {
-    try {
-          const result = await validateBody(req, RequestSchema);
-          if (!result.ok) return result.response;
-          const { email, role } = result.data;
-          
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-    const { workspaceId } = await params;
-    const hasAccess = await verifyWorkspaceAccess(
-      workspaceId, session.user.id, ["OWNER", "ADMIN"]
-    );
-    if (!hasAccess) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+  // Revoke any previous pending invites for this email+workspace
+  await prisma.workspaceInvite.deleteMany({
+    where: { workspaceId, email, acceptedAt: null, expires: { gt: new Date() } },
+  });
 
-    if (!email || !email.includes("@")) {
-      return NextResponse.json({ error: "Email inválido" }, { status: 400 });
-    }
-    if (!["ADMIN", "MEMBER"].includes(role)) {
-      return NextResponse.json(
-        { error: "Rol inválido. Usa ADMIN o MEMBER" },
-        { status: 400 }
-      );
-    }
-    // Verificar si ya es miembro
-    const existingUser = await prisma.user.findUnique({ where: { email } });
-    if (existingUser) {
-      const alreadyMember = await prisma.workspaceMember.findUnique({
-        where: {
-          workspaceId_userId: { workspaceId, userId: existingUser.id },
-        },
-      });
-      if (alreadyMember) {
-        return NextResponse.json(
-          { error: "Este usuario ya es miembro del workspace" },
-          { status: 409 }
-        );
-      }
-    }
-    // Revocar invitaciones previas pendientes
-    await prisma.workspaceInvite.deleteMany({
-      where: {
-        workspaceId,
-        email,
-        acceptedAt: null,
-        expires: { gt: new Date() },
-      },
-    });
-    const token = crypto.randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
-    const invite = await prisma.workspaceInvite.create({
-      data: { workspaceId, email, token, role, expires },
-      include: { workspace: { select: { name: true } } },
-    });
-    const baseUrl = getBaseUrl();
-    const inviteUrl = `${baseUrl}/invite/${token}`;
+  const token = crypto.randomBytes(32).toString("hex");
+  const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7 days
 
-    // Enviar email de invitación via Resend
-    let emailSent = false;
+  const invite = await prisma.workspaceInvite.create({
+    data: { workspaceId, email, token, role, expires, invitedById: ctx.userId },
+    include: { workspace: { select: { name: true } } },
+  });
+
+  const inviteUrl = `${getBaseUrl()}/invite/${token}`;
+
+  // Send invite email via Resend
+  let emailSent = false;
+  try {
     const { sendInviteEmail } = await import("@/lib/email");
-    const resultEmail = await sendInviteEmail({
+    const inviter = await prisma.user.findUnique({
+      where: { id: ctx.userId },
+      select: { name: true },
+    });
+    const ok = await sendInviteEmail({
       to: email,
-      inviterName: session.user.name || "Un administrador",
+      inviterName: inviter?.name || "Un administrador",
       workspaceName: invite.workspace.name,
       role,
       inviteUrl,
     });
-    
-    if (resultEmail) {
-      emailSent = true;
-    }
+    emailSent = !!ok;
+  } catch (err) {
+    logger.warn("Failed to send invite email", { workspaceId, email, error: err });
+  }
 
-    console.log(`[INVITE] ${email} → ${inviteUrl} (emailSent: ${emailSent})`);
-    return NextResponse.json({
-      data: {
-        id: invite.id,
-        email: invite.email,
-        role: invite.role,
-        expires: invite.expires,
-        inviteUrl: emailSent ? null : inviteUrl,
-        emailSent,
-        workspaceName: invite.workspace.name,
-      },
-    }, { status: 201 });
-    } catch (err: any) {
-    console.error("[INVITE] Create error:", err);
-    return NextResponse.json({ error: err?.message || "Error interno" }, { status: 500 });
-    }
-}
+  logger.info("Workspace invite created", {
+    workspaceId,
+    invitedEmail: email,
+    role,
+    emailSent,
+    byUserId: ctx.userId,
+  });
+
+  return apiCreated({
+    id: invite.id,
+    email: invite.email,
+    role: invite.role,
+    expires: invite.expires,
+    // Only expose the URL if email failed (so admin can share it manually)
+    inviteUrl: emailSent ? null : inviteUrl,
+    emailSent,
+    workspaceName: invite.workspace.name,
+  });
+});

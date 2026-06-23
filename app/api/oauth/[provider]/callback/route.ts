@@ -13,6 +13,7 @@ import { encryptToken } from "@/lib/encryption";
 import { getProvider } from "@/lib/integrations/registry";
 import { getAppBaseUrl } from "@/lib/app-url";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = env.AUTH_SECRET || env.NEXTAUTH_SECRET;
 
@@ -30,7 +31,7 @@ export async function GET(
 
   // User cancelled
   if (error) {
-    console.error(`[OAUTH CALLBACK] ${providerParam} error:`, error);
+    logger.error(`[OAUTH CALLBACK] ${providerParam} error:`, error);
     return NextResponse.redirect(`${integrationsUrl}?connect_error=${error}`);
   }
 
@@ -67,7 +68,7 @@ export async function GET(
     const expBuf = Buffer.from(expected, "hex");
 
     if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
-      console.warn("[OAUTH CALLBACK] ❌ HMAC signature mismatch");
+      logger.warn("[OAUTH CALLBACK] ❌ HMAC signature mismatch");
       return NextResponse.redirect(`${integrationsUrl}?connect_error=invalid_state`);
     }
 
@@ -77,12 +78,12 @@ export async function GET(
     workspaceId = decoded.workspaceId || "";
 
     if (userId !== jwt.sub) {
-      console.warn(`[OAUTH CALLBACK] ❌ User mismatch — state: ${userId}, jwt: ${jwt.sub}`);
+      logger.warn(`[OAUTH CALLBACK] ❌ User mismatch — state: ${userId}, jwt: ${jwt.sub}`);
       return NextResponse.redirect(`${integrationsUrl}?connect_error=user_mismatch`);
     }
 
     if (provider !== providerParam) {
-      console.warn(`[OAUTH CALLBACK] ❌ Provider mismatch — state: ${provider}, URL: ${providerParam}`);
+      logger.warn(`[OAUTH CALLBACK] ❌ Provider mismatch — state: ${provider}, URL: ${providerParam}`);
       return NextResponse.redirect(`${integrationsUrl}?connect_error=provider_mismatch`);
     }
   } catch {
@@ -120,7 +121,7 @@ export async function GET(
     const tokenData = await tokenRes.json();
 
     if (!tokenRes.ok || !tokenData.access_token) {
-      console.error(`[OAUTH CALLBACK] Token exchange failed for ${provider}:`, tokenData);
+      logger.error(`[OAUTH CALLBACK] Token exchange failed for ${provider}:`, tokenData);
       return NextResponse.redirect(`${integrationsUrl}?connect_error=token_exchange_failed`);
     }
 
@@ -161,11 +162,11 @@ export async function GET(
       },
     });
 
-    console.log(`[OAUTH CALLBACK] ✅ ${config.label} connected for workspace ${workspaceId}`);
+    logger.info(`[OAUTH CALLBACK] ✅ ${config.label} connected for workspace ${workspaceId}`);
     return NextResponse.redirect(`${integrationsUrl}?connected=${provider}`);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "unknown";
-    console.error(`[OAUTH CALLBACK] Error for ${provider}:`, message);
+    logger.error(`[OAUTH CALLBACK] Error for ${provider}:`, message);
     return NextResponse.redirect(`${integrationsUrl}?connect_error=server_error`);
   }
 }

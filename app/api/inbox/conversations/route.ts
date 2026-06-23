@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/inbox/conversations
@@ -251,7 +252,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ conversations });
   } catch (err: any) {
-    console.error("[INBOX] Conversations error:", err);
+    logger.error("[INBOX] Conversations error:", err);
     return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
   }
 }

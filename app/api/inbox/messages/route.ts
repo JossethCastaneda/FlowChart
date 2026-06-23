@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import { logger } from "@/lib/logger";
 
 // In-memory page token cache (per-process, resets on cold start)
 // Avoids refetching me/accounts on every message load
@@ -103,7 +104,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ messages });
   } catch (err: any) {
-    console.error("[INBOX] Messages error:", err);
+    logger.error("[INBOX] Messages error:", err);
     return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
   }
 }
@@ -184,7 +185,7 @@ export async function POST(request: NextRequest) {
       logger.info("[INBOX] WhatsApp message sent and saved", { workspaceId, conversationId });
       return NextResponse.json({ success: true, messageId: waRes.messageId });
     } catch (err: any) {
-      console.error("[INBOX] WhatsApp send error:", err);
+      logger.error("[INBOX] WhatsApp send error:", err);
       return NextResponse.json({ error: err.message || "Failed to send WhatsApp message" }, { status: 502 });
     }
   }
@@ -224,7 +225,7 @@ export async function POST(request: NextRequest) {
     const sendData = await sendRes.json();
     return NextResponse.json({ success: true, messageId: sendData.message_id });
   } catch (err: any) {
-    console.error("[INBOX] Send error:", err);
+    logger.error("[INBOX] Send error:", err);
     return NextResponse.json({ error: err.message || "Error" }, { status: 500 });
   }
 }

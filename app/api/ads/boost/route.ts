@@ -5,6 +5,7 @@ import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-au
 import { mapMetaError } from "@/lib/meta-errors";
 import { validateBody } from "@/lib/validate";
 import { BoostSchema } from "@/lib/ads-schemas";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/ads/boost
@@ -91,7 +92,7 @@ export async function POST(req: NextRequest) {
 
     if (!campaignRes.ok || campaignData.error || !campaignData.id) {
       const mapped = mapMetaError(campaignData?.error);
-      console.error("[BOOST] Campaign creation error:", campaignData?.error?.message);
+      logger.error("[BOOST] Campaign creation error:", campaignData?.error?.message);
       return NextResponse.json(
         { error: `Campaign: ${mapped.user_message}` },
         { status: 422 }
@@ -132,7 +133,7 @@ export async function POST(req: NextRequest) {
 
     if (!adsetRes.ok || adsetData.error || !adsetData.id) {
       const mapped = mapMetaError(adsetData?.error);
-      console.error("[BOOST] AdSet creation error:", adsetData?.error?.message);
+      logger.error("[BOOST] AdSet creation error:", adsetData?.error?.message);
       return NextResponse.json(
         { error: `AdSet: ${mapped.user_message}`, campaignId },
         { status: 422 }
@@ -165,7 +166,7 @@ export async function POST(req: NextRequest) {
 
     if (!adRes.ok || adData.error || !adData.id) {
       const mapped = mapMetaError(adData?.error);
-      console.error("[BOOST] Ad creation error:", adData?.error?.message);
+      logger.error("[BOOST] Ad creation error:", adData?.error?.message);
       return NextResponse.json(
         { error: `Ad: ${mapped.user_message}`, campaignId, adsetId },
         { status: 422 }
@@ -174,7 +175,7 @@ export async function POST(req: NextRequest) {
 
     const adId = adData.id;
 
-    console.log(`[BOOST] Boost created PAUSED: campaign=${campaignId} adset=${adsetId} ad=${adId}`);
+    logger.info(`[BOOST] Boost created PAUSED: campaign=${campaignId} adset=${adsetId} ad=${adId}`);
     return NextResponse.json({
       success: true,
       created_paused: true,
@@ -183,7 +184,7 @@ export async function POST(req: NextRequest) {
       adId,
     });
   } catch (err: any) {
-    console.error("[BOOST] Error:", err.message);
+    logger.error("[BOOST] Error:", err.message);
     return NextResponse.json(
       { error: err.message || "Error interno" },
       { status: 500 }

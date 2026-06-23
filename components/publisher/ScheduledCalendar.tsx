@@ -92,6 +92,7 @@ export function ScheduledCalendar() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [banner, setBanner] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [dragOverDay, setDragOverDay] = useState<string | null>(null);
 
   // Boost state
   const [boostTarget, setBoostTarget] = useState<Post | null>(null);
@@ -205,6 +206,82 @@ export function ScheduledCalendar() {
     setActionLoading(null);
   };
 
+  const handleReschedule = async (postId: string, targetDate: Date) => {
+    const post = posts.find((p) => p.id === postId);
+    if (!post) return;
+
+    const currentRefDate = post.scheduledAt ? new Date(post.scheduledAt) : new Date(post.createdAt);
+    const newScheduledAt = new Date(targetDate);
+    newScheduledAt.setHours(currentRefDate.getHours());
+    newScheduledAt.setMinutes(currentRefDate.getMinutes());
+    newScheduledAt.setSeconds(0);
+    newScheduledAt.setMilliseconds(0);
+
+    let newStatus = post.status;
+    const now = new Date();
+    const diffMinutes = (newScheduledAt.getTime() - now.getTime()) / (1000 * 60);
+
+    if (newStatus === "Scheduled") {
+      if (diffMinutes < 11) {
+        if (isSameDay(newScheduledAt, now)) {
+          const adjustedTime = new Date(now.getTime() + 15 * 60 * 1000);
+          newScheduledAt.setTime(adjustedTime.getTime());
+          setBanner({
+            type: "success",
+            message: `Horario ajustado a las ${fmtTime(newScheduledAt)} para cumplir con los 11 minutos mínimos de Meta.`
+          });
+        } else {
+          newStatus = "Draft";
+          setBanner({
+            type: "success",
+            message: "La publicación se movió al pasado y se guardó como Borrador (En Hangar)."
+          });
+        }
+      }
+    }
+
+    const updatedPost = {
+      ...post,
+      scheduledAt: newScheduledAt.toISOString(),
+      status: newStatus,
+    };
+    setPosts((prev) => prev.map((p) => (p.id === postId ? updatedPost : p)));
+
+    try {
+      const res = await fetch(`/api/publisher/posts/${postId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          scheduledAt: newScheduledAt.toISOString(),
+          status: newStatus,
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.data?.post) {
+          setPosts((prev) => prev.map((p) => (p.id === postId ? data.data.post : p)));
+        }
+        if (!banner) {
+          setBanner({
+            type: "success",
+            message: `Publicación reprogramada para el ${fmtDate(newScheduledAt)}.`
+          });
+        }
+      } else {
+        const errData = await res.json();
+        setBanner({
+          type: "error",
+          message: errData.error || "Error al reprogramar la publicación."
+        });
+        fetchData();
+      }
+    } catch {
+      setBanner({ type: "error", message: "Error de red al reprogramar." });
+      fetchData();
+    }
+  };
+
   /* ── Status badge ─────────────────────────────────────── */
   const StatusBadge = ({ status }: { status: string }) => {
     const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.Draft;
@@ -240,13 +317,23 @@ export function ScheduledCalendar() {
     const avatarUrl = pageChannel?.picture;
 
     return (
-      <div style={{
-        display: "flex", gap: 12, padding: "12px 14px",
-        background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-        borderRadius: 8, marginBottom: 8, transition: "border-color 0.2s",
-      }}
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
+      <div
+        draggable={isEditable}
+        onDragStart={(e) => {
+          if (isEditable) {
+            e.stopPropagation();
+            e.dataTransfer.setData("text/plain", post.id);
+            e.dataTransfer.effectAllowed = "move";
+          }
+        }}
+        style={{
+          display: "flex", gap: 12, padding: "12px 14px",
+          background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+          borderRadius: 8, marginBottom: 8, transition: "border-color 0.2s",
+          cursor: isEditable ? "grab" : "default",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
       >
         {/* Media thumb */}
         {media && (
@@ -450,11 +537,31 @@ export function ScheduledCalendar() {
                 <div
                   key={idx}
                   onClick={() => setSelectedDay(isSelected ? null : key)}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                  }}
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    setDragOverDay(key);
+                  }}
+                  onDragLeave={() => {
+                    setDragOverDay(null);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setDragOverDay(null);
+                    const postId = e.dataTransfer.getData("text/plain");
+                    if (postId) {
+                      handleReschedule(postId, date);
+                    }
+                  }}
                   style={{
                     minHeight: 80, padding: "4px 6px", cursor: "pointer",
                     borderBottom: "1px solid rgba(255,255,255,0.03)",
                     borderRight: (idx + 1) % 7 !== 0 ? "1px solid rgba(255,255,255,0.03)" : "none",
-                    background: isSelected ? "rgba(0,212,255,0.04)" : isToday ? "rgba(0,212,255,0.02)" : "transparent",
+                    background: dragOverDay === key ? "rgba(0,212,255,0.08)" : isSelected ? "rgba(0,212,255,0.04)" : isToday ? "rgba(0,212,255,0.02)" : "transparent",
+                    outline: dragOverDay === key ? "2px dashed rgba(0,212,255,0.6)" : "none",
+                    outlineOffset: "-2px",
                     opacity: isCurrentMonth ? 1 : 0.3,
                     transition: "background 0.15s",
                   }}
@@ -475,12 +582,22 @@ export function ScheduledCalendar() {
                     const cfg = STATUS_CONFIG[p.status] || STATUS_CONFIG.Draft;
                     const t = p.scheduledAt ? new Date(p.scheduledAt) : null;
                     return (
-                      <div key={p.id} style={{
-                        display: "flex", alignItems: "center", gap: 3, padding: "2px 5px", marginBottom: 2,
-                        borderRadius: 3, fontSize: 8, fontWeight: 500, color: cfg.color,
-                        background: cfg.bg, border: `1px solid ${cfg.border}`,
-                        overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
-                      }}>
+                      <div
+                        key={p.id}
+                        draggable={["Draft", "Scheduled"].includes(p.status)}
+                        onDragStart={(e) => {
+                          e.stopPropagation();
+                          e.dataTransfer.setData("text/plain", p.id);
+                          e.dataTransfer.effectAllowed = "move";
+                        }}
+                        style={{
+                          display: "flex", alignItems: "center", gap: 3, padding: "2px 5px", marginBottom: 2,
+                          borderRadius: 3, fontSize: 8, fontWeight: 500, color: cfg.color,
+                          background: cfg.bg, border: `1px solid ${cfg.border}`,
+                          overflow: "hidden", whiteSpace: "nowrap", textOverflow: "ellipsis",
+                          cursor: ["Draft", "Scheduled"].includes(p.status) ? "grab" : "default",
+                        }}
+                      >
                         {p.channels.map((ch) => <span key={ch}>{CHANNEL_ICON[ch]}</span>)}
                         {t && <span>{fmtTime(t)}</span>}
                       </div>

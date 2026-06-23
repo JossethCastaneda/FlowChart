@@ -1,103 +1,69 @@
-import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { encryptToken } from "@/lib/encryption";
-import { z } from "zod";
+import { withWorkspace } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiCreated, apiError, apiNotFound, apiForbidden } from "@/lib/api-response";
+import { encryptToken } from "@/lib/encryption";
+import { logger } from "@/lib/logger";
 import { GOOGLE_MODULES, isModuleConnected } from "@/lib/integrations/google/registry";
+import prisma, { type Prisma } from "@/lib/prisma";
+import { z } from "zod";
+
+export const dynamic = "force-dynamic";
 
 /**
- * GET: List all integrations for the active workspace.
- * All workspace members can SEE integrations.
- * Response includes `canDisconnect` flag per integration.
+ * GET /api/workspace/integrations
+ * List all integrations for the active workspace.
+ * All workspace members can view; canDisconnect flag is per-user.
  */
-export async function GET() {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ data: [] });
-    }
-
-    // Get user's role in this workspace
-    const membership = await prisma.workspaceMember.findUnique({
-      where: {
-        workspaceId_userId: { workspaceId, userId: session.user.id },
+export const GET = withWorkspace(async (_req, ctx) => {
+  const integrations = await prisma.integration.findMany({
+    where: { workspaceId: ctx.workspaceId },
+    select: {
+      id: true,
+      provider: true,
+      connected: true,
+      connectedAt: true,
+      connectedBy: true,
+      connectedUser: {
+        select: { id: true, name: true, image: true },
       },
-    });
+      credentials: true,
+    },
+  });
 
-    if (!membership) {
-      return NextResponse.json({ error: "No eres miembro de este workspace" }, { status: 403 });
+  const data = integrations.map((intg) => {
+    const creds = (intg.credentials as Record<string, unknown>) || {};
+    let connectedModules: string[] = (creds.modules as string[]) || [];
+
+    if (intg.provider === "google") {
+      connectedModules = GOOGLE_MODULES.filter((m) =>
+        isModuleConnected(m.id, creds.grantedScopes as string[] | undefined)
+      ).map((m) => m.id);
     }
 
-    const integrations = await prisma.integration.findMany({
-      where: { workspaceId },
-      select: {
-        id: true,
-        provider: true,
-        connected: true,
-        connectedAt: true,
-        connectedBy: true,
-        connectedUser: {
-          select: { id: true, name: true, image: true },
-        },
-        credentials: true,
-      },
-    });
+    return {
+      id: intg.id,
+      provider: intg.provider,
+      connected: intg.connected,
+      connectedAt: intg.connectedAt,
+      connectedBy: intg.connectedUser
+        ? { id: intg.connectedUser.id, name: intg.connectedUser.name, image: intg.connectedUser.image }
+        : null,
+      canDisconnect: ctx.role === "OWNER" || intg.connectedBy === ctx.userId,
+      connectedModules,
+      resources: (creds.resources as Record<string, unknown>) || {},
+      pages: (creds.pages as unknown[]) || [],
+    };
+  });
 
-    const data = integrations.map((intg) => {
-      const creds = (intg.credentials as Record<string, any>) || {};
-      let connectedModules = creds.modules || [];
-      
-      if (intg.provider === "google") {
-        // Compute dynamically based on grantedScopes
-        connectedModules = GOOGLE_MODULES.filter((m) =>
-          isModuleConnected(m.id, creds.grantedScopes)
-        ).map((m) => m.id);
-      }
-      
-      const resources = creds.resources || {};
-      const pages = creds.pages || [];
-
-      return {
-        id: intg.id,
-        provider: intg.provider,
-        connected: intg.connected,
-        connectedAt: intg.connectedAt,
-        connectedBy: intg.connectedUser
-          ? { id: intg.connectedUser.id, name: intg.connectedUser.name, image: intg.connectedUser.image }
-          : null,
-        // Permission: can disconnect if user is OWNER, or is the one who connected
-        canDisconnect:
-          membership.role === "OWNER" ||
-          intg.connectedBy === session.user.id,
-        connectedModules,
-        resources,
-        pages,
-      };
-    });
-
-    return NextResponse.json({
-      data,
-      userRole: membership.role,
-    });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Error interno";
-    console.error("[INTEGRATIONS] List error:", err);
-    return NextResponse.json({ error: message }, { status: 500 });
-  }
-}
+  return apiSuccess({ data, userRole: ctx.role });
+});
 
 /**
- * POST: Connect a token-based integration (e.g. BotMaker).
- * Only OWNER/ADMIN can save tokens. The token is encrypted at rest.
+ * POST /api/workspace/integrations
+ * Connect a token-based integration (e.g. BotMaker, Cari).
+ * Only OWNER/ADMIN can save tokens. Token is AES-256 encrypted at rest.
  *
- * Body: { provider: string, token: string }
+ * Body: { provider, token, baseUrl?, refreshToken? }
  */
 const ConnectSchema = z.object({
   provider: z.string().min(1, "provider requerido"),
@@ -106,158 +72,158 @@ const ConnectSchema = z.object({
   refreshToken: z.string().trim().max(4000).optional(),
 });
 
-export async function POST(req: NextRequest) {
-  try {
-    const result = await validateBody(req, ConnectSchema);
-    if (!result.ok) return result.response;
-    const { provider, token, baseUrl, refreshToken } = result.data;
+export const POST = withWorkspace(async (req, ctx) => {
+  if (!["OWNER", "ADMIN"].includes(ctx.role)) {
+    return apiForbidden("Solo OWNER/ADMIN pueden conectar integraciones");
+  }
 
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+  const result = await validateBody(req, ConnectSchema);
+  if (!result.ok) return result.response;
+  const { provider, token, baseUrl, refreshToken } = result.data;
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
-    }
-
-    // RBAC: only OWNER or ADMIN
-    const membership = await prisma.workspaceMember.findUnique({
-      where: {
-        workspaceId_userId: { workspaceId, userId: session.user.id },
-      },
-    });
-
-    if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {
-      return NextResponse.json(
-        { error: "Solo OWNER/ADMIN pueden conectar integraciones" },
-        { status: 403 }
+  // Validate Botmaker token BEFORE saving to avoid storing invalid credentials.
+  // A 401/403 from Botmaker means the token is invalid.
+  // Getting 0 channels with a 200 is valid (account with no channels yet) — we still save the token.
+  if (provider === "botmaker") {
+    try {
+      const { normalizeBotmakerBase, botmakerFetch } = await import("@/lib/botmaker");
+      const validationBaseUrl = normalizeBotmakerBase(baseUrl);
+      const res = await botmakerFetch("/channels", token, {}, 1, validationBaseUrl);
+      if (res.status === 401 || res.status === 403) {
+        return apiError(
+          "El token de Botmaker es inválido o no tiene permisos. Revisa tus credenciales.",
+          "INVALID_TOKEN",
+          400
+        );
+      }
+      if (!res.ok && res.status !== 404) {
+        // 4xx distinto de 401/403 o 5xx — podría ser un error de red o URL incorrecta.
+        logger.warn("Botmaker token validation: unexpected status", { workspaceId: ctx.workspaceId, status: res.status });
+        return apiError(
+          `Error al validar con Botmaker (HTTP ${res.status}). Verifica la URL base si usas una instancia propia.`,
+          "BOTMAKER_VALIDATION_ERROR",
+          400
+        );
+      }
+    } catch (e) {
+      logger.warn("Botmaker token validation failed", { workspaceId: ctx.workspaceId, error: e });
+      return apiError(
+        "Error de red al validar con Botmaker. Revisa tu token o URL base.",
+        "BOTMAKER_NETWORK_ERROR",
+        400
       );
     }
-
-    // Encrypt + upsert. Tokens are AES-256 encrypted; baseUrl is stored plain.
-    const credentials: Record<string, unknown> = {
-      accessToken: encryptToken(token),
-      connectedAt: new Date().toISOString(),
-    };
-    if (baseUrl) credentials.baseUrl = baseUrl;
-    if (refreshToken) credentials.refreshToken = encryptToken(refreshToken);
-
-    await prisma.integration.upsert({
-      where: {
-        workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" },
-      },
-      create: {
-        workspaceId,
-        provider,
-        credentials: credentials as any,
-        connected: true,
-        connectedAt: new Date(),
-        connectedBy: session.user.id,
-      },
-      update: {
-        credentials: credentials as any,
-        connected: true,
-        connectedAt: new Date(),
-        connectedBy: session.user.id,
-      },
-    });
-
-    console.log(`[INTEGRATIONS] ✅ ${provider} connected by ${session.user.id} for workspace ${workspaceId}`);
-    return NextResponse.json({ success: true });
-  } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Error interno";
-    console.error("[INTEGRATIONS] Connect error:", err);
-    return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+
+  const credentials: Record<string, unknown> = {
+    accessToken: encryptToken(token),
+    connectedAt: new Date().toISOString(),
+  };
+  if (baseUrl) credentials.baseUrl = baseUrl;
+  if (refreshToken) credentials.refreshToken = encryptToken(refreshToken);
+
+  const integration = await prisma.integration.upsert({
+    where: {
+      workspaceId_provider_userId: { workspaceId: ctx.workspaceId, provider, userId: "workspace" },
+    },
+    create: {
+      workspaceId: ctx.workspaceId,
+      provider,
+      credentials: credentials as Prisma.InputJsonValue,
+      connected: true,
+      connectedAt: new Date(),
+      connectedBy: ctx.userId,
+    },
+    update: {
+      credentials: credentials as Prisma.InputJsonValue,
+      connected: true,
+      connectedAt: new Date(),
+      connectedBy: ctx.userId,
+    },
+  });
+
+  // Cache Botmaker channels after successful connection
+  if (provider === "botmaker") {
+    try {
+      const { normalizeBotmakerBase, listBotmakerChannels, cacheBotmakerChannels } = await import("@/lib/botmaker");
+      const conn = { baseUrl: normalizeBotmakerBase(baseUrl), accessToken: token };
+      const channels = await listBotmakerChannels(conn);
+      if (channels.length > 0) {
+        await cacheBotmakerChannels(integration.id, ctx.workspaceId, channels);
+        logger.info("Botmaker channels cached", {
+          workspaceId: ctx.workspaceId,
+          channelCount: channels.length,
+          integrationId: integration.id,
+        });
+      }
+    } catch (e) {
+      logger.warn("Failed to cache Botmaker channels after connect", {
+        workspaceId: ctx.workspaceId,
+        integrationId: integration.id,
+        error: e,
+      });
+    }
+  }
+
+  logger.info("Integration connected", {
+    provider,
+    workspaceId: ctx.workspaceId,
+    byUserId: ctx.userId,
+  });
+
+  return apiSuccess({ connected: true });
+});
 
 /**
- * DELETE: Disconnect an integration.
- * Only OWNER or the user who connected can disconnect.
+ * DELETE /api/workspace/integrations
+ * Disconnect an integration. Only OWNER or the connector can disconnect.
+ *
+ * Body: { provider }
  */
-const DisconnectSchema = z.object({ provider: z.string().min(1, "provider requerido") });
+const DisconnectSchema = z.object({
+  provider: z.string().min(1, "provider requerido"),
+});
 
-export async function DELETE(req: NextRequest) {
-    try {
-          const result = await validateBody(req, DisconnectSchema);
-          if (!result.ok) return result.response;
-          const { provider } = result.data;
-          
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+export const DELETE = withWorkspace(async (req, ctx) => {
+  const result = await validateBody(req, DisconnectSchema);
+  if (!result.ok) return result.response;
+  const { provider } = result.data;
 
+  const integration = await prisma.integration.findUnique({
+    where: {
+      workspaceId_provider_userId: { workspaceId: ctx.workspaceId, provider, userId: "workspace" },
+    },
+  });
+  if (!integration) return apiNotFound("Integración no encontrada");
 
-    if (!provider) {
-      return NextResponse.json({ error: "provider requerido" }, { status: 400 });
-    }
+  const canDisconnect = ctx.role === "OWNER" || integration.connectedBy === ctx.userId;
+  if (!canDisconnect) {
+    return apiForbidden("Solo el usuario que conectó esta integración o el OWNER puede desconectarla");
+  }
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
-    }
+  // Google policy: revoke the grant server-side before wiping local credentials
+  if (provider === "google" || provider.startsWith("google_")) {
+    const { revokeGoogleToken } = await import("@/lib/integrations/google/oauth");
+    await revokeGoogleToken(
+      integration.credentials as import("@/lib/integrations/google/oauth").GoogleCredentials
+    );
+  }
 
-    // Check membership and role
-    const membership = await prisma.workspaceMember.findUnique({
-      where: {
-        workspaceId_userId: { workspaceId, userId: session.user.id },
-      },
-    });
+  await prisma.integration.update({
+    where: { id: integration.id },
+    data: {
+      connected: false,
+      credentials: {},
+      connectedAt: null,
+      connectedBy: null,
+    },
+  });
 
-    if (!membership) {
-      return NextResponse.json({ error: "No eres miembro" }, { status: 403 });
-    }
+  logger.info("Integration disconnected", {
+    provider,
+    workspaceId: ctx.workspaceId,
+    byUserId: ctx.userId,
+  });
 
-    // Find the integration
-    const integration = await prisma.integration.findUnique({
-      where: {
-        workspaceId_provider_userId: { workspaceId, provider, userId: "workspace" },
-      },
-    });
-
-    if (!integration) {
-      return NextResponse.json({ error: "Integración no encontrada" }, { status: 404 });
-    }
-
-    // Permission check: only OWNER or the connector can disconnect
-    const canDisconnect =
-      membership.role === "OWNER" ||
-      integration.connectedBy === session.user.id;
-
-    if (!canDisconnect) {
-      return NextResponse.json(
-        { error: "Solo el usuario que conectó esta integración o el OWNER puede desconectarla" },
-        { status: 403 }
-      );
-    }
-
-    // Política de Google: revocar el grant en Google antes de borrar
-    // las credenciales locales (best-effort — el wipe local siempre ocurre).
-    if (provider === "google" || provider.startsWith("google_")) {
-      const { revokeGoogleToken } = await import("@/lib/integrations/google/oauth");
-      await revokeGoogleToken(
-        integration.credentials as import("@/lib/integrations/google/oauth").GoogleCredentials
-      );
-    }
-
-    // Disconnect: clear credentials, set connected = false
-    await prisma.integration.update({
-      where: { id: integration.id },
-      data: {
-        connected: false,
-        credentials: {},
-        connectedAt: null,
-        connectedBy: null,
-      },
-    });
-
-    return NextResponse.json({ success: true });
-    } catch (err: unknown) {
-    const message = err instanceof Error ? err.message : "Error interno";
-    console.error("[INTEGRATIONS] Disconnect error:", err);
-    return NextResponse.json({ error: message }, { status: 500 });
-    }
-}
+  return apiSuccess({ disconnected: true });
+});

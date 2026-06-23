@@ -1,116 +1,93 @@
-﻿import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { z } from "zod";
+import { withAuth, withWorkspace, withWorkspaceRole } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiCreated, apiError, apiServerError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
+import { generateSlug, generateUniqueSlug } from "@/lib/slug";
+import prisma from "@/lib/prisma";
+import { z } from "zod";
 
-const RequestSchema = z.object({ name: z.string().min(2, "Name required") });
+export const dynamic = "force-dynamic";
 
-function generateSlug(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9\s-]/g, "")
-    .replace(/\s+/g, "-")
-    .replace(/-+/g, "-")
-    .substring(0, 50);
-}
+const CreateWorkspaceSchema = z.object({
+  name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(80),
+});
 
-export async function GET() {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const memberships = await prisma.workspaceMember.findMany({
-      where: { userId: session.user.id },
-      include: {
-        workspace: {
-          include: {
-            _count: { select: { members: true, projects: true } },
-          },
+// GET /api/workspace — list all workspaces the authenticated user belongs to
+export const GET = withAuth(async (_req, ctx) => {
+  const memberships = await prisma.workspaceMember.findMany({
+    where: { userId: ctx.userId },
+    include: {
+      workspace: {
+        include: {
+          _count: { select: { members: true, projects: true } },
         },
       },
-      orderBy: { workspace: { createdAt: "asc" } },
-    });
+    },
+    orderBy: { workspace: { createdAt: "asc" } },
+  });
 
-    const activeId = await getActiveWorkspaceId(session.user.id);
-
-    const workspaces = memberships.map((m) => ({
-      id: m.workspace.id,
-      name: m.workspace.name,
-      slug: m.workspace.slug,
-      role: m.role,
-      memberCount: m.workspace._count.members,
-      projectCount: m.workspace._count.projects,
-      createdAt: m.workspace.createdAt,
-    }));
-
-    // Ordenar: active primero
-    workspaces.sort((a, b) => {
-      if (a.id === activeId) return -1;
-      if (b.id === activeId) return 1;
-      return 0;
-    });
-
-    return NextResponse.json({ data: workspaces });
-  } catch (err: any) {
-    console.error("[WORKSPACE] GET error:", err);
-    return NextResponse.json(
-      { error: "Error al obtener workspaces" },
-      { status: 500 }
-    );
-  }
-}
-
-export async function POST(req: NextRequest) {
+  // Determine active workspace via cookie (best-effort — no throw)
+  let activeId: string | null = null;
   try {
-    // Auth first — before consuming the request body
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { getActiveWorkspaceId } = await import("@/lib/active-workspace");
+    activeId = await getActiveWorkspaceId(ctx.userId);
+  } catch {
+    // Cookie read may fail in edge cases — not critical
+  }
 
-    const result = await validateBody(req, RequestSchema);
-    if (!result.ok) return result.response;
-    const { name } = result.data;
+  const workspaces = memberships.map((m) => ({
+    id: m.workspace.id,
+    name: m.workspace.name,
+    slug: m.workspace.slug,
+    plan: m.workspace.plan,
+    role: m.role,
+    memberCount: m.workspace._count.members,
+    projectCount: m.workspace._count.projects,
+    createdAt: m.workspace.createdAt,
+    isActive: m.workspace.id === activeId,
+  }));
 
-    const baseSlug = generateSlug(name);
-    let slug = baseSlug;
-    let attempts = 0;
+  // Sort: active first, then by creation date
+  workspaces.sort((a, b) => {
+    if (a.isActive) return -1;
+    if (b.isActive) return 1;
+    return 0;
+  });
 
-    while (attempts < 10) {
-      const existing = await prisma.workspace.findUnique({ where: { slug } });
-      if (!existing) break;
-      attempts++;
-      slug = `${baseSlug}-${attempts}`;
-    }
+  return apiSuccess(workspaces);
+});
 
-    console.log("[WORKSPACE] Creating workspace for user:", session.user.id, "slug:", slug);
+// POST /api/workspace — create a new workspace (authenticated user becomes OWNER)
+export const POST = withAuth(async (req, ctx) => {
+  const result = await validateBody(req, CreateWorkspaceSchema);
+  if (!result.ok) return result.response;
+  const { name } = result.data;
 
-    const workspace = await prisma.workspace.create({
+  const baseSlug = generateSlug(name);
+  if (!baseSlug) {
+    return apiError("El nombre no produce un slug válido", "VALIDATION_ERROR", 422);
+  }
+
+  const slug = await generateUniqueSlug(
+    baseSlug,
+    async (s) => !!(await prisma.workspace.findUnique({ where: { slug: s }, select: { id: true } }))
+  );
+
+  const workspace = await prisma.$transaction(async (tx) => {
+    const ws = await tx.workspace.create({
       data: {
         name: name.trim(),
         slug,
         members: {
-          create: {
-            userId: session.user.id,
-            role: "OWNER",
-          },
+          create: { userId: ctx.userId, role: "OWNER" },
         },
       },
+      select: { id: true, name: true, slug: true, plan: true, createdAt: true },
     });
+    return ws;
+  });
 
-    console.log("[WORKSPACE] Created successfully:", workspace.id);
+  logger.info("Workspace created", { workspaceId: workspace.id, userId: ctx.userId, slug });
 
-    return NextResponse.json({ data: { id: workspace.id, name: workspace.name, slug: workspace.slug } }, { status: 201 });
-  } catch (err: unknown) {
-    console.error("[WORKSPACE] Error creating workspace:", err);
-    return NextResponse.json(
-      { error: "Error interno al crear workspace" },
-      { status: 500 }
-    );
-  }
-}
+  return apiCreated(workspace);
+});

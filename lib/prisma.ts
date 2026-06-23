@@ -1,4 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, Prisma } from "@prisma/client";
+export type { Prisma };
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
 import { env } from "@/lib/env";
@@ -46,8 +47,11 @@ function createPrismaClient(): PrismaClient {
   if (connectionString) {
     try {
       const host = new URL(connectionString).host;
-      console.log(`[Prisma] Connecting to DB host: ${host} (source: ${env.DATABASE_URL ? 'DATABASE_URL' : env.STORAGE_POSTGRES_PRISMA_URL ? 'STORAGE_POSTGRES_PRISMA_URL' : 'STORAGE_DATABASE_URL'})`);
-    } catch { /* ignore */ }
+      const source = env.DATABASE_URL ? 'DATABASE_URL' : env.STORAGE_POSTGRES_PRISMA_URL ? 'STORAGE_POSTGRES_PRISMA_URL' : 'STORAGE_DATABASE_URL';
+      // Use console.log here deliberately — logger.ts may not be initialized yet
+      // during PrismaClient singleton creation at module load time.
+      console.log(`[db-sync] target database host: ${host} (source: ${source})`);
+    } catch { /* ignore parse errors on malformed URLs */ }
   }
 
   if (!connectionString) {

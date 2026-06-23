@@ -4,7 +4,10 @@ import { BotmakerAnalyticsAdapter } from "@/lib/analytics/adapters/BotmakerAnaly
 import { writeAuditLog } from "@/lib/analytics/audit";
 import { evaluateAndPersistAlerts } from "@/lib/analytics/alerts/persist";
 
-const SUPPORTED = ["cari", "botmaker"] as const;
+// "cari_ai" se incluye porque el modal de analítica v1 guarda Cari con ese
+// provider (la ruta de producción usa "cari"); sin esto, una integración Cari
+// conectada por ese camino nunca se sincronizaría. Ver getCariCredentials.
+const SUPPORTED = ["cari", "cari_ai", "botmaker"] as const;
 const MAX_ATTEMPTS = 2;
 const REPORT_TYPE = "conversations";
 /** Solape de seguridad para no perder eventos en el borde de la ventana. */
@@ -24,7 +27,7 @@ interface SyncOutcome {
 }
 
 function adapterFor(provider: string) {
-  if (provider === "cari") return new CariAiAnalyticsAdapter();
+  if (provider === "cari" || provider === "cari_ai") return new CariAiAnalyticsAdapter();
   if (provider === "botmaker") return new BotmakerAnalyticsAdapter();
   return null;
 }

@@ -29,8 +29,12 @@ export async function publishPostWorkflow(
  */
 async function executePublishStep(postId: string, scheduleToken: string) {
   "use step";
-  const result = await publishSinglePost(postId);
-  
+  // Pasamos el scheduleToken para que el guard de supersesión de publishSinglePost
+  // desactive este run si el post fue reprogramado/superseido (un run de Workflow
+  // no se puede cancelar, así que el token es la ÚNICA defensa contra publicar a
+  // la hora vieja tras reprogramar).
+  const result = await publishSinglePost(postId, scheduleToken);
+
   if (result.status === "Failed") {
     // Lanzar error hace que Workflow lo reintente
     throw new Error(`Publicación fallida: ${result.error}`);

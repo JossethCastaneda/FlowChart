@@ -15,8 +15,12 @@ import {
   normalizePhone,
   saleSessionPhones,
   computeDataRequestOrderFunnel,
+  computeGlobalFunnel2,
+  computeDerivations,
+  computeBehaviorByBot,
   computeBotBehavior,
   type BmSession,
+  type BmChannelInfo,
 } from "../lib/botmaker";
 
 // Helper: timestamp a N segundos del epoch base (maneja overflow de segundos).
@@ -146,6 +150,119 @@ describe("computeNipTiming", () => {
     expect(nip.delivered).toBe(1);
     expect(nip.avgSec).toBe(30);
     expect(nip.firstResponseRate).toBe(1);
+  });
+
+  it("G3: separa la primera respuesta (cualquiera) de la entrega válida", () => {
+    const s: BmSession = {
+      id: "n2",
+      creationTime: t(0),
+      chat: { chat: { contactId: "n2", channelId: "ch1" } },
+      messages: [
+        { from: "bot", creationTime: t(10), content: { type: "text", text: "Escribe tu NIP" } },
+        { from: "user", creationTime: t(15), content: { type: "text", text: "no lo tengo" } }, // respuesta no válida
+        { from: "user", creationTime: t(40), content: { type: "text", text: "1234" } },        // entrega válida
+      ],
+      events: [],
+    };
+    const nip = computeNipTiming([s]);
+    expect(nip.responded).toBe(1);
+    expect(nip.avgRespondedSec).toBe(5);  // t15 - t10
+    expect(nip.respondedRate).toBe(1);
+    expect(nip.delivered).toBe(1);
+    expect(nip.avgSec).toBe(30);          // t40 - t10
+  });
+});
+
+describe("computeGlobalFunnel2 (G2: número → NIP → nombre → venta)", () => {
+  it("construye el funnel fijo con la venta (felicidades) como paso final", () => {
+    const full: BmSession = {
+      id: "g1", creationTime: t(0), chat: { chat: { contactId: "g1", channelId: "ch1" } },
+      messages: [
+        { from: "bot", creationTime: t(1), content: { type: "text", text: "¿Cuál es el número a portar?" } },
+        { from: "bot", creationTime: t(2), content: { type: "text", text: "Escribe tu NIP" } },
+        { from: "bot", creationTime: t(3), content: { type: "text", text: "Tu nombre completo" } },
+        { from: "bot", creationTime: t(4), content: { type: "text", text: "¡Felicidades! Listo." } },
+      ],
+      events: [],
+    };
+    const onlyNumber: BmSession = {
+      id: "g2", creationTime: t(0), chat: { chat: { contactId: "g2", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(1), content: { type: "text", text: "¿Cuál es el número a portar?" } }],
+      events: [],
+    };
+    const f = computeGlobalFunnel2([full, onlyNumber]);
+    expect(f.steps.map((s) => s.key)).toEqual(["numero", "nip", "nombre", "venta"]);
+    expect(f.steps[0].reached).toBe(2); // ambos piden número
+    expect(f.steps[1].reached).toBe(1); // solo full llega a NIP
+    expect(f.steps[2].reached).toBe(1); // nombre
+    expect(f.steps[3].reached).toBe(1); // venta (felicidades)
+  });
+});
+
+describe("computeDerivations (G4)", () => {
+  it("cuenta sesiones con mensaje de agente o evento de transferencia", () => {
+    const withAgent: BmSession = {
+      id: "d1", creationTime: t(0), chat: { chat: { contactId: "d1", channelId: "ch1" } },
+      messages: [{ from: "agent", creationTime: t(5), content: { type: "text", text: "Hola, soy un asesor" } }],
+      events: [],
+    };
+    const withEvent: BmSession = {
+      id: "d2", creationTime: t(0), chat: { chat: { contactId: "d2", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(1), content: { type: "text", text: "Te transfiero" } }],
+      events: [{ name: "conversation-transfer", creationTime: t(2), info: {} }],
+    };
+    const botOnly: BmSession = {
+      id: "d3", creationTime: t(0), chat: { chat: { contactId: "d3", channelId: "ch1" } },
+      messages: [{ from: "bot", creationTime: t(1), content: { type: "text", text: "Listo" } }],
+      events: [],
+    };
+    const r = computeDerivations([withAgent, withEvent, botOnly]);
+    expect(r.count).toBe(2);
+    expect(r.rate).toBe(Math.round((2 / 3) * 1000) / 1000);
+  });
+});
+
+describe("computeBehaviorByBot (G1)", () => {
+  const channels: BmChannelInfo[] = [
+    { id: "chA", platform: "whatsapp", canonical: "whatsapp", name: "Bot WA", number: "5512345678", active: true },
+    { id: "chB", platform: "webwidget", canonical: "webchat", name: "Bot Web", active: true },
+  ];
+
+  it("agrupa por channelId, ordena por volumen y respeta el flowType default", () => {
+    const chASale: BmSession = {
+      id: "b1", creationTime: t(0), chat: { chat: { contactId: "b1", channelId: "chA" } },
+      messages: [
+        { from: "user", creationTime: t(1), content: { type: "text", text: "hola" } },
+        { from: "bot", creationTime: t(300), content: { type: "text", text: "¡Felicidades!" } },
+      ],
+      events: [],
+    };
+    const chB1: BmSession = {
+      id: "b2", creationTime: t(0), chat: { chat: { contactId: "b2", channelId: "chB" } },
+      messages: [{ from: "bot", creationTime: t(1), content: { type: "text", text: "Hola" } }],
+      events: [],
+    };
+    const chB2: BmSession = { ...chB1, id: "b3", chat: { chat: { contactId: "b3", channelId: "chB" } } };
+
+    const byBot = computeBehaviorByBot([chASale, chB1, chB2], channels, { defaultFlowType: "prepago" });
+    // chB tiene 2 sesiones → va primero
+    expect(byBot.map((b) => b.channelId)).toEqual(["chB", "chA"]);
+    const a = byBot.find((b) => b.channelId === "chA")!;
+    expect(a.name).toBe("Bot WA");
+    expect(a.number).toBe("5512345678");
+    expect(a.sampleSize).toBe(1);
+    expect(a.sales).toBe(1);
+    expect(a.conversionRate).toBe(1);
+    expect(a.flowType).toBe("prepago");
+    expect(a.funnel2.method).toBe("configured");
+    const b = byBot.find((bb) => bb.channelId === "chB")!;
+    expect(b.sampleSize).toBe(2);
+    expect(b.sales).toBe(0);
+  });
+
+  it("ignora sesiones sin channelId", () => {
+    const noCh: BmSession = { id: "x", creationTime: t(0), chat: { chat: { contactId: "x" } }, messages: [], events: [] };
+    expect(computeBehaviorByBot([noCh], channels)).toEqual([]);
   });
 });
 

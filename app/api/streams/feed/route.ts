@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/streams/feed
@@ -156,7 +157,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ posts });
   } catch (err: any) {
-    console.error("[STREAMS] Error:", err);
+    logger.error("[STREAMS] Error:", err);
     return NextResponse.json({ error: err.message || "Error fetching feed" }, { status: 500 });
   }
 }

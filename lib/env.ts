@@ -89,6 +89,20 @@ const envSchema = z.object({
   // Vercel Blob
   BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
 
+  // Email (Resend)
+  RESEND_API_KEY: z.string().min(1).optional(),
+  RESEND_FROM_EMAIL: z.string().min(1).optional(),
+  EMAIL_FROM: z.string().min(1).optional(),
+
+  // Google Ads
+  GOOGLE_ADS_DEVELOPER_TOKEN: z.string().min(1).optional(),
+
+  // Análisis de Resultados — sal para hashear PII (teléfono/email)
+  ANALYTICS_PII_SALT: z.string().min(1).optional(),
+
+  // Botmaker (opcional)
+  BOTMAKER_ACCESS_TOKEN: z.string().optional(),
+  BOTMAKER_BASE_URL: z.string().url().optional(),
 
   // Config extra
   APP_TIMEZONE: z.string().default("America/Mexico_City"),
@@ -104,6 +118,11 @@ function parseEnv() {
   const parsed = envSchema.safeParse(cleaned);
   
   if (!parsed.success) {
+    const isBuild = process.env.npm_lifecycle_event === "build" || process.env.NEXT_PHASE === "phase-production-build";
+    if (isBuild) {
+      console.warn("⚠️ Saltando validación estricta de entorno durante el build:", parsed.error.flatten().fieldErrors);
+      return cleaned as any;
+    }
     console.error("❌ Faltan variables de entorno críticas o son inválidas:", parsed.error.flatten().fieldErrors);
     throw new Error("Invalid environment variables");
   }

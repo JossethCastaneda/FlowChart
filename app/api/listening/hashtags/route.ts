@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   const jwt = await getToken({ req: request });
@@ -66,7 +67,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ posts, hashtag: q });
   } catch (err: any) {
-    console.error("[HASHTAGS] Error:", err);
+    logger.error("[HASHTAGS] Error:", err);
     return NextResponse.json({ posts: [], error: err.message || "Error" }, { status: 500 });
   }
 }

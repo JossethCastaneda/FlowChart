@@ -4,6 +4,7 @@ import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { refreshAccessToken, GoogleCredentials } from "@/lib/integrations/google/oauth";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -27,7 +28,7 @@ export async function GET(request: NextRequest) {
 
     const data = await res.json();
     if (!res.ok) {
-      console.error("[GTM API] Failed to fetch accounts", data);
+      logger.error("[GTM API] Failed to fetch accounts", data);
       return NextResponse.json({ error: "Failed to fetch GTM accounts" }, { status: 502 });
     }
 
@@ -49,7 +50,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ accounts: data.account || [] });
   } catch (err: any) {
-    console.error("[GTM API] Exception", err);
+    logger.error("[GTM API] Exception", err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

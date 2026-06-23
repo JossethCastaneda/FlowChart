@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getMetaAccessToken, metaGetAll , META_API_VERSION } from "@/lib/server-auth";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
@@ -47,7 +48,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ data: pages, source: "meta_api" });
   } catch (error: any) {
-    console.error("Error in Meta pages API:", error);
+    logger.error("Error in Meta pages API:", error);
     return NextResponse.json({
       data: [],
       source: "catch_error",

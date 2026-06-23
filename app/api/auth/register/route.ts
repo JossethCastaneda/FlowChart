@@ -4,6 +4,9 @@ import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { rateLimit, getClientIP } from "@/lib/ratelimit";
 import { validateBody } from "@/lib/validate";
+import { logger } from "@/lib/logger";
+import { sendWelcomeEmail } from "@/lib/email";
+import { getBaseUrl } from "@/lib/get-base-url";
 
 const RegisterSchema = z.object({
   name: z.string().trim().min(2, "El nombre debe tener al menos 2 caracteres").max(100),
@@ -53,12 +56,19 @@ export async function POST(req: NextRequest) {
       await prisma.user.create({
         data: { name, email, password: hashedPassword },
       });
+
+      // Send welcome email (fire-and-forget so it doesn't block response)
+      sendWelcomeEmail({
+        to: email,
+        userName: name,
+        dashboardUrl: `${getBaseUrl()}/login`,
+      }).catch((err) => logger.error("[REGISTER] Failed to send welcome email", err));
     }
 
-    console.log("[REGISTER] New user created:", email);
+    logger.info("[REGISTER] New user created:", email);
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (err: unknown) {
-    console.error("[REGISTER] Error:", err);
+    logger.error("[REGISTER] Error:", err);
     return NextResponse.json(
       { error: "Error al registrar. Intente de nuevo." },
       { status: 500 }

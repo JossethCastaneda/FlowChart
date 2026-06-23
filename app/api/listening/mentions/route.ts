@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import { logger } from "@/lib/logger";
 
 /**
  * GET /api/listening/mentions
@@ -109,7 +110,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ mentions, count: mentions.length });
   } catch (err: any) {
-    console.error("[LISTENING] Error:", err);
+    logger.error("[LISTENING] Error:", err);
     return NextResponse.json({ error: err.message || "Error fetching mentions" }, { status: 500 });
   }
 }

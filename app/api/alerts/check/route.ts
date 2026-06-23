@@ -4,6 +4,7 @@ import { sendAlertEmail } from "@/lib/email";
 import { getBaseUrl } from "@/lib/get-base-url";
 import { decryptToken } from "@/lib/encryption";
 import { verifyCronAuth } from "@/lib/cron-auth";
+import { logger } from "@/lib/logger";
 
 // Vercel Cron: called at 9:00, 12:00, 16:00, 18:00 CST (15:00, 18:00, 22:00, 00:00 UTC)
 // Authorization via CRON_SECRET (Bearer header — Vercel standard)
@@ -67,7 +68,7 @@ export async function GET(req: NextRequest) {
         if (!rawToken) continue;
         const token = decryptToken(rawToken);
         if (!token || token.startsWith("enc:")) {
-          console.error(`[ALERTS] Failed to decrypt token for workspace ${project.workspaceId}`);
+          logger.error(`[ALERTS] Failed to decrypt token for workspace ${project.workspaceId}`);
           continue;
         }
 
@@ -85,12 +86,12 @@ export async function GET(req: NextRequest) {
           });
           const json = await res.json();
           if (!res.ok) {
-            console.error(`[ALERTS] Meta API error for ${project.name}:`, json?.error?.message);
+            logger.error(`[ALERTS] Meta API error for ${project.name}:`, json?.error?.message);
             continue;
           }
           insightsData = json.data?.[0];
         } catch (e) {
-          console.error(`[ALERTS] Failed to fetch insights for ${project.name}:`, e);
+          logger.error(`[ALERTS] Failed to fetch insights for ${project.name}:`, e);
           continue;
         }
 
@@ -213,7 +214,7 @@ export async function GET(req: NextRequest) {
               },
             });
           } catch (dbErr) {
-            console.error("[ALERTS] Failed to save alert:", dbErr);
+            logger.error("[ALERTS] Failed to save alert:", dbErr);
           }
         }
 
@@ -238,7 +239,7 @@ export async function GET(req: NextRequest) {
               dashboardUrl: `${baseUrl}/dashboard/proyectos/${project.id}`,
             });
           } catch (emailErr) {
-            console.error("[ALERTS] Failed to send email:", emailErr);
+            logger.error("[ALERTS] Failed to send email:", emailErr);
           }
         }
 
@@ -255,7 +256,7 @@ export async function GET(req: NextRequest) {
               },
             });
           } catch (notifErr) {
-            console.error("[ALERTS] Failed to create notification:", notifErr);
+            logger.error("[ALERTS] Failed to create notification:", notifErr);
           }
         }
 
@@ -267,7 +268,7 @@ export async function GET(req: NextRequest) {
         });
       } catch (projectErr: any) {
         // Isolate per-project errors — don't abort the entire cron
-        console.error(`[ALERTS] Error processing project ${project.name}:`, projectErr);
+        logger.error(`[ALERTS] Error processing project ${project.name}:`, projectErr);
         results.push({ project: project.name, error: projectErr?.message });
       }
     }
@@ -279,7 +280,7 @@ export async function GET(req: NextRequest) {
       alertsGenerated: results,
     });
   } catch (err: any) {
-    console.error("[ALERTS] Cron error:", err);
+    logger.error("[ALERTS] Cron error:", err);
     return NextResponse.json({ error: err?.message || "Error" }, { status: 500 });
   }
 }

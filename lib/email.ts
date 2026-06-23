@@ -1,10 +1,11 @@
 import { Resend } from "resend";
+import { env } from "@/lib/env";
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
+const resend = env.RESEND_API_KEY
+  ? new Resend(env.RESEND_API_KEY)
   : null;
 
-const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "SODARE <onboarding@resend.dev>";
+const FROM_EMAIL = env.RESEND_FROM_EMAIL || env.EMAIL_FROM || "SODARE <onboarding@resend.dev>";
 
 interface AlertEmailParams {
   to: string[];

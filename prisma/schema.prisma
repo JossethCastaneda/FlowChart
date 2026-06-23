@@ -157,6 +157,10 @@ model WorkspaceInvite {
 
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   invitedBy   User?     @relation("SentInvites", fields: [invitedById], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([workspaceId, email]) // for pending invite lookups per workspace
+  @@index([workspaceId, acceptedAt]) // for listing pending invites
 }
 
 // ------------------------------------------------------
@@ -560,6 +564,7 @@ model ScheduledPost {
   @@index([workspaceId])
   @@index([workspaceId, status])
   @@index([scheduledAt])
+  @@index([qStashMessageId]) // for O(1) QStash job cancellation lookups
 }
 
 

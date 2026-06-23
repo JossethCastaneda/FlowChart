@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -112,14 +113,37 @@ async function fetchPeriodTotals(
 // ── Main handler ───────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
-  // Auth gate
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
+  // Auth gate with CRON bypass
+  let workspaceId: string | null = null;
+  const authHeader = request.headers.get("Authorization");
+  const isCron = authHeader === `Bearer ${process.env.CRON_SECRET}` && process.env.CRON_SECRET;
+  
+  if (isCron) {
+    workspaceId = request.nextUrl.searchParams.get("workspaceId");
+  } else {
+    const jwt = await getToken({ req: request });
+    if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
+    workspaceId = await getActiveWorkspaceId(jwt.sub);
+  }
+
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
   // BUG 1 FIX — Token fallback multi-módulo
-  let token = await getMetaAccessToken(request, "analytics");
+  let token: string | null = null;
+  
+  if (isCron) {
+    // Si es cron, forzamos obtener las integraciones desde la BD porque request no tiene cookies
+    const integration = await prisma.integration.findFirst({
+      where: { workspaceId, provider: { startsWith: "meta" }, connected: true },
+      select: { credentials: true }
+    });
+    // Necesitamos importar decryptToken si lo hiciéramos manual, pero es mejor
+    // importar y usar un helper. Espera, si isCron es true, MetaAccessToken fallará 
+    // porque lee de las cookies. Para el Cron, enviaremos el `token` directo en el header
+    // Authorization: Bearer CRON_SECRET... NO. Enviaremos x-meta-token.
+  }
+  
+  token = request.headers.get("x-meta-token") || await getMetaAccessToken(request, "analytics");
   if (!token) token = await getMetaAccessToken(request, "social");
   if (!token) token = await getMetaAccessToken(request, "publisher_facebook");
   if (!token) token = await getMetaAccessToken(request);
@@ -241,7 +265,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(fbInsightsUrl, pageToken).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[ORGANIC] FB insights error for page ${page.id}:`, err?.error?.message);
+                logger.error(`[ORGANIC] FB insights error for page ${page.id}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -251,7 +275,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(fbFansUrl, pageToken).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[ORGANIC] FB fans error for page ${page.id}:`, err?.error?.message);
+                logger.error(`[ORGANIC] FB fans error for page ${page.id}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -261,7 +285,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(igInsightsUrl, token).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[ORGANIC] IG insights error for ${igAccountId}:`, err?.error?.message);
+                logger.error(`[ORGANIC] IG insights error for ${igAccountId}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -406,11 +430,11 @@ export async function GET(request: NextRequest) {
       },
       update: { data: responseData as any, updatedAt: now },
       create: { workspaceId, endpoint: "organic", paramsKey, data: responseData as any },
-    }).catch((err: any) => console.error("[ORGANIC] Cache save error:", err));
+    }).catch((err: any) => logger.error("[ORGANIC] Cache save error:", err));
 
     return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
-    console.error("[ORGANIC] Unhandled error:", error);
+    logger.error("[ORGANIC] Unhandled error:", error);
     return NextResponse.json(
       { error: error?.message || "Internal server error" },
       { status: 500 }

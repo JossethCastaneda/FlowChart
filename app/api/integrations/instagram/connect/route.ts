@@ -1,46 +1,35 @@
-import { NextRequest, NextResponse } from "next/server";
+import { withWorkspace } from "@/lib/api-handler";
+import { apiError, apiServerError } from "@/lib/api-response";
 import { env } from "@/lib/env";
 import { createInstagramState } from "@/lib/integrations/instagram/state";
-import { safeGetSession } from "@/lib/api-handler";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
+import { logger } from "@/lib/logger";
+import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+/**
+ * GET /api/integrations/instagram/connect
+ * Initiates Instagram Direct Login OAuth flow.
+ * Redirects to instagram.com/oauth/authorize with PKCE state.
+ */
+export const GET = withWorkspace(async (req: NextRequest, ctx) => {
+  const appId = env.INSTAGRAM_APP_ID;
+  const redirectUri = env.INSTAGRAM_REDIRECT_URI;
+  const scopes = env.INSTAGRAM_SCOPES;
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) {
-      return NextResponse.json({ error: "No active workspace" }, { status: 403 });
-    }
-
-    const appId = env.INSTAGRAM_APP_ID;
-    const redirectUri = env.INSTAGRAM_REDIRECT_URI;
-    const scopes = env.INSTAGRAM_SCOPES;
-
-    if (!appId || !redirectUri) {
-      return NextResponse.json(
-        { error: "Instagram Direct Login is not configured (missing env vars)" },
-        { status: 500 }
-      );
-    }
-
-    const state = createInstagramState(workspaceId, session.user.id);
-
-    const authUrl = new URL("https://www.instagram.com/oauth/authorize");
-    authUrl.searchParams.set("enable_fb_login", "0");
-    authUrl.searchParams.set("force_authentication", "1");
-    authUrl.searchParams.set("client_id", appId);
-    authUrl.searchParams.set("redirect_uri", redirectUri);
-    authUrl.searchParams.set("response_type", "code");
-    authUrl.searchParams.set("scope", scopes);
-    authUrl.searchParams.set("state", state);
-
-    return NextResponse.redirect(authUrl.toString());
-  } catch (error) {
-    console.error("[INSTAGRAM CONNECT]", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  if (!appId || !redirectUri) {
+    logger.error("Instagram Direct Login not configured", { missing: !appId ? "INSTAGRAM_APP_ID" : "INSTAGRAM_REDIRECT_URI" });
+    return apiError("Instagram Direct Login is not configured (missing env vars)", "SERVER_CONFIG", 500);
   }
-}
+
+  const state = createInstagramState(ctx.workspaceId, ctx.userId);
+
+  const authUrl = new URL("https://www.instagram.com/oauth/authorize");
+  authUrl.searchParams.set("enable_fb_login", "0");
+  authUrl.searchParams.set("force_authentication", "1");
+  authUrl.searchParams.set("client_id", appId);
+  authUrl.searchParams.set("redirect_uri", redirectUri);
+  authUrl.searchParams.set("response_type", "code");
+  authUrl.searchParams.set("scope", scopes);
+  authUrl.searchParams.set("state", state);
+
+  return NextResponse.redirect(authUrl.toString());
+});

@@ -4,6 +4,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -127,7 +128,7 @@ export async function GET(req: NextRequest) {
 
       if (!mediaRes.ok || mediaData.error) {
         const mapped = mapMetaError(mediaData?.error);
-        console.error("[BEST-TIME] Meta API error:", mediaData?.error?.message);
+        logger.error("[BEST-TIME] Meta API error:", mediaData?.error?.message);
         return NextResponse.json(
           { error: mapped.user_message },
           { status: 422 }
@@ -219,7 +220,7 @@ export async function GET(req: NextRequest) {
       },
       update: { data: responseData as any, updatedAt: now },
       create: { workspaceId, endpoint: "best-time", paramsKey, data: responseData as any },
-    }).catch((err: any) => console.error("[BEST-TIME] Cache save error:", err));
+    }).catch((err: any) => logger.error("[BEST-TIME] Cache save error:", err));
 
     return NextResponse.json({
       ...responseData,
@@ -227,7 +228,7 @@ export async function GET(req: NextRequest) {
       generatedAt: now,
     });
   } catch (err: any) {
-    console.error("[BEST-TIME] Error:", err.message);
+    logger.error("[BEST-TIME] Error:", err.message);
     return NextResponse.json(
       { error: err.message || "Error interno" },
       { status: 500 }

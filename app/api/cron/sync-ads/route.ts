@@ -43,11 +43,13 @@ export async function GET(request: NextRequest) {
     }
 
     let dispatched = 0;
+    let delay = 0;
     const failures: string[] = [];
     for (const [workspaceId, intg] of byWorkspace) {
       try {
-        await start(syncIntegrationAssetsWorkflow, [intg.id]);
+        await start(syncIntegrationAssetsWorkflow, [intg.id, delay]);
         dispatched++;
+        delay += 30; // 30 seconds stagger to prevent Rate Limit spikes
       } catch (err) {
         failures.push(workspaceId);
         logger.error("sync-ads: failed to dispatch workflow", {

@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -51,14 +52,23 @@ async function processInChunks<T, R>(
 // ── Main handler ───────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
-  // Auth gate
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
+  // Auth gate with CRON bypass
+  let workspaceId: string | null = null;
+  const authHeader = request.headers.get("Authorization");
+  const isCron = authHeader === `Bearer ${process.env.CRON_SECRET}` && process.env.CRON_SECRET;
+  
+  if (isCron) {
+    workspaceId = request.nextUrl.searchParams.get("workspaceId");
+  } else {
+    const jwt = await getToken({ req: request });
+    if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
+    workspaceId = await getActiveWorkspaceId(jwt.sub);
+  }
+
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
   // BUG 1 FIX — Token fallback multi-módulo
-  let token = await getMetaAccessToken(request, "analytics");
+  let token = request.headers.get("x-meta-token") || await getMetaAccessToken(request, "analytics");
   if (!token) token = await getMetaAccessToken(request, "social");
   if (!token) token = await getMetaAccessToken(request, "publisher_facebook");
   if (!token) token = await getMetaAccessToken(request);
@@ -157,7 +167,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(fbPostsUrl, pageToken).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[POSTS] FB posts error for page ${page.id}:`, err?.error?.message);
+                logger.error(`[POSTS] FB posts error for page ${page.id}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -167,7 +177,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(igMediaUrl, token).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[POSTS] IG media error for ${igAccountId}:`, err?.error?.message);
+                logger.error(`[POSTS] IG media error for ${igAccountId}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -270,11 +280,11 @@ export async function GET(request: NextRequest) {
       },
       update: { data: responseData as any, updatedAt: now },
       create: { workspaceId, endpoint: "posts", paramsKey, data: responseData as any },
-    }).catch((err: any) => console.error("[POSTS] Cache save error:", err));
+    }).catch((err: any) => logger.error("[POSTS] Cache save error:", err));
 
     return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
-    console.error("[POSTS] Unhandled error:", error);
+    logger.error("[POSTS] Unhandled error:", error);
     return NextResponse.json(
       { error: error?.message || "Internal server error" },
       { status: 500 }

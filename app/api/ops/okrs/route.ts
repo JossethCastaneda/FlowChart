@@ -1,70 +1,73 @@
-import { safeGetSession } from "@/lib/api-handler";
-import { NextRequest, NextResponse } from "next/server";
+import { withWorkspace } from "@/lib/api-handler";
+import { validateBody } from "@/lib/validate";
+import { apiSuccess, apiCreated, apiServerError } from "@/lib/api-response";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
-import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { z } from "zod";
 
-export async function GET() {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+export const dynamic = "force-dynamic";
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) return NextResponse.json({ data: [] });
+const KeyResultSchema = z.object({
+  title: z.string().min(1).max(500),
+  targetValue: z.number().min(0).default(100),
+  unit: z.string().default("%"),
+});
 
-    await verifyWorkspaceAccess(workspaceId, session.user.id);
+const CreateObjectiveSchema = z.object({
+  title: z.string().min(1, "El título es obligatorio").max(500).transform((s) => s.trim()),
+  description: z.string().nullable().optional(),
+  quarter: z.string().default(""),
+  areaId: z.string().nullable().optional(),
+  keyResults: z.array(KeyResultSchema).default([]),
+});
 
-    const objectives = await prisma.objective.findMany({
-      where: { workspaceId },
-      include: {
-        keyResults: {
-          include: {
-            tasks: { select: { id: true, status: true } }
-          }
-        }
+// GET /api/ops/okrs — list OKRs for the active workspace
+export const GET = withWorkspace(async (_req, ctx) => {
+  const objectives = await prisma.objective.findMany({
+    where: { workspaceId: ctx.workspaceId },
+    include: {
+      keyResults: {
+        include: {
+          tasks: { select: { id: true, status: true } },
+        },
       },
-      orderBy: { createdAt: "desc" }
-    });
+    },
+    orderBy: { createdAt: "desc" },
+  });
 
-    return NextResponse.json({ data: objectives });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
+  return apiSuccess(objectives);
+});
 
-export async function POST(req: NextRequest) {
-  try {
-    const session = await safeGetSession();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+// POST /api/ops/okrs — create an OKR
+export const POST = withWorkspace(async (req, ctx) => {
+  const result = await validateBody(req, CreateObjectiveSchema);
+  if (!result.ok) return result.response;
 
-    const workspaceId = await getActiveWorkspaceId(session.user.id);
-    if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+  const { title, description, quarter, areaId, keyResults } = result.data;
 
-    await verifyWorkspaceAccess(workspaceId, session.user.id);
-
-    const body = await req.json();
-    const { title, description, quarter, areaId, keyResults } = body;
-
-    const objective = await prisma.objective.create({
-      data: {
-        workspaceId,
-        title,
-        description,
-        quarter,
-        areaId,
-        keyResults: {
-          create: keyResults?.map((kr: any) => ({
-            title: kr.title,
-            targetValue: Number(kr.targetValue) || 100,
-            unit: kr.unit || "%"
-          })) || []
-        }
+  const objective = await prisma.objective.create({
+    data: {
+      workspaceId: ctx.workspaceId,
+      title,
+      description: description ?? null,
+      quarter,
+      areaId: areaId ?? null,
+      keyResults: {
+        create: keyResults.map((kr) => ({
+          title: kr.title,
+          targetValue: kr.targetValue,
+          unit: kr.unit,
+        })),
       },
-      include: { keyResults: true }
-    });
+    },
+    include: { keyResults: true },
+  });
 
-    return NextResponse.json({ data: objective });
-  } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
+  logger.info("OKR created", {
+    objectiveId: objective.id,
+    workspaceId: ctx.workspaceId,
+    byUserId: ctx.userId,
+  });
+
+  return apiCreated(objective);
+});

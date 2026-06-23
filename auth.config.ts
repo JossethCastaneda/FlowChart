@@ -7,7 +7,8 @@ import bcrypt from "bcryptjs";
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
-if (!AUTH_SECRET && process.env.NODE_ENV === "production") {
+const isBuild = process.env.npm_lifecycle_event === "build" || process.env.NEXT_PHASE === "phase-production-build";
+if (!AUTH_SECRET && process.env.NODE_ENV === "production" && !isBuild) {
   throw new Error("[AUTH] NEXTAUTH_SECRET or AUTH_SECRET must be set in production");
 }
 
@@ -49,6 +50,17 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
           if (!res.ok) {
             const text = await res.text().catch(() => "");
             console.error(`[AUTH facebook userinfo] ${res.status} ${res.statusText}`, text.slice(0, 200));
+            
+            try {
+              const errData = JSON.parse(text);
+              if (errData?.error?.code === 4 || errData?.error?.message?.includes("request limit")) {
+                throw new Error("MetaRateLimit");
+              }
+            } catch (e) {
+              if (e instanceof Error && e.message === "MetaRateLimit") throw e;
+              // JSON parse failed or not a rate limit error
+            }
+            
             throw new Error(`Facebook userinfo failed: ${res.status} ${res.statusText}`);
           }
           return await res.json();

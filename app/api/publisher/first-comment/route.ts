@@ -6,6 +6,7 @@ import { mapMetaError } from "@/lib/meta-errors";
 import { decryptToken } from "@/lib/encryption";
 import { validateBody } from "@/lib/validate";
 import { z } from "zod";
+import { logger } from "@/lib/logger";
 
 const META_V = process.env.META_API_VERSION || "v25.0";
 
@@ -54,11 +55,11 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
 
   if (!commentRes.ok || commentData.error) {
     const mapped = mapMetaError(commentData?.error);
-    console.error("[FIRST-COMMENT] Meta API error:", commentData?.error?.message);
+    logger.error("[FIRST-COMMENT] Meta API error:", commentData?.error?.message);
     return apiError(mapped.user_message, "META_API_ERROR", 422);
   }
 
-  console.log(`[FIRST-COMMENT] ✅ Comment posted on ${mediaId}: ${commentData.id}`);
+  logger.info(`[FIRST-COMMENT] ✅ Comment posted on ${mediaId}: ${commentData.id}`);
   
   return apiSuccess({
     success: true,

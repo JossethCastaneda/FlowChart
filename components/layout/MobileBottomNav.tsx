@@ -13,7 +13,7 @@ export function MobileBottomNav({ onOpenMenu }: { onOpenMenu: () => void }) {
     { name: "Home", href: "/dashboard/resumen", icon: LayoutDashboard, color: "#00d4ff" },
     { name: "Inbox", href: "/dashboard/inbox", icon: MessageSquare, color: "#a855f7" },
     { name: "Planner", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b" },
-    { name: "Data", href: "/dashboard/analytics", icon: BarChart3, color: "#f472b6" },
+
   ];
 
   return (

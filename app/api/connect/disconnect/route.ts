@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest) {
         // DELETE /me/permissions revokes every permission and invalidates the token.
         await metaFetch(metaUrl("me/permissions"), token, { method: "DELETE" });
       } catch (err) {
-        console.warn("[DISCONNECT] Meta permission revoke failed (continuing):", err);
+        logger.warn("[DISCONNECT] Meta permission revoke failed (continuing):", err);
       }
     }
 
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ success: true, scope: "all", removed: result.count });
   } catch (err: any) {
-    console.error("[DISCONNECT] Error:", err);
+    logger.error("[DISCONNECT] Error:", err);
     return NextResponse.json({ error: err?.message || "Error al desvincular" }, { status: 500 });
   }
 }

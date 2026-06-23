@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -69,12 +70,22 @@ function getInsightValue(data: any[], metricName: string): Record<string, number
 // ── Main handler ───────────────────────────────────────────────────────────
 
 export async function GET(request: NextRequest) {
-  // Auth gate
-  const jwt = await getToken({ req: request });
-  if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
-  const workspaceId = await getActiveWorkspaceId(jwt.sub);
+  // Auth gate with CRON bypass
+  let workspaceId: string | null = null;
+  const authHeader = request.headers.get("Authorization");
+  const isCron = authHeader === `Bearer ${process.env.CRON_SECRET}` && process.env.CRON_SECRET;
+  
+  if (isCron) {
+    workspaceId = request.nextUrl.searchParams.get("workspaceId");
+  } else {
+    const jwt = await getToken({ req: request });
+    if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
+    workspaceId = await getActiveWorkspaceId(jwt.sub);
+  }
+
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
-  let token = await getMetaAccessToken(request, "analytics");
+
+  let token = request.headers.get("x-meta-token") || await getMetaAccessToken(request, "analytics");
   if (!token) token = await getMetaAccessToken(request, "social");
   if (!token) token = await getMetaAccessToken(request, "publisher_facebook");
   if (!token) token = await getMetaAccessToken(request);
@@ -180,7 +191,7 @@ export async function GET(request: NextRequest) {
           ? metaFetch(fbUrl, pageToken).then(async (r) => {
               if (!r.ok) {
                 const err = await r.json().catch(() => ({}));
-                console.error(`[AUDIENCE] FB demographics error for page ${page.id}:`, err?.error?.message);
+                logger.error(`[AUDIENCE] FB demographics error for page ${page.id}:`, err?.error?.message);
                 return null;
               }
               return r.json();
@@ -188,19 +199,19 @@ export async function GET(request: NextRequest) {
           : Promise.resolve(null),
         igCityUrl
           ? metaFetch(igCityUrl, token).then(async (r) => {
-              if (!r.ok) { console.error(`[AUDIENCE] IG city error`); return null; }
+              if (!r.ok) { logger.error(`[AUDIENCE] IG city error`); return null; }
               return r.json();
             })
           : Promise.resolve(null),
         igGenderAgeUrl
           ? metaFetch(igGenderAgeUrl, token).then(async (r) => {
-              if (!r.ok) { console.error(`[AUDIENCE] IG gender_age error`); return null; }
+              if (!r.ok) { logger.error(`[AUDIENCE] IG gender_age error`); return null; }
               return r.json();
             })
           : Promise.resolve(null),
         igCountryUrl
           ? metaFetch(igCountryUrl, token).then(async (r) => {
-              if (!r.ok) { console.error(`[AUDIENCE] IG country error`); return null; }
+              if (!r.ok) { logger.error(`[AUDIENCE] IG country error`); return null; }
               return r.json();
             })
           : Promise.resolve(null),
@@ -252,11 +263,11 @@ export async function GET(request: NextRequest) {
       },
       update: { data: responseData as any, updatedAt: now },
       create: { workspaceId, endpoint: "audience", paramsKey, data: responseData as any },
-    }).catch((err: any) => console.error("[AUDIENCE] Cache save error:", err));
+    }).catch((err: any) => logger.error("[AUDIENCE] Cache save error:", err));
 
     return NextResponse.json({ ...responseData, cached: false });
   } catch (error: any) {
-    console.error("[AUDIENCE] Unhandled error:", error);
+    logger.error("[AUDIENCE] Unhandled error:", error);
     return NextResponse.json(
       { error: error?.message || "Internal server error" },
       { status: 500 }

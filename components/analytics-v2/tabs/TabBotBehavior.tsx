@@ -2,9 +2,9 @@
 
 import React from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { RefreshCw, Clock, MousePointerClick, AlertTriangle, ShoppingCart, MessageSquare, GitBranch, Bot, KeyRound } from "lucide-react";
+import { RefreshCw, Clock, MousePointerClick, AlertTriangle, ShoppingCart, MessageSquare, GitBranch, Bot, KeyRound, Users, ChevronDown } from "lucide-react";
 import { useAnalyticsData } from "../useAnalyticsData";
-import type { BotBehavior } from "@/lib/botmaker";
+import type { BotBehavior, BotSummary, DataRequestFunnel } from "@/lib/botmaker";
 import type { CariResults } from "@/lib/crm/cari";
 
 interface BotBehaviorResponse {
@@ -12,6 +12,7 @@ interface BotBehaviorResponse {
   connected: boolean;
   channel: string;
   behavior: BotBehavior | null;
+  byBot?: BotSummary[];
   cari: CariResults | null;
 }
 
@@ -70,12 +71,36 @@ export function TabBotBehavior({ query, base }: { query: string; base: string })
   if (data.cari) return <CariBehavior cari={data.cari} />;
 
   // ── Botmaker: análisis profundo ────────────────────────────────────────────
-  if (data.behavior) return <BotmakerBehavior b={data.behavior} base={base} query={query} />;
+  if (data.behavior) return <BotmakerBehavior b={data.behavior} byBot={data.byBot || []} base={base} query={query} />;
 
   return <div style={{ padding: 60, textAlign: "center", color: "#64748b" }}>Sin resultados para este periodo.</div>;
 }
 
-function BotmakerBehavior({ b, base, query }: { b: BotBehavior; base: string; query: string }) {
+/** Barras de un funnel de captura/conversión (reutilizable global y por bot). */
+function FunnelSteps({ steps }: { steps: DataRequestFunnel["steps"] }) {
+  const top = steps[0]?.reached || 1;
+  return (
+    <div className="space-y-2">
+      {steps.map((s, i) => {
+        const w = Math.round((s.reached / top) * 100);
+        return (
+          <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 150, fontSize: 12, color: "#cbd5e1", textAlign: "right" }}>{i + 1}. {s.label}</div>
+            <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", borderRadius: 6, height: 26, position: "relative" }}>
+              <div style={{ width: `${w}%`, background: PALETTE[i % PALETTE.length], height: "100%", borderRadius: 6, transition: "width .3s" }} />
+              <span style={{ position: "absolute", left: 8, top: 4, fontSize: 11, color: "white" }}>{s.reached.toLocaleString("es-MX")}</span>
+            </div>
+            <div style={{ width: 90, fontSize: 11, color: s.dropOff ? "#f87171" : "#64748b" }}>
+              {s.dropOff ? `-${s.dropOff} (${s.dropOffPct}%)` : "—"}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function BotmakerBehavior({ b, byBot, base, query }: { b: BotBehavior; byBot: BotSummary[]; base: string; query: string }) {
   const msgData = b.messageTypes.byType.map((t) => ({ name: t.type, value: t.count, pct: t.pct }));
   const ttsData = b.timeToSale.distribution.map((d) => ({ name: d.bucket, value: d.count }));
 
@@ -90,6 +115,9 @@ function BotmakerBehavior({ b, base, query }: { b: BotBehavior; base: string; qu
         <Kpi label="Respuesta del usuario (prom.)" value={fmtDuration(b.responseTimes.avgUserSec)} icon={<Clock className="w-3.5 h-3.5" />} color="#a855f7" />
         <Kpi label="Conversaciones analizadas" value={b.sampleSize.toLocaleString("es-MX")} icon={<MessageSquare className="w-3.5 h-3.5" />} color="#ffbe0b" />
       </div>
+
+      {/* Por bot (G1): global Y por bot lado a lado */}
+      <ByBotSection byBot={byBot} />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(360px, 1fr))", gap: 16 }}>
         {/* Tipos de mensaje */}
@@ -188,10 +216,17 @@ function BotmakerBehavior({ b, base, query }: { b: BotBehavior; base: string; qu
           <h3 style={h3}><KeyRound className="w-4 h-4" style={{ color: "#ffbe0b" }} /> NIP · obtención y tiempo</h3>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
             <Mini label="Bot pidió NIP" value={b.nip.prompted.toLocaleString("es-MX")} />
-            <Mini label="Entregaron NIP" value={b.nip.delivered.toLocaleString("es-MX")} color="#06d6a0" />
+            <Mini label="Respondió (cualquiera)" value={b.nip.responded.toLocaleString("es-MX")} color="#a855f7" />
+            <Mini label="Entrega válida" value={b.nip.delivered.toLocaleString("es-MX")} color="#06d6a0" />
             <Mini label="Tasa de entrega" value={`${Math.round(b.nip.firstResponseRate * 1000) / 10}%`} />
-            <Mini label="Tiempo prom." value={fmtDuration(b.nip.avgSec)} />
-            <Mini label="Mediana" value={fmtDuration(b.nip.medianSec)} />
+          </div>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", marginTop: 10 }}>
+            <Mini label="Tiempo 1ª respuesta" value={fmtDuration(b.nip.avgRespondedSec)} color="#a855f7" />
+            <Mini label="Tiempo entrega válida" value={fmtDuration(b.nip.avgSec)} />
+            <Mini label="Mediana (válida)" value={fmtDuration(b.nip.medianSec)} />
+          </div>
+          <div style={{ color: "#64748b", fontSize: 10, marginTop: 8 }}>
+            &quot;Respondió&quot; = primer mensaje del usuario tras el prompt (cualquier texto). &quot;Entrega válida&quot; = primer NIP de 4–8 dígitos.
           </div>
           {!b.nip.prompted && <Empty text="El bot no pidió NIP en este periodo (o no se detectó en el texto)." />}
         </div>
@@ -218,32 +253,28 @@ function BotmakerBehavior({ b, base, query }: { b: BotBehavior; base: string; qu
         </div>
       </div>
 
-      {/* Funnel del orden de captura de datos */}
+      {/* Funnel 2 GLOBAL: orden fijo número → NIP → nombre → venta (G2) */}
       <div style={panel}>
-        <h3 style={h3}><GitBranch className="w-4 h-4 text-cyan-400" /> Orden en que el bot pide los datos</h3>
+        <h3 style={h3}><GitBranch className="w-4 h-4 text-cyan-400" /> Funnel 2 global · número → NIP → nombre → venta</h3>
+        {b.globalFunnel2.steps.length ? (
+          <>
+            <div style={{ color: "#64748b", fontSize: 11, marginBottom: 12 }}>
+              Orden fijo (BAIT) · {b.globalFunnel2.totalSessions.toLocaleString("es-MX")} sesiones · venta = mensaje del bot con &quot;felicidades&quot;.
+            </div>
+            <FunnelSteps steps={b.globalFunnel2.steps} />
+          </>
+        ) : <Empty />}
+      </div>
+
+      {/* Funnel 2 POR TIPO DE BOT: orden real del flujo (o inferido) */}
+      <div style={panel}>
+        <h3 style={h3}><GitBranch className="w-4 h-4 text-cyan-400" /> Funnel 2 · por tipo de bot (orden del flujo)</h3>
         {b.dataRequestFunnel.steps.length ? (
           <>
             <div style={{ color: "#64748b", fontSize: 11, marginBottom: 12 }}>
               Método: {b.dataRequestFunnel.method === "configured" ? "orden fijo del tipo de bot" : b.dataRequestFunnel.method === "set-variable" ? "variables capturadas por el bot" : b.dataRequestFunnel.method === "heuristic" ? "inferido del texto de los mensajes" : "—"} · {b.dataRequestFunnel.totalSessions.toLocaleString("es-MX")} sesiones
             </div>
-            <div className="space-y-2">
-              {b.dataRequestFunnel.steps.map((s, i) => {
-                const top = b.dataRequestFunnel.steps[0]?.reached || 1;
-                const w = Math.round((s.reached / top) * 100);
-                return (
-                  <div key={s.key} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <div style={{ width: 120, fontSize: 12, color: "#cbd5e1", textAlign: "right" }}>{i + 1}. {s.label}</div>
-                    <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", borderRadius: 6, height: 26, position: "relative" }}>
-                      <div style={{ width: `${w}%`, background: PALETTE[i % PALETTE.length], height: "100%", borderRadius: 6, transition: "width .3s" }} />
-                      <span style={{ position: "absolute", left: 8, top: 4, fontSize: 11, color: "white" }}>{s.reached.toLocaleString("es-MX")}</span>
-                    </div>
-                    <div style={{ width: 90, fontSize: 11, color: s.dropOff ? "#f87171" : "#64748b" }}>
-                      {s.dropOff ? `-${s.dropOff} (${s.dropOffPct}%)` : "—"}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+            <FunnelSteps steps={b.dataRequestFunnel.steps} />
           </>
         ) : <Empty text="No se detectó un orden de captura de datos (sin eventos set-variable ni patrones en el texto)." />}
       </div>
@@ -280,8 +311,16 @@ function BotmakerBehavior({ b, base, query }: { b: BotBehavior; base: string; qu
       {/* Cruce con sábana de ventas (secciones 9-10) */}
       <SalesReconciliation base={base} query={query} />
 
-      {/* SIM/eSIM + reactivaciones */}
+      {/* Ventas, derivaciones y reactivaciones (sección 8) */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 16 }}>
+        <div style={panel}>
+          <h3 style={h3}><GitBranch className="w-4 h-4" style={{ color: "#a855f7" }} /> Derivaciones a agente</h3>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+            <Mini label="Sesiones derivadas" value={b.derivations.count.toLocaleString("es-MX")} color="#a855f7" />
+            <Mini label="Tasa de derivación" value={`${Math.round(b.derivations.rate * 1000) / 10}%`} />
+          </div>
+          <div style={{ color: "#64748b", fontSize: 10, marginTop: 8 }}>Transferencias a un agente humano (mensaje de agente o evento de transferencia).</div>
+        </div>
         <div style={panel}>
           <h3 style={h3}><MessageSquare className="w-4 h-4 text-cyan-400" /> SIM vs eSIM</h3>
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
@@ -517,6 +556,98 @@ function SalesReconciliation({ base, query }: { base: string; query: string }) {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+/** Sección "Por bot" (G1): tabla comparativa por canal Botmaker + funnels por bot. */
+function ByBotSection({ byBot }: { byBot: BotSummary[] }) {
+  const [expanded, setExpanded] = React.useState<string | null>(null);
+  if (!byBot.length) return null;
+  const pct = (v: number) => `${Math.round(v * 1000) / 10}%`;
+  const th: React.CSSProperties = { padding: "6px 8px", color: "#64748b", fontWeight: 600, textAlign: "left", whiteSpace: "nowrap" };
+  const td: React.CSSProperties = { padding: "6px 8px", color: "#cbd5e1", whiteSpace: "nowrap" };
+  const tdR: React.CSSProperties = { ...td, textAlign: "right" };
+  return (
+    <div style={panel}>
+      <h3 style={h3}><Users className="w-4 h-4 text-cyan-400" /> Por bot (canales Botmaker)</h3>
+      <div style={{ color: "#64748b", fontSize: 11, marginBottom: 12 }}>
+        Universo: conversaciones Botmaker en vivo · venta = &quot;felicidades&quot;. Una fila por canal/bot; clic para ver sus funnels.
+      </div>
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", fontSize: 12, borderCollapse: "collapse" }}>
+          <thead>
+            <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+              <th style={th}>Bot</th>
+              <th style={th}>Plataforma</th>
+              <th style={{ ...th, textAlign: "right" }}>Sesiones</th>
+              <th style={{ ...th, textAlign: "right" }}>Ventas</th>
+              <th style={{ ...th, textAlign: "right" }}>Conversión</th>
+              <th style={{ ...th, textAlign: "right" }}>NIP entreg.</th>
+              <th style={{ ...th, textAlign: "right" }}>Derivación</th>
+              <th style={{ ...th, textAlign: "right" }}>Reactivación</th>
+            </tr>
+          </thead>
+          <tbody>
+            {byBot.map((bot) => {
+              const open = expanded === bot.channelId;
+              return (
+                <React.Fragment key={bot.channelId}>
+                  <tr onClick={() => setExpanded(open ? null : bot.channelId)}
+                    style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", cursor: "pointer", background: open ? "rgba(0,212,255,0.05)" : "transparent" }}>
+                    <td style={{ ...td, maxWidth: 220 }}>
+                      <span style={{ display: "inline-flex", alignItems: "center", gap: 6, maxWidth: "100%", overflow: "hidden" }}>
+                        <ChevronDown className="w-3 h-3" style={{ transform: open ? "rotate(0)" : "rotate(-90deg)", transition: "transform .15s", color: "#64748b", flexShrink: 0 }} />
+                        <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{bot.name}{bot.number ? ` · ${bot.number}` : ""}</span>
+                      </span>
+                    </td>
+                    <td style={td}>{bot.canonical || bot.platform || "—"}</td>
+                    <td style={tdR}>{bot.sampleSize.toLocaleString("es-MX")}</td>
+                    <td style={{ ...tdR, color: "#06d6a0" }}>{bot.sales.toLocaleString("es-MX")}</td>
+                    <td style={tdR}>{pct(bot.conversionRate)}</td>
+                    <td style={tdR}>{pct(bot.nipDeliveredRate)}</td>
+                    <td style={tdR}>{pct(bot.derivations.rate)}</td>
+                    <td style={tdR}>{pct(bot.reactivations.rate)}</td>
+                  </tr>
+                  {open && (
+                    <tr>
+                      <td colSpan={8} style={{ padding: "12px 8px", background: "rgba(255,255,255,0.02)" }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 16 }}>
+                          <div>
+                            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8 }}>Funnel 1 · reacción al primer menú</div>
+                            {bot.firstMenu.total ? (
+                              <div className="space-y-2">
+                                {bot.firstMenu.byType.map((r, i) => {
+                                  const w = bot.firstMenu.total ? Math.round((r.count / bot.firstMenu.total) * 100) : 0;
+                                  return (
+                                    <div key={r.type} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                                      <div style={{ width: 110, fontSize: 11, color: "#cbd5e1", textAlign: "right" }}>{r.label}</div>
+                                      <div style={{ flex: 1, background: "rgba(255,255,255,0.05)", borderRadius: 6, height: 20, position: "relative" }}>
+                                        <div style={{ width: `${w}%`, background: PALETTE[i % PALETTE.length], height: "100%", borderRadius: 6 }} />
+                                        <span style={{ position: "absolute", left: 6, top: 2, fontSize: 10, color: "white" }}>{r.count.toLocaleString("es-MX")} · {r.pct}%</span>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : <div style={{ color: "#64748b", fontSize: 11 }}>Sin datos.</div>}
+                          </div>
+                          <div>
+                            <div style={{ fontSize: 11, color: "#94a3b8", marginBottom: 8 }}>
+                              Funnel 2 · {bot.flowType ? `tipo: ${bot.flowType}` : "orden inferido"}
+                            </div>
+                            {bot.funnel2.steps.length ? <FunnelSteps steps={bot.funnel2.steps} /> : <div style={{ color: "#64748b", fontSize: 11 }}>Sin orden detectado.</div>}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

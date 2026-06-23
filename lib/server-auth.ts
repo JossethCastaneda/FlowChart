@@ -119,14 +119,56 @@ export async function metaFetch(
     return suffix ? prefix : '';
   }).replace(/[?&]$/, '');
 
-  return fetch(cleanUrl, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-      ...(options.headers || {}),
-    },
-  });
+  let retries = 0;
+  const maxRetries = 3;
+  const isGet = !options.method || options.method === "GET";
+
+  while (true) {
+    const res = await fetch(cleanUrl, {
+      ...options,
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+        ...(options.headers || {}),
+      },
+      ...(isGet && !options.cache ? { next: { revalidate: 3600, ...(options as any).next } } : {}),
+    });
+
+    if (!res.ok && retries < maxRetries) {
+      // Distinguir un rate limit REAL de un 403 por permisos/token. 429 siempre es
+      // throttle; un 403 SOLO es throttle si el error trae un código de rate limit
+      // de Meta (4/17/32/613) — mismo criterio que auth.config.ts. Reintentar un 403
+      // de token/permisos gastaría ~14s de backoff antes de fallar igual.
+      let isRateLimit = res.status === 429;
+      if (res.status === 403) {
+        try {
+          const errJson = await res.clone().json();
+          const code = errJson?.error?.code;
+          const msg = String(errJson?.error?.message || "").toLowerCase();
+          isRateLimit = [4, 17, 32, 613].includes(code) || msg.includes("request limit") || msg.includes("rate limit");
+        } catch {
+          isRateLimit = false; // 403 sin cuerpo JSON → no es throttle, no reintentar
+        }
+      }
+
+      if (isRateLimit) {
+        // Log headers for debugging Meta's specific rate limit buckets
+        const usageHeader = res.headers.get("x-business-use-case-usage") || res.headers.get("x-app-usage");
+        if (usageHeader) {
+          console.log(`[META FETCH] Usage Header: ${usageHeader}`);
+        }
+
+        retries++;
+        // Exponential backoff: 2s, 4s, 8s + jitter
+        const delay = Math.pow(2, retries) * 1000 + Math.random() * 500;
+        console.warn(`[META FETCH] Rate limit (status ${res.status}) on ${cleanUrl.split('?')[0]}. Retry ${retries}/${maxRetries} in ${Math.round(delay)}ms...`);
+        await new Promise(r => setTimeout(r, delay));
+        continue; // Try again
+      }
+    }
+
+    return res;
+  }
 }
 
 /**

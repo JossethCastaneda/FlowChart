@@ -3,7 +3,7 @@ import { z } from "zod";
 import { withAuth } from "@/lib/api-handler";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { validateBody } from "@/lib/validate";
-import { resolveProjectCrmAssociation } from "@/lib/projects/crm";
+import { resolveProjectCrmAssociation, persistableCrmType } from "@/lib/projects/crm";
 import {
   apiSuccess,
   apiUnauthorized,
@@ -135,8 +135,9 @@ export const POST = withAuth(async (req, ctx) => {
         ...(dateStart !== undefined && { dateStart }),
         ...(dateEnd !== undefined && { dateEnd }),
         ...(crm ? { crmIntegrationIds: crm.crmIntegrationIds, crmIntegrationId: crm.crmIntegrationId } : {}),
-        // crmType solo se conserva si la integración asociada es válida del workspace.
-        ...(crmType !== undefined && { crmType: crm && crm.crmIntegrationId ? crmType : null }),
+        // crmType se conserva si hay integración válida o si es un sentinel sin
+        // integración por diseño (google/no_aplica); botmaker/cari sin integración → null.
+        ...(crmType !== undefined && { crmType: persistableCrmType(crmType, !!(crm && crm.crmIntegrationId)) }),
         ...(botFlowType !== undefined && { botFlowType }),
       },
     });

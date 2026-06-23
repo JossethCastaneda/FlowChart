@@ -1,8 +1,9 @@
 import { sleep } from "workflow";
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
-import { botmakerFetch } from "@/lib/botmaker";
+import { botmakerFetch, normalizeBotmakerBase } from "@/lib/botmaker";
 import { env } from "@/lib/env";
+import { metaFetch } from "@/lib/server-auth";
 
 /** Versión centralizada de la Graph API (default v25.0 en lib/env.ts). */
 const META_GRAPH_VERSION = env.META_API_VERSION;
@@ -11,8 +12,12 @@ const META_GRAPH_VERSION = env.META_API_VERSION;
  * Workflow asíncrono para mantener sincronizados los activos de las integraciones 
  * (Cuentas Publicitarias, Páginas, Bots) sin bloquear la interfaz del usuario.
  */
-export async function syncIntegrationAssetsWorkflow(integrationId: string) {
+export async function syncIntegrationAssetsWorkflow(integrationId: string, delaySeconds: number = 0) {
   "use workflow";
+
+  if (delaySeconds > 0) {
+    await sleep(`${delaySeconds}s`);
+  }
 
   // Este step aislado maneja la lógica y posibles reintentos ante Rate Limits
   const result = await executeSyncStep(integrationId);
@@ -47,7 +52,9 @@ async function executeSyncStep(integrationId: string) {
     if (integration.provider.startsWith("meta")) {
       await syncMetaAssets(integration, token);
     } else if (integration.provider === "botmaker") {
-      await syncBotmakerAssets(integration, token);
+      // Respetar el host Botmaker propio del workspace (igual que getBotmakerConnection).
+      const baseUrl = normalizeBotmakerBase((integration.credentials as { baseUrl?: string } | null)?.baseUrl);
+      await syncBotmakerAssets(integration, token, baseUrl);
     } else if (integration.provider === "google") {
       await syncGoogleAssets(integration, token);
     }
@@ -67,7 +74,7 @@ async function executeSyncStep(integrationId: string) {
 
 async function syncMetaAssets(integration: any, token: string) {
   // 1. Sincronizar Páginas (Pages)
-  const pagesRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/accounts?fields=id,name,access_token,category,instagram_business_account&access_token=${token}`);
+  const pagesRes = await metaFetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/accounts?fields=id,name,category,instagram_business_account`, token);
   if (!pagesRes.ok) throw await pagesRes.json();
   const pagesData = await pagesRes.json();
   
@@ -121,7 +128,7 @@ async function syncMetaAssets(integration: any, token: string) {
   }
 
   // 2. Sincronizar Cuentas Publicitarias (Ad Accounts)
-  const adRes = await fetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/adaccounts?fields=id,name,account_status,amount_spent,currency&access_token=${token}`);
+  const adRes = await metaFetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/adaccounts?fields=id,name,account_status,amount_spent,currency`, token);
   if (adRes.ok) {
     const adData = await adRes.json();
     for (const adAcc of adData.data) {
@@ -153,6 +160,33 @@ async function syncMetaAssets(integration: any, token: string) {
       await syncDeepMetaAdsData(adAcc.id, token);
     }
   }
+
+  // 3. Pre-calculate Analytics (Background Syncing)
+  try {
+    const fallbackUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL 
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+      : process.env.VERCEL_URL 
+        ? `https://${process.env.VERCEL_URL}` 
+        : "http://localhost:3000";
+        
+    const appUrl = env.NEXT_PUBLIC_APP_URL || fallbackUrl;
+    const headers = { 
+      "Authorization": `Bearer ${env.CRON_SECRET}`,
+      "x-meta-token": token 
+    };
+
+    // Trigger organic for 28 and 7 days
+    await fetch(`${appUrl}/api/analytics/organic?force=true&days=28&workspaceId=${integration.workspaceId}`, { headers });
+    await fetch(`${appUrl}/api/analytics/organic?force=true&days=7&workspaceId=${integration.workspaceId}`, { headers });
+    
+    // Trigger posts and audience
+    await fetch(`${appUrl}/api/analytics/posts?force=true&workspaceId=${integration.workspaceId}`, { headers });
+    await fetch(`${appUrl}/api/analytics/audience?force=true&workspaceId=${integration.workspaceId}`, { headers });
+    
+    console.log(`[SYNC] Pre-calculated analytics for workspace ${integration.workspaceId}`);
+  } catch (error) {
+    console.error(`Error in precalculating analytics for ${integration.workspaceId}:`, error);
+  }
 }
 
 async function fetchPaginated(url: string, token: string): Promise<any[]> {
@@ -160,7 +194,7 @@ async function fetchPaginated(url: string, token: string): Promise<any[]> {
   let nextUrl: string | null = url;
 
   while (nextUrl) {
-    const res: Response = await fetch(nextUrl, { headers: { Authorization: `Bearer ${token}` } });
+    const res = await metaFetch(nextUrl, token);
     if (!res.ok) {
       const err: any = await res.json().catch(()=>({}));
       throw err;
@@ -249,13 +283,19 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
 }
 
 
-async function syncBotmakerAssets(integration: any, token: string) {
+async function syncBotmakerAssets(integration: any, token: string, baseUrl?: string) {
   // Sincronizar Canales de Botmaker (WhatsApp, Messenger, etc.)
   try {
-    const res = await botmakerFetch("/channels", token);
-    // Suponemos que retorna un arreglo de canales
-    if (res && Array.isArray(res)) {
-      for (const channel of res) {
+    const res = await botmakerFetch("/channels", token, {}, 2, normalizeBotmakerBase(baseUrl));
+    if (!res.ok) {
+      console.error(`Botmaker /channels sync failed: HTTP ${res.status}`);
+      return;
+    }
+    // La API puede devolver { items: [...] } o un arreglo directo (ver listBotmakerChannels).
+    const data = await res.json().catch(() => null);
+    const channels = (data?.items ?? data ?? []) as any[];
+    if (Array.isArray(channels)) {
+      for (const channel of channels) {
         await prisma.integrationAssetCache.upsert({
           where: {
             integrationId_assetType_externalId: {

@@ -6,6 +6,7 @@ import { rateLimit, getClientIP } from "@/lib/ratelimit";
 
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
+import { logger } from "@/lib/logger";
 
 const ForgotPasswordSchema = z.object({
   email: z.string().email("Email inválido").max(255).transform((e) => e.toLowerCase().trim()),
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     // Siempre devolver success (no revelar si el email existe)
     if (!user) {
-      console.log("[FORGOT-PASSWORD] Email not found:", normalizedEmail);
+      logger.info("[FORGOT-PASSWORD] Email not found:", normalizedEmail);
       // Equalize response timing to prevent email enumeration via timing analysis
       await new Promise(r => setTimeout(r, 100 + Math.random() * 200));
       return NextResponse.json({ success: true });
@@ -63,6 +64,14 @@ export async function POST(req: NextRequest) {
     const baseUrl = getBaseUrl();
     const resetUrl = `${baseUrl}/reset-password/${token}`;
 
+    // En desarrollo (sin RESEND_API_KEY), retornar el enlace directamente
+    // para que los desarrolladores puedan testear sin configurar email.
+    const isDev = process.env.NODE_ENV === "development" && !process.env.RESEND_API_KEY;
+    if (isDev) {
+      logger.info("[FORGOT-PASSWORD] Dev mode: returning reset URL directly (no email configured)");
+      return NextResponse.json({ success: true, devResetUrl: resetUrl });
+    }
+
     const { sendPasswordResetEmail } = await import("@/lib/email");
     await sendPasswordResetEmail({
       to: normalizedEmail,
@@ -72,7 +81,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (err: any) {
-    console.error("[FORGOT-PASSWORD] Error:", err);
+    logger.error("[FORGOT-PASSWORD] Error:", err);
     return NextResponse.json(
       { error: "Error al procesar solicitud" },
       { status: 500 }

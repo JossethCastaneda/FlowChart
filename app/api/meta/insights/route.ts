@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
 import { calculateDataQuality } from "@/lib/meta-errors";
+import { logger } from "@/lib/logger";
 
 /**
  * Meta Insights API — Robust implementation
@@ -105,7 +106,7 @@ export async function GET(req: NextRequest) {
       const res = await metaFetch(url, token);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        console.error(
+        logger.error(
           `[INSIGHTS:${tag}] Meta API error:`,
           err?.error?.message || `HTTP ${res.status}`
         );
@@ -114,7 +115,7 @@ export async function GET(req: NextRequest) {
       const json = await res.json();
       return json.data || [];
     } catch (e: any) {
-      console.error(`[INSIGHTS:${tag}] Exception:`, e.message);
+      logger.error(`[INSIGHTS:${tag}] Exception:`, e.message);
       return [];
     }
   };

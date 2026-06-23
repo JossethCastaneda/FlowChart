@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import "@/styles/login.css";
 
 export const metadata: Metadata = {
   title: "Sodare - Authentication",

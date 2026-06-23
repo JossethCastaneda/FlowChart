@@ -10,6 +10,12 @@
  *   logger.info("post publicado", { workspaceId, postId });
  *   const log = logger.child({ route: "api/publisher/publish" });
  *   log.error("fallo al publicar", { error: err });
+ *
+ * El segundo argumento acepta:
+ *   - un objeto Record<string, unknown>  → spread directo al log entry
+ *   - un Error                           → { error: { name, message, stack } }
+ *   - cualquier otro valor primitivo     → { value: <value> }
+ *   - undefined / null                   → sin contexto extra
  */
 
 type Level = "debug" | "info" | "warn" | "error";
@@ -30,7 +36,23 @@ function serializeError(value: unknown): unknown {
   return value;
 }
 
-function emit(level: Level, message: string, context?: LogContext) {
+/**
+ * Normalize any context argument to a LogContext object.
+ * Accepts Record<string,unknown>, Error, string, array, primitive, etc.
+ */
+function normalizeContext(context: unknown): LogContext | undefined {
+  if (context === undefined || context === null) return undefined;
+  if (context instanceof Error) {
+    return { error: serializeError(context) };
+  }
+  if (typeof context === "object" && !Array.isArray(context)) {
+    return context as LogContext;
+  }
+  // Primitive (string, number, array, …) — wrap in { value }
+  return { value: context };
+}
+
+function emit(level: Level, message: string, context?: unknown) {
   if (level === "debug" && process.env.NODE_ENV === "production") return;
 
   const entry: Record<string, unknown> = {
@@ -38,8 +60,10 @@ function emit(level: Level, message: string, context?: LogContext) {
     ts: new Date().toISOString(),
     msg: message,
   };
-  if (context) {
-    for (const [key, value] of Object.entries(context)) {
+
+  const normalized = normalizeContext(context);
+  if (normalized) {
+    for (const [key, value] of Object.entries(normalized)) {
       entry[key] = serializeError(value);
     }
   }
@@ -47,22 +71,24 @@ function emit(level: Level, message: string, context?: LogContext) {
   try {
     console[LEVEL_METHOD[level]](JSON.stringify(entry));
   } catch {
-    // Contexto no serializable (referencias circulares) — no perder el mensaje.
+    // Non-serializable context (circular references) — don't lose the message.
     console[LEVEL_METHOD[level]](`[${level}] ${message}`);
   }
 }
 
 export interface Logger {
-  debug(message: string, context?: LogContext): void;
-  info(message: string, context?: LogContext): void;
-  warn(message: string, context?: LogContext): void;
-  error(message: string, context?: LogContext): void;
+  debug(message: string, context?: unknown): void;
+  info(message: string, context?: unknown): void;
+  warn(message: string, context?: unknown): void;
+  error(message: string, context?: unknown): void;
   child(base: LogContext): Logger;
 }
 
 function createLogger(base: LogContext = {}): Logger {
-  const withBase = (context?: LogContext) =>
-    Object.keys(base).length > 0 ? { ...base, ...context } : context;
+  const withBase = (context?: unknown): unknown =>
+    Object.keys(base).length > 0
+      ? { ...base, ...(normalizeContext(context) ?? {}) }
+      : context;
   return {
     debug: (message, context) => emit("debug", message, withBase(context)),
     info: (message, context) => emit("info", message, withBase(context)),
