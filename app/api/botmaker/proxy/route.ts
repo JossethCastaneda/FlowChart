@@ -59,12 +59,23 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   }
 
   try {
-    const upstreamRes = await fetch(url, {
-      method: parsed.method,
-      headers,
-      body: bodyPayload,
-      signal: AbortSignal.timeout(15_000),
-    });
+    let upstreamRes: Response;
+    let retries = 3;
+    while (true) {
+      upstreamRes = await fetch(url, {
+        method: parsed.method,
+        headers,
+        body: bodyPayload,
+        signal: AbortSignal.timeout(15_000),
+      });
+      if (upstreamRes.status === 429 && retries > 0) {
+        const delay = (4 - retries) * 1500;
+        await new Promise((r) => setTimeout(r, delay));
+        retries--;
+        continue;
+      }
+      break;
+    }
 
     let data: unknown;
     const ct = upstreamRes.headers.get("content-type") || "";
@@ -74,6 +85,14 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       const text = await upstreamRes.text();
       data = text ? { raw: text } : { ok: true, httpStatus: upstreamRes.status };
     }
+
+    console.log("[BOTMAKER PROXY DEBUG]", {
+      method: parsed.method,
+      url,
+      headersKeys: Object.keys(headers),
+      status: upstreamRes.status,
+      responseData: data
+    });
 
     return Response.json(data, { status: upstreamRes.status });
   } catch (err: unknown) {

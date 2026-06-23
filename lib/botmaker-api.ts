@@ -50,13 +50,14 @@ const DEFAULT_BASE = "https://api.botmaker.com/v2.0";
 /**
  * Ejecuta una petición autenticada a la API de Botmaker.
  * - Aplica retry automático en 429 (Rate Limit) con backoff exponencial.
+ * - También reintenta en errores 5xx transitorios.
  * - Devuelve la Response cruda para que cada función decida cómo parsear.
  */
 export async function bmFetch(
   conn: BmConnection,
   path: string,
   init: RequestInit = {},
-  retries = 2
+  retries = 5
 ): Promise<Response> {
   const url = `${conn.baseUrl || DEFAULT_BASE}${path}`;
   const res = await fetch(url, {
@@ -68,8 +69,12 @@ export async function bmFetch(
       ...(init.headers ?? {}),
     },
   });
-  if (res.status === 429 && retries > 0) {
-    const delay = (3 - retries) * 1500;
+  // Retry on rate limit (429) and transient server errors (5xx)
+  const retryable = res.status === 429 || (res.status >= 500 && res.status <= 504);
+  if (retryable && retries > 0) {
+    // Exponential backoff: 2s, 4s, 8s, 16s, 32s
+    const attempt = 6 - retries;
+    const delay = Math.min(2000 * Math.pow(2, attempt - 1), 32000);
     await new Promise((r) => setTimeout(r, delay));
     return bmFetch(conn, path, init, retries - 1);
   }
@@ -187,12 +192,26 @@ export async function listSessions(
       ? new URL(next).pathname + new URL(next).search
       : next;
     const res = await bmFetch(conn, path);
-    if (!res.ok) break;
+    if (!res.ok) {
+      console.warn(`[listSessions] Page ${pages + 1} returned ${res.status} for ${from} → ${to}, stopping pagination`);
+      break;
+    }
     const data: BmSessionsPage = await res.json().catch(() => ({}));
-    if (Array.isArray(data.items)) all.push(...data.items);
+    const items = Array.isArray(data.items) ? data.items : [];
+    all.push(...items);
     next = data.nextPage || null;
     pages++;
+
+    // Small delay between pages to avoid rate limiting
+    if (next && pages < maxPages) {
+      await new Promise((r) => setTimeout(r, 200));
+    }
   }
+
+  if (pages > 1 || all.length > 0) {
+    console.log(`[listSessions] ${from.slice(0,10)} → ${to.slice(0,10)}: ${pages} pages, ${all.length} sessions`);
+  }
+
   return all;
 }
 

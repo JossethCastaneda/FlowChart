@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
@@ -58,11 +58,10 @@ const NAV_ITEMS: { name: string; short: string; href: string; icon: any; color: 
   { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500", holoVariant: "emerald" },
   { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55", holoVariant: "pink" },
   { name: "Botmaker", short: "BOT", href: "/dashboard/botmaker", icon: Bot, color: "#7c3aed", holoVariant: "pink" },
+  { name: "Bot Analytics", short: "BANA", href: "/dashboard/botmaker/analytics", icon: BarChart3, color: "#a855f7", holoVariant: "pink" },
 ];
 
 
-
-const SIDEBAR_COLLAPSE_KEY = "sodare:sidebar-collapsed";
 
 const TRANSLATIONS = {
   es: {
@@ -158,32 +157,72 @@ const getTranslatedNavItemName = (name: string, lang: 'es' | 'en') => {
   return map[name] || name;
 };
 
+/** Width of the invisible hover-trigger zone at the left edge */
+const HOVER_TRIGGER_WIDTH = 16;
+/** Delay (ms) before the sidebar auto-hides after mouse leaves */
+const AUTO_HIDE_DELAY = 400;
+
 export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  // "pinned" is the manual toggle via the hamburger — when true, sidebar stays visible
+  const [pinned, setPinned] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isEmbedded, setIsEmbedded] = useState(false);
   const pathname = usePathname();
+  const sidebarRef = useRef<HTMLElement>(null);
+  const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: session } = useSession();
 
   useEffect(() => {
     setMounted(true);
-    // Restore the user's collapse preference (client-only to avoid hydration mismatch).
-    try { setCollapsed(localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === "1"); } catch { /* ignore */ }
   }, []);
-
-  const toggleCollapsed = () => {
-    setCollapsed((prev) => {
-      const next = !prev;
-      try { localStorage.setItem(SIDEBAR_COLLAPSE_KEY, next ? "1" : "0"); } catch { /* ignore */ }
-      return next;
-    });
-  };
 
   // Detect iframe on mount (client-side only)
   useEffect(() => {
     try { setIsEmbedded(window.self !== window.top); } catch { setIsEmbedded(true); }
+  }, []);
+
+  // ── Auto show/hide on hover ──
+  // Show sidebar when mouse enters the left-edge trigger zone
+  const handleMouseEnterTrigger = useCallback(() => {
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+    setSidebarOpen(true);
+  }, []);
+
+  // Keep sidebar visible while mouse is inside it
+  const handleMouseEnterSidebar = useCallback(() => {
+    if (hideTimerRef.current) {
+      clearTimeout(hideTimerRef.current);
+      hideTimerRef.current = null;
+    }
+  }, []);
+
+  // Start auto-hide timer when mouse leaves sidebar (unless pinned)
+  const handleMouseLeaveSidebar = useCallback(() => {
+    if (pinned) return;
+    hideTimerRef.current = setTimeout(() => {
+      setSidebarOpen(false);
+    }, AUTO_HIDE_DELAY);
+  }, [pinned]);
+
+  // Toggle pinned state via hamburger button
+  const togglePinned = useCallback(() => {
+    setPinned(prev => {
+      const next = !prev;
+      setSidebarOpen(next);
+      return next;
+    });
+  }, []);
+
+  // Clean up timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+    };
   }, []);
 
   // ── Activity status ──
@@ -297,11 +336,30 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     );
   }
 
+  // Whether the sidebar is visually shown (either auto-hover or pinned)
+  const sidebarVisible = sidebarOpen || pinned;
+
   return (
     <div className="h-screen overflow-hidden flex" style={{ background: "var(--background)" }}>
       {/* Animated galaxy background */}
       {theme !== 'claro' && <GalaxyBackground />}
       <div className="dashboard-grid" />
+
+      {/* ─── Hover trigger zone (invisible strip at left edge, desktop only) ─── */}
+      <div
+        className="hidden lg:block"
+        onMouseEnter={handleMouseEnterTrigger}
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: HOVER_TRIGGER_WIDTH,
+          height: "100vh",
+          zIndex: 60,
+        }}
+      />
+
+
 
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -311,18 +369,44 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         />
       )}
 
-      {/* ─── Sidebar ─── */}
+      {/* ─── Floating Sidebar ─── */}
       <aside
-        className={`sidebar sidebar-responsive fixed inset-y-0 left-0 z-50 flex flex-col
-          transform transition-all duration-300 ease-in-out
-          lg:translate-x-0 lg:static lg:z-auto
-          ${collapsed ? "sidebar-collapsed" : ""}
-          ${sidebarOpen ? "translate-x-0 w-64" : "-translate-x-full w-64"}`}
+        ref={sidebarRef}
+        onMouseEnter={handleMouseEnterSidebar}
+        onMouseLeave={handleMouseLeaveSidebar}
+        className="sidebar-floating"
+        style={{
+          position: "fixed",
+          top: 12,
+          left: 12,
+          bottom: 12,
+          width: 256,
+          zIndex: 55,
+          display: "flex",
+          flexDirection: "column",
+          borderRadius: 20,
+          background: theme === 'claro'
+            ? "rgba(255,255,255,0.92)"
+            : "rgba(8,12,24,0.92)",
+          backdropFilter: "blur(40px) saturate(1.5)",
+          border: theme === 'claro'
+            ? "1px solid rgba(0,0,0,0.08)"
+            : "1px solid rgba(0,212,255,0.12)",
+          boxShadow: theme === 'claro'
+            ? "0 8px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.02)"
+            : "0 8px 40px rgba(0,0,0,0.6), 0 0 60px rgba(0,212,255,0.04), 0 0 0 1px rgba(0,212,255,0.06)",
+          // Slide in/out transition
+          transform: sidebarVisible ? "translateX(0)" : "translateX(calc(-100% - 24px))",
+          opacity: sidebarVisible ? 1 : 0,
+          transition: "transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease",
+          pointerEvents: sidebarVisible ? "auto" : "none",
+          overflow: "hidden",
+        }}
       >
         {/* Logo */}
-        <div className="sidebar-logo-row flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--border)" }}>
+        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: theme === 'claro' ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.06)" }}>
           <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
-            <SodareLogo size="sm" showText={!collapsed} />
+            <SodareLogo size="sm" showText={true} />
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-500 hover:text-white">
             <X className="w-5 h-5" />
@@ -330,12 +414,12 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Workspace Switcher */}
-        <div className="sidebar-hide-compact" style={{ padding: "12px 0 0" }}>
+        <div style={{ padding: "12px 0 0" }}>
           <WorkspaceSwitcher />
         </div>
 
         {/* Nav section label */}
-        <div className="px-5 pt-6 pb-2 sidebar-hide-compact">
+        <div className="px-5 pt-6 pb-2">
           <span style={{
             fontFamily: "'Orbitron', sans-serif",
             fontSize: "9px",
@@ -360,7 +444,11 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                 key={item.name}
                 href={item.href}
                 className={`nav-item ${isActive ? "active" : ""}`}
-                onClick={() => setSidebarOpen(false)}
+                onClick={() => {
+                  setSidebarOpen(false);
+                  // If not pinned, auto-hide after navigation
+                  if (!pinned) setSidebarOpen(false);
+                }}
                 style={isActive ? { "--nav-color": item.color } as React.CSSProperties : undefined}
               >
                 <HoloIcon
@@ -369,8 +457,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   isActive={isActive}
                   className="w-[18px] h-[18px]"
                 />
-                <span className="flex-1 nav-full-name">{translatedName}</span>
-                <span className="nav-short-name">{item.short}</span>
+                <span className="flex-1">{translatedName}</span>
                 {isActive && (
                   <HoloIcon icon={ChevronRight} variant="cyan" isActive={true} className="w-3 h-3" style={{ opacity: 0.5 }} />
                 )}
@@ -379,21 +466,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        {/* Collapse toggle — desktop only */}
-        <button
-          onClick={toggleCollapsed}
-          className="sidebar-collapse-btn hidden lg:flex"
-          title={collapsed ? t.expandir : t.colapsar}
-          aria-label={collapsed ? t.expandir : t.colapsar}
-        >
-          <ChevronRight
-            className="w-[18px] h-[18px] flex-shrink-0"
-            style={{ transform: collapsed ? "none" : "rotate(180deg)", transition: "transform 0.3s ease" }}
-          />
-          <span className="sidebar-hide-compact">{t.colapsar}</span>
-        </button>
-
-
+        {/* NO collapse button — removed per user request */}
       </aside>
 
       {/* ─── Main Content ─── */}
@@ -426,6 +499,9 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           position: "relative",
           zIndex: 50,
         }}>
+          {/* Spacer for hamburger button area */}
+          <div style={{ marginRight: "auto" }} />
+
           {/* Quick actions */}
           <Link href="/dashboard/inbox" className="text-slate-400 hover:text-white transition-colors" title="Conversaciones">
             <HoloIcon icon={MessageSquarePlus} variant="cyan" isActive={true} className="w-[18px] h-[18px]" />
