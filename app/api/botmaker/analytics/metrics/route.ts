@@ -337,4 +337,4 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   }
 });
 
-export const maxDuration = 600; // 10 minutes — 276 chunks for full month, rate-limited
+export const maxDuration = 300; // 5 minutes — 276 chunks for full month, rate-limited (Vercel Hobby plan limit)
