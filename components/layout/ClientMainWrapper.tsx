@@ -469,8 +469,20 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* NO collapse button — removed per user request */}
       </aside>
 
+      {/* CSS layout shift for sidebar */}
+      <style>{`
+        .main-content-layout {
+          transition: margin-left 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        @media (min-width: 1024px) {
+          .main-content-layout.sidebar-visible {
+            margin-left: 280px;
+          }
+        }
+      `}</style>
+
       {/* ─── Main Content ─── */}
-      <main className="flex-1 flex flex-col min-w-0 relative z-[1]">
+      <main className={`flex-1 flex flex-col min-w-0 relative z-[1] main-content-layout ${sidebarVisible ? "sidebar-visible" : ""}`}>
         {/* Mobile header */}
         <header className="lg:hidden flex items-center justify-between px-5 py-4 z-10"
           style={{
@@ -480,6 +492,13 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           }}
         >
           <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="flex items-center justify-center p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+              style={{ background: "transparent", border: "none" }}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
             <SodareLogo size="sm" />
           </div>
           <div className="flex items-center gap-2">
@@ -499,8 +518,15 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           position: "relative",
           zIndex: 50,
         }}>
-          {/* Spacer for hamburger button area */}
-          <div style={{ marginRight: "auto" }} />
+          {/* Hamburger Menu Toggle (Desktop) */}
+          <button
+            onClick={togglePinned}
+            className="flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer mr-auto"
+            style={{ background: "transparent", border: "none" }}
+            title={pinned ? t.colapsar : t.expandir}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
 
           {/* Quick actions */}
           <Link href="/dashboard/inbox" className="text-slate-400 hover:text-white transition-colors" title="Conversaciones">
