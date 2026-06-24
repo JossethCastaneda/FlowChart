@@ -827,12 +827,15 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
       const queryFrom = Math.max(cursor, fromDate.getTime());
       const queryTo = Math.min(chunkEnd, queryEndMs);
       
-      if (queryFrom < queryTo) {
+      // Clamp queryTo to current time to prevent future date 400 errors from Botmaker API
+      const safeQueryTo = Math.min(queryTo, Date.now() - 5000);
+      
+      if (queryFrom < safeQueryTo) {
         chunks.push({
           from: new Date(queryFrom).toISOString(),
-          to: new Date(queryTo).toISOString(),
-          isPast: queryTo <= safeCacheThresholdMs,
-          cacheKey: `${new Date(queryFrom).toISOString()}_${new Date(queryTo).toISOString()}`
+          to: new Date(safeQueryTo).toISOString(),
+          isPast: safeQueryTo <= safeCacheThresholdMs,
+          cacheKey: `${new Date(queryFrom).toISOString()}_${new Date(safeQueryTo).toISOString()}`
         });
       }
       cursor = chunkEnd;

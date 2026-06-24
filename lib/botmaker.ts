@@ -152,9 +152,17 @@ export async function listSessions(
   maxPages = 6,
   baseUrl: string = BASE
 ): Promise<BmSession[]> {
+  // Clamp toISO to prevent future date 400 errors from Botmaker API
+  let safeTo = toISO;
+  try {
+    if (new Date(toISO).getTime() > Date.now()) {
+      safeTo = new Date(Date.now() - 5000).toISOString();
+    }
+  } catch (e) {}
+
   const all: BmSession[] = [];
   let next: string | null =
-    `/sessions?from=${encodeURIComponent(fromISO)}&to=${encodeURIComponent(toISO)}&include-messages=true&include-events=true`;
+    `/sessions?from=${encodeURIComponent(fromISO)}&to=${encodeURIComponent(safeTo)}&include-messages=true&include-events=true`;
   let pages = 0;
   while (next && pages < maxPages) {
     // Always route through botmakerFetch for consistent retry/headers.

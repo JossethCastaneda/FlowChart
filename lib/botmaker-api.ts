@@ -187,9 +187,17 @@ export async function listSessions(
     maxPages = 6,
   } = opts;
 
+  // Clamp 'to' to prevent future date 400 errors from Botmaker API
+  let safeTo = to;
+  try {
+    if (new Date(to).getTime() > Date.now()) {
+      safeTo = new Date(Date.now() - 5000).toISOString();
+    }
+  } catch (e) {}
+
   const qs = new URLSearchParams({
     from,
-    to,
+    to: safeTo,
     "include-messages": String(includeMessages),
     "include-events": String(includeEvents),
   });

@@ -2665,8 +2665,7 @@ function Dashboard({
   customTo,
   setCustomTo,
   sessionMetrics,
-  timezone,
-  setTimezone
+  timezone
 }: {
   rawChats: BotmakerChat[];
   onReset: () => void;
@@ -2679,7 +2678,6 @@ function Dashboard({
   setCustomTo: (val: string) => void;
   sessionMetrics: SessionMetricsData | null;
   timezone: string;
-  setTimezone: (val: string) => void;
 }) {
   const [selectedAgents, setSelectedAgents] = useState<string[]>([]);
   const [selectedQueues, setSelectedQueues] = useState<string[]>([]);
@@ -3325,17 +3323,7 @@ function Dashboard({
             </select>
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: 6, minWidth: 180 }}>
-            <span style={{ fontSize: 11, color: "rgba(148,163,184,0.8)", fontWeight: 600 }}>Zona Horaria (Botmaker)</span>
-            <select value={timezone} onChange={e => setTimezone(e.target.value)} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", color: "white", borderRadius: 6, padding: "6px 10px", fontSize: 12, outline: "none", height: 32 }}>
-              <option value="America/Mexico_City">México (UTC-6)</option>
-              <option value="America/Caracas">Venezuela (UTC-4)</option>
-              <option value="America/Bogota">Colombia/Perú (UTC-5)</option>
-              <option value="America/Santiago">Chile (UTC-4/UTC-3)</option>
-              <option value="America/Argentina/Buenos_Aires">Argentina (UTC-3)</option>
-              <option value="UTC">UTC (00:00)</option>
-            </select>
-          </div>
+
 
           <div style={{ display: "flex", alignItems: "center", gap: 6, paddingBottom: 8, minWidth: 150 }}>
             <input type="checkbox" checked={onlyNew} onChange={e => setOnlyNew(e.target.checked)} style={{ cursor: "pointer", accentColor: "#4f46e5" }} />
@@ -4014,26 +4002,7 @@ export default function BotAnalyticsPage() {
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
 
-  const [timezone, setTimezone] = useState<string>(() => {
-    if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("botmaker_analytics_timezone");
-      if (stored) return stored;
-      
-      // Auto-detect browser timezone
-      try {
-        const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-        if (browserTz) return browserTz;
-      } catch (e) {}
-    }
-    return process.env.NEXT_PUBLIC_APP_TIMEZONE || "America/Mexico_City";
-  });
-
-  const handleTimezoneChange = (newTz: string) => {
-    setTimezone(newTz);
-    if (typeof window !== "undefined") {
-      localStorage.setItem("botmaker_analytics_timezone", newTz);
-    }
-  };
+  const timezone = "America/Mexico_City";
 
   const abortControllerRef = React.useRef<AbortController | null>(null);
 
@@ -4224,7 +4193,6 @@ export default function BotAnalyticsPage() {
           setCustomTo={setCustomTo}
           sessionMetrics={sessionMetrics}
           timezone={timezone}
-          setTimezone={handleTimezoneChange}
         />
       )}
     </div>
