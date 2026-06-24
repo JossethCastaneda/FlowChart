@@ -288,12 +288,6 @@ class MetricsAccumulator {
 
       const msgs = s.messages || [];
       const events = s.events || [];
-      
-      // 2. Ignore sessions that have absolutely zero messages (ghost sessions, system triggers, abandoned link clicks).
-      // This is the primary reason why API returns 1200+ but Dashboard shows ~648.
-      if (msgs.length === 0) {
-          continue;
-      }
 
       this.sessionIds.add(sid);
       this.validSessions.push(s);
@@ -343,30 +337,21 @@ class MetricsAccumulator {
         else this.botMessages++;
       }
 
-      // Agent detection — check events and messages
-      let hasAgent = false;
+      // Agent detection — check mapped chat
+      const hasAgent = mappedChat.assignee.id !== "sin_agente" && mappedChat.assignee.name !== "Sin Agente";
       let closedByAg = false;
 
       for (const ev of events) {
         const evName = (ev.name || "").toLowerCase();
-        if (
-          evName === "agent-online" ||
-          evName === "operator-online" ||
-          evName === "assign-agent" ||
-          evName === "assigned-to-agent" ||
-          evName === "agent-message" ||
-          evName.includes("assign")
-        ) {
-          hasAgent = true;
-        }
         if (evName === "conversation-close") {
           const closedBy = ev.info?.operatorName || ev.info?.agentId;
-          if (closedBy) closedByAg = true;
+          if (closedBy) {
+            const closedByStr = String(closedBy);
+            if (closedByStr !== "unknown" && !closedByStr.toLowerCase().includes("bot") && !closedByStr.toLowerCase().includes("system")) {
+              closedByAg = true;
+            }
+          }
         }
-      }
-
-      if (!hasAgent) {
-        hasAgent = msgs.some((m) => m.from === "agent");
       }
 
       if (hasAgent) {

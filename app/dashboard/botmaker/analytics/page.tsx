@@ -1820,22 +1820,20 @@ function renderWidgetContent(
               <p style={{ fontSize: 12, fontWeight: 700, color: "white", margin: "0 0 12px" }}>Distribución por canal</p>
               <div style={{ width: "100%", height: 160, position: "relative", display: "flex", justifyContent: "center" }}>
                 {loading ? (
-                  <div style={{ width: 100, height: 50, border: "8px solid rgba(255,255,255,0.02)", borderTopColor: "rgba(255,255,255,0.08)", borderRadius: "50% 50% 0 0 / 100% 100% 0 0", marginTop: 40 }} />
+                  <div style={{ width: 100, height: 100, border: "8px solid rgba(255,255,255,0.02)", borderTopColor: "rgba(255,255,255,0.08)", borderRadius: "50%", marginTop: 20 }} />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <PieChart margin={{ top: 20, left: 10, right: 10, bottom: -10 }}>
+                    <PieChart margin={{ top: 0, left: 0, right: 0, bottom: 0 }}>
                       <Pie
                         data={data.channelsDonut}
                         dataKey="value"
                         nameKey="name"
-                        cx="50%"
-                        cy="85%"
-                        startAngle={180}
-                        endAngle={0}
+                        cx="40%"
+                        cy="50%"
                         innerRadius={45}
                         outerRadius={65}
                         paddingAngle={2}
-                        label={renderSemicircleLabel}
+                        label={false}
                         labelLine={false}
                       >
                         {data.channelsDonut?.map((entry, index) => (
@@ -1843,6 +1841,7 @@ function renderWidgetContent(
                         ))}
                       </Pie>
                       <Tooltip contentStyle={{ background: '#0d1626', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: 'white' }} itemStyle={{ color: 'white' }} />
+                      <Legend verticalAlign="middle" align="right" layout="vertical" wrapperStyle={{ color: "rgba(255,255,255,0.7)", fontSize: 10, right: 10 }} />
                     </PieChart>
                   </ResponsiveContainer>
                 )}

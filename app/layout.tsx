@@ -13,6 +13,7 @@ import { PermissionsProvider } from "@/components/layout/PermissionsContext";
 import { getBaseUrl } from "@/lib/get-base-url";
 import { LanguageProvider } from "@/components/layout/LanguageContext";
 import { SodareBrandDefs } from "@/components/ui/SodareBrandDefs";
+import { PopupCloseHandler } from "@/components/layout/PopupCloseHandler";
 
 // Solo inyectar los tags si el ID tiene el formato real (GTM-XXXX / G-XXXX);
 // así un placeholder en Vercel no genera scripts rotos en producción.
@@ -56,6 +57,7 @@ export default function RootLayout({
               </QueryProvider>
               <ToastContainer />
               <ConfirmModalContainer />
+              <PopupCloseHandler />
             </PermissionsProvider>
           </LanguageProvider>
         </AuthProvider>
