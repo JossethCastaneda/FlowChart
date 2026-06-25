@@ -2,7 +2,7 @@ import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
 import { apiSuccess, apiNotFound, apiForbidden, apiError, apiServerError } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
-import { notifyTaskAssigned, notifyTaskStatusChanged } from "@/lib/notifications";
+import { notifyTaskAssigned, notifyTaskStatusChanged, notifyTaskPriorityChanged } from "@/lib/notifications";
 import { updateAutoSLA } from "@/lib/sla-calculator";
 import { parseWorkflow, findUserArea, getPermissions } from "@/lib/workflow-config";
 import { logger } from "@/lib/logger";
@@ -128,13 +128,16 @@ export const PATCH = withAuth(async (req, ctx) => {
   }
 
   // Fire-and-forget notifications (non-blocking)
+  const actorName = member?.user?.name ?? ctx.userId;
+
   if (assignee !== undefined && assignee !== task.assignee && assignee) {
+    // Assignee changed
     notifyTaskAssigned({
       taskId: updated.id,
       taskTitle: updated.title,
       assigneeName: assignee,
       assigneeUserId: assigneeId ?? updated.assigneeId ?? undefined,
-      assignerName: member?.user?.name ?? ctx.userId,
+      assignerName: actorName,
       assignerUserId: ctx.userId,
       priority: updated.priority,
       dueDate: updated.dueDate?.toISOString() || null,
@@ -142,17 +145,38 @@ export const PATCH = withAuth(async (req, ctx) => {
     }).catch((err) =>
       logger.warn("Notify task assigned failed", { taskId: id, error: err })
     );
-  } else if (status !== undefined && status !== task.status && updated.assignee) {
+  }
+
+  if (status !== undefined && status !== task.status && updated.assignee) {
+    // Status changed
     notifyTaskStatusChanged({
       taskId: updated.id,
       taskTitle: updated.title,
       assigneeName: updated.assignee,
-      updaterName: member?.user?.name ?? ctx.userId,
+      assigneeUserId: updated.assigneeId ?? null,
+      updaterName: actorName,
       updaterUserId: ctx.userId,
       newStatus: updated.status,
       workspaceId: task.workspaceId,
     }).catch((err) =>
       logger.warn("Notify task status changed failed", { taskId: id, error: err })
+    );
+  }
+
+  if (priority !== undefined && priority !== task.priority && updated.assignee) {
+    // Priority changed
+    notifyTaskPriorityChanged({
+      taskId: updated.id,
+      taskTitle: updated.title,
+      assigneeName: updated.assignee,
+      assigneeUserId: updated.assigneeId ?? null,
+      updaterName: actorName,
+      updaterUserId: ctx.userId,
+      newPriority: updated.priority,
+      oldPriority: task.priority,
+      workspaceId: task.workspaceId,
+    }).catch((err) =>
+      logger.warn("Notify task priority changed failed", { taskId: id, error: err })
     );
   }
 

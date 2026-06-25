@@ -7,6 +7,7 @@ import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { SodareLogo } from "@/components/ui/SodareLogo";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { WhatsAppPhonePrompt } from "@/components/ui/WhatsAppPhonePrompt";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import {
@@ -874,6 +875,9 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </main>
+
+      {/* WhatsApp phone prompt — shows to users who haven't registered their number */}
+      <WhatsAppPhonePrompt />
     </div>
   );
 }

@@ -64,6 +64,7 @@ export async function createNotification({
   emailHtml,
   sendWhatsapp = false,
   whatsappPhone,
+  waText,
   workspaceId,
 }: {
   userId: string;
@@ -76,6 +77,7 @@ export async function createNotification({
   emailHtml?: string;
   sendWhatsapp?: boolean;
   whatsappPhone?: string;
+  waText?: string;  // Custom WA message (overrides default title+message)
   workspaceId?: string;
 }) {
   // 1. Create in-app notification
@@ -104,8 +106,10 @@ export async function createNotification({
   }
 
   // 3. Send WhatsApp if requested and workspace is configured
+  // waText is the rich formatted WA message; fallback to title+message
   if (sendWhatsapp && whatsappPhone && workspaceId) {
-    await sendWaNotification(workspaceId, whatsappPhone, `${title}\n${message}`);
+    const text = waText || `${title}\n${message}`;
+    await sendWaNotification(workspaceId, whatsappPhone, text);
   }
 
   return notification;
@@ -193,6 +197,7 @@ export async function notifyTaskAssigned({
     }),
     sendWhatsapp: !!user.whatsappPhone,
     whatsappPhone: user.whatsappPhone ?? undefined,
+    waText: waMessage,
     workspaceId,
   });
 }
@@ -205,6 +210,7 @@ export async function notifyTaskStatusChanged({
   taskId,
   taskTitle,
   assigneeName,
+  assigneeUserId,
   updaterName,
   updaterUserId,
   newStatus,
@@ -213,20 +219,30 @@ export async function notifyTaskStatusChanged({
   taskId: string;
   taskTitle: string;
   assigneeName: string;
+  assigneeUserId?: string | null;
   updaterName: string;
   updaterUserId: string;
   newStatus: string;
   workspaceId: string;
 }) {
-  const user = await prisma.user.findFirst({
-    where: {
-      OR: [
-        { name: assigneeName },
-        { email: { startsWith: assigneeName } },
-      ],
-    },
-    select: { id: true, email: true, whatsappPhone: true },
-  });
+  let user: { id: string; email: string | null; whatsappPhone: string | null } | null = null;
+  if (assigneeUserId) {
+    user = await prisma.user.findUnique({
+      where: { id: assigneeUserId },
+      select: { id: true, email: true, whatsappPhone: true },
+    });
+  }
+  if (!user) {
+    user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { name: assigneeName },
+          { email: { startsWith: assigneeName } },
+        ],
+      },
+      select: { id: true, email: true, whatsappPhone: true },
+    });
+  }
 
   if (!user || user.id === updaterUserId) return; // Don't notify yourself
 
@@ -244,6 +260,8 @@ export async function notifyTaskStatusChanged({
     `*${taskTitle}*`,
     `Estado: ${newStatus}`,
     `Actualizado por: ${updaterName}`,
+    ``,
+    `Ver: ${BASE_URL}/dashboard/ops`,
   ].join("\n");
 
   await createNotification({
@@ -255,6 +273,77 @@ export async function notifyTaskStatusChanged({
     sendEmail: false,
     sendWhatsapp: !!user.whatsappPhone,
     whatsappPhone: user.whatsappPhone ?? undefined,
+    waText: waMessage,
+    workspaceId,
+  });
+}
+
+/**
+ * Notify when a task priority changes.
+ * Sends: in-app + WhatsApp (if assignee has whatsappPhone)
+ */
+export async function notifyTaskPriorityChanged({
+  taskId,
+  taskTitle,
+  assigneeName,
+  assigneeUserId,
+  updaterName,
+  updaterUserId,
+  newPriority,
+  oldPriority,
+  workspaceId,
+}: {
+  taskId: string;
+  taskTitle: string;
+  assigneeName: string;
+  assigneeUserId?: string | null;
+  updaterName: string;
+  updaterUserId: string;
+  newPriority: string;
+  oldPriority: string;
+  workspaceId: string;
+}) {
+  let user: { id: string; whatsappPhone: string | null } | null = null;
+  if (assigneeUserId) {
+    user = await prisma.user.findUnique({
+      where: { id: assigneeUserId },
+      select: { id: true, whatsappPhone: true },
+    });
+  }
+  if (!user) {
+    user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { name: assigneeName },
+          { email: { startsWith: assigneeName } },
+        ],
+      },
+      select: { id: true, whatsappPhone: true },
+    });
+  }
+
+  if (!user || user.id === updaterUserId) return;
+
+  const priorityEmoji: Record<string, string> = { P0: "🔴", P1: "🟠", P2: "🟡", P3: "🟢" };
+  const waMessage = [
+    `${priorityEmoji[newPriority] ?? "📋"} *Prioridad actualizada* — SODARE`,
+    ``,
+    `*${taskTitle}*`,
+    `Prioridad: ${oldPriority} → ${newPriority}`,
+    `Actualizado por: ${updaterName}`,
+    ``,
+    `Ver: ${BASE_URL}/dashboard/ops`,
+  ].join("\n");
+
+  await createNotification({
+    userId: user.id,
+    type: "priority_changed",
+    title: "Prioridad de tarea actualizada",
+    message: `${updaterName} cambió la prioridad de "${taskTitle}" a ${newPriority}`,
+    link: "/dashboard/ops",
+    sendWhatsapp: !!user.whatsappPhone,
+    whatsappPhone: user.whatsappPhone ?? undefined,
+    waText: waMessage,
     workspaceId,
   });
 }
@@ -324,6 +413,7 @@ export async function notifyTaskCommented({
     sendEmail: false,
     sendWhatsapp: !!user.whatsappPhone,
     whatsappPhone: user.whatsappPhone ?? undefined,
+    waText: waMessage,
     workspaceId,
   });
 }
