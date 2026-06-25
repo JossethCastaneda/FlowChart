@@ -23,6 +23,9 @@ export interface ProviderConfig {
   scopeSeparator?: string;
   /** Name of the client_id param in the auth URL — default "client_id", TikTok uses "app_id" */
   clientIdParam?: string;
+  /** Some providers (TikTok) use a different env var for the auth URL param vs token exchange.
+   *  If set, the auth URL will use env[appIdEnv] instead of env[clientIdEnv]. */
+  appIdEnv?: string;
   /** If true, skip adding response_type=code (TikTok doesn't use it) */
   skipResponseType?: boolean;
   /** Format for token exchange — "form" (default) | "json" (TikTok) */
@@ -57,6 +60,8 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
     ],
     scopeSeparator: ",",
     clientIdParam: "app_id",
+    // TikTok auth URL needs the numeric App ID, not the Client Key
+    appIdEnv: "TIKTOK_ADS_APP_ID",
     skipResponseType: true,
     tokenBodyFormat: "json",
     authCodeParam: "auth_code",

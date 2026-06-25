@@ -93,9 +93,11 @@ export async function GET(
   const redirectUri = `${baseUrl}/api/oauth/${provider}/callback`;
 
   const authUrl = new URL(config.authUrl);
-  // TikTok uses "app_id" instead of "client_id"
+  // TikTok auth URL uses numeric App ID (appIdEnv), not the Client Key (clientIdEnv)
   const clientIdParam = config.clientIdParam ?? "client_id";
-  authUrl.searchParams.set(clientIdParam, clientId);
+  const appIdEnvKey = config.appIdEnv as keyof typeof env | undefined;
+  const authParamValue = (appIdEnvKey ? env[appIdEnvKey] as string : clientId) || clientId;
+  authUrl.searchParams.set(clientIdParam, authParamValue);
   authUrl.searchParams.set("redirect_uri", redirectUri);
   authUrl.searchParams.set("state", encodedState);
   // TikTok doesn't use response_type=code

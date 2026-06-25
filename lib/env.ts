@@ -105,6 +105,9 @@ const envSchema = z.object({
   BOTMAKER_BASE_URL: z.string().url().optional(),
 
   // TikTok Ads
+  // App ID  = numeric integer shown in "App details" (used in auth URL)
+  // Client Key = alphanumeric string (used in token exchange)
+  TIKTOK_ADS_APP_ID: z.string().min(1).optional(),
   TIKTOK_ADS_CLIENT_ID: z.string().min(1).optional(),
   TIKTOK_ADS_CLIENT_SECRET: z.string().min(1).optional(),
   TIKTOK_WEBHOOK_SECRET: z.string().min(1).optional(),
