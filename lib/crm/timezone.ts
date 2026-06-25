@@ -98,6 +98,26 @@ export function cdmxRange(days: number, now: Date = new Date()): CrmDateRange {
 }
 
 /**
+ * 00:00:00 CDMX del día `dateStr` ("YYYY-MM-DD") como instante UTC (ISO).
+ * Para descargas con rango personalizado: el límite inferior de un día CDMX
+ * (ej. "2026-06-25" → "2026-06-25T06:00:00.000Z"). DST-safe.
+ */
+export function cdmxDayStartISO(dateStr: string): string {
+  const baseUTC = Date.parse(`${dateStr}T00:00:00Z`);
+  if (Number.isNaN(baseUTC)) return new Date().toISOString();
+  const offset = tzOffsetMs(new Date(baseUTC));
+  return new Date(baseUTC - offset).toISOString();
+}
+
+/**
+ * 23:59:59.999 CDMX del día `dateStr` como instante UTC (ISO) — límite superior
+ * inclusivo de un día CDMX para rangos personalizados.
+ */
+export function cdmxDayEndISO(dateStr: string): string {
+  return new Date(Date.parse(cdmxDayStartISO(dateStr)) + 86400000 - 1).toISOString();
+}
+
+/**
  * Parsea un timestamp devuelto por un CRM que trabaja en hora de pared
  * ("YYYY-MM-DD HH:MM:SS" o "YYYY-MM-DD"), tratándolo como hora CDMX.
  * Devuelve { day, hour } listos para agrupar — NO un instante UTC, porque

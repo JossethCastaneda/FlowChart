@@ -14,23 +14,24 @@ import {
 import DashboardGrid, { GridItem } from "./DashboardGrid";
 import { WIDGETS, DEFAULT_LAYOUT, LayoutCell, WidgetCtx } from "./widgets";
 import type { DashboardData, Granularity } from "@/lib/botmaker/insights";
+import { cdmxRange, cdmxDayStartISO, cdmxDayEndISO } from "@/lib/crm/timezone";
 
-const TZ = "America/Mexico_City";
 const LS_KEY = "botmaker-dashboard-layout-v2";
 const P = "var(--purple)";
 
 type Period = "Hoy" | "7 días" | "30 días" | "custom";
 type ApiData = DashboardData & { channelOptions: { id: string; name: string; platform: string }[] };
 
+// Ventanas de descarga ancladas a días CDMX (America/Mexico_City). Botmaker
+// recibe instantes UTC, así que enviamos el UTC que corresponde a la medianoche
+// CDMX (00:00 CDMX = 06:00 UTC). Centralizado en lib/crm/timezone para que
+// "últimos 7/30 días" signifique lo mismo aquí, en Cari y en el dashboard.
 function dateRange(period: Period, cf: string, ct: string): { from: string; to: string } {
-  const now = new Date();
   if (period === "custom" && cf && ct) {
-    return { from: new Date(cf + "T00:00:00").toISOString(), to: new Date(ct + "T23:59:59").toISOString() };
+    return { from: cdmxDayStartISO(cf), to: cdmxDayEndISO(ct) };
   }
-  const tzNow = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
-  if (period === "Hoy") return { from: new Date(tzNow + "T00:00:00").toISOString(), to: now.toISOString() };
-  const days = period === "7 días" ? 7 : 30;
-  return { from: new Date(now.getTime() - days * 86400000).toISOString(), to: now.toISOString() };
+  const r = cdmxRange(period === "Hoy" ? 1 : period === "7 días" ? 7 : 30);
+  return { from: r.fromISO, to: r.toISO };
 }
 
 function loadLayout(): LayoutCell[] {

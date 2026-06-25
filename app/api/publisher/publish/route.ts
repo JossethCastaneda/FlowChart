@@ -34,10 +34,12 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError("Este post ya fue publicado", "VALIDATION_ERROR", 400);
   }
 
-  let accessToken = await getMetaAccessToken(req, "publisher_facebook");
-  if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher");
+  // Prioritize the generic "meta" token which is updated by all integrations.
+  // This matches the background worker behavior and ensures the most recently
+  // connected account (e.g. from Community or Ads) is used for publishing.
+  let accessToken = await getMetaAccessToken(req);
+  if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher_facebook");
   if (!accessToken) accessToken = await getMetaAccessToken(req, "social");
-  if (!accessToken) accessToken = await getMetaAccessToken(req);
 
   if (!accessToken) {
     return apiError(

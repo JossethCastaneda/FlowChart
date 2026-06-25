@@ -1,7 +1,8 @@
 ﻿"use client";
 
 import React, { useState } from "react";
-import { Calendar, CheckCircle2, Images, Zap } from "lucide-react";
+import Link from "next/link";
+import { Calendar, CheckCircle2, Clock, Images, Zap } from "lucide-react";
 import { Composer } from "./Composer";
 import { ScheduledCalendar } from "./ScheduledCalendar";
 
@@ -72,6 +73,29 @@ export function PublisherTabs() {
             </button>
           );
         })}
+
+        {/* Historial vive en su propia ruta (/dashboard/historial) — enlace de pestaña */}
+        <Link
+          href="/dashboard/historial"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "9px 16px",
+            borderRadius: 8,
+            background: "transparent",
+            border: "none",
+            color: "var(--text-muted)",
+            fontSize: 12,
+            fontWeight: 600,
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+            flex: "none",
+          }}
+        >
+          <Clock style={{ width: 14, height: 14 }} />
+          Historial
+        </Link>
       </div>
 
       <PlannerOverview />

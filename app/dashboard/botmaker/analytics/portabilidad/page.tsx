@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 import { ArrowLeft, Smartphone, Loader2, Calendar } from "lucide-react";
+import { cdmxRange } from "@/lib/crm/timezone";
 
 const PortabilidadTab = dynamic(() => import("@/components/botmaker/analytics/PortabilidadTab"), {
   ssr: false,
@@ -15,15 +16,12 @@ const PortabilidadTab = dynamic(() => import("@/components/botmaker/analytics/Po
   ),
 });
 
-const TZ = "America/Mexico_City";
 type Period = "Hoy" | "7 días" | "30 días";
 
+// Ventana anclada a días CDMX (00:00 CDMX = 06:00 UTC). Ver lib/crm/timezone.
 function range(period: Period): { from: string; to: string } {
-  const now = new Date();
-  const tzNow = new Intl.DateTimeFormat("en-CA", { timeZone: TZ, year: "numeric", month: "2-digit", day: "2-digit" }).format(now);
-  if (period === "Hoy") return { from: new Date(tzNow + "T00:00:00").toISOString(), to: now.toISOString() };
-  const days = period === "7 días" ? 7 : 30;
-  return { from: new Date(now.getTime() - days * 86400000).toISOString(), to: now.toISOString() };
+  const r = cdmxRange(period === "Hoy" ? 1 : period === "7 días" ? 7 : 30);
+  return { from: r.fromISO, to: r.toISO };
 }
 
 export default function PortabilidadPage() {

@@ -84,10 +84,10 @@ const VERTICALS = [
 ];
 
 const PLATFORMS = [
-  { id: "meta",      name: "Meta Ads",            connected: true,  color: "#0081FB" },
-  { id: "google",    name: "Google Ads",           connected: false, color: "#4285F4" },
-  { id: "tiktok",    name: "TikTok Ads",           connected: false, color: "#25F4EE" },
-  { id: "whatsapp",  name: "WhatsApp Business",    connected: false, color: "#25D366" },
+  { id: "meta",      name: "Meta Ads",            color: "#0081FB" },
+  { id: "google",    name: "Google Ads",           color: "#4285F4" },
+  { id: "tiktok",    name: "TikTok Ads",           color: "#25F4EE" },
+  { id: "whatsapp",  name: "WhatsApp Business",    color: "#25D366" },
 ];
 
 const GOALS = [
@@ -1216,6 +1216,18 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
   const uniqueClients = Array.from(new Set(projects.map(p => p.client).filter(Boolean)));
   const clientOptions = uniqueClients.map(c => ({ value: c, label: c }));
 
+  // Estado de conexión REAL por plataforma publicitaria — deriva de las
+  // integraciones conectadas del workspace (no de un flag hardcodeado), para que
+  // Google/TikTok/WhatsApp se habiliten automáticamente al conectarse.
+  const connectedProvidersStr = (activeIntegrations || []).map(i => i.provider).join(",").toLowerCase();
+  const platformConnected = (id: string): boolean => {
+    if (id === "meta") return /meta|facebook|instagram/.test(connectedProvidersStr);
+    if (id === "google") return /google/.test(connectedProvidersStr);
+    if (id === "tiktok") return /tiktok/.test(connectedProvidersStr);
+    if (id === "whatsapp") return /whatsapp/.test(connectedProvidersStr);
+    return false;
+  };
+
   // ── Revelado progresivo ──
   // En modo "create" las secciones aparecen conforme se llenan los datos: el
   // formulario empieza minimal (solo Identidad) y va revelando lo siguiente.
@@ -1539,7 +1551,8 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
           <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
             {PLATFORMS.map(pl => {
               const selected = form.channels.some(c => c.platformId === pl.id);
-              const disabled = !pl.connected && !selected;
+              const isConnected = platformConnected(pl.id);
+              const disabled = !isConnected && !selected;
               return (
                 <button
                   key={pl.id}
@@ -1557,7 +1570,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                 >
                   {selected && <Check className="w-3 h-3" />}
                   {pl.name}
-                  {!pl.connected && !selected && <span style={{ fontSize: "9px", opacity: 0.6 }}>(offline)</span>}
+                  {!isConnected && !selected && <span style={{ fontSize: "9px", opacity: 0.6 }}>(offline)</span>}
                 </button>
               );
             })}
