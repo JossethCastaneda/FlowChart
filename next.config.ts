@@ -5,11 +5,19 @@ const nextConfig: NextConfig = {
   // strict type checking is now enforced on build.
   images: {
     remotePatterns: [
+      // Facebook / Meta
       { protocol: "https", hostname: "**.fbcdn.net" },
       { protocol: "https", hostname: "**.xx.fbcdn.net" },
       { protocol: "https", hostname: "graph.facebook.com" },
       { protocol: "https", hostname: "platform-lookaside.fbsbx.com" },
       { protocol: "https", hostname: "**.cdninstagram.com" },
+      // Google — profile pictures from Google OAuth / Google Ads
+      { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "*.googleusercontent.com" },
+      // TikTok profile pictures
+      { protocol: "https", hostname: "**.tiktokcdn.com" },
+      { protocol: "https", hostname: "p16-sign-va.tiktokcdn.com" },
+      { protocol: "https", hostname: "p77-sign-va.tiktokcdn.com" },
     ],
   },
   async rewrites() {

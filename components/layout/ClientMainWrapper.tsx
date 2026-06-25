@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
@@ -601,8 +601,14 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               <div style={{ position: "relative" }}>
                 <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/10" style={{ background: "linear-gradient(135deg,var(--cyan),#0064E0)" }}>
                   {session?.user?.image ? (
-                    <img src={session.user.image} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
+                    <img
+                      src={session.user.image}
+                      alt=""
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                    />
+                  ) : null}
+                  {(!session?.user?.image) && (
                     <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
                       {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                     </div>
@@ -654,13 +660,19 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
                       <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-white/10" style={{ background: "linear-gradient(135deg,#4f46e5,var(--purple))", flexShrink: 0 }}>
-                        {session?.user?.image ? (
-                          <img src={session.user.image} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
-                            {session?.user?.name?.charAt(0).toUpperCase() || "C"}
-                          </div>
-                        )}
+                          {session?.user?.image ? (
+                            <img
+                              src={session.user.image}
+                              alt=""
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                            />
+                          ) : null}
+                          {(!session?.user?.image) && (
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
+                              {session?.user?.name?.charAt(0).toUpperCase() || "C"}
+                            </div>
+                          )}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
