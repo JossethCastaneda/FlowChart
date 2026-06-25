@@ -90,10 +90,11 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const from = sp.get("from") || new Date(now - 7 * 86400000).toISOString();
   const channelId = sp.get("channelId") || null;
   const timezone = sp.get("timezone") || process.env.APP_TIMEZONE || "America/Mexico_City";
+  const forceRefresh = sp.get("forceRefresh") === "true";
 
   try {
     const [{ sessions }, channelsRaw, meta] = await Promise.all([
-      fetchWorkspaceSessions(ctx.workspaceId, conn, from, to, req.signal),
+      fetchWorkspaceSessions(ctx.workspaceId, conn, from, to, forceRefresh, req.signal),
       listChannels(createConnection(conn.accessToken, conn.baseUrl)),
       loadMeta(ctx.workspaceId, conn),
     ]);

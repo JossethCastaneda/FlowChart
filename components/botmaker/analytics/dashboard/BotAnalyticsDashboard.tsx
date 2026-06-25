@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /**
  * Bot Analytics — single-screen, drag-and-drop, resizable BI dashboard.
@@ -79,11 +79,12 @@ export default function BotAnalyticsDashboard() {
 
   const { from, to } = useMemo(() => dateRange(period, customFrom, customTo), [period, customFrom, customTo]);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (forceRefresh = false) => {
     setLoading(true); setError(null);
     try {
       const qs = new URLSearchParams({ from, to });
       if (channelId) qs.set("channelId", channelId);
+      if (forceRefresh) qs.set("forceRefresh", "true");
       const res = await fetch(`/api/botmaker/analytics/dashboard?${qs.toString()}`);
       const json = await res.json();
       if (!res.ok || !json?.success) throw new Error(json?.error || `HTTP ${res.status}`);
@@ -183,7 +184,7 @@ export default function BotAnalyticsDashboard() {
         </button>
 
         {/* Refresh */}
-        <button onClick={fetchData} disabled={loading} style={{ ...pillStyle, background: "rgba(168,85,247,0.1)", borderColor: "rgba(168,85,247,0.3)", color: "var(--purple)", opacity: loading ? 0.6 : 1 }}>
+        <button onClick={() => fetchData(true)} disabled={loading} style={{ ...pillStyle, background: "rgba(168,85,247,0.1)", borderColor: "rgba(168,85,247,0.3)", color: "var(--purple)", opacity: loading ? 0.6 : 1 }}>
           <RefreshCw style={{ width: 11, height: 11 }} className={loading ? "animate-spin" : ""} /> Actualizar
         </button>
       </div>

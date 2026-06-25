@@ -9,8 +9,8 @@ import { createConnection, listSessions } from "@/lib/botmaker-api";
 import type { BmConnection, BmSession } from "@/lib/botmaker-api";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const CONCURRENCY = 5;
-const CACHE_ENDPOINT = "botmaker_sessions_raw";
+const CONCURRENCY = 3; // Reduced to prevent rate limits
+const CACHE_ENDPOINT = "botmaker_sessions_raw_v5";
 
 export interface FetchSessionsResult {
   sessions: BmSession[];
@@ -28,6 +28,7 @@ export async function fetchWorkspaceSessions(
   conn: { accessToken: string; baseUrl: string },
   fromISO: string,
   toISO: string,
+  forceRefresh: boolean = false,
   signal?: AbortSignal
 ): Promise<FetchSessionsResult> {
   const bmConn: BmConnection = createConnection(conn.accessToken, conn.baseUrl);
@@ -71,7 +72,7 @@ export async function fetchWorkspaceSessions(
     const results = await Promise.all(
       batch.map(async (chunk) => {
         try {
-          if (chunk.isPast && cachedKeys.has(chunk.cacheKey)) {
+          if (chunk.isPast && cachedKeys.has(chunk.cacheKey) && !forceRefresh) {
             const rec = await prisma.metaAnalyticsCache.findFirst({
               where: { workspaceId, endpoint: CACHE_ENDPOINT, paramsKey: chunk.cacheKey },
               select: { data: true },
@@ -83,7 +84,7 @@ export async function fetchWorkspaceSessions(
             to: chunk.to,
             includeMessages: true,
             includeEvents: true,
-            maxPages: 10,
+            maxPages: 100, // 100 pages * 200ms delay = 20s, well within 60s Vercel limit
           });
           return { chunk, sessions, cached: false };
         } catch {

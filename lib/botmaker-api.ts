@@ -71,26 +71,43 @@ export async function bmFetch(
     }
     url = `${base}${cleanPath}`;
   }
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      "access-token": conn.accessToken,
-      ...(init.headers ?? {}),
-    },
-  });
-  // Retry on rate limit (429) and transient gateway errors (502, 503, 504).
-  // Botmaker routinely throws 500 for end-of-pagination or bad inputs, do not retry 500s.
-  const retryable = res.status === 429 || (res.status >= 502 && res.status <= 504);
-  if (retryable && retries > 0) {
-    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
-    const attempt = 6 - retries;
-    const delay = Math.min(1000 * Math.pow(2, attempt - 1), 16000);
-    await new Promise((r) => setTimeout(r, delay));
-    return bmFetch(conn, path, init, retries - 1);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+  
+  try {
+    const res = await fetch(url, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "access-token": conn.accessToken,
+        ...(init.headers ?? {}),
+      },
+    });
+    clearTimeout(timeoutId);
+
+    // Retry on rate limit (429) and transient gateway errors (502, 503, 504).
+    // Botmaker routinely throws 500 for end-of-pagination or bad inputs, do not retry 500s.
+    const retryable = res.status === 429 || (res.status >= 502 && res.status <= 504);
+    if (retryable && retries > 0) {
+      // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+      const attempt = 6 - retries;
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 16000);
+      console.warn(`[bmFetch] Got ${res.status} for ${url}, retrying in ${delay}ms... (Retries left: ${retries - 1})`);
+      await new Promise((r) => setTimeout(r, delay));
+      return bmFetch(conn, path, init, retries - 1);
+    }
+    return res;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      console.error(`[bmFetch] Request timed out after 15s for ${url}`);
+      return new Response(JSON.stringify({ error: "Request Timeout" }), { status: 599 }); // Custom status to avoid retry
+    }
+    throw err;
   }
-  return res;
 }
 
 /** Parsea una respuesta y la envuelve en BmResult<T>. */
@@ -200,6 +217,7 @@ export async function listSessions(
     to: safeTo,
     "include-messages": String(includeMessages),
     "include-events": String(includeEvents),
+    "long-term-search": "true",
   });
   if (channelId) qs.set("channelId", channelId);
 
@@ -211,7 +229,7 @@ export async function listSessions(
   let pages = 0;
 
   while (next && pages < maxPages) {
-    const path = next;
+    const path = next; // DO NOT replace %3A on nextPage! We must call the EXACT URL!
     
     if (pages > 0) {
       console.log(`[listSessions DEBUG] Fetching Page ${pages + 1} with path: ${path}`);
@@ -226,6 +244,21 @@ export async function listSessions(
     const data: BmSessionsPage = await res.json().catch(() => ({}));
     const items = Array.isArray(data.items) ? data.items : [];
     all.push(...items);
+    
+    // Prevent infinite loop if API returns the exact same nextPage or if page is empty
+    if (items.length === 0) {
+      break;
+    }
+    
+    const getPath = (u: string) => {
+      try { return new URL(u, "http://localhost").pathname + new URL(u, "http://localhost").search; }
+      catch { return u; }
+    };
+    if (data.nextPage && getPath(data.nextPage) === getPath(next)) {
+      console.warn(`[listSessions] Infinite loop detected! nextPage is identical: ${next}`);
+      break;
+    }
+    
     next = data.nextPage || null;
     pages++;
 
