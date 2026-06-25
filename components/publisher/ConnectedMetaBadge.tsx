@@ -11,12 +11,16 @@ export function ConnectedMetaBadge() {
   const fetchIntegrations = async () => {
     try {
       const res = await fetch(`/api/workspace/integrations`);
-      const list = await res.json();
-      const meta = list.find((i: any) => i.provider === "meta" && i.connected);
-      if (meta && meta.connectedUser) {
+      const json = await res.json();
+      // El endpoint responde el envelope estándar { success, data: { data: [...] } }.
+      const list: any[] = Array.isArray(json) ? json : (json?.data?.data ?? []);
+      // Cualquier módulo Meta conectado crea también el registro genérico "meta".
+      const meta = list.find((i) => i.provider === "meta" && i.connected);
+      // El perfil que otorgó los permisos se expone como `connectedBy`.
+      if (meta && meta.connectedBy) {
         setData({
-          name: meta.connectedUser.name,
-          image: meta.connectedUser.image,
+          name: meta.connectedBy.name,
+          image: meta.connectedBy.image,
         });
       } else {
         setData(null);
