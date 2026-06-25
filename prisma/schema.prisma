@@ -123,11 +123,14 @@ model WorkspaceSettings {
   // Branding por workspace: { logoUrl?, accentColor?, displayName? }
   // Validado con BrandingSchema (lib/workflow-config.ts) al escribir.
   branding          Json     @default("{}")
+  // Config extendida para modulos adicionales (ej. mmm, forecasting)
+  extConfig         Json     @default("{}")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
+
 
 model WorkspaceMember {
   id             String   @id @default(cuid())
