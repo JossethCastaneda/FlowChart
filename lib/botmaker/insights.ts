@@ -261,8 +261,14 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
   const channelMap = new Map<string, ChannelLite>();
   for (const c of opts.channels) channelMap.set(c.id, c);
 
-  // Channel filter
+  // Filter by channel and strict creationTime range
+  const filterFromMs = new Date(opts.from).getTime();
+  const filterToMs = new Date(opts.to).getTime();
+  
   const sessions = (Array.isArray(sessionsIn) ? sessionsIn : []).filter((s) => {
+    const start = toMs(s.creationTime);
+    if (start == null || start < filterFromMs || start > filterToMs) return false;
+    
     if (!opts.channelId) return (s.messages || []).length > 0;
     return s.chat?.chat?.channelId === opts.channelId && (s.messages || []).length > 0;
   });
