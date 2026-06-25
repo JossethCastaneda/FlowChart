@@ -17,6 +17,7 @@ import type { DashboardData, Granularity } from "@/lib/botmaker/insights";
 import { cdmxRange, cdmxDayStartISO, cdmxDayEndISO } from "@/lib/crm/timezone";
 
 const LS_KEY = "botmaker-dashboard-layout-v2";
+const LS_FILTERS_KEY = "botmaker-dashboard-filters-v1";
 const P = "var(--purple)";
 
 type Period = "Hoy" | "7 días" | "30 días" | "custom";
@@ -46,11 +47,11 @@ function loadLayout(): LayoutCell[] {
 }
 
 export default function BotAnalyticsDashboard() {
-  const [period, setPeriod] = useState<Period>("7 días");
+  const [period, setPeriod] = useState<Period>("Hoy");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
   const [channelId, setChannelId] = useState("");
-  const [granularity, setGranularity] = useState<Granularity>("day");
+  const [granularity, setGranularity] = useState<Granularity>("hour");
 
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -66,6 +67,27 @@ export default function BotAnalyticsDashboard() {
   useEffect(() => {
     if (typeof window !== "undefined") window.localStorage.setItem(LS_KEY, JSON.stringify(layout));
   }, [layout]);
+
+  // hydrate filters from localStorage
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(LS_FILTERS_KEY);
+      if (raw) {
+        const p = JSON.parse(raw);
+        if (p.period) setPeriod(p.period);
+        if (p.customFrom) setCustomFrom(p.customFrom);
+        if (p.customTo) setCustomTo(p.customTo);
+        if (p.channelId !== undefined) setChannelId(p.channelId);
+        if (p.granularity) setGranularity(p.granularity);
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(LS_FILTERS_KEY, JSON.stringify({ period, customFrom, customTo, channelId, granularity }));
+    }
+  }, [period, customFrom, customTo, channelId, granularity]);
 
   // default granularity when switching to "Hoy"
   useEffect(() => { if (period === "Hoy") setGranularity("hour"); else if (granularity === "hour") setGranularity("day"); /* eslint-disable-next-line */ }, [period]);
