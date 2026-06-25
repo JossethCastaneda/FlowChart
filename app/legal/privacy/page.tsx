@@ -355,9 +355,9 @@ export default function PrivacyPage() {
             </a>
           </p>
         </div>
-        <P style={{ marginTop: 16 }}>
+        <p style={{ marginTop: 16, marginBottom: 12, fontSize: 14, lineHeight: 1.8, color: "#94a3b8" }}>
           También tienes derecho a presentar una reclamación ante la autoridad de control de protección de datos de tu país de residencia si consideras que el tratamiento de tus datos infringe la normativa aplicable.
-        </P>
+        </p>
       </Section>
     </main>
   );
