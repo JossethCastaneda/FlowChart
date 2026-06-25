@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
@@ -227,7 +227,13 @@ const ALL_CHANNELS: ChannelDef[] = [
   // Mensajería
   { provider: "telegram", name: "Telegram", description: "Bots, canales y mensajería directa con Telegram.", Icon: TelegramIcon, iconBg: "#229ED9", comingSoon: true },
   // Social Ads
-  { provider: "tiktok_ads", name: "TikTok Ads", description: "In-Feed, TopView y Spark Ads desde el panel.", Icon: TikTokIcon, iconBg: "var(--background)", comingSoon: true },
+  {
+    provider: "tiktok_ads", name: "TikTok Ads",
+    description: "In-Feed, TopView y Spark Ads desde el panel.",
+    Icon: TikTokIcon, iconBg: "linear-gradient(135deg,#010101,#69C9D0,#EE1D52)",
+    badges: [{ label: "ADS", color: "#69C9D0" }],
+    managePage: "/dashboard/integrations/tiktok",
+  },
   { provider: "linkedin_ads", name: "LinkedIn Ads", description: "Sponsored Content y Lead Gen Forms.", Icon: LinkedInIcon, iconBg: "#0A66C2", comingSoon: true },
   { provider: "x_ads", name: "X (Twitter)", description: "Promoted Tweets, Trends y audiencias.", Icon: XIcon, iconBg: "#14171A", comingSoon: true },
   // CRM
@@ -332,6 +338,8 @@ export function IntegrationsView() {
         window.location.href = "/api/oauth/google/start?modules=page_analytics"; break;
       case "google_tag":
         window.location.href = "/api/oauth/google/start?modules=tag_tracking"; break;
+      case "tiktok_ads":
+        window.location.href = "/api/oauth/tiktok_ads/start"; break;
       case "botmaker":
         setTokenModal({ provider: "botmaker", label: "BotMaker", isConnected: !!getState("botmaker")?.connected }); break;
       case "cari":

@@ -104,6 +104,11 @@ const envSchema = z.object({
   BOTMAKER_ACCESS_TOKEN: z.string().optional(),
   BOTMAKER_BASE_URL: z.string().url().optional(),
 
+  // TikTok Ads
+  TIKTOK_ADS_CLIENT_ID: z.string().min(1).optional(),
+  TIKTOK_ADS_CLIENT_SECRET: z.string().min(1).optional(),
+  TIKTOK_WEBHOOK_SECRET: z.string().min(1).optional(),
+
   // Config extra
   APP_TIMEZONE: z.string().default("America/Mexico_City"),
 });
