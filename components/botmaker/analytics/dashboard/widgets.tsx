@@ -184,7 +184,12 @@ const FunnelWidget = ({ data }: WidgetCtx) => {
 };
 
 const BotFlowWidget = ({ data }: WidgetCtx) => {
-  const rows: BreakpointRow[] = data.breakpoints.filter((b) => b.prompts > 0 && b.avgStep < 999).slice(0, 15);
+  const maxPrompts = Math.max(1, ...data.breakpoints.map((b) => b.prompts + b.timeouts));
+  const minPrompts = maxPrompts * 0.05; // Only show nodes that reach at least 5% of the max traffic
+
+  const rows: BreakpointRow[] = data.breakpoints
+    .filter((b) => (b.prompts + b.timeouts) >= minPrompts && b.avgStep < 999)
+    .slice(0, 15);
   if (!rows.length) return <Empty msg="No se detectaron pasos secuenciales" />;
 
   return (
