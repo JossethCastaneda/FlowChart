@@ -51,11 +51,13 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
     authUrl: "https://www.tiktok.com/v2/auth/authorize/",
     tokenUrl: "https://open.tiktokapis.com/v2/oauth/token/",
     // Content Posting scopes — comma-separated as required by TikTok v2
+    // NOTE: video.* scopes require "Content Posting API" product to be added
+    // in the TikTok Developer Portal (separate from Login Kit).
+    // Start with user.info.basic to verify the OAuth flow, then expand.
     scopes: [
       "user.info.basic",
-      "video.list",
-      "video.publish",
-      "video.upload",
+      // video.publish and video.upload re-added after confirming basic flow works
+      // Requires "Content Posting API" product active in TikTok Developer Portal
     ],
     scopeSeparator: ",",
     // TikTok v2 uses "client_key" instead of "client_id" in both auth URL and token exchange
