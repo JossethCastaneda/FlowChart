@@ -302,10 +302,11 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
   interface FieldAgg {
     okFirst: number; okRetry: number; failed: number; timeouts: number;
     attemptsSum: number; attemptsN: number; maxAttempts: number; prompts: number;
+    firstSeenSum: number; firstSeenN: number;
   }
   const fieldAgg: Record<string, FieldAgg> = {};
   const ensureField = (f: string): FieldAgg =>
-    (fieldAgg[f] ||= { okFirst: 0, okRetry: 0, failed: 0, timeouts: 0, attemptsSum: 0, attemptsN: 0, maxAttempts: 0, prompts: 0 });
+    (fieldAgg[f] ||= { okFirst: 0, okRetry: 0, failed: 0, timeouts: 0, attemptsSum: 0, attemptsN: 0, maxAttempts: 0, prompts: 0, firstSeenSum: 0, firstSeenN: 0 });
 
   const incrTs = (
     map: Map<string, TimeBucket>, key: string, label: string,
@@ -369,6 +370,8 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     const sawIncorrect: Record<string, boolean> = {};
     const timeoutField: Record<string, boolean> = {};
     let prevFlowNode: string | null = null;
+    let flowStep = 0;
+    const seenFieldInSession: Record<string, boolean> = {};
 
     for (const e of evSorted) {
       const nm = eventName(e);
@@ -401,6 +404,7 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
 
       // flow edges (go-to gives source→target directly)
       if (nm === "find-intent" || nm === "go-to") {
+        flowStep++;
         if (nodeName) {
           const src = (exec || prevFlowNode) as string;
           if (src && src !== nodeName) edges[`${src}|||${nodeName}`] = (edges[`${src}|||${nodeName}`] || 0) + 1;
@@ -410,8 +414,15 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
         const target = nodeName || exec;
         if (target) {
           const { kind, field } = classifyNode(target);
-          if (kind === "incorrect") { incorrectBefore[field] = (incorrectBefore[field] || 0) + 1; sawIncorrect[field] = true; hasRetry = true; }
-          else if (kind === "fulfilled") {
+          if (kind) {
+            if (!seenFieldInSession[field]) {
+              seenFieldInSession[field] = true;
+              const a = ensureField(field);
+              a.firstSeenSum += flowStep;
+              a.firstSeenN++;
+            }
+            if (kind === "incorrect") { incorrectBefore[field] = (incorrectBefore[field] || 0) + 1; sawIncorrect[field] = true; hasRetry = true; }
+            else if (kind === "fulfilled") {
             if (!fulfilledDone[field]) {
               fulfilledDone[field] = true;
               const before = incorrectBefore[field] || 0;
@@ -421,6 +432,7 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
               if (before + 1 > a.maxAttempts) a.maxAttempts = before + 1;
             }
           } else if (kind === "inactivity") { timeoutField[field] = true; }
+          }
         }
       }
     }
@@ -532,8 +544,9 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
       avgAttempts: a.attemptsN ? Math.round((a.attemptsSum / a.attemptsN) * 100) / 100 : 0,
       maxAttempts: a.maxAttempts,
       failRate: prompts ? Math.round((a.failed / prompts) * 1000) / 10 : 0,
+      avgStep: a.firstSeenN ? a.firstSeenSum / a.firstSeenN : 999,
     };
-  }).sort((a, b) => (b.okAfterRetry + b.failed + b.timeouts) - (a.okAfterRetry + a.failed + a.timeouts));
+  }).sort((a, b) => a.avgStep - b.avgStep);
 
   // ── flow edges ──
   const flowEdges: FlowEdge[] = Object.entries(edges)

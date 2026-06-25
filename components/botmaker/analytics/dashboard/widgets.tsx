@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /**
  * Widget registry for the Bot Analytics dashboard. Each widget is a pure render
@@ -183,34 +183,67 @@ const FunnelWidget = ({ data }: WidgetCtx) => {
   );
 };
 
-const BreakpointsWidget = ({ data }: WidgetCtx) => {
-  const rows: BreakpointRow[] = data.breakpoints.filter((b) => b.prompts > 0).slice(0, 14);
-  if (!rows.length) return <Empty msg="No se detectaron pasos con validación (incorrect/inactivity/fulfilled)" />;
-  const th: React.CSSProperties = { fontSize: 9.5, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", textAlign: "right", padding: "4px 6px", fontWeight: 600 };
-  const td: React.CSSProperties = { fontSize: 11.5, padding: "5px 6px", textAlign: "right", color: "rgba(255,255,255,0.8)" };
+const BotFlowWidget = ({ data }: WidgetCtx) => {
+  const rows: BreakpointRow[] = data.breakpoints.filter((b) => b.prompts > 0 && b.avgStep < 999).slice(0, 15);
+  if (!rows.length) return <Empty msg="No se detectaron pasos secuenciales" />;
+
   return (
-    <div style={{ overflow: "auto", height: "100%" }}>
-      <table style={{ width: "100%", borderCollapse: "collapse" }}>
-        <thead><tr style={{ position: "sticky", top: 0, background: "var(--background)" }}>
-          <th style={{ ...th, textAlign: "left" }}>Paso / pregunta</th>
-          <th style={th}>Llegan</th><th style={th}>1er intento</th><th style={th}>Tras reintento</th>
-          <th style={th}>Falló</th><th style={th}>Timeout</th><th style={th}>Intentos prom.</th><th style={th}>% falla</th>
-        </tr></thead>
-        <tbody>
-          {rows.map((r) => (
-            <tr key={r.field} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <td style={{ ...td, textAlign: "left", maxWidth: 160, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "#fff", fontWeight: 600 }} title={r.field}>{r.field}</td>
-              <td style={td}>{fmt(r.prompts)}</td>
-              <td style={{ ...td, color: G }}>{fmt(r.okFirstTry)}</td>
-              <td style={{ ...td, color: A }}>{fmt(r.okAfterRetry)}</td>
-              <td style={{ ...td, color: r.failed ? R : muted }}>{fmt(r.failed)}</td>
-              <td style={{ ...td, color: r.timeouts ? A : muted }}>{fmt(r.timeouts)}</td>
-              <td style={{ ...td, fontWeight: 700, color: r.avgAttempts >= 1.6 ? A : "rgba(255,255,255,0.8)" }}>{r.avgAttempts || "—"}</td>
-              <td style={{ ...td, fontWeight: 700, color: r.failRate >= 20 ? R : r.failRate >= 8 ? A : G }}>{r.failRate}%</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <div style={{ padding: "0 10px", display: "flex", flexDirection: "column", gap: 16, overflow: "auto", height: "100%" }}>
+      {rows.map((r, i) => {
+        const isLast = i === rows.length - 1;
+        const total = r.prompts + r.timeouts;
+        const successRate = total ? Math.round(((r.okFirstTry + r.okAfterRetry) / total) * 100) : 0;
+        const dropRate = total ? Math.round((r.timeouts / total) * 100) : 0;
+        const iaFailRate = total ? Math.round((r.failed / total) * 100) : 0;
+        
+        let insight = "Paso con validación estándar.";
+        let insightColor = muted;
+        if (dropRate > 30) { insight = "Alto abandono. Considera simplificar la pregunta o dar opciones."; insightColor = A; }
+        else if (iaFailRate > 20) { insight = "Falla de validación frecuente. Revisar los sinónimos o la IA."; insightColor = R; }
+        else if (successRate > 80) { insight = "Alta tasa de éxito. El usuario entiende la solicitud."; insightColor = G; }
+
+        return (
+          <div key={r.field} style={{ display: "flex", gap: 16, position: "relative" }}>
+            {/* Timeline line */}
+            {!isLast && <div style={{ position: "absolute", left: 11, top: 24, bottom: -16, width: 2, background: "rgba(255,255,255,0.05)" }} />}
+            
+            {/* Timeline node */}
+            <div style={{ width: 24, height: 24, borderRadius: 12, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff", zIndex: 1, flexShrink: 0 }}>
+              {i + 1}
+            </div>
+
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, paddingBottom: 6 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{r.field}</span>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.05)", padding: "2px 8px", borderRadius: 12 }}>
+                  {fmt(total)} llegan
+                </span>
+              </div>
+              
+              <div style={{ fontSize: 12, color: insightColor, fontWeight: 500 }}>{insight}</div>
+              
+              <div style={{ display: "flex", gap: 12, marginTop: 4, background: "rgba(0,0,0,0.2)", padding: 8, borderRadius: 6 }}>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: muted, textTransform: "uppercase" }}>Éxito</div>
+                  <div style={{ fontSize: 13, color: G, fontWeight: 600 }}>{successRate}%</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: muted, textTransform: "uppercase" }}>Abandono</div>
+                  <div style={{ fontSize: 13, color: dropRate > 20 ? A : "rgba(255,255,255,0.8)", fontWeight: 600 }}>{dropRate}%</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: muted, textTransform: "uppercase" }}>Fallo (IA)</div>
+                  <div style={{ fontSize: 13, color: iaFailRate > 15 ? R : "rgba(255,255,255,0.8)", fontWeight: 600 }}>{iaFailRate}%</div>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 10, color: muted, textTransform: "uppercase" }}>Reintentos</div>
+                  <div style={{ fontSize: 13, color: r.avgAttempts >= 1.5 ? A : "rgba(255,255,255,0.8)", fontWeight: 600 }}>{r.avgAttempts} prom</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 };
@@ -402,7 +435,7 @@ export const WIDGETS: Record<string, WidgetDef> = {
   insights: { id: "insights", title: "Insights automáticos", size: { w: 12, h: 2, minW: 4, minH: 2 }, render: (c) => <InsightsWidget {...c} /> },
   timeseries: { id: "timeseries", title: "Volumen en el tiempo · hora / día / semana / mes", size: { w: 8, h: 4, minW: 4, minH: 3 }, render: (c) => <TimeseriesWidget {...c} /> },
   funnel: { id: "funnel", title: "Funnel conversacional", size: { w: 4, h: 4, minW: 3, minH: 3 }, render: (c) => <FunnelWidget {...c} /> },
-  breakpoints: { id: "breakpoints", title: "Puntos de quiebre por pregunta (reintentos / fallos)", size: { w: 6, h: 5, minW: 4, minH: 3 }, render: (c) => <BreakpointsWidget {...c} /> },
+  botflow: { id: "botflow", title: "Flow Explorer · Recorrido del Bot", size: { w: 12, h: 6, minW: 6, minH: 4 }, render: (c) => <BotFlowWidget {...c} /> },
   fallback: { id: "fallback", title: "Intenciones no entendidas (fallback)", size: { w: 6, h: 5, minW: 3, minH: 3 }, render: (c) => <FallbackWidget {...c} /> },
   heatmap: { id: "heatmap", title: "Mapa de calor · día × hora", size: { w: 6, h: 4, minW: 4, minH: 3 }, render: (c) => <HeatmapWidget {...c} /> },
   buttons: { id: "buttons", title: "Botoneras · CTR de botones", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ButtonsWidget {...c} /> },
@@ -422,15 +455,15 @@ export const DEFAULT_LAYOUT: LayoutCell[] = [
   { id: "insights", x: 0, y: 2, w: 12, h: 2 },
   { id: "timeseries", x: 0, y: 4, w: 8, h: 4 },
   { id: "funnel", x: 8, y: 4, w: 4, h: 4 },
-  { id: "breakpoints", x: 0, y: 8, w: 6, h: 5 },
-  { id: "fallback", x: 6, y: 8, w: 6, h: 5 },
-  { id: "heatmap", x: 0, y: 13, w: 6, h: 4 },
-  { id: "buttons", x: 6, y: 13, w: 6, h: 4 },
-  { id: "channels", x: 0, y: 17, w: 6, h: 4 },
-  { id: "flow", x: 6, y: 17, w: 6, h: 4 },
-  { id: "typifications", x: 0, y: 21, w: 3, h: 4 },
-  { id: "copies", x: 3, y: 21, w: 3, h: 4 },
-  { id: "bots", x: 6, y: 21, w: 3, h: 4 },
-  { id: "errors", x: 9, y: 21, w: 3, h: 4 },
-  { id: "variables", x: 0, y: 25, w: 12, h: 4 },
+  { id: "botflow", x: 0, y: 8, w: 12, h: 6 },
+  { id: "fallback", x: 0, y: 14, w: 6, h: 5 },
+  { id: "heatmap", x: 6, y: 14, w: 6, h: 5 },
+  { id: "buttons", x: 0, y: 19, w: 6, h: 4 },
+  { id: "channels", x: 6, y: 19, w: 6, h: 4 },
+  { id: "flow", x: 0, y: 23, w: 6, h: 4 },
+  { id: "typifications", x: 6, y: 23, w: 3, h: 4 },
+  { id: "copies", x: 9, y: 23, w: 3, h: 4 },
+  { id: "bots", x: 0, y: 27, w: 3, h: 4 },
+  { id: "errors", x: 3, y: 27, w: 3, h: 4 },
+  { id: "variables", x: 0, y: 31, w: 12, h: 4 },
 ];
