@@ -91,10 +91,15 @@ export async function GET(
   const redirectUri = `${baseUrl}/api/oauth/${provider}/callback`;
 
   const authUrl = new URL(config.authUrl);
-  authUrl.searchParams.set("client_id", clientId);
+  // TikTok uses "app_id" instead of "client_id"
+  const clientIdParam = config.clientIdParam ?? "client_id";
+  authUrl.searchParams.set(clientIdParam, clientId);
   authUrl.searchParams.set("redirect_uri", redirectUri);
   authUrl.searchParams.set("state", encodedState);
-  authUrl.searchParams.set("response_type", "code");
+  // TikTok doesn't use response_type=code
+  if (!config.skipResponseType) {
+    authUrl.searchParams.set("response_type", "code");
+  }
 
   if (config.scopes.length > 0) {
     const sep = config.scopeSeparator ?? " ";

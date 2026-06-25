@@ -104,30 +104,52 @@ export async function GET(
 
   try {
     // 4. Exchange code for tokens
-    const body = new URLSearchParams({
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: redirectUri,
-      client_id: clientId,
-      client_secret: clientSecret,
-    });
+    // TikTok uses JSON body with different param names; others use form-encoded
+    const authCodeParam = config.authCodeParam ?? "code";
+    const clientIdParam = config.clientIdParam ?? "client_id";
 
-    const tokenRes = await fetch(config.tokenUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
-    });
+    let tokenRes: Response;
+    if (config.tokenBodyFormat === "json") {
+      // TikTok Marketing API token exchange format
+      const jsonBody: Record<string, string> = {
+        [authCodeParam]: code!,
+        [clientIdParam]: clientId,
+        secret: clientSecret,
+      };
+      tokenRes = await fetch(config.tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jsonBody),
+      });
+    } else {
+      // Standard OAuth2 form-encoded
+      const body = new URLSearchParams({
+        grant_type: "authorization_code",
+        [authCodeParam]: code!,
+        redirect_uri: redirectUri,
+        [clientIdParam]: clientId,
+        client_secret: clientSecret,
+      });
+      tokenRes = await fetch(config.tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString(),
+      });
+    }
 
     const tokenData = await tokenRes.json();
 
-    if (!tokenRes.ok || !tokenData.access_token) {
+    // TikTok wraps the response in a `data` object; standard OAuth returns top-level
+    const tokenPayload = tokenData?.data ?? tokenData;
+
+    if (!tokenRes.ok || !tokenPayload.access_token) {
       logger.error(`[OAUTH CALLBACK] Token exchange failed for ${provider}:`, tokenData);
       return NextResponse.redirect(`${integrationsUrl}?connect_error=token_exchange_failed`);
     }
 
-    const accessToken: string = tokenData.access_token;
-    const refreshToken: string | undefined = tokenData.refresh_token;
-    const expiresIn: number | undefined = tokenData.expires_in;
+    const accessToken: string = tokenPayload.access_token;
+    const refreshToken: string | undefined = tokenPayload.refresh_token;
+    const expiresIn: number | undefined = tokenPayload.expires_in;
 
     const expiresAt = expiresIn
       ? new Date(Date.now() + expiresIn * 1000).toISOString()

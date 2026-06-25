@@ -21,6 +21,14 @@ export interface ProviderConfig {
   scopes: string[];
   /** Separator between scopes — default " " (space), TikTok uses "," */
   scopeSeparator?: string;
+  /** Name of the client_id param in the auth URL — default "client_id", TikTok uses "app_id" */
+  clientIdParam?: string;
+  /** If true, skip adding response_type=code (TikTok doesn't use it) */
+  skipResponseType?: boolean;
+  /** Format for token exchange — "form" (default) | "json" (TikTok) */
+  tokenBodyFormat?: "form" | "json";
+  /** Param name for the auth code in token exchange — default "code", TikTok uses "auth_code" */
+  authCodeParam?: string;
   clientIdEnv: string;
   clientSecretEnv: string;
   capabilities: ("read" | "manage")[];
@@ -48,6 +56,10 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
       "reporting.read",
     ],
     scopeSeparator: ",",
+    clientIdParam: "app_id",
+    skipResponseType: true,
+    tokenBodyFormat: "json",
+    authCodeParam: "auth_code",
     clientIdEnv: "TIKTOK_ADS_CLIENT_ID",
     clientSecretEnv: "TIKTOK_ADS_CLIENT_SECRET",
     capabilities: ["read", "manage"],
