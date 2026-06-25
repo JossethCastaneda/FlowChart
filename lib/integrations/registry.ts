@@ -56,8 +56,8 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
     // Start with user.info.basic to verify the OAuth flow, then expand.
     scopes: [
       "user.info.basic",
-      // video.publish and video.upload re-added after confirming basic flow works
-      // Requires "Content Posting API" product active in TikTok Developer Portal
+      "video.publish",
+      "video.upload",
     ],
     scopeSeparator: ",",
     // TikTok v2 uses "client_key" instead of "client_id" in both auth URL and token exchange
