@@ -97,7 +97,8 @@ export async function GET(
   authUrl.searchParams.set("response_type", "code");
 
   if (config.scopes.length > 0) {
-    authUrl.searchParams.set("scope", config.scopes.join(" "));
+    const sep = config.scopeSeparator ?? " ";
+    authUrl.searchParams.set("scope", config.scopes.join(sep));
   }
 
   // Extra params (e.g. access_type=offline for Google)

@@ -19,6 +19,8 @@ export interface ProviderConfig {
   authUrl: string;
   tokenUrl: string;
   scopes: string[];
+  /** Separator between scopes — default " " (space), TikTok uses "," */
+  scopeSeparator?: string;
   clientIdEnv: string;
   clientSecretEnv: string;
   capabilities: ("read" | "manage")[];
@@ -32,13 +34,26 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
   tiktok_ads: {
     id: "tiktok_ads",
     label: "TikTok Ads",
+    // TikTok for Business authorization endpoint (Marketing API)
     authUrl: "https://business-api.tiktok.com/portal/auth",
     tokenUrl: "https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/",
-    scopes: [],
+    // Marketing API scopes — comma-separated (TikTok does not use space-separated)
+    // These are the minimum scopes needed to read & manage Ads from the dashboard.
+    scopes: [
+      "advertiser.list",
+      "advertiser.read",
+      "campaign.read",
+      "adgroup.read",
+      "ad.read",
+      "reporting.read",
+    ],
+    scopeSeparator: ",",
     clientIdEnv: "TIKTOK_ADS_CLIENT_ID",
     clientSecretEnv: "TIKTOK_ADS_CLIENT_SECRET",
     capabilities: ["read", "manage"],
     docsUrl: "https://business-api.tiktok.com/portal/docs?id=1738373164380162",
+    // TikTok uses comma as scope separator, not space
+    extraAuthParams: { scope_type: "GRANULAR_AUTH" },
   },
 
   linkedin_ads: {
