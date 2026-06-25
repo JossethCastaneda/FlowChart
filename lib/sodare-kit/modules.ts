@@ -10,7 +10,7 @@
 export type ModuleKey =
   | "resumen" | "clientes" | "publicacion" | "inbox" | "anuncios"
   | "escucha" | "envivo" | "briefs" | "tareas" | "chatbots"
-  | "integraciones" | "configuracion"
+  | "integraciones" | "configuracion" | "mmm"
   | "aprobaciones" | "reportes" | "biblioteca" | "datos" | "competidores" | "linkinbio" | "roles" | "api";
 
 export type GroupKey =
@@ -55,15 +55,23 @@ export const MODULES: ModuleDef[] = [
     ] },
 
   // ── CRECIMIENTO — pauta y monitoreo ──
-  { key: "anuncios",    label: "Anuncios", code: "Impulso", route: "/dashboard/ads-manager", color: "var(--mod-anuncios)", icon: "megaphone", tagline: "Empuje para tus campañas", group: "crecimiento",
+  { key: "anuncios",    label: "Anuncios",     code: "Impulso",    route: "/dashboard/ads-manager",  color: "var(--mod-anuncios)", icon: "megaphone",   tagline: "Empuje para tus campañas",       group: "crecimiento",
     tabs: [
       { label: "Campañas",                route: "" },
       { label: "Análisis de Resultados",  route: "/analisis-resultados" },
       { label: "Reglas",                  route: "/analisis-resultados/reglas" },
       { label: "Configuración",           route: "/analisis-resultados/configuracion" },
     ] },
-  { key: "escucha",     label: "Escucha",  code: "Radar",   route: "/dashboard/listening", color: "var(--mod-escucha)", icon: "radar",     tagline: "Escucha todo el espectro", group: "crecimiento" },
-  { key: "envivo",      label: "En vivo",  code: "Órbita",  route: "/dashboard/streams",   color: "var(--mod-envivo)",  icon: "columns-3", tagline: "Tu feed, en tiempo real",  group: "crecimiento" },
+  { key: "mmm",         label: "Media Mix",    code: "Convergencia", route: "/dashboard/media-mix",   color: "#7c3aed",             icon: "pie-chart",   tagline: "El peso real de cada canal",      group: "crecimiento",
+    tabs: [
+      { label: "Resumen",     route: "" },
+      { label: "Datos",       route: "/datos" },
+      { label: "Modelo",      route: "/modelo" },
+      { label: "Simulador",   route: "/simulador" },
+      { label: "Configuración", route: "/config" },
+    ] },
+  { key: "escucha",     label: "Escucha",      code: "Radar",     route: "/dashboard/listening",    color: "var(--mod-escucha)",  icon: "radar",       tagline: "Escucha todo el espectro",       group: "crecimiento" },
+  { key: "envivo",      label: "En vivo",      code: "Órbita",    route: "/dashboard/streams",     color: "var(--mod-envivo)",   icon: "columns-3",  tagline: "Tu feed, en tiempo real",        group: "crecimiento" },
 
   // ── AUTOMATIZACIÓN — los bots (Métricas es pestaña, no ítem de menú) ──
   { key: "chatbots",    label: "Chatbots", code: "Piloto", route: "/dashboard/botmaker", color: "var(--mod-chatbots)", icon: "bot", tagline: "Tu copiloto automático", group: "automatizacion",

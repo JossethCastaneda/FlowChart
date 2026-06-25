@@ -61,7 +61,8 @@ import {
   Swords,
   Link as LinkIcon,
   Shield,
-  Webhook
+  Webhook,
+  PieChart,
 } from "lucide-react";
 
 const ICON_MAP: Record<string, any> = {
@@ -84,7 +85,8 @@ const ICON_MAP: Record<string, any> = {
   "swords": Swords,
   "link": LinkIcon,
   "shield": Shield,
-  "webhook": Webhook
+  "webhook": Webhook,
+  "pie-chart": PieChart,
 };
 
 
