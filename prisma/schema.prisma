@@ -43,14 +43,15 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String? // null para usuarios OAuth (Facebook/Google)
-  accounts      Account[]
-  sessions      Session[]
+  id             String    @id @default(cuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  password       String?   // null para usuarios OAuth (Facebook/Google)
+  whatsappPhone  String?   // número personal para notificaciones WA (ej. "5215512345678")
+  accounts       Account[]
+  sessions       Session[]
 
   // Relations
   workspaces    WorkspaceMember[]

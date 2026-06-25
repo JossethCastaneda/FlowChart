@@ -9,6 +9,11 @@ export const dynamic = "force-dynamic";
 
 const UpdateProfileSchema = z.object({
   name: z.string().min(2, "El nombre debe tener al menos 2 caracteres").max(80).optional(),
+  whatsappPhone: z
+    .string()
+    .regex(/^\d{7,15}$/, "El número debe ser solo dígitos, sin +, espacios ni guiones (ej. 5215512345678)")
+    .nullable()
+    .optional(),
 });
 
 // GET /api/user/profile — get the authenticated user's profile
@@ -20,6 +25,7 @@ export const GET = withAuth(async (_req, ctx) => {
       name: true,
       email: true,
       image: true,
+      whatsappPhone: true,
       password: true, // to determine if email login is enabled
       accounts: {
         select: { provider: true },
@@ -38,6 +44,7 @@ export const GET = withAuth(async (_req, ctx) => {
       name: user.name,
       email: user.email,
       image: user.image,
+      whatsappPhone: user.whatsappPhone,
     },
     providers: Array.from(new Set(providers)),
   });
@@ -47,17 +54,18 @@ export const GET = withAuth(async (_req, ctx) => {
 export const PATCH = withAuth(async (req, ctx) => {
   const validated = await validateBody(req, UpdateProfileSchema);
   if (!validated.ok) return validated.response;
-  const { name } = validated.data;
+  const { name, whatsappPhone } = validated.data;
 
   const updated = await prisma.user.update({
     where: { id: ctx.userId },
     data: {
       ...(name !== undefined && { name }),
+      ...(whatsappPhone !== undefined && { whatsappPhone }),
     },
-    select: { id: true, name: true, email: true, image: true },
+    select: { id: true, name: true, email: true, image: true, whatsappPhone: true },
   });
 
-  logger.info("User profile updated", { userId: ctx.userId });
+  logger.info("User profile updated", { userId: ctx.userId, updatedFields: Object.keys(validated.data) });
 
   return apiSuccess(updated);
 });

@@ -2,6 +2,7 @@ import { withAuth } from "@/lib/api-handler";
 import { validateBody } from "@/lib/validate";
 import { apiSuccess, apiCreated, apiNotFound, apiForbidden } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
+import { notifyTaskCommented } from "@/lib/notifications";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
@@ -44,7 +45,12 @@ export const POST = withAuth(async (req, ctx) => {
 
   const task = await prisma.task.findUnique({
     where: { id },
-    select: { workspaceId: true },
+    select: {
+      workspaceId: true,
+      title: true,
+      assignee: true,
+      assigneeId: true,
+    },
   });
   if (!task) return apiNotFound("Tarea no encontrada");
 
@@ -55,7 +61,7 @@ export const POST = withAuth(async (req, ctx) => {
   if (!result.ok) return result.response;
   const { content } = result.data;
 
-  // Get the user's display name for the comment
+  // Get the commenter's display name
   const user = await prisma.user.findUnique({
     where: { id: ctx.userId },
     select: { name: true, email: true, image: true },
@@ -82,6 +88,22 @@ export const POST = withAuth(async (req, ctx) => {
       },
     }),
   ]);
+
+  // Notify the task assignee (fire-and-forget, non-blocking)
+  if (task.assignee && (task.assigneeId !== ctx.userId || task.assignee !== userName)) {
+    notifyTaskCommented({
+      taskId: id,
+      taskTitle: task.title,
+      assigneeName: task.assignee,
+      assigneeUserId: task.assigneeId ?? null,
+      commenterName: userName,
+      commenterUserId: ctx.userId,
+      commentPreview: content,
+      workspaceId: task.workspaceId,
+    }).catch((err) =>
+      logger.warn("Notify task commented failed", { taskId: id, error: err })
+    );
+  }
 
   return apiCreated(comment);
 });

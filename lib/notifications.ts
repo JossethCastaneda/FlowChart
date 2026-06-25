@@ -3,6 +3,8 @@ import { Resend } from "resend";
 import { env } from "@/lib/env";
 import { getTaskAssignedEmailHtml, getSLAWarningEmailHtml } from "@/lib/email-templates";
 import { getBaseUrl } from "@/lib/get-base-url";
+import { getWaCredentials, sendWaText } from "@/lib/whatsapp";
+import { logger } from "@/lib/logger";
 
 let _resend: Resend | null = null;
 function getResend(): Resend | null {
@@ -16,8 +18,40 @@ function getResend(): Resend | null {
 const FROM_EMAIL = env.RESEND_FROM_EMAIL || env.EMAIL_FROM || "SODARE <noreply@sodare.xyz>";
 const BASE_URL = getBaseUrl();
 
+// ─── WhatsApp helper ─────────────────────────────────────────────────────────
+
 /**
- * Create an in-app notification + optionally send email + browser push
+ * Sends a WhatsApp notification to a recipient number using the workspace's
+ * connected WhatsApp Business account.
+ * Silently no-ops if:
+ *   - The workspace has no WhatsApp integration connected
+ *   - The recipient has no whatsappPhone saved
+ * Fire-and-forget: does NOT throw — all errors are logged as warnings.
+ */
+async function sendWaNotification(
+  workspaceId: string,
+  recipientPhone: string,
+  message: string,
+): Promise<void> {
+  try {
+    const creds = await getWaCredentials(workspaceId);
+    if (!creds) return; // WhatsApp not connected for this workspace
+
+    // Sanitize phone: remove +, spaces, dashes — must be digits only
+    const phone = recipientPhone.replace(/\D/g, "");
+    if (!phone || phone.length < 7) return;
+
+    await sendWaText(creds, { to: phone, text: message });
+    logger.info("WA task notification sent", { workspaceId, to: phone });
+  } catch (err) {
+    logger.warn("WA task notification failed (non-critical)", { workspaceId, error: err });
+  }
+}
+
+// ─── Core notification ────────────────────────────────────────────────────────
+
+/**
+ * Create an in-app notification + optionally send email + WhatsApp
  */
 export async function createNotification({
   userId,
@@ -28,6 +62,9 @@ export async function createNotification({
   sendEmail = false,
   emailSubject,
   emailHtml,
+  sendWhatsapp = false,
+  whatsappPhone,
+  workspaceId,
 }: {
   userId: string;
   type: string;
@@ -37,6 +74,9 @@ export async function createNotification({
   sendEmail?: boolean;
   emailSubject?: string;
   emailHtml?: string;
+  sendWhatsapp?: boolean;
+  whatsappPhone?: string;
+  workspaceId?: string;
 }) {
   // 1. Create in-app notification
   const notification = await prisma.notification.create({
@@ -47,26 +87,35 @@ export async function createNotification({
   if (sendEmail && emailHtml) {
     try {
       const resendClient = getResend();
-      if (!resendClient) return notification;
-      const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
-      if (user?.email) {
-        await resendClient.emails.send({
-          from: FROM_EMAIL,
-          to: user.email,
-          subject: emailSubject || `SODARE — ${title}`,
-          html: emailHtml,
-        });
+      if (resendClient) {
+        const user = await prisma.user.findUnique({ where: { id: userId }, select: { email: true } });
+        if (user?.email) {
+          await resendClient.emails.send({
+            from: FROM_EMAIL,
+            to: user.email,
+            subject: emailSubject || `SODARE — ${title}`,
+            html: emailHtml,
+          });
+        }
       }
     } catch (err) {
       console.error("[NOTIFICATIONS] Email error:", err);
     }
   }
 
+  // 3. Send WhatsApp if requested and workspace is configured
+  if (sendWhatsapp && whatsappPhone && workspaceId) {
+    await sendWaNotification(workspaceId, whatsappPhone, `${title}\n${message}`);
+  }
+
   return notification;
 }
 
+// ─── Task notifications ───────────────────────────────────────────────────────
+
 /**
- * Notify when a task is assigned to someone
+ * Notify when a task is assigned to someone.
+ * Sends: in-app + email + WhatsApp (if the assignee has a whatsappPhone saved)
  */
 export async function notifyTaskAssigned({
   taskId,
@@ -77,6 +126,7 @@ export async function notifyTaskAssigned({
   assignerUserId,
   priority,
   dueDate,
+  workspaceId,
 }: {
   taskId: string;
   taskTitle: string;
@@ -86,13 +136,14 @@ export async function notifyTaskAssigned({
   assignerUserId: string;
   priority: string;
   dueDate: string | null;
+  workspaceId: string;
 }) {
   // Prefer direct userId lookup; fall back to name search for backward compat
-  let user: { id: string; email: string | null } | null = null;
+  let user: { id: string; email: string | null; whatsappPhone: string | null } | null = null;
   if (assigneeUserId) {
     user = await prisma.user.findUnique({
       where: { id: assigneeUserId },
-      select: { id: true, email: true },
+      select: { id: true, email: true, whatsappPhone: true },
     });
   }
   if (!user) {
@@ -103,7 +154,7 @@ export async function notifyTaskAssigned({
           { email: { startsWith: assigneeName } },
         ],
       },
-      select: { id: true, email: true },
+      select: { id: true, email: true, whatsappPhone: true },
     });
   }
 
@@ -113,6 +164,16 @@ export async function notifyTaskAssigned({
   const dueDateFormatted = dueDate
     ? new Date(dueDate).toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" })
     : null;
+
+  const waMessage = [
+    `📋 *Nueva tarea asignada* — SODARE`,
+    ``,
+    `*${taskTitle}*`,
+    `Prioridad: ${priority}${dueDateFormatted ? `\nVence: ${dueDateFormatted}` : ""}`,
+    `Asignada por: ${assignerName}`,
+    ``,
+    `Ver tarea: ${taskUrl}`,
+  ].join("\n");
 
   await createNotification({
     userId: user.id,
@@ -130,11 +191,15 @@ export async function notifyTaskAssigned({
       dueDate: dueDateFormatted,
       taskUrl,
     }),
+    sendWhatsapp: !!user.whatsappPhone,
+    whatsappPhone: user.whatsappPhone ?? undefined,
+    workspaceId,
   });
 }
 
 /**
- * Notify when a task status changes
+ * Notify when a task status changes.
+ * Sends: in-app + WhatsApp (if assignee has whatsappPhone)
  */
 export async function notifyTaskStatusChanged({
   taskId,
@@ -143,6 +208,7 @@ export async function notifyTaskStatusChanged({
   updaterName,
   updaterUserId,
   newStatus,
+  workspaceId,
 }: {
   taskId: string;
   taskTitle: string;
@@ -150,6 +216,7 @@ export async function notifyTaskStatusChanged({
   updaterName: string;
   updaterUserId: string;
   newStatus: string;
+  workspaceId: string;
 }) {
   const user = await prisma.user.findFirst({
     where: {
@@ -158,10 +225,26 @@ export async function notifyTaskStatusChanged({
         { email: { startsWith: assigneeName } },
       ],
     },
-    select: { id: true, email: true },
+    select: { id: true, email: true, whatsappPhone: true },
   });
 
   if (!user || user.id === updaterUserId) return; // Don't notify yourself
+
+  const statusEmoji: Record<string, string> = {
+    WIP: "🔄",
+    Review: "👀",
+    Done: "✅",
+    Backlog: "📥",
+  };
+  const emoji = statusEmoji[newStatus] ?? "📋";
+
+  const waMessage = [
+    `${emoji} *Tarea actualizada* — SODARE`,
+    ``,
+    `*${taskTitle}*`,
+    `Estado: ${newStatus}`,
+    `Actualizado por: ${updaterName}`,
+  ].join("\n");
 
   await createNotification({
     userId: user.id,
@@ -169,13 +252,87 @@ export async function notifyTaskStatusChanged({
     title: "Estado de tarea actualizado",
     message: `${updaterName} movió la tarea "${taskTitle}" a ${newStatus}`,
     link: "/dashboard/ops",
-    sendEmail: false, // In-app notification only for status changes
+    sendEmail: false,
+    sendWhatsapp: !!user.whatsappPhone,
+    whatsappPhone: user.whatsappPhone ?? undefined,
+    workspaceId,
   });
 }
 
 /**
- * Check SLA and send warnings for tasks due within 24h
- * Called by cron or on page load
+ * Notify the task assignee when someone adds a comment to their task.
+ * Sends: in-app + WhatsApp (if assignee has whatsappPhone)
+ */
+export async function notifyTaskCommented({
+  taskId,
+  taskTitle,
+  assigneeName,
+  assigneeUserId,
+  commenterName,
+  commenterUserId,
+  commentPreview,
+  workspaceId,
+}: {
+  taskId: string;
+  taskTitle: string;
+  assigneeName: string;
+  assigneeUserId?: string | null;
+  commenterName: string;
+  commenterUserId: string;
+  commentPreview: string;
+  workspaceId: string;
+}) {
+  let user: { id: string; whatsappPhone: string | null } | null = null;
+
+  if (assigneeUserId) {
+    user = await prisma.user.findUnique({
+      where: { id: assigneeUserId },
+      select: { id: true, whatsappPhone: true },
+    });
+  }
+  if (!user && assigneeName) {
+    user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { name: assigneeName },
+          { email: { startsWith: assigneeName } },
+        ],
+      },
+      select: { id: true, whatsappPhone: true },
+    });
+  }
+
+  if (!user || user.id === commenterUserId) return; // Don't notify yourself
+
+  const preview = commentPreview.length > 80 ? `${commentPreview.slice(0, 80)}…` : commentPreview;
+
+  const waMessage = [
+    `💬 *Nuevo comentario* — SODARE`,
+    ``,
+    `*${taskTitle}*`,
+    `${commenterName}: "${preview}"`,
+    ``,
+    `Ver tarea: ${BASE_URL}/dashboard/ops`,
+  ].join("\n");
+
+  await createNotification({
+    userId: user.id,
+    type: "task_comment",
+    title: "Nuevo comentario en tarea",
+    message: `${commenterName} comentó en "${taskTitle}": ${preview}`,
+    link: "/dashboard/ops",
+    sendEmail: false,
+    sendWhatsapp: !!user.whatsappPhone,
+    whatsappPhone: user.whatsappPhone ?? undefined,
+    workspaceId,
+  });
+}
+
+// ─── SLA warnings ─────────────────────────────────────────────────────────────
+
+/**
+ * Check SLA and send warnings for tasks due within 24h.
+ * Called by cron or on page load.
  */
 export async function checkSLAWarnings(workspaceId: string) {
   const now = new Date();
@@ -199,10 +356,10 @@ export async function checkSLAWarnings(workspaceId: string) {
     const hoursLeft = Math.round((task.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60));
     const type = hoursLeft <= 0 ? "sla_expired" : "sla_warning";
 
-    // Find user
+    // Find user + whatsappPhone
     const user = await prisma.user.findFirst({
       where: { OR: [{ name: task.assignee }, { email: { startsWith: task.assignee } }] },
-      select: { id: true },
+      select: { id: true, whatsappPhone: true },
     });
     if (!user) continue;
 
@@ -218,11 +375,15 @@ export async function checkSLAWarnings(workspaceId: string) {
     if (existing) continue;
 
     const dueDateFormatted = task.dueDate.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
+    const slaTitle = hoursLeft <= 0 ? "SLA Vencido" : "SLA por vencer";
+    const waMessage = hoursLeft <= 0
+      ? `⛔ *SLA VENCIDO* — SODARE\n\n*${task.title}*\nVenció el ${dueDateFormatted}\n\nVer: ${taskUrl}`
+      : `⏰ *SLA por vencer* — SODARE\n\n*${task.title}*\nVence: ${dueDateFormatted} (${hoursLeft}h)\n\nVer: ${taskUrl}`;
 
     await createNotification({
       userId: user.id,
       type,
-      title: hoursLeft <= 0 ? "SLA Vencido" : "SLA por vencer",
+      title: slaTitle,
       message: `${task.title} [${task.id}]`,
       link: "/dashboard/ops",
       sendEmail: true,
@@ -234,6 +395,9 @@ export async function checkSLAWarnings(workspaceId: string) {
         dueDate: dueDateFormatted,
         taskUrl,
       }),
+      sendWhatsapp: !!user.whatsappPhone,
+      whatsappPhone: user.whatsappPhone ?? undefined,
+      workspaceId,
     });
   }
 }

@@ -133,10 +133,12 @@ export const PATCH = withAuth(async (req, ctx) => {
       taskId: updated.id,
       taskTitle: updated.title,
       assigneeName: assignee,
-      assignerName: ctx.userId,
+      assigneeUserId: assigneeId ?? updated.assigneeId ?? undefined,
+      assignerName: member?.user?.name ?? ctx.userId,
       assignerUserId: ctx.userId,
       priority: updated.priority,
       dueDate: updated.dueDate?.toISOString() || null,
+      workspaceId: task.workspaceId,
     }).catch((err) =>
       logger.warn("Notify task assigned failed", { taskId: id, error: err })
     );
@@ -145,9 +147,10 @@ export const PATCH = withAuth(async (req, ctx) => {
       taskId: updated.id,
       taskTitle: updated.title,
       assigneeName: updated.assignee,
-      updaterName: ctx.userId,
+      updaterName: member?.user?.name ?? ctx.userId,
       updaterUserId: ctx.userId,
       newStatus: updated.status,
+      workspaceId: task.workspaceId,
     }).catch((err) =>
       logger.warn("Notify task status changed failed", { taskId: id, error: err })
     );
