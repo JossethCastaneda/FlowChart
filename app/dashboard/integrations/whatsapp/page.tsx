@@ -547,7 +547,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
   const [unlinking, setUnlinking] = useState(false);
 
   const handleUnlink = async () => {
-    if (!confirm("¿{t.disconnect} esta línea de Sodare? Dejará de recibir mensajes.")) return;
+    if (!confirm(`¿Desvincular esta línea de Sodare? Dejará de recibir mensajes.`)) return;
     setUnlinking(true);
     await onUnlink();
     setUnlinking(false);
@@ -778,9 +778,20 @@ export default function WhatsAppIntegrationPage() {
 
   // ── Disconnect WABA ──────────────────────────────────────────────────────────
   const handleDisconnect = async () => {
-    if (!confirm(`¿${t.disconnect} WhatsApp Business? Los mensajes dejarán de procesarse.`)) return;
+    if (!confirm(`¿${t.disconnect} WhatsApp Business? Las notificaciones y mensajes dejarán de enviarse.`)) return;
     setDisconnecting(true);
-    try { await fetch("/api/connect/whatsapp", { method: "DELETE" }); setWabaStatus({ connected: false }); setLines([]); } catch { /* silent */ }
+    try {
+      const res = await fetch("/api/connect/whatsapp", { method: "DELETE" });
+      if (res.ok) {
+        setWabaStatus({ connected: false });
+        setLines([]);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setConnectError(data.error || "Error al desconectar WhatsApp Business.");
+      }
+    } catch {
+      setConnectError(t.networkError);
+    }
     setDisconnecting(false);
   };
 
