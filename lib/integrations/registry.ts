@@ -56,6 +56,9 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
     // Start with user.info.basic to verify the OAuth flow, then expand.
     scopes: [
       "user.info.basic",
+      "user.info.profile",
+      "user.info.stats",
+      "video.list",
       "video.publish",
       "video.upload",
     ],
