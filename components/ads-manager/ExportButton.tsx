@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import { Download, FileText, Table2, ChevronDown, Sheet } from "lucide-react";
@@ -104,7 +104,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
         style={{
           display: "flex", alignItems: "center", gap: "5px",
           padding: "6px 10px", fontSize: "11px", fontWeight: 600,
-          background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+          background: "var(--row-hover)", border: "1px solid var(--hairline)",
           borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
           transition: "all 0.15s",
         }}
@@ -126,37 +126,37 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
             onClick={exportXLSX}
             style={{
               width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 10px", fontSize: "11px", color: "white",
+              padding: "8px 10px", fontSize: "11px", color: "var(--foreground)",
               background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
             }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <Sheet className="w-3.5 h-3.5" style={{ color: "#10b981" }} /> Exportar Excel
+            <Sheet className="w-3.5 h-3.5" style={{ color: "var(--emerald)" }} /> Exportar Excel
           </button>
           <button
             onClick={exportCSV}
             style={{
               width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 10px", fontSize: "11px", color: "white",
+              padding: "8px 10px", fontSize: "11px", color: "var(--foreground)",
               background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
             }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <Table2 className="w-3.5 h-3.5" style={{ color: "#34d399" }} /> Exportar CSV
+            <Table2 className="w-3.5 h-3.5" style={{ color: "var(--emerald)" }} /> Exportar CSV
           </button>
           <button
             onClick={() => { window.print(); setShowMenu(false); }}
             style={{
               width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 10px", fontSize: "11px", color: "white",
+              padding: "8px 10px", fontSize: "11px", color: "var(--foreground)",
               background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
             }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <FileText className="w-3.5 h-3.5" style={{ color: "#a78bfa" }} /> Imprimir / PDF
+            <FileText className="w-3.5 h-3.5" style={{ color: "var(--purple)" }} /> Imprimir / PDF
           </button>
         </div>
       )}

@@ -10,7 +10,7 @@ function FormGroup({ label, children, hint }: { label: string; children: React.R
     <div>
       <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(148,163,184,0.7)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {label}
-        {hint && <span style={{ marginLeft: 6, fontSize: 9, color: "#64748b", fontWeight: 400, textTransform: "none", fontStyle: "italic" }}>{hint}</span>}
+        {hint && <span style={{ marginLeft: 6, fontSize: 9, color: "var(--text-muted)", fontWeight: 400, textTransform: "none", fontStyle: "italic" }}>{hint}</span>}
       </label>
       {children}
     </div>
@@ -47,11 +47,11 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
   const [activeTab, setActiveTab] = useState<"general" | "budget" | "targeting" | "schedule">("general");
   const overlayRef = useRef<HTMLDivElement>(null);
 
-  // ── General ──
+  // -- General --
   const [name, setName] = useState(adset.name || "");
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(adset.status === "ACTIVE" ? "ACTIVE" : "PAUSED");
 
-  // ── Budget ──
+  // -- Budget --
   const hasDailyBudget = adset.daily_budget !== undefined && adset.daily_budget !== null;
   const [budgetType, setBudgetType] = useState<"daily" | "lifetime">(hasDailyBudget ? "daily" : "lifetime");
   const [budget, setBudget] = useState<number>(
@@ -63,11 +63,11 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
   const [bidAmount, setBidAmount] = useState<number>(parseFloat(adset.bid_amount || "0") / 100);
   const [optimizationGoal, setOptimizationGoal] = useState(adset.optimization_goal || "IMPRESSIONS");
 
-  // ── Schedule ──
+  // -- Schedule --
   const [startTime, setStartTime] = useState(adset.start_time ? adset.start_time.substring(0, 16) : "");
   const [endTime, setEndTime] = useState(adset.end_time ? adset.end_time.substring(0, 16) : "");
 
-  // ── Targeting ──
+  // -- Targeting --
   const targeting = adset.targeting || {};
   const [ageMin, setAgeMin] = useState<number>(targeting.age_min || 18);
   const [ageMax, setAgeMax] = useState<number>(targeting.age_max || 65);
@@ -137,7 +137,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+        background: "var(--overlay-dark)", backdropFilter: "blur(4px)",
         display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
       }}
     >
@@ -157,14 +157,14 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(159,0,251,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Target className="w-4 h-4" style={{ color: "#a78bfa" }} />
+              <Target className="w-4 h-4" style={{ color: "var(--purple)" }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "white" }}>Editar Conjunto de Anuncios</div>
-              <div style={{ fontSize: 11, color: "#94a3b8" }}>ID: {adset.id}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>Editar Conjunto de Anuncios</div>
+              <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>ID: {adset.id}</div>
             </div>
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 4, display: "flex", alignItems: "center", borderRadius: 6 }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", padding: 4, display: "flex", alignItems: "center", borderRadius: 6 }}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -180,7 +180,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                 padding: "10px 12px",
                 background: "none", border: "none",
                 borderBottom: `2px solid ${activeTab === tab.key ? "var(--cyan)" : "transparent"}`,
-                color: activeTab === tab.key ? "var(--cyan)" : "#94a3b8",
+                color: activeTab === tab.key ? "var(--cyan)" : "var(--text-secondary)",
                 fontSize: 12, fontWeight: 600, cursor: "pointer",
                 marginBottom: -1, transition: "color 0.15s",
               }}
@@ -201,8 +201,8 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               <FormGroup label="Estado">
                 <div style={{ display: "flex", gap: 8 }}>
                   {(["ACTIVE", "PAUSED"] as const).map((s) => (
-                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.1)") : "rgba(255,255,255,0.09)", borderColor: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--border)", color: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "#94a3b8" }}>
-                      {s === "ACTIVE" ? "● Activo" : "◌ Pausado"}
+                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.1)") : "rgba(255,255,255,0.09)", borderColor: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--border)", color: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--text-secondary)" }}>
+                      {s === "ACTIVE" ? "? Activo" : "? Pausado"}
                     </button>
                   ))}
                 </div>
@@ -222,7 +222,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               <FormGroup label="Tipo de presupuesto">
                 <div style={{ display: "flex", gap: 8 }}>
                   {(["daily", "lifetime"] as const).map((t) => (
-                    <button key={t} onClick={() => setBudgetType(t)} style={{ ...toggleStyle, background: budgetType === t ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)", borderColor: budgetType === t ? "var(--cyan)" : "var(--border)", color: budgetType === t ? "var(--cyan)" : "#94a3b8" }}>
+                    <button key={t} onClick={() => setBudgetType(t)} style={{ ...toggleStyle, background: budgetType === t ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)", borderColor: budgetType === t ? "var(--cyan)" : "var(--border)", color: budgetType === t ? "var(--cyan)" : "var(--text-secondary)" }}>
                       {t === "daily" ? "Diario" : "Total"}
                     </button>
                   ))}
@@ -230,7 +230,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               </FormGroup>
               <FormGroup label="Importe">
                 <div style={{ position: "relative" }}>
-                  <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontSize: 13 }}>$</span>
+                  <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)", fontSize: 13 }}>$</span>
                   <input type="number" value={budget} onChange={(e) => setBudget(parseFloat(e.target.value) || 0)} min={0.01} step={0.01} style={{ ...inputStyle, paddingLeft: 28 }} />
                 </div>
               </FormGroup>
@@ -244,7 +244,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               {bidStrategy === "LOWEST_COST_WITH_BID_CAP" && (
                 <FormGroup label="Límite de puja ($)">
                   <div style={{ position: "relative" }}>
-                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontSize: 13 }}>$</span>
+                    <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)", fontSize: 13 }}>$</span>
                     <input type="number" value={bidAmount} onChange={(e) => setBidAmount(parseFloat(e.target.value) || 0)} min={0.01} step={0.01} style={{ ...inputStyle, paddingLeft: 28 }} />
                   </div>
                 </FormGroup>
@@ -257,9 +257,9 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               <FormGroup label="Rango de edad">
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <input type="number" value={ageMin} onChange={(e) => setAgeMin(parseInt(e.target.value) || 18)} min={13} max={65} style={{ ...inputStyle, width: 80 }} />
-                  <span style={{ color: "#64748b", fontSize: 12 }}>–</span>
+                  <span style={{ color: "var(--text-muted)", fontSize: 12 }}>–</span>
                   <input type="number" value={ageMax} onChange={(e) => setAgeMax(parseInt(e.target.value) || 65)} min={13} max={65} style={{ ...inputStyle, width: 80 }} />
-                  <span style={{ fontSize: 11, color: "#64748b" }}>años</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>años</span>
                 </div>
               </FormGroup>
 
@@ -274,7 +274,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                           if (v === 0) setGenders([]);
                           else setGenders(genders.includes(v) ? genders.filter((g) => g !== v) : [...genders.filter((g) => g !== 0), v]);
                         }}
-                        style={{ ...toggleStyle, background: isActive ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)", borderColor: isActive ? "var(--cyan)" : "var(--border)", color: isActive ? "var(--cyan)" : "#94a3b8" }}
+                        style={{ ...toggleStyle, background: isActive ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)", borderColor: isActive ? "var(--cyan)" : "var(--border)", color: isActive ? "var(--cyan)" : "var(--text-secondary)" }}
                       >
                         {l}
                       </button>
@@ -293,7 +293,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               </FormGroup>
 
               <div style={{ padding: "10px 12px", background: "rgba(255,190,11,0.05)", border: "1px solid rgba(255,190,11,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(255,190,11,0.9)", lineHeight: 1.5 }}>
-                ⚠️ La segmentación detallada (intereses, comportamientos, audiencias personalizadas) se gestiona a nivel avanzado desde el Administrador de Meta para evitar pérdida de datos.
+                ?? La segmentación detallada (intereses, comportamientos, audiencias personalizadas) se gestiona a nivel avanzado desde el Administrador de Meta para evitar pérdida de datos.
               </div>
             </>
           )}
@@ -306,13 +306,13 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
               <FormGroup label="Fecha de fin" hint="Opcional">
                 <input type="datetime-local" value={endTime} onChange={(e) => setEndTime(e.target.value)} style={{ ...inputStyle, colorScheme: "dark" }} />
                 {endTime && (
-                  <button onClick={() => setEndTime("")} style={{ marginTop: 6, background: "none", border: "none", fontSize: 11, color: "#94a3b8", cursor: "pointer" }}>
+                  <button onClick={() => setEndTime("")} style={{ marginTop: 6, background: "none", border: "none", fontSize: 11, color: "var(--text-secondary)", cursor: "pointer" }}>
                     Eliminar fecha de fin
                   </button>
                 )}
               </FormGroup>
               <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.08)", borderRadius: 8, fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.5 }}>
-                ℹ️ Los cambios de programación pueden reiniciar la fase de aprendizaje del conjunto.
+                ?? Los cambios de programación pueden reiniciar la fase de aprendizaje del conjunto.
               </div>
             </>
           )}
@@ -331,7 +331,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
             Cancelar
           </button>
           <button onClick={handleSave} disabled={loading || saved} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", background: saved ? "rgba(6,214,160,0.2)" : "rgba(0,129,251,0.2)", border: `1px solid ${saved ? "var(--emerald)" : "var(--cyan)"}`, borderRadius: 8, color: saved ? "var(--emerald)" : "var(--cyan)", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? "✓ Guardado" : <><Save className="w-4 h-4" /> Guardar</>}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? "? Guardado" : <><Save className="w-4 h-4" /> Guardar</>}
           </button>
         </div>
       </div>

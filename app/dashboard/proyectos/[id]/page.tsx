@@ -105,12 +105,12 @@ function getBudgetBreakdown(budget: number, period: string) {
 }
 
 /* ═══ SHARED UI ═══ */
-const panelStyle: React.CSSProperties = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 };
-const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 };
-const headingStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#e2e8f0", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 };
+const panelStyle: React.CSSProperties = { background: "var(--row-hover)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 };
+const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 };
+const headingStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 };
 const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.75)", marginBottom: 10 };
-const tooltipStyle = { backgroundColor: "rgba(10,15,30,0.95)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12, color: "white" };
-const CHART_COLORS = ["#00d4ff", "#00c875", "#fdab3d", "#e2445c", "#7b61ff", "#579bfc", "#ff007f", "#25F4EE"];
+const tooltipStyle = { backgroundColor: "rgba(10,15,30,0.95)", border: "1px solid var(--hairline)", borderRadius: 8, fontSize: 12, color: "white" };
+const CHART_COLORS = ["var(--cyan)", "var(--emerald)", "var(--amber)", "var(--red)", "var(--purple)", "#579bfc", "#ff007f", "#25F4EE"];
 
 function KpiBox({ title, value, sub, icon, color, progress }: any) {
   const c = color.startsWith("#") ? color : `var(--${color})`;
@@ -118,7 +118,7 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
     <div style={{ ...panelStyle, position: "relative", overflow: "hidden", paddingBottom: progress !== undefined ? 24 : 20 }}>
       <div style={{ position: "absolute", top: 0, right: 0, width: 100, height: 100, background: `radial-gradient(circle, ${c}15 0%, transparent 70%)`, transform: "translate(30%, -30%)" }} />
       <div style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(148,163,184,0.6)", marginBottom: 8 }}>
-        <div style={{ padding: 4, background: "rgba(0,0,0,0.3)", borderRadius: 4, color: c }}>{icon}</div>
+        <div style={{ padding: 4, background: "var(--surface-hover)", borderRadius: 4, color: c }}>{icon}</div>
         <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>{title}</span>
       </div>
       <div style={{ fontSize: 20, fontWeight: 700, color: "white", marginBottom: 2, fontFamily: "'Orbitron',sans-serif" }}>{value}</div>
@@ -142,7 +142,7 @@ function TabButton({ active, label, icon, onClick }: { active: boolean; label: s
       display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", fontSize: 10, fontWeight: 600,
       background: active ? "rgba(0,212,255,0.08)" : "transparent",
       border: `1px solid ${active ? "rgba(0,212,255,0.2)" : "transparent"}`,
-      color: active ? "#00d4ff" : "rgba(148,163,184,0.75)",
+      color: active ? "var(--cyan)" : "rgba(148,163,184,0.75)",
       borderRadius: 4, cursor: "pointer", transition: "all 0.2s", letterSpacing: "0.03em",
     }}>{icon}{label}</button>
   );
@@ -150,12 +150,12 @@ function TabButton({ active, label, icon, onClick }: { active: boolean; label: s
 
 function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: 3 }}>
+    <div style={{ display: "flex", gap: 4, background: "var(--row-hover)", borderRadius: 6, padding: 3 }}>
       {[{ k: "day", l: "Día" }, { k: "week", l: "Semana" }, { k: "month", l: "Mes" }].map(t => (
         <button key={t.k} onClick={() => onChange(t.k)} style={{
           padding: "4px 12px", fontSize: 10, fontWeight: 600, borderRadius: 4, border: "none", cursor: "pointer",
           background: value === t.k ? "rgba(0,212,255,0.12)" : "transparent",
-          color: value === t.k ? "#00d4ff" : "rgba(148,163,184,0.7)",
+          color: value === t.k ? "var(--cyan)" : "rgba(148,163,184,0.7)",
         }}>{t.l}</button>
       ))}
     </div>
@@ -532,7 +532,7 @@ export default function ProjectDashboardPage() {
             return <button key={c.platformId} onClick={() => { setActivePlatform(c.platformId); setBreakdownData({}); }} style={{ padding: "5px 12px", fontSize: 11, fontWeight: 600, background: activePlatform === c.platformId ? `${pl.color}15` : "transparent", border: `1px solid ${activePlatform === c.platformId ? pl.color : "transparent"}`, color: activePlatform === c.platformId ? pl.color : "rgba(148,163,184,0.75)", borderRadius: 4, cursor: "pointer" }}>{pl.name}</button>;
           })}
           {ch?.adAccounts && ch.adAccounts.length > 1 && (
-            <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{ background: "rgba(10,15,30,0.6)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "5px 24px 5px 8px", borderRadius: 4, cursor: "pointer", appearance: "none" }}>
+            <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{ background: "rgba(10,15,30,0.6)", border: "1px solid rgba(255,255,255,0.06)", color: "var(--foreground)", fontSize: 11, padding: "5px 24px 5px 8px", borderRadius: 4, cursor: "pointer", appearance: "none" }}>
               <option value="all">Todas ({ch.adAccounts.length})</option>
               {ch.adAccounts.map(a => <option key={a} value={a}>{accountNames[a] || a}</option>)}
             </select>
@@ -549,18 +549,18 @@ export default function ProjectDashboardPage() {
             <div style={panelStyle}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <div><h3 style={headingStyle}>Proyección al Cierre</h3><p style={subStyle}>Día {daysElapsed} de {daysInMonth} del mes{goalNum > 0 ? ` · Meta: ${fmtNum(goalNum)} resultados (${fmtMXN0(bk.monthly)} ÷ ${fmtMXN(cprTarget)})` : ""}</p></div>
-                <div style={{ padding: "4px 12px", borderRadius: 4, fontSize: 10, fontWeight: 700, background: trackStatus === "on-track" ? "rgba(0,200,117,0.1)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.1)" : "rgba(226,68,92,0.1)", color: trackStatus === "on-track" ? "#00c875" : trackStatus === "at-risk" ? "#fdab3d" : "#e2445c", border: `1px solid ${trackStatus === "on-track" ? "rgba(0,200,117,0.2)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.2)" : "rgba(226,68,92,0.2)"}` }}>
+                <div style={{ padding: "4px 12px", borderRadius: 4, fontSize: 10, fontWeight: 700, background: trackStatus === "on-track" ? "rgba(0,200,117,0.1)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.1)" : "rgba(226,68,92,0.1)", color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)", border: `1px solid ${trackStatus === "on-track" ? "rgba(0,200,117,0.2)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.2)" : "rgba(226,68,92,0.2)"}` }}>
                   {trackStatus === "on-track" ? "EN TRACK" : trackStatus === "at-risk" ? "EN RIESGO" : trackStatus === "off-track" ? "FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
                 </div>
               </div>
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 <div><p style={labelStyle}>Resultados proyectados</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtNum(projectedResults)}</p>{goalNum > 0 && <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtNum(goalNum)} objetivo</p>}</div>
                 <div><p style={labelStyle}>Gasto proyectado</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(projectedSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtMXN0(bk.monthly)} mensual</p></div>
-                <div><p style={labelStyle}>Meta diaria ideal</p><p style={{ fontSize: 18, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día</p></div>
-                <div><p style={labelStyle}>Ritmo diario necesario</p><p style={{ fontSize: 18, fontWeight: 700, color: dailyNeeded > 0 ? "#fdab3d" : "white", fontFamily: "'Orbitron',sans-serif" }}>{dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día restantes</p></div>
-                <div><p style={labelStyle}>Cumplimiento</p><p style={{ fontSize: 18, fontWeight: 700, color: goalCompletion >= 100 ? "#00c875" : "white", fontFamily: "'Orbitron',sans-serif" }}>{goalNum > 0 ? pct(goalCompletion) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{daysRemaining} días restantes</p></div>
+                <div><p style={labelStyle}>Meta diaria ideal</p><p style={{ fontSize: 18, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif" }}>{goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día</p></div>
+                <div><p style={labelStyle}>Ritmo diario necesario</p><p style={{ fontSize: 18, fontWeight: 700, color: dailyNeeded > 0 ? "var(--amber)" : "white", fontFamily: "'Orbitron',sans-serif" }}>{dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día restantes</p></div>
+                <div><p style={labelStyle}>Cumplimiento</p><p style={{ fontSize: 18, fontWeight: 700, color: goalCompletion >= 100 ? "var(--emerald)" : "white", fontFamily: "'Orbitron',sans-serif" }}>{goalNum > 0 ? pct(goalCompletion) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{daysRemaining} días restantes</p></div>
               </div>
-              {goalNum > 0 && <div style={{ marginTop: 16, height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: `${Math.min(goalCompletion, 100)}%`, background: trackStatus === "on-track" ? "#00c875" : trackStatus === "at-risk" ? "#fdab3d" : "#e2445c", borderRadius: 3, transition: "width 0.5s" }} /></div>}
+              {goalNum > 0 && <div style={{ marginTop: 16, height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: `${Math.min(goalCompletion, 100)}%`, background: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)", borderRadius: 3, transition: "width 0.5s" }} /></div>}
             </div>
 
             {/* Charts Row */}
@@ -568,16 +568,16 @@ export default function ProjectDashboardPage() {
               {isLoading && <LoadingOverlay />}
               <div style={panelStyle}><h3 style={headingStyle}>Inversión vs Resultados</h3><p style={subStyle}>Gasto diario y volumen de conversiones</p>
                 <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fdab3d" stopOpacity={0.3} /><stop offset="95%" stopColor="#fdab3d" stopOpacity={0} /></linearGradient></defs>
+                  <defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--amber)" stopOpacity={0.3} /><stop offset="95%" stopColor="var(--amber)" stopOpacity={0} /></linearGradient></defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="left" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="#fdab3d" strokeWidth={2} fillOpacity={1} fill="url(#gs)" /><Bar yAxisId="right" dataKey="results" name="Resultados" fill="#00c875" radius={[3, 3, 0, 0]} barSize={6} />
+                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="var(--amber)" strokeWidth={2} fillOpacity={1} fill="url(#gs)" /><Bar yAxisId="right" dataKey="results" name="Resultados" fill="var(--emerald)" radius={[3, 3, 0, 0]} barSize={6} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
               <div style={panelStyle}><h3 style={headingStyle}>CTR vs CPC</h3><p style={subStyle}>Calidad de tráfico y costo por clic</p>
                 <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7b61ff" stopOpacity={0.3} /><stop offset="95%" stopColor="#7b61ff" stopOpacity={0} /></linearGradient></defs>
+                  <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--purple)" stopOpacity={0.3} /><stop offset="95%" stopColor="var(--purple)" stopOpacity={0} /></linearGradient></defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="l" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} /><YAxis yAxisId="r" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="#7b61ff" strokeWidth={2} fillOpacity={1} fill="url(#gc)" /><Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="#fdab3d" strokeWidth={2} dot={{ r: 3, fill: "rgba(10,15,30,1)" }} />
+                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="var(--purple)" strokeWidth={2} fillOpacity={1} fill="url(#gc)" /><Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="var(--amber)" strokeWidth={2} dot={{ r: 3, fill: "rgba(10,15,30,1)" }} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
             </div>
@@ -590,8 +590,8 @@ export default function ProjectDashboardPage() {
               <p style={subStyle}>{ch?.adAccounts?.length || 0} cuentas seleccionadas</p>
               {ch?.adAccounts?.map(acc => (
                 <div key={acc} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 4, marginBottom: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#00c875" }} />
-                  <div style={{ flex: 1 }}><p style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 500 }}>{accountNames[acc] || acc}</p><p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>{acc}</p></div>
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)" }} />
+                  <div style={{ flex: 1 }}><p style={{ fontSize: 12, color: "var(--foreground)", fontWeight: 500 }}>{accountNames[acc] || acc}</p><p style={{ fontSize: 9, color: "var(--text-muted)" }}>{acc}</p></div>
                 </div>
               ))}
             </div>
@@ -599,11 +599,11 @@ export default function ProjectDashboardPage() {
               <h3 style={headingStyle}>Presupuesto Diario</h3>
               <p style={subStyle}>{bk.label}: {fmtMXN0(budgetNum)}</p>
               <div className="space-y-3">
-                <div><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 16, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
-                <div><p style={labelStyle}>Semanal ideal</p><p style={{ fontSize: 14, fontWeight: 600, color: "#e2e8f0" }}>{fmtMXN(bk.weekly)}</p></div>
+                <div><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
+                <div><p style={labelStyle}>Semanal ideal</p><p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>{fmtMXN(bk.weekly)}</p></div>
                 <div style={{ marginTop: 12, padding: "10px 12px", background: spendPace > 10 ? "rgba(226,68,92,0.08)" : spendPace < -10 ? "rgba(253,171,61,0.08)" : "rgba(0,200,117,0.08)", borderRadius: 4, border: `1px solid ${spendPace > 10 ? "rgba(226,68,92,0.15)" : spendPace < -10 ? "rgba(253,171,61,0.15)" : "rgba(0,200,117,0.15)"}` }}>
                   <p style={{ fontSize: 10, color: "rgba(148,163,184,0.75)", marginBottom: 4 }}>Ritmo de gasto</p>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: spendPace > 10 ? "#e2445c" : spendPace < -10 ? "#fdab3d" : "#00c875" }}>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }}>
                     {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo"}
                   </p>
                   <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", marginTop: 2 }}>Ideal hoy: {fmtMXN(idealSpendToday)} | Real: {fmtMXN(totalSpend)}</p>
@@ -665,7 +665,7 @@ export default function ProjectDashboardPage() {
             if (intensity > 0.5) return "rgba(0,200,117,0.35)";
             if (intensity > 0.25) return "rgba(0,212,255,0.25)";
             if (intensity > 0.1) return "rgba(0,212,255,0.12)";
-            return "rgba(255,255,255,0.04)";
+            return "var(--surface-hover)";
           };
 
           return (
@@ -676,9 +676,9 @@ export default function ProjectDashboardPage() {
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 700 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
                     <tr>
-                      <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.75)", textAlign: "left", fontWeight: 600, width: 70, background: "rgba(5,8,18,0.95)" }}></th>
+                      <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.75)", textAlign: "left", fontWeight: 600, width: 70, background: "var(--panel-bg)" }}></th>
                       {HOURS.map(h => (
-                        <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.7)", textAlign: "center", fontWeight: 500, minWidth: 26, background: "rgba(5,8,18,0.95)" }}>
+                        <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.7)", textAlign: "center", fontWeight: 500, minWidth: 26, background: "var(--panel-bg)" }}>
                           {h.toString().padStart(2, "0")}
                         </th>
                       ))}
@@ -734,11 +734,11 @@ export default function ProjectDashboardPage() {
               </div>
               {/* Legend */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
-                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>Menos</span>
-                {["rgba(255,255,255,0.04)", "rgba(0,212,255,0.12)", "rgba(0,212,255,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
+                <span style={{ fontSize: 8, color: "var(--text-muted)" }}>Menos</span>
+                {["var(--surface-hover)", "rgba(0,212,255,0.12)", "rgba(0,212,255,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
                   <div key={i} style={{ width: 14, height: 10, borderRadius: 2, background: c }} />
                 ))}
-                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>Más</span>
+                <span style={{ fontSize: 8, color: "var(--text-muted)" }}>Más</span>
               </div>
             </div>
           );
@@ -753,8 +753,8 @@ export default function ProjectDashboardPage() {
           {/* Budget Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             <div style={panelStyle}><p style={labelStyle}>Presupuesto {bk.label}</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(budgetNum)}</p></div>
-            <div style={panelStyle}><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 20, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
-            <div style={panelStyle}><p style={labelStyle}>Gastado hoy</p><p style={{ fontSize: 20, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "#e2445c" : "#00c875", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(totalSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtMXN0(idealSpendToday)} ideal</p></div>
+            <div style={panelStyle}><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 20, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
+            <div style={panelStyle}><p style={labelStyle}>Gastado hoy</p><p style={{ fontSize: 20, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(totalSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtMXN0(idealSpendToday)} ideal</p></div>
             <div style={panelStyle}><p style={labelStyle}>Restante</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p></div>
           </div>
 
@@ -789,19 +789,19 @@ export default function ProjectDashboardPage() {
                 const projCPL = projectedResults > 0 ? projectedSpend / projectedResults : 0;
                 const desvioCPL = cprTarget > 0 ? ((totCPL / cprTarget) - 1) * 100 : 0;
 
-                const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "#e2e8f0", borderBottom: "1px solid rgba(255,255,255,0.03)", whiteSpace: "nowrap" };
+                const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "var(--foreground)", borderBottom: "1px solid rgba(255,255,255,0.03)", whiteSpace: "nowrap" };
                 const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 700, fontSize: 10, background: "var(--cyan)", borderBottom: "none" };
                 const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 600, fontSize: 9, background: "rgba(0,120,255,0.5)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
-                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 500, color: "rgba(148,163,184,0.7)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "rgba(5,8,18,0.98)", zIndex: 2 };
+                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 500, color: "rgba(148,163,184,0.7)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "var(--panel-bg)", zIndex: 2 };
                 const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "rgba(255,255,255,0.02)", position: "sticky" as const, left: 0, zIndex: 2 };
 
                 const metricRows = [
-                  { label: "Presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "#e2e8f0" },
-                  { label: "Importe Gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "#fdab3d" },
-                  { label: "%Gastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "#e2e8f0" },
-                  { label: goalLabel(ch?.goal), total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "#00c875" },
-                  { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map(() => "—"), color: "#7b61ff" },
-                  { label: CPR_MAP[ch?.goal || ""] || "CPR", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "#00d4ff" },
+                  { label: "Presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "var(--foreground)" },
+                  { label: "Importe Gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "var(--amber)" },
+                  { label: "%Gastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "var(--foreground)" },
+                  { label: goalLabel(ch?.goal), total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "var(--emerald)" },
+                  { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map(() => "—"), color: "var(--purple)" },
+                  { label: CPR_MAP[ch?.goal || ""] || "CPR", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "var(--cyan)" },
                   { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Proyección`, total: fmtMXN(projCPL), values: cols.map(() => "—"), color: "rgba(148,163,184,0.75)" },
                   { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(0)}%`; }), color: "rgba(148,163,184,0.75)" },
                 ];
@@ -811,13 +811,13 @@ export default function ProjectDashboardPage() {
                     {/* Day names header */}
                     <thead>
                       <tr>
-                        <th style={{ ...totalCellStyle, background: "rgba(5,8,18,0.98)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 9, color: "rgba(148,163,184,0.65)" }}>AL DÍA</th>
-                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 9, color: "rgba(148,163,184,0.65)" }}>FECHA</th>
+                        <th style={{ ...totalCellStyle, background: "var(--panel-bg)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 9, color: "var(--text-muted)" }}>AL DÍA</th>
+                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 9, color: "var(--text-muted)" }}>FECHA</th>
                         {cols.map((c: any, i: number) => <th key={i} style={headerCellStyle}>{c.dayName}</th>)}
                       </tr>
                       {/* Date numbers row */}
                       <tr>
-                        <th style={{ ...totalCellStyle, background: "rgba(5,8,18,0.98)", borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
+                        <th style={{ ...totalCellStyle, background: "var(--panel-bg)", borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
                         <th style={{ ...labelCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
                         {cols.map((c: any, i: number) => <th key={i} style={subHeaderStyle}>{c.date}</th>)}
                       </tr>
@@ -825,7 +825,7 @@ export default function ProjectDashboardPage() {
                     <tbody>
                       {/* Campaign name row */}
                       <tr>
-                        <td colSpan={2 + cols.length} style={{ padding: "8px 12px", fontWeight: 700, fontSize: 11, color: "#00d4ff", background: "rgba(0,212,255,0.04)", borderBottom: "1px solid rgba(0,212,255,0.1)", letterSpacing: "0.05em" }}>
+                        <td colSpan={2 + cols.length} style={{ padding: "8px 12px", fontWeight: 700, fontSize: 11, color: "var(--cyan)", background: "rgba(0,212,255,0.04)", borderBottom: "1px solid rgba(0,212,255,0.1)", letterSpacing: "0.05em" }}>
                           {project.alias?.toUpperCase() || "PROYECTO"}
                         </td>
                       </tr>
@@ -834,7 +834,7 @@ export default function ProjectDashboardPage() {
                           <td style={{ ...totalCellStyle, color: row.color, textAlign: "right", paddingRight: 12, minWidth: 100 }}>{row.total}</td>
                           <td style={labelCellStyle}>{row.label}</td>
                           {row.values.map((v: string, ci: number) => (
-                            <td key={ci} style={{ ...cellStyle, color: row.color === "#e2e8f0" ? "rgba(148,163,184,0.6)" : row.color, fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400 }}>{v}</td>
+                            <td key={ci} style={{ ...cellStyle, color: row.color === "var(--foreground)" ? "rgba(148,163,184,0.6)" : row.color, fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400 }}>{v}</td>
                           ))}
                         </tr>
                       ))}
@@ -853,7 +853,7 @@ export default function ProjectDashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
                 <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: any, n: any) => [fmtMXN(v as number), n]} /><Legend wrapperStyle={{ fontSize: 10 }} />
-                <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="#fdab3d" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="var(--amber)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="idealAccum" name="Presupuesto ideal" stroke="rgba(148,163,184,0.65)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
               </ComposedChart></ResponsiveContainer> : <NoData />}
             </div>
@@ -872,7 +872,7 @@ export default function ProjectDashboardPage() {
           {/* Section header */}
           <div style={{ ...panelStyle, padding: "14px 18px", background: "linear-gradient(135deg, rgba(0,129,251,0.06), rgba(0,212,255,0.04))" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 4 }}>
-              <Users style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#00d4ff" }} />
+              <Users style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "var(--cyan)" }} />
               ¿A quién estás llegando?
             </h3>
             <p style={{ fontSize: 11, color: "rgba(148,163,184,0.6)", lineHeight: 1.5 }}>
@@ -908,8 +908,8 @@ export default function ProjectDashboardPage() {
                         <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v))]} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
-                        <Bar dataKey="Mujeres" stackId="a" fill="#00d4ff" />
-                        <Bar dataKey="Hombres" stackId="a" fill="#00c875" radius={[3, 3, 0, 0]} barSize={6} />
+                        <Bar dataKey="Mujeres" stackId="a" fill="var(--cyan)" />
+                        <Bar dataKey="Hombres" stackId="a" fill="var(--emerald)" radius={[3, 3, 0, 0]} barSize={6} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -937,7 +937,7 @@ export default function ProjectDashboardPage() {
                         <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <YAxis type="category" dataKey="region" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} width={90} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
-                        <Bar dataKey="spend" fill="#fdab3d" radius={[0, 4, 4, 0]} barSize={14} />
+                        <Bar dataKey="spend" fill="var(--amber)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -965,7 +965,7 @@ export default function ProjectDashboardPage() {
                         <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <YAxis type="category" dataKey="country" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} width={40} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
-                        <Bar dataKey="spend" fill="#00d4ff" radius={[0, 4, 4, 0]} barSize={14} />
+                        <Bar dataKey="spend" fill="var(--cyan)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -1121,8 +1121,8 @@ export default function ProjectDashboardPage() {
                         <YAxis yAxisId="left" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                         <YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.65)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "Inversión" ? fmtMXN(Number(v)) : fmtNum(Number(v)), name]} />
-                        <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="#00d4ff" radius={[3, 3, 0, 0]} barSize={10} />
-                        <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impresiones" stroke="#fdab3d" strokeWidth={2} dot={false} />
+                        <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={10} />
+                        <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impresiones" stroke="var(--amber)" strokeWidth={2} dot={false} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </ComposedChart>
                     </ResponsiveContainer>
@@ -1178,7 +1178,7 @@ export default function ProjectDashboardPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {/* Best */}
                 <div style={panelStyle}>
-                  <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#00c875" }} />Top 3 Mejores Anuncios</h3>
+                  <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--emerald)" }} />Top 3 Mejores Anuncios</h3>
                   <p style={subStyle}>Menor costo por resultado — clic para ver preview</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 10 }}>
                     {best.length > 0 ? best.map((ad) => (
@@ -1188,7 +1188,7 @@ export default function ProjectDashboardPage() {
                 </div>
                 {/* Worst */}
                 <div style={panelStyle}>
-                  <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#e2445c" }} />Top 3 Peores Anuncios</h3>
+                  <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--red)" }} />Top 3 Peores Anuncios</h3>
                   <p style={subStyle}>Mayor gasto sin resultados o CPR más alto</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 10 }}>
                     {worstByEfficiency.length > 0 ? worstByEfficiency.map((ad) => (
@@ -1230,10 +1230,10 @@ export default function ProjectDashboardPage() {
                           onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
                           onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                           onClick={() => { const ra2 = findResultAction(ad.actions, ch?.goal); setPreviewAd({ ...ad, results, cprVal, ctrVal }); }}>
-                          <td style={{ padding: "8px 6px", color: "rgba(148,163,184,0.65)", fontSize: 10 }}>{i + 1}</td>
+                          <td style={{ padding: "8px 6px", color: "var(--text-muted)", fontSize: 10 }}>{i + 1}</td>
                           <td style={{ padding: "8px 6px", maxWidth: 250 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div style={{ width: 40, height: 40, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "rgba(0,0,0,0.3)", position: "relative" }}>
+                              <div style={{ width: 40, height: 40, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "var(--surface-hover)", position: "relative" }}>
                                 {ad.thumbnailUrl
                                   ? <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                   : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "rgba(148,163,184,0.15)" }} /></div>
@@ -1241,18 +1241,18 @@ export default function ProjectDashboardPage() {
                                 {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(162,93,220,0.8)", color: "white", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
                                 {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(253,171,61,0.8)", color: "white", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>⟡</span>}
                               </div>
-                              <span style={{ color: "#e2e8f0", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
+                              <span style={{ color: "var(--foreground)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
                             </div>
                           </td>
                           <td style={{ padding: "8px 6px" }}>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                              <span style={{ width: 5, height: 5, borderRadius: "50%", background: ad.status === "ACTIVE" ? "#00c875" : ad.status === "PAUSED" ? "#fdab3d" : "rgba(148,163,184,0.65)" }} />
+                              <span style={{ width: 5, height: 5, borderRadius: "50%", background: ad.status === "ACTIVE" ? "var(--emerald)" : ad.status === "PAUSED" ? "var(--amber)" : "rgba(148,163,184,0.65)" }} />
                               <span style={{ fontSize: 9, color: "rgba(148,163,184,0.75)" }}>{ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status}</span>
                             </span>
                           </td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "#fdab3d", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "#00c875", fontWeight: 700 }}>{results}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "#e2445c" : cprTarget > 0 && cprVal > cprTarget ? "#e2445c" : "#00d4ff", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--amber)", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--emerald)", fontWeight: 700 }}>{results}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.7)" }}>{ctrVal.toFixed(2)}%</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)" }}>{fmtNum(ad.impressions || 0)}</td>
                         </tr>
@@ -1316,13 +1316,13 @@ export default function ProjectDashboardPage() {
                           <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.025)" }}>
                             <span style={{ width: 22, height: 22, borderRadius: 4, background: `${CHART_COLORS[i]}20`, color: CHART_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>
+                              <p style={{ fontSize: 12, color: "var(--foreground)", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>
                                 {d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text}
                               </p>
                               <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
-                                <span style={{ fontSize: 10, color: "#fdab3d" }}>{fmtMXN(d.spend)}</span>
-                                <span style={{ fontSize: 10, color: "#00c875" }}>{Math.round(d.results)} result.</span>
-                                <span style={{ fontSize: 10, color: "#00d4ff" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
+                                <span style={{ fontSize: 10, color: "var(--amber)" }}>{fmtMXN(d.spend)}</span>
+                                <span style={{ fontSize: 10, color: "var(--emerald)" }}>{Math.round(d.results)} result.</span>
+                                <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
                                 <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{d.count} anuncios</span>
                               </div>
                             </div>
@@ -1356,7 +1356,7 @@ export default function ProjectDashboardPage() {
                   });
                   const d = Object.values(formatMap).filter(f => f.spend > 0);
                   if (!d.length) return <NoData msg="Sin datos de formato" />;
-                  const formatColors = ["#00d4ff", "#a25ddc", "#fdab3d", "#00c875"];
+                  const formatColors = ["var(--cyan)", "#a25ddc", "var(--amber)", "var(--emerald)"];
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -1393,11 +1393,11 @@ export default function ProjectDashboardPage() {
                     <div key={fmt} style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px 12px" }}>
                       <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
                       <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
-                        <span style={{ color: "#fdab3d" }}>{fmtMXN(s.spend)}</span>
-                        <span style={{ color: "#00c875" }}>{Math.round(s.results)} res.</span>
-                        <span style={{ color: "#00d4ff" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
+                        <span style={{ color: "var(--amber)" }}>{fmtMXN(s.spend)}</span>
+                        <span style={{ color: "var(--emerald)" }}>{Math.round(s.results)} res.</span>
+                        <span style={{ color: "var(--cyan)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
                       </div>
-                      <p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", marginTop: 4 }}>{s.count} anuncios</p>
+                      <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{s.count} anuncios</p>
                     </div>
                   ));
                 })()}
@@ -1428,7 +1428,7 @@ export default function ProjectDashboardPage() {
                         <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
                         <YAxis type="category" dataKey="name" stroke="rgba(148,163,184,0.7)" fontSize={8} tickLine={false} axisLine={false} width={140} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "Inversión"]} />
-                        <Bar dataKey="ctr" fill="#00c875" radius={[0, 4, 4, 0]} barSize={12} />
+                        <Bar dataKey="ctr" fill="var(--emerald)" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -1440,16 +1440,16 @@ export default function ProjectDashboardPage() {
 
           {/* Combinación Ganadora */}
           <div style={panelStyle}>
-            <h3 style={headingStyle}><Zap style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#fdab3d" }} />Combinación Ganadora</h3>
+            <h3 style={headingStyle}><Zap style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--amber)" }} />Combinación Ganadora</h3>
             <p style={subStyle}>Campaña y conjunto con mejor rendimiento</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(() => {
                 const top = (insights?.campaigns || []).map((c: any) => { const s = parseFloat(c.spend || "0"); const ra = findResultAction(c.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: c.campaign_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
-                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Campaña Ganadora</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.65)", fontSize: 12 }}>Sin datos</div>;
+                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Campaña Ganadora</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "var(--text-muted)", fontSize: 12 }}>Sin datos</div>;
               })()}
               {(() => {
                 const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
-                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Adset Ganador</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.65)", fontSize: 12 }}>Sin datos</div>;
+                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Adset Ganador</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "var(--text-muted)", fontSize: 12 }}>Sin datos</div>;
               })()}
             </div>
           </div>
@@ -1501,7 +1501,7 @@ export default function ProjectDashboardPage() {
 
             const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
             const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
-            const healthColor = healthScore >= 80 ? "#00c875" : healthScore >= 60 ? "#fdab3d" : "#e2445c";
+            const healthColor = healthScore >= 80 ? "var(--emerald)" : healthScore >= 60 ? "var(--amber)" : "var(--red)";
 
             // SVG gauge params
             const radius = 80; const circumference = 2 * Math.PI * radius;
@@ -1509,12 +1509,12 @@ export default function ProjectDashboardPage() {
 
             // Indicators
             const indicators = [
-              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "#00c875" : cprScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "#00c875" : freqScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "#00c875" : ctrScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "#00c875" : convScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "#00c875" : paceScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "#00c875" : trendScore >= 40 ? "#fdab3d" : "#e2445c" },
+              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--emerald)" : cprScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--emerald)" : freqScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
             ];
 
             // Recommendations
@@ -1537,7 +1537,7 @@ export default function ProjectDashboardPage() {
                     <h3 style={{ ...headingStyle, marginBottom: 16 }}>Health Score</h3>
                     <div style={{ position: "relative", width: 200, height: 200 }}>
                       <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: "rotate(-90deg)" }}>
-                        <circle cx="100" cy="100" r={radius} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="12" />
+                        <circle cx="100" cy="100" r={radius} fill="none" stroke="var(--surface-hover)" strokeWidth="12" />
                         <circle cx="100" cy="100" r={radius} fill="none" stroke={healthColor} strokeWidth="12" strokeLinecap="round"
                           strokeDasharray={circumference} strokeDashoffset={dashOffset}
                           style={{ transition: "stroke-dashoffset 1s ease-out, stroke 0.5s" }} />
@@ -1582,16 +1582,16 @@ export default function ProjectDashboardPage() {
                         <ComposedChart data={tsd} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
                           <defs>
                             <linearGradient id="gcpr" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
+                              <stop offset="5%" stopColor="var(--cyan)" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="var(--cyan)" stopOpacity={0} />
                             </linearGradient>
                           </defs>
                           <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
                           <XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} />
                           <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
                           <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
-                          <Area type="monotone" dataKey="cpr" name="CPR" stroke="#00d4ff" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
-                          {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="#e2445c" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "#e2445c", fontSize: 10 }} />}
+                          <Area type="monotone" dataKey="cpr" name="CPR" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
+                          {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="var(--red)" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "var(--red)", fontSize: 10 }} />}
                         </ComposedChart>
                       </ResponsiveContainer>
                     ) : <NoData />}
@@ -1607,9 +1607,9 @@ export default function ProjectDashboardPage() {
                       {recs.map((r, i) => (
                         <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 6 }}>
                           <div style={{ flexShrink: 0, marginTop: 2 }}>
-                            {r.severity === "critical" ? <AlertTriangle style={{ width: 14, height: 14, color: "#e2445c" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 14, height: 14, color: "#fdab3d" }} /> : <CheckCircle style={{ width: 14, height: 14, color: "#00c875" }} />}
+                            {r.severity === "critical" ? <AlertTriangle style={{ width: 14, height: 14, color: "var(--red)" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 14, height: 14, color: "var(--amber)" }} /> : <CheckCircle style={{ width: 14, height: 14, color: "var(--emerald)" }} />}
                           </div>
-                          <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.5 }}>{r.text}</p>
+                          <p style={{ fontSize: 12, color: "var(--foreground)", lineHeight: 1.5 }}>{r.text}</p>
                         </div>
                       ))}
                     </div>
@@ -1621,23 +1621,23 @@ export default function ProjectDashboardPage() {
                     <div className="space-y-3">
                       {/* Budget recommendation */}
                       <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "#00d4ff", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Presupuesto Diario Óptimo</p>
+                        <p style={{ fontSize: 10, color: "var(--cyan)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Presupuesto Diario Óptimo</p>
                         <p style={{ fontSize: 16, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p>
                         <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>Basado en {fmtMXN0(bk.monthly)} {bk.label.toLowerCase()}</p>
                       </div>
                       {/* Optimization target */}
                       <div style={{ padding: "10px 12px", background: "rgba(0,200,117,0.04)", border: "1px solid rgba(0,200,117,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "#00c875", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Objetivo de Optimización</p>
+                        <p style={{ fontSize: 10, color: "var(--emerald)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Objetivo de Optimización</p>
                         <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{convScore < 50 ? "Optimizar por conversiones (no tráfico). Usa CBO con bid cap." : ctrScore < 50 ? "Mejorar engagement. Prueba Advantage+ Creative." : "Mantener optimización actual. Escalar presupuesto gradualmente (+20% cada 3 días)."}</p>
                       </div>
                       {/* Audience suggestion */}
                       <div style={{ padding: "10px 12px", background: "rgba(123,97,255,0.04)", border: "1px solid rgba(123,97,255,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "#7b61ff", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Audiencia</p>
+                        <p style={{ fontSize: 10, color: "var(--purple)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Audiencia</p>
                         <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{freqScore < 50 ? "Frecuencia alta. Amplía audiencia: agrega intereses, prueba Lookalike 3-5%, o usa Advantage+ Audience." : "Audiencia saludable. Considera escalar con Broad targeting."}</p>
                       </div>
                       {/* Creative suggestion */}
                       <div style={{ padding: "10px 12px", background: "rgba(253,171,61,0.04)", border: "1px solid rgba(253,171,61,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "#fdab3d", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Creativos</p>
+                        <p style={{ fontSize: 10, color: "var(--amber)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Creativos</p>
                         <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{ctrScore < 50 || freqScore < 50 ? "Urgente: Rota creativos. Prueba UGC, testimoniales, o ángulos de dolor/beneficio diferentes." : "Creativos funcionando bien. Itera sobre los ganadores con variaciones A/B."}</p>
                       </div>
                     </div>
@@ -1703,7 +1703,7 @@ export default function ProjectDashboardPage() {
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <h3 style={headingStyle}>Información General</h3>
               {!isEditing ? <button onClick={() => setIsEditing(true)} style={{ background: "none", border: "none", color: "rgba(148,163,184,0.6)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}><Edit3 style={{ width: 14, height: 14 }} /> Editar</button>
-                : <div style={{ display: "flex", gap: 8 }}><button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ background: "none", border: "none", color: "#e2445c", cursor: "pointer" }}><X style={{ width: 14, height: 14 }} /></button><button onClick={saveChanges} style={{ background: "none", border: "none", color: "#00c875", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}><Save style={{ width: 14, height: 14 }} /> Guardar</button></div>}
+                : <div style={{ display: "flex", gap: 8 }}><button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ background: "none", border: "none", color: "var(--red)", cursor: "pointer" }}><X style={{ width: 14, height: 14 }} /></button><button onClick={saveChanges} style={{ background: "none", border: "none", color: "var(--emerald)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}><Save style={{ width: 14, height: 14 }} /> Guardar</button></div>}
             </div>
             <div className="space-y-4">
               {([
@@ -1713,19 +1713,19 @@ export default function ProjectDashboardPage() {
               ] as const).map(f => (
                 <div key={f.key}>
                   <p style={labelStyle}>{f.label}</p>
-                  {isEditing ? <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, outline: "none" }} />
-                    : <p style={{ fontSize: 13, color: "#e2e8f0" }}>{(project as any)[f.key] || "—"}</p>}
+                  {isEditing ? <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, outline: "none" }} />
+                    : <p style={{ fontSize: 13, color: "var(--foreground)" }}>{(project as any)[f.key] || "—"}</p>}
                 </div>
               ))}
               <div>
                 <p style={labelStyle}>Estado</p>
-                {isEditing ? <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}>
+                {isEditing ? <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}>
                   <option value="Activo">Activo</option><option value="Pausado">Pausado</option><option value="Draft">Draft</option><option value="Completado">Completado</option></select>
                   : <span className={`badge badge-${STATUS_COLORS[project.status]}`}>{project.status}</span>}
               </div>
               <div className="grid grid-cols-2 gap-4">
-                <div><p style={labelStyle}>Fecha Inicio</p>{isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "#e2e8f0" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString() : "—"}</p>}</div>
-                <div><p style={labelStyle}>Fecha Fin</p>{isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "#e2e8f0" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString() : "—"}</p>}</div>
+                <div><p style={labelStyle}>Fecha Inicio</p>{isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "var(--foreground)" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString() : "—"}</p>}</div>
+                <div><p style={labelStyle}>Fecha Fin</p>{isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "var(--foreground)" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString() : "—"}</p>}</div>
               </div>
               <div>
                 <p style={labelStyle}>CRMs conectados (análisis de resultados)</p>
@@ -1745,11 +1745,11 @@ export default function ProjectDashboardPage() {
                   if (isEditing) {
                     return (
                       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        {crmOptions.length === 0 && <p style={{ fontSize: 11, color: "#64748b" }}>Conecta un CRM en Integraciones primero.</p>}
+                        {crmOptions.length === 0 && <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Conecta un CRM en Integraciones primero.</p>}
                         {crmOptions.map(i => {
                           const checked = selected.includes(i.id);
                           return (
-                            <label key={i.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#e2e8f0", cursor: "pointer", padding: "6px 10px", borderRadius: 4, background: checked ? "rgba(0,212,255,0.06)" : "rgba(0,0,0,0.2)", border: `1px solid ${checked ? "rgba(0,212,255,0.3)" : "rgba(255,255,255,0.06)"}` }}>
+                            <label key={i.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--foreground)", cursor: "pointer", padding: "6px 10px", borderRadius: 4, background: checked ? "rgba(0,212,255,0.06)" : "rgba(0,0,0,0.2)", border: `1px solid ${checked ? "rgba(0,212,255,0.3)" : "rgba(255,255,255,0.06)"}` }}>
                               <input
                                 type="checkbox"
                                 checked={checked}
@@ -1764,13 +1764,13 @@ export default function ProjectDashboardPage() {
                                     crmType: first ? first.provider : null,
                                   }));
                                 }}
-                                style={{ accentColor: "#00d4ff" }}
+                                style={{ accentColor: "var(--cyan)" }}
                               />
                               {crmLabel(i.provider)}
                             </label>
                           );
                         })}
-                        {selected.length > 1 && <p style={{ fontSize: 10, color: "#64748b" }}>El análisis de resultados se mostrará segmentado por cada herramienta.</p>}
+                        {selected.length > 1 && <p style={{ fontSize: 10, color: "var(--text-muted)" }}>El análisis de resultados se mostrará segmentado por cada herramienta.</p>}
                       </div>
                     );
                   }
@@ -1778,7 +1778,7 @@ export default function ProjectDashboardPage() {
                     ? project.crmIntegrationIds
                     : project.crmIntegrationId ? [project.crmIntegrationId] : [];
                   return (
-                    <p style={{ fontSize: 13, color: current.length ? "#00d4ff" : "#e2e8f0" }}>
+                    <p style={{ fontSize: 13, color: current.length ? "var(--cyan)" : "var(--foreground)" }}>
                       {current.length
                         ? current.map(id => {
                             const i = activeIntegrations.find(a => a.id === id);
@@ -1807,17 +1807,17 @@ export default function ProjectDashboardPage() {
                   </div>
                   {isEditing ? (
                     <div className="grid grid-cols-2 gap-3">
-                      <div><p style={labelStyle}>Presupuesto</p><input value={editForm.channels?.[i]?.budget || c.budget} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], budget: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
-                      <div><p style={labelStyle}>Período</p><select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select></div>
-                      <div><p style={labelStyle}>Objetivo</p><input value={editForm.channels?.[i]?.goal || c.goal} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], goal: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
-                      <div><p style={labelStyle}>CPR Meta</p><input value={editForm.channels?.[i]?.cpr || c.cpr} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], cpr: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
+                      <div><p style={labelStyle}>Presupuesto</p><input value={editForm.channels?.[i]?.budget || c.budget} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], budget: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
+                      <div><p style={labelStyle}>Período</p><select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select></div>
+                      <div><p style={labelStyle}>Objetivo</p><input value={editForm.channels?.[i]?.goal || c.goal} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], goal: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
+                      <div><p style={labelStyle}>CPR Meta</p><input value={editForm.channels?.[i]?.cpr || c.cpr} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], cpr: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Presupuesto:</span> <span style={{ color: "white", fontWeight: 600 }}>{c.budget || "—"}</span></div>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Período:</span> <span style={{ color: "white" }}>{c.period || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Objetivo:</span> <span style={{ color: "#00c875", fontWeight: 600 }}>{c.goal || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>CPR Meta:</span> <span style={{ color: "#00d4ff", fontWeight: 600 }}>{c.cpr || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{c.goal || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{c.cpr || "—"}</span></div>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Diario ideal:</span> <span style={{ color: "white" }}>{fmtMXN(bk2.daily)}</span></div>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Cuentas:</span> <span style={{ color: "white" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>

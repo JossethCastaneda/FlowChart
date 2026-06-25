@@ -1,7 +1,8 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Orbi } from "@/components/ui/Orbi";
 import {
   LayoutDashboard, FolderKanban, Users, Zap, Target, Plug, Loader2, ArrowRight,
   DollarSign, TrendingUp, TrendingDown, CheckCircle, AlertTriangle, Bell, BellOff,
@@ -43,7 +44,7 @@ export default function ResumenPage() {
   // Fetch Meta insights — use cache first, then fill any gaps
   useEffect(() => {
     if (!data?.projectsList?.length) return;
-    const activeProjects = data.projectsList?.filter((p: any) => p.status === "EN VUELO") || [];
+    const activeProjects = data.projectsList?.filter((p: any) => p.status === "EN VUELO" || p.status === "Activo") || [];
     if (activeProjects.length === 0) return;
 
     setInsightsLoading(true);
@@ -79,8 +80,9 @@ export default function ResumenPage() {
       <div className="space-y-6">
         <PageHeader title="Inicio" description="Cargando datos del workspace..."
           icon={<LayoutDashboard className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
-        <div style={{ textAlign: "center", padding: "60px 0" }}>
-          <Loader2 style={{ width: 32, height: 32, color: "#00d4ff", animation: "spin 1s linear infinite", margin: "0 auto" }} />
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "60px 0", gap: "24px" }}>
+          <Orbi state="working" scale={0.8} />
+          <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>SINTONIZANDO DATOS...</p>
         </div>
       </div>
     );
@@ -91,7 +93,7 @@ export default function ResumenPage() {
       <div className="space-y-6">
         <PageHeader title="Inicio" description="Hubo un problema al cargar el workspace"
           icon={<LayoutDashboard className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
-        <div style={{ textAlign: "center", padding: "60px 0", color: "#e2445c" }}>
+        <div style={{ textAlign: "center", padding: "60px 0", color: "var(--red)" }}>
           No se pudieron cargar los datos del resumen. Verifica tu conexión.
         </div>
       </div>
@@ -102,7 +104,7 @@ export default function ResumenPage() {
   const taskDoneRate = d.tasks?.total > 0 ? Math.round((d.tasks.done / d.tasks.total) * 100) : 0;
 
   // Build project cards data
-  const activeProjects = d.projectsList?.filter((p: any) => p.status === "EN VUELO") || [];
+  const activeProjects = d.projectsList?.filter((p: any) => p.status === "EN VUELO" || p.status === "Activo") || [];
 
   const projectCards = activeProjects.map((p: any) => {
     const pi = projectInsights[p.id];
@@ -164,8 +166,8 @@ export default function ResumenPage() {
       <div className="glass-panel" style={{ padding: 16 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "#f8fafc" }}>Trabajo de hoy</h2>
-            <p style={{ margin: "4px 0 0", fontSize: 12, color: "#94a3b8" }}>
+            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 800, color: "var(--foreground)" }}>Trabajo de hoy</h2>
+            <p style={{ margin: "4px 0 0", fontSize: 12, color: "var(--text-secondary)" }}>
               Prioriza publicar, responder, revisar Ads y cerrar tareas sin navegar por todos los modulos.
             </p>
           </div>
@@ -182,9 +184,9 @@ export default function ResumenPage() {
                 style={{
                   padding: "7px 11px",
                   borderRadius: 6,
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  background: "rgba(255,255,255,0.04)",
-                  color: "#e2e8f0",
+                  border: "1px solid var(--hairline)",
+                  background: "var(--surface-hover)",
+                  color: "var(--foreground)",
                   fontSize: 12,
                   fontWeight: 700,
                   textDecoration: "none",
@@ -200,13 +202,13 @@ export default function ResumenPage() {
       {/* KPI Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard icon={FolderKanban} label="Proyectos" value={d.projects.total}
-          sub={`${d.projects.active} activos`} color="#06d6a0" href="/dashboard/proyectos" />
+          sub={`${d.projects.active} activos`} color="var(--emerald)" href="/dashboard/proyectos" />
         <KpiCard icon={Users} label="Equipo" value={d.members.total}
-          sub="miembros" color="#7b61ff" href="/dashboard/settings" />
+          sub="miembros" color="var(--purple)" href="/dashboard/settings" />
         <KpiCard icon={Zap} label="Tasks" value={d.tasks.total}
-          sub={`${d.tasks.wip} en progreso`} color="#00d4ff" href="/dashboard/ops" />
+          sub={`${d.tasks.wip} en progreso`} color="var(--cyan)" href="/dashboard/ops" />
         <KpiCard icon={Target} label="Briefs" value={d.briefs.total}
-          sub={`${d.briefs.approved} aprobados`} color="#ff6b35" href="/dashboard/briefing" />
+          sub={`${d.briefs.approved} aprobados`} color="var(--amber)" href="/dashboard/briefing" />
       </div>
 
       {/* ═══ PROJECT HEALTH CARDS ═══ */}
@@ -214,7 +216,7 @@ export default function ResumenPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
             <span className="section-title">Salud de Proyectos Activos</span>
-            {insightsLoading && <Loader2 style={{ width: 14, height: 14, color: "#00d4ff", animation: "spin 1s linear infinite" }} />}
+            {insightsLoading && <Loader2 style={{ width: 14, height: 14, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />}
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5 mt-4">
             {projectCards.map((pc: any) => {
@@ -222,9 +224,9 @@ export default function ResumenPage() {
               const isHealthy = pc.cumplimiento >= 90 && pc.spendPct <= 110;
               const isWarning = (pc.cumplimiento >= 60 && pc.cumplimiento < 90) || (pc.spendPct > 110 && pc.spendPct <= 125);
               
-              let healthConfig = { color: "#e2445c", text: "EN RIESGO", bg: "rgba(226,68,92,0.1)", icon: AlertCircle };
-              if (isHealthy) healthConfig = { color: "#00c875", text: "SALUDABLE", bg: "rgba(0,200,117,0.1)", icon: ShieldCheck };
-              else if (isWarning) healthConfig = { color: "#fdab3d", text: "PRECAUCIÓN", bg: "rgba(253,171,61,0.1)", icon: Clock };
+              let healthConfig = { color: "var(--red)", text: "EN RIESGO", bg: "rgba(226,68,92,0.1)", icon: AlertCircle };
+              if (isHealthy) healthConfig = { color: "var(--emerald)", text: "SALUDABLE", bg: "rgba(0,200,117,0.1)", icon: ShieldCheck };
+              else if (isWarning) healthConfig = { color: "var(--amber)", text: "PRECAUCIÓN", bg: "rgba(253,171,61,0.1)", icon: Clock };
               
               const HealthIcon = healthConfig.icon;
 
@@ -246,7 +248,7 @@ export default function ResumenPage() {
                     <div className="p-5 pb-3 flex justify-between items-start">
                       <div className="flex items-center gap-2 flex-1 min-w-0 pr-4">
                         <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center shrink-0">
-                          <Activity className="w-3 h-3 text-[#00d4ff]" />
+                          <Activity className="w-3 h-3 text-[var(--cyan)]" />
                         </div>
                         <h3 className="text-sm font-bold text-white truncate m-0">{pc.alias}</h3>
                       </div>
@@ -278,14 +280,14 @@ export default function ResumenPage() {
                               {pc.cprProjected > 0 && pc.cprActual > 0 && (
                                 <div className="flex flex-col items-start justify-center">
                                   {pc.cprActual <= pc.cprProjected ? (
-                                    <TrendingDown className="w-4 h-4 text-[#00c875]" />
+                                    <TrendingDown className="w-4 h-4 text-[var(--emerald)]" />
                                   ) : (
-                                    <TrendingUp className="w-4 h-4 text-[#e2445c]" />
+                                    <TrendingUp className="w-4 h-4 text-[var(--red)]" />
                                   )}
                                 </div>
                               )}
                             </div>
-                            <div className="mt-1 flex items-center gap-2 text-xs font-medium" style={{ color: "rgba(148,163,184,0.8)" }}>
+                            <div className="flex items-baseline gap-2 text-xs font-medium" style={{ color: "var(--text-secondary)" }}>
                               <span>Meta: <span className="text-white">{pc.cprProjected > 0 ? fmtMXN(pc.cprProjected) : "—"}</span></span>
                             </div>
                           </div>
@@ -300,7 +302,7 @@ export default function ResumenPage() {
                               </div>
                               <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all duration-1000" 
-                                     style={{ width: `${Math.min(100, pc.resultsPct)}%`, backgroundColor: pc.resultsPct >= 90 ? "#00c875" : pc.resultsPct >= 60 ? "#fdab3d" : "#e2445c" }} />
+                                     style={{ width: `${Math.min(100, pc.resultsPct)}%`, backgroundColor: pc.resultsPct >= 90 ? "var(--emerald)" : pc.resultsPct >= 60 ? "var(--amber)" : "var(--red)" }} />
                               </div>
                             </div>
                             
@@ -312,7 +314,7 @@ export default function ResumenPage() {
                               </div>
                               <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
                                 <div className="h-full rounded-full transition-all duration-1000" 
-                                     style={{ width: `${Math.min(100, pc.spendPct)}%`, backgroundColor: pc.spendPct > 110 ? "#e2445c" : pc.spendPct > 100 ? "#fdab3d" : "#00c875" }} />
+                                     style={{ width: `${Math.min(100, pc.spendPct)}%`, backgroundColor: pc.spendPct > 110 ? "var(--red)" : pc.spendPct > 100 ? "var(--amber)" : "var(--emerald)" }} />
                               </div>
                             </div>
                           </div>
@@ -340,7 +342,7 @@ export default function ResumenPage() {
           </div>
 
           {d.tasks.total === 0 ? (
-            <p style={{ fontSize: "12px", color: "rgba(148,163,184,0.65)", textAlign: "center", padding: "20px 0" }}>
+            <p style={{ fontSize: "12px", color: "var(--text-muted)", textAlign: "center", padding: "20px 0" }}>
               No hay tasks. Crea tu primera en Ops.
             </p>
           ) : (
@@ -348,26 +350,26 @@ export default function ResumenPage() {
               {/* Progress bar */}
               <div style={{ marginBottom: "16px" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                  <span style={{ fontSize: "10px", color: "#64748b", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>
+                  <span style={{ fontSize: "10px", color: "var(--text-muted)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>
                     COMPLETION RATE
                   </span>
-                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#06d6a0", fontFamily: "'Orbitron', sans-serif" }}>
+                  <span style={{ fontSize: "14px", fontWeight: 700, color: "var(--emerald)", fontFamily: "'Orbitron', sans-serif" }}>
                     {taskDoneRate}%
                   </span>
                 </div>
-                <div style={{ height: "6px", background: "rgba(148,163,184,0.06)", borderRadius: "3px", overflow: "hidden" }}>
+                <div style={{ height: "6px", background: "var(--surface-hover)", borderRadius: "3px", overflow: "hidden" }}>
                   <div style={{
                     height: "100%", width: `${taskDoneRate}%`, borderRadius: "3px",
-                    background: "linear-gradient(90deg, #00d4ff, #06d6a0)",
+                    background: "linear-gradient(90deg, var(--cyan), var(--emerald))",
                     transition: "width 0.6s ease",
                   }} />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px" }}>
-                <StatusBlock label="Backlog" value={d.tasks.backlog} color="#64748b" />
-                <StatusBlock label="WIP" value={d.tasks.wip} color="#00d4ff" />
-                <StatusBlock label="Done" value={d.tasks.done} color="#06d6a0" />
+                <StatusBlock label="Backlog" value={d.tasks.backlog} color="var(--text-muted)" />
+                <StatusBlock label="WIP" value={d.tasks.wip} color="var(--cyan)" />
+                <StatusBlock label="Done" value={d.tasks.done} color="var(--emerald)" />
               </div>
             </>
           )}
@@ -377,26 +379,26 @@ export default function ResumenPage() {
         <div className="glass-panel" style={{ padding: "24px" }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
             <span className="section-title">Alertas y Notificaciones</span>
-            <Bell style={{ width: 14, height: 14, color: "#00d4ff" }} />
+            <Bell style={{ width: 14, height: 14, color: "var(--cyan)" }} />
           </div>
           <div style={{ display: "grid", gap: 8 }}>
             {[
-              { label: "Alerta CPR > Meta", desc: "Cuando el CPR supere la meta configurada", color: "#e2445c", active: true },
-              { label: "Frecuencia > 3.0", desc: "Fatiga publicitaria por alta frecuencia", color: "#fdab3d", active: true },
-              { label: "Presupuesto > 110%", desc: "Gasto excede el presupuesto diario ideal", color: "#e2445c", active: true },
-              { label: "CTR < 0.8%", desc: "Engagement bajo, renovar creativos", color: "#fdab3d", active: true },
-              { label: "Health Score < 50", desc: "Salud general del proyecto en riesgo", color: "#e2445c", active: true },
-              { label: "Reporte diario 9:00 AM", desc: "Resumen matutino por correo", color: "#00d4ff", active: true },
+              { label: "Alerta CPR > Meta", desc: "Cuando el CPR supere la meta configurada", color: "var(--red)", active: true },
+              { label: "Frecuencia > 3.0", desc: "Fatiga publicitaria por alta frecuencia", color: "var(--amber)", active: true },
+              { label: "Presupuesto > 110%", desc: "Gasto excede el presupuesto diario ideal", color: "var(--red)", active: true },
+              { label: "CTR < 0.8%", desc: "Engagement bajo, renovar creativos", color: "var(--amber)", active: true },
+              { label: "Health Score < 50", desc: "Salud general del proyecto en riesgo", color: "var(--red)", active: true },
+              { label: "Reporte diario 9:00 AM", desc: "Resumen matutino por correo", color: "var(--cyan)", active: true },
             ].map((notif, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 6 }}>
+              <div key={i} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <div style={{ width: 6, height: 6, borderRadius: "50%", background: notif.color, flexShrink: 0 }} />
                   <div>
-                    <p style={{ fontSize: 11, color: "white", fontWeight: 500, margin: 0 }}>{notif.label}</p>
-                    <p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", margin: 0 }}>{notif.desc}</p>
+                    <p style={{ fontSize: 11, color: "var(--foreground)", fontWeight: 500, margin: 0 }}>{notif.label}</p>
+                    <p style={{ fontSize: 9, color: "var(--text-muted)", margin: 0 }}>{notif.desc}</p>
                   </div>
                 </div>
-                <div style={{ fontSize: 8, fontWeight: 700, color: notif.active ? "#00c875" : "rgba(148,163,184,0.65)", padding: "2px 6px", background: notif.active ? "rgba(0,200,117,0.1)" : "rgba(148,163,184,0.05)", borderRadius: 3, letterSpacing: "0.05em" }}>
+                <div style={{ fontSize: 8, fontWeight: 700, color: notif.active ? "var(--emerald)" : "rgba(148,163,184,0.65)", padding: "2px 6px", background: notif.active ? "rgba(0,200,117,0.1)" : "rgba(148,163,184,0.05)", borderRadius: 3, letterSpacing: "0.05em" }}>
                   {notif.active ? "ON" : "OFF"}
                 </div>
               </div>
@@ -410,20 +412,20 @@ export default function ResumenPage() {
         <span className="section-title" style={{ marginBottom: "16px", display: "block" }}>Quick Actions</span>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {[
-            { label: "Nuevo Proyecto", href: "/dashboard/proyectos", icon: FolderKanban, color: "#06d6a0" },
-            { label: "Crear Task", href: "/dashboard/ops", icon: Zap, color: "#00d4ff" },
-            { label: "Nuevo Brief", href: "/dashboard/briefing", icon: Target, color: "#ff6b35" },
-            { label: "Invitar Miembro", href: "/dashboard/settings", icon: Users, color: "#7b61ff" },
+            { label: "Nuevo Proyecto", href: "/dashboard/proyectos", icon: FolderKanban, color: "var(--emerald)" },
+            { label: "Crear Task", href: "/dashboard/ops", icon: Zap, color: "var(--cyan)" },
+            { label: "Nuevo Brief", href: "/dashboard/briefing", icon: Target, color: "var(--amber)" },
+            { label: "Invitar Miembro", href: "/dashboard/settings", icon: Users, color: "var(--purple)" },
           ].map((action) => (
             <Link key={action.label} href={action.href}
               style={{
                 display: "flex", alignItems: "center", gap: "10px", padding: "12px 16px",
-                background: "rgba(0,212,255,0.02)", border: "1px solid rgba(0,212,255,0.08)",
+                background: "var(--surface-hover)", border: "1px solid var(--border)",
                 transition: "all 0.2s", cursor: "pointer", textDecoration: "none",
               }}>
               <action.icon style={{ width: 16, height: 16, color: action.color, flexShrink: 0 }} />
-              <span style={{ fontSize: "12px", color: "#94a3b8" }}>{action.label}</span>
-              <ArrowRight style={{ width: 10, height: 10, color: "rgba(148,163,184,0.65)", marginLeft: "auto" }} />
+              <span style={{ fontSize: "12px", color: "var(--text-secondary)" }}>{action.label}</span>
+              <ArrowRight style={{ width: 10, height: 10, color: "var(--text-muted)", marginLeft: "auto" }} />
             </Link>
           ))}
         </div>
@@ -432,8 +434,8 @@ export default function ResumenPage() {
       {/* Integrations status */}
       <div className="glass-panel" style={{ padding: "16px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <Plug style={{ width: 16, height: 16, color: d.integrations.connected > 0 ? "#06d6a0" : "rgba(148,163,184,0.65)" }} />
-          <span style={{ fontSize: "12px", color: "#64748b" }}>
+          <Plug style={{ width: 16, height: 16, color: d.integrations.connected > 0 ? "var(--emerald)" : "rgba(148,163,184,0.65)" }} />
+          <span style={{ fontSize: "12px", color: "var(--text-muted)" }}>
             {d.integrations.connected > 0
               ? `${d.integrations.connected} integración${d.integrations.connected > 1 ? "es" : ""} activa${d.integrations.connected > 1 ? "s" : ""}`
               : "Sin integraciones conectadas"}
@@ -451,7 +453,7 @@ export default function ResumenPage() {
 function MetricCell({ label, value, color, highlight }: { label: string; value: string; color: string; highlight?: boolean }) {
   return (
     <div style={{ textAlign: "center" }}>
-      <p style={{ fontSize: 8, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 3px" }}>{label}</p>
+      <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 3px" }}>{label}</p>
       <p style={{
         fontSize: highlight ? 15 : 13, fontWeight: 700, color, margin: 0,
         fontFamily: highlight ? "'Orbitron',sans-serif" : "inherit",
@@ -469,7 +471,7 @@ function KpiCard({ icon: Icon, label, value, sub, color, href }: {
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <div style={{
             width: 40, height: 40, display: "flex", alignItems: "center", justifyContent: "center",
-            background: `${color}10`, border: `1px solid ${color}25`,
+            background: `${color}18`, border: `1px solid ${color}30`,
           }}>
             <Icon style={{ width: 18, height: 18, color }} />
           </div>
@@ -477,12 +479,12 @@ function KpiCard({ icon: Icon, label, value, sub, color, href }: {
             <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "24px", fontWeight: 700, color, lineHeight: 1 }}>
               {value}
             </p>
-            <p style={{ fontSize: "10px", color: "#64748b", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", marginTop: "2px" }}>
+            <p style={{ fontSize: "10px", color: "var(--text-muted)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", marginTop: "2px" }}>
               {label}
             </p>
           </div>
         </div>
-        <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.65)", marginTop: "8px" }}>{sub}</p>
+        <p style={{ fontSize: "11px", color: "var(--text-secondary)", marginTop: "8px" }}>{sub}</p>
       </div>
     </Link>
   );

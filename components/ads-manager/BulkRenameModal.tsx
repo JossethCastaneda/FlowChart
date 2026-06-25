@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, useMemo } from "react";
 import { X, Search, Type, ArrowRight } from "lucide-react";
 
@@ -55,7 +55,7 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "8px 12px", fontSize: "12px", background: "rgba(0,0,0,0.3)",
-    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "white", outline: "none",
+    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
   };
 
   return (
@@ -69,10 +69,10 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
       }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>
+          <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--foreground)" }}>
             Renombrar {items.length} elemento{items.length > 1 ? "s" : ""}
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -92,7 +92,7 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
                   padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
                   background: mode === t.key ? "rgba(0,212,255,0.1)" : "transparent",
                   border: `1px solid ${mode === t.key ? "rgba(0,212,255,0.2)" : "transparent"}`,
-                  color: mode === t.key ? "var(--cyan)" : "#64748b",
+                  color: mode === t.key ? "var(--cyan)" : "var(--text-muted)",
                 }}
               >
                 {t.label}
@@ -103,13 +103,13 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
           {/* Inputs */}
           {mode === "prefix" && (
             <div style={{ marginBottom: "14px" }}>
-              <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, marginBottom: "4px", display: "block" }}>Prefijo</label>
+              <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, marginBottom: "4px", display: "block" }}>Prefijo</label>
               <input value={prefix} onChange={(e) => setPrefix(e.target.value)} placeholder="Ej: [Q1]_" style={inputStyle} autoFocus />
             </div>
           )}
           {mode === "suffix" && (
             <div style={{ marginBottom: "14px" }}>
-              <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, marginBottom: "4px", display: "block" }}>Sufijo</label>
+              <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, marginBottom: "4px", display: "block" }}>Sufijo</label>
               <input value={suffix} onChange={(e) => setSuffix(e.target.value)} placeholder="Ej: _v2" style={inputStyle} autoFocus />
             </div>
           )}
@@ -117,19 +117,19 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
             <div style={{ marginBottom: "14px" }}>
               <div style={{ display: "flex", gap: "8px", marginBottom: "8px" }}>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, marginBottom: "4px", display: "block" }}>Buscar</label>
+                  <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, marginBottom: "4px", display: "block" }}>Buscar</label>
                   <input value={searchText} onChange={(e) => setSearchText(e.target.value)} placeholder="Texto a buscar" style={inputStyle} autoFocus />
                 </div>
                 <div style={{ flex: 1 }}>
-                  <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, marginBottom: "4px", display: "block" }}>Reemplazar con</label>
+                  <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, marginBottom: "4px", display: "block" }}>Reemplazar con</label>
                   <input value={replaceText} onChange={(e) => setReplaceText(e.target.value)} placeholder="Texto nuevo" style={inputStyle} />
                 </div>
               </div>
               <div style={{ display: "flex", gap: "12px" }}>
-                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "10px", color: "#64748b", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "10px", color: "var(--text-muted)", cursor: "pointer" }}>
                   <input type="checkbox" checked={caseSensitive} onChange={(e) => setCaseSensitive(e.target.checked)} /> Sensible a mayúsculas
                 </label>
-                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "10px", color: "#64748b", cursor: "pointer" }}>
+                <label style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "10px", color: "var(--text-muted)", cursor: "pointer" }}>
                   <input type="checkbox" checked={wholeWord} onChange={(e) => setWholeWord(e.target.checked)} /> Solo palabras completas
                 </label>
               </div>
@@ -137,17 +137,17 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
           )}
 
           {/* Preview */}
-          <div style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, marginBottom: "6px" }}>
+          <div style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, marginBottom: "6px" }}>
             Preview — {affectedCount} de {items.length} afectado{affectedCount !== 1 ? "s" : ""}
           </div>
-          <div style={{ maxHeight: "200px", overflowY: "auto", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.09)" }} className="custom-scrollbar">
+          <div style={{ maxHeight: "200px", overflowY: "auto", borderRadius: "6px", border: "1px solid var(--hairline)" }} className="custom-scrollbar">
             {preview.map((p) => (
               <div key={p.id} style={{
                 display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px",
                 borderBottom: "1px solid rgba(255,255,255,0.03)",
                 opacity: p.changed ? 1 : 0.4,
               }}>
-                <span style={{ fontSize: "10px", color: "#94a3b8", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                <span style={{ fontSize: "10px", color: "var(--text-secondary)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                   {p.oldName}
                 </span>
                 <ArrowRight className="w-3 h-3" style={{ color: p.changed ? "var(--cyan)" : "rgba(148,163,184,0.65)", flexShrink: 0 }} />
@@ -161,7 +161,7 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
 
         {/* Footer */}
         <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
             Cancelar
           </button>
           <button

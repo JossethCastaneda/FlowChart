@@ -47,7 +47,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
           background: "rgba(10, 15, 30, 0.6)",
           border: "1px solid var(--border)",
           borderRadius: "6px",
-          color: "#94a3b8",
+          color: "var(--text-secondary)",
           fontSize: "11px",
           fontWeight: 600,
           cursor: "pointer",
@@ -59,7 +59,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.color = "#94a3b8";
+          e.currentTarget.style.color = "var(--text-secondary)";
         }}
       >
         <BarChart3 className="w-3.5 h-3.5" />
@@ -105,7 +105,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
                     borderRadius: "4px",
                     background: isSelected ? "rgba(0,129,251,0.15)" : "transparent",
                     border: "none",
-                    color: isSelected ? "var(--cyan)" : "#94a3b8",
+                    color: isSelected ? "var(--cyan)" : "var(--text-secondary)",
                     fontSize: "11px",
                     fontWeight: isSelected ? 600 : 500,
                     textAlign: "left",
@@ -113,7 +113,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
                     transition: "all 0.15s",
                   }}
                   onMouseEnter={(e) => {
-                    if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                    if (!isSelected) e.currentTarget.style.background = "var(--row-hover)";
                   }}
                   onMouseLeave={(e) => {
                     if (!isSelected) e.currentTarget.style.background = "transparent";

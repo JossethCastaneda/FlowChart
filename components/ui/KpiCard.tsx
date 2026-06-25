@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 
 interface KpiCardProps {
@@ -29,18 +29,19 @@ export function KpiCard({
           style={{
             width: 36,
             height: 36,
-            background: `rgba(0,0,0,0.2)`,
-            border: `1px solid ${c}40`, // Fallback for border color
+            background: `color-mix(in srgb, ${c} 15%, transparent)`,
+            border: `1px solid ${c}40`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
             color: c,
+            borderRadius: "8px",
           }}
         >
           {icon}
         </div>
         <div style={{ flex: 1 }}>
-          <p className="kpi-value" style={{ color: "white" }}>
+          <p className="kpi-value" style={{ color: "var(--foreground)" }}>
             {value}
           </p>
           <p className="kpi-label">{label}</p>
@@ -68,7 +69,7 @@ export function KpiCard({
                 </div>
               )}
               {context && (
-                <span style={{ fontSize: "10px", color: "#94a3b8" }}>
+                <span style={{ fontSize: "10px", color: "var(--text-secondary)" }}>
                   {context}
                 </span>
               )}

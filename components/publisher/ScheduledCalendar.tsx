@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import {
@@ -57,10 +57,10 @@ interface Post {
 
 /* ── Status config ────────────────────────────────────── */
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string; border: string; icon: React.ReactNode }> = {
-  Draft: { label: "EN HANGAR", color: "#94a3b8", bg: "rgba(148,163,184,0.16)", border: "rgba(148,163,184,0.65)", icon: <FileText style={{ width: 12, height: 12 }} /> },
-  Scheduled: { label: "SECUENCIA INICIADA", color: "#fdab3d", bg: "rgba(253,171,61,0.08)", border: "rgba(253,171,61,0.2)", icon: <Clock style={{ width: 12, height: 12 }} /> },
-  Published: { label: "TRANSMISIÓN ENVIADA", color: "#00c875", bg: "rgba(0,200,117,0.08)", border: "rgba(0,200,117,0.2)", icon: <Check style={{ width: 12, height: 12 }} /> },
-  Failed: { label: "SEÑAL PERDIDA", color: "#e2445c", bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.2)", icon: <AlertCircle style={{ width: 12, height: 12 }} /> },
+  Draft: { label: "EN HANGAR", color: "var(--text-secondary)", bg: "rgba(148,163,184,0.16)", border: "rgba(148,163,184,0.65)", icon: <FileText style={{ width: 12, height: 12 }} /> },
+  Scheduled: { label: "SECUENCIA INICIADA", color: "var(--amber)", bg: "rgba(253,171,61,0.08)", border: "rgba(253,171,61,0.2)", icon: <Clock style={{ width: 12, height: 12 }} /> },
+  Published: { label: "TRANSMISIÓN ENVIADA", color: "var(--emerald)", bg: "rgba(0,200,117,0.08)", border: "rgba(0,200,117,0.2)", icon: <Check style={{ width: 12, height: 12 }} /> },
+  Failed: { label: "SEÑAL PERDIDA", color: "var(--red)", bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.2)", icon: <AlertCircle style={{ width: 12, height: 12 }} /> },
 };
 
 const CHANNEL_ICON: Record<string, React.ReactNode> = {
@@ -328,7 +328,7 @@ export function ScheduledCalendar() {
         }}
         style={{
           display: "flex", gap: 12, padding: "12px 14px",
-          background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
+          background: "var(--surface-hover)", border: "1px solid var(--hairline)",
           borderRadius: 8, marginBottom: 8, transition: "border-color 0.2s",
           cursor: isEditable ? "grab" : "default",
         }}
@@ -348,7 +348,7 @@ export function ScheduledCalendar() {
             <StatusBadge status={post.status} />
             {boostResults[post.id] && (
               <span style={{
-                fontSize: 9, fontWeight: 600, color: "#f59e0b",
+                fontSize: 9, fontWeight: 600, color: "var(--amber)",
                 background: "rgba(245,158,11,0.1)",
                 border: "1px solid rgba(245,158,11,0.3)",
                 borderRadius: 4, padding: "2px 6px",
@@ -361,7 +361,7 @@ export function ScheduledCalendar() {
               {post.channels.map((ch) => <span key={ch}>{CHANNEL_ICON[ch]}</span>)}
             </div>
             {post.pageName && (
-              <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 6px", borderRadius: 4, background: "rgba(255,255,255,0.03)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 6px", borderRadius: 4, background: "var(--row-hover)" }}>
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" style={{ width: 14, height: 14, borderRadius: "50%", objectFit: "cover" }} />
                 ) : (
@@ -369,16 +369,16 @@ export function ScheduledCalendar() {
                     {post.pageName.charAt(0)}
                   </div>
                 )}
-                <span style={{ fontSize: 11, fontWeight: 600, color: "#e2e8f0" }}>{post.pageName}</span>
+                <span style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)" }}>{post.pageName}</span>
               </div>
             )}
-            {d && <span style={{ fontSize: 10, color: "#64748b" }}>{fmtDate(d)} · {fmtTime(d)}</span>}
+            {d && <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{fmtDate(d)} · {fmtTime(d)}</span>}
           </div>
-          <p style={{ fontSize: 12, color: "#cbd5e1", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+          <p style={{ fontSize: 12, color: "var(--foreground)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
             {post.content.length > 100 ? post.content.slice(0, 100) + "..." : post.content}
           </p>
           {post.error && (
-            <p style={{ fontSize: 10, color: "#e2445c", margin: "4px 0 0" }}>⚠ {post.error}</p>
+            <p style={{ fontSize: 10, color: "var(--red)", margin: "4px 0 0" }}>⚠ {post.error}</p>
           )}
         </div>
 
@@ -393,7 +393,7 @@ export function ScheduledCalendar() {
                 onClick={() => publishNow(post.id)}
                 title="Publicar Ahora"
                 disabled={actionLoading === post.id}
-                style={{ ...actionBtnStyle, color: "#00c875" }}
+                style={{ ...actionBtnStyle, color: "var(--emerald)" }}
               >
                 {actionLoading === post.id ? <Loader2 style={{ width: 13, height: 13, animation: "spin 1s linear infinite" }} /> : <Send style={{ width: 13, height: 13 }} />}
               </button>
@@ -403,7 +403,7 @@ export function ScheduledCalendar() {
             <button
               onClick={() => openBoostModal(post)}
               title="Boost este post"
-              style={{ ...actionBtnStyle, color: "#f59e0b" }}
+              style={{ ...actionBtnStyle, color: "var(--amber)" }}
             >
               <Zap style={{ width: 13, height: 13 }} />
             </button>
@@ -412,12 +412,12 @@ export function ScheduledCalendar() {
             <button
               disabled
               title="Boost activo"
-              style={{ ...actionBtnStyle, color: "#00c875", cursor: "default", opacity: 0.8 }}
+              style={{ ...actionBtnStyle, color: "var(--emerald)", cursor: "default", opacity: 0.8 }}
             >
-              <Zap style={{ width: 13, height: 13, fill: "#00c875" }} />
+              <Zap style={{ width: 13, height: 13, fill: "var(--emerald)" }} />
             </button>
           )}
-          <button onClick={() => deletePost(post.id)} title="Eliminar" disabled={actionLoading === post.id} style={{ ...actionBtnStyle, color: "#e2445c" }}>
+          <button onClick={() => deletePost(post.id)} title="Eliminar" disabled={actionLoading === post.id} style={{ ...actionBtnStyle, color: "var(--red)" }}>
             <Trash2 style={{ width: 13, height: 13 }} />
           </button>
         </div>
@@ -428,7 +428,7 @@ export function ScheduledCalendar() {
   const actionBtnStyle: React.CSSProperties = {
     display: "flex", alignItems: "center", justifyContent: "center",
     width: 28, height: 28, borderRadius: 4, border: "1px solid rgba(255,255,255,0.06)",
-    background: "rgba(255,255,255,0.03)", color: "#94a3b8", cursor: "pointer", transition: "all 0.15s",
+    background: "var(--row-hover)", color: "var(--text-secondary)", cursor: "pointer", transition: "all 0.15s",
   };
 
   /* ── Filter pill button ────────────────────────────────── */
@@ -436,8 +436,8 @@ export function ScheduledCalendar() {
     <button onClick={onClick} style={{
       padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: 500, cursor: "pointer",
       border: active ? "1px solid rgba(0,212,255,0.4)" : "1px solid rgba(255,255,255,0.06)",
-      background: active ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.04)",
-      color: active ? "#00d4ff" : "#64748b", transition: "all 0.15s",
+      background: active ? "rgba(0,212,255,0.1)" : "var(--surface-hover)",
+      color: active ? "var(--cyan)" : "var(--text-muted)", transition: "all 0.15s",
     }}>{label}</button>
   );
 
@@ -454,7 +454,7 @@ export function ScheduledCalendar() {
           fontSize: 13, fontWeight: 500,
           background: banner.type === "success" ? "rgba(0,200,117,0.12)" : "rgba(226,68,92,0.12)",
           border: `1px solid ${banner.type === "success" ? "rgba(0,200,117,0.3)" : "rgba(226,68,92,0.3)"}`,
-          color: banner.type === "success" ? "#00c875" : "#e2445c",
+          color: banner.type === "success" ? "var(--emerald)" : "var(--red)",
         }}>
           {banner.type === "success" ? <Check style={{ width: 14, height: 14 }} /> : <AlertCircle style={{ width: 14, height: 14 }} />}
           {banner.message}
@@ -465,29 +465,29 @@ export function ScheduledCalendar() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
           <h3 style={{ fontSize: 18, fontWeight: 700, color: "#fff", margin: 0 }}>Calendario de Publicaciones</h3>
-          <p style={{ fontSize: 13, color: "#94a3b8", margin: "4px 0 0" }}>{posts.length} publicaciones en total</p>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "4px 0 0" }}>{posts.length} publicaciones en total</p>
         </div>
 
         {/* View toggle */}
-        <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.03)", borderRadius: 8, padding: 3, border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ display: "flex", gap: 4, background: "var(--row-hover)", borderRadius: 8, padding: 3, border: "1px solid rgba(255,255,255,0.06)" }}>
           <button onClick={() => setView("month")} style={{
             display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 6,
             border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500,
             background: view === "month" ? "rgba(0,212,255,0.1)" : "transparent",
-            color: view === "month" ? "#00d4ff" : "#64748b",
+            color: view === "month" ? "var(--cyan)" : "var(--text-muted)",
           }}><CalendarIcon style={{ width: 14, height: 14 }} /> Mes</button>
           <button onClick={() => setView("list")} style={{
             display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 6,
             border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500,
             background: view === "list" ? "rgba(0,212,255,0.1)" : "transparent",
-            color: view === "list" ? "#00d4ff" : "#64748b",
+            color: view === "list" ? "var(--cyan)" : "var(--text-muted)",
           }}><List style={{ width: 14, height: 14 }} /> Lista</button>
         </div>
       </div>
 
       {/* Filters */}
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <span style={{ fontSize: 11, color: "#64748b", fontWeight: 500 }}>Estado:</span>
+        <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>Estado:</span>
         <FilterPill label="Todos" active={filterStatus === "all"} onClick={() => setFilterStatus("all")} />
         <FilterPill label="Borrador" active={filterStatus === "Draft"} onClick={() => setFilterStatus("Draft")} />
         <FilterPill label="Programado" active={filterStatus === "Scheduled"} onClick={() => setFilterStatus("Scheduled")} />
@@ -506,14 +506,14 @@ export function ScheduledCalendar() {
 
       {/* ── MONTH VIEW ────────────────────────────────────── */}
       {!loading && view === "month" && (
-        <div style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, overflow: "hidden" }}>
+        <div style={{ background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, overflow: "hidden" }}>
           {/* Month nav */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-            <button onClick={() => setCurrentMonth(new Date(year, month - 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", display: "flex", padding: 4 }}>
+            <button onClick={() => setCurrentMonth(new Date(year, month - 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", padding: 4 }}>
               <ChevronLeft style={{ width: 18, height: 18 }} />
             </button>
-            <h4 style={{ fontSize: 14, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>{fmtMonthYear(currentMonth)}</h4>
-            <button onClick={() => setCurrentMonth(new Date(year, month + 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", display: "flex", padding: 4 }}>
+            <h4 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{fmtMonthYear(currentMonth)}</h4>
+            <button onClick={() => setCurrentMonth(new Date(year, month + 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", padding: 4 }}>
               <ChevronRight style={{ width: 18, height: 18 }} />
             </button>
           </div>
@@ -521,7 +521,7 @@ export function ScheduledCalendar() {
           {/* DOW header */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)" }}>
             {DOW.map((d) => (
-              <div key={d} style={{ padding: "8px 4px", textAlign: "center", fontSize: 10, fontWeight: 600, color: "#64748b", borderBottom: "1px solid rgba(255,255,255,0.09)" }}>{d}</div>
+              <div key={d} style={{ padding: "8px 4px", textAlign: "center", fontSize: 10, fontWeight: 600, color: "var(--text-muted)", borderBottom: "1px solid var(--hairline)" }}>{d}</div>
             ))}
           </div>
 
@@ -568,7 +568,7 @@ export function ScheduledCalendar() {
                 >
                   <div style={{
                     fontSize: 11, fontWeight: isToday ? 700 : 400,
-                    color: isToday ? "#00d4ff" : "#94a3b8",
+                    color: isToday ? "var(--cyan)" : "var(--text-secondary)",
                     width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center",
                     borderRadius: "50%",
                     background: isToday ? "rgba(0,212,255,0.15)" : "none",
@@ -604,7 +604,7 @@ export function ScheduledCalendar() {
                     );
                   })}
                   {dayPosts.length > 3 && (
-                    <div style={{ fontSize: 8, color: "#64748b", fontWeight: 500, padding: "1px 5px" }}>+{dayPosts.length - 3} más</div>
+                    <div style={{ fontSize: 8, color: "var(--text-muted)", fontWeight: 500, padding: "1px 5px" }}>+{dayPosts.length - 3} más</div>
                   )}
                 </div>
               );
@@ -614,7 +614,7 @@ export function ScheduledCalendar() {
           {/* Selected day detail */}
           {selectedDay && postsByDate[selectedDay] && (
             <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,212,255,0.02)" }}>
-              <h4 style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", marginBottom: 10 }}>
+              <h4 style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 10 }}>
                 Publicaciones del {fmtDate(new Date(selectedDay + "T12:00:00"))}
               </h4>
               {postsByDate[selectedDay].map((p) => <PostCard key={p.id} post={p} />)}
@@ -622,7 +622,7 @@ export function ScheduledCalendar() {
           )}
           {selectedDay && !postsByDate[selectedDay] && (
             <div style={{ padding: "20px 16px", borderTop: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
-              <p style={{ fontSize: 12, color: "#64748b" }}>Sin publicaciones para este día</p>
+              <p style={{ fontSize: 12, color: "var(--text-muted)" }}>Sin publicaciones para este día</p>
             </div>
           )}
         </div>
@@ -633,7 +633,7 @@ export function ScheduledCalendar() {
         <div>
           {filtered.length === 0 ? (
             <EmptyState
-              icon={<CalendarIcon style={{ width: 32, height: 32, color: "#00d4ff" }} />}
+              icon={<CalendarIcon style={{ width: 32, height: 32, color: "var(--cyan)" }} />}
               title="RADAR DESPEJADO"
               description="No hay transmisiones programadas ni en historial."
               actionLabel="IR AL REDACTOR"
@@ -654,7 +654,7 @@ export function ScheduledCalendar() {
 
               return sortedKeys.map((key) => (
                 <div key={key} style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 11, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, paddingLeft: 4 }}>
+                  <div style={{ fontSize: 11, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 8, paddingLeft: 4 }}>
                     {key === "sin-fecha" ? "Sin fecha" : fmtDate(new Date(key + "T12:00:00"))}
                   </div>
                   {groups[key].map((p) => <PostCard key={p.id} post={p} />)}

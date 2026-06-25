@@ -39,7 +39,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
     || findActionValue(ins.actions, "purchase")
     || findActionValue(ins.actions, "link_click");
   const objInfo = OBJECTIVE_MAP[item.objective] || null;
-  const swStatus = SW_STATUS[item.effective_status || item.status] || SW_STATUS[item.status] || { label: item.status, color: "#6b7280" };
+  const swStatus = SW_STATUS[item.effective_status || item.status] || SW_STATUS[item.status] || { label: item.status, color: "var(--text-muted)" };
   const isActive = item.status === "ACTIVE";
   const advPlus = isAdvantagePlus(item);
   const learningMapped = LEARNING_PHASE_MAP[item.learning_phase_info?.status || ""] || null;
@@ -101,11 +101,11 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
   };
 
   const chartColors: Record<ChartMetric, string> = {
-    spend: "#22d3ee",
-    results: "#34d399",
-    roas: "#fbbf24",
-    impressions: "#a78bfa",
-    clicks: "#60a5fa",
+    spend: "var(--cyan)",
+    results: "var(--emerald)",
+    roas: "var(--amber)",
+    impressions: "var(--purple)",
+    clicks: "var(--cyan)",
     ctr: "#f472b6",
   };
 
@@ -141,14 +141,14 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
           boxShadow: "-12px 0 40px rgba(0,0,0,0.5)",
         }}
       >
-        {/* ── Header ── */}
+        {/* -- Header -- */}
         <div style={{
           padding: "20px", borderBottom: "1px solid var(--border)",
           background: "rgba(4,8,18,0.8)",
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: "14px", fontWeight: 700, color: "white", marginBottom: "6px", lineHeight: "1.3" }}>
+              <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)", marginBottom: "6px", lineHeight: "1.3" }}>
                 {item.name}
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
@@ -171,9 +171,9 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 {advPlus && (
                   <span style={{
                     fontSize: "8px", fontWeight: 700, padding: "2px 6px", borderRadius: 4,
-                    background: "rgba(168,85,247,0.15)", color: "#c084fc",
+                    background: "rgba(168,85,247,0.15)", color: "var(--purple)",
                   }}>
-                    ⚡ ADV+
+                    ? ADV+
                   </span>
                 )}
                 {learningMapped && (
@@ -185,20 +185,20 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                   </span>
                 )}
               </div>
-              <div style={{ fontSize: "9px", color: "#64748b", marginTop: "6px" }}>
+              <div style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "6px" }}>
                 ID: {item.id}
               </div>
             </div>
             <button
               onClick={onClose}
               style={{
-                background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)",
-                borderRadius: "6px", color: "#94a3b8", cursor: "pointer",
+                background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)",
+                borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
                 width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.15s",
               }}
               onMouseEnter={e => { e.currentTarget.style.color = "white"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
-              onMouseLeave={e => { e.currentTarget.style.color = "#94a3b8"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
+              onMouseLeave={e => { e.currentTarget.style.color = "var(--text-secondary)"; e.currentTarget.style.background = "rgba(255,255,255,0.1)"; }}
             >
               <X className="w-4 h-4" />
             </button>
@@ -214,7 +214,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
                 background: isActive ? "rgba(251,191,36,0.1)" : "rgba(52,211,153,0.1)",
                 border: `1px solid ${isActive ? "rgba(251,191,36,0.25)" : "rgba(52,211,153,0.25)"}`,
-                color: isActive ? "#fbbf24" : "#34d399",
+                color: isActive ? "var(--amber)" : "var(--emerald)",
               }}
             >
               {isActive ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
@@ -238,7 +238,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
               style={{
                 display: "flex", alignItems: "center", gap: "4px", padding: "5px 10px",
                 fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+                background: "var(--row-hover)", border: "1px solid var(--hairline)",
                 color: "rgba(148,163,184,0.7)", textDecoration: "none",
               }}
             >
@@ -247,22 +247,22 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
           </div>
         </div>
 
-        {/* ── Scrollable body ── */}
+        {/* -- Scrollable body -- */}
         <div className="custom-scrollbar" style={{ flex: 1, overflowY: "auto", padding: "16px 20px" }}>
           {/* KPIs Grid */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", marginBottom: "20px" }}>
             {[
-              { label: "Gasto Total", value: fmt$(ins.spend || 0), color: "#22d3ee", icon: "💰" },
-              { label: "ROAS", value: roas > 0 ? fmtROAS(roas) : "—", color: roas >= 3 ? "#34d399" : roas >= 1 ? "#fbbf24" : "#ef4444", icon: "📈" },
-              { label: "Resultados", value: fmtNum(resultsCount), color: "#a78bfa", icon: "🎯" },
-              { label: cpa.label, value: cpa.value > 0 ? fmt$(cpa.value) : "—", color: "#f472b6", icon: "💲" },
+              { label: "Gasto Total", value: fmt$(ins.spend || 0), color: "var(--cyan)", icon: "??" },
+              { label: "ROAS", value: roas > 0 ? fmtROAS(roas) : "—", color: roas >= 3 ? "var(--emerald)" : roas >= 1 ? "var(--amber)" : "var(--red)", icon: "??" },
+              { label: "Resultados", value: fmtNum(resultsCount), color: "var(--purple)", icon: "??" },
+              { label: cpa.label, value: cpa.value > 0 ? fmt$(cpa.value) : "—", color: "#f472b6", icon: "??" },
             ].map((kpi, i) => (
               <div key={i} style={{
                 padding: "14px", borderRadius: "8px",
-                background: "rgba(255,255,255,0.04)",
+                background: "var(--surface-hover)",
                 border: "1px solid rgba(255,255,255,0.06)",
               }}>
-                <div style={{ fontSize: "9px", color: "#64748b", marginBottom: "6px", letterSpacing: "0.05em", fontWeight: 600 }}>
+                <div style={{ fontSize: "9px", color: "var(--text-muted)", marginBottom: "6px", letterSpacing: "0.05em", fontWeight: 600 }}>
                   {kpi.icon} {kpi.label}
                 </div>
                 <div style={{ fontSize: "20px", fontWeight: 800, color: kpi.color, letterSpacing: "-0.02em" }}>
@@ -287,10 +287,10 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
               <div key={i} style={{
                 padding: "10px", borderRadius: "6px",
                 background: "rgba(255,255,255,0.015)",
-                border: "1px solid rgba(255,255,255,0.09)",
+                border: "1px solid var(--hairline)",
                 textAlign: "center",
               }}>
-                <div style={{ fontSize: "8px", color: "#64748b", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.04em" }}>
+                <div style={{ fontSize: "8px", color: "var(--text-muted)", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.04em" }}>
                   {m.label}
                 </div>
                 <div style={{ fontSize: "13px", fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
@@ -300,10 +300,10 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
             ))}
           </div>
 
-          {/* ── Chart section ── */}
+          {/* -- Chart section -- */}
           <div style={{
             marginBottom: "20px", padding: "16px", borderRadius: "8px",
-            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)",
+            background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)",
           }}>
             {/* Breakdown tabs */}
             <div style={{ display: "flex", gap: "4px", marginBottom: "12px" }}>
@@ -322,7 +322,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     borderRadius: "4px", cursor: "pointer",
                     background: breakdownTab === tab.key ? "rgba(0,212,255,0.1)" : "transparent",
                     border: `1px solid ${breakdownTab === tab.key ? "rgba(0,212,255,0.2)" : "transparent"}`,
-                    color: breakdownTab === tab.key ? "var(--cyan)" : "#64748b",
+                    color: breakdownTab === tab.key ? "var(--cyan)" : "var(--text-muted)",
                     transition: "all 0.15s",
                   }}
                 >
@@ -344,7 +344,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                         borderRadius: "10px", cursor: "pointer",
                         background: chartMetric === mb.key ? `${chartColors[mb.key]}20` : "transparent",
                         border: `1px solid ${chartMetric === mb.key ? `${chartColors[mb.key]}40` : "rgba(148,163,184,0.18)"}`,
-                        color: chartMetric === mb.key ? chartColors[mb.key] : "#64748b",
+                        color: chartMetric === mb.key ? chartColors[mb.key] : "var(--text-muted)",
                         transition: "all 0.15s",
                       }}
                     >
@@ -354,7 +354,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 </div>
 
                 {loadingDaily ? (
-                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
+                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "11px" }}>
                     Cargando datos de tendencia...
                   </div>
                 ) : dailyData.length > 0 ? (
@@ -363,13 +363,13 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                       <CartesianGrid stroke="rgba(255,255,255,0.09)" strokeDasharray="3 3" />
                       <XAxis
                         dataKey="date"
-                        tick={{ fontSize: 8, fill: "#64748b" }}
+                        tick={{ fontSize: 8, fill: "var(--text-muted)" }}
                         axisLine={false}
                         tickLine={false}
                         interval="preserveStartEnd"
                       />
                       <YAxis
-                        tick={{ fontSize: 8, fill: "#64748b" }}
+                        tick={{ fontSize: 8, fill: "var(--text-muted)" }}
                         axisLine={false}
                         tickLine={false}
                         width={40}
@@ -377,7 +377,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                       <Tooltip
                         contentStyle={{
                           background: "rgba(6,10,22,0.95)", border: "1px solid rgba(0,212,255,0.15)",
-                          borderRadius: "6px", fontSize: "10px", color: "white",
+                          borderRadius: "6px", fontSize: "10px", color: "var(--foreground)",
                         }}
                       />
                       <Line
@@ -391,7 +391,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     </LineChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
+                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "11px" }}>
                     Sin datos de tendencia para este período
                   </div>
                 )}
@@ -401,7 +401,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
             {breakdownTab !== "time" && (
               <>
                 {loadingBreakdown ? (
-                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
+                  <div style={{ height: 160, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "11px" }}>
                     Cargando breakdown...
                   </div>
                 ) : breakdownData.length > 0 ? (
@@ -409,10 +409,10 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
                       <thead>
                         <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                          <th style={{ padding: "6px 8px", textAlign: "left", color: "#64748b", fontWeight: 700 }}>Segmento</th>
-                          <th style={{ padding: "6px 8px", textAlign: "right", color: "#64748b", fontWeight: 700 }}>Gasto</th>
-                          <th style={{ padding: "6px 8px", textAlign: "right", color: "#64748b", fontWeight: 700 }}>Clics</th>
-                          <th style={{ padding: "6px 8px", textAlign: "right", color: "#64748b", fontWeight: 700 }}>CTR</th>
+                          <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--text-muted)", fontWeight: 700 }}>Segmento</th>
+                          <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-muted)", fontWeight: 700 }}>Gasto</th>
+                          <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-muted)", fontWeight: 700 }}>Clics</th>
+                          <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-muted)", fontWeight: 700 }}>CTR</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -425,7 +425,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                           return (
                             <tr key={idx} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
                               <td style={{ padding: "6px 8px", color: "rgba(255,255,255,0.8)" }}>{segLabel}</td>
-                              <td style={{ padding: "6px 8px", textAlign: "right", color: "#22d3ee" }}>{fmt$(row.spend)}</td>
+                              <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--cyan)" }}>{fmt$(row.spend)}</td>
                               <td style={{ padding: "6px 8px", textAlign: "right", color: "rgba(255,255,255,0.7)" }}>{fmtNum(row.clicks)}</td>
                               <td style={{ padding: "6px 8px", textAlign: "right", color: "rgba(255,255,255,0.7)" }}>{fmtPct(row.ctr)}</td>
                             </tr>
@@ -435,7 +435,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     </table>
                   </div>
                 ) : (
-                  <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
+                  <div style={{ height: 120, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-muted)", fontSize: "11px" }}>
                     Sin datos de breakdown disponibles
                   </div>
                 )}
@@ -443,7 +443,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
             )}
           </div>
 
-          {/* ── AI Analysis Panel ── */}
+          {/* -- AI Analysis Panel -- */}
           <AIAnalysisPanel item={item} level={level} />
         </div>
       </div>

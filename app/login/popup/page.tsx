@@ -1,9 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { Loader2 } from "lucide-react";
+import { Orbi } from "@/components/ui/Orbi";
 
 function LoginPopup() {
   const searchParams = useSearchParams();
@@ -20,10 +21,10 @@ function LoginPopup() {
   return (
     <div style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      background: "#0a0a0f", color: "#e2e8f0", fontFamily: "sans-serif", flexDirection: "column", gap: 12,
+      background: "var(--background)", color: "var(--foreground)", fontFamily: "sans-serif", flexDirection: "column", gap: 12,
     }}>
-      <Loader2 size={32} className="animate-spin text-[#00d4ff]" />
-      <p style={{ fontSize: 13, color: "#64748b" }}>Conectando...</p>
+      <Orbi state="working" scale={0.7} />
+      <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>CONECTANDO...</p>
     </div>
   );
 }

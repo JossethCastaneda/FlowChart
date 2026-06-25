@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
@@ -91,7 +91,7 @@ const CATEGORIES: Category[] = [
     label: "Chats",
     description: "Gestiona conversaciones activas",
     icon: MessageSquare,
-    color: "#a855f7",
+    color: "var(--purple)",
     endpoints: [
       {
         id: "list-chats", label: "Listar Chats",
@@ -160,7 +160,7 @@ const CATEGORIES: Category[] = [
   {
     id: "messages", label: "Mensajes",
     description: "Envía texto, imágenes, plantillas y más",
-    icon: Send, color: "#06d6a0",
+    icon: Send, color: "var(--emerald)",
     endpoints: [
       {
         id: "send-text", label: "Enviar Texto",
@@ -230,7 +230,7 @@ const CATEGORIES: Category[] = [
   {
     id: "contacts", label: "Contactos",
     description: "CRM de contactos y tags",
-    icon: Users, color: "#00d4ff",
+    icon: Users, color: "var(--cyan)",
     endpoints: [
       {
         id: "list-contacts", label: "Listar Contactos",
@@ -286,7 +286,7 @@ const CATEGORIES: Category[] = [
   {
     id: "agents", label: "Agentes",
     description: "Administra agentes y roles",
-    icon: Users, color: "#ffbe0b",
+    icon: Users, color: "var(--amber)",
     endpoints: [
       {
         id: "list-agents", label: "Listar Agentes",
@@ -338,7 +338,7 @@ const CATEGORIES: Category[] = [
   {
     id: "channels", label: "Canales",
     description: "Canales de comunicación activos",
-    icon: Radio, color: "#22d3ee",
+    icon: Radio, color: "var(--cyan)",
     endpoints: [
       {
         id: "list-channels", label: "Listar Canales",
@@ -350,7 +350,7 @@ const CATEGORIES: Category[] = [
   {
     id: "templates", label: "Templates WA",
     description: "Plantillas aprobadas de WhatsApp",
-    icon: FileText, color: "#06d6a0",
+    icon: FileText, color: "var(--emerald)",
     endpoints: [
       {
         id: "list-templates", label: "Listar Templates",
@@ -430,7 +430,7 @@ const CATEGORIES: Category[] = [
   {
     id: "webhooks", label: "Webhooks",
     description: "Eventos entrantes y salientes",
-    icon: Webhook, color: "#7c3aed",
+    icon: Webhook, color: "var(--purple)",
     endpoints: [
       { id: "list-webhooks", label: "Listar Webhooks", description: "Lista todos los webhooks registrados.", method: "GET", path: "/webhooks" },
       {
@@ -456,7 +456,7 @@ const CATEGORIES: Category[] = [
   {
     id: "billing", label: "Facturación",
     description: "Consumos y conversaciones cobradas",
-    icon: CreditCard, color: "#f59e0b",
+    icon: CreditCard, color: "var(--amber)",
     endpoints: [
       {
         id: "list-consumptions", label: "Consumos del Mes",
@@ -478,7 +478,7 @@ const CATEGORIES: Category[] = [
   {
     id: "audit", label: "Auditoría",
     description: "Historial de cambios del proyecto",
-    icon: ClipboardList, color: "#94a3b8",
+    icon: ClipboardList, color: "var(--text-secondary)",
     endpoints: [
       {
         id: "list-audit", label: "Ver Historial",
@@ -500,7 +500,7 @@ const CATEGORIES: Category[] = [
   {
     id: "auth", label: "Credenciales API",
     description: "Estado de la conexión y tokens",
-    icon: Key, color: "#ff2d55",
+    icon: Key, color: "var(--red)",
     endpoints: [
       { id: "get-credentials", label: "Obtener Credenciales", description: "Credenciales asociadas al token actual.", method: "GET", path: "/auth/credentials" },
       { id: "health-check", label: "Health Check", description: "Verifica si la API está activa.", method: "GET", path: "/health" },
@@ -513,7 +513,7 @@ const CATEGORIES: Category[] = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: "#06d6a0", POST: "#00d4ff", PATCH: "#ffbe0b", DELETE: "#ff2d55", PUT: "#fb923c",
+  GET: "var(--emerald)", POST: "var(--cyan)", PATCH: "var(--amber)", DELETE: "var(--red)", PUT: "#fb923c",
 };
 
 async function callProxy(method: string, path: string, body?: Record<string, unknown>) {
@@ -582,7 +582,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
         {/* Top gradient banner */}
         <div style={{
           height: 6,
-          background: "linear-gradient(90deg, #7c3aed, #a855f7, #7c3aed)",
+          background: "linear-gradient(90deg, var(--purple), var(--purple), var(--purple))",
           backgroundSize: "200% 100%",
           animation: "shimmer 3s linear infinite",
         }} />
@@ -592,7 +592,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 32 }}>
             <div style={{
               width: 52, height: 52, borderRadius: 14,
-              background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+              background: "linear-gradient(135deg, var(--purple), var(--purple))",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 8px 24px rgba(124,58,237,0.35)",
             }}>
@@ -613,12 +613,12 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
             display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 32,
           }}>
             {[
-              { icon: MessageSquare, label: "Gestión de Chats", color: "#a855f7" },
-              { icon: Send, label: "Envío de Mensajes", color: "#06d6a0" },
-              { icon: Users, label: "CRM Contactos", color: "#00d4ff" },
+              { icon: MessageSquare, label: "Gestión de Chats", color: "var(--purple)" },
+              { icon: Send, label: "Envío de Mensajes", color: "var(--emerald)" },
+              { icon: Users, label: "CRM Contactos", color: "var(--cyan)" },
               { icon: Bell, label: "Notificaciones WA", color: "#fb923c" },
-              { icon: Webhook, label: "Webhooks", color: "#7c3aed" },
-              { icon: Shield, label: "40+ Endpoints", color: "#ffbe0b" },
+              { icon: Webhook, label: "Webhooks", color: "var(--purple)" },
+              { icon: Shield, label: "40+ Endpoints", color: "var(--amber)" },
             ].map(({ icon: Icon, label, color }) => (
               <div key={label} style={{
                 display: "flex", alignItems: "center", gap: 8,
@@ -637,7 +637,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)", marginBottom: 8 }}>
-                Access Token <span style={{ color: "#ff2d55" }}>*</span>
+                Access Token <span style={{ color: "var(--red)" }}>*</span>
               </label>
               <div style={{ position: "relative" }}>
                 <input
@@ -702,8 +702,8 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                 border: "1px solid rgba(255,45,85,0.2)",
                 borderRadius: 8, display: "flex", gap: 8, alignItems: "flex-start",
               }}>
-                <XCircle style={{ width: 14, height: 14, color: "#ff2d55", flexShrink: 0, marginTop: 1 }} />
-                <span style={{ fontSize: 12, color: "#ff7088" }}>{error}</span>
+                <XCircle style={{ width: 14, height: 14, color: "var(--red)", flexShrink: 0, marginTop: 1 }} />
+                <span style={{ fontSize: 12, color: "var(--red)" }}>{error}</span>
               </div>
             )}
 
@@ -715,8 +715,8 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                 border: "1px solid rgba(6,214,160,0.2)",
                 borderRadius: 8, display: "flex", gap: 8, alignItems: "center",
               }}>
-                <CheckCircle style={{ width: 14, height: 14, color: "#06d6a0" }} />
-                <span style={{ fontSize: 12, color: "#06d6a0", fontWeight: 600 }}>
+                <CheckCircle style={{ width: 14, height: 14, color: "var(--emerald)" }} />
+                <span style={{ fontSize: 12, color: "var(--emerald)", fontWeight: 600 }}>
                   ¡Conectado! Cargando el módulo...
                 </span>
               </div>
@@ -731,7 +731,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 10,
                 padding: "14px 24px", border: "none", borderRadius: 10, cursor: loading || success || !token.trim() ? "not-allowed" : "pointer",
                 background: token.trim() && !loading && !success
-                  ? "linear-gradient(135deg, #7c3aed, #a855f7)"
+                  ? "linear-gradient(135deg, var(--purple), var(--purple))"
                   : "rgba(255,255,255,0.06)",
                 color: token.trim() && !loading && !success ? "white" : "rgba(148,163,184,0.4)",
                 fontWeight: 700, fontSize: 14, transition: "all 0.25s",
@@ -873,7 +873,7 @@ function EndpointForm({
         <div style={{
           padding: "10px 14px", background: "rgba(255,190,11,0.06)",
           border: "1px solid rgba(255,190,11,0.18)", borderRadius: 8,
-          fontSize: 12, color: "#ffbe0b", display: "flex", gap: 8, alignItems: "flex-start",
+          fontSize: 12, color: "var(--amber)", display: "flex", gap: 8, alignItems: "flex-start",
         }}>
           <AlertTriangle style={{ width: 14, height: 14, flexShrink: 0, marginTop: 1 }} />
           {endpoint.note}
@@ -898,9 +898,9 @@ function EndpointForm({
               <div key={f.key}>
                 <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
                   {f.label}
-                  {f.required && <span style={{ color: "#ff2d55", fontSize: 11 }}>*</span>}
+                  {f.required && <span style={{ color: "var(--red)", fontSize: 11 }}>*</span>}
                   {f.dynamicOptions && dynamicOpts && dynamicOpts.length > 0 && (
-                    <span style={{ fontSize: 9, color: "#06d6a0", fontWeight: 600, background: "rgba(6,214,160,0.1)", padding: "1px 5px", borderRadius: 4 }}>
+                    <span style={{ fontSize: 9, color: "var(--emerald)", fontWeight: 600, background: "rgba(6,214,160,0.1)", padding: "1px 5px", borderRadius: 4 }}>
                       PRECARGADO
                     </span>
                   )}
@@ -993,9 +993,9 @@ function EndpointForm({
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {result.ok
-                ? <CheckCircle style={{ width: 14, height: 14, color: "#06d6a0" }} />
-                : <XCircle style={{ width: 14, height: 14, color: "#ff2d55" }} />}
-              <span style={{ fontSize: 12, color: result.ok ? "#06d6a0" : "#ff2d55", fontWeight: 700 }}>
+                ? <CheckCircle style={{ width: 14, height: 14, color: "var(--emerald)" }} />
+                : <XCircle style={{ width: 14, height: 14, color: "var(--red)" }} />}
+              <span style={{ fontSize: 12, color: result.ok ? "var(--emerald)" : "var(--red)", fontWeight: 700 }}>
                 {result.ok ? "Éxito" : "Error"} — HTTP {result.status}
               </span>
             </div>
@@ -1014,7 +1014,7 @@ function EndpointForm({
           </div>
           <pre style={{
             padding: "16px 20px", margin: 0, overflow: "auto",
-            fontSize: 12, color: "#e2e8f0", fontFamily: "monospace",
+            fontSize: 12, color: "var(--foreground)", fontFamily: "monospace",
             maxHeight: 400, lineHeight: 1.65,
           }}>
             {JSON.stringify(result.data, null, 2)}
@@ -1122,7 +1122,7 @@ function ConnectedModule({
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <div style={{
               width: 34, height: 34, borderRadius: 10,
-              background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+              background: "linear-gradient(135deg, var(--purple), var(--purple))",
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
               <Bot style={{ width: 17, height: 17, color: "white" }} />
@@ -1137,8 +1137,8 @@ function ConnectedModule({
               padding: "3px 8px", borderRadius: 20,
               background: "rgba(6,214,160,0.1)", border: "1px solid rgba(6,214,160,0.25)",
             }}>
-              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#06d6a0", boxShadow: "0 0 4px #06d6a0" }} />
-              <span style={{ fontSize: 9, fontWeight: 700, color: "#06d6a0", letterSpacing: "0.05em" }}>ACTIVO</span>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 4px var(--emerald)" }} />
+              <span style={{ fontSize: 9, fontWeight: 700, color: "var(--emerald)", letterSpacing: "0.05em" }}>ACTIVO</span>
             </div>
           </div>
 
@@ -1154,12 +1154,12 @@ function ConnectedModule({
               <><Loader2 style={{ width: 11, height: 11, color: "rgba(148,163,184,0.4)", animation: "spin 1s linear infinite" }} />
                 <span style={{ fontSize: 10, color: "rgba(148,163,184,0.45)" }}>Cargando canales y agentes...</span></>
             ) : preloadStatus === "done" ? (
-              <><Sparkles style={{ width: 11, height: 11, color: "#06d6a0" }} />
+              <><Sparkles style={{ width: 11, height: 11, color: "var(--emerald)" }} />
                 <span style={{ fontSize: 10, color: "rgba(148,163,184,0.6)" }}>
                   {preloaded.channels.length} canales · {preloaded.agents.length} agentes
                 </span></>
             ) : (
-              <><AlertTriangle style={{ width: 11, height: 11, color: "#ffbe0b" }} />
+              <><AlertTriangle style={{ width: 11, height: 11, color: "var(--amber)" }} />
                 <span style={{ fontSize: 10, color: "rgba(255,190,11,0.7)" }}>Preload parcial</span></>
             )}
           </div>
@@ -1376,7 +1376,7 @@ export default function BotmakerPage() {
       }}>
         <div style={{
           width: 52, height: 52, borderRadius: 14,
-          background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+          background: "linear-gradient(135deg, var(--purple), var(--purple))",
           display: "flex", alignItems: "center", justifyContent: "center",
           boxShadow: "0 8px 24px rgba(124,58,237,0.3)",
           animation: "pulse 2s ease-in-out infinite",

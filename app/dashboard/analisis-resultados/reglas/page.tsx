@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect } from "react";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -81,7 +81,7 @@ export default function OutcomeRulesPage() {
         <PageHeader
           title="Reglas de Outcome (Éxito)"
           description="Define cómo el motor clasificará el éxito o fracaso de una conversación basada en sus atributos."
-          icon={<Scale className="w-6 h-6" style={{ color: "#a855f7" }} />}
+          icon={<Scale className="w-6 h-6" style={{ color: "var(--purple)" }} />}
         />
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "24px" }}>

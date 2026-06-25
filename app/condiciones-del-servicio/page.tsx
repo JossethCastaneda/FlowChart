@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -7,8 +7,8 @@ export default function CondicionesDelServicio() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #0a0f1e 0%, #111827 100%)",
-      color: "#e2e8f0",
+      background: "linear-gradient(135deg, var(--background) 0%, var(--background) 100%)",
+      color: "var(--foreground)",
       fontFamily: "Inter, system-ui, sans-serif",
       padding: "80px 20px 40px",
       display: "flex",
@@ -115,7 +115,7 @@ export default function CondicionesDelServicio() {
             </h2>
             <p>
               Si tienes alguna pregunta acerca de estas Condiciones del Servicio, puedes contactarnos a través de:{" "}
-              <a href="mailto:soporte@sodare.xyz" style={{ color: "#00d4ff", textDecoration: "none" }}>
+              <a href="mailto:soporte@sodare.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
                 soporte@sodare.xyz
               </a>
             </p>

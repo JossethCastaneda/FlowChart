@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+﻿import React, { useCallback, useMemo, useRef, useState } from "react";
 import { StatusToggle } from "./StatusToggle";
 import { InlineEditor } from "./InlineEditor";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -674,7 +674,7 @@ export function AdsManagerTable({
                                 background: "rgba(30,40,60,0.8)",
                                 border: "1px solid rgba(100,120,150,0.15)",
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                fontSize: 8, color: "rgba(148,163,184,0.65)",
+                                fontSize: 8, color: "var(--text-muted)",
                                 fontWeight: 600, letterSpacing: "0.05em",
                               }}>
                                 AD
@@ -745,7 +745,7 @@ export function AdsManagerTable({
                                 </button>
                               )}
                             </div>
-                            <span style={{ fontSize: 9, color: "#64748b", display: "flex", alignItems: "center", gap: 4 }}>
+                            <span style={{ fontSize: 9, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
                               {row._accountName && <span style={{ padding: "1px 4px", fontSize: 8, background: "rgba(0,129,251,0.1)", color: "rgba(0,212,255,0.7)", borderRadius: 2, fontWeight: 600 }}>{row._accountName}</span>}
                               ID: {row.id}{" "}
                               <a
@@ -768,7 +768,7 @@ export function AdsManagerTable({
                       <td data-frozen style={tdFrozen(L_DEL, DELIVERY_W, rowBg, isLastFrozen("delivery"))}>
                         {(() => {
                           const effStatus = row.effective_status || row.status;
-                          const sw = SW_STATUS[effStatus] || SW_STATUS[row.status] || { label: effStatus, color: "#6b7280", glow: "rgba(107,114,128,0.3)" };
+                          const sw = SW_STATUS[effStatus] || SW_STATUS[row.status] || { label: effStatus, color: "var(--text-muted)", glow: "rgba(107,114,128,0.3)" };
                           return (
                             <span style={{
                               fontSize: 8, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
@@ -799,12 +799,12 @@ export function AdsManagerTable({
                             ) : (
                               <span style={{ fontSize: 11, fontWeight: 500 }}>{fmt$(rawBudget)}</span>
                             )}
-                            <span style={{ fontSize: 8, color: "#64748b", textTransform: "uppercase" }}>
+                            <span style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase" }}>
                               {hasDaily ? "Diario" : "Total"}
                             </span>
                           </div>
                         ) : (
-                          <span style={{ fontSize: 11, color: "#64748b" }}>Usando CBO</span>
+                          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Usando CBO</span>
                         )}
                       </td>
                     )}
@@ -820,7 +820,7 @@ export function AdsManagerTable({
                             onSave={val => onUpdateBidAmount ? onUpdateBidAmount(row.id, val as number) : Promise.resolve(false)}
                           />
                         ) : (
-                          <span style={{ fontSize: 11, color: "#64748b" }}>Automático</span>
+                          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Automático</span>
                         )}
                       </td>
                     )}
@@ -840,7 +840,7 @@ export function AdsManagerTable({
                             {objInfo.icon} {objInfo.label}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "#64748b" }}>{row.objective || "—"}</span>
+                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{row.objective || "—"}</span>
                         )}
                       </td>
                     )}
@@ -850,10 +850,10 @@ export function AdsManagerTable({
                       <td style={tdMetric("roas")}>
                         <span style={{
                           fontSize: 11, fontWeight: 700,
-                          color: roas === 0 ? "#64748b"
-                            : roas >= 3 ? "#34d399"
-                            : roas >= 1.5 ? "#fbbf24"
-                            : "#ef4444",
+                          color: roas === 0 ? "var(--text-muted)"
+                            : roas >= 3 ? "var(--emerald)"
+                            : roas >= 1.5 ? "var(--amber)"
+                            : "var(--red)",
                         }}>
                           {roas === 0 ? "—" : fmtROAS(roas)}
                         </span>
@@ -873,7 +873,7 @@ export function AdsManagerTable({
                             {learningMapped.swLabel}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>—</span>
+                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>—</span>
                         )}
                       </td>
                     )}
@@ -885,60 +885,60 @@ export function AdsManagerTable({
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: 3,
                             fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
-                            background: "rgba(168,85,247,0.15)", color: "#c084fc",
+                            background: "rgba(168,85,247,0.15)", color: "var(--purple)",
                             border: "1px solid rgba(168,85,247,0.25)",
                           }}>
                             <Zap className="w-3 h-3" /> ADV+
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>—</span>
+                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>—</span>
                         )}
                       </td>
                     )}
 
                     {visibleColumns.includes("reach") && (
-                      <td style={{ ...tdMetric("reach"), color: "#cbd5e1" }}>{fmtNum(reach)}</td>
+                      <td style={{ ...tdMetric("reach"), color: "var(--foreground)" }}>{fmtNum(reach)}</td>
                     )}
                     {visibleColumns.includes("impressions") && (
-                      <td style={{ ...tdMetric("impressions"), color: "#cbd5e1" }}>{fmtNum(impressions)}</td>
+                      <td style={{ ...tdMetric("impressions"), color: "var(--foreground)" }}>{fmtNum(impressions)}</td>
                     )}
                     {visibleColumns.includes("cpm") && (
-                      <td style={{ ...tdMetric("cpm"), color: "#cbd5e1" }}>{fmt$(safeFloat(ins.cpm))}</td>
+                      <td style={{ ...tdMetric("cpm"), color: "var(--foreground)" }}>{fmt$(safeFloat(ins.cpm))}</td>
                     )}
                     {visibleColumns.includes("frequency") && (
                       <td style={{
                         ...tdMetric("frequency"),
-                        color: freqAlert === "critical" ? "#ef4444"
-                          : freqAlert === "warning" ? "#fbbf24"
-                          : "#cbd5e1",
+                        color: freqAlert === "critical" ? "var(--red)"
+                          : freqAlert === "warning" ? "var(--amber)"
+                          : "var(--foreground)",
                         fontWeight: freqAlert !== "none" ? 700 : undefined,
                       }}>
                         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                           {fmtDec(freq)}
-                          {freqAlert === "critical" && <AlertTriangle className="w-3 h-3" style={{ color: "#ef4444", animation: "pulse 1.5s infinite" }} />}
-                          {freqAlert === "warning" && <AlertTriangle className="w-3 h-3" style={{ color: "#fbbf24" }} />}
+                          {freqAlert === "critical" && <AlertTriangle className="w-3 h-3" style={{ color: "var(--red)", animation: "pulse 1.5s infinite" }} />}
+                          {freqAlert === "warning" && <AlertTriangle className="w-3 h-3" style={{ color: "var(--amber)" }} />}
                         </span>
                       </td>
                     )}
                     {visibleColumns.includes("clicks") && (
-                      <td style={{ ...tdMetric("clicks"), color: "#cbd5e1" }}>{fmtNum(safeInt(ins.clicks))}</td>
+                      <td style={{ ...tdMetric("clicks"), color: "var(--foreground)" }}>{fmtNum(safeInt(ins.clicks))}</td>
                     )}
                     {visibleColumns.includes("ctr") && (
-                      <td style={{ ...tdMetric("ctr"), color: "#cbd5e1" }}>{fmtPct(safeFloat(ins.ctr))}</td>
+                      <td style={{ ...tdMetric("ctr"), color: "var(--foreground)" }}>{fmtPct(safeFloat(ins.ctr))}</td>
                     )}
                     {visibleColumns.includes("cpc") && (
-                      <td style={{ ...tdMetric("cpc"), color: "#cbd5e1" }}>{fmt$(safeFloat(ins.cpc))}</td>
+                      <td style={{ ...tdMetric("cpc"), color: "var(--foreground)" }}>{fmt$(safeFloat(ins.cpc))}</td>
                     )}
                     {visibleColumns.includes("results") && (
                       <td style={tdMetric("results")}>
                         <div style={{ display: "flex", flexDirection: "column" }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: "white" }}>{fmtNum(resultsCount)}</span>
-                          <span style={{ fontSize: 9, color: "#64748b" }}>{resultsLabel}</span>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)" }}>{fmtNum(resultsCount)}</span>
+                          <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{resultsLabel}</span>
                         </div>
                       </td>
                     )}
                     {visibleColumns.includes("conversations") && (
-                      <td style={{ ...tdMetric("conversations"), color: "white", fontWeight: 600 }}>{fmtNum(convsCount)}</td>
+                      <td style={{ ...tdMetric("conversations"), color: "var(--foreground)", fontWeight: 600 }}>{fmtNum(convsCount)}</td>
                     )}
                     {visibleColumns.includes("cost_per_message") && (
                       <td style={{ ...tdMetric("cost_per_message"), color: "var(--cyan)" }}>
@@ -956,30 +956,30 @@ export function AdsManagerTable({
                           <span style={{ fontSize: 11, fontWeight: 600, color: "var(--cyan)" }}>
                             {cpa.value > 0 ? fmt$(cpa.value) : "—"}
                           </span>
-                          <span style={{ fontSize: 8, color: "#64748b" }}>{cpa.label}</span>
+                          <span style={{ fontSize: 8, color: "var(--text-muted)" }}>{cpa.label}</span>
                         </div>
                       </td>
                     )}
                     {visibleColumns.includes("landing_page_views") && (
-                      <td style={{ ...tdMetric("landing_page_views"), color: "#cbd5e1" }}>{lpv > 0 ? fmtNum(lpv) : "—"}</td>
+                      <td style={{ ...tdMetric("landing_page_views"), color: "var(--foreground)" }}>{lpv > 0 ? fmtNum(lpv) : "—"}</td>
                     )}
                     {visibleColumns.includes("hook_rate") && (
                       <td style={tdMetric("hook_rate")}>
                         {hookRate > 0 ? (
                           <span style={{
                             fontSize: 11, fontWeight: 600,
-                            color: hookRate >= 35 ? "#34d399" : hookRate >= 20 ? "#fbbf24" : "#ef4444",
+                            color: hookRate >= 35 ? "var(--emerald)" : hookRate >= 20 ? "var(--amber)" : "var(--red)",
                           }}>
                             {fmtPct(hookRate)}
                           </span>
                         ) : (
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.65)" }}>—</span>
+                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>—</span>
                         )}
                       </td>
                     )}
                     {visibleColumns.includes("spend") && (
                       <td style={tdMetric("spend")}>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: "white" }}>{fmt$(spend)}</span>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)" }}>{fmt$(spend)}</span>
                       </td>
                     )}
                     {visibleColumns.includes("quality_ranking") && level === "ads" && (
@@ -1027,7 +1027,7 @@ export function AdsManagerTable({
                         {showBudg && <td style={tdFrozen(L_BUDG, BUDGET_W, bdBg, isLastFrozen("budget"))} />}
                         {showBid && <td style={tdFrozen(L_BID, BID_W, bdBg, isLastFrozen("bid"))} />}
                         {visibleColumns.filter(c => !["name", "delivery", "budget", "bid"].includes(c)).map((col) => (
-                          <td key={col} style={{ ...tdMetric(col), fontSize: 10, color: "#94a3b8" }}>
+                          <td key={col} style={{ ...tdMetric(col), fontSize: 10, color: "var(--text-secondary)" }}>
                             {col === "spend" ? fmt$(bd.spend || 0)
                               : col === "impressions" ? fmtNum(bd.impressions || 0)
                               : col === "clicks" ? fmtNum(bd.clicks || 0)
@@ -1052,9 +1052,9 @@ export function AdsManagerTable({
             <tfoot>
               <tr>
                 <td style={{ ...tfFrozen(L_CHECK, CHECKBOX_W, statusIsLast) }} />
-                <td style={{ ...tfFrozen(L_STATUS, STATUS_W, statusIsLast), color: "white" }}>TOTAL</td>
+                <td style={{ ...tfFrozen(L_STATUS, STATUS_W, statusIsLast), color: "var(--foreground)" }}>TOTAL</td>
                 {showName && (
-                  <td style={{ ...tfFrozen(L_NAME, nameW, isLastFrozen("name")), color: "#64748b", fontWeight: 400 }}>
+                  <td style={{ ...tfFrozen(L_NAME, nameW, isLastFrozen("name")), color: "var(--text-muted)", fontWeight: 400 }}>
                     {sortedData.length} elemento{sortedData.length !== 1 ? "s" : ""}
                   </td>
                 )}
@@ -1063,7 +1063,7 @@ export function AdsManagerTable({
                 {showBid  && <td style={tfFrozen(L_BID, BID_W, isLastFrozen("bid"))} />}
                 {visibleColumns.includes("objective") && level === "campaigns" && <td style={tfMetric("objective")} />}
                 {visibleColumns.includes("roas") && (
-                  <td style={{ ...tfMetric("roas"), color: avgRoas === 0 ? "#64748b" : avgRoas >= 3 ? "#34d399" : avgRoas >= 1.5 ? "#fbbf24" : "#ef4444" }}>
+                  <td style={{ ...tfMetric("roas"), color: avgRoas === 0 ? "var(--text-muted)" : avgRoas >= 3 ? "var(--emerald)" : avgRoas >= 1.5 ? "var(--amber)" : "var(--red)" }}>
                     {avgRoas === 0 ? "—" : fmtROAS(avgRoas)}
                   </td>
                 )}
@@ -1076,18 +1076,18 @@ export function AdsManagerTable({
                 {visibleColumns.includes("clicks") && <td style={tfMetric("clicks")}>{fmtNum(totalClicks)}</td>}
                 {visibleColumns.includes("ctr") && <td style={tfMetric("ctr")}>{fmtPct(avgCtr)}</td>}
                 {visibleColumns.includes("cpc") && <td style={tfMetric("cpc")}>{fmt$(avgCpc)}</td>}
-                {visibleColumns.includes("results") && <td style={{ ...tfMetric("results"), color: "white" }}>{fmtNum(totalResults)}</td>}
-                {visibleColumns.includes("conversations") && <td style={{ ...tfMetric("conversations"), color: "white" }}>{fmtNum(totalConversations)}</td>}
+                {visibleColumns.includes("results") && <td style={{ ...tfMetric("results"), color: "var(--foreground)" }}>{fmtNum(totalResults)}</td>}
+                {visibleColumns.includes("conversations") && <td style={{ ...tfMetric("conversations"), color: "var(--foreground)" }}>{fmtNum(totalConversations)}</td>}
                 {visibleColumns.includes("cost_per_message") && <td style={{ ...tfMetric("cost_per_message"), color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
                 {visibleColumns.includes("cost_per_conversation") && <td style={{ ...tfMetric("cost_per_conversation"), color: "var(--cyan)" }}>{fmt$(avgCostPerMsg)}</td>}
                 {visibleColumns.includes("cpa") && <td style={{ ...tfMetric("cpa"), color: "var(--cyan)" }}>{fmt$(avgCpa)}</td>}
                 {visibleColumns.includes("landing_page_views") && <td style={tfMetric("landing_page_views")}>{fmtNum(totalLPV)}</td>}
                 {visibleColumns.includes("hook_rate") && (
-                  <td style={{ ...tfMetric("hook_rate"), color: avgHookRate >= 35 ? "#34d399" : avgHookRate >= 20 ? "#fbbf24" : "#ef4444" }}>
+                  <td style={{ ...tfMetric("hook_rate"), color: avgHookRate >= 35 ? "var(--emerald)" : avgHookRate >= 20 ? "var(--amber)" : "var(--red)" }}>
                     {avgHookRate > 0 ? fmtPct(avgHookRate) : "—"}
                   </td>
                 )}
-                {visibleColumns.includes("spend") && <td style={{ ...tfMetric("spend"), color: "white" }}>{fmt$(totalSpend)}</td>}
+                {visibleColumns.includes("spend") && <td style={{ ...tfMetric("spend"), color: "var(--foreground)" }}>{fmt$(totalSpend)}</td>}
                 {visibleColumns.includes("quality_ranking") && level === "ads" && <td style={tfMetric("quality_ranking")} />}
                 <td style={{ ...tfBase, width: SPACER_W, minWidth: SPACER_W, maxWidth: SPACER_W }} />
               </tr>

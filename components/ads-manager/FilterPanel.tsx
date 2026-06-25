@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useRef, useEffect } from "react";
 import { Filter, X, Plus, ChevronDown, Search } from "lucide-react";
@@ -112,12 +112,12 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
           style={{
             display: "flex", alignItems: "center", gap: "6px",
             padding: "6px 12px", background: "transparent",
-            border: "1px dashed #64748b", borderRadius: "20px",
-            color: "#94a3b8", fontSize: "12px", cursor: "pointer",
+            border: "1px dashed var(--text-muted)", borderRadius: "20px",
+            color: "var(--text-secondary)", fontSize: "12px", cursor: "pointer",
             transition: "all 0.2s",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.borderColor = "var(--cyan)")}
-          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "#64748b")}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = "var(--text-muted)")}
         >
           <Filter className="w-3.5 h-3.5" /> Filtrar por... <Plus className="w-3.5 h-3.5" />
         </button>
@@ -141,7 +141,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
               background: "rgba(0,0,0,0.3)", borderRadius: "6px",
               border: "1px solid rgba(148,163,184,0.18)",
             }}>
-              <Search className="w-3 h-3" style={{ color: "#64748b" }} />
+              <Search className="w-3 h-3" style={{ color: "var(--text-muted)" }} />
               <input
                 type="text"
                 value={searchTerm}
@@ -149,7 +149,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
                 placeholder="Buscar filtro..."
                 autoFocus
                 style={{
-                  background: "none", border: "none", color: "white",
+                  background: "none", border: "none", color: "var(--foreground)",
                   fontSize: "11px", outline: "none", width: "100%",
                 }}
               />
@@ -158,7 +158,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             {filteredGroups.map((group) => (
               <div key={group.group}>
                 <div style={{
-                  fontSize: "9px", color: "#64748b",
+                  fontSize: "9px", color: "var(--text-muted)",
                   textTransform: "uppercase", padding: "6px 8px 3px",
                   letterSpacing: "0.08em", fontWeight: 700,
                 }}>
@@ -184,7 +184,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             ))}
 
             {filteredGroups.length === 0 && (
-              <div style={{ padding: "12px", textAlign: "center", color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>
+              <div style={{ padding: "12px", textAlign: "center", color: "var(--text-muted)", fontSize: "11px" }}>
                 No se encontraron filtros
               </div>
             )}
@@ -200,7 +200,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             display: "flex", alignItems: "center", gap: "6px",
             padding: "4px 10px", background: "rgba(0,129,251,0.12)",
             border: "1px solid rgba(0,129,251,0.25)", borderRadius: "20px",
-            color: "white", fontSize: "11px",
+            color: "var(--foreground)", fontSize: "11px",
           }}
         >
           <span>{filter.label}</span>
@@ -224,12 +224,12 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
         <button
           onClick={clearAll}
           style={{
-            fontSize: "11px", color: "#64748b",
+            fontSize: "11px", color: "var(--text-muted)",
             background: "none", border: "none", cursor: "pointer",
             transition: "color 0.15s",
           }}
           onMouseEnter={(e) => (e.currentTarget.style.color = "white")}
-          onMouseLeave={(e) => (e.currentTarget.style.color = "#64748b")}
+          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--text-muted)")}
         >
           Borrar todo
         </button>

@@ -13,7 +13,7 @@ function DeletionContent() {
       display: "flex",
       alignItems: "center",
       justifyContent: "center",
-      background: "linear-gradient(135deg, #0a0f1e 0%, #111827 100%)",
+      background: "linear-gradient(135deg, var(--background) 0%, var(--background) 100%)",
       padding: "20px",
     }}>
       <div style={{
@@ -57,20 +57,20 @@ function DeletionContent() {
             padding: "16px",
             marginBottom: 24,
           }}>
-            <p style={{ fontSize: 11, color: "#64748b", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.1em" }}>
               Código de confirmación
             </p>
-            <p style={{ fontSize: 14, color: "#00d4ff", fontFamily: "monospace", fontWeight: 600, wordBreak: "break-all" }}>
+            <p style={{ fontSize: 14, color: "var(--cyan)", fontFamily: "monospace", fontWeight: 600, wordBreak: "break-all" }}>
               {code}
             </p>
           </div>
         )}
-        <div style={{ fontSize: 12, color: "#64748b", lineHeight: 1.8 }}>
-          <p><strong style={{ color: "#94a3b8" }}>Estado:</strong> En proceso</p>
-          <p><strong style={{ color: "#94a3b8" }}>Tiempo estimado:</strong> Hasta 90 días</p>
+        <div style={{ fontSize: 12, color: "var(--text-muted)", lineHeight: 1.8 }}>
+          <p><strong style={{ color: "var(--text-secondary)" }}>Estado:</strong> En proceso</p>
+          <p><strong style={{ color: "var(--text-secondary)" }}>Tiempo estimado:</strong> Hasta 90 días</p>
           <p style={{ marginTop: 12 }}>
             Si tienes preguntas, contacta a{" "}
-            <a href="mailto:soporte@sodare.xyz" style={{ color: "#00d4ff", textDecoration: "none" }}>
+            <a href="mailto:soporte@sodare.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
               soporte@sodare.xyz
             </a>
           </p>
@@ -82,7 +82,7 @@ function DeletionContent() {
 
 export default function DataDeletionPage() {
   return (
-    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#0a0f1e" }} />}>
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "var(--background)" }} />}>
       <DeletionContent />
     </Suspense>
   );

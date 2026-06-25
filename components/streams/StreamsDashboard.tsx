@@ -559,7 +559,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
 
   const streamType = STREAM_TYPES.find((t) => t.type === col.type);
   const Icon = streamType?.icon || Home;
-  const platColor = platformColors[col.platform] || "#64748b";
+  const platColor = platformColors[col.platform] || "var(--text-muted)";
   const [posts, setPosts] = useState<StreamPost[]>([]);
   const [isReal, setIsReal] = useState(false);
   const [loading, setLoading] = useState(true);

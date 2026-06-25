@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useMemo, useEffect } from "react";
 import { Download, RefreshCw, BarChart2, MessageSquare, User, TrendingUp, Target, Activity, DollarSign, Filter, LayoutDashboard, Database, ShieldCheck, Settings, Bot } from "lucide-react";
@@ -57,7 +57,7 @@ const TABS = [
 
 const OVERVIEW_TABS = new Set(["operacion", "calidad", "roi"]);
 
-const inputCls = "bg-black/20 border border-white/10 text-white text-xs rounded-lg px-3 py-2 outline-none";
+const inputCls = "";
 
 // Filtro de texto para otras dimensiones.
 function TextFilter({ value, placeholder, onCommit }: { value: string; placeholder: string; onCommit: (v: string) => void }) {
@@ -205,37 +205,37 @@ export function AdvancedAnalyticsDashboard({
     <AnalyticsScopeProvider value={analyticsScope}>
     <div className="space-y-6">
       {/* FILTROS GLOBALES */}
-      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "20px" }}>
+      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid var(--hairline)", borderRadius: "12px", padding: "20px" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
-          <h3 style={{ color: "white", fontSize: "16px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
+          <h3 style={{ color: "var(--foreground)", fontSize: "16px", fontWeight: 600, display: "flex", alignItems: "center", gap: "8px" }}>
             <Filter className="w-4 h-4 text-cyan-400" /> Filtros Globales
           </h3>
           <div style={{ display: "flex", gap: "12px" }}>
-            <button onClick={() => handleExport("csv")} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", padding: "8px 12px", borderRadius: "8px", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+            <button onClick={() => handleExport("csv")} style={{ background: "transparent", border: "1px solid var(--hairline)", color: "var(--foreground)", padding: "8px 12px", borderRadius: "8px", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
               <Download className="w-3 h-3" /> CSV
             </button>
-            <button onClick={() => handleExport("xlsx")} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#e2e8f0", padding: "8px 12px", borderRadius: "8px", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+            <button onClick={() => handleExport("xlsx")} style={{ background: "transparent", border: "1px solid var(--hairline)", color: "var(--foreground)", padding: "8px 12px", borderRadius: "8px", fontSize: "12px", display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
               <Download className="w-3 h-3" /> Excel
             </button>
-            <button onClick={() => setNonce((n) => n + 1)} style={{ background: "var(--cyan)", border: "none", color: "#0f172a", padding: "8px 16px", borderRadius: "8px", fontSize: "12px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
+            <button onClick={() => setNonce((n) => n + 1)} style={{ background: "var(--cyan)", border: "none", color: "var(--foreground)", padding: "8px 16px", borderRadius: "8px", fontSize: "12px", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px", cursor: "pointer" }}>
               <RefreshCw className={`w-3 h-3 ${loading ? "animate-spin" : ""}`} /> Actualizar
             </button>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: "12px" }}>
-          <select value={filters.dateRange} onChange={(e) => set({ dateRange: e.target.value })} className="bg-black/20 border border-white/10 text-white text-xs rounded-lg px-3 py-2 outline-none">
+          <select value={filters.dateRange} onChange={(e) => set({ dateRange: e.target.value })} className="">
             <option value="7d">Últimos 7 días</option>
             <option value="28d">Últimos 28 días</option>
             <option value="90d">Últimos 90 días</option>
           </select>
-          <select value={filters.platform} onChange={(e) => set({ platform: e.target.value })} className="bg-black/20 border border-white/10 text-white text-xs rounded-lg px-3 py-2 outline-none">
+          <select value={filters.platform} onChange={(e) => set({ platform: e.target.value })} className="">
             <option value="all">Todas las plataformas</option>
             {providerOptions.map((p) => (
               <option key={p} value={p}>{PROVIDER_LABELS[p] || p}</option>
             ))}
             {providerOptions.length > 1 && <option value="compare">Comparar plataformas</option>}
           </select>
-          <select value={filters.channel} onChange={(e) => set({ channel: e.target.value })} className="bg-black/20 border border-white/10 text-white text-xs rounded-lg px-3 py-2 outline-none">
+          <select value={filters.channel} onChange={(e) => set({ channel: e.target.value })} className="">
             <option value="all">Todos los canales</option>
             {channelOptions.map((c) => (
               <option key={c} value={c}>{CHANNEL_LABELS[c] || c}</option>
@@ -271,13 +271,13 @@ export function AdvancedAnalyticsDashboard({
           <TextFilter value={filters.tag} placeholder="Tag…" onCommit={(v) => set({ tag: v })} />
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: "12px", marginTop: "12px", flexWrap: "wrap" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "#e2e8f0", fontSize: "12px", cursor: "pointer" }}>
+          <label style={{ display: "flex", alignItems: "center", gap: "8px", color: "var(--foreground)", fontSize: "12px", cursor: "pointer" }}>
             <input type="checkbox" checked={filters.comparePeriod} onChange={(e) => set({ comparePeriod: e.target.checked })} style={{ accentColor: "var(--cyan)" }} />
             Comparar con periodo anterior
           </label>
           <button
             onClick={() => setFilters((f) => ({ ...INITIAL_FILTERS, dateRange: f.dateRange }))}
-            style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", padding: "6px 12px", borderRadius: "8px", fontSize: "12px", cursor: "pointer" }}
+            style={{ background: "transparent", border: "1px solid var(--hairline)", color: "var(--text-secondary)", padding: "6px 12px", borderRadius: "8px", fontSize: "12px", cursor: "pointer" }}
           >
             Limpiar filtros
           </button>
@@ -315,14 +315,14 @@ export function AdvancedAnalyticsDashboard({
 
         {OVERVIEW_TABS.has(activeTab) && (
           loading && !data ? (
-            <div style={{ padding: "60px", textAlign: "center", color: "#64748b" }}>
-              <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4" style={{ color: "#00d4ff" }} />
+            <div style={{ padding: "60px", textAlign: "center", color: "var(--text-muted)" }}>
+              <RefreshCw className="w-8 h-8 animate-spin mx-auto mb-4" style={{ color: "var(--cyan)" }} />
               <p style={{ fontSize: "14px" }}>Procesando KPIs…</p>
             </div>
           ) : error ? (
-            <div style={{ padding: "60px", textAlign: "center", color: "#f87171" }}>{error}</div>
+            <div style={{ padding: "60px", textAlign: "center", color: "var(--red)" }}>{error}</div>
           ) : !data || data.kpis?.totalConversations === 0 ? (
-            <div style={{ padding: "60px", textAlign: "center", color: "#64748b" }}>Sin resultados para estos filtros</div>
+            <div style={{ padding: "60px", textAlign: "center", color: "var(--text-muted)" }}>Sin resultados para estos filtros</div>
           ) : (
             <div className="animate-in fade-in duration-300">
               {activeTab === "operacion" && <TabOperation data={data} filters={filters} />}
@@ -380,22 +380,22 @@ function SavedViews({ base, projectId, filters, onApply }: { base: string; proje
       <select
         value=""
         onChange={(e) => { const v = views.find((x) => x.id === e.target.value); if (v) onApply({ ...INITIAL_FILTERS, ...v.filters }); }}
-        className="bg-black/20 border border-white/10 text-white text-xs rounded-lg px-3 py-2 outline-none"
+        className=""
       >
         <option value="">Vistas guardadas…</option>
         {views.map((v) => <option key={v.id} value={v.id}>{v.name}</option>)}
       </select>
-      <button onClick={save} disabled={saving} style={{ background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "#94a3b8", padding: "6px 12px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>
+      <button onClick={save} disabled={saving} style={{ background: "transparent", border: "1px solid var(--hairline)", color: "var(--text-secondary)", padding: "6px 12px", borderRadius: 8, fontSize: 12, cursor: "pointer" }}>
         {saving ? "Guardando…" : "Guardar vista"}
       </button>
       {views.length > 0 && (
         <details style={{ position: "relative" }}>
-          <summary style={{ listStyle: "none", cursor: "pointer", color: "#64748b", fontSize: 11 }}>Gestionar</summary>
-          <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 30, background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, padding: 8, minWidth: 220 }}>
+          <summary style={{ listStyle: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: 11 }}>Gestionar</summary>
+          <div style={{ position: "absolute", top: "100%", left: 0, zIndex: 30, background: "var(--foreground)", border: "1px solid var(--hairline)", borderRadius: 8, padding: 8, minWidth: 220 }}>
             {views.map((v) => (
-              <div key={v.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "4px 6px", fontSize: 12, color: "#cbd5e1" }}>
+              <div key={v.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, padding: "4px 6px", fontSize: 12, color: "var(--foreground)" }}>
                 <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v.name}</span>
-                <button onClick={() => remove(v.id)} style={{ background: "transparent", border: "none", color: "#f87171", cursor: "pointer", fontSize: 12 }}>Eliminar</button>
+                <button onClick={() => remove(v.id)} style={{ background: "transparent", border: "none", color: "var(--red)", cursor: "pointer", fontSize: 12 }}>Eliminar</button>
               </div>
             ))}
           </div>

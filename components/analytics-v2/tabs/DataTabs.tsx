@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
 import {
@@ -11,10 +11,10 @@ import { useAnalyticsData } from "../useAnalyticsData";
 import { useAnalyticsScope } from "../AnalyticsScopeContext";
 
 // ── Helpers de estado compartidos ───────────────────────────────────────────
-const card = { background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "20px" } as const;
+const card = { background: "rgba(255,255,255,0.02)", border: "1px solid var(--hairline)", borderRadius: "12px", padding: "20px" } as const;
 
 function State({ kind, msg }: { kind: "loading" | "empty" | "error"; msg?: string }) {
-  const color = kind === "error" ? "#f87171" : "#64748b";
+  const color = kind === "error" ? "var(--red)" : "var(--text-muted)";
   return (
     <div style={{ ...card, padding: "48px", textAlign: "center", color }}>
       <p style={{ fontSize: "14px", margin: 0 }}>
@@ -30,13 +30,13 @@ function DataTable<T extends Record<string, unknown>>({ columns, rows }: { colum
     <div style={{ ...card, overflowX: "auto" }}>
       <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px" }}>
         <thead>
-          <tr style={{ textAlign: "left", color: "#94a3b8" }}>
-            {columns.map((c) => <th key={c.key} style={{ padding: "8px 12px", borderBottom: "1px solid rgba(255,255,255,0.08)", whiteSpace: "nowrap" }}>{c.label}</th>)}
+          <tr style={{ textAlign: "left", color: "var(--text-secondary)" }}>
+            {columns.map((c) => <th key={c.key} style={{ padding: "8px 12px", borderBottom: "1px solid var(--hairline)", whiteSpace: "nowrap" }}>{c.label}</th>)}
           </tr>
         </thead>
         <tbody>
           {rows.map((row, i) => (
-            <tr key={i} style={{ color: "#e2e8f0" }}>
+            <tr key={i} style={{ color: "var(--foreground)" }}>
               {columns.map((c) => (
                 <td key={c.key} style={{ padding: "8px 12px", borderBottom: "1px solid rgba(255,255,255,0.04)", whiteSpace: "nowrap" }}>
                   {c.render ? c.render(row) : String(row[c.key] ?? "—")}
@@ -50,7 +50,7 @@ function DataTable<T extends Record<string, unknown>>({ columns, rows }: { colum
   );
 }
 
-const tooltipStyle = { backgroundColor: "#0f172a", borderColor: "#1e293b", borderRadius: "8px", color: "#f8fafc", fontSize: "12px" };
+const tooltipStyle = { backgroundColor: "var(--foreground)", borderColor: "var(--surface)", borderRadius: "8px", color: "var(--foreground)", fontSize: "12px" };
 const fmtSec = (s: number | null | undefined) => (s == null ? "—" : `${Math.round(s)}s`);
 const pct = (n: number | null | undefined) => (n == null ? "—" : `${n.toFixed(1)}%`);
 
@@ -76,26 +76,26 @@ export function TabResumen({ query, base = "/api/analytics" }: { query: string; 
   return (
     <div className="space-y-6">
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: "16px" }}>
-        <KpiTooltipCard title="Conversaciones" value={k.totalConversations.toLocaleString()} sub={deltaNum("totalConversations")} icon={MessageSquare} color="#3b82f6" />
-        <KpiTooltipCard title="Contención real" value={pct(k.containmentRate)} sub={deltaPp("containmentRate")} icon={Bot} color="#10b981" formulaDef="Resueltas por bot / cerradas" trafficLight={{ value: k.containmentRate, thresholds: { good: 70, warning: 50 }, isHigherBetter: true }} />
-        <KpiTooltipCard title="Escalamiento" value={pct(k.handoffRate)} sub={deltaPp("handoffRate")} icon={User} color="#f59e0b" trafficLight={{ value: k.handoffRate, thresholds: { good: 15, warning: 30 }, isHigherBetter: false }} />
-        <KpiTooltipCard title="CSAT" value={k.avgCsat ? k.avgCsat.toFixed(1) : "N/A"} sub={deltaPt("avgCsat")} icon={ShieldCheck} color="#06b6d4" trafficLight={{ value: k.avgCsat || 0, thresholds: { good: 4.2, warning: 3.8 }, isHigherBetter: true }} />
-        <KpiTooltipCard title="FRT" value={fmtSec(k.avgFrtSeconds)} sub={deltaNum("avgFrtSeconds")} icon={Clock} color="#8b5cf6" />
-        <KpiTooltipCard title="ROI estimado" value={`$${Math.round(k.estimatedRoiSaved).toLocaleString()}`} sub={deltaMoney("estimatedRoiSaved")} icon={DollarSign} color="#10b981" />
+        <KpiTooltipCard title="Conversaciones" value={k.totalConversations.toLocaleString()} sub={deltaNum("totalConversations")} icon={MessageSquare} color="var(--cyan)" />
+        <KpiTooltipCard title="Contención real" value={pct(k.containmentRate)} sub={deltaPp("containmentRate")} icon={Bot} color="var(--emerald)" formulaDef="Resueltas por bot / cerradas" trafficLight={{ value: k.containmentRate, thresholds: { good: 70, warning: 50 }, isHigherBetter: true }} />
+        <KpiTooltipCard title="Escalamiento" value={pct(k.handoffRate)} sub={deltaPp("handoffRate")} icon={User} color="var(--amber)" trafficLight={{ value: k.handoffRate, thresholds: { good: 15, warning: 30 }, isHigherBetter: false }} />
+        <KpiTooltipCard title="CSAT" value={k.avgCsat ? k.avgCsat.toFixed(1) : "N/A"} sub={deltaPt("avgCsat")} icon={ShieldCheck} color="var(--cyan)" trafficLight={{ value: k.avgCsat || 0, thresholds: { good: 4.2, warning: 3.8 }, isHigherBetter: true }} />
+        <KpiTooltipCard title="FRT" value={fmtSec(k.avgFrtSeconds)} sub={deltaNum("avgFrtSeconds")} icon={Clock} color="var(--purple)" />
+        <KpiTooltipCard title="ROI estimado" value={`$${Math.round(k.estimatedRoiSaved).toLocaleString()}`} sub={deltaMoney("estimatedRoiSaved")} icon={DollarSign} color="var(--emerald)" />
       </div>
       <div style={card}>
         <h3 className="text-white text-sm font-bold mb-4">Evolución diaria (Bot vs Agente)</h3>
         <div style={{ height: 300 }}>
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={data.charts.trends} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-              <defs><linearGradient id="cT" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} /><stop offset="95%" stopColor="#3b82f6" stopOpacity={0} /></linearGradient></defs>
+              <defs><linearGradient id="cT" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--cyan)" stopOpacity={0.3} /><stop offset="95%" stopColor="var(--cyan)" stopOpacity={0} /></linearGradient></defs>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-              <XAxis dataKey="date" stroke="#64748b" fontSize={11} tickFormatter={(v) => String(v).substring(5)} />
-              <YAxis stroke="#64748b" fontSize={11} />
+              <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={11} tickFormatter={(v) => String(v).substring(5)} />
+              <YAxis stroke="var(--text-muted)" fontSize={11} />
               <Tooltip contentStyle={tooltipStyle} />
-              <Area type="monotone" dataKey="total" stroke="#3b82f6" fill="url(#cT)" name="Totales" />
-              <Line type="monotone" dataKey="botResolved" stroke="#10b981" strokeWidth={2} dot={false} name="Resueltas por bot" />
-              <Line type="monotone" dataKey="handoffs" stroke="#f59e0b" strokeWidth={2} dot={false} name="Escaladas" />
+              <Area type="monotone" dataKey="total" stroke="var(--cyan)" fill="url(#cT)" name="Totales" />
+              <Line type="monotone" dataKey="botResolved" stroke="var(--emerald)" strokeWidth={2} dot={false} name="Resueltas por bot" />
+              <Line type="monotone" dataKey="handoffs" stroke="var(--amber)" strokeWidth={2} dot={false} name="Escaladas" />
             </AreaChart>
           </ResponsiveContainer>
         </div>
@@ -127,7 +127,7 @@ export function TabConversations({ query, base = "/api/analytics" }: { query: st
           { key: "wasBotOnly", label: "Bot-only", render: (r) => (r.wasBotOnly ? "Sí" : "No") },
           { key: "csatScore", label: "CSAT" },
           { key: "actions", label: "Acciones", render: (r) => (
-            <button style={{ background: "transparent", border: "1px solid rgba(0,212,255,0.3)", color: "#00d4ff", padding: "4px 8px", borderRadius: "4px", fontSize: "11px", cursor: "pointer" }}>
+            <button style={{ background: "transparent", border: "1px solid rgba(0,212,255,0.3)", color: "var(--cyan)", padding: "4px 8px", borderRadius: "4px", fontSize: "11px", cursor: "pointer" }}>
               Ver Detalle
             </button>
           )},
@@ -226,13 +226,13 @@ export function TabFunnels({ query, base = "/api/analytics" }: { query: string; 
     <div className="space-y-4">
       <div style={{ ...card, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <span style={{ color: "#94a3b8", fontSize: 12 }}>Funnel:</span>
+          <span style={{ color: "var(--text-secondary)", fontSize: 12 }}>Funnel:</span>
           <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)} className="bg-black/20 border border-white/10 text-white text-xs rounded-lg px-3 py-2 outline-none">
             <option value="">Canónico (bot → resolución)</option>
             {available.map((f) => <option key={f.id} value={f.id}>{f.name} ({f.steps} pasos)</option>)}
           </select>
         </div>
-        <button onClick={() => setShowBuilder((s) => !s)} style={{ background: showBuilder ? "rgba(255,255,255,0.05)" : "var(--cyan)", color: showBuilder ? "#94a3b8" : "#0f172a", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+        <button onClick={() => setShowBuilder((s) => !s)} style={{ background: showBuilder ? "rgba(255,255,255,0.05)" : "var(--cyan)", color: showBuilder ? "var(--text-secondary)" : "var(--foreground)", border: "none", borderRadius: 8, padding: "8px 14px", fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
           <Plus className="w-3.5 h-3.5" /> {showBuilder ? "Cerrar" : "Crear funnel"}
         </button>
       </div>
@@ -256,10 +256,10 @@ export function TabFunnels({ query, base = "/api/analytics" }: { query: string; 
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data.steps} layout="vertical" margin={{ left: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={false} />
-                  <XAxis type="number" stroke="#64748b" fontSize={11} />
-                  <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={11} width={110} />
+                  <XAxis type="number" stroke="var(--text-muted)" fontSize={11} />
+                  <YAxis dataKey="name" type="category" stroke="var(--text-muted)" fontSize={11} width={110} />
                   <Tooltip contentStyle={tooltipStyle} formatter={(value) => [String(value), "Conversaciones"]} />
-                  <Bar dataKey="count" fill="#06b6d4" radius={[0, 4, 4, 0]} barSize={28} />
+                  <Bar dataKey="count" fill="var(--cyan)" radius={[0, 4, 4, 0]} barSize={28} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -318,7 +318,7 @@ function FunnelBuilder({ projectId, onSaved }: { projectId?: string; onSaved: ()
     }
   };
 
-  const inp: React.CSSProperties = { background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.1)", color: "white", fontSize: 12, borderRadius: 6, padding: "6px 8px", outline: "none" };
+  const inp: React.CSSProperties = { background: "rgba(0,0,0,0.3)", border: "1px solid var(--hairline)", color: "var(--foreground)", fontSize: 12, borderRadius: 6, padding: "6px 8px", outline: "none" };
 
   return (
     <div style={card}>
@@ -327,23 +327,23 @@ function FunnelBuilder({ projectId, onSaved }: { projectId?: string; onSaved: ()
       <div className="space-y-2">
         {steps.map((s, i) => (
           <div key={i} style={{ display: "grid", gridTemplateColumns: "24px 1fr 150px 1fr 32px", gap: 8, alignItems: "center" }}>
-            <span style={{ color: "#64748b", fontSize: 12, textAlign: "center" }}>{i + 1}</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 12, textAlign: "center" }}>{i + 1}</span>
             <input value={s.name} onChange={(e) => setStep(i, { name: e.target.value })} placeholder="Nombre del paso" style={inp} />
             <select value={s.conditionType} onChange={(e) => setStep(i, { conditionType: e.target.value })} style={inp}>
               {CONDITION_TYPES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
             </select>
             <input value={s.conditionValue} onChange={(e) => setStep(i, { conditionValue: e.target.value })} placeholder="Valor de la condición" style={inp} />
-            <button onClick={() => setSteps((st) => st.length > 1 ? st.filter((_, idx) => idx !== i) : st)} disabled={steps.length === 1} title="Eliminar paso" style={{ background: "transparent", border: "none", color: steps.length === 1 ? "#475569" : "#f87171", cursor: steps.length === 1 ? "not-allowed" : "pointer" }}>
+            <button onClick={() => setSteps((st) => st.length > 1 ? st.filter((_, idx) => idx !== i) : st)} disabled={steps.length === 1} title="Eliminar paso" style={{ background: "transparent", border: "none", color: steps.length === 1 ? "var(--text-secondary)" : "var(--red)", cursor: steps.length === 1 ? "not-allowed" : "pointer" }}>
               <Trash2 className="w-4 h-4" />
             </button>
           </div>
         ))}
       </div>
       <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-        <button onClick={() => setSteps((s) => [...s, { name: "", conditionType: "intent", conditionValue: "" }])} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#cbd5e1", borderRadius: 8, padding: "6px 12px", fontSize: 12, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+        <button onClick={() => setSteps((s) => [...s, { name: "", conditionType: "intent", conditionValue: "" }])} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)", color: "var(--foreground)", borderRadius: 8, padding: "6px 12px", fontSize: 12, display: "flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
           <Plus className="w-3.5 h-3.5" /> Agregar paso
         </button>
-        <button onClick={save} disabled={saving} style={{ background: "var(--cyan)", color: "#0f172a", border: "none", borderRadius: 8, padding: "6px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
+        <button onClick={save} disabled={saving} style={{ background: "var(--cyan)", color: "var(--foreground)", border: "none", borderRadius: 8, padding: "6px 16px", fontSize: 12, fontWeight: 700, cursor: "pointer" }}>
           {saving ? "Guardando…" : "Guardar funnel"}
         </button>
       </div>
@@ -361,10 +361,10 @@ export function TabDataQuality({ query, base = "/api/analytics" }: { query: stri
   return (
     <div className="space-y-4">
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
-        <KpiTooltipCard title="Issues totales" value={data.summary.total} icon={Database} color="#64748b" />
-        <KpiTooltipCard title="Críticos" value={data.summary.bySeverity.critical} icon={AlertTriangle} color="#ef4444" />
-        <KpiTooltipCard title="Advertencias" value={data.summary.bySeverity.warning} icon={AlertTriangle} color="#f59e0b" />
-        <KpiTooltipCard title="Info" value={data.summary.bySeverity.info} icon={ShieldCheck} color="#3b82f6" />
+        <KpiTooltipCard title="Issues totales" value={data.summary.total} icon={Database} color="var(--text-muted)" />
+        <KpiTooltipCard title="Críticos" value={data.summary.bySeverity.critical} icon={AlertTriangle} color="var(--red)" />
+        <KpiTooltipCard title="Advertencias" value={data.summary.bySeverity.warning} icon={AlertTriangle} color="var(--amber)" />
+        <KpiTooltipCard title="Info" value={data.summary.bySeverity.info} icon={ShieldCheck} color="var(--cyan)" />
       </div>
       {data.issues.length === 0 ? <State kind="empty" /> : (
         <DataTable

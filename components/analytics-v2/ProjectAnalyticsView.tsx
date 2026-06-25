@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { BarChart2, Settings2 } from "lucide-react";
@@ -29,7 +29,7 @@ export function ProjectAnalyticsView({ projectId, clientId, availableChannels, a
     border: "1px solid",
     borderColor: active ? "rgba(0,212,255,0.5)" : "rgba(148,163,184,0.2)",
     background: active ? "rgba(0,212,255,0.1)" : "transparent",
-    color: active ? "#00d4ff" : "#94a3b8",
+    color: active ? "var(--cyan)" : "var(--text-secondary)",
   });
 
   return (

@@ -47,7 +47,7 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "8px 12px", fontSize: "13px", background: "rgba(0,0,0,0.3)",
-    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "white", outline: "none",
+    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
   };
 
   return (
@@ -60,11 +60,11 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ fontSize: "13px", fontWeight: 700, color: "white" }}>
+          <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--foreground)" }}>
             <DollarSign className="w-4 h-4 inline-block mr-1" style={{ color: "var(--cyan)" }} />
             Editar presupuesto — {activeItems.length} elemento{activeItems.length > 1 ? "s" : ""}
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -72,16 +72,16 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
         <div style={{ padding: "16px 20px" }}>
           {/* Budget type */}
           <div style={{ marginBottom: "14px" }}>
-            <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "6px" }}>Tipo de presupuesto</label>
+            <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "6px" }}>Tipo de presupuesto</label>
             <div style={{ display: "flex", gap: "8px" }}>
               {(["daily", "lifetime"] as const).map((t) => (
                 <button key={t} onClick={() => setBudgetType(t)} style={{
                   flex: 1, padding: "8px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer",
-                  background: budgetType === t ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.04)",
+                  background: budgetType === t ? "rgba(0,212,255,0.1)" : "var(--surface-hover)",
                   border: `1px solid ${budgetType === t ? "rgba(0,212,255,0.25)" : "rgba(255,255,255,0.06)"}`,
-                  color: budgetType === t ? "var(--cyan)" : "#64748b",
+                  color: budgetType === t ? "var(--cyan)" : "var(--text-muted)",
                 }}>
-                  {t === "daily" ? "● Diario" : "○ Total de campaña"}
+                  {t === "daily" ? "? Diario" : "? Total de campaña"}
                 </button>
               ))}
             </div>
@@ -93,7 +93,7 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
               display: "flex", alignItems: "center", gap: "4px", padding: "6px 12px", fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
               background: mode === "absolute" ? "rgba(0,212,255,0.1)" : "transparent",
               border: `1px solid ${mode === "absolute" ? "rgba(0,212,255,0.2)" : "transparent"}`,
-              color: mode === "absolute" ? "var(--cyan)" : "#64748b",
+              color: mode === "absolute" ? "var(--cyan)" : "var(--text-muted)",
             }}>
               <DollarSign className="w-3 h-3" /> Monto fijo
             </button>
@@ -101,7 +101,7 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
               display: "flex", alignItems: "center", gap: "4px", padding: "6px 12px", fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
               background: mode === "percentage" ? "rgba(0,212,255,0.1)" : "transparent",
               border: `1px solid ${mode === "percentage" ? "rgba(0,212,255,0.2)" : "transparent"}`,
-              color: mode === "percentage" ? "var(--cyan)" : "#64748b",
+              color: mode === "percentage" ? "var(--cyan)" : "var(--text-muted)",
             }}>
               <Percent className="w-3 h-3" /> Cambio porcentual
             </button>
@@ -110,29 +110,29 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
           {/* Input */}
           {mode === "absolute" ? (
             <div style={{ marginBottom: "14px" }}>
-              <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>
+              <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "4px" }}>
                 Nuevo presupuesto {budgetType === "daily" ? "diario" : "total"}
               </label>
               <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "#64748b", fontSize: "13px" }}>$</span>
+                <span style={{ position: "absolute", left: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: "13px" }}>$</span>
                 <input type="number" min="1" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" style={{ ...inputStyle, paddingLeft: "24px" }} />
               </div>
             </div>
           ) : (
             <div style={{ marginBottom: "14px" }}>
-              <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>
+              <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "4px" }}>
                 Cambio porcentual (+ para aumentar, - para reducir)
               </label>
               <div style={{ position: "relative" }}>
                 <input type="number" value={percentChange} onChange={(e) => setPercentChange(e.target.value)} placeholder="+10 o -20" style={{ ...inputStyle, paddingRight: "24px" }} />
-                <span style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", color: "#64748b", fontSize: "13px" }}>%</span>
+                <span style={{ position: "absolute", right: "10px", top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", fontSize: "13px" }}>%</span>
               </div>
             </div>
           )}
 
           {/* Preview table */}
-          <div style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, marginBottom: "6px" }}>Aplica a:</div>
-          <div style={{ maxHeight: "180px", overflowY: "auto", borderRadius: "6px", border: "1px solid rgba(255,255,255,0.09)" }} className="custom-scrollbar">
+          <div style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, marginBottom: "6px" }}>Aplica a:</div>
+          <div style={{ maxHeight: "180px", overflowY: "auto", borderRadius: "6px", border: "1px solid var(--hairline)" }} className="custom-scrollbar">
             {preview.map((p) => (
               <div key={p.id} style={{
                 display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px",
@@ -147,23 +147,23 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
                     setExcluded(next);
                   }}
                 />
-                <span style={{ fontSize: "10px", color: "white", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
-                <span style={{ fontSize: "10px", color: "#64748b" }}>${p.current.toFixed(2)}</span>
-                <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.65)" }}>→</span>
-                <span style={{ fontSize: "10px", color: p.next > p.current ? "#34d399" : p.next < p.current ? "#ef4444" : "white", fontWeight: 600 }}>
+                <span style={{ fontSize: "10px", color: "var(--foreground)", flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.name}</span>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>${p.current.toFixed(2)}</span>
+                <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>?</span>
+                <span style={{ fontSize: "10px", color: p.next > p.current ? "var(--emerald)" : p.next < p.current ? "var(--red)" : "white", fontWeight: 600 }}>
                   ${p.next.toFixed(2)}
                 </span>
               </div>
             ))}
           </div>
 
-          <div style={{ fontSize: "9px", color: "rgba(148,163,184,0.65)", marginTop: "8px", fontStyle: "italic" }}>
+          <div style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "8px", fontStyle: "italic" }}>
             Los presupuestos se envían a Meta en centavos. Mínimo: $1.00/día.
           </div>
         </div>
 
         <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
             Cancelar
           </button>
           <button onClick={handleApply} disabled={loading} style={{

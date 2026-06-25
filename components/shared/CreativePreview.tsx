@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
@@ -38,8 +38,8 @@ interface AdCreative {
 const FormatBadge = ({ format }: { format: string }) => {
   const colors: Record<string, { bg: string; text: string }> = {
     video:    { bg: "rgba(162,93,220,0.15)", text: "#a25ddc" },
-    image:    { bg: "rgba(0,212,255,0.12)", text: "#00d4ff" },
-    carousel: { bg: "rgba(253,171,61,0.12)", text: "#fdab3d" },
+    image:    { bg: "rgba(0,212,255,0.12)", text: "var(--cyan)" },
+    carousel: { bg: "rgba(253,171,61,0.12)", text: "var(--amber)" },
   };
   const c = colors[format] || colors.image;
   const label = format === "video" ? "Video" : format === "carousel" ? "Carrusel" : "Imagen";
@@ -83,7 +83,7 @@ const VideoPlayer = ({
           position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: 6,
           alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.35)",
         }}>
-          <Play style={{ width: compact ? 22 : 36, height: compact ? 22 : 36, color: "white", fill: "white", opacity: 0.45 }} />
+          <Play style={{ width: compact ? 22 : 36, height: compact ? 22 : 36, color: "var(--foreground)", fill: "white", opacity: 0.45 }} />
           {!compact && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.7)" }}>Vista previa de video no disponible</span>}
         </div>
       </div>
@@ -102,7 +102,7 @@ const VideoPlayer = ({
           position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
           background: "rgba(0,0,0,0.25)", cursor: "pointer",
         }}>
-          <Play style={{ width: compact ? 28 : 48, height: compact ? 28 : 48, color: "white", fill: "white", opacity: 0.9 }} />
+          <Play style={{ width: compact ? 28 : 48, height: compact ? 28 : 48, color: "var(--foreground)", fill: "white", opacity: 0.9 }} />
         </div>
       )}
       {/* Controls */}
@@ -117,8 +117,8 @@ const VideoPlayer = ({
           }}
         >
           {muted
-            ? <VolumeX style={{ width: 14, height: 14, color: "white" }} />
-            : <Volume2 style={{ width: 14, height: 14, color: "white" }} />
+            ? <VolumeX style={{ width: 14, height: 14, color: "var(--foreground)" }} />
+            : <Volume2 style={{ width: 14, height: 14, color: "var(--foreground)" }} />
           }
         </button>
       </div>
@@ -152,7 +152,7 @@ const CarouselViewer = ({
               display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3,
             }}
           >
-            <ChevronLeft style={{ width: compact ? 14 : 18, height: compact ? 14 : 18, color: "white" }} />
+            <ChevronLeft style={{ width: compact ? 14 : 18, height: compact ? 14 : 18, color: "var(--foreground)" }} />
           </button>
           <button
             onClick={e => { e.stopPropagation(); setIdx(i => Math.min(items.length - 1, i + 1)); }}
@@ -164,7 +164,7 @@ const CarouselViewer = ({
               display: "flex", alignItems: "center", justifyContent: "center", zIndex: 3,
             }}
           >
-            <ChevronRight style={{ width: compact ? 14 : 18, height: compact ? 14 : 18, color: "white" }} />
+            <ChevronRight style={{ width: compact ? 14 : 18, height: compact ? 14 : 18, color: "var(--foreground)" }} />
           </button>
           {/* Dots */}
           <div style={{
@@ -174,7 +174,7 @@ const CarouselViewer = ({
             {items.map((_, i) => (
               <span key={i} onClick={e => { e.stopPropagation(); setIdx(i); }} style={{
                 width: i === idx ? 12 : 6, height: 6, borderRadius: 3,
-                background: i === idx ? "#00d4ff" : "rgba(255,255,255,0.5)",
+                background: i === idx ? "var(--cyan)" : "rgba(255,255,255,0.5)",
                 cursor: "pointer", transition: "all 0.2s",
               }} />
             ))}
@@ -187,7 +187,7 @@ const CarouselViewer = ({
           position: "absolute", bottom: 28, left: 8, right: 8,
           background: "rgba(0,0,0,0.6)", borderRadius: 4, padding: "4px 8px", zIndex: 2,
         }}>
-          <p style={{ fontSize: 10, color: "white", fontWeight: 600 }}>{items[idx].title}</p>
+          <p style={{ fontSize: 10, color: "var(--foreground)", fontWeight: 600 }}>{items[idx].title}</p>
         </div>
       )}
     </div>
@@ -206,7 +206,7 @@ export const CreativeCard = ({
     <div
       onClick={onPreview}
       style={{
-        background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)",
+        background: "rgba(255,255,255,0.025)", border: "1px solid var(--hairline)",
         borderRadius: 8, overflow: "hidden", cursor: "pointer",
         transition: "border-color 0.2s, transform 0.15s",
       }}
@@ -223,7 +223,7 @@ export const CreativeCard = ({
           <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
         ) : (
           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Eye style={{ width: 24, height: 24, color: "#64748b" }} />
+            <Eye style={{ width: 24, height: 24, color: "var(--text-muted)" }} />
           </div>
         )}
         <FormatBadge format={ad.format} />
@@ -240,21 +240,21 @@ export const CreativeCard = ({
 
       {/* Info */}
       <div style={{ padding: "10px 12px" }}>
-        <p style={{ fontSize: 11, color: "#e2e8f0", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
+        <p style={{ fontSize: 11, color: "var(--foreground)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 4 }}>
           {ad.adName}
         </p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 4 }}>
           <div>
-            <p style={{ fontSize: 8, color: "rgba(148,163,184,0.65)", textTransform: "uppercase" }}>Inversión</p>
-            <p style={{ fontSize: 11, fontWeight: 600, color: "#fdab3d" }}>{fmtMXN(ad.spend)}</p>
+            <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase" }}>Inversión</p>
+            <p style={{ fontSize: 11, fontWeight: 600, color: "var(--amber)" }}>{fmtMXN(ad.spend)}</p>
           </div>
           <div>
-            <p style={{ fontSize: 8, color: "rgba(148,163,184,0.65)", textTransform: "uppercase" }}>Result.</p>
-            <p style={{ fontSize: 11, fontWeight: 700, color: "#00c875" }}>{ad.results}</p>
+            <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase" }}>Result.</p>
+            <p style={{ fontSize: 11, fontWeight: 700, color: "var(--emerald)" }}>{ad.results}</p>
           </div>
           <div>
-            <p style={{ fontSize: 8, color: "rgba(148,163,184,0.65)", textTransform: "uppercase" }}>CPR</p>
-            <p style={{ fontSize: 11, fontWeight: 600, color: ad.cprVal === Infinity ? "#e2445c" : cprTarget > 0 && ad.cprVal > cprTarget ? "#e2445c" : "#00d4ff" }}>
+            <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase" }}>CPR</p>
+            <p style={{ fontSize: 11, fontWeight: 600, color: ad.cprVal === Infinity ? "var(--red)" : cprTarget > 0 && ad.cprVal > cprTarget ? "var(--red)" : "var(--cyan)" }}>
               {ad.cprVal === Infinity ? "—" : fmtMXN(ad.cprVal)}
             </p>
           </div>
@@ -277,7 +277,7 @@ export const CreativeLightbox = ({
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
-  const statusColor = ad.status === "ACTIVE" ? "#00c875" : ad.status === "PAUSED" ? "#fdab3d" : "rgba(148,163,184,0.65)";
+  const statusColor = ad.status === "ACTIVE" ? "var(--emerald)" : ad.status === "PAUSED" ? "var(--amber)" : "rgba(148,163,184,0.65)";
   const statusLabel = ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status;
 
   return (
@@ -296,7 +296,7 @@ export const CreativeLightbox = ({
         onClick={e => e.stopPropagation()}
         style={{
           position: "relative",
-          background: "#0f1219", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12,
+          background: "var(--background)", border: "1px solid var(--hairline)", borderRadius: 12,
           maxWidth: 460, width: "100%", maxHeight: "90vh", overflow: "auto",
           display: "flex", flexDirection: "column", animation: "slideUp 0.25s ease",
           margin: "auto",
@@ -307,39 +307,39 @@ export const CreativeLightbox = ({
           {/* Close */}
           <button onClick={onClose} style={{
             position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.1)",
-            border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6, width: 32, height: 32,
+            border: "1px solid var(--hairline)", borderRadius: 6, width: 32, height: 32,
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10
           }}>
-            <X style={{ width: 16, height: 16, color: "#94a3b8" }} />
+            <X style={{ width: 16, height: 16, color: "var(--text-secondary)" }} />
           </button>
 
           {/* Ad name + status */}
           <div style={{ marginBottom: 16, paddingRight: 40 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 6, lineHeight: 1.3 }}>{ad.adName}</h3>
+            <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", marginBottom: 6, lineHeight: 1.3 }}>{ad.adName}</h3>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor }} />
-              <span style={{ fontSize: 11, color: "#94a3b8" }}>{statusLabel}</span>
+              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{statusLabel}</span>
               <span style={{ fontSize: 10, color: "rgba(148,163,184,0.55)", fontFamily: "monospace", marginLeft: 8 }}>ID: {ad.adId}</span>
             </div>
           </div>
 
           {/* ── Ad Preview (Feed simulation) moved to the top ── */}
           <div style={{
-            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)",
+            background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)",
             borderRadius: 8, overflow: "hidden", marginBottom: 20, flexShrink: 0
           }}>
-            <div style={{ padding: "10px 12px", borderBottom: "1px solid rgba(255,255,255,0.09)" }}>
-              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Vista previa del anuncio</p>
+            <div style={{ padding: "10px 12px", borderBottom: "1px solid var(--hairline)" }}>
+              <p style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 6 }}>Vista previa del anuncio</p>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {pageImageUrl ? (
-                  <img src={pageImageUrl} alt={pageName || ""} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1px solid rgba(255,255,255,0.1)" }} />
+                  <img src={pageImageUrl} alt={pageName || ""} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--hairline)" }} />
                 ) : (
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #0081FB, #00d4ff)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <span style={{ fontSize: 12, fontWeight: 700, color: "white" }}>{(pageName || ad.adName || "A")[0].toUpperCase()}</span>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "linear-gradient(135deg, #0081FB, var(--cyan))", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>{(pageName || ad.adName || "A")[0].toUpperCase()}</span>
                   </div>
                 )}
                 <div>
-                  <p style={{ fontSize: 12, fontWeight: 600, color: "#e2e8f0" }}>{pageName || ad.title || ad.adName}</p>
+                  <p style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{pageName || ad.title || ad.adName}</p>
                   <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>Publicidad · 🌐</p>
                 </div>
               </div>
@@ -348,7 +348,7 @@ export const CreativeLightbox = ({
             {/* Body text */}
             {ad.body && (
               <div style={{ padding: "10px 12px" }}>
-                <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.5 }}>
                   {ad.body}
                 </p>
               </div>
@@ -369,10 +369,10 @@ export const CreativeLightbox = ({
             </div>
 
             {/* Title + CTA */}
-            <div style={{ padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "rgba(255,255,255,0.04)" }}>
+            <div style={{ padding: "10px 12px", display: "flex", justifyContent: "space-between", alignItems: "center", background: "var(--surface-hover)" }}>
               <div style={{ flex: 1, minWidth: 0 }}>
-                {ad.title && <p style={{ fontSize: 13, fontWeight: 600, color: "#e2e8f0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.title}</p>}
-                {ad.description && <p style={{ fontSize: 11, color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.description}</p>}
+                {ad.title && <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.title}</p>}
+                {ad.description && <p style={{ fontSize: 11, color: "var(--text-secondary)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.description}</p>}
 
               </div>
               {ad.cta && (
@@ -386,8 +386,8 @@ export const CreativeLightbox = ({
 
             {/* Engagement bar */}
             <div style={{
-              padding: "8px 12px", borderTop: "1px solid rgba(255,255,255,0.09)",
-              display: "flex", gap: 20, fontSize: 11, color: "rgba(148,163,184,0.65)",
+              padding: "8px 12px", borderTop: "1px solid var(--hairline)",
+              display: "flex", gap: 20, fontSize: 11, color: "var(--text-muted)",
             }}>
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><ThumbsUp style={{ width: 12, height: 12 }} /> Me gusta</span>
               <span style={{ display: "flex", alignItems: "center", gap: 4 }}><MessageCircle style={{ width: 12, height: 12 }} /> Comentar</span>
@@ -398,23 +398,23 @@ export const CreativeLightbox = ({
           {/* Metrics */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 10, marginBottom: 12, flexShrink: 0 }}>
             {[
-              { label: "Inversión", value: fmtMXN(ad.spend), color: "#fdab3d" },
-              { label: "Resultados", value: String(ad.results), color: "#00c875" },
-              { label: cprLabel, value: ad.cprVal === Infinity ? "—" : fmtMXN(ad.cprVal), color: ad.cprVal === Infinity ? "#e2445c" : cprTarget > 0 && ad.cprVal > cprTarget ? "#e2445c" : "#00d4ff" },
+              { label: "Inversión", value: fmtMXN(ad.spend), color: "var(--amber)" },
+              { label: "Resultados", value: String(ad.results), color: "var(--emerald)" },
+              { label: cprLabel, value: ad.cprVal === Infinity ? "—" : fmtMXN(ad.cprVal), color: ad.cprVal === Infinity ? "var(--red)" : cprTarget > 0 && ad.cprVal > cprTarget ? "var(--red)" : "var(--cyan)" },
               { label: "CTR", value: `${ad.ctr.toFixed(2)}%`, color: "rgba(148,163,184,0.7)" },
             ].map(m => (
-              <div key={m.label} style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 6, padding: "8px 10px" }}>
-                <p style={{ fontSize: 8, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{m.label}</p>
+              <div key={m.label} style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, padding: "8px 10px" }}>
+                <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{m.label}</p>
                 <p style={{ fontSize: 14, fontWeight: 700, color: m.color }}>{m.value}</p>
               </div>
             ))}
           </div>
 
           {/* Additional metrics row */}
-          <div style={{ display: "flex", gap: 16, fontSize: 11, color: "#94a3b8", flexShrink: 0 }}>
-            <span>Impresiones: <strong style={{ color: "#e2e8f0" }}>{fmtNum(ad.impressions)}</strong></span>
-            <span>Clics: <strong style={{ color: "#e2e8f0" }}>{fmtNum(ad.clicks)}</strong></span>
-            <span>CPC: <strong style={{ color: "#e2e8f0" }}>{fmtMXN(ad.spend / (ad.clicks || 1))}</strong></span>
+          <div style={{ display: "flex", gap: 16, fontSize: 11, color: "var(--text-secondary)", flexShrink: 0 }}>
+            <span>Impresiones: <strong style={{ color: "var(--foreground)" }}>{fmtNum(ad.impressions)}</strong></span>
+            <span>Clics: <strong style={{ color: "var(--foreground)" }}>{fmtNum(ad.clicks)}</strong></span>
+            <span>CPC: <strong style={{ color: "var(--foreground)" }}>{fmtMXN(ad.spend / (ad.clicks || 1))}</strong></span>
           </div>
         </div>
       </div>

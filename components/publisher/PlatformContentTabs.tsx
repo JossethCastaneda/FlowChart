@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React from "react";
 
 interface Props {
@@ -58,9 +58,9 @@ export function PlatformContentTabs({
             borderRadius: 20,
             background: !enabled ? "rgba(255,255,255,0.09)" : "transparent",
             border: !enabled
-              ? "1px solid rgba(255,255,255,0.12)"
+              ? "1px solid var(--hairline)"
               : "1px solid rgba(255,255,255,0.06)",
-            color: !enabled ? "#e2e8f0" : "#64748b",
+            color: !enabled ? "var(--foreground)" : "var(--text-muted)",
             fontSize: 12,
             fontWeight: 500,
             cursor: "pointer",
@@ -82,7 +82,7 @@ export function PlatformContentTabs({
             border: enabled
               ? "1px solid rgba(0,212,255,0.3)"
               : "1px solid rgba(255,255,255,0.06)",
-            color: enabled ? "#00d4ff" : "#64748b",
+            color: enabled ? "var(--cyan)" : "var(--text-muted)",
             fontSize: 12,
             fontWeight: 500,
             cursor: "pointer",
@@ -119,7 +119,7 @@ export function PlatformContentTabs({
                   activePlatform === "facebook"
                     ? "2px solid #1877f2"
                     : "2px solid transparent",
-                color: activePlatform === "facebook" ? "#60a5fa" : "#64748b",
+                color: activePlatform === "facebook" ? "var(--cyan)" : "var(--text-muted)",
                 fontSize: 12,
                 fontWeight: activePlatform === "facebook" ? 600 : 500,
                 cursor: "pointer",
@@ -143,7 +143,7 @@ export function PlatformContentTabs({
                   activePlatform === "instagram"
                     ? "2px solid #E1306C"
                     : "2px solid transparent",
-                color: activePlatform === "instagram" ? "#f472b6" : "#64748b",
+                color: activePlatform === "instagram" ? "#f472b6" : "var(--text-muted)",
                 fontSize: 12,
                 fontWeight: activePlatform === "instagram" ? 600 : 500,
                 cursor: "pointer",
@@ -174,7 +174,7 @@ export function PlatformContentTabs({
                 outline: "none",
                 resize: "none",
                 padding: "14px 0",
-                color: "#e2e8f0",
+                color: "var(--foreground)",
                 fontSize: 14,
                 lineHeight: 1.6,
                 fontFamily: "Inter, sans-serif",
@@ -197,10 +197,10 @@ export function PlatformContentTabs({
                 fontSize: 11,
                 fontWeight: 500,
                 color: isOverLimit
-                  ? "#e2445c"
+                  ? "var(--red)"
                   : isNearLimit
-                  ? "#fdab3d"
-                  : "#64748b",
+                  ? "var(--amber)"
+                  : "var(--text-muted)",
               }}
             >
               {charCount.toLocaleString()} / {charLimit.toLocaleString()}
@@ -220,10 +220,10 @@ export function PlatformContentTabs({
                   height: "100%",
                   borderRadius: 2,
                   background: isOverLimit
-                    ? "#e2445c"
+                    ? "var(--red)"
                     : isNearLimit
-                    ? "#fdab3d"
-                    : "#00d4ff",
+                    ? "var(--amber)"
+                    : "var(--cyan)",
                   transition: "all 0.3s",
                 }}
               />

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { Loader2, Calendar, Target, CheckCircle2, TrendingUp, Sparkles, Building2, LayoutDashboard } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Orbi } from "@/components/ui/Orbi";
 
 interface PublicProject {
   id: string;
@@ -49,8 +50,9 @@ export default function PublicProjectPortal() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-[#00d4ff]" />
+      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-6">
+        <Orbi state="working" scale={0.8} />
+        <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO PORTAL...</p>
       </div>
     );
   }
@@ -68,10 +70,10 @@ export default function PublicProjectPortal() {
   }
 
   const { branding } = data.workspace;
-  const brandColor = branding.accentColor || "#00d4ff";
+  const brandColor = branding.accentColor || "var(--cyan)";
 
   return (
-    <div className="min-h-screen bg-[#050505] text-slate-200 overflow-x-hidden selection:bg-[#00d4ff]/30 relative">
+    <div className="min-h-screen bg-[#050505] text-slate-200 overflow-x-hidden selection:bg-[var(--cyan)]/30 relative">
       {/* Abstract Background Effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-r from-[rgba(0,212,255,0.03)] to-transparent blur-3xl opacity-50" />

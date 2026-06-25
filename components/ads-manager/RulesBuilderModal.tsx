@@ -174,7 +174,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
 
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "8px 12px", fontSize: "12px", background: "rgba(0,0,0,0.3)",
-    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "white", outline: "none",
+    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
   };
 
   const selectStyle: React.CSSProperties = { ...inputStyle, appearance: "none" as const, paddingRight: "28px" };
@@ -192,11 +192,11 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
       }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700, color: "white" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700, color: "var(--foreground)" }}>
             <Zap className="w-4 h-4" style={{ color: "var(--cyan)" }} />
             Nueva regla automática — {stepTitles[step - 1]}
           </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -213,11 +213,11 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
           {step === 1 && (
             <>
               <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Nombre de la regla</label>
+                <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Nombre de la regla</label>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej: Pausar CPC alto" style={inputStyle} autoFocus />
               </div>
               <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Aplicar a</label>
+                <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Aplicar a</label>
                 <select value={entityType} onChange={(e) => setEntityType(e.target.value as any)} style={selectStyle}>
                   <option value="CAMPAIGN">Campañas</option>
                   <option value="ADSET">Conjuntos de anuncios</option>
@@ -225,7 +225,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
                 </select>
               </div>
               <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Frecuencia de evaluación</label>
+                <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Frecuencia de evaluación</label>
                 <select value={frequency} onChange={(e) => setFrequency(e.target.value)} style={selectStyle}>
                   {FREQUENCIES.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
                 </select>
@@ -236,7 +236,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
           {step === 2 && (
             <>
               <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Ventana de tiempo (aplica a todas las condiciones)</label>
+                <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Ventana de tiempo (aplica a todas las condiciones)</label>
                 <select value={timeWindow} onChange={(e) => setTimeWindow(e.target.value)} style={selectStyle}>
                   {TIME_WINDOWS.map((w) => <option key={w.value} value={w.value}>{w.label}</option>)}
                 </select>
@@ -244,22 +244,22 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
               {conditions.map((cond, idx) => (
                 <div key={idx} style={{ display: "flex", gap: "6px", marginBottom: "10px", alignItems: "flex-end" }}>
                   <div style={{ flex: 2 }}>
-                    <label style={{ fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" }}>Métrica</label>
+                    <label style={{ fontSize: "9px", color: "var(--text-muted)", display: "block", marginBottom: "2px" }}>Métrica</label>
                     <select value={cond.field} onChange={(e) => updateCondition(idx, "field", e.target.value)} style={{ ...selectStyle, fontSize: "11px" }}>
                       {METRICS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
                     </select>
                   </div>
                   <div style={{ flex: 1.5 }}>
-                    <label style={{ fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" }}>Operador</label>
+                    <label style={{ fontSize: "9px", color: "var(--text-muted)", display: "block", marginBottom: "2px" }}>Operador</label>
                     <select value={cond.operator} onChange={(e) => updateCondition(idx, "operator", e.target.value)} style={{ ...selectStyle, fontSize: "11px" }}>
                       {OPERATORS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
                     </select>
                   </div>
                   <div style={{ flex: 1 }}>
-                    <label style={{ fontSize: "9px", color: "#64748b", display: "block", marginBottom: "2px" }}>Valor</label>
+                    <label style={{ fontSize: "9px", color: "var(--text-muted)", display: "block", marginBottom: "2px" }}>Valor</label>
                     <input type="number" value={cond.value} onChange={(e) => updateCondition(idx, "value", e.target.value)} style={{ ...inputStyle, fontSize: "11px" }} placeholder="0" />
                   </div>
-                  <button onClick={() => removeCondition(idx)} disabled={conditions.length <= 1} style={{ background: "none", border: "none", color: conditions.length > 1 ? "#ef4444" : "rgba(148,163,184,0.65)", cursor: "pointer", padding: "8px", flexShrink: 0 }}>
+                  <button onClick={() => removeCondition(idx)} disabled={conditions.length <= 1} style={{ background: "none", border: "none", color: conditions.length > 1 ? "var(--red)" : "rgba(148,163,184,0.65)", cursor: "pointer", padding: "8px", flexShrink: 0 }}>
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 </div>
@@ -273,16 +273,16 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
           {step === 3 && (
             <>
               <div style={{ marginBottom: "14px" }}>
-                <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Acción a ejecutar</label>
+                <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Acción a ejecutar</label>
                 <select value={action} onChange={(e) => setAction(e.target.value)} style={selectStyle}>
                   {ACTIONS.map((a) => <option key={a.value} value={a.value}>{a.label}</option>)}
                 </select>
               </div>
               {action === "CHANGE_BUDGET" && (
                 <div style={{ marginBottom: "14px" }}>
-                  <label style={{ fontSize: "10px", color: "#64748b", fontWeight: 600, display: "block", marginBottom: "4px" }}>Ajuste de presupuesto (%)</label>
+                  <label style={{ fontSize: "10px", color: "var(--text-muted)", fontWeight: 600, display: "block", marginBottom: "4px" }}>Ajuste de presupuesto (%)</label>
                   <input value={budgetAdjustment} onChange={(e) => setBudgetAdjustment(e.target.value)} placeholder="+10 o -20" style={inputStyle} />
-                  <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.65)", marginTop: "4px", display: "block" }}>
+                  <span style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "4px", display: "block" }}>
                     Usa + para aumentar, - para reducir. Ejemplo: +15 = +15%
                   </span>
                 </div>
@@ -293,12 +293,12 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
           {step === 4 && (
             <>
               <div style={{ background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.08)", borderRadius: "8px", padding: "14px" }}>
-                <div style={{ fontSize: "11px", color: "white", fontWeight: 700, marginBottom: "10px" }}>Resumen de la regla</div>
+                <div style={{ fontSize: "11px", color: "var(--foreground)", fontWeight: 700, marginBottom: "10px" }}>Resumen de la regla</div>
                 <div style={{ fontSize: "11px", color: "rgba(148,163,184,0.7)", lineHeight: "1.8" }}>
-                  <div><strong style={{ color: "white" }}>Nombre:</strong> {name || "—"}</div>
-                  <div><strong style={{ color: "white" }}>Aplica a:</strong> {entityType === "CAMPAIGN" ? "Campañas" : entityType === "ADSET" ? "Conjuntos" : "Anuncios"}</div>
-                  <div><strong style={{ color: "white" }}>Frecuencia:</strong> {FREQUENCIES.find((f) => f.value === frequency)?.label}</div>
-                  <div><strong style={{ color: "white" }}>Condiciones:</strong></div>
+                  <div><strong style={{ color: "var(--foreground)" }}>Nombre:</strong> {name || "—"}</div>
+                  <div><strong style={{ color: "var(--foreground)" }}>Aplica a:</strong> {entityType === "CAMPAIGN" ? "Campañas" : entityType === "ADSET" ? "Conjuntos" : "Anuncios"}</div>
+                  <div><strong style={{ color: "var(--foreground)" }}>Frecuencia:</strong> {FREQUENCIES.find((f) => f.value === frequency)?.label}</div>
+                  <div><strong style={{ color: "var(--foreground)" }}>Condiciones:</strong></div>
                   {conditions.map((c, i) => (
                     <div key={i} style={{ paddingLeft: "12px", fontSize: "10px" }}>
                       {i > 0 && <span style={{ color: "var(--cyan)", fontWeight: 600 }}>AND </span>}
@@ -308,7 +308,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
                   <div style={{ paddingLeft: "12px", fontSize: "10px" }}>
                     Ventana: {TIME_WINDOWS.find((w) => w.value === timeWindow)?.label}
                   </div>
-                  <div><strong style={{ color: "white" }}>Acción:</strong> {ACTIONS.find((a) => a.value === action)?.label}</div>
+                  <div><strong style={{ color: "var(--foreground)" }}>Acción:</strong> {ACTIONS.find((a) => a.value === action)?.label}</div>
                   {action === "CHANGE_BUDGET" && <div style={{ paddingLeft: "12px", fontSize: "10px" }}>Ajuste: {budgetAdjustment}%</div>}
                 </div>
               </div>
@@ -318,7 +318,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
 
         {/* Error */}
         {error && (
-          <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "0 20px 10px", fontSize: "11px", color: "#ef4444" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "0 20px 10px", fontSize: "11px", color: "var(--red)" }}>
             <AlertCircle className="w-3.5 h-3.5" /> {error}
           </div>
         )}
@@ -327,7 +327,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
         <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "space-between" }}>
           <button
             onClick={() => step > 1 ? setStep(step - 1) : onClose()}
-            style={{ display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}
+            style={{ display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}
           >
             <ChevronLeft className="w-3 h-3" /> {step > 1 ? "Atrás" : "Cancelar"}
           </button>

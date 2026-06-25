@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Search, Folder, CreditCard, ChevronRight, Settings, Command } from "lucide-react";
 import { HoloIcon } from "@/components/ui/HoloIcon";
 import { motion, AnimatePresence } from "framer-motion";
@@ -77,20 +77,20 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
           display: "flex", alignItems: "center", gap: "10px", width: "100%", padding: "10px 14px",
           background: isOpen ? "rgba(255, 255, 255, 0.05)" : "rgba(10, 15, 30, 0.6)",
           border: isOpen ? "1px solid rgba(0, 212, 255, 0.5)" : "1px solid rgba(255, 255, 255, 0.1)",
-          borderRadius: "10px", color: "white", fontSize: "14px", fontWeight: 600,
+          borderRadius: "10px", color: "var(--foreground)", fontSize: "14px", fontWeight: 600,
           textAlign: "left", cursor: "pointer", backdropFilter: "blur(12px)",
           boxShadow: isOpen ? "0 0 20px rgba(0, 212, 255, 0.15)" : "0 4px 12px rgba(0,0,0,0.2)",
           transition: "border 0.2s ease, background 0.2s ease"
         }}
       >
-        <div style={{ background: "linear-gradient(135deg, #10b981, #059669)", padding: "4px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(16, 185, 129, 0.4)" }}>
+        <div style={{ background: "linear-gradient(135deg, var(--emerald), #059669)", padding: "4px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(16, 185, 129, 0.4)" }}>
            <HoloIcon icon={Folder} variant="emerald" isActive={true} className="w-4 h-4" />
         </div>
         <span style={{ flex: 1, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
           {selectedAccountId === "all" ? `Todas las cuentas (${accounts.length})` : selectedAccount ? selectedAccount.name.split(" — ")[0] : "Seleccionar Cuenta"}
         </span>
         <div style={{
-           background: "rgba(255,255,255,0.1)", color: "white", padding: "2px 8px", 
+           background: "rgba(255,255,255,0.1)", color: "var(--foreground)", padding: "2px 8px", 
            borderRadius: "12px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em"
         }}>
            {accounts.length}
@@ -114,7 +114,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
               border: "1px solid rgba(255, 255, 255, 0.12)", borderRadius: "14px",
               boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset",
               zIndex: 70, width: "750px", display: "flex", flexDirection: "column",
-              color: "white", overflow: "hidden"
+              color: "var(--foreground)", overflow: "hidden"
             }}
           >
             {/* Top Search Bar */}
@@ -130,13 +130,13 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                   placeholder="Buscar una cuenta por nombre o ID..."
                   value={search} onChange={(e) => setSearch(e.target.value)}
                   style={{
-                    background: "none", border: "none", color: "white", fontSize: "14px",
+                    background: "none", border: "none", color: "var(--foreground)", fontSize: "14px",
                     outline: "none", width: "100%", fontWeight: 500
                   }}
                 />
                 <div style={{ display: "flex", gap: "4px" }}>
-                  <span style={{ fontSize: "10px", color: "#64748b", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.05)" }}>⌘</span>
-                  <span style={{ fontSize: "10px", color: "#64748b", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.05)" }}>K</span>
+                  <span style={{ fontSize: "10px", color: "var(--text-muted)", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.05)" }}>⌘</span>
+                  <span style={{ fontSize: "10px", color: "var(--text-muted)", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.05)" }}>K</span>
                 </div>
               </div>
             </div>
@@ -146,15 +146,15 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
               
               {/* Left Sidebar: Portfolios */}
               <div style={{ width: "280px", borderRight: "1px solid rgba(255, 255, 255, 0.08)", display: "flex", flexDirection: "column", background: "rgba(0,0,0,0.15)" }}>
-                <div style={{ padding: "20px", fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", display: "flex", alignItems: "center", justifyContent: "space-between", color: "#64748b" }}>
+                <div style={{ padding: "20px", fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", display: "flex", alignItems: "center", justifyContent: "space-between", color: "var(--text-muted)" }}>
                   Portfolios
-                  <div style={{ background: "rgba(255,255,255,0.1)", color: "white", borderRadius: "50%", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", cursor: "help" }}>?</div>
+                  <div style={{ background: "rgba(255,255,255,0.1)", color: "var(--foreground)", borderRadius: "50%", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", cursor: "help" }}>?</div>
                 </div>
                 
                 <div style={{ overflowY: "auto", flex: 1, padding: "0 12px" }} className="custom-scrollbar">
                   {Object.entries(portfolios).map(([portName, items], idx) => {
                     const isSelected = selectedPortfolio === portName;
-                    const bgColors = ["linear-gradient(135deg, #10b981, #059669)", "linear-gradient(135deg, #f59e0b, #d97706)", "linear-gradient(135deg, #f97316, #ea580c)", "linear-gradient(135deg, #8b5cf6, #7c3aed)", "linear-gradient(135deg, #3b82f6, #2563eb)"];
+                    const bgColors = ["linear-gradient(135deg, var(--emerald), #059669)", "linear-gradient(135deg, var(--amber), var(--amber))", "linear-gradient(135deg, var(--amber), var(--amber))", "linear-gradient(135deg, var(--purple), var(--purple))", "linear-gradient(135deg, var(--cyan), var(--cyan))"];
                     const bgColor = portName.includes("LID") ? bgColors[0] : bgColors[idx % bgColors.length];
                     const initial = portName.charAt(0).toUpperCase();
                     
@@ -173,12 +173,12 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                         }}
                         whileHover={{ backgroundColor: isSelected ? "rgba(0, 212, 255, 0.15)" : "rgba(255,255,255,0.05)" }}
                       >
-                        <div style={{ width: "38px", height: "38px", borderRadius: "8px", background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 800, fontSize: "16px", flexShrink: 0, boxShadow: "0 4px 10px rgba(0,0,0,0.3)" }}>
+                        <div style={{ width: "38px", height: "38px", borderRadius: "8px", background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--foreground)", fontWeight: 800, fontSize: "16px", flexShrink: 0, boxShadow: "0 4px 10px rgba(0,0,0,0.3)" }}>
                           {portName.includes("LID") ? <HoloIcon icon={Folder} variant="emerald" isActive={true} className="w-5 h-5" /> : initial}
                         </div>
                         <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "2px" }}>
-                          <div style={{ fontWeight: 700, fontSize: "14px", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden", color: isSelected ? "white" : "#e2e8f0" }}>{portName}</div>
-                          <div style={{ fontSize: "11px", color: isSelected ? "rgba(255,255,255,0.7)" : "#64748b", fontWeight: 500 }}>{items.length} cuentas</div>
+                          <div style={{ fontWeight: 700, fontSize: "14px", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden", color: isSelected ? "white" : "var(--foreground)" }}>{portName}</div>
+                          <div style={{ fontSize: "11px", color: isSelected ? "rgba(255,255,255,0.7)" : "var(--text-muted)", fontWeight: 500 }}>{items.length} cuentas</div>
                         </div>
                         {isSelected && <HoloIcon icon={ChevronRight} variant="cyan" isActive={true} className="w-4 h-4" />}
                       </motion.button>
@@ -186,10 +186,10 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                   })}
                 </div>
 
-                <div style={{ padding: "16px", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
+                <div style={{ padding: "16px", borderTop: "1px solid var(--hairline)" }}>
                   <motion.button 
                     whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.08)" }} whileTap={{ scale: 0.98 }}
-                    style={{ width: "100%", padding: "10px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "8px", fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.9)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                    style={{ width: "100%", padding: "10px", background: "var(--row-hover)", border: "1px solid var(--hairline)", borderRadius: "8px", fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.9)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                   >
                     + Nuevo Portfolio
                   </motion.button>
@@ -200,8 +200,8 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
               <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "rgba(10, 15, 30, 0.4)" }}>
                 <div style={{ padding: "24px 28px 16px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    <h3 style={{ fontSize: "20px", fontWeight: 800, margin: 0, color: "white", letterSpacing: "-0.02em" }}>{selectedPortfolio}</h3>
-                    <p style={{ fontSize: "13px", color: "#94a3b8", margin: 0 }}>Gestiona las cuentas asignadas a este portfolio.</p>
+                    <h3 style={{ fontSize: "20px", fontWeight: 800, margin: 0, color: "var(--foreground)", letterSpacing: "-0.02em" }}>{selectedPortfolio}</h3>
+                    <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0 }}>Gestiona las cuentas asignadas a este portfolio.</p>
                   </div>
                   <motion.button whileHover={{ rotate: 90 }} transition={{ duration: 0.2 }}>
                     <HoloIcon icon={Settings} variant="cyan" isActive={true} className="w-5 h-5" style={{ cursor: "pointer" }} />
@@ -209,14 +209,14 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                 </div>
                 
                 <div style={{ padding: "0 28px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.05)", marginBottom: "16px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 700, color: "#cbd5e1" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--foreground)" }}>
                     {displayedAccounts.length} {displayedAccounts.length === 1 ? 'cuenta encontrada' : 'cuentas encontradas'}
                   </span>
                 </div>
 
                 <div style={{ overflowY: "auto", flex: 1, padding: "0 28px 28px" }} className="custom-scrollbar">
                   {displayedAccounts.length === 0 && selectedAccountId !== "all" ? (
-                    <div style={{ textAlign: "center", padding: "40px", color: "#64748b", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
+                    <div style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
                       <HoloIcon icon={Search} variant="cyan" isActive={false} className="w-8 h-8 opacity-20" />
                       <div style={{ fontSize: "14px", fontWeight: 600 }}>No hay cuentas coincidentes</div>
                       <div style={{ fontSize: "12px", maxWidth: "200px" }}>Intenta buscar con otro término o selecciona otro portfolio.</div>
@@ -228,7 +228,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                         <motion.div
                           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                           onClick={() => { onSelectAccount("all"); setIsOpen(false); }}
-                          whileHover={{ scale: 1.01, backgroundColor: "rgba(255,255,255,0.04)" }}
+                          whileHover={{ scale: 1.01, backgroundColor: "var(--surface-hover)" }}
                           whileTap={{ scale: 0.99 }}
                           style={{
                             display: "flex", alignItems: "center", gap: "16px", padding: "16px",
@@ -242,11 +242,11 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                             <HoloIcon icon={Command} variant="cyan" isActive={true} className="w-5 h-5" />
                           </div>
                           <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "2px" }}>
-                            <div style={{ fontWeight: 800, fontSize: "15px", color: selectedAccountId === "all" ? "#00d4ff" : "white" }}>Vista Global (Todas las cuentas)</div>
-                            <div style={{ fontSize: "12px", color: "#94a3b8", fontWeight: 500 }}>Agrega la data de las {accounts.length} cuentas combinadas</div>
+                            <div style={{ fontWeight: 800, fontSize: "15px", color: selectedAccountId === "all" ? "var(--cyan)" : "white" }}>Vista Global (Todas las cuentas)</div>
+                            <div style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 500 }}>Agrega la data de las {accounts.length} cuentas combinadas</div>
                           </div>
                           {selectedAccountId === "all" && (
-                            <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#00d4ff", boxShadow: "0 0 10px #00d4ff" }} />
+                            <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--cyan)", boxShadow: "0 0 10px var(--cyan)" }} />
                           )}
                         </motion.div>
                       )}
@@ -258,7 +258,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                           <motion.div
                             key={acc.id}
                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
-                            whileHover={{ scale: 1.01, backgroundColor: isSelected ? "rgba(0, 212, 255, 0.1)" : "rgba(255,255,255,0.04)" }}
+                            whileHover={{ scale: 1.01, backgroundColor: isSelected ? "rgba(0, 212, 255, 0.1)" : "var(--surface-hover)" }}
                             whileTap={{ scale: 0.99 }}
                             onClick={() => { onSelectAccount(acc.id); setIsOpen(false); }}
                             style={{
@@ -274,27 +274,27 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                             </div>
                             <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "4px" }}>
                               <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
-                                <span style={{ fontWeight: 700, fontSize: "14px", color: isSelected ? "#00d4ff" : "white", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                                <span style={{ fontWeight: 700, fontSize: "14px", color: isSelected ? "var(--cyan)" : "white", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
                                   {acc.name.split(" — ")[0]}
                                 </span>
                                 {acc.id === topSpendId && (acc.spend || 0) > 0 && (
-                                  <span style={{ flexShrink: 0, fontSize: "10px", fontWeight: 800, color: "#10b981", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", borderRadius: "6px", padding: "2px 8px", letterSpacing: "0.05em", boxShadow: "0 0 10px rgba(16,185,129,0.2)" }}>
+                                  <span style={{ flexShrink: 0, fontSize: "10px", fontWeight: 800, color: "var(--emerald)", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", borderRadius: "6px", padding: "2px 8px", letterSpacing: "0.05em", boxShadow: "0 0 10px rgba(16,185,129,0.2)" }}>
                                     TOP GASTO
                                   </span>
                                 )}
                               </div>
-                              <div style={{ fontSize: "12px", color: "#94a3b8", display: "flex", gap: "14px", alignItems: "center", fontWeight: 500 }}>
-                                <span>ID: <span style={{ color: "#cbd5e1" }}>{acc.id.replace("act_", "")}</span></span>
+                              <div style={{ fontSize: "12px", color: "var(--text-secondary)", display: "flex", gap: "14px", alignItems: "center", fontWeight: 500 }}>
+                                <span>ID: <span style={{ color: "var(--foreground)" }}>{acc.id.replace("act_", "")}</span></span>
                                 {(acc.spend || 0) > 0 && (
                                   <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                    <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "#64748b" }} />
-                                    <span>Inversión: <span style={{ color: "#10b981", fontWeight: 700 }}>{fmtSpend(acc.spend || 0)}</span></span>
+                                    <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--text-muted)" }} />
+                                    <span>Inversión: <span style={{ color: "var(--emerald)", fontWeight: 700 }}>{fmtSpend(acc.spend || 0)}</span></span>
                                   </span>
                                 )}
                               </div>
                             </div>
                             {isSelected && (
-                              <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "#00d4ff", boxShadow: "0 0 10px #00d4ff" }} />
+                              <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--cyan)", boxShadow: "0 0 10px var(--cyan)" }} />
                             )}
                           </motion.div>
                         );

@@ -69,11 +69,11 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
           .sodare-wordmark-animated {
             background: linear-gradient(
               90deg,
-              #e2e8f0 0%,
-              #e2e8f0 40%,
-              #00f0ff 50%,
-              #e2e8f0 60%,
-              #e2e8f0 100%
+              var(--foreground) 0%,
+              var(--foreground) 40%,
+              var(--cyan) 50%,
+              var(--foreground) 60%,
+              var(--foreground) 100%
             );
             background-size: 200% auto;
             -webkit-background-clip: text;
@@ -102,27 +102,27 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
           <defs>
             {/* Holographic gradient */}
             <linearGradient id={`${uid}-glow`} x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#00f0ff" />
+              <stop offset="0%" stopColor="var(--cyan)" />
               <stop offset="50%" stopColor="#0080ff" />
-              <stop offset="100%" stopColor="#00f0ff" />
+              <stop offset="100%" stopColor="var(--cyan)" />
             </linearGradient>
             {/* Animated gradient for S glyph */}
             <linearGradient id={`${uid}-s-glow`} x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
-              <stop offset="0%" stopColor="#00f0ff">
-                {animated && <animate attributeName="stopColor" values="#00f0ff;#0080ff;#00f0ff" dur="2s" repeatCount="indefinite" />}
+              <stop offset="0%" stopColor="var(--cyan)">
+                {animated && <animate attributeName="stopColor" values="var(--cyan);#0080ff;var(--cyan)" dur="2s" repeatCount="indefinite" />}
               </stop>
               <stop offset="100%" stopColor="#0080ff">
-                {animated && <animate attributeName="stopColor" values="#0080ff;#00f0ff;#0080ff" dur="2s" repeatCount="indefinite" />}
+                {animated && <animate attributeName="stopColor" values="#0080ff;var(--cyan);#0080ff" dur="2s" repeatCount="indefinite" />}
               </stop>
             </linearGradient>
             {/* Inner glow */}
             <radialGradient id={`${uid}-inner`} cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#00f0ff" stopOpacity="0.12" />
-              <stop offset="100%" stopColor="#00f0ff" stopOpacity="0" />
+              <stop offset="0%" stopColor="var(--cyan)" stopOpacity="0.12" />
+              <stop offset="100%" stopColor="var(--cyan)" stopOpacity="0" />
             </radialGradient>
             {/* Drop shadow */}
             <filter id={`${uid}-shadow`} x="-30%" y="-30%" width="160%" height="160%">
-              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="#00f0ff" floodOpacity="0.5" />
+              <feDropShadow dx="0" dy="0" stdDeviation="3" floodColor="var(--cyan)" floodOpacity="0.5" />
             </filter>
             {/* Clip to hexagon for scan effect */}
             <clipPath id={`${uid}-hex-clip`}>
@@ -149,18 +149,18 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
           <g clipPath={`url(#${uid}-hex-clip)`}>
             {animated ? (
               <>
-                <rect x="8" y="20" width="48" height="1" fill="#00f0ff" opacity="0.15">
+                <rect x="8" y="20" width="48" height="1" fill="var(--cyan)" opacity="0.15">
                   <animate attributeName="y" values="10;54;10" dur="3s" repeatCount="indefinite" />
                   <animate attributeName="opacity" values="0;0.3;0" dur="3s" repeatCount="indefinite" />
                 </rect>
-                <rect x="8" y="40" width="48" height="0.5" fill="#00f0ff" opacity="0.1">
+                <rect x="8" y="40" width="48" height="0.5" fill="var(--cyan)" opacity="0.1">
                   <animate attributeName="y" values="50;10;50" dur="4s" repeatCount="indefinite" />
                   <animate attributeName="opacity" values="0;0.2;0" dur="4s" repeatCount="indefinite" />
                 </rect>
               </>
             ) : (
               [14, 22, 30, 38, 46].map(y => (
-                <line key={y} x1="10" y1={y} x2="54" y2={y} stroke="#00f0ff" strokeWidth="0.3" opacity="0.15" />
+                <line key={y} x1="10" y1={y} x2="54" y2={y} stroke="var(--cyan)" strokeWidth="0.3" opacity="0.15" />
               ))
             )}
           </g>
@@ -174,17 +174,17 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
 
           {/* Corner accents — blinking */}
           <g style={animated ? { animation: "sodare-corner-blink 4s ease-in-out infinite" } : undefined}>
-            <line x1="10" y1="17" x2="16" y2="17" stroke="#00f0ff" strokeWidth="1" opacity="0.6" />
-            <line x1="10" y1="17" x2="10" y2="23" stroke="#00f0ff" strokeWidth="1" opacity="0.6" />
+            <line x1="10" y1="17" x2="16" y2="17" stroke="var(--cyan)" strokeWidth="1" opacity="0.6" />
+            <line x1="10" y1="17" x2="10" y2="23" stroke="var(--cyan)" strokeWidth="1" opacity="0.6" />
           </g>
           <g style={animated ? { animation: "sodare-corner-blink 4s ease-in-out infinite 2s" } : undefined}>
-            <line x1="48" y1="47" x2="54" y2="47" stroke="#00f0ff" strokeWidth="1" opacity="0.6" />
-            <line x1="54" y1="41" x2="54" y2="47" stroke="#00f0ff" strokeWidth="1" opacity="0.6" />
+            <line x1="48" y1="47" x2="54" y2="47" stroke="var(--cyan)" strokeWidth="1" opacity="0.6" />
+            <line x1="54" y1="41" x2="54" y2="47" stroke="var(--cyan)" strokeWidth="1" opacity="0.6" />
           </g>
 
           {/* Dot accents — pulsing */}
-          <circle cx="14" cy="14" r="1.2" fill="#00f0ff" style={animated ? { animation: "sodare-pulse 2s ease-in-out infinite" } : { opacity: 0.7 }} />
-          <circle cx="50" cy="50" r="1.2" fill="#00f0ff" style={animated ? { animation: "sodare-pulse 2s ease-in-out infinite 1s" } : { opacity: 0.7 }} />
+          <circle cx="14" cy="14" r="1.2" fill="var(--cyan)" style={animated ? { animation: "sodare-pulse 2s ease-in-out infinite" } : { opacity: 0.7 }} />
+          <circle cx="50" cy="50" r="1.2" fill="var(--cyan)" style={animated ? { animation: "sodare-pulse 2s ease-in-out infinite 1s" } : { opacity: 0.7 }} />
         </svg>
       </div>
 
@@ -197,7 +197,7 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
             fontSize,
             fontWeight: 900,
             letterSpacing: "0.2em",
-            color: animated ? undefined : "#e2e8f0",
+            color: animated ? undefined : "var(--foreground)",
             textShadow: animated ? undefined : "0 0 12px rgba(0,240,255,0.3), 0 0 40px rgba(0,240,255,0.1)",
             lineHeight: 1,
           }}
@@ -223,12 +223,12 @@ export function SodareIcon({ size = 24 }: { size?: number }) {
     >
       <defs>
         <linearGradient id="si-glow" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor="#00f0ff" />
+          <stop offset="0%" stopColor="var(--cyan)" />
           <stop offset="50%" stopColor="#0080ff" />
-          <stop offset="100%" stopColor="#00f0ff" />
+          <stop offset="100%" stopColor="var(--cyan)" />
         </linearGradient>
         <filter id="si-shadow" x="-20%" y="-20%" width="140%" height="140%">
-          <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="#00f0ff" floodOpacity="0.6" />
+          <feDropShadow dx="0" dy="0" stdDeviation="2" floodColor="var(--cyan)" floodOpacity="0.6" />
         </filter>
       </defs>
       <polygon

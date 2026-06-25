@@ -5,16 +5,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Loader2 } from "lucide-react";
 import { SodareLogo } from "@/components/ui/SodareLogo";
+import { Orbi } from "@/components/ui/Orbi";
 
 export default function OnboardingPage() {
   return (
     <Suspense fallback={
       <div style={{
         minHeight: "100vh", background: "var(--background)",
-        display: "flex", alignItems: "center", justifyContent: "center",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "24px"
       }}>
-        <Loader2 style={{ width: 32, height: 32, color: "#00d4ff",
-          animation: "spin 1s linear infinite" }} />
+        <Orbi state="working" scale={0.8} />
+        <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>INICIALIZANDO COMANDOS...</p>
       </div>
     }>
       <OnboardingContent />
@@ -100,10 +101,10 @@ function OnboardingContent() {
     return (
       <div style={{
         minHeight: "100vh", background: "var(--background)",
-        display: "flex", alignItems: "center", justifyContent: "center",
+        display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "24px"
       }}>
-        <Loader2 style={{ width: 32, height: 32, color: "#00d4ff",
-          animation: "spin 1s linear infinite" }} />
+        <Orbi state="working" scale={0.8} />
+        <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>VERIFICANDO ACCESOS...</p>
       </div>
     );
   }
@@ -146,7 +147,7 @@ function OnboardingContent() {
         >
           {isNewWorkspace ? "Nuevo Workspace" : "Inicializar Command Center"}
         </h1>
-        <p style={{ fontSize: "13px", color: "#94a3b8", marginBottom: "28px" }}>
+        <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "28px" }}>
           {isNewWorkspace
             ? "Crea un workspace adicional para otro cliente o equipo."
             : "Dale un nombre a tu workspace. Podrás invitar a tu equipo después."}
@@ -158,7 +159,7 @@ function OnboardingContent() {
               display: "block",
               fontSize: "11px",
               fontWeight: 600,
-              color: "#64748b",
+              color: "var(--text-muted)",
               letterSpacing: "0.1em",
               textTransform: "uppercase",
               marginBottom: "8px",
@@ -210,7 +211,7 @@ function OnboardingContent() {
               padding: "8px",
               background: "transparent",
               border: "1px solid rgba(0,212,255,0.08)",
-              color: "#64748b",
+              color: "var(--text-muted)",
               cursor: "pointer",
               fontSize: "12px",
             }}

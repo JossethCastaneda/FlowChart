@@ -511,9 +511,13 @@ function saleConfirmationAt(s: BmSession): number | null {
   return null;
 }
 
-/** ¿La sesión es una venta? (el bot dijo "felicidades"). */
+/** ¿La sesión es una venta? (el bot dijo "felicidades" o la tipificación indica venta). */
 export function isSaleSession(s: BmSession): boolean {
-  return saleConfirmationAt(s) != null;
+  if (saleConfirmationAt(s) != null) return true;
+  const closeEv = (s.events || []).find((e) => (e.name || "").toLowerCase() === "conversation-close");
+  const typ = closeEv?.info?.typification?.toLowerCase() || "";
+  if (typ.includes("venta") && !typ.includes("prospecto")) return true;
+  return false;
 }
 
 /** Normaliza un teléfono a sus últimos 10 dígitos (para cruce con sábana de ventas). */

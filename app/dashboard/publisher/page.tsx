@@ -10,7 +10,7 @@ export default function PublisherPage() {
       <PageHeader
         title="Planner"
         description="Planifica, redacta, programa y prepara aprobaciones para tus canales sociales."
-        icon={<Zap className="w-6 h-6" style={{ color: "#ffbe0b" }} />}
+        icon={<Zap className="w-6 h-6" style={{ color: "var(--amber)" }} />}
       />
 
       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>

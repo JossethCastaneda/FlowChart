@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Loader2, RefreshCw, Bell, CheckCircle2, Circle, AlertTriangle, ChevronRight, X } from "lucide-react";
@@ -33,12 +33,12 @@ const META_MODULES = [
           <linearGradient id="ig-g" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stopColor="#833ab4" />
             <stop offset="50%" stopColor="#fd1d1d" />
-            <stop offset="100%" stopColor="#fcb045" />
+            <stop offset="100%" stopColor="var(--amber)" />
           </linearGradient>
         </defs>
         <rect x="2" y="2" width="20" height="20" rx="5" stroke="url(#ig-g)" fill="none" />
         <circle cx="12" cy="12" r="4" stroke="url(#ig-g)" />
-        <circle cx="17.5" cy="6.5" r="0.5" fill="#fcb045" />
+        <circle cx="17.5" cy="6.5" r="0.5" fill="var(--amber)" />
       </svg>
     ),
     color: "#E4405F",
@@ -48,11 +48,11 @@ const META_MODULES = [
     key: "ads",
     label: "Ads Manager",
     icon: () => (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7b61ff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
       </svg>
     ),
-    color: "#7b61ff",
+    color: "var(--purple)",
     permissions: ["ads_management", "ads_read", "leads_retrieval"],
   },
   {
@@ -70,11 +70,11 @@ const META_MODULES = [
     key: "community",
     label: "Community",
     icon: () => (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
       </svg>
     ),
-    color: "#a855f7",
+    color: "var(--purple)",
     permissions: ["pages_messaging", "instagram_manage_messages", "read_page_mailboxes"],
   },
 ];
@@ -151,12 +151,12 @@ export function IntegrationsPanel() {
         background: "rgba(255,255,255,0.02)",
         border: "1px solid rgba(255,255,255,0.06)",
       }}>
-        <span style={{ fontSize: 12, color: "#64748b" }}>
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
           Meta Integrations
         </span>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{
-            fontSize: 11, color: connectedCount === META_MODULES.length ? "#06d6a0" : "#64748b",
+            fontSize: 11, color: connectedCount === META_MODULES.length ? "var(--emerald)" : "var(--text-muted)",
             fontWeight: 500,
           }}>
             {connectedCount} / {META_MODULES.length} conectados
@@ -167,7 +167,7 @@ export function IntegrationsPanel() {
               return (
                 <div key={mod.key} title={mod.label} style={{
                   width: 6, height: 6, borderRadius: "50%",
-                  background: connected ? mod.color : "#1e293b",
+                  background: connected ? mod.color : "var(--surface)",
                   boxShadow: connected ? `0 0 6px ${mod.color}80` : "none",
                   transition: "all 0.3s",
                 }} />
@@ -206,7 +206,7 @@ export function IntegrationsPanel() {
                 {/* Icon */}
                 <div style={{
                   width: 28, height: 28, borderRadius: 6, flexShrink: 0,
-                  background: connected ? `${mod.color}12` : "rgba(255,255,255,0.04)",
+                  background: connected ? `${mod.color}12` : "var(--surface-hover)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <Icon />
@@ -215,13 +215,13 @@ export function IntegrationsPanel() {
                 {/* Label + summary */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-                    <span style={{ fontSize: 12, fontWeight: 500, color: connected ? "#e2e8f0" : "#475569" }}>
+                    <span style={{ fontSize: 12, fontWeight: 500, color: connected ? "var(--foreground)" : "var(--text-secondary)" }}>
                       {mod.label}
                     </span>
                     {expiring && (
                       <span style={{
                         fontSize: 8, padding: "1px 5px", borderRadius: 2,
-                        background: "rgba(255,190,11,0.1)", color: "#ffbe0b",
+                        background: "rgba(255,190,11,0.1)", color: "var(--amber)",
                         border: "1px solid rgba(255,190,11,0.2)", fontWeight: 700,
                       }}>
                         ⚠ exp. {st?.daysUntilExpiry}d
@@ -232,20 +232,20 @@ export function IntegrationsPanel() {
                   {/* Summary count instead of 57 page names */}
                   {connected && pageCount > 0 && (
                     <div style={{
-                      fontSize: 10, color: "#475569", marginTop: 1,
+                      fontSize: 10, color: "var(--text-secondary)", marginTop: 1,
                       display: "flex", alignItems: "center", gap: 5,
                     }}>
                       <span>{pageCount} página{pageCount !== 1 ? "s" : ""}</span>
                       {igCount > 0 && (
                         <>
-                          <span style={{ color: "#1e293b" }}>·</span>
+                          <span style={{ color: "var(--surface)" }}>·</span>
                           <span>{igCount} cuenta{igCount !== 1 ? "s" : ""} IG</span>
                         </>
                       )}
                     </div>
                   )}
                   {connected && pageCount === 0 && (
-                    <div style={{ fontSize: 10, color: "#475569", marginTop: 1 }}>
+                    <div style={{ fontSize: 10, color: "var(--text-secondary)", marginTop: 1 }}>
                       Conectado
                     </div>
                   )}
@@ -255,7 +255,7 @@ export function IntegrationsPanel() {
                 <div style={{ flexShrink: 0 }}>
                   {connected
                     ? <CheckCircle2 style={{ width: 14, height: 14, color: mod.color }} />
-                    : <Circle style={{ width: 14, height: 14, color: "#1e293b" }} />
+                    : <Circle style={{ width: 14, height: 14, color: "var(--surface)" }} />
                   }
                 </div>
 
@@ -265,9 +265,9 @@ export function IntegrationsPanel() {
                   disabled={isConnecting}
                   style={{
                     padding: "5px 12px", borderRadius: 6, flexShrink: 0,
-                    background: connected ? "rgba(255,255,255,0.04)" : `${mod.color}cc`,
-                    border: connected ? "1px solid rgba(255,255,255,0.08)" : "none",
-                    color: connected ? "#475569" : "#fff",
+                    background: connected ? "var(--surface-hover)" : `${mod.color}cc`,
+                    border: connected ? "1px solid var(--hairline)" : "none",
+                    color: connected ? "var(--text-secondary)" : "#fff",
                     fontSize: 10, fontWeight: 600, cursor: isConnecting ? "wait" : "pointer",
                     display: "flex", alignItems: "center", gap: 5,
                     transition: "all 0.15s", fontFamily: "inherit",
@@ -292,7 +292,7 @@ export function IntegrationsPanel() {
                       padding: "5px 10px", borderRadius: 6, flexShrink: 0,
                       background: "rgba(239,68,68,0.06)",
                       border: "1px solid rgba(239,68,68,0.18)",
-                      color: "#f87171", fontSize: 10, fontWeight: 600,
+                      color: "var(--red)", fontSize: 10, fontWeight: 600,
                       cursor: disconnecting === mod.key ? "wait" : "pointer",
                       display: "flex", alignItems: "center", gap: 5,
                       fontFamily: "inherit", transition: "all 0.15s",
@@ -311,7 +311,7 @@ export function IntegrationsPanel() {
                     onClick={() => setExpanded(isExpanded ? null : mod.key)}
                     style={{
                       padding: 4, borderRadius: 4, background: "none", border: "none",
-                      cursor: "pointer", color: "#334155",
+                      cursor: "pointer", color: "var(--text-secondary)",
                       display: "flex", alignItems: "center",
                     }}
                   >
@@ -348,9 +348,9 @@ export function IntegrationsPanel() {
                           : page.name?.charAt(0)
                         }
                       </div>
-                      <span style={{ fontSize: 11, color: "#94a3b8", flex: 1 }}>{page.name}</span>
+                      <span style={{ fontSize: 11, color: "var(--text-secondary)", flex: 1 }}>{page.name}</span>
                       {page.instagram?.username && (
-                        <span style={{ fontSize: 10, color: "#64748b" }}>@{page.instagram.username}</span>
+                        <span style={{ fontSize: 10, color: "var(--text-muted)" }}>@{page.instagram.username}</span>
                       )}
                     </div>
                   ))}
@@ -380,8 +380,8 @@ export function IntegrationsPanel() {
             display: "flex", alignItems: "center", gap: 12, padding: "11px 14px",
             borderRadius: 8, border: "1px solid rgba(239,68,68,0.25)", background: "rgba(239,68,68,0.05)",
           }}>
-            <AlertTriangle style={{ width: 15, height: 15, color: "#f87171", flexShrink: 0 }} />
-            <div style={{ flex: 1, fontSize: 11, color: "#fca5a5" }}>
+            <AlertTriangle style={{ width: 15, height: 15, color: "var(--red)", flexShrink: 0 }} />
+            <div style={{ flex: 1, fontSize: 11, color: "var(--red)" }}>
               Esto <strong>revoca el acceso de Sodare a Meta</strong> y desconecta todas las páginas y cuentas. Podrás volver a conectar cuando quieras.
             </div>
             <button
@@ -389,8 +389,8 @@ export function IntegrationsPanel() {
               disabled={disconnecting === "all"}
               style={{
                 padding: "5px 12px", borderRadius: 6, flexShrink: 0,
-                background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-                color: "#94a3b8", fontSize: 10, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                background: "var(--surface-hover)", border: "1px solid var(--hairline)",
+                color: "var(--text-secondary)", fontSize: 10, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
               }}
             >
               Cancelar
@@ -417,7 +417,7 @@ export function IntegrationsPanel() {
               display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
               padding: "9px 14px", borderRadius: 8,
               background: "transparent", border: "1px solid rgba(239,68,68,0.18)",
-              color: "#f87171", fontSize: 11, fontWeight: 600, cursor: "pointer",
+              color: "var(--red)", fontSize: 11, fontWeight: 600, cursor: "pointer",
               fontFamily: "inherit", transition: "all 0.15s",
             }}
             onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.06)"}
@@ -473,21 +473,21 @@ function WebhookRow({ connectedCount }: { connectedCount: number }) {
         background: allOk ? "rgba(6,214,160,0.1)" : "rgba(255,190,11,0.08)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
-        <Bell style={{ width: 13, height: 13, color: allOk ? "#06d6a0" : "#ffbe0b" }} />
+        <Bell style={{ width: 13, height: 13, color: allOk ? "var(--emerald)" : "var(--amber)" }} />
       </div>
 
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 12, fontWeight: 500, color: allOk ? "#e2e8f0" : "#475569" }}>
+        <div style={{ fontSize: 12, fontWeight: 500, color: allOk ? "var(--foreground)" : "var(--text-secondary)" }}>
           Webhooks en tiempo real
         </div>
-        <div style={{ fontSize: 10, color: "#475569", marginTop: 1 }}>
+        <div style={{ fontSize: 10, color: "var(--text-secondary)", marginTop: 1 }}>
           {allOk ? "Alertas activas — 14 eventos monitoreados" : connectedCount === 0 ? "Requiere al menos un módulo conectado" : "Pendiente de configurar"}
         </div>
       </div>
 
       {allOk
-        ? <CheckCircle2 style={{ width: 14, height: 14, color: "#06d6a0", flexShrink: 0 }} />
-        : <AlertTriangle style={{ width: 14, height: 14, color: "#ffbe0b", flexShrink: 0 }} />
+        ? <CheckCircle2 style={{ width: 14, height: 14, color: "var(--emerald)", flexShrink: 0 }} />
+        : <AlertTriangle style={{ width: 14, height: 14, color: "var(--amber)", flexShrink: 0 }} />
       }
 
       {!allOk && (
@@ -496,9 +496,9 @@ function WebhookRow({ connectedCount }: { connectedCount: number }) {
           disabled={subscribing || connectedCount === 0}
           style={{
             padding: "5px 12px", borderRadius: 6, flexShrink: 0,
-            background: connectedCount === 0 ? "rgba(255,255,255,0.03)" : "rgba(255,190,11,0.15)",
+            background: connectedCount === 0 ? "var(--row-hover)" : "rgba(255,190,11,0.15)",
             border: "1px solid rgba(255,190,11,0.2)",
-            color: connectedCount === 0 ? "#334155" : "#ffbe0b",
+            color: connectedCount === 0 ? "var(--text-secondary)" : "var(--amber)",
             fontSize: 10, fontWeight: 600, cursor: subscribing ? "wait" : connectedCount === 0 ? "not-allowed" : "pointer",
             display: "flex", alignItems: "center", gap: 5,
             fontFamily: "inherit", transition: "all 0.15s",

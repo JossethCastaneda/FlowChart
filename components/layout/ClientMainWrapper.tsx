@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
@@ -46,20 +46,45 @@ import { useLanguage } from "@/components/layout/LanguageContext";
 
 import { HoloIcon } from "@/components/ui/HoloIcon";
 
-const NAV_ITEMS: { name: string; short: string; href: string; icon: any; color: string; holoVariant: "cyan" | "emerald" | "pink" | "gold"; roles?: string[] }[] = [
-  { name: "Inicio", short: "HOME", href: "/dashboard/resumen", icon: LayoutDashboard, color: "#00d4ff", holoVariant: "cyan" },
-  { name: "Clientes", short: "CLI", href: "/dashboard/proyectos", icon: FolderKanban, color: "#06d6a0", holoVariant: "emerald" },
-  { name: "Planner", short: "PLAN", href: "/dashboard/publisher", icon: Zap, color: "#ffbe0b", holoVariant: "gold" },
-  { name: "Inbox", short: "INBX", href: "/dashboard/inbox", icon: MessageSquare, color: "#a855f7", holoVariant: "pink" },
+import { NAV_GROUPS } from "@/lib/sodare-kit/nav-items";
+import {
+  Activity,
+  MessagesSquare,
+  Sparkles,
+  Rocket,
+  Radar,
+  CheckCheck,
+  FileText,
+  FolderOpen,
+  Database,
+  Swords,
+  Link as LinkIcon,
+  Shield,
+  Webhook
+} from "lucide-react";
 
-  { name: "Ads", short: "ADS", href: "/dashboard/ads-manager", icon: Megaphone, color: "#0081FB", holoVariant: "cyan" },
-  { name: "Listening", short: "LIST", href: "/dashboard/listening", icon: Ear, color: "#fb923c", holoVariant: "gold" },
-  { name: "Streams", short: "STRM", href: "/dashboard/streams", icon: Columns3, color: "#22d3ee", holoVariant: "cyan" },
-  { name: "GridIA", short: "GRID", href: "/dashboard/briefing", icon: Target, color: "#00E500", holoVariant: "emerald" },
-  { name: "Ops", short: "OPS", href: "/dashboard/ops", icon: Users, color: "#ff2d55", holoVariant: "pink" },
-  { name: "Botmaker", short: "BOT", href: "/dashboard/botmaker", icon: Bot, color: "#7c3aed", holoVariant: "pink" },
-  { name: "Bot Analytics", short: "BANA", href: "/dashboard/botmaker/analytics", icon: BarChart3, color: "#a855f7", holoVariant: "pink" },
-];
+const ICON_MAP: Record<string, any> = {
+  "activity": Activity,
+  "folder-kanban": FolderKanban,
+  "messages-square": MessagesSquare,
+  "target": Target,
+  "sparkles": Sparkles,
+  "rocket": Rocket,
+  "megaphone": Megaphone,
+  "radar": Radar,
+  "columns-3": Columns3,
+  "bot": Bot,
+  "plug": Plug,
+  "settings": Settings,
+  "check-check": CheckCheck,
+  "file-text": FileText,
+  "folder-open": FolderOpen,
+  "database": Database,
+  "swords": Swords,
+  "link": LinkIcon,
+  "shield": Shield,
+  "webhook": Webhook
+};
 
 
 
@@ -166,9 +191,19 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   // "pinned" is the manual toggle via the hamburger — when true, sidebar stays visible
   const [pinned, setPinned] = useState(false);
+  const pathname = usePathname();
+  
+  const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {};
+    NAV_GROUPS.forEach(g => {
+      const hasActive = g.items.some(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
+      initial[g.key] = !hasActive; // true means collapsed
+    });
+    return initial;
+  });
+
   const [mounted, setMounted] = useState(false);
   const [isEmbedded, setIsEmbedded] = useState(false);
-  const pathname = usePathname();
   const sidebarRef = useRef<HTMLElement>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -177,6 +212,22 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  // Ensure the active group is uncollapsed when navigating
+  useEffect(() => {
+    setCollapsedGroups(prev => {
+      const next = { ...prev };
+      let changed = false;
+      NAV_GROUPS.forEach(g => {
+        const hasActive = g.items.some(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
+        if (hasActive && next[g.key]) {
+          next[g.key] = false;
+          changed = true;
+        }
+      });
+      return changed ? next : prev;
+    });
+  }, [pathname]);
 
   // Detect iframe on mount (client-side only)
   useEffect(() => {
@@ -227,12 +278,12 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   // ── Activity status ──
   const STATUS_OPTIONS = [
-    { key: "online_chat", dbStatus: "disponible" as const, label: "En línea (Recibe chat)", category: "recibe" as const, color: "#00c875", icon: UserCheck },
-    { key: "online_no_chat", dbStatus: "ausente" as const, label: "En línea", category: "no_recibe" as const, color: "#fdab3d", icon: UserMinus },
-    { key: "break", dbStatus: "ausente" as const, label: "Break", category: "no_recibe" as const, color: "#fdab3d", icon: Coffee },
-    { key: "almuerzo", dbStatus: "ausente" as const, label: "Almuerzo", category: "no_recibe" as const, color: "#fdab3d", icon: Utensils },
-    { key: "coach", dbStatus: "ausente" as const, label: "Coach", category: "no_recibe" as const, color: "#fdab3d", icon: GraduationCap },
-    { key: "ocupado", dbStatus: "ocupado" as const, label: "Ocupado", category: "no_recibe" as const, color: "#e2445c", icon: MinusCircle },
+    { key: "online_chat", dbStatus: "disponible" as const, label: "En línea (Recibe chat)", category: "recibe" as const, color: "var(--emerald)", icon: UserCheck },
+    { key: "online_no_chat", dbStatus: "ausente" as const, label: "En línea", category: "no_recibe" as const, color: "var(--amber)", icon: UserMinus },
+    { key: "break", dbStatus: "ausente" as const, label: "Break", category: "no_recibe" as const, color: "var(--amber)", icon: Coffee },
+    { key: "almuerzo", dbStatus: "ausente" as const, label: "Almuerzo", category: "no_recibe" as const, color: "var(--amber)", icon: Utensils },
+    { key: "coach", dbStatus: "ausente" as const, label: "Coach", category: "no_recibe" as const, color: "var(--amber)", icon: GraduationCap },
+    { key: "ocupado", dbStatus: "ocupado" as const, label: "Ocupado", category: "no_recibe" as const, color: "var(--red)", icon: MinusCircle },
   ];
   const [activityStatus, setActivityStatus] = useState<"disponible" | "ocupado" | "ausente" | "offline">("disponible");
   const [subStatus, setSubStatus] = useState<string>("online_chat");
@@ -321,7 +372,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     } catch {}
   };
 
-  const currentStatusCfg = STATUS_OPTIONS.find(s => s.key === subStatus) || { key: "online_chat", dbStatus: "disponible" as const, label: "En línea", category: "recibe" as const, color: "#00c875", icon: UserCheck };
+  const currentStatusCfg = STATUS_OPTIONS.find(s => s.key === subStatus) || { key: "online_chat", dbStatus: "disponible" as const, label: "En línea", category: "recibe" as const, color: "var(--emerald)", icon: UserCheck };
 
   if (!pathname?.startsWith("/dashboard")) {
     return <>{children}</>;
@@ -385,16 +436,10 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           display: "flex",
           flexDirection: "column",
           borderRadius: 20,
-          background: theme === 'claro'
-            ? "rgba(255,255,255,0.92)"
-            : "rgba(8,12,24,0.92)",
+          background: "var(--surface)",
           backdropFilter: "blur(40px) saturate(1.5)",
-          border: theme === 'claro'
-            ? "1px solid rgba(0,0,0,0.08)"
-            : "1px solid rgba(0,212,255,0.12)",
-          boxShadow: theme === 'claro'
-            ? "0 8px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.02)"
-            : "0 8px 40px rgba(0,0,0,0.6), 0 0 60px rgba(0,212,255,0.04), 0 0 0 1px rgba(0,212,255,0.06)",
+          border: "1px solid var(--sidebar-border)",
+          boxShadow: "var(--sidebar-shadow)",
           // Slide in/out transition
           transform: sidebarVisible ? "translateX(0)" : "translateX(calc(-100% - 24px))",
           opacity: sidebarVisible ? 1 : 0,
@@ -403,12 +448,13 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           overflow: "hidden",
         }}
       >
+
         {/* Logo */}
-        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: theme === 'claro' ? "1px solid rgba(0,0,0,0.06)" : "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--hairline)" }}>
           <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
             <SodareLogo size="sm" showText={true} />
           </Link>
-          <button onClick={() => { setPinned(false); setSidebarOpen(false); }} className="text-slate-500 hover:text-white cursor-pointer" title={t.colapsar}>
+          <button onClick={() => { setPinned(false); setSidebarOpen(false); }} className="text-slate-500 hover:text-[var(--foreground)] cursor-pointer" title={t.colapsar}>
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -418,50 +464,68 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <WorkspaceSwitcher />
         </div>
 
-        {/* Nav section label */}
-        <div className="px-5 pt-6 pb-2">
-          <span style={{
-            fontFamily: "'Orbitron', sans-serif",
-            fontSize: "9px",
-            fontWeight: 600,
-            letterSpacing: "0.3em",
-            textTransform: "uppercase" as const,
-            color: "rgba(148,163,184,0.65)",
-          }}>
-            {t.operacion}
-          </span>
-        </div>
-
         {/* Navigation */}
-        <nav className="flex-1 px-3 pb-4 space-y-1 overflow-y-auto">
-          {NAV_ITEMS.filter(item => !item.roles || !userRole || item.roles.includes(userRole)).map((item) => {
-            const isActive = pathname === item.href || pathname?.startsWith(item.href + "/");
-            const Icon = item.icon;
-            const translatedName = getTranslatedNavItemName(item.name, lang);
-
+        <nav className="flex-1 px-3 pb-4 space-y-1 overflow-y-auto" style={{ scrollbarWidth: "none" }}>
+          {NAV_GROUPS.map((group) => {
+            const isCollapsed = collapsedGroups[group.key];
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`nav-item ${isActive ? "active" : ""}`}
-                onClick={() => {
-                  setSidebarOpen(false);
-                  // If not pinned, auto-hide after navigation
-                  if (!pinned) setSidebarOpen(false);
-                }}
-                style={isActive ? { "--nav-color": item.color } as React.CSSProperties : undefined}
-              >
-                <HoloIcon
-                  icon={Icon}
-                  variant={item.holoVariant}
-                  isActive={isActive}
-                  className="w-[18px] h-[18px]"
-                />
-                <span className="flex-1">{translatedName}</span>
-                {isActive && (
-                  <HoloIcon icon={ChevronRight} variant="cyan" isActive={true} className="w-3 h-3" style={{ opacity: 0.5 }} />
-                )}
-              </Link>
+              <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-white/5" : "mt-2"}>
+                <div 
+                  className="px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
+                  onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
+                >
+                  <span style={{
+                    fontFamily: "'Orbitron', sans-serif",
+                    fontSize: "9px",
+                    fontWeight: 600,
+                    letterSpacing: "0.3em",
+                    textTransform: "uppercase",
+                    color: group.key === "sistema" ? "var(--text-muted)" : "rgba(148,163,184,0.65)",
+                    transition: "color 0.2s"
+                  }} className="group-hover/nav:text-white">
+                    {group.title}
+                  </span>
+                  <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+                </div>
+                
+                <div style={{
+                  display: "grid",
+                  gridTemplateRows: isCollapsed ? "0fr" : "1fr",
+                  transition: "grid-template-rows 0.2s ease-out",
+                }}>
+                  <div style={{ overflow: "hidden" }}>
+                    {group.items.map((m) => {
+                const isActive = pathname === m.route || pathname?.startsWith(m.route + "/");
+                const Icon = ICON_MAP[m.icon] || LayoutDashboard;
+
+                return (
+                  <Link
+                    key={m.key}
+                    href={m.route}
+                    title={`✦ ${m.code} — ${m.tagline}`}
+                    className={`nav-item ${isActive ? "active" : ""}`}
+                    onClick={() => {
+                      setSidebarOpen(false);
+                      if (!pinned) setSidebarOpen(false);
+                    }}
+                    style={isActive ? { "--nav-color": m.color, borderLeftColor: m.color } as React.CSSProperties : {}}
+                  >
+                    <HoloIcon
+                      icon={Icon}
+                      variant={isActive ? "cyan" : "pink"} 
+                      isActive={isActive}
+                      className="w-[18px] h-[18px]"
+                    />
+                    <span className="flex-1" style={{ color: isActive ? m.color : undefined }}>{m.label}</span>
+                    {isActive && (
+                      <HoloIcon icon={ChevronRight} variant="cyan" isActive={true} className="w-3 h-3" style={{ opacity: 0.5 }} />
+                    )}
+                  </Link>
+                );
+              })}
+                  </div>
+                </div>
+              </div>
             );
           })}
         </nav>
@@ -474,7 +538,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* Mobile header */}
         <header className="lg:hidden flex items-center justify-between px-5 py-4 z-10"
           style={{
-            background: "rgba(5,8,18,0.9)",
+            background: "var(--topbar-bg)",
             backdropFilter: "blur(20px)",
             borderBottom: "1px solid var(--border)",
           }}
@@ -482,7 +546,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <div className="flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen(true)}
-              className="flex items-center justify-center p-1 rounded-lg text-slate-400 hover:text-white transition-colors cursor-pointer"
+              className="flex items-center justify-center p-1 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors cursor-pointer"
               style={{ background: "transparent", border: "none" }}
             >
               <Menu className="w-5 h-5" />
@@ -500,7 +564,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* Desktop top bar */}
         <div className="hidden lg:flex items-center justify-end px-6 py-2 gap-5" style={{
           borderBottom: "1px solid var(--border)",
-          background: "rgba(5,8,18,0.6)",
+          background: "var(--topbar-bg)",
           backdropFilter: "blur(20px)",
           height: "56px",
           position: "relative",
@@ -509,7 +573,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           {/* Hamburger Menu Toggle (Desktop) */}
           <button
             onClick={togglePinned}
-            className="flex items-center justify-center p-2 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors cursor-pointer mr-auto"
+            className="flex items-center justify-center p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer mr-auto"
             style={{ background: "transparent", border: "none" }}
             title={pinned ? t.colapsar : t.expandir}
           >
@@ -517,13 +581,13 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           </button>
 
           {/* Quick actions */}
-          <Link href="/dashboard/inbox" className="text-slate-400 hover:text-white transition-colors" title="Conversaciones">
+          <Link href="/dashboard/inbox" className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Conversaciones">
             <HoloIcon icon={MessageSquarePlus} variant="cyan" isActive={true} className="w-[18px] h-[18px]" />
           </Link>
 
           <NotificationBell />
 
-          <button className="text-slate-400 hover:text-white transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+          <button className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
             <HoloIcon icon={HelpCircle} variant="emerald" isActive={true} className="w-[18px] h-[18px]" />
           </button>
 
@@ -531,11 +595,11 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <div className="relative" ref={userMenuRef}>
             <button
               onClick={() => { setUserMenuOpen(!userMenuOpen); setActivePanel('main'); }}
-              className="flex items-center gap-3 hover:bg-white/5 px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
+              className="flex items-center gap-3 hover:bg-[var(--surface-hover)] px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
               style={{ background: "transparent", border: "none" }}
             >
               <div style={{ position: "relative" }}>
-                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/10" style={{ background: "linear-gradient(135deg,#00B2FF,#0064E0)" }}>
+                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/10" style={{ background: "linear-gradient(135deg,var(--cyan),#0064E0)" }}>
                   {session?.user?.image ? (
                     <img src={session.user.image} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   ) : (
@@ -557,8 +621,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               </div>
 
               <div className="flex flex-col items-start text-left min-w-[70px]">
-                <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.6)", textTransform: "uppercase", letterSpacing: "0.05em", lineHeight: 1.1 }}>{t.estado}</span>
-                <span style={{ fontSize: "11px", color: theme === 'claro' ? '#0f172a' : 'white', fontWeight: 600, lineHeight: 1.2 }}>
+                <span style={{ fontSize: "9px", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", lineHeight: 1.1 }}>{t.estado}</span>
+                <span style={{ fontSize: "11px", color: 'var(--foreground)', fontWeight: 600, lineHeight: 1.2 }}>
                   {currentStatusCfg.key === "online_chat" ? t.enLinea : currentStatusCfg.key === "online_no_chat" ? t.enLinea : currentStatusCfg.key === "break" ? t.break : currentStatusCfg.key === "almuerzo" ? t.almuerzo : currentStatusCfg.key === "coach" ? t.coach : t.ocupado}
                 </span>
               </div>
@@ -574,22 +638,22 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   top: "105%",
                   right: 0,
                   width: 280,
-                  background: theme === 'claro' ? "rgba(255, 255, 255, 0.98)" : "rgba(10, 15, 30, 0.98)",
+                  background: "var(--panel-bg)",
                   backdropFilter: "blur(20px)",
-                  border: theme === 'claro' ? "1px solid rgba(0, 0, 0, 0.08)" : "1px solid rgba(255, 255, 255, 0.08)",
+                  border: "1px solid var(--border)",
                   borderRadius: 12,
-                  boxShadow: theme === 'claro' ? "0 10px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.02)" : "0 10px 40px rgba(0,0,0,0.7), 0 0 0 1px rgba(0,240,255,0.05)",
+                  boxShadow: "0 10px 40px var(--overlay-dark)",
                   padding: "16px 0 8px",
                   zIndex: 999,
                   animation: "fadeInScale 0.15s ease-out",
-                  color: theme === 'claro' ? "#0f172a" : "white",
+                  color: "var(--foreground)",
                 }}
               >
                 {activePanel === 'main' && (
                   <>
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
-                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-white/10" style={{ background: "linear-gradient(135deg,#4f46e5,#7c3aed)", flexShrink: 0 }}>
+                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-white/10" style={{ background: "linear-gradient(135deg,#4f46e5,var(--purple))", flexShrink: 0 }}>
                         {session?.user?.image ? (
                           <img src={session.user.image} alt="Avatar" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                         ) : (
@@ -599,26 +663,26 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                         )}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p style={{ fontSize: 13, fontWeight: 700, color: theme === 'claro' ? "#0f172a" : "white", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {session?.user?.name || "Josseth"}
                         </p>
-                        <p style={{ fontSize: 10, color: theme === 'claro' ? "#475569" : "rgba(148, 163, 184, 0.7)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: "2px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {userRole === "OWNER" || userRole === "ADMIN" ? t.superAdmin : t.miembro}
                         </p>
-                        <p style={{ fontSize: 10, color: theme === 'claro' ? "#64748b" : "rgba(148, 163, 184, 0.4)", margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                        <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "1px 0 0", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                           {session?.user?.email || ""}
                         </p>
                       </div>
                     </div>
 
-                    <div style={{ height: "1px", background: theme === 'claro' ? "rgba(0,0,0,0.06)" : "rgba(255, 255, 255, 0.06)", margin: "0 0 12px" }} />
+                    <div style={{ height: "1px", background: "var(--hairline)", margin: "0 0 12px" }} />
 
                     {/* Estado Section */}
                     <div className="px-5">
-                      <p style={{ fontSize: "10px", fontWeight: 700, color: theme === 'claro' ? "#475569" : "rgba(148, 163, 184, 0.7)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 10px" }}>{t.estado}</p>
+                      <p style={{ fontSize: "10px", fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", margin: "0 0 10px" }}>{t.estado}</p>
                       
                       {/* Recibe conversaciones */}
-                      <p style={{ fontSize: "10px", color: theme === 'claro' ? "#64748b" : "rgba(148, 163, 184, 0.4)", margin: "0 0 6px" }}>{t.recibe}</p>
+                      <p style={{ fontSize: "10px", color: "var(--text-muted)", margin: "0 0 6px" }}>{t.recibe}</p>
                       <div className="space-y-1 mb-3">
                         {STATUS_OPTIONS.filter(o => o.category === "recibe").map(opt => {
                           const Icon = opt.icon;
@@ -627,17 +691,17 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             <button
                               key={opt.key}
                               onClick={() => changeStatus(opt.key)}
-                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-white/5 transition-colors"
+                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-[var(--surface-hover)] transition-colors"
                               style={{
-                                background: isSelected ? (theme === 'claro' ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.08)") : "transparent",
+                                background: isSelected ? ("var(--surface-hover)") : "transparent",
                                 border: "none",
                                 cursor: "pointer",
                               }}
                             >
                               <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "rgba(0,200,117,0.15)" }}>
-                                <Icon className="w-3.5 h-3.5 text-[#00c875]" />
+                                <Icon className="w-3.5 h-3.5 text-[var(--emerald)]" />
                               </div>
-                              <span style={{ fontSize: 12, color: isSelected ? (theme === 'claro' ? "#0f172a" : "white") : (theme === 'claro' ? "#475569" : "#e2e8f0"), fontWeight: isSelected ? 600 : 400 }}>
+                              <span style={{ fontSize: 12, color: isSelected ? ("var(--foreground)") : ("var(--text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
                                 {opt.key === "online_chat" ? t.enLinea : opt.label}
                               </span>
                             </button>
@@ -646,7 +710,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       </div>
 
                       {/* No recibe conversaciones */}
-                      <p style={{ fontSize: "10px", color: theme === 'claro' ? "#64748b" : "rgba(148, 163, 184, 0.4)", margin: "0 0 6px" }}>{t.noRecibe}</p>
+                      <p style={{ fontSize: "10px", color: "var(--text-muted)", margin: "0 0 6px" }}>{t.noRecibe}</p>
                       <div className="space-y-1 mb-2" style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                         {STATUS_OPTIONS.filter(o => o.category === "no_recibe").map(opt => {
                           const Icon = opt.icon;
@@ -655,17 +719,17 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             <button
                               key={opt.key}
                               onClick={() => changeStatus(opt.key)}
-                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-white/5 transition-colors"
+                              className="w-full flex items-center gap-3 px-3 py-1.5 rounded-lg text-left hover:bg-[var(--surface-hover)] transition-colors"
                               style={{
-                                background: isSelected ? (theme === 'claro' ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.08)") : "transparent",
+                                background: isSelected ? ("var(--surface-hover)") : "transparent",
                                 border: "none",
                                 cursor: "pointer",
                               }}
                             >
                               <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "rgba(253,171,61,0.15)", flexShrink: 0 }}>
-                                <Icon className="w-3.5 h-3.5 text-[#fdab3d]" />
+                                <Icon className="w-3.5 h-3.5 text-[var(--amber)]" />
                               </div>
-                              <span style={{ fontSize: 12, color: isSelected ? (theme === 'claro' ? "#0f172a" : "white") : (theme === 'claro' ? "#475569" : "#e2e8f0"), fontWeight: isSelected ? 600 : 400 }}>
+                              <span style={{ fontSize: 12, color: isSelected ? ("var(--foreground)") : ("var(--text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
                                 {opt.key === "online_no_chat" ? t.enLinea : opt.key === "break" ? t.break : opt.key === "almuerzo" ? t.almuerzo : opt.key === "coach" ? t.coach : t.ocupado}
                               </span>
                             </button>
@@ -674,22 +738,22 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       </div>
                     </div>
 
-                    <div style={{ height: "1px", background: theme === 'claro' ? "rgba(0,0,0,0.06)" : "rgba(255,255,255,0.06)", margin: "8px 0" }} />
+                    <div style={{ height: "1px", background: "var(--hairline)", margin: "8px 0" }} />
 
                     {/* Actions Section */}
                     <div className="px-2" style={{ display: "flex", flexDirection: "column" }}>
                       <button
                         onClick={() => setActivePanel('lang')}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-white/5 transition-colors"
-                        style={{ background: "transparent", border: "none", cursor: "pointer", color: theme === 'claro' ? "#475569" : "#e2e8f0" }}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-[var(--surface-hover)] transition-colors"
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-secondary)" }}
                       >
                         <HoloIcon icon={Languages} variant="cyan" isActive={true} className="w-4 h-4" />
                         <span style={{ fontSize: 12 }}>{t.idioma}</span>
                       </button>
                       <button
                         onClick={() => setActivePanel('theme')}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-white/5 transition-colors"
-                        style={{ background: "transparent", border: "none", cursor: "pointer", color: theme === 'claro' ? "#475569" : "#e2e8f0" }}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg text-left hover:bg-[var(--surface-hover)] transition-colors"
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--text-secondary)" }}
                       >
                         <HoloIcon icon={Palette} variant="gold" isActive={true} className="w-4 h-4" />
                         <span style={{ fontSize: 12 }}>{t.apariencia}</span>
@@ -697,8 +761,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       <Link
                         href="/dashboard/settings"
                         onClick={() => setUserMenuOpen(false)}
-                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-left hover:bg-white/5"
-                        style={{ color: theme === 'claro' ? "#475569" : "#e2e8f0" }}
+                        className="w-full flex items-center gap-3 px-4 py-2 rounded-lg transition-colors text-left hover:bg-[var(--surface-hover)]"
+                        style={{ color: "var(--text-secondary)" }}
                       >
                         <HoloIcon icon={Settings} variant="pink" isActive={true} className="w-4 h-4" />
                         <span style={{ fontSize: 12 }}>{t.config}</span>
@@ -706,7 +770,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                       <button
                         onClick={() => signOut({ callbackUrl: "/login" })}
                         className="w-full flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-red-500/10 transition-colors text-left"
-                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "#ff2d55" }}
+                        style={{ background: "transparent", border: "none", cursor: "pointer", color: "var(--red)" }}
                       >
                         <LogOut className="w-4 h-4" />
                         <span style={{ fontSize: 12, fontWeight: 500 }}>{t.logout}</span>
@@ -720,25 +784,25 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     <button
                       onClick={() => setActivePanel('main')}
                       className="flex items-center gap-2 text-xs font-semibold mb-4 hover:opacity-80 transition-opacity"
-                      style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "rgba(148, 163, 184, 0.7)", cursor: "pointer" }}
+                      style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                     >
                       <ChevronLeft className="w-4 h-4" />
                       Volver / Back
                     </button>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: theme === 'claro' ? "#0f172a" : "white", marginBottom: 12 }}>{t.idiomaTitulo}</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", marginBottom: 12 }}>{t.idiomaTitulo}</p>
                     <div className="space-y-1">
                       <button
                         onClick={() => changeLang('es')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>Español (ES)</span>
                         {lang === 'es' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
                         onClick={() => changeLang('en')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>English (EN)</span>
                         {lang === 'en' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
@@ -752,36 +816,36 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     <button
                       onClick={() => setActivePanel('main')}
                       className="flex items-center gap-2 text-xs font-semibold mb-4 hover:opacity-80 transition-opacity"
-                      style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "rgba(148, 163, 184, 0.7)", cursor: "pointer" }}
+                      style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                     >
                       <HoloIcon icon={ChevronLeft} variant="cyan" isActive={true} className="w-4 h-4" />
                       Volver / Back
                     </button>
-                    <p style={{ fontSize: 12, fontWeight: 700, color: theme === 'claro' ? "#0f172a" : "white", marginBottom: 12 }}>{t.aparienciaTitulo}</p>
+                    <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", marginBottom: 12 }}>{t.aparienciaTitulo}</p>
                     <div className="space-y-1">
                       <button
                         onClick={() => changeTheme('original')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoOscuro}</span>
                         {theme === 'original' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
                         onClick={() => changeTheme('claro')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoClaro}</span>
                         {theme === 'claro' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
                         onClick={() => changeTheme('azul_medianoche')}
-                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-white/5 text-left text-xs transition-colors"
-                        style={{ background: "none", border: "none", color: theme === 'claro' ? "#475569" : "#e2e8f0", cursor: "pointer" }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
+                        style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoAzul}</span>
-                        {theme === 'azul_medianoche' && <Check className="w-4 h-4 text-[#00c875]" />}
+                        {theme === 'azul_medianoche' && <Check className="w-4 h-4 text-[var(--emerald)]" />}
                       </button>
                     </div>
                   </div>
@@ -801,3 +865,5 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     </div>
   );
 }
+
+

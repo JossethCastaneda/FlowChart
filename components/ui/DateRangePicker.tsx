@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
 
-/* ═══════════════════════════════════════
+/* ---------------------------------------
    PRESETS
-   ═══════════════════════════════════════ */
+   --------------------------------------- */
 
 const DATE_PRESETS = [
   { id: "today",           label: "Hoy" },
@@ -27,9 +27,9 @@ const MONTH_NAMES = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "se
 const MONTH_NAMES_LONG = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre"];
 const DAY_LABELS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
-/* ═══════════════════════════════════════
+/* ---------------------------------------
    HELPERS
-   ═══════════════════════════════════════ */
+   --------------------------------------- */
 
 function getDaysInMonth(year: number, month: number) {
   return new Date(year, month + 1, 0).getDate();
@@ -122,9 +122,9 @@ function getPresetDates(presetId: string): { start: Date | null; end: Date | nul
   }
 }
 
-/* ═══════════════════════════════════════
+/* ---------------------------------------
    COMPONENT
-   ═══════════════════════════════════════ */
+   --------------------------------------- */
 
 interface DateRangePickerProps {
   datePreset: string;
@@ -284,7 +284,7 @@ export default function DateRangePicker({
           display: "flex", alignItems: "center", gap: "8px",
           background: showDatePicker ? "rgba(0,212,255,0.08)" : "rgba(10,15,30,0.6)",
           border: showDatePicker ? "1px solid rgba(0,212,255,0.3)" : "1px solid var(--border)",
-          padding: "7px 14px", borderRadius: "8px", fontSize: "12px", color: "#e2e8f0",
+          padding: "7px 14px", borderRadius: "8px", fontSize: "12px", color: "var(--foreground)",
           cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap", fontWeight: 500
         }}
       >
@@ -303,14 +303,14 @@ export default function DateRangePicker({
       {showDatePicker && (
         <div style={{
           position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 9999,
-          background: "#1a1f2e", border: "1px solid rgba(148,163,184,0.22)", borderRadius: "12px",
+          background: "var(--surface)", border: "1px solid rgba(148,163,184,0.22)", borderRadius: "12px",
           boxShadow: "0 25px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(148,163,184,0.05)",
           display: "flex", flexDirection: "column", overflow: "hidden"
         }}>
           {/* Main content area */}
           <div style={{ display: "flex" }}>
 
-            {/* ── LEFT: Presets ── */}
+            {/* -- LEFT: Presets -- */}
             <div style={{
               width: "170px", borderRight: "1px solid rgba(148,163,184,0.18)",
               overflowY: "auto", maxHeight: "400px",
@@ -352,7 +352,7 @@ export default function DateRangePicker({
               })}
             </div>
 
-            {/* ── RIGHT: Calendars ── */}
+            {/* -- RIGHT: Calendars -- */}
             <div style={{ flex: 1, padding: "16px 20px", minWidth: "460px" }}>
               {/* Month navigation */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
@@ -368,10 +368,10 @@ export default function DateRangePicker({
                 </button>
 
                 <div style={{ display: "flex", gap: "80px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 600, color: "white" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>
                     {MONTH_NAMES_LONG[calMonth.getMonth()]} {calMonth.getFullYear()}
                   </span>
-                  <span style={{ fontSize: "13px", fontWeight: 600, color: "white" }}>
+                  <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>
                     {MONTH_NAMES_LONG[nextMonth.getMonth()]} {nextMonth.getFullYear()}
                   </span>
                 </div>
@@ -425,16 +425,16 @@ export default function DateRangePicker({
                 <div style={{
                   display: "flex", alignItems: "center", gap: "8px",
                   background: "rgba(10,15,30,0.5)", border: "1px solid rgba(148,163,184,0.18)",
-                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "#94a3b8",
+                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "var(--text-secondary)",
                   flex: 1
                 }}>
                   {selStart ? fmtDisplay(selStart) : "Fecha inicio"}
                 </div>
-                <span style={{ color: "rgba(148,163,184,0.65)", fontSize: "11px" }}>–</span>
+                <span style={{ color: "var(--text-muted)", fontSize: "11px" }}>–</span>
                 <div style={{
                   display: "flex", alignItems: "center", gap: "8px",
                   background: "rgba(10,15,30,0.5)", border: "1px solid rgba(148,163,184,0.18)",
-                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "#94a3b8",
+                  borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "var(--text-secondary)",
                   flex: 1
                 }}>
                   {selEnd ? fmtDisplay(selEnd) : "Fecha fin"}
@@ -443,14 +443,14 @@ export default function DateRangePicker({
             </div>
           </div>
 
-          {/* ── FOOTER ── */}
+          {/* -- FOOTER -- */}
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
             padding: "12px 20px",
             borderTop: "1px solid rgba(148,163,184,0.18)",
             background: "rgba(10,15,30,0.3)"
           }}>
-            <span style={{ fontSize: "10px", color: "rgba(148,163,184,0.65)" }}>
+            <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
               Las fechas se muestran en la Hora de Ciudad de México (Centro)
             </span>
             <div style={{ display: "flex", gap: "8px" }}>
@@ -470,7 +470,7 @@ export default function DateRangePicker({
                 style={{
                   padding: "7px 20px", fontSize: "12px", fontWeight: 600, borderRadius: "6px",
                   background: (pendingPreset !== "custom" || (selStart && selEnd)) ? "var(--cyan)" : "rgba(148,163,184,0.22)",
-                  color: (pendingPreset !== "custom" || (selStart && selEnd)) ? "#0a0f1e" : "rgba(148,163,184,0.65)",
+                  color: (pendingPreset !== "custom" || (selStart && selEnd)) ? "var(--background)" : "rgba(148,163,184,0.65)",
                   border: "none", cursor: (pendingPreset !== "custom" || (selStart && selEnd)) ? "pointer" : "default",
                   transition: "all 0.15s", letterSpacing: "0.02em"
                 }}
@@ -485,9 +485,9 @@ export default function DateRangePicker({
   );
 }
 
-/* ═══════════════════════════════════════
+/* ---------------------------------------
    MONTH GRID SUB-COMPONENT
-   ═══════════════════════════════════════ */
+   --------------------------------------- */
 
 function MonthGrid({
   monthDate, today, selStart, selEnd, hoverDate,
@@ -520,7 +520,7 @@ function MonthGrid({
       <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "0" }}>
         {DAY_LABELS.map(d => (
           <div key={d} style={{
-            textAlign: "center", fontSize: "10px", color: "#64748b",
+            textAlign: "center", fontSize: "10px", color: "var(--text-muted)",
             padding: "0 0 8px 0", fontWeight: 600
           }}>
             {d}
@@ -559,7 +559,7 @@ function MonthGrid({
                   borderRadius: "6px", cursor: isFuture ? "default" : "pointer",
                   border: isToday && !isEdge ? "1px solid var(--cyan)" : "1px solid transparent",
                   background: isEdge ? "var(--cyan)" : "transparent",
-                  color: isFuture ? "rgba(148,163,184,0.22)" : isEdge ? "#0a0f1e" : isToday ? "var(--cyan)" : inRange ? "var(--cyan)" : "rgba(255,255,255,0.8)",
+                  color: isFuture ? "rgba(148,163,184,0.22)" : isEdge ? "var(--background)" : isToday ? "var(--cyan)" : inRange ? "var(--cyan)" : "rgba(255,255,255,0.8)",
                   fontWeight: isEdge || isToday ? 700 : 400,
                   transition: "all 0.1s", display: "flex", alignItems: "center", justifyContent: "center",
                   padding: 0

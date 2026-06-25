@@ -8,7 +8,7 @@ import {
   Shield, User, Plug, CreditCard, Globe, ChevronRight, Lock, Layers, Eye, Pencil,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { IntegrationsView } from "@/app/dashboard/integrations/page";
+import { IntegrationsView } from "@/components/integrations/IntegrationsView";
 import { AreasManager } from "@/components/settings/AreasManager";
 import { PermissionsManager } from "@/components/settings/PermissionsManager";
 import { MemberPermissionsModal, type MemberPermissions } from "@/components/settings/MemberPermissionsModal";
@@ -63,7 +63,7 @@ const inp: React.CSSProperties = {
   padding: "8px 12px",
   background: "rgba(0,212,255,0.03)",
   border: "1px solid rgba(0,212,255,0.1)",
-  color: "#e2e8f0",
+  color: "var(--foreground)",
   fontSize: "13px",
   outline: "none",
   width: "100%",
@@ -217,7 +217,7 @@ export default function SettingsPage() {
     fetchData(workspaceId);
   }
 
-  const roleBadgeColor: Record<string, string> = { OWNER: "var(--cyan)", ADMIN: "var(--amber)", MEMBER: "#64748b" };
+  const roleBadgeColor: Record<string, string> = { OWNER: "var(--cyan)", ADMIN: "var(--amber)", MEMBER: "var(--text-muted)" };
 
   async function handleRoleChange(userId: string, newRole: string) {
     const res = await fetch(`/api/workspace/${workspaceId}/members/role`, {
@@ -339,7 +339,7 @@ export default function SettingsPage() {
     return (
       <div className="space-y-6">
         <PageHeader title="Admin" description="Configuración de tu cuenta y workspace."
-          icon={<Settings className="w-6 h-6" style={{ color: "#00d4ff" }} />} />
+          icon={<Settings className="w-6 h-6" style={{ color: "var(--cyan)" }} />} />
         
         <div className="flex flex-col lg:flex-row gap-6 lg:gap-8 items-start animate-pulse">
           <div className="w-full lg:w-56 shrink-0 flex flex-col gap-6">
@@ -372,7 +372,7 @@ export default function SettingsPage() {
         <PageHeader
           title="Admin"
           description="Configuración de tu cuenta, equipo y workspace."
-          icon={<Settings className="w-6 h-6" style={{ color: "#00d4ff" }} />}
+          icon={<Settings className="w-6 h-6" style={{ color: "var(--cyan)" }} />}
         />
       </div>
 
@@ -405,12 +405,12 @@ export default function SettingsPage() {
                           : "bg-transparent border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-300"}`}
                       style={{ textAlign: "left" }}
                     >
-                      <Icon className={`w-4 h-4 lg:w-[15px] lg:h-[15px] shrink-0 ${active ? "text-[#00d4ff]" : "text-slate-500"}`} />
+                      <Icon className={`w-4 h-4 lg:w-[15px] lg:h-[15px] shrink-0 ${active ? "text-[var(--cyan)]" : "text-slate-500"}`} />
                       <div className="flex-1">
                         <span>{it.label}</span>
                         {(it as any).desc && <div className="hidden lg:block text-[10px] text-slate-500 font-normal mt-0.5">{(it as any).desc}</div>}
                       </div>
-                      {active && <ChevronRight className="hidden lg:block w-3 h-3 text-[#00d4ff] opacity-60" />}
+                      {active && <ChevronRight className="hidden lg:block w-3 h-3 text-[var(--cyan)] opacity-60" />}
                     </button>
                   );
                 })}
@@ -429,21 +429,21 @@ export default function SettingsPage() {
               <div className="glass-panel p-4 md:p-6">
                 <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                   <span className="section-title flex items-center gap-2">
-                    <User className="w-4 h-4 text-[#00d4ff]" /> Perfil
+                    <User className="w-4 h-4 text-[var(--cyan)]" /> Perfil
                   </span>
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-6">
                   {session?.user?.image ? (
                     <img src={session.user.image} alt="" className="w-14 h-14 rounded-full border border-[rgba(0,212,255,0.2)]" />
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center font-display text-lg text-[#00d4ff]">
+                    <div className="w-14 h-14 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center font-display text-lg text-[var(--cyan)]">
                       {(session?.user?.name || "U")[0].toUpperCase()}
                     </div>
                   )}
                   <div>
                     <div className="text-[15px] font-semibold text-slate-200">{session?.user?.name || "Sin nombre"}</div>
                     <div className="text-xs text-slate-500">{session?.user?.email}</div>
-                    <div className="text-[11px] text-slate-400 mt-1">Rol en este workspace: <strong style={{ color: roleBadgeColor[userRole] || "#e2e8f0" }}>{userRole || "—"}</strong></div>
+                    <div className="text-[11px] text-slate-400 mt-1">Rol en este workspace: <strong style={{ color: roleBadgeColor[userRole] || "var(--foreground)" }}>{userRole || "—"}</strong></div>
                   </div>
                 </div>
 
@@ -461,7 +461,7 @@ export default function SettingsPage() {
                 <div className="glass-panel p-4 md:p-6">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                     <span className="section-title flex items-center gap-2">
-                      <Plug className="w-4 h-4 text-[#00d4ff]" /> Cuentas vinculadas para inicio de sesión
+                      <Plug className="w-4 h-4 text-[var(--cyan)]" /> Cuentas vinculadas para inicio de sesión
                     </span>
                   </div>
                   <p className="text-xs text-slate-500 mb-4">Vincular tus cuentas te permitirá iniciar sesión rápidamente con cualquiera de ellas.</p>
@@ -523,7 +523,7 @@ export default function SettingsPage() {
                 <div className="glass-panel p-4 md:p-6">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                     <span className="section-title flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-[#00d4ff]" /> Cambiar contraseña
+                      <Lock className="w-4 h-4 text-[var(--cyan)]" /> Cambiar contraseña
                     </span>
                   </div>
                   <div className="flex flex-col gap-3 max-w-md">
@@ -589,7 +589,7 @@ export default function SettingsPage() {
             <div className="glass-panel p-4 md:p-6">
               <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-2">
                 <span className="section-title flex items-center gap-2">
-                  <Settings className="w-4 h-4 text-[#00d4ff]" /> Preferencias
+                  <Settings className="w-4 h-4 text-[var(--cyan)]" /> Preferencias
                 </span>
               </div>
               <p className="text-xs text-slate-500 mb-4">Estas preferencias se guardan en este navegador.</p>
@@ -604,7 +604,7 @@ export default function SettingsPage() {
           {activeSection === "workspace" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {/* ── Tab bar ── */}
-              <div style={{ display: "flex", gap: 0, borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", padding: 4 }}>
+              <div style={{ display: "flex", gap: 0, borderRadius: 10, background: "var(--row-hover)", border: "1px solid rgba(255,255,255,0.07)", padding: 4 }}>
                 {([
                   { id: "general" as const, label: "General", icon: Globe },
                   { id: "team" as const, label: "Equipo y roles", icon: Users },
@@ -619,7 +619,7 @@ export default function SettingsPage() {
                         flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                         padding: "7px 10px", borderRadius: 7, border: "none", cursor: "pointer",
                         background: active ? "rgba(0,212,255,0.1)" : "transparent",
-                        color: active ? "#00d4ff" : "#475569",
+                        color: active ? "var(--cyan)" : "var(--text-secondary)",
                         fontSize: 12, fontWeight: active ? 700 : 400, fontFamily: "inherit",
                         transition: "all 0.15s",
                         boxShadow: active ? "inset 0 0 0 1px rgba(0,212,255,0.2)" : "none",
@@ -639,7 +639,7 @@ export default function SettingsPage() {
                 <div className="glass-panel p-4 md:p-6">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                     <span className="section-title flex items-center gap-2">
-                      <Globe className="w-4 h-4 text-[#00d4ff]" /> General
+                      <Globe className="w-4 h-4 text-[var(--cyan)]" /> General
                     </span>
                   </div>
                   <label className="text-[11px] text-slate-500 block mb-1.5">Nombre del workspace</label>
@@ -666,7 +666,7 @@ export default function SettingsPage() {
                   <div className="glass-panel p-4 md:p-6">
                     <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                       <span className="section-title flex items-center gap-2">
-                        <Mail className="w-4 h-4 text-[#00d4ff]" /> Invitar al equipo
+                        <Mail className="w-4 h-4 text-[var(--cyan)]" /> Invitar al equipo
                       </span>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3">
@@ -731,7 +731,7 @@ export default function SettingsPage() {
                   <div className="glass-panel p-4 md:p-6">
                     <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 flex justify-between items-center">
                       <span className="section-title flex items-center gap-2">
-                        <Users className="w-4 h-4 text-[#00d4ff]" /> Equipo actual
+                        <Users className="w-4 h-4 text-[var(--cyan)]" /> Equipo actual
                       </span>
                       <span className="badge badge-cyan">{members.length}</span>
                     </div>
@@ -742,7 +742,7 @@ export default function SettingsPage() {
                             {m.user.image ? (
                               <img src={m.user.image} alt="" className="w-8 h-8 rounded-full border border-white/10" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center text-[#00d4ff] text-xs font-semibold">
+                              <div className="w-8 h-8 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center text-[var(--cyan)] text-xs font-semibold">
                                 {(m.user.name || "?")[0].toUpperCase()}
                               </div>
                             )}
@@ -752,7 +752,7 @@ export default function SettingsPage() {
                             </div>
                           </div>
                           <div className="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-start">
-                            <span style={{ color: roleBadgeColor[m.role] || "#64748b", fontSize: 11, fontWeight: 600 }}>
+                            <span style={{ color: roleBadgeColor[m.role] || "var(--text-muted)", fontSize: 11, fontWeight: 600 }}>
                               {m.role}
                             </span>
                             {userRole === "OWNER" && m.role !== "OWNER" && (
@@ -796,7 +796,7 @@ export default function SettingsPage() {
                 <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
                     <span className="section-title flex items-center gap-2">
-                      <Shield className="w-4 h-4 text-[#00d4ff]" /> Permisos por área
+                      <Shield className="w-4 h-4 text-[var(--cyan)]" /> Permisos por área
                     </span>
                   </div>
                   <PermissionsManager />
@@ -809,7 +809,7 @@ export default function SettingsPage() {
             <div className="glass-panel p-4 md:p-6 flex flex-col gap-4">
               <div className="section-header !px-0 !pt-0 !border-none !bg-transparent">
                 <span className="section-title flex items-center gap-2">
-                  <Plug className="w-4 h-4 text-[#00d4ff]" /> Integraciones
+                  <Plug className="w-4 h-4 text-[var(--cyan)]" /> Integraciones
                 </span>
               </div>
               <IntegrationsView />
@@ -821,7 +821,7 @@ export default function SettingsPage() {
             <div className="glass-panel p-4 md:p-6">
               <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                 <span className="section-title flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-[#00d4ff]" /> Plan
+                  <CreditCard className="w-4 h-4 text-[var(--cyan)]" /> Plan
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-[rgba(0,212,255,0.04)] border border-[rgba(0,212,255,0.12)] gap-4 sm:gap-0">
@@ -884,8 +884,8 @@ function PrefToggle({ label, desc, checked, onChange, last }: {
       padding: "12px 0", borderBottom: last ? "none" : "1px solid rgba(255,255,255,0.05)",
     }}>
       <div>
-        <div style={{ fontSize: 13, color: "#e2e8f0", fontWeight: 500 }}>{label}</div>
-        <div style={{ fontSize: 11, color: "#64748b", marginTop: 2 }}>{desc}</div>
+        <div style={{ fontSize: 13, color: "var(--foreground)", fontWeight: 500 }}>{label}</div>
+        <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 2 }}>{desc}</div>
       </div>
       <button
         onClick={() => onChange(!checked)}

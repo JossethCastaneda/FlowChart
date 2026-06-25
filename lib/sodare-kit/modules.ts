@@ -1,0 +1,144 @@
+/* ════════════════════════════════════════════════════════════
+   SODARE · REGISTRO CENTRAL DE MÓDULOS
+   Fuente única para nombres, rutas, color de esencia, ícono y voz.
+   Modelo de DOS CAPAS:
+     · label → lo que ve el marketer en el menú (funcional, obvio)
+     · code  → el codename / esencia (color, ícono, lema, voz de Orbi)
+   Importa este archivo en el sidebar, breadcrumbs, headers y Orbi.
+   ════════════════════════════════════════════════════════════ */
+
+export type ModuleKey =
+  | "resumen" | "clientes" | "publicacion" | "inbox" | "anuncios"
+  | "escucha" | "envivo" | "briefs" | "tareas" | "chatbots"
+  | "integraciones" | "configuracion"
+  | "aprobaciones" | "reportes" | "biblioteca" | "datos" | "competidores" | "linkinbio" | "roles" | "api";
+
+export type GroupKey =
+  | "operacion" | "contenido" | "crecimiento" | "automatizacion" | "sistema";
+
+export interface SubModule {
+  label: string;   // pestaña dentro del módulo
+  route: string;   // ruta hija o ancla de tab
+}
+
+export interface ModuleDef {
+  key: ModuleKey;
+  label: string;   // etiqueta del menú (funcional)
+  code: string;    // codename / esencia
+  route: string;
+  color: string;   // var() token de acento
+  icon: string;    // nombre lucide
+  tagline: string; // lema de la esencia
+  group: GroupKey;
+  /** Submódulos = pestañas internas, NO entradas del sidebar. */
+  tabs?: SubModule[];
+}
+
+export const MODULES: ModuleDef[] = [
+  // ── OPERACIÓN — el día a día ──
+  { key: "resumen",     label: "Resumen",  code: "Pulso",    route: "/dashboard/resumen",  color: "var(--mod-resumen)",  icon: "activity",        tagline: "El latido de tu operación",   group: "operacion" },
+  { key: "clientes",    label: "Clientes", code: "Cartera",  route: "/dashboard/proyectos", color: "var(--mod-clientes)", icon: "folder-kanban",  tagline: "Tus cuentas, en órbita",      group: "operacion",
+    tabs: [
+      { label: "Resumen",                route: "" },
+      { label: "Análisis de Resultados", route: "/analisis-resultados" },
+      { label: "Configuración",          route: "/configuracion" },
+    ] },
+  { key: "inbox",       label: "Inbox",    code: "Señal",    route: "/dashboard/inbox",    color: "var(--mod-inbox)",    icon: "messages-square", tagline: "Cada mensaje, un solo canal", group: "operacion" },
+  { key: "tareas",      label: "Tareas",   code: "Misiones", route: "/dashboard/ops",      color: "var(--mod-tareas)",   icon: "target",          tagline: "Cada tarea, una misión",      group: "operacion" },
+
+  // ── CONTENIDO — idear, pedir arte, programar (en ese orden de flujo) ──
+  { key: "briefs",      label: "Briefs IA",   code: "Nova",      route: "/dashboard/briefing",  color: "var(--mod-briefs)",   icon: "sparkles", tagline: "La parrilla nace aquí", group: "contenido" },
+  { key: "publicacion", label: "Publicación", code: "Lanzadera", route: "/dashboard/publisher", color: "var(--mod-publicar)", icon: "rocket", tagline: "Programa y despega", group: "contenido",
+    tabs: [
+      { label: "Calendario", route: "" },
+      { label: "Historial",  route: "/historial" },
+    ] },
+
+  // ── CRECIMIENTO — pauta y monitoreo ──
+  { key: "anuncios",    label: "Anuncios", code: "Impulso", route: "/dashboard/ads-manager", color: "var(--mod-anuncios)", icon: "megaphone", tagline: "Empuje para tus campañas", group: "crecimiento",
+    tabs: [
+      { label: "Campañas",                route: "" },
+      { label: "Análisis de Resultados",  route: "/analisis-resultados" },
+      { label: "Reglas",                  route: "/analisis-resultados/reglas" },
+      { label: "Configuración",           route: "/analisis-resultados/configuracion" },
+    ] },
+  { key: "escucha",     label: "Escucha",  code: "Radar",   route: "/dashboard/listening", color: "var(--mod-escucha)", icon: "radar",     tagline: "Escucha todo el espectro", group: "crecimiento" },
+  { key: "envivo",      label: "En vivo",  code: "Órbita",  route: "/dashboard/streams",   color: "var(--mod-envivo)",  icon: "columns-3", tagline: "Tu feed, en tiempo real",  group: "crecimiento" },
+
+  // ── AUTOMATIZACIÓN — los bots (Métricas es pestaña, no ítem de menú) ──
+  { key: "chatbots",    label: "Chatbots", code: "Piloto", route: "/dashboard/botmaker", color: "var(--mod-chatbots)", icon: "bot", tagline: "Tu copiloto automático", group: "automatizacion",
+    tabs: [
+      { label: "Constructor",      route: "" },
+      { label: "Métricas de bots", route: "/analytics" }, // ✦ Telemetría
+    ] },
+
+  // ── SISTEMA — ajuste, no trabajo diario (pie del sidebar, en gris) ──
+  { key: "integraciones", label: "Integraciones", code: "Enlaces", route: "/dashboard/integrations", color: "var(--text-muted)", icon: "plug", tagline: "Conecta tus cuentas", group: "sistema",
+    tabs: [
+      { label: "Facebook", route: "/facebook" },
+      { label: "Meta Ads", route: "/meta-ads" },
+      { label: "WhatsApp", route: "/whatsapp" },
+    ] },
+  { key: "configuracion", label: "Configuración", code: "Consola", route: "/dashboard/settings", color: "var(--text-muted)", icon: "settings", tagline: "Tu cuenta y tu workspace", group: "sistema" },
+];
+
+/* NOTA · consolidación:
+   - "Métricas de bots" (ex Bot Analytics) ya NO es ítem de menú → pestaña de Chatbots.
+   - La ruta /dashboard/gridia se UNIFICA en Briefs IA (/dashboard/briefing). Eliminar el duplicado.
+   - /dashboard/historial → pestaña de Publicación.
+   - /dashboard/analisis-resultados → vive como pestaña de Anuncios. */
+
+export const MODULE_BY_KEY: Record<ModuleKey, ModuleDef> =
+  Object.fromEntries(MODULES.map((m) => [m.key, m])) as Record<ModuleKey, ModuleDef>;
+
+export const GROUP_LABELS: Record<GroupKey, string> = {
+  operacion:      "Operación",
+  contenido:      "Contenido",
+  crecimiento:    "Crecimiento",
+  automatizacion: "Automatización",
+  sistema:        "Sistema",
+};
+
+/* ════════════════════════════════════════════════════════════
+   FUTURE_MODULES — pre-declarados para próximas implementaciones.
+   Cada uno YA tiene grupo, color de esencia y patrón asignados,
+   para que al construirlo no se invente nada nuevo: se sigue el sistema.
+   Priorizado por el scouting competitivo (ver roadmap.md).
+   `status` controla la visibilidad: "planned" no se renderiza aún.
+   ════════════════════════════════════════════════════════════ */
+
+export type Phase = 1 | 2 | 3;
+
+export interface FutureModuleDef extends ModuleDef {
+  status: "planned";
+  phase: Phase;
+  /** Si es pestaña de un módulo existente en vez de ítem propio. */
+  tabOf?: ModuleKey;
+}
+
+export const FUTURE_MODULES: FutureModuleDef[] = [
+  // ── Fase 1 · cerrar la brecha de agencia ──
+  { key: "aprobaciones", label: "Aprobaciones", code: "Visto bueno", route: "/dashboard/aprobaciones", color: "#10b981", icon: "check-check",  tagline: "Revisión y firma antes de publicar", group: "contenido",   status: "planned", phase: 1 },
+  { key: "reportes",     label: "Reportes",     code: "Bitácora",    route: "/dashboard/reportes",     color: "#f43f5e", icon: "file-text",    tagline: "Informes white-label para el cliente", group: "crecimiento", status: "planned", phase: 1 },
+  { key: "biblioteca",   label: "Biblioteca",   code: "Bóveda",      route: "/dashboard/publisher/biblioteca", color: "#f59e0b", icon: "folder-open", tagline: "Activos de marca centralizados", group: "contenido", status: "planned", phase: 1, tabOf: "publicacion" },
+
+  // ── Fase 2 · inteligencia & alcance ──
+  { key: "datos", label: "Datos", code: "Telescopio", route: "/dashboard/datos", color: "#00b8d9", icon: "database", tagline: "Todas tus métricas, una fuente", group: "crecimiento", status: "planned", phase: 2 },
+  { key: "competidores", label: "Competidores", code: "Rivales", route: "/dashboard/listening/competidores", color: "#f97316", icon: "swords", tagline: "Benchmark contra otras marcas", group: "crecimiento", status: "planned", phase: 2, tabOf: "escucha" },
+  { key: "linkinbio",    label: "Link-in-bio",  code: "Portal",  route: "/dashboard/portal", color: "#14b8a6", icon: "link", tagline: "Mini-landing con métricas de clic", group: "contenido", status: "planned", phase: 2 },
+  // Orbi Copilot+ NO es un módulo: es una capa transversal. Ver orbi-states.md.
+
+  // ── Fase 3 · gobernanza & escala (exploratoria) ──
+  { key: "roles",  label: "Roles & permisos",   code: "Mando",   route: "/dashboard/settings/roles", color: "var(--text-muted)", icon: "shield",  tagline: "Acceso por rol y por cliente", group: "sistema", status: "planned", phase: 3, tabOf: "configuracion" },
+  { key: "api",    label: "API & automatización", code: "Puente", route: "/dashboard/settings/api",  color: "var(--text-muted)", icon: "webhook", tagline: "Webhooks y conectores externos", group: "sistema", status: "planned", phase: 3, tabOf: "configuracion" },
+];
+
+/** Acentos reservados para los módulos futuros — NO reutilizar en otra cosa. */
+export const RESERVED_ACCENTS: Record<string, string> = {
+  datos:        "#00b8d9",
+  aprobaciones: "#10b981",
+  reportes:     "#f43f5e",
+  biblioteca:   "#f59e0b",
+  competidores: "#f97316",
+  linkinbio:    "#14b8a6",
+};

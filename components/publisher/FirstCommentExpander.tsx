@@ -80,7 +80,7 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
               outline: "none",
               resize: "none",
               padding: "12px 14px",
-              color: "#e2e8f0",
+              color: "var(--foreground)",
               fontSize: 13,
               lineHeight: 1.6,
               fontFamily: "Inter, sans-serif",
@@ -109,10 +109,10 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
                 fontSize: 11,
                 fontWeight: 500,
                 color: isOverLimit
-                  ? "#e2445c"
+                  ? "var(--red)"
                   : isNearLimit
-                  ? "#fdab3d"
-                  : "#64748b",
+                  ? "var(--amber)"
+                  : "var(--text-muted)",
               }}
             >
               {charCount.toLocaleString()} / {MAX_CHARS.toLocaleString()}
@@ -132,9 +132,9 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
                   height: "100%",
                   borderRadius: 2,
                   background: isOverLimit
-                    ? "#e2445c"
+                    ? "var(--red)"
                     : isNearLimit
-                    ? "#fdab3d"
+                    ? "var(--amber)"
                     : "#E1306C",
                   transition: "all 0.3s",
                 }}
@@ -147,7 +147,7 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
             style={{
               marginTop: 10,
               fontSize: 11,
-              color: "#64748b",
+              color: "var(--text-muted)",
               fontStyle: "italic",
               display: "flex",
               alignItems: "center",

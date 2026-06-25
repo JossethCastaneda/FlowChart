@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -16,10 +16,10 @@ interface Notification {
 }
 
 const TYPE_ICONS: Record<string, { icon: typeof Bell; color: string }> = {
-  task_assigned: { icon: UserPlus, color: "#00d4ff" },
-  sla_warning: { icon: Clock, color: "#fdab3d" },
-  sla_expired: { icon: AlertTriangle, color: "#e2445c" },
-  status_changed: { icon: Check, color: "#00c875" },
+  task_assigned: { icon: UserPlus, color: "var(--cyan)" },
+  sla_warning: { icon: Clock, color: "var(--amber)" },
+  sla_expired: { icon: AlertTriangle, color: "var(--red)" },
+  status_changed: { icon: Check, color: "var(--emerald)" },
 };
 
 export function NotificationBell() {
@@ -140,10 +140,10 @@ export function NotificationBell() {
         aria-expanded={open}
         style={{
           position: "relative", background: "none", border: "none", cursor: "pointer",
-          padding: 6, color: unreadCount > 0 ? "#00d4ff" : "rgba(148,163,184,0.65)",
+          padding: 6, color: unreadCount > 0 ? "var(--cyan)" : "rgba(148,163,184,0.65)",
           transition: "color 0.2s",
         }}
-        onMouseEnter={e => e.currentTarget.style.color = "#00d4ff"}
+        onMouseEnter={e => e.currentTarget.style.color = "var(--cyan)"}
         onMouseLeave={e => { if (unreadCount === 0) e.currentTarget.style.color = "rgba(148,163,184,0.65)"; }}
       >
         <Bell style={{ width: 18, height: 18 }} />
@@ -151,7 +151,7 @@ export function NotificationBell() {
         {unreadCount > 0 && (
           <span style={{
             position: "absolute", top: 0, right: 0, minWidth: 16, height: 16,
-            background: "#e2445c", borderRadius: 8, fontSize: 9, fontWeight: 700,
+            background: "var(--red)", borderRadius: 8, fontSize: 9, fontWeight: 700,
             color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
             padding: "0 4px", boxShadow: "0 0 8px rgba(226,68,92,0.5)",
             animation: "status-pulse 2s infinite",
@@ -174,7 +174,7 @@ export function NotificationBell() {
             width: 370,
             maxWidth: "calc(100vw - 24px)",
             maxHeight: "min(480px, calc(100vh - 80px))",
-            background: "#0c1020",
+            background: "var(--background)",
             border: "1px solid rgba(0,212,255,0.18)",
             borderRadius: 10,
             overflow: "hidden",
@@ -192,14 +192,14 @@ export function NotificationBell() {
             background: "rgba(0,212,255,0.03)", flexShrink: 0,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <Bell style={{ width: 14, height: 14, color: "#00d4ff" }} />
+              <Bell style={{ width: 14, height: 14, color: "var(--cyan)" }} />
               <span style={{
                 fontFamily: "'Orbitron', sans-serif", fontSize: 11, fontWeight: 700,
-                color: "#e2e8f0", letterSpacing: "0.1em",
+                color: "var(--foreground)", letterSpacing: "0.1em",
               }}>NOTIFICACIONES</span>
               {unreadCount > 0 && (
                 <span style={{
-                  fontSize: 9, fontWeight: 700, color: "#fff", background: "#e2445c",
+                  fontSize: 9, fontWeight: 700, color: "#fff", background: "var(--red)",
                   borderRadius: 8, padding: "1px 6px", minWidth: 16, textAlign: "center",
                 }}>{unreadCount}</span>
               )}
@@ -207,7 +207,7 @@ export function NotificationBell() {
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {unreadCount > 0 && (
                 <button onClick={markAllRead} disabled={loading} style={{
-                  fontSize: 10, color: "#00d4ff", background: "none", border: "none",
+                  fontSize: 10, color: "var(--cyan)", background: "none", border: "none",
                   cursor: "pointer", opacity: loading ? 0.5 : 1, fontFamily: "inherit",
                   whiteSpace: "nowrap",
                 }}>
@@ -215,7 +215,7 @@ export function NotificationBell() {
                 </button>
               )}
               <button onClick={() => setOpen(false)} aria-label="Cerrar notificaciones" style={{
-                background: "none", border: "none", cursor: "pointer", color: "#64748b",
+                background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)",
                 padding: 2, display: "flex",
               }}>
                 <X style={{ width: 14, height: 14 }} />
@@ -254,10 +254,10 @@ export function NotificationBell() {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 3 }}>
                         <span style={{
                           fontSize: 12, fontWeight: n.read ? 500 : 700,
-                          color: n.read ? "#94a3b8" : "#e2e8f0",
+                          color: n.read ? "var(--text-secondary)" : "var(--foreground)",
                           lineHeight: 1.3,
                         }}>{n.title}</span>
-                        <span style={{ fontSize: 9, color: "rgba(148,163,184,0.6)", flexShrink: 0, marginTop: 2 }}>{timeAgo(n.createdAt)}</span>
+                        <span style={{ fontSize: 9, color: "var(--text-muted)", flexShrink: 0, marginTop: 2 }}>{timeAgo(n.createdAt)}</span>
                       </div>
                       <p style={{
                         fontSize: 11, color: n.read ? "rgba(148,163,184,0.5)" : "rgba(148,163,184,0.8)",
@@ -265,7 +265,7 @@ export function NotificationBell() {
                         WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
                       }}>{n.message}</p>
                     </div>
-                    {!n.read && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "#00d4ff", flexShrink: 0, alignSelf: "center", boxShadow: "0 0 8px rgba(0,212,255,0.5)" }} />}
+                    {!n.read && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--cyan)", flexShrink: 0, alignSelf: "center", boxShadow: "0 0 8px rgba(0,212,255,0.5)" }} />}
                   </div>
                 );
               })

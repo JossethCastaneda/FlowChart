@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
@@ -7,6 +7,7 @@ import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Orbi } from "@/components/ui/Orbi";
 import { KpiCard } from "@/components/ui/KpiCard";
 import {
   FolderKanban, Plus, X, Users, Globe, DollarSign, Target, Rocket,
@@ -44,7 +45,7 @@ interface Project {
   dateEnd: string;
   persona: string;
   geo: string;
-  status: "EN VUELO" | "EN ÓRBITA" | "Draft" | "Completado";
+  status: "EN VUELO" | "EN ÓRBITA" | "Draft" | "Completado" | "Activo";
   workspaceId?: string;
   createdAt: string;
   updatedAt?: string;
@@ -200,16 +201,7 @@ async function fetchProjectsFromAPI(retries = 2): Promise<FetchResult> {
    STYLES
    ═══════════════════════════════════════ */
 
-const inp: React.CSSProperties = {
-  width: "100%", padding: "10px 12px", fontSize: "13px", color: "var(--foreground)",
-  background: "var(--surface)", border: "1px solid var(--border)",
-  outline: "none", fontFamily: "inherit", transition: "border-color 0.15s",
-};
-const sel: React.CSSProperties = {
-  ...inp, appearance: "none" as const, cursor: "pointer", paddingRight: "28px",
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='#64748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-  backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center",
-};
+/* Using f-input and f-select from forms.css */
 
 /* ═══════════════════════════════════════
    CUSTOM UI COMPONENTS
@@ -245,7 +237,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
     <div ref={ref} style={{ position: "relative", width: "100%" }}>
       <div 
         onClick={() => !ro && !disabled && setOpen(!open)}
-        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1 }}
+        className="f-input" style={{ cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1 }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
           {selected?.picture && <img src={selected.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
@@ -256,15 +248,15 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
-          <div style={{ padding: "8px", position: "sticky", top: 0, background: "rgba(10,15,30,0.95)", zIndex: 10 }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+          <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input 
               type="text" 
               placeholder="Buscar..." 
               value={search} 
               onChange={e => setSearch(e.target.value)}
               onClick={e => e.stopPropagation()}
-              style={{ ...inp, padding: "6px 8px", fontSize: "11px", background: "rgba(0,0,0,0.3)" }} 
+              className="f-input" style={{ padding: "6px 8px", fontSize: "11px", background: "var(--surface-hover)" }} 
             />
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
@@ -283,7 +275,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
               ))}
             </div>
           ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "#64748b", textAlign: "center" }}>Sin opciones disponibles</div>}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "var(--text-muted)", textAlign: "center" }}>Sin opciones disponibles</div>}
         </div>
       )}
     </div>
@@ -318,10 +310,10 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
     <div ref={ref} style={{ position: "relative", width: "100%" }}>
       <div
         onClick={() => !ro && !disabled && setOpen(!open)}
-        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "34px", height: "auto" }}
+        className="f-input" style={{ cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "34px", height: "auto" }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap" }}>
-          {values.length === 0 ? <span style={{ color: "#64748b" }}>{placeholder}</span> :
+          {values.length === 0 ? <span style={{ color: "var(--text-muted)" }}>{placeholder}</span> :
             values.map((v: string) => {
               const opt = options.find((o: any) => o.value === v);
               return (
@@ -337,15 +329,15 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
-          <div style={{ padding: "8px", position: "sticky", top: 0, background: "rgba(10,15,30,0.95)", zIndex: 10 }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+          <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input
               type="text"
               placeholder="Buscar..."
               value={search}
               onChange={e => setSearch(e.target.value)}
               onClick={e => e.stopPropagation()}
-              style={{ ...inp, padding: "6px 8px", fontSize: "11px", background: "rgba(0,0,0,0.3)" }}
+              className="f-input" style={{ padding: "6px 8px", fontSize: "11px", background: "var(--surface-hover)" }}
             />
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
@@ -360,7 +352,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
                     if (selected) onChange(values.filter((v: string) => v !== o.value));
                     else onChange([...values, o.value]);
                   }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
-                    <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "#00d4ff" : "rgba(255,255,255,0.65)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "#00d4ff" : "transparent" }}>
+                    <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "var(--cyan)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "var(--cyan)" : "transparent" }}>
                       {selected && <Check className="w-2 h-2 text-black" />}
                     </div>
                     {o.picture && <img src={o.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
@@ -370,7 +362,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
               })}
             </div>
           ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "#64748b", textAlign: "center" }}>Sin opciones disponibles</div>}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "var(--text-muted)", textAlign: "center" }}>Sin opciones disponibles</div>}
         </div>
       )}
     </div>
@@ -394,7 +386,7 @@ function TagsInput({ values, onChange, placeholder, ro }: { values: string[]; on
   }
 
   return (
-    <div style={{ ...inp, display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", minHeight: "34px", height: "auto", cursor: ro ? "not-allowed" : "text" }}>
+    <div className="f-input" style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", minHeight: "34px", height: "auto", cursor: ro ? "not-allowed" : "text" }}>
       {values.map((v, i) => (
         <span key={i} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
           {v}
@@ -451,10 +443,10 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
     <div ref={ref} style={{ position: "relative", width: "100%" }}>
       <div 
         onClick={() => !ro && !disabled && setOpen(!open)}
-        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "34px", height: "auto" }}
+        className="f-input" style={{ cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "34px", height: "auto" }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap" }}>
-          {values.length === 0 ? <span style={{ color: "#64748b" }}>{placeholder}</span> : 
+          {values.length === 0 ? <span style={{ color: "var(--text-muted)" }}>{placeholder}</span> : 
             values.map((v: string) => {
               const opt = options.find((o: any) => o.id === v);
               return (
@@ -469,15 +461,15 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
-          <div style={{ padding: "8px", position: "sticky", top: 0, background: "rgba(10,15,30,0.95)", zIndex: 10 }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+          <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input 
               type="text" 
               placeholder="Buscar..." 
               value={search} 
               onChange={e => setSearch(e.target.value)}
               onClick={e => e.stopPropagation()}
-              style={{ ...inp, padding: "6px 8px", fontSize: "11px", background: "rgba(0,0,0,0.3)" }} 
+              className="f-input" style={{ padding: "6px 8px", fontSize: "11px", background: "var(--surface-hover)" }} 
             />
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
@@ -492,7 +484,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
                     if (selected) onChange(values.filter((v: string) => v !== o.id));
                     else onChange([...values, o.id]);
                   }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
-                    <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "#00d4ff" : "rgba(255,255,255,0.65)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "#00d4ff" : "transparent" }}>
+                    <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "var(--cyan)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "var(--cyan)" : "transparent" }}>
                       {selected && <Check className="w-2 h-2 text-black" />}
                     </div>
                     {o.name}
@@ -501,7 +493,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
               })}
             </div>
           ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "#64748b", textAlign: "center" }}>No hay cuentas publicitarias</div>}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "var(--text-muted)", textAlign: "center" }}>No hay cuentas publicitarias</div>}
         </div>
       )}
     </div>
@@ -530,7 +522,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
     <div ref={ref} style={{ position: "relative", width: "100%" }}>
       <div 
         onClick={() => !ro && !disabled && setOpen(true)}
-        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "text", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1, padding: 0 }}
+        className="f-input" style={{ cursor: ro || disabled ? "not-allowed" : "text", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1, padding: 0 }}
       >
         <input 
           type="text" 
@@ -544,7 +536,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, marginRight: "10px", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); setOpen(!open); }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           {filtered.map((o: any) => (
             <div key={o.value} onClick={() => { onChange(o.value); setSearch(o.value); setOpen(false); }} 
                  style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--foreground)" }} 
@@ -561,7 +553,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
               <Plus className="w-3 h-3" /> Crear "{search}"
             </div>
           )}
-          {filtered.length === 0 && !search && <div style={{ padding: "10px", fontSize: "11px", color: "#64748b", textAlign: "center" }}>Empieza a escribir...</div>}
+          {filtered.length === 0 && !search && <div style={{ padding: "10px", fontSize: "11px", color: "var(--text-muted)", textAlign: "center" }}>Empieza a escribir...</div>}
         </div>
       )}
     </div>
@@ -574,7 +566,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
 
 export default function ProyectosPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>Cargando Proyectos...</div>}>
+    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>Cargando Proyectos...</div>}>
       <ProyectosContent />
     </Suspense>
   );
@@ -797,7 +789,7 @@ function ProyectosContent() {
   }
 
   const editingProject = editingId ? projects.find(p => p.id === editingId) : null;
-  const activeCount = projects.filter(p => p.status === "EN VUELO").length;
+  const activeCount = projects.filter(p => p.status === "EN VUELO" || p.status === "Activo").length;
   const totalBudget = projects.reduce((acc, p) => {
     return acc + p.channels.reduce((a, c) => a + (parseFloat(c.budget.replace(/[^0-9.]/g, "")) || 0), 0);
   }, 0);
@@ -807,7 +799,7 @@ function ProyectosContent() {
       <PageHeader
         title="Proyectos"
         description="Gestiona tus proyectos de clientes, campañas y presupuestos."
-        icon={<FolderKanban className="w-6 h-6" style={{ color: "#06d6a0" }} />}
+        icon={<FolderKanban className="w-6 h-6" style={{ color: "var(--emerald)" }} />}
         action={
           <button className="btn-primary" onClick={() => { setEditingId(null); setModalMode("create"); }} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <Plus className="w-4 h-4" /> Nuevo Proyecto
@@ -819,7 +811,7 @@ function ProyectosContent() {
         <div style={{
           padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
           background: banner.type === "success" ? "rgba(6,214,160,0.15)" : "rgba(226,68,92,0.15)",
-          color: banner.type === "success" ? "#06d6a0" : "#e2445c",
+          color: banner.type === "success" ? "var(--emerald)" : "var(--red)",
           border: `1px solid ${banner.type === "success" ? "rgba(6,214,160,0.4)" : "rgba(226,68,92,0.4)"}`,
           display: "flex", alignItems: "center", justifyContent: "space-between"
         }}>
@@ -831,7 +823,7 @@ function ProyectosContent() {
       {fetchError && (
         <div style={{
           padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-          background: "rgba(251,191,36,0.12)", color: "#fbbf24",
+          background: "rgba(251,191,36,0.12)", color: "var(--amber)",
           border: "1px solid rgba(251,191,36,0.35)",
           display: "flex", alignItems: "center", gap: "10px"
         }}>
@@ -858,8 +850,8 @@ function ProyectosContent() {
           border: "1px solid rgba(6,214,160,0.3)",
           borderRadius: "6px",
         }}>
-          <CheckCircle className="w-4 h-4" style={{ color: "#06d6a0", flexShrink: 0 }} />
-          <span style={{ fontSize: "12px", color: "#06d6a0", fontWeight: 600 }}>
+          <CheckCircle className="w-4 h-4" style={{ color: "var(--emerald)", flexShrink: 0 }} />
+          <span style={{ fontSize: "12px", color: "var(--emerald)", fontWeight: 600 }}>
             ✅ Meta Ads conectado
           </span>
         </div>
@@ -877,7 +869,7 @@ function ProyectosContent() {
           {/* Animated gradient accent line */}
           <div style={{
             position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-            background: "linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #6366f1)",
+            background: "linear-gradient(90deg, var(--purple), var(--purple), var(--red), var(--purple))",
             backgroundSize: "200% 100%",
             animation: "shimmer 3s linear infinite",
           }} />
@@ -887,7 +879,7 @@ function ProyectosContent() {
             background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
             boxShadow: "0 0 20px rgba(168,85,247,0.15)",
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2L2 7l10 5 10-5-10-5z" />
               <path d="M2 17l10 5 10-5" />
               <path d="M2 12l10 5 10-5" />
@@ -907,7 +899,7 @@ function ProyectosContent() {
             style={{
               display: "inline-flex", alignItems: "center", gap: "8px",
               padding: "10px 20px",
-              background: "linear-gradient(135deg, #6366f1, #a855f7)",
+              background: "linear-gradient(135deg, var(--purple), var(--purple))",
               color: "#fff",
               fontSize: "12px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" as const,
               borderRadius: "8px", cursor: "pointer", textDecoration: "none",
@@ -959,7 +951,7 @@ function ProyectosContent() {
           </div>
         ) : projects.length === 0 ? (
           <EmptyState
-            icon={<Rocket className="w-12 h-12" />}
+            icon={<Orbi state="idle" scale={0.65} />}
             title="Ningún proyecto en radar"
             description="Aún no tienes misiones activas. Crea tu primer proyecto para empezar a gestionar campañas."
             actionLabel="NUEVA MISIÓN"
@@ -971,12 +963,12 @@ function ProyectosContent() {
             <div className="flex items-center gap-3" style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
               onClick={() => router.push(`/dashboard/proyectos/${p.id}`)}>
               <div className="status-indicator" style={{
-                background: p.status === "EN VUELO" ? "var(--emerald)" : p.status === "EN ÓRBITA" ? "var(--amber)" : p.status === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.65)",
-                boxShadow: p.status === "EN VUELO" ? "0 0 8px var(--emerald)" : "none",
+                background: (p.status === "EN VUELO" || p.status === "Activo") ? "var(--emerald)" : p.status === "EN ÓRBITA" ? "var(--amber)" : p.status === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.65)",
+                boxShadow: (p.status === "EN VUELO" || p.status === "Activo") ? "0 0 8px var(--emerald)" : "none",
               }} />
               <div style={{ minWidth: 0 }}>
                 <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>{p.alias || "Sin nombre"}</p>
-                <p style={{ fontSize: "11px", color: "#64748b", marginTop: "1px" }}>
+                <p style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "1px" }}>
                   {p.vertical}{p.channels.length ? ` · ${p.channels.map(c => c.platformName).join(", ")}` : ""}
                 </p>
               </div>
@@ -984,7 +976,7 @@ function ProyectosContent() {
             <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
               {p.channels.slice(0, 3).map(c => {
                 const pl = PLATFORMS.find(x => x.id === c.platformId);
-                return <span key={c.platformId} style={{ fontSize: "10px", padding: "3px 8px", border: `1px solid ${pl?.color || "var(--border)"}`, color: pl?.color || "#94a3b8", fontWeight: 600, letterSpacing: "0.05em" }}>{c.platformName}</span>;
+                return <span key={c.platformId} style={{ fontSize: "10px", padding: "3px 8px", border: `1px solid ${pl?.color || "var(--border)"}`, color: pl?.color || "var(--text-secondary)", fontWeight: 600, letterSpacing: "0.05em" }}>{c.platformName}</span>;
               })}
               {p.channels.length > 3 && <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.65)" }}>+{p.channels.length - 3}</span>}
               <span className={`badge badge-${STATUS_COLORS[p.status]}`}>{p.status}</span>
@@ -1034,15 +1026,15 @@ function ProyectosContent() {
         >
           <div onClick={e => e.stopPropagation()} style={{ background: "rgba(5,8,18,0.98)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <AlertTriangle style={{ width: 20, height: 20, color: "#e2445c" }} />
+              <AlertTriangle style={{ width: 20, height: 20, color: "var(--red)" }} />
               <h3 style={{ fontSize: 14, fontWeight: 700, color: "white" }}>Eliminar Proyecto</h3>
             </div>
-            <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 20, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
               ¿Estás seguro de que deseas eliminar <strong style={{ color: "white" }}>{projects.find(p => p.id === deleteConfirm)?.alias || "este proyecto"}</strong>? Esta acción no se puede deshacer. Se eliminarán todos los canales, configuraciones y datos asociados.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(148,163,184,0.22)", color: "#94a3b8", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
-              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "#e2445c", background: "rgba(226,68,92,0.08)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
+              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(148,163,184,0.22)", color: "var(--text-secondary)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
+              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "var(--red)", background: "rgba(226,68,92,0.08)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
             </div>
           </div>
         </div>,
@@ -1278,7 +1270,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
         {/* Header */}
         <div style={{ padding: "16px 24px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)" }}>
           <h2 style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "white", letterSpacing: "0.1em" }}>{title}</h2>
-          <button onClick={onClose} style={{ color: "#64748b", cursor: "pointer", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "#94a3b8"} onMouseLeave={e => e.currentTarget.style.color = "#64748b"}><X className="w-5 h-5" /></button>
+          <button onClick={onClose} style={{ color: "var(--text-muted)", cursor: "pointer", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-secondary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-muted)"}><X className="w-5 h-5" /></button>
         </div>
 
         <div style={{ padding: "20px 24px 24px" }}>
@@ -1288,7 +1280,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
           <Row>
             <Field l="Alias del proyecto" error={errors.includes("alias")} el={
               <input type="text" value={form.alias} readOnly={ro} placeholder="Ej. Lanzamiento Q3"
-                style={{ ...inp, ...(errors.includes("alias") ? { borderColor: "var(--red)" } : {}) }}
+                className="f-input" style={{ ...(errors.includes("alias") ? { borderColor: "var(--red)" } : {}) }}
                 onChange={e => set("alias", e.target.value)} />
             } />
             <Field l="Cliente" el={
@@ -1345,7 +1337,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                         }));
                       }}
                       disabled={ro}
-                      style={{ ...inp, appearance: "auto" }}
+                      className="f-input" style={{ appearance: "auto" }}
                     >
                       <option value="">Ninguna</option>
                       <option value={NO_BOT_PLATFORM}>No aplica (sin bot)</option>
@@ -1360,22 +1352,22 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                       <option value={GOOGLE_PLATFORM}>Google (Web Chat + Landing)</option>
                     </select>
                     {!ro && analyticsIntegrations.length === 0 && !isNoBot && (
-                      <p style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>
+                      <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
                         Conecta Cari AI o Botmaker en Integraciones, o elige "No aplica" si este proyecto no usa bot.
                       </p>
                     )}
                     {!ro && analyticsIntegrations.length > 1 && !selectedId && !isNoBot && (
-                      <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>
+                      <p style={{ fontSize: 10, color: "var(--text-secondary)", marginTop: 4 }}>
                         Selecciona la plataforma del bot (Cari AI o Botmaker) para este proyecto.
                       </p>
                     )}
                     {!ro && isNoBot && (
-                      <p style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>
+                      <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
                         Sin Análisis de Resultados conversacional. El proyecto seguirá midiendo Ads y redes.
                       </p>
                     )}
                     {!ro && showNeedsBotWarning && (
-                      <p style={{ fontSize: 10, color: "#f59e0b", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                      <p style={{ fontSize: 10, color: "var(--amber)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
                         <AlertTriangle style={{ width: 11, height: 11 }} />
                         El número configura el canal, pero necesitas asociar Cari AI o Botmaker para ver métricas.
                       </p>
@@ -1404,7 +1396,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                 <select
                   value={form.botFlowType || ""}
                   disabled={ro}
-                  style={{ ...inp, appearance: "auto" }}
+                  className="f-select" style={{ appearance: "auto" }}
                   onChange={(e) => setForm(prev => ({ ...prev, botFlowType: e.target.value || null }))}
                 >
                   <option value="">Auto (inferir del flujo)</option>
@@ -1421,7 +1413,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
               solo para Botmaker. Para Botmaker se AUTOLLENAN desde su API (números,
               webchats, IG, FB); Cari no expone listado → captura manual. */}
           {selectedBotProvider === "botmaker" && (showWhatsapp || showWebchat || showInstagram || showFacebook) && totalAvail === 0 && !loadingChannels && (
-            <p style={{ fontSize: 10, color: "#f59e0b", margin: "2px 0 6px" }}>
+            <p style={{ fontSize: 10, color: "var(--amber)", margin: "2px 0 6px" }}>
               No se detectaron canales en esta cuenta de Botmaker (revisa tu panel). Mientras tanto, ingrésalos manualmente abajo.
             </p>
           )}
@@ -1533,7 +1525,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
             } />
           </Row>
           <Row>
-            <Field l="Página Web" el={<input type="url" value={form.website} readOnly={ro} placeholder="https://sitio.com" style={inp} onChange={e => set("website", e.target.value)} />} />
+            <Field l="Página Web" el={<input type="url" value={form.website} readOnly={ro} placeholder="https://sitio.com" className="f-input" onChange={e => set("website", e.target.value)} />} />
           </Row>
           </>
           )}
@@ -1573,7 +1565,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
 
           {/* ── Per-channel config cards ── */}
           {form.channels.map(ch => {
-            const pl = PLATFORMS.find(p => p.id === ch.platformId) || { name: ch.platformId, color: "#00d4ff" };
+            const pl = PLATFORMS.find(p => p.id === ch.platformId) || { name: ch.platformId, color: "var(--cyan)" };
             const accounts = adAccountsByPlatform[ch.platformId] || [];
 
             return (
@@ -1597,7 +1589,7 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                 </div>
 
                 {/* Ad accounts multi-select dropdown */}
-                <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#64748b", marginBottom: "6px" }}>
+                <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: "6px" }}>
                   Cuentas Publicitarias
                 </label>
                 <div style={{ marginBottom: "12px" }}>
@@ -1613,29 +1605,29 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
                 {/* Metrics row */}
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
                   <div>
-                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>Budget</label>
+                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: "4px" }}>Budget</label>
                     <input type="text" value={ch.budget} readOnly={ro} placeholder="$0.00"
-                      style={{ ...inp, fontSize: "11px", padding: "6px 8px" }}
+                      className="f-input" style={{ fontSize: "11px", padding: "6px 8px" }}
                       onChange={e => setChannel(ch.platformId, "budget", e.target.value)} />
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>Período</label>
-                    <select style={{ ...sel, fontSize: "11px", padding: "6px 8px" }} value={ch.period} disabled={ro}
+                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: "4px" }}>Período</label>
+                    <select className="f-select" style={{ fontSize: "11px", padding: "6px 8px" }} value={ch.period} disabled={ro}
                       onChange={e => setChannel(ch.platformId, "period", e.target.value)}>
                       {["Diario","Semanal","Mensual","Anual"].map(b => <option key={b}>{b}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>Meta</label>
-                    <select style={{ ...sel, fontSize: "11px", padding: "6px 8px" }} value={ch.goal} disabled={ro}
+                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: "4px" }}>Meta</label>
+                    <select className="f-select" style={{ fontSize: "11px", padding: "6px 8px" }} value={ch.goal} disabled={ro}
                       onChange={e => setChannel(ch.platformId, "goal", e.target.value)}>
                       <option value="">—</option>{GOALS.map(g => <option key={g}>{g}</option>)}
                     </select>
                   </div>
                   <div>
-                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>{CPR_MAP[ch.goal] || "CPR"}</label>
+                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: "4px" }}>{CPR_MAP[ch.goal] || "CPR"}</label>
                     <input type="text" value={ch.cpr} readOnly={ro} placeholder="$0.00"
-                      style={{ ...inp, fontSize: "11px", padding: "6px 8px" }}
+                      className="f-input" style={{ fontSize: "11px", padding: "6px 8px" }}
                       onChange={e => setChannel(ch.platformId, "cpr", e.target.value)} />
                   </div>
                 </div>
@@ -1650,12 +1642,12 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
           <>
           <Sec icon={<Users className="w-3 h-3" />} text="Audiencia & Calendario" />
           <Row>
-            <Field l="Buyer Persona" el={<input type="text" value={form.persona} readOnly={ro} placeholder="Mujeres 25-40, fitness" style={inp} onChange={e => set("persona", e.target.value)} />} />
-            <Field l="Geo-Targeting" el={<input type="text" value={form.geo} readOnly={ro} placeholder="País / Ciudad" style={inp} onChange={e => set("geo", e.target.value)} />} />
+            <Field l="Buyer Persona" el={<input type="text" value={form.persona} readOnly={ro} placeholder="Mujeres 25-40, fitness" className="f-input" onChange={e => set("persona", e.target.value)} />} />
+            <Field l="Geo-Targeting" el={<input type="text" value={form.geo} readOnly={ro} placeholder="País / Ciudad" className="f-input" onChange={e => set("geo", e.target.value)} />} />
           </Row>
           <Row>
-            <Field l="Fecha Inicio" el={<input type="date" value={form.dateStart} readOnly={ro} style={{ ...inp, colorScheme: "dark" }} onChange={e => set("dateStart", e.target.value)} />} />
-            <Field l="Fecha Fin" el={<input type="date" value={form.dateEnd} readOnly={ro} style={{ ...inp, colorScheme: "dark" }} onChange={e => set("dateEnd", e.target.value)} />} />
+            <Field l="Fecha Inicio" el={<input type="date" value={form.dateStart} readOnly={ro} className="f-input" style={{ colorScheme: "dark" }} onChange={e => set("dateStart", e.target.value)} />} />
+            <Field l="Fecha Fin" el={<input type="date" value={form.dateEnd} readOnly={ro} className="f-input" style={{ colorScheme: "dark" }} onChange={e => set("dateEnd", e.target.value)} />} />
           </Row>
           </>
           )}
@@ -1665,11 +1657,11 @@ function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIn
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
               <button onClick={onClose} style={{
                 fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase",
-                padding: "8px 20px", border: "1px solid rgba(148,163,184,0.12)", color: "#64748b",
+                padding: "8px 20px", border: "1px solid rgba(148,163,184,0.12)", color: "var(--text-muted)",
                 background: "transparent", cursor: "pointer", transition: "all 0.15s", borderRadius: "4px",
               }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.65)"; e.currentTarget.style.color = "#94a3b8"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.12)"; e.currentTarget.style.color = "#64748b"; }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.65)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.12)"; e.currentTarget.style.color = "var(--text-muted)"; }}
               >Cancelar</button>
               <button onClick={handleSubmit} className="btn-primary" style={{
                 padding: "8px 24px", background: "rgba(6,214,160,0.08)",
@@ -1709,20 +1701,20 @@ function MenuBtn({ icon, text, onClick, danger }: { icon: React.ReactNode; text:
 
 function Sec({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px", marginTop: "16px" }}>
-      <span style={{ color: "var(--cyan)", opacity: 0.4 }}>{icon}</span>
-      <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "#64748b" }}>{text}</span>
-      <span style={{ flex: 1, height: "1px", background: "var(--border)" }} />
+    <div className="f-section">
+      {icon}
+      <span>{text}</span>
+      <span style={{ flex: 1, height: "1px", background: "var(--hairline)", marginLeft: "8px" }} />
     </div>
   );
 }
 function Row({ children }: { children: React.ReactNode }) {
-  return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "12px" }}>{children}</div>;
+  return <div className="f-row">{children}</div>;
 }
 function Field({ l, el, error }: { l: string; el: React.ReactNode; error?: boolean }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: error ? "var(--red)" : "#64748b", marginBottom: "5px" }}>{l}{error ? " *" : ""}</label>
+      <label className="f-label" data-error={error ? "true" : undefined}>{l}{error ? " *" : ""}</label>
       {el}
     </div>
   );

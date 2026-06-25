@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useState, useCallback } from "react";
 import { GridFormData, FileInputData, ContentGridData, Post, VideoDetails } from "./types";
@@ -22,18 +22,18 @@ const DAYS_IN_MONTH: Record<string, number> = {
 
 /* ═══ SHARED STYLES ═══ */
 const S = {
-  input: { width: "100%", background: "rgba(10,15,30,0.6)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 4, padding: "6px 10px", color: "#e2e8f0", fontSize: 11, outline: "none", transition: "border-color 0.15s" } as React.CSSProperties,
-  label: { fontSize: 9, fontWeight: 600, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4, display: "block" } as React.CSSProperties,
-  sectionTitle: { fontSize: 9, fontWeight: 700, color: "rgba(0,229,0,0.6)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 } as React.CSSProperties,
+  input: { width: "100%", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 4, padding: "6px 10px", color: "var(--foreground)", fontSize: 11, outline: "none", transition: "border-color 0.15s" } as React.CSSProperties,
+  label: { fontSize: 9, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4, display: "block" } as React.CSSProperties,
+  sectionTitle: { fontSize: 9, fontWeight: 700, color: "var(--emerald)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 10 } as React.CSSProperties,
 };
 
 /* ═══ ICONS ═══ */
 const LogoIcon = () => (
   <svg width="28" height="28" viewBox="0 0 48 48" fill="none">
     <circle cx="24" cy="24" r="24" fill="#000" />
-    <path d="M29.68 31.04C28.48 32.24 26.88 33 24.8 33C21.6 33 19.22 31.42 17.66 28.26L20.3 27.06C21.38 29.22 22.88 30.4 24.8 30.4C26.12 30.4 27.02 29.82 27.02 28.66V28.42C26.54 28.82 25.72 29.1 24.56 29.1C21.8 29.1 19.52 27.28 19.52 24.1C19.52 20.92 21.8 19.1 24.56 19.1C25.72 19.1 26.54 19.38 27.02 19.78V19.54C27.02 18.38 26.12 17.8 24.8 17.8C22.88 17.8 21.38 19.02 20.3 21.14L17.66 19.94C19.22 16.78 21.6 15.2 24.8 15.2C26.88 15.2 28.48 15.96 29.68 17.16V31.04ZM27.02 24.1C27.02 22.3 26.12 21.4 24.56 21.4C23 21.4 22.1 22.3 22.1 24.1C22.1 25.9 23 26.8 24.56 26.8C26.12 26.8 27.02 25.9 27.02 24.1Z" fill="#00E500"/>
-    <rect x="32" y="30" width="4" height="2" fill="#00E500"/>
-    <rect x="32" y="15" width="4" height="12" fill="#00E500"/>
+    <path d="M29.68 31.04C28.48 32.24 26.88 33 24.8 33C21.6 33 19.22 31.42 17.66 28.26L20.3 27.06C21.38 29.22 22.88 30.4 24.8 30.4C26.12 30.4 27.02 29.82 27.02 28.66V28.42C26.54 28.82 25.72 29.1 24.56 29.1C21.8 29.1 19.52 27.28 19.52 24.1C19.52 20.92 21.8 19.1 24.56 19.1C25.72 19.1 26.54 19.38 27.02 19.78V19.54C27.02 18.38 26.12 17.8 24.8 17.8C22.88 17.8 21.38 19.02 20.3 21.14L17.66 19.94C19.22 16.78 21.6 15.2 24.8 15.2C26.88 15.2 28.48 15.96 29.68 17.16V31.04ZM27.02 24.1C27.02 22.3 26.12 21.4 24.56 21.4C23 21.4 22.1 22.3 22.1 24.1C22.1 25.9 23 26.8 24.56 26.8C26.12 26.8 27.02 25.9 27.02 24.1Z" fill="var(--emerald)"/>
+    <rect x="32" y="30" width="4" height="2" fill="var(--emerald)"/>
+    <rect x="32" y="15" width="4" height="12" fill="var(--emerald)"/>
   </svg>
 );
 
@@ -95,8 +95,8 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
             {FOCUS_OPTIONS.map(opt => (
               <button key={opt} type="button" onClick={() => handleFocusChange(opt)} style={{
                 padding: "4px 10px", fontSize: 9, fontWeight: 600, borderRadius: 3, border: "none", cursor: "pointer",
-                background: formData.focus.includes(opt) ? "#00E500" : "rgba(255,255,255,0.03)",
-                color: formData.focus.includes(opt) ? "#000" : "#64748b", transition: "all 0.15s",
+                background: formData.focus.includes(opt) ? "var(--emerald)" : "var(--row-hover)",
+                color: formData.focus.includes(opt) ? "#000" : "var(--text-muted)", transition: "all 0.15s",
               }}>{opt}</button>
             ))}
           </div>
@@ -105,15 +105,15 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
           <label style={S.label as React.CSSProperties}>Documentos de Marca</label>
           <label htmlFor="brandFiles" style={{ ...S.input, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, cursor: formData.brandFiles.length >= 5 ? "not-allowed" : "pointer", opacity: formData.brandFiles.length >= 5 ? 0.4 : 1, border: "1px dashed rgba(255,255,255,0.08)", padding: "6px 10px" }}>
             <svg width="12" height="12" viewBox="0 0 20 20" fill="rgba(148,163,184,0.65)"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 0v12h8V4H6z" clipRule="evenodd"/></svg>
-            <span style={{ fontSize: 10, color: "#64748b" }}>{formData.brandFiles.length > 0 ? `${formData.brandFiles.length}/5 archivos` : "Brandbook, voz y tono..."}</span>
+            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{formData.brandFiles.length > 0 ? `${formData.brandFiles.length}/5 archivos` : "Brandbook, voz y tono..."}</span>
           </label>
           <input id="brandFiles" type="file" multiple accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,.md" onChange={handleFileChange} disabled={formData.brandFiles.length >= 5} style={{ display: "none" }} />
           {fileNames.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
               {fileNames.map((name, i) => (
-                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(0,229,0,0.06)", padding: "2px 8px", borderRadius: 3, fontSize: 9, color: "#00E500" }}>
+                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(0,229,0,0.06)", padding: "2px 8px", borderRadius: 3, fontSize: 9, color: "var(--emerald)" }}>
                   <span style={{ maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
-                  <button type="button" onClick={() => handleRemoveFile(i)} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", fontSize: 11, padding: 0, lineHeight: 1 }}>×</button>
+                  <button type="button" onClick={() => handleRemoveFile(i)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 11, padding: 0, lineHeight: 1 }}>×</button>
                 </div>
               ))}
             </div>
@@ -124,7 +124,7 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
       <div style={{ display: "flex", justifyContent: "flex-end", paddingTop: 4 }}>
         <button type="submit" disabled={isLoading || !formData.client.trim()} style={{
           display: "flex", alignItems: "center", gap: 6, padding: "7px 20px", fontSize: 10, fontWeight: 700,
-          background: isLoading ? "rgba(0,229,0,0.2)" : "#00E500", color: "#000", border: "none", borderRadius: 4,
+          background: isLoading ? "rgba(0,229,0,0.2)" : "var(--emerald)", color: "#000", border: "none", borderRadius: 4,
           cursor: isLoading ? "not-allowed" : "pointer", transition: "all 0.2s",
           boxShadow: isLoading ? "none" : "0 0 16px rgba(0,229,0,0.12)",
           opacity: !formData.client.trim() ? 0.3 : 1, letterSpacing: "0.05em", textTransform: "uppercase",
@@ -175,9 +175,9 @@ export default function BriefingPage() {
           <LogoIcon />
           <div>
             <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 14, fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>
-              Grid<span style={{ color: "#00E500" }}>IA</span>
+              Grid<span style={{ color: "var(--emerald)" }}>IA</span>
             </h1>
-            <p style={{ fontSize: 8, color: "rgba(148,163,184,0.65)", letterSpacing: "0.05em" }}>Powered by Gemini 2.5 Flash</p>
+            <p style={{ fontSize: 8, color: "var(--text-muted)", letterSpacing: "0.05em" }}>Powered by Gemini 2.5 Flash</p>
           </div>
         </div>
       </div>
@@ -194,7 +194,7 @@ export default function BriefingPage() {
             <Skeleton key={i} style={{ height: "48px", width: "100%", borderRadius: "4px" }} />
           ))}
           <div style={{ textAlign: "center", marginTop: "8px" }}>
-            <span style={{ fontSize: "10px", color: "rgba(0,229,0,0.6)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>
+            <span style={{ fontSize: "10px", color: "var(--emerald)", textTransform: "uppercase", letterSpacing: "0.15em", fontWeight: 600 }}>
               ACTUALIZANDO HOLOCRÓN (GEMINI AI)...
             </span>
           </div>
@@ -203,7 +203,7 @@ export default function BriefingPage() {
 
       {/* Error */}
       {error && (
-        <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 4, color: "#fca5a5", fontSize: 11 }}>
+        <div style={{ marginTop: 10, padding: "8px 12px", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: 4, color: "var(--red)", fontSize: 11 }}>
           <strong>Error:</strong> {error}
         </div>
       )}
@@ -245,27 +245,27 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
     document.body.appendChild(link); link.click(); document.body.removeChild(link);
   }, [gridData]);
 
-  const thS: React.CSSProperties = { fontSize: 8, fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", padding: "5px 6px", textAlign: "left", borderBottom: "1px solid rgba(0,229,0,0.12)", whiteSpace: "nowrap", background: "#0b0f1e", position: "sticky", top: 0, zIndex: 5 };
-  const tdS: React.CSSProperties = { fontSize: 10, padding: "3px 4px", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.04)", color: "#cbd5e1", verticalAlign: "top" };
-  const editInput: React.CSSProperties = { width: "100%", background: "transparent", border: "1px solid transparent", borderRadius: 2, padding: "3px 5px", color: "#e2e8f0", fontSize: 9, outline: "none", resize: "vertical", minHeight: 22, transition: "border-color 0.15s" };
+  const thS: React.CSSProperties = { fontSize: 8, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", padding: "5px 6px", textAlign: "left", borderBottom: "1px solid rgba(0,229,0,0.12)", whiteSpace: "nowrap", background: "#0b0f1e", position: "sticky", top: 0, zIndex: 5 };
+  const tdS: React.CSSProperties = { fontSize: 10, padding: "3px 4px", textAlign: "left", borderBottom: "1px solid rgba(255,255,255,0.04)", color: "var(--foreground)", verticalAlign: "top" };
+  const editInput: React.CSSProperties = { width: "100%", background: "transparent", border: "1px solid transparent", borderRadius: 2, padding: "3px 5px", color: "var(--foreground)", fontSize: 9, outline: "none", resize: "vertical", minHeight: 22, transition: "border-color 0.15s" };
 
   return (
     <div style={{ marginTop: 12 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: 10, fontWeight: 700, color: "white", textTransform: "uppercase", letterSpacing: "0.08em" }}>Parrilla</span>
-          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>·</span>
-          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>{gridData.posts.length} posts</span>
-          <span style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>·</span>
+          <span style={{ fontSize: 9, color: "var(--text-muted)" }}>·</span>
+          <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{gridData.posts.length} posts</span>
+          <span style={{ fontSize: 9, color: "var(--text-muted)" }}>·</span>
           <span style={{ fontSize: 9, color: "rgba(0,229,0,0.5)" }}>{gridData.creditos.summary}</span>
         </div>
-        <button onClick={exportToCSV} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", fontSize: 9, fontWeight: 600, background: "transparent", border: "1px solid rgba(0,229,0,0.3)", color: "#00E500", borderRadius: 3, cursor: "pointer" }}>
+        <button onClick={exportToCSV} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", fontSize: 9, fontWeight: 600, background: "transparent", border: "1px solid rgba(0,229,0,0.3)", color: "var(--emerald)", borderRadius: 3, cursor: "pointer" }}>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           CSV
         </button>
       </div>
 
-      <div style={{ background: "#0b0f1e", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 5, overflow: "hidden" }}>
+      <div style={{ background: "#0b0f1e", border: "1px solid var(--hairline)", borderRadius: 5, overflow: "hidden" }}>
         <div style={{ overflow: "auto", maxHeight: "calc(100vh - 320px)" }}>
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 1100 }}>
             <thead>
@@ -287,24 +287,24 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                 <tr key={i} style={{ transition: "background 0.1s" }}
                   onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.012)"}
                   onMouseLeave={e => e.currentTarget.style.background = ""}>
-                  <td style={{ ...tdS, fontWeight: 700, color: "#00E500", textAlign: "center", fontSize: 11 }}>{post.dia}</td>
+                  <td style={{ ...tdS, fontWeight: 700, color: "var(--emerald)", textAlign: "center", fontSize: 11 }}>{post.dia}</td>
                   <td style={tdS}><textarea style={editInput} value={post.ideaPrincipal} onChange={e => updatePost(i, "ideaPrincipal", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Idea..." /></td>
                   <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "1px 4px", borderRadius: 2, background: "rgba(0,229,0,0.08)", color: "rgba(0,229,0,0.7)", whiteSpace: "nowrap" }}>{post.enfoquePublicacion}</span></td>
                   <td style={tdS}><textarea style={{ ...editInput, fontWeight: 600, color: "white" }} value={post.copyIn} onChange={e => updatePost(i, "copyIn", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Headline..." /></td>
                   <td style={tdS}><textarea style={editInput} value={post.copyOut} onChange={e => updatePost(i, "copyOut", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Body copy..." rows={2} /></td>
                   <td style={tdS}><textarea style={editInput} value={post.explicacionArte} onChange={e => updatePost(i, "explicacionArte", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Dirección de arte..." /></td>
-                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "1px 4px", borderRadius: 2, background: post.formatoArte === "Video" ? "rgba(0,229,0,0.1)" : "rgba(148,163,184,0.06)", color: post.formatoArte === "Video" ? "#00E500" : "#64748b" }}>{post.formatoArte}</span></td>
-                  <td style={tdS}><textarea style={{ ...editInput, color: "rgba(0,229,0,0.6)", fontFamily: "monospace", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
+                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "1px 4px", borderRadius: 2, background: post.formatoArte === "Video" ? "rgba(0,229,0,0.1)" : "rgba(148,163,184,0.06)", color: post.formatoArte === "Video" ? "var(--emerald)" : "var(--text-muted)" }}>{post.formatoArte}</span></td>
+                  <td style={tdS}><textarea style={{ ...editInput, color: "var(--emerald)", fontFamily: "monospace", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
                   <td style={tdS}>
                     {post.videoDetails ? (
-                      <div style={{ fontSize: 9, color: "#94a3b8" }}>
+                      <div style={{ fontSize: 9, color: "var(--text-secondary)" }}>
                         <div style={{ marginBottom: 4 }}><strong style={{ color: "#fff" }}>Herramienta:</strong> {post.videoDetails.videoAITool}</div>
                         <div style={{ marginBottom: 4 }}><strong style={{ color: "#fff" }}>Escenas:</strong> {post.videoDetails.numEscenas}</div>
                         {post.videoDetails.promptsEscenasMidjourney?.length > 0 && (
                           <div style={{ marginBottom: 4 }}>
                             <strong style={{ color: "#fff" }}>Prompts Imagen:</strong>
                             <ul style={{ paddingLeft: 12, margin: "2px 0 0" }}>
-                              {post.videoDetails.promptsEscenasMidjourney.map((p, idx) => <li key={idx}><code style={{ color: "#00E500", fontSize: 8 }}>{p}</code></li>)}
+                              {post.videoDetails.promptsEscenasMidjourney.map((p, idx) => <li key={idx}><code style={{ color: "var(--emerald)", fontSize: 8 }}>{p}</code></li>)}
                             </ul>
                           </div>
                         )}
@@ -312,12 +312,12 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                           <div>
                             <strong style={{ color: "#fff" }}>Prompts Video:</strong>
                             <ul style={{ paddingLeft: 12, margin: "2px 0 0" }}>
-                              {post.videoDetails.promptsVideoAI.map((p, idx) => <li key={idx}><code style={{ color: "#00E500", fontSize: 8 }}>{p}</code></li>)}
+                              {post.videoDetails.promptsVideoAI.map((p, idx) => <li key={idx}><code style={{ color: "var(--emerald)", fontSize: 8 }}>{p}</code></li>)}
                             </ul>
                           </div>
                         )}
                       </div>
-                    ) : <span style={{ color: "rgba(148,163,184,0.65)", fontSize: 9 }}>N/A</span>}
+                    ) : <span style={{ color: "var(--text-muted)", fontSize: 9 }}>N/A</span>}
                   </td>
                   <td style={tdS}><textarea style={editInput} value={post.pasoAPaso} onChange={e => updatePost(i, "pasoAPaso", e.target.value)} onFocus={e => e.target.style.borderColor = "rgba(0,229,0,0.3)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Pasos..." /></td>
                 </tr>

@@ -101,12 +101,12 @@ export function ConfirmModalContainer() {
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-          {config.danger && <AlertTriangle size={20} style={{ color: "#ff2d55", flexShrink: 0 }} />}
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>
+          {config.danger && <AlertTriangle size={20} style={{ color: "var(--red)", flexShrink: 0 }} />}
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>
             {config.title}
           </h3>
         </div>
-        <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: config.inputPlaceholder ? 12 : 20, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: config.inputPlaceholder ? 12 : 20, lineHeight: 1.5 }}>
           {config.message}
         </p>
         {config.inputPlaceholder && (
@@ -120,7 +120,7 @@ export function ConfirmModalContainer() {
             style={{
               width: "100%", padding: "10px 14px", marginBottom: 20, boxSizing: "border-box",
               background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.15)",
-              color: "#e2e8f0", fontSize: 13, outline: "none", borderRadius: 6,
+              color: "var(--foreground)", fontSize: 13, outline: "none", borderRadius: 6,
             }}
           />
         )}
@@ -129,8 +129,8 @@ export function ConfirmModalContainer() {
             onClick={handleCancel}
             style={{
               padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 500,
-              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
-              color: "#94a3b8", cursor: "pointer",
+              background: "rgba(255,255,255,0.06)", border: "1px solid var(--hairline)",
+              color: "var(--text-secondary)", cursor: "pointer",
             }}
           >
             {config.cancelLabel || "Cancelar"}
@@ -141,7 +141,7 @@ export function ConfirmModalContainer() {
               padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 600,
               background: config.danger ? "rgba(255,45,85,0.15)" : "rgba(0,212,255,0.12)",
               border: `1px solid ${config.danger ? "rgba(255,45,85,0.3)" : "rgba(0,212,255,0.25)"}`,
-              color: config.danger ? "#ff2d55" : "#00d4ff", cursor: "pointer",
+              color: config.danger ? "var(--red)" : "var(--cyan)", cursor: "pointer",
             }}
           >
             {config.confirmLabel || "Confirmar"}

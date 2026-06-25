@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState } from "react";
 import { Key, Loader2, Database, Link as LinkIcon, RefreshCw } from "lucide-react";
@@ -76,25 +76,25 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
         onClick={e => e.stopPropagation()}
         style={{
           width: "100%", maxWidth: 500, padding: 24, borderRadius: 12,
-          background: "#0f172a", border: "1px solid rgba(255,255,255,0.1)",
+          background: "var(--foreground)", border: "1px solid var(--hairline)",
           display: "flex", flexDirection: "column", gap: 16,
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <Database size={18} style={{ color: "#10b981" }} />
-          <h3 style={{ fontSize: 16, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>
+          <Database size={18} style={{ color: "var(--emerald)" }} />
+          <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>
             Conectar CRM vía API
           </h3>
         </div>
         
-        <p style={{ fontSize: 12, color: "#94a3b8", margin: 0, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
           Configura un endpoint personalizado para importar resultados, sesiones e intenciones de tu bot o CRM.
           Tus credenciales se cifrarán de manera segura con AES-256.
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 8 }}>
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#94a3b8", marginBottom: 6 }}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>
               <LinkIcon size={10} style={{ display: "inline", marginRight: 4 }} /> URL del API
             </label>
             <input
@@ -104,14 +104,14 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               onChange={e => setForm({ ...form, apiUrl: e.target.value })}
               style={{
                 width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 13,
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                color: "#e2e8f0", outline: "none"
+                background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)",
+                color: "var(--foreground)", outline: "none"
               }}
             />
           </div>
 
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#94a3b8", marginBottom: 6 }}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>
               <Key size={10} style={{ display: "inline", marginRight: 4 }} /> Access Token (Bearer)
             </label>
             <input
@@ -121,14 +121,14 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               onChange={e => setForm({ ...form, token: e.target.value })}
               style={{
                 width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 13,
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                color: "#e2e8f0", outline: "none", fontFamily: "monospace"
+                background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)",
+                color: "var(--foreground)", outline: "none", fontFamily: "monospace"
               }}
             />
           </div>
 
           <div>
-            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "#94a3b8", marginBottom: 6 }}>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>
               <RefreshCw size={10} style={{ display: "inline", marginRight: 4 }} /> Refresh Token (Opcional)
             </label>
             <input
@@ -138,8 +138,8 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               onChange={e => setForm({ ...form, refreshToken: e.target.value })}
               style={{
                 width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 13,
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                color: "#e2e8f0", outline: "none", fontFamily: "monospace"
+                background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)",
+                color: "var(--foreground)", outline: "none", fontFamily: "monospace"
               }}
             />
           </div>
@@ -150,7 +150,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
             padding: "10px 14px", borderRadius: 6, fontSize: 12,
             background: testResult.success ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
             border: `1px solid ${testResult.success ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`,
-            color: testResult.success ? "#34d399" : "#f87171"
+            color: testResult.success ? "var(--emerald)" : "var(--red)"
           }}>
             {testResult.msg}
           </div>
@@ -162,8 +162,8 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
             disabled={testing || !form.apiUrl || !form.token}
             style={{
               padding: "10px 16px", borderRadius: 6, fontSize: 12, fontWeight: 600,
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-              color: "#e2e8f0", cursor: testing || !form.apiUrl || !form.token ? "not-allowed" : "pointer",
+              background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)",
+              color: "var(--foreground)", cursor: testing || !form.apiUrl || !form.token ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", gap: 6,
             }}
           >
@@ -176,8 +176,8 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               onClick={onClose}
               style={{
                 padding: "10px 16px", borderRadius: 6, fontSize: 12,
-                background: "transparent", border: "1px solid rgba(255,255,255,0.1)",
-                color: "#94a3b8", cursor: "pointer",
+                background: "transparent", border: "1px solid var(--hairline)",
+                color: "var(--text-secondary)", cursor: "pointer",
               }}
             >
               Cancelar
@@ -187,9 +187,9 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               onClick={handleSave}
               style={{
                 padding: "10px 20px", borderRadius: 6, fontSize: 12, fontWeight: 600,
-                background: form.apiUrl && form.token ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.03)",
+                background: form.apiUrl && form.token ? "rgba(16,185,129,0.15)" : "var(--row-hover)",
                 border: `1px solid ${form.apiUrl && form.token ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.06)"}`,
-                color: form.apiUrl && form.token ? "#10b981" : "#334155",
+                color: form.apiUrl && form.token ? "var(--emerald)" : "var(--text-secondary)",
                 cursor: form.apiUrl && form.token && !saving ? "pointer" : "not-allowed",
                 display: "flex", alignItems: "center", gap: 6,
               }}

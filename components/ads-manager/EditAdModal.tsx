@@ -10,7 +10,7 @@ function FormGroup({ label, children, hint }: { label: string; children: React.R
     <div>
       <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(148,163,184,0.7)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {label}
-        {hint && <span style={{ marginLeft: 6, fontSize: 9, color: "#64748b", fontWeight: 400, textTransform: "none", fontStyle: "italic" }}>{hint}</span>}
+        {hint && <span style={{ marginLeft: 6, fontSize: 9, color: "var(--text-muted)", fontWeight: 400, textTransform: "none", fontStyle: "italic" }}>{hint}</span>}
       </label>
       {children}
     </div>
@@ -51,11 +51,11 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
   const existingStorySpec = existingCreative.object_story_spec || {};
   const existingLinkData = existingStorySpec.link_data || existingStorySpec.video_data || {};
 
-  // ── General ──
+  // -- General --
   const [name, setName] = useState(ad.name || "");
   const [status, setStatus] = useState<"ACTIVE" | "PAUSED">(ad.status === "ACTIVE" ? "ACTIVE" : "PAUSED");
 
-  // ── Creative fields ──
+  // -- Creative fields --
   const [message, setMessage] = useState(existingLinkData.message || existingCreative.body || "");
   const [headline, setHeadline] = useState(existingLinkData.name || existingCreative.title || "");
   const [description, setDescription] = useState(existingLinkData.description || existingCreative.description || "");
@@ -71,7 +71,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
     ctaType !== (existingLinkData.call_to_action?.type || existingCreative.call_to_action_type || "LEARN_MORE") ||
     ctaUrl !== (existingLinkData.call_to_action?.value?.link || existingLinkData.link || "");
 
-  // ── Live preview data ──
+  // -- Live preview data --
   const previewData: AdCreativeData = {
     pageName: existingStorySpec.page_id ? `Página ${existingStorySpec.page_id}` : "Tu Página",
     pageAvatar: undefined,
@@ -173,8 +173,8 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               <Image className="w-4 h-4" style={{ color: "var(--emerald)" }} />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "white" }}>Editar Anuncio</div>
-              <div style={{ fontSize: 11, color: "#94a3b8" }}>ID: {ad.id}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>Editar Anuncio</div>
+              <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>ID: {ad.id}</div>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -183,7 +183,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
                 Creativo modificado
               </div>
             )}
-            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "#94a3b8", padding: 4, display: "flex", alignItems: "center", borderRadius: 6 }}>
+            <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", padding: 4, display: "flex", alignItems: "center", borderRadius: 6 }}>
               <X className="w-5 h-5" />
             </button>
           </div>
@@ -200,7 +200,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
                 padding: "10px 12px",
                 background: "none", border: "none",
                 borderBottom: `2px solid ${activeTab === tab.key ? "var(--cyan)" : "transparent"}`,
-                color: activeTab === tab.key ? "var(--cyan)" : "#94a3b8",
+                color: activeTab === tab.key ? "var(--cyan)" : "var(--text-secondary)",
                 fontSize: 12, fontWeight: 600, cursor: "pointer", marginBottom: -1, transition: "color 0.15s",
               }}
             >
@@ -225,8 +225,8 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               <FormGroup label="Estado">
                 <div style={{ display: "flex", gap: 8 }}>
                   {(["ACTIVE", "PAUSED"] as const).map((s) => (
-                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.1)") : "rgba(255,255,255,0.09)", borderColor: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--border)", color: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "#94a3b8" }}>
-                      {s === "ACTIVE" ? "● Activo" : "◌ Pausado"}
+                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.1)") : "rgba(255,255,255,0.09)", borderColor: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--border)", color: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--text-secondary)" }}>
+                      {s === "ACTIVE" ? "? Activo" : "? Pausado"}
                     </button>
                   ))}
                 </div>
@@ -234,10 +234,10 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               {/* Ad info read-only */}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
                 <FormGroup label="ID del creativo">
-                  <div style={{ ...inputStyle as any, color: "#64748b", fontSize: 12, fontFamily: "monospace" }}>{existingCreative.id || "—"}</div>
+                  <div style={{ ...inputStyle as any, color: "var(--text-muted)", fontSize: 12, fontFamily: "monospace" }}>{existingCreative.id || "—"}</div>
                 </FormGroup>
                 <FormGroup label="Conjunto">
-                  <div style={{ ...inputStyle as any, color: "#64748b", fontSize: 12, fontFamily: "monospace" }}>{ad.adset_id || "—"}</div>
+                  <div style={{ ...inputStyle as any, color: "var(--text-muted)", fontSize: 12, fontFamily: "monospace" }}>{ad.adset_id || "—"}</div>
                 </FormGroup>
               </div>
             </>
@@ -247,7 +247,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
             <>
               {!existingStorySpec.page_id && (
                 <div style={{ padding: "10px 12px", background: "rgba(255,190,11,0.05)", border: "1px solid rgba(255,190,11,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(255,190,11,0.9)", lineHeight: 1.5, marginBottom: 4 }}>
-                  ⚠️ Los datos del creativo no están disponibles completamente desde la API. Los cambios de creativo pueden no aplicarse correctamente si la información de la página no está disponible.
+                  ?? Los datos del creativo no están disponibles completamente desde la API. Los cambios de creativo pueden no aplicarse correctamente si la información de la página no está disponible.
                 </div>
               )}
 
@@ -287,7 +287,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               </FormGroup>
 
               <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.08)", borderRadius: 8, fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.5 }}>
-                ℹ️ Los creativos en Meta son <strong style={{ color: "white" }}>inmutables</strong>. Al guardar con cambios de creativo, se creará automáticamente un nuevo creativo y se asignará al anuncio.
+                ?? Los creativos en Meta son <strong style={{ color: "var(--foreground)" }}>inmutables</strong>. Al guardar con cambios de creativo, se creará automáticamente un nuevo creativo y se asignará al anuncio.
               </div>
             </>
           )}
@@ -306,9 +306,9 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
 
         {/* Footer */}
         <div style={{ padding: "14px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "space-between", alignItems: "center" }}>
-          <div style={{ fontSize: 11, color: "#64748b" }}>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
             {activeTab === "creative" && creativeChanged
-              ? "⚠️ Se creará un nuevo creativo al guardar"
+              ? "?? Se creará un nuevo creativo al guardar"
               : activeTab === "preview" ? "Vista previa en tiempo real"
               : ""}
           </div>
@@ -317,7 +317,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               Cancelar
             </button>
             <button onClick={handleSave} disabled={loading || saved} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", background: saved ? "rgba(6,214,160,0.2)" : "rgba(0,129,251,0.2)", border: `1px solid ${saved ? "var(--emerald)" : "var(--cyan)"}`, borderRadius: 8, color: saved ? "var(--emerald)" : "var(--cyan)", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>
-              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? "✓ Guardado" : <><Save className="w-4 h-4" /> Guardar</>}
+              {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? "? Guardado" : <><Save className="w-4 h-4" /> Guardar</>}
             </button>
           </div>
         </div>

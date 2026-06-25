@@ -18,26 +18,26 @@ const VARIANTS = {
   danger: {
     border: "rgba(239,68,68,0.25)",
     bg: "rgba(239,68,68,0.06)",
-    icon: "#ef4444",
+    icon: "var(--red)",
     btn: "rgba(239,68,68,0.15)",
     btnBorder: "rgba(239,68,68,0.35)",
-    btnColor: "#ef4444",
+    btnColor: "var(--red)",
   },
   warning: {
     border: "rgba(251,191,36,0.25)",
     bg: "rgba(251,191,36,0.06)",
-    icon: "#fbbf24",
+    icon: "var(--amber)",
     btn: "rgba(251,191,36,0.15)",
     btnBorder: "rgba(251,191,36,0.35)",
-    btnColor: "#fbbf24",
+    btnColor: "var(--amber)",
   },
   info: {
     border: "rgba(0,212,255,0.25)",
     bg: "rgba(0,212,255,0.06)",
-    icon: "#22d3ee",
+    icon: "var(--cyan)",
     btn: "rgba(0,212,255,0.15)",
     btnBorder: "rgba(0,212,255,0.35)",
-    btnColor: "#22d3ee",
+    btnColor: "var(--cyan)",
   },
 };
 
@@ -83,7 +83,7 @@ export function ConfirmDialog({
             <AlertTriangle className="w-5 h-5" style={{ color: v.icon }} />
           </div>
           <div>
-            <div style={{ fontSize: "14px", fontWeight: 700, color: "white", marginBottom: "6px" }}>
+            <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)", marginBottom: "6px" }}>
               {title}
             </div>
             <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.7)", lineHeight: "1.5" }}>
@@ -98,7 +98,7 @@ export function ConfirmDialog({
             disabled={loading}
             style={{
               padding: "8px 16px", fontSize: "11px", fontWeight: 600,
-              background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)",
               borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
               transition: "all 0.15s",
             }}

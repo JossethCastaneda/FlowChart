@@ -10,7 +10,7 @@ export default function AnalisisConfiguracionPage() {
         <PageHeader
           title="Configuración de Análisis"
           description="Administra las conexiones a Botmaker y Cari AI."
-          icon={<Settings className="w-6 h-6" style={{ color: "#00d4ff" }} />}
+          icon={<Settings className="w-6 h-6" style={{ color: "var(--cyan)" }} />}
         />
 
         <div

@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 
 interface EmptyStateProps {
   icon: React.ReactNode;
@@ -12,13 +12,13 @@ interface EmptyStateProps {
 export function EmptyState({ icon, title, description, actionLabel, onAction, actionIcon }: EmptyStateProps) {
   return (
     <div style={{ padding: "56px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center" }}>
-      <div style={{ color: "rgba(148,163,184,0.65)", marginBottom: "16px" }}>
+      <div style={{ color: "var(--text-muted)", marginBottom: "16px" }}>
         {icon}
       </div>
-      <p style={{ fontFamily: "var(--font-display)", fontSize: "14px", letterSpacing: "0.2em", color: "#94a3b8", textTransform: "uppercase" }}>
+      <p style={{ fontFamily: "var(--font-display)", fontSize: "14px", letterSpacing: "0.2em", color: "var(--text-secondary)", textTransform: "uppercase" }}>
         {title}
       </p>
-      <p style={{ fontSize: "12px", color: "#64748b", marginTop: "8px", maxWidth: "400px", lineHeight: "1.5" }}>
+      <p style={{ fontSize: "12px", color: "var(--text-muted)", marginTop: "8px", maxWidth: "400px", lineHeight: "1.5" }}>
         {description}
       </p>
       {actionLabel && onAction && (

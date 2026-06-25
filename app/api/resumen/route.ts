@@ -57,8 +57,8 @@ export const GET = withWorkspace(async (_req, ctx) => {
     else if (group.status === "Approved") briefs.approved += group._count;
   }
 
-  // Active projects: status is "Activo" (the canonical active value in schema)
-  const activeProjects = projects.filter((p) => p.status === "Activo").length;
+  // Active projects: status is "EN VUELO" (or "Activo" legacy)
+  const activeProjects = projects.filter((p) => p.status === "EN VUELO" || p.status === "Activo").length;
 
   return apiSuccess({
     workspace,

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { SodareLogo } from "@/components/ui/SodareLogo";
 
@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
     background: "rgba(15, 23, 42, 0.8)",
     border: "1px solid rgba(100, 116, 139, 0.3)",
     borderRadius: "8px",
-    color: "#e2e8f0",
+    color: "var(--foreground)",
     fontSize: "14px",
     outline: "none",
     marginBottom: "16px",
@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
   const btnStyle: React.CSSProperties = {
     width: "100%",
     padding: "14px",
-    background: "linear-gradient(135deg, #00f0ff, #0080ff)",
+    background: "linear-gradient(135deg, var(--c-brand), #0080ff)",
     border: "none",
     borderRadius: "8px",
     color: "#030508",
@@ -95,14 +95,14 @@ export default function ForgotPasswordPage() {
     return (
       <div style={containerStyle}>
         <div style={cardStyle}>
-          <h1 style={{ color: "#00f0ff", fontSize: "20px", marginBottom: "16px", textAlign: "center" }}>
+          <h1 style={{ color: "var(--c-brand)", fontSize: "20px", marginBottom: "16px", textAlign: "center" }}>
             {devResetUrl ? "🔧 Modo Desarrollo" : "📧 Revisa tu email"}
           </h1>
 
           {devResetUrl ? (
             // ── Modo desarrollo: mostrar el enlace directamente ──────────────
             <div>
-              <p style={{ color: "#94a3b8", textAlign: "center", fontSize: "14px", lineHeight: "1.6", marginBottom: "20px" }}>
+              <p style={{ color: "var(--text-secondary)", textAlign: "center", fontSize: "14px", lineHeight: "1.6", marginBottom: "20px" }}>
                 El servicio de email no está configurado en este entorno.
                 Usa el siguiente enlace para restablecer la contraseña:
               </p>
@@ -114,13 +114,13 @@ export default function ForgotPasswordPage() {
                 marginBottom: "16px",
                 wordBreak: "break-all",
               }}>
-                <p style={{ color: "#64748b", fontSize: "10px", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+                <p style={{ color: "var(--text-muted)", fontSize: "10px", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
                   Enlace de reset (expira en 1 hora)
                 </p>
                 <a
                   href={devResetUrl}
                   style={{
-                    color: "#00f0ff",
+                    color: "var(--c-brand)",
                     fontSize: "13px",
                     wordBreak: "break-all",
                     textDecoration: "none",
@@ -135,7 +135,7 @@ export default function ForgotPasswordPage() {
                   display: "block",
                   textAlign: "center",
                   padding: "12px",
-                  background: "linear-gradient(135deg, #00f0ff, #0080ff)",
+                  background: "linear-gradient(135deg, var(--c-brand), #0080ff)",
                   color: "#030508",
                   fontWeight: 700,
                   fontSize: "14px",
@@ -150,20 +150,20 @@ export default function ForgotPasswordPage() {
             </div>
           ) : (
             // ── Modo producción: instrucciones de email ──────────────────────
-            <p style={{ color: "#94a3b8", textAlign: "center", fontSize: "14px", lineHeight: "1.6" }}>
-              Si <strong style={{ color: "#e2e8f0" }}>{email}</strong> está registrado,
+            <p style={{ color: "var(--text-secondary)", textAlign: "center", fontSize: "14px", lineHeight: "1.6" }}>
+              Si <strong style={{ color: "var(--foreground)" }}>{email}</strong> está registrado,
               recibirás un enlace para restablecer tu contraseña.
             </p>
           )}
 
-          <p style={{ color: "#64748b", textAlign: "center", fontSize: "12px", marginTop: "16px" }}>
+          <p style={{ color: "var(--text-muted)", textAlign: "center", fontSize: "12px", marginTop: "16px" }}>
             El enlace expira en 1 hora.
           </p>
           <div style={{ textAlign: "center", marginTop: "24px" }}>
             <a
               href="/login"
               style={{
-                color: "#00f0ff",
+                color: "var(--c-brand)",
                 fontSize: "13px",
                 textDecoration: "none",
               }}
@@ -183,7 +183,7 @@ export default function ForgotPasswordPage() {
           <SodareLogo size="lg" />
         </div>
         <p style={{
-          color: "#94a3b8",
+          color: "var(--text-secondary)",
           fontSize: "14px",
           textAlign: "center",
           marginBottom: "32px",
@@ -202,7 +202,7 @@ export default function ForgotPasswordPage() {
           />
 
           {error && (
-            <p style={{ color: "#ef4444", fontSize: "12px", margin: "-8px 0 12px" }}>
+            <p style={{ color: "var(--red)", fontSize: "12px", margin: "-8px 0 12px" }}>
               {error}
             </p>
           )}

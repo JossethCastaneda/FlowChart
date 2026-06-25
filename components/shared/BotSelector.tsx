@@ -58,7 +58,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
           background: "rgba(10, 15, 30, 0.7)",
           border: "1px solid var(--border)",
           borderRadius: "6px",
-          color: "white",
+          color: "var(--foreground)",
           fontSize: "13px",
           fontWeight: 600,
           textAlign: "left",
@@ -106,7 +106,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
               width: "300px",
               display: "flex",
               flexDirection: "column",
-              color: "white",
+              color: "var(--foreground)",
               overflow: "hidden",
             }}
           >
@@ -131,7 +131,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
                   style={{
                     background: "none",
                     border: "none",
-                    color: "white",
+                    color: "var(--foreground)",
                     fontSize: "13px",
                     outline: "none",
                     width: "100%",
@@ -142,7 +142,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
 
             <div style={{ overflowY: "auto", maxHeight: "250px", padding: "8px" }} className="custom-scrollbar">
               {displayedBots.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "16px", color: "#94a3b8", fontSize: "12px" }}>
+                <div style={{ textAlign: "center", padding: "16px", color: "var(--text-secondary)", fontSize: "12px" }}>
                   No se encontraron bots.
                 </div>
               ) : (
@@ -163,7 +163,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
                         padding: "10px 12px",
                         borderRadius: "8px",
                         background: isSelected ? "rgba(0,129,251,0.15)" : "transparent",
-                        color: "white",
+                        color: "var(--foreground)",
                         border: "none",
                         cursor: "pointer",
                         textAlign: "left",
@@ -194,7 +194,7 @@ export function BotSelector({ selectedBotId, onSelectBot, platformFilter }: BotS
                         <div style={{ fontWeight: 600, fontSize: "13px", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
                           {bot.name}
                         </div>
-                        <div style={{ fontSize: "11px", color: "#94a3b8" }}>ID: {bot.externalId}</div>
+                        <div style={{ fontSize: "11px", color: "var(--text-secondary)" }}>ID: {bot.externalId}</div>
                       </div>
                     </button>
                   );

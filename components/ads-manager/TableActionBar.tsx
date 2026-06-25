@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+﻿import React, { useState, useRef, useEffect } from "react";
 import { Plus, Copy, Edit2, Trash2, Tag, MoreHorizontal, ChevronDown, Download, Upload, Maximize2, FlaskConical, Play, Pause, Type, Search, DollarSign, Gauge, Settings, FileSpreadsheet, FileText, Table2 } from "lucide-react";
 
 export interface TableActionBarProps {
@@ -107,7 +107,7 @@ export function TableActionBar({
   });
 
   const menuSectionTitleStyle: React.CSSProperties = {
-    padding: "8px 16px 4px", fontSize: "11px", fontWeight: 700, color: "white",
+    padding: "8px 16px 4px", fontSize: "11px", fontWeight: 700, color: "var(--foreground)",
   };
   const menuDividerStyle: React.CSSProperties = { height: "1px", background: "var(--border)", margin: "4px 0" };
 
@@ -132,8 +132,8 @@ export function TableActionBar({
       <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "nowrap" }}>
         <button style={{
           display: "flex", alignItems: "center", gap: "4px", padding: "4px 10px",
-          background: "#008a47", border: "none", borderRadius: "4px",
-          color: "white", fontSize: "10px", fontWeight: 600, cursor: "pointer",
+          background: "var(--emerald)", border: "none", borderRadius: "4px",
+          color: "var(--foreground)", fontSize: "10px", fontWeight: 600, cursor: "pointer",
         }}>
           <Plus className="w-3 h-3" /> Crear
         </button>
@@ -174,10 +174,10 @@ export function TableActionBar({
             <div style={menuStyle}>
               <div style={menuSectionTitleStyle}>General</div>
               <button style={menuItemStyle()} onClick={() => handleMenuItem(onActivate)}>
-                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Play className="w-3 h-3" style={{ color: "#34d399" }} /> Activar</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Play className="w-3 h-3" style={{ color: "var(--emerald)" }} /> Activar</span>
               </button>
               <button style={menuItemStyle()} onClick={() => handleMenuItem(onDeactivate)}>
-                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Pause className="w-3 h-3" style={{ color: "#fbbf24" }} /> Desactivar</span>
+                <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Pause className="w-3 h-3" style={{ color: "var(--amber)" }} /> Desactivar</span>
               </button>
               <button style={menuItemStyle()} onClick={() => handleMenuItem(onBulkRename)}>
                 <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Type className="w-3 h-3" /> Nombre</span>
@@ -249,13 +249,13 @@ export function TableActionBar({
                     boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
                   }}>
                     <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onExportCSV, false)}>
-                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Table2 className="w-3 h-3" style={{ color: "#34d399" }} /> Exportar CSV</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><Table2 className="w-3 h-3" style={{ color: "var(--emerald)" }} /> Exportar CSV</span>
                     </button>
                     <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onExportExcel, false)}>
-                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><FileSpreadsheet className="w-3 h-3" style={{ color: "#22c55e" }} /> Exportar Excel</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><FileSpreadsheet className="w-3 h-3" style={{ color: "var(--emerald)" }} /> Exportar Excel</span>
                     </button>
                     <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onExportPDF, false)}>
-                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><FileText className="w-3 h-3" style={{ color: "#a78bfa" }} /> Reporte PDF</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "6px" }}><FileText className="w-3 h-3" style={{ color: "var(--purple)" }} /> Reporte PDF</span>
                     </button>
                   </div>
                 )}

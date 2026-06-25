@@ -22,7 +22,9 @@ export function PageHeader({ title, description, icon, action }: PageHeaderProps
             justifyContent: "center",
             background: "rgba(0,212,255,0.07)",
             border: "1px solid var(--border)",
+            borderRadius: "10px",
             position: "relative",
+            flexShrink: 0,
           }}>
             {icon}
             {/* Corner accents */}
@@ -45,7 +47,7 @@ export function PageHeader({ title, description, icon, action }: PageHeaderProps
             fontFamily: "var(--font-sans)",
             fontSize: "24px",
             fontWeight: 800,
-            color: "white",
+            color: "var(--foreground)",
             letterSpacing: 0,
             lineHeight: 1.2,
           }}>
@@ -54,7 +56,7 @@ export function PageHeader({ title, description, icon, action }: PageHeaderProps
           {description && (
             <p style={{
               fontSize: "12px",
-              color: "#94a3b8",
+              color: "var(--text-secondary)",
               marginTop: "4px",
               letterSpacing: "0.03em",
             }}>

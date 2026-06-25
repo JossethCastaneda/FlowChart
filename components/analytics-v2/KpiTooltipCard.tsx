@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 import { Info } from "lucide-react";
 
 interface KpiCardProps {
@@ -23,18 +23,18 @@ export function KpiTooltipCard({ title, value, sub, icon: Icon, color, formulaDe
   if (trafficLight) {
     const { value: tv, thresholds, isHigherBetter } = trafficLight;
     if (isHigherBetter) {
-      if (tv >= thresholds.good) lightColor = "#10b981"; // Verde
-      else if (tv >= thresholds.warning) lightColor = "#f59e0b"; // Amarillo
-      else lightColor = "#ef4444"; // Rojo
+      if (tv >= thresholds.good) lightColor = "var(--emerald)"; // Verde
+      else if (tv >= thresholds.warning) lightColor = "var(--amber)"; // Amarillo
+      else lightColor = "var(--red)"; // Rojo
     } else {
-      if (tv <= thresholds.good) lightColor = "#10b981"; // Verde
-      else if (tv <= thresholds.warning) lightColor = "#f59e0b"; // Amarillo
-      else lightColor = "#ef4444"; // Rojo
+      if (tv <= thresholds.good) lightColor = "var(--emerald)"; // Verde
+      else if (tv <= thresholds.warning) lightColor = "var(--amber)"; // Amarillo
+      else lightColor = "var(--red)"; // Rojo
     }
   }
 
   return (
-    <div style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", padding: "20px", borderRadius: "12px", position: "relative" }}>
+    <div style={{ background: "var(--row-hover)", border: "1px solid var(--hairline)", padding: "20px", borderRadius: "12px", position: "relative" }}>
       
       {/* Tooltip Icon */}
       {formulaDef && (
@@ -48,10 +48,10 @@ export function KpiTooltipCard({ title, value, sub, icon: Icon, color, formulaDe
           {showTooltip && (
             <div style={{
               position: "absolute", right: "0", top: "24px", width: "240px", zIndex: 50,
-              background: "#0f172a", border: "1px solid #1e293b", padding: "12px", borderRadius: "8px",
-              boxShadow: "0 10px 25px rgba(0,0,0,0.5)", fontSize: "12px", color: "#cbd5e1"
+              background: "var(--foreground)", border: "1px solid var(--surface)", padding: "12px", borderRadius: "8px",
+              boxShadow: "0 10px 25px rgba(0,0,0,0.5)", fontSize: "12px", color: "var(--foreground)"
             }}>
-              <p style={{ margin: 0, fontWeight: 600, color: "white", marginBottom: "4px" }}>Fórmula:</p>
+              <p style={{ margin: 0, fontWeight: 600, color: "var(--foreground)", marginBottom: "4px" }}>Fórmula:</p>
               {formulaDef}
             </div>
           )}
@@ -69,8 +69,8 @@ export function KpiTooltipCard({ title, value, sub, icon: Icon, color, formulaDe
         </div>
         <div>
           <p style={{ color: "var(--text-secondary)", fontSize: "12px", fontWeight: 600, margin: "0 0 4px" }}>{title}</p>
-          <h4 style={{ color: "white", fontSize: "24px", fontWeight: 700, margin: 0 }}>{value}</h4>
-          {sub && <span style={{ fontSize: "11px", color: "#94a3b8", display: "block", marginTop: "4px" }}>{sub}</span>}
+          <h4 style={{ color: "var(--foreground)", fontSize: "24px", fontWeight: 700, margin: 0 }}>{value}</h4>
+          {sub && <span style={{ fontSize: "11px", color: "var(--text-secondary)", display: "block", marginTop: "4px" }}>{sub}</span>}
         </div>
       </div>
     </div>
