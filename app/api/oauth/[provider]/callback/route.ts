@@ -28,6 +28,10 @@ export async function GET(
 
   const baseUrl = getAppBaseUrl(request.nextUrl.origin);
   const integrationsUrl = `${baseUrl}/dashboard/integrations`;
+  // Helper: pick redirect URL based on popup mode (set after state decode)
+  // eslint-disable-next-line prefer-const
+  let getSuccessUrl: (p: string) => string;
+  let getErrorUrl: (e: string) => string;
 
   // User cancelled
   if (error) {
@@ -49,10 +53,11 @@ export async function GET(
     return NextResponse.redirect(`${integrationsUrl}?connect_error=server_error`);
   }
 
-  // 2. Validate HMAC state
+  // State vars populated after HMAC validation
   let provider = "";
   let userId = "";
   let workspaceId = "";
+  let isPopup = false;
   try {
     const parsed = JSON.parse(Buffer.from(stateParam, "base64url").toString());
     const { payload, sig } = parsed;
@@ -76,6 +81,7 @@ export async function GET(
     provider = decoded.provider;
     userId = decoded.userId;
     workspaceId = decoded.workspaceId || "";
+    isPopup = !!decoded.popup;
 
     if (userId !== jwt.sub) {
       logger.warn(`[OAUTH CALLBACK] ❌ User mismatch — state: ${userId}, jwt: ${jwt.sub}`);
@@ -185,10 +191,16 @@ export async function GET(
     });
 
     logger.info(`[OAUTH CALLBACK] ✅ ${config.label} connected for workspace ${workspaceId}`);
-    return NextResponse.redirect(`${integrationsUrl}?connected=${provider}`);
+    const successUrl = isPopup
+      ? `${baseUrl}/connect/done?module=${provider}`
+      : `${integrationsUrl}?connected=${provider}`;
+    return NextResponse.redirect(successUrl);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "unknown";
     logger.error(`[OAUTH CALLBACK] Error for ${provider}:`, message);
-    return NextResponse.redirect(`${integrationsUrl}?connect_error=server_error`);
+    const errorUrl = isPopup
+      ? `${baseUrl}/connect/done?module=${provider}&error=server_error`
+      : `${integrationsUrl}?connect_error=server_error`;
+    return NextResponse.redirect(errorUrl);
   }
 }

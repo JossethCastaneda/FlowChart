@@ -75,11 +75,13 @@ export async function GET(
   }
 
   // 5. Build HMAC-signed state
+  const isPopup = request.nextUrl.searchParams.get("popup") === "1";
   const payload = JSON.stringify({
     provider,
     userId: jwt.sub,
     workspaceId,
     nonce: crypto.randomUUID(),
+    popup: isPopup,
   });
   const sig = createHmac("sha256", AUTH_SECRET)
     .update(payload)

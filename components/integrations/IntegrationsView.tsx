@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { openConnectPopup } from "@/lib/connect-popup";
+
 import { CustomCrmModal } from "@/components/integrations/CustomCrmModal";
 import { CariConnectModal } from "@/components/integrations/CariConnectModal";
 import { useLanguage } from "@/components/layout/LanguageContext";
@@ -339,7 +340,7 @@ export function IntegrationsView() {
       case "google_tag":
         window.location.href = "/api/oauth/google/start?modules=tag_tracking"; break;
       case "tiktok_ads":
-        window.location.href = "/api/oauth/tiktok_ads/start"; break;
+        openConnectPopup("/api/oauth/tiktok_ads/start?popup=1", loadIntegrations); break;
       case "botmaker":
         setTokenModal({ provider: "botmaker", label: "BotMaker", isConnected: !!getState("botmaker")?.connected }); break;
       case "cari":
