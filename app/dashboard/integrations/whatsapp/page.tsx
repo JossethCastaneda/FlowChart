@@ -670,6 +670,13 @@ export default function WhatsAppIntegrationPage() {
   const [sdkReady, setSdkReady]           = useState(false);
   const [connectError, setConnectError]   = useState<string | null>(null);
 
+  // Direct-token connection form
+  const [connectTab, setConnectTab]         = useState<'direct' | 'meta'>('direct');
+  const [directToken, setDirectToken]       = useState('');
+  const [directWabaId, setDirectWabaId]     = useState('');
+  const [directPhoneId, setDirectPhoneId]   = useState('');
+  const [directConnecting, setDirectConnecting] = useState(false);
+
   const [lines, setLines]               = useState<WaLine[]>([]);
   const [projects, setProjects]         = useState<Project[]>([]);
   const [loadingLines, setLoadingLines] = useState(false);
@@ -730,10 +737,10 @@ export default function WhatsAppIntegrationPage() {
 
   useEffect(() => { if (wabaStatus.connected) fetchLines(); else setLines([]); }, [wabaStatus.connected, fetchLines]);
 
-  // ── Connect ──────────────────────────────────────────────────────────────────
+  // ── Connect via Embedded Signup ─────────────────────────────────────────────
   const handleConnect = useCallback(() => {
-    if (!sdkReady || !window.FB) { setConnectError("t.sdkLoading"); return; }
-    if (!APP_ID || !CONFIG_ID) { setConnectError("t.missingVars"); return; }
+    if (!sdkReady || !window.FB) { setConnectError(t.sdkLoading); return; }
+    if (!APP_ID || !CONFIG_ID) { setConnectError(t.missingVars); return; }
     setConnectError(null); setConnecting(true);
     const setup: Record<string, unknown> = {};
     if (wsInfo.name) setup.business = { name: wsInfo.name };
@@ -745,9 +752,9 @@ export default function WhatsAppIntegrationPage() {
       try {
         const res = await fetch("/api/connect/whatsapp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, ...(wabaId && { wabaId }), ...(phoneNumberId && { phoneNumberId }) }) });
         const data = await res.json();
-        if (!res.ok) setConnectError(data.error || "t.connectError");
+        if (!res.ok) setConnectError(data.error || t.connectError);
         else { await fetchStatus(); fetchLines(); }
-      } catch { setConnectError("t.networkError."); }
+      } catch { setConnectError(t.networkError); }
       setConnecting(false);
     };
     const onMessage = (event: MessageEvent) => {
@@ -772,11 +779,31 @@ export default function WhatsAppIntegrationPage() {
       if (pmData.wabaId || pmData.phoneNumberId) { window.removeEventListener("message", onMessage); doPost(code, pmData.wabaId, pmData.phoneNumberId); }
       else setTimeout(() => { window.removeEventListener("message", onMessage); doPost(code, pmData.wabaId, pmData.phoneNumberId); }, 3000);
     }, { config_id: CONFIG_ID, response_type: "code", override_default_response_type: true, extras: { setup, featureType: "whatsapp_business_app_onboarding", sessionInfoVersion: "3", version: "v4", features: [{ name: "app_only_install" }] } });
-  }, [sdkReady, fetchStatus, fetchLines, wsInfo]);
+  }, [sdkReady, fetchStatus, fetchLines, wsInfo, t]);
+
+  // ── Connect via Direct Token ──────────────────────────────────────────────
+  const handleDirectConnect = async () => {
+    setConnectError(null);
+    if (!directToken.trim()) { setConnectError("Ingresa el System User Token."); return; }
+    if (!directWabaId.trim()) { setConnectError("Ingresa el WABA ID."); return; }
+    if (!directPhoneId.trim()) { setConnectError("Ingresa el Phone Number ID."); return; }
+    setDirectConnecting(true);
+    try {
+      const res = await fetch("/api/connect/whatsapp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ accessToken: directToken.trim(), wabaId: directWabaId.trim(), phoneNumberId: directPhoneId.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) setConnectError(data.error || t.connectError);
+      else { await fetchStatus(); fetchLines(); }
+    } catch { setConnectError(t.networkError); }
+    setDirectConnecting(false);
+  };
 
   // ── Disconnect WABA ──────────────────────────────────────────────────────────
   const handleDisconnect = async () => {
-    if (!confirm("¿{t.disconnect} WhatsApp Business? Los mensajes dejarán de procesarse.")) return;
+    if (!confirm(`¿${t.disconnect} WhatsApp Business? Los mensajes dejarán de procesarse.`)) return;
     setDisconnecting(true);
     try { await fetch("/api/connect/whatsapp", { method: "DELETE" }); setWabaStatus({ connected: false }); setLines([]); } catch { /* silent */ }
     setDisconnecting(false);
@@ -856,7 +883,7 @@ export default function WhatsAppIntegrationPage() {
             {!wabaStatus.connected && !loadingStatus && (
               <button onClick={handleConnect} disabled={connecting || !sdkReady} className="wa-connect-btn" style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700, background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.6 : 1, transition: "all 0.25s", fontFamily: "inherit" }}>
                 {connecting ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <WaIcon size={16} />}
-                {connecting ? "Conectando..." : "{t.connectMeta}"}
+                {connecting ? "Conectando..." : t.connectMeta}
               </button>
             )}
           </div>
@@ -880,33 +907,111 @@ export default function WhatsAppIntegrationPage() {
         {/* ── Not connected ────────────────────────────────────────────────── */}
         {!loadingStatus && !wabaStatus.connected && (
           <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid var(--border)", background: "var(--surface)" }}>
-            <div style={{ padding: "48px 40px", background: "var(--surface-hover)", borderBottom: "1px solid var(--border)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 16 }}>
-              <div style={{ width: 72, height: 72, borderRadius: 20, background: "linear-gradient(135deg,#075E54,#128C7E)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(37,211,102,0.3)" }}>
-                <WaIcon size={36} />
+
+            {/* Header */}
+            <div style={{ padding: "28px 32px 20px", background: "var(--surface-hover)", borderBottom: "1px solid var(--border)", display: "flex", alignItems: "center", gap: 16 }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: "linear-gradient(135deg,#075E54,#128C7E)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 8px 24px rgba(37,211,102,0.25)" }}>
+                <WaIcon size={26} />
               </div>
               <div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Conecta tu WhatsApp Business</h2>
-                <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0, maxWidth: 480 }}>Usa el Embedded Signup de Meta para conectar tu WABA en segundos. Tus credenciales se cifran con AES-256-GCM.</p>
+                <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: "0 0 4px" }}>Conecta tu WhatsApp Business</h2>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>Elige el método más sencillo para tu caso</p>
               </div>
-              <button onClick={handleConnect} disabled={connecting || !sdkReady} className="wa-connect-btn"
-                style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 32px", borderRadius: 12, fontSize: 14, fontWeight: 700, background: "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.4)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.6 : 1, transition: "all 0.25s", fontFamily: "inherit" }}>
-                {connecting ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <WaIcon size={18} />}
-                {connecting ? "Abriendo Meta..." : "{t.connectMeta}"}
-              </button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 0 }}>
-              {[
-                { icon: <Wifi size={16} style={{ color: "#25D366" }} />, title: "Cloud API", desc: "Envío y recepción via API oficial de Meta" },
-                { icon: <ShieldCheck size={16} style={{ color: "var(--cyan)" }} />, title: "Seguro", desc: "Tokens cifrados en reposo. Webhooks HMAC-SHA256" },
-                { icon: <MessageSquare size={16} style={{ color: "var(--purple)" }} />, title: "Inbox 2.0", desc: "Conversaciones integradas al panel" },
-                { icon: <Zap size={16} style={{ color: "var(--amber)" }} />, title: "Plantillas", desc: "Mensajes proactivos con templates Meta" },
-              ].map((f, i) => (
-                <div key={i} style={{ padding: "20px 24px", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none", borderTop: "1px solid var(--border)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>{f.icon}<span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{f.title}</span></div>
-                  <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>{f.desc}</p>
-                </div>
+
+            {/* Tabs */}
+            <div style={{ display: "flex", borderBottom: "1px solid var(--border)" }}>
+              {[{ key: 'direct' as const, label: '⚡ Token directo', sublabel: 'Recomendado — 3 campos' }, { key: 'meta' as const, label: '🔗 Meta Embedded Signup', sublabel: 'Via popup de Facebook' }].map(tab => (
+                <button
+                  key={tab.key}
+                  onClick={() => setConnectTab(tab.key)}
+                  style={{ flex: 1, padding: "14px 16px", background: connectTab === tab.key ? "var(--surface)" : "var(--surface-hover)", border: "none", borderBottom: connectTab === tab.key ? "2px solid #25D366" : "2px solid transparent", cursor: "pointer", fontFamily: "inherit", textAlign: "left", transition: "all 0.15s" }}
+                >
+                  <div style={{ fontSize: 13, fontWeight: 700, color: connectTab === tab.key ? "#25D366" : "var(--text-secondary)" }}>{tab.label}</div>
+                  <div style={{ fontSize: 11, color: "var(--text-muted)", marginTop: 1 }}>{tab.sublabel}</div>
+                </button>
               ))}
             </div>
+
+            {/* Tab: Direct Token */}
+            {connectTab === 'direct' && (
+              <div style={{ padding: "24px 32px 28px" }}>
+                <div style={{ padding: "12px 16px", borderRadius: 10, background: "rgba(37,211,102,0.04)", border: "1px solid rgba(37,211,102,0.12)", marginBottom: 20, fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>
+                  <strong style={{ color: "var(--foreground)" }}>¿Cómo obtener estos datos?</strong><br />
+                  1. Ve a <strong>Meta Business Manager → Usuarios del Sistema</strong><br />
+                  2. Crea o usa un Sistema de Usuario → genera un <strong>Token permanente</strong> con permiso <code style={{ background: "rgba(255,255,255,0.06)", padding: "1px 4px", borderRadius: 3 }}>whatsapp_business_management</code><br />
+                  3. En <strong>WhatsApp → Configuración</strong> copia el <strong>WABA ID</strong> y el <strong>Phone Number ID</strong>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  {[
+                    { label: "System User Token", value: directToken, set: setDirectToken, placeholder: "EAAxxxxx...", type: "password" },
+                    { label: "WABA ID (WhatsApp Business Account ID)", value: directWabaId, set: setDirectWabaId, placeholder: "1234567890", type: "text" },
+                    { label: "Phone Number ID", value: directPhoneId, set: setDirectPhoneId, placeholder: "0987654321", type: "text" },
+                  ].map(({ label, value, set, placeholder, type }) => (
+                    <div key={label}>
+                      <label style={{ fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 5 }}>{label}</label>
+                      <input
+                        type={type}
+                        value={value}
+                        onChange={e => set(e.target.value)}
+                        placeholder={placeholder}
+                        style={{ width: "100%", padding: "9px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 13, fontFamily: "inherit", outline: "none", boxSizing: "border-box" }}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={handleDirectConnect}
+                  disabled={directConnecting || !directToken || !directWabaId || !directPhoneId}
+                  style={{ marginTop: 20, width: "100%", padding: "12px", borderRadius: 10, background: directConnecting ? "rgba(37,211,102,0.3)" : "linear-gradient(135deg,#25D366,#128C7E)", border: "none", color: "#fff", fontSize: 14, fontWeight: 700, cursor: directConnecting ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit", transition: "all 0.2s" }}
+                >
+                  {directConnecting ? <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Conectando...</> : <>Conectar WhatsApp</>}
+                </button>
+              </div>
+            )}
+
+            {/* Tab: Meta Embedded Signup */}
+            {connectTab === 'meta' && (
+              <div style={{ padding: "24px 32px 28px" }}>
+                {/* Guide */}
+                <div style={{ padding: "14px 16px", borderRadius: 10, background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.2)", marginBottom: 20 }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                    <AlertCircle size={15} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
+                    <div style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.7 }}>
+                      <strong style={{ color: "var(--foreground)" }}>¿Por qué Meta pide tantas cosas?</strong><br />
+                      El popup de Meta incluye campos como <em>Catálogo, Página, Instagram, Píxel y Cuenta publicitaria</em> — pero <strong>todos son opcionales</strong>.<br />
+                      <strong style={{ color: "#25D366" }}>Solo necesitas seleccionar tu «Cuenta de WhatsApp Business»</strong> y dejar los demás en blanco. Después presiona <em>Siguiente</em> en cada pantalla.
+                    </div>
+                  </div>
+                </div>
+
+                {/* Steps visual */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+                  {[
+                    { step: "1", text: "Acepta las condiciones → Continuar", color: "var(--text-secondary)" },
+                    { step: "2", text: "Selecciona tu Cuenta de WhatsApp Business", color: "#25D366" },
+                    { step: "3", text: "Catálogo, Página, Instagram, Píxel → dejar en blanco → Siguiente", color: "var(--text-secondary)" },
+                    { step: "4", text: "Completa el registro de número si se pide", color: "var(--text-secondary)" },
+                  ].map(({ step, text, color }) => (
+                    <div key={step} style={{ display: "flex", alignItems: "flex-start", gap: 10 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: "50%", background: step === "2" ? "rgba(37,211,102,0.15)" : "rgba(255,255,255,0.06)", border: `1px solid ${step === "2" ? "rgba(37,211,102,0.35)" : "rgba(255,255,255,0.08)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, fontSize: 11, fontWeight: 700, color: step === "2" ? "#25D366" : "var(--text-muted)" }}>{step}</div>
+                      <p style={{ fontSize: 12, color, margin: 0, lineHeight: 1.5, paddingTop: 2 }}>{text}</p>
+                    </div>
+                  ))}
+                </div>
+
+                <button
+                  onClick={handleConnect}
+                  disabled={connecting || !sdkReady}
+                  className="wa-connect-btn"
+                  style={{ width: "100%", padding: "12px", borderRadius: 10, fontSize: 14, fontWeight: 700, background: "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.4)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, fontFamily: "inherit", transition: "all 0.25s" }}
+                >
+                  {connecting ? <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> Abriendo Meta...</> : <><WaIcon size={16} /> {t.connectMeta}</>}
+                </button>
+                {!sdkReady && <p style={{ fontSize: 11, color: "var(--text-muted)", textAlign: "center", marginTop: 8 }}>Cargando SDK de Facebook...</p>}
+              </div>
+            )}
+
           </div>
         )}
 
