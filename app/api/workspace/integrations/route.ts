@@ -48,6 +48,9 @@ export const GET = withWorkspace(async (_req, ctx) => {
       connectedBy: intg.connectedUser
         ? { id: intg.connectedUser.id, name: intg.connectedUser.name, image: intg.connectedUser.image }
         : null,
+      // Perfil de la cuenta EXTERNA conectada (Facebook/Google) — nickname +
+      // avatar de la identidad que otorgó el acceso, independiente por módulo.
+      connectedProfile: (creds.profile as { id?: string; name?: string | null; picture?: string | null } | undefined) ?? null,
       canDisconnect: ctx.role === "OWNER" || intg.connectedBy === ctx.userId,
       connectedModules,
       resources: (creds.resources as Record<string, unknown>) || {},

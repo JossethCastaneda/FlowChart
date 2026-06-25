@@ -1,41 +1,82 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { openConnectPopup } from "@/lib/connect-popup";
 
-export function ConnectedMetaBadge() {
-  const [data, setData] = useState<{ name: string | null; image: string | null } | null>(null);
-  const [loading, setLoading] = useState(true);
+interface ConnectedProfile {
+  id?: string;
+  name: string | null;
+  picture: string | null;
+}
 
-  const fetchIntegrations = async () => {
+// Identidad estable: un literal por defecto se recrearía en cada render y haría
+// que el efecto refetchee en bucle.
+const DEFAULT_PROVIDERS = ["meta_publisher_facebook", "meta_publisher_instagram", "meta_social"];
+
+interface ConnectedMetaBadgeProps {
+  /** Módulo a conectar si no hay cuenta (api/connect/[module]). */
+  module?: string;
+  /**
+   * Providers de Integration a inspeccionar, en orden de prioridad. El badge
+   * muestra el perfil del PRIMERO conectado. Por defecto solo mira los del
+   * propio Publisher para reflejar su cuenta independiente (no la genérica).
+   */
+  providers?: string[];
+  /** Texto del botón cuando no hay cuenta conectada. */
+  connectLabel?: string;
+}
+
+/**
+ * Muestra el PERFIL DE FACEBOOK conectado (nickname + avatar) de un módulo
+ * concreto. Cada módulo tiene su cuenta independiente: el badge no asume un
+ * acceso único compartido, sino que lee la integración del módulo dado.
+ */
+export function ConnectedMetaBadge({
+  module = "publisher_facebook",
+  providers = DEFAULT_PROVIDERS,
+  connectLabel = "Conectar Facebook",
+}: ConnectedMetaBadgeProps) {
+  const [profile, setProfile] = useState<ConnectedProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const providersKey = providers.join(",");
+
+  const fetchIntegrations = useCallback(async () => {
     try {
       const res = await fetch(`/api/workspace/integrations`);
       const json = await res.json();
-      // El endpoint responde el envelope estándar { success, data: { data: [...] } }.
+      // Envelope estándar { success, data: { data: [...] } }.
       const list: any[] = Array.isArray(json) ? json : (json?.data?.data ?? []);
-      // Cualquier módulo Meta conectado crea también el registro genérico "meta".
-      const meta = list.find((i) => i.provider === "meta" && i.connected);
-      // El perfil que otorgó los permisos se expone como `connectedBy`.
-      if (meta && meta.connectedBy) {
-        setData({
-          name: meta.connectedBy.name,
-          image: meta.connectedBy.image,
-        });
-      } else {
-        setData(null);
+      // Primer provider conectado (en orden de prioridad). Se prefiere el perfil
+      // de Facebook (nickname + avatar); si una conexión antigua aún no lo tiene
+      // capturado, se cae al usuario que la conectó para no mostrar "Conectar"
+      // sobre una cuenta realmente conectada (reconectar poblará el perfil FB).
+      let fbProfile: ConnectedProfile | null = null;
+      let fallback: ConnectedProfile | null = null;
+      for (const provider of providers) {
+        const intg = list.find((i) => i.provider === provider && i.connected);
+        if (!intg) continue;
+        if (intg.connectedProfile?.name || intg.connectedProfile?.picture) {
+          fbProfile = intg.connectedProfile as ConnectedProfile;
+          break;
+        }
+        if (!fallback && intg.connectedBy) {
+          fallback = { name: intg.connectedBy.name ?? null, picture: intg.connectedBy.image ?? null };
+        }
       }
+      setProfile(fbProfile ?? fallback);
     } catch (e) {
       console.error(e);
+      setProfile(null);
     } finally {
       setLoading(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [providersKey]);
 
   useEffect(() => {
     fetchIntegrations();
-    
-    // Listen for connection events from the popup
+    // Reaccionar a conexiones hechas desde el popup OAuth.
     const handleMessage = (e: MessageEvent) => {
       if (e.origin !== window.location.origin) return;
       if (e.data?.type === "OAUTH_SUCCESS" || e.data?.type === "INTEGRATION_UPDATED") {
@@ -44,7 +85,7 @@ export function ConnectedMetaBadge() {
     };
     window.addEventListener("message", handleMessage);
     return () => window.removeEventListener("message", handleMessage);
-  }, []);
+  }, [fetchIntegrations]);
 
   if (loading) {
     return (
@@ -52,10 +93,10 @@ export function ConnectedMetaBadge() {
     );
   }
 
-  if (!data) {
+  if (!profile) {
     return (
       <button
-        onClick={() => openConnectPopup("community", fetchIntegrations)}
+        onClick={() => openConnectPopup(module, fetchIntegrations)}
         style={{
           display: "flex",
           alignItems: "center",
@@ -70,7 +111,7 @@ export function ConnectedMetaBadge() {
           cursor: "pointer",
         }}
       >
-        Conectar Facebook
+        {connectLabel}
       </button>
     );
   }
@@ -86,19 +127,19 @@ export function ConnectedMetaBadge() {
         background: "rgba(255,255,255,0.05)",
         border: "1px solid rgba(255,255,255,0.1)",
       }}
-      title="Perfil de Facebook conectado que otorga los permisos"
+      title="Perfil de Facebook conectado que otorga los permisos de esta sección"
     >
       <div style={{ width: 24, height: 24, borderRadius: "50%", overflow: "hidden", position: "relative", background: "rgba(255,255,255,0.1)" }}>
-        {data.image ? (
-          <Image src={data.image} alt={data.name || "Perfil"} fill style={{ objectFit: "cover" }} unoptimized />
+        {profile.picture ? (
+          <Image src={profile.picture} alt={profile.name || "Perfil"} fill style={{ objectFit: "cover" }} unoptimized />
         ) : (
           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#fff" }}>
-            {data.name?.charAt(0) || "F"}
+            {profile.name?.charAt(0) || "F"}
           </div>
         )}
       </div>
-      <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary)", maxWidth: 100, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-        {data.name || "Usuario"}
+      <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary)", maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+        {profile.name || "Usuario"}
       </span>
       <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", marginLeft: 4 }} />
     </div>

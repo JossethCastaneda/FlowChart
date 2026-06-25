@@ -200,6 +200,27 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(`${baseUrl}/connect/done?error=fetch_pages_failed`);
     }
 
+    // 3c. Identidad del PERFIL DE FACEBOOK que otorgó el acceso (nickname +
+    // avatar). Se guarda por módulo para que cada sección muestre la cuenta
+    // independiente con la que fue conectada — no el usuario de Sodare.
+    let connectedProfile: { id: string; name: string | null; picture: string | null } | null = null;
+    try {
+      const meRes = await fetch(
+        `https://graph.facebook.com/${META_API_VERSION}/me?fields=id,name,picture.width(96).height(96)`,
+        { headers: { Authorization: `Bearer ${userAccessToken}` } }
+      );
+      const meData = await meRes.json();
+      if (meRes.ok && meData.id) {
+        connectedProfile = {
+          id: meData.id,
+          name: meData.name ?? null,
+          picture: meData.picture?.data?.url ?? null,
+        };
+      }
+    } catch (e) {
+      logger.warn("[CONNECT CALLBACK] Failed to fetch connected profile:", e);
+    }
+
     // 4. Verify workspace membership using workspaceId from state
     let resolvedWorkspaceId = workspaceId;
 
@@ -249,6 +270,7 @@ export async function GET(request: NextRequest) {
           refreshedAt: new Date().toISOString(),
           module,
           grantedScopes: userScopes, // Track what was actually granted
+          profile: connectedProfile, // Perfil FB conectado (nickname + avatar)
         },
         connected: true,
         connectedAt: new Date(),
@@ -264,6 +286,7 @@ export async function GET(request: NextRequest) {
           refreshedAt: new Date().toISOString(),
           module,
           grantedScopes: userScopes,
+          profile: connectedProfile,
         },
         connected: true,
         connectedAt: new Date(),
@@ -304,6 +327,8 @@ export async function GET(request: NextRequest) {
           ...existingCreds,
           grantedScopes: unionScopes,
           refreshedAt: new Date().toISOString(),
+          // Refresca la identidad mostrada al perfil recién conectado.
+          profile: connectedProfile ?? (existingCreds?.profile ?? null),
         }
       : {
           accessToken: encryptedUserToken, // USER token
@@ -311,6 +336,7 @@ export async function GET(request: NextRequest) {
           expiresAt,
           refreshedAt: new Date().toISOString(),
           grantedScopes: unionScopes,
+          profile: connectedProfile,
         };
 
     if (wouldLoseScopes) {
@@ -342,6 +368,7 @@ export async function GET(request: NextRequest) {
           expiresAt,
           refreshedAt: new Date().toISOString(),
           grantedScopes: userScopes,
+          profile: connectedProfile,
         },
         connected: true,
         connectedAt: new Date(),

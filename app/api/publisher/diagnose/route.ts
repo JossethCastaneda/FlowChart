@@ -44,9 +44,12 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   }
 
   // 4. Access token resolution
-  // Prioritize generic "meta" token which is updated by all integrations
-  let accessToken = await getMetaAccessToken(req);
+  // Diagnostica la cuenta del PROPIO módulo Publisher (independiente); el
+  // genérico "meta" es solo último recurso.
+  let accessToken = await getMetaAccessToken(req, "publisher_facebook");
+  if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher_instagram");
   if (!accessToken) accessToken = await getMetaAccessToken(req, "social");
+  if (!accessToken) accessToken = await getMetaAccessToken(req);
   if (!accessToken) {
     results.access_token = { ok: false, detail: "getMetaAccessToken devolvió null — no hay token activo" };
     return apiSuccess({ results, ready: false });
