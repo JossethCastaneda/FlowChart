@@ -44,33 +44,26 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
   // Google vive en el Hub (app/api/oauth/google), no aquí. Ver comentario arriba.
   tiktok_ads: {
     id: "tiktok_ads",
-    label: "TikTok Ads",
-    // TikTok for Business authorization endpoint (Marketing API)
-    authUrl: "https://business-api.tiktok.com/portal/auth",
-    tokenUrl: "https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/",
-    // Marketing API scopes — comma-separated (TikTok does not use space-separated)
-    // These are the minimum scopes needed to read & manage Ads from the dashboard.
+    label: "TikTok",
+    // TikTok for Developers — Content Posting API (v2)
+    // This is the standard OAuth for publishing videos and reading user content.
+    // The Marketing/Ads API (business-api.tiktok.com) requires separate Business Center approval.
+    authUrl: "https://www.tiktok.com/v2/auth/authorize/",
+    tokenUrl: "https://open.tiktokapis.com/v2/oauth/token/",
+    // Content Posting scopes — comma-separated as required by TikTok v2
     scopes: [
-      "advertiser.list",
-      "advertiser.read",
-      "campaign.read",
-      "adgroup.read",
-      "ad.read",
-      "reporting.read",
+      "user.info.basic",
+      "video.list",
+      "video.publish",
+      "video.upload",
     ],
     scopeSeparator: ",",
-    clientIdParam: "app_id",
-    // TikTok auth URL needs the numeric App ID, not the Client Key
-    appIdEnv: "TIKTOK_ADS_APP_ID",
-    skipResponseType: true,
-    tokenBodyFormat: "json",
-    authCodeParam: "auth_code",
+    // TikTok v2 uses "client_key" instead of "client_id" in both auth URL and token exchange
+    clientIdParam: "client_key",
     clientIdEnv: "TIKTOK_ADS_CLIENT_ID",
     clientSecretEnv: "TIKTOK_ADS_CLIENT_SECRET",
     capabilities: ["read", "manage"],
-    docsUrl: "https://business-api.tiktok.com/portal/docs?id=1738373164380162",
-    // TikTok uses comma as scope separator, not space
-    extraAuthParams: { scope_type: "GRANULAR_AUTH" },
+    docsUrl: "https://developers.tiktok.com/doc/content-posting-api-get-started/",
   },
 
   linkedin_ads: {

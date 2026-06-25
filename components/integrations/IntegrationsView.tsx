@@ -229,10 +229,10 @@ const ALL_CHANNELS: ChannelDef[] = [
   { provider: "telegram", name: "Telegram", description: "Bots, canales y mensajería directa con Telegram.", Icon: TelegramIcon, iconBg: "#229ED9", comingSoon: true },
   // Social Ads
   {
-    provider: "tiktok_ads", name: "TikTok Ads",
-    description: "In-Feed, TopView y Spark Ads desde el panel.",
+    provider: "tiktok_ads", name: "TikTok",
+    description: "Publica videos, gestiona contenido y analiza estadísticas desde el panel.",
     Icon: TikTokIcon, iconBg: "linear-gradient(135deg,#010101,#69C9D0,#EE1D52)",
-    badges: [{ label: "ADS", color: "#69C9D0" }],
+    badges: [{ label: "VIDEO", color: "#69C9D0" }],
     managePage: "/dashboard/integrations/tiktok",
   },
   { provider: "linkedin_ads", name: "LinkedIn Ads", description: "Sponsored Content y Lead Gen Forms.", Icon: LinkedInIcon, iconBg: "#0A66C2", comingSoon: true },

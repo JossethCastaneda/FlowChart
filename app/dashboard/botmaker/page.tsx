@@ -33,7 +33,9 @@ import {
   ExternalLink,
   ArrowRight,
   Sparkles,
+  LayoutGrid,
 } from "lucide-react";
+import NextLink from "next/link";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -1163,6 +1165,23 @@ function ConnectedModule({
                 <span style={{ fontSize: 10, color: "rgba(255,190,11,0.7)" }}>Preload parcial</span></>
             )}
           </div>
+
+          {/* Métricas de bots → analytics dashboard (Bot Analytics + Portabilidad) */}
+          <NextLink
+            href="/dashboard/botmaker/analytics"
+            style={{
+              width: "100%", display: "flex", alignItems: "center", gap: 7,
+              padding: "8px 10px", marginBottom: 8,
+              background: "rgba(124,58,237,0.1)",
+              border: "1px solid rgba(124,58,237,0.3)", borderRadius: 7,
+              color: "rgba(196,181,253,0.95)", fontSize: 11, fontWeight: 600,
+              textDecoration: "none", transition: "all 0.15s",
+            }}
+          >
+            <LayoutGrid style={{ width: 12, height: 12 }} />
+            Métricas de bots
+            <ArrowRight style={{ width: 12, height: 12, marginLeft: "auto" }} />
+          </NextLink>
 
           {/* Disconnect button */}
           <button
