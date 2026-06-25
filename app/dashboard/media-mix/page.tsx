@@ -4,9 +4,9 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { PieChart as PieChartIcon, TrendingUp, Database, Sliders, Settings2, ArrowLeft, RefreshCw, Plus, Trash2, Info, Zap, BarChart2, Activity, Target, CheckCircle2, AlertCircle, Download, Upload, Cpu, X, AlertTriangle, Layers, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import type { ChannelConfig, WeeklyRow, MmmModel, MmmSavedConfig } from "@/lib/mmm/types";
+import type { ChannelConfig, WeeklyRow, MmmModel, MmmSavedConfig, MmmClient } from "@/lib/mmm/types";
 import { runMmm, simulateBudget, optimizeBudget } from "@/lib/mmm/optimizer";
-import { DEFAULT_CHANNELS, DEMO_ROWS } from "@/lib/mmm/demo-data";
+import { REAL_DEFAULT_CHANNELS, clientsFromProjects, verticalsFromClients, type ProjectLike } from "@/lib/mmm/channels";
 import { adstockDecayCurve, adstockHalfLife } from "@/lib/mmm/adstock";
 import { saturationCurve } from "@/lib/mmm/saturation";
 import { calibrateAllChannels } from "@/lib/mmm/calibrate";
@@ -20,7 +20,6 @@ type SaveState = "idle" | "saving" | "saved" | "error";
 const fmtCurrency = (n: number) => n.toLocaleString("es-MX", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
 const fmtPct = (n: number) => (n * 100).toFixed(1) + "%";
 const VIOLET = "#7c3aed"; const VIOLET_LIGHT = "rgba(124,58,237,0.12)"; const VIOLET_BORDER = "rgba(124,58,237,0.25)";
-const LOCAL_KEY = (wsId: string) => `mmm_v2_${wsId}`;
 const SAVE_DEBOUNCE = 2500;
 
 
@@ -253,7 +252,6 @@ function TabDatos({ rows, setRows, channels, onImport }: { rows: WeeklyRow[]; se
             {importing ? "Importando..." : "Importar Meta Ads"}
           </button>
           {importMsg && <span style={{ fontSize: 12, color: importMsg.includes("Error") ? "var(--red)" : "#059669", alignSelf: "center" }}>{importMsg}</span>}
-          <button onClick={() => setRows([...DEMO_ROWS])} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, color: VIOLET, cursor: "pointer", fontFamily: "inherit" }}><Database size={13} /> Demo</button>
           <button onClick={addWeek} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--foreground)", cursor: "pointer", fontFamily: "inherit" }}><Plus size={13} /> Semana</button>
         </div>
       </div>
@@ -583,59 +581,102 @@ export default function MediaMixPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const [activeTab, setActiveTab] = React.useState<Tab>("resumen");
-  const [channels, setChannels] = React.useState<ChannelConfig[]>(DEFAULT_CHANNELS);
+  const [channels, setChannels] = React.useState<ChannelConfig[]>(REAL_DEFAULT_CHANNELS);
   const [rows, setRows] = React.useState<WeeklyRow[]>([]);
   const [isRunning, setIsRunning] = React.useState(false);
   const [model, setModel] = React.useState<MmmModel | null>(null);
   const [saveState, setSaveState] = React.useState<SaveState>("idle");
   const [exportOpen, setExportOpen] = React.useState(false);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Evita que el auto-save dispare mientras cargamos la config de otro cliente.
+  const loadingClientRef = useRef(false);
 
   // Workspace ID from session
   const workspaceId = (session?.user as any)?.activeWorkspaceId ?? "local";
-  const localKey = LOCAL_KEY(workspaceId);
 
-  // ── Load desde DB y localStorage ─────────────────────────────────────────
+  // ── Clientes y verticales reales (de los proyectos del workspace) ─────────
+  const [projects, setProjects] = React.useState<ProjectLike[]>([]);
+  const [projectsLoaded, setProjectsLoaded] = React.useState(false);
+  const [selectedVertical, setSelectedVertical] = React.useState<string>(""); // "" = todas
+  const [selectedClient, setSelectedClient] = React.useState<string>("");
+
+  const clients = useMemo<MmmClient[]>(() => clientsFromProjects(projects), [projects]);
+  const verticals = useMemo<string[]>(() => verticalsFromClients(clients), [clients]);
+  const filteredClients = useMemo<MmmClient[]>(
+    () => (selectedVertical ? clients.filter(c => c.vertical === selectedVertical) : clients),
+    [clients, selectedVertical]
+  );
+  const selectedClientObj = useMemo(() => clients.find(c => c.name === selectedClient) ?? null, [clients, selectedClient]);
+
+  const localKey = selectedClient ? `mmm_v2_${workspaceId}_${selectedClient}` : "";
+
+  // Cargar proyectos reales una vez.
   useEffect(() => {
-    // 1. localStorage inmediato
-    const cached = localStorage.getItem(localKey);
-    if (cached) {
-      try {
-        const cfg: MmmSavedConfig = JSON.parse(cached);
-        if (cfg.channels?.length) setChannels(cfg.channels);
-        if (cfg.rows?.length) setRows(cfg.rows);
-        return; // ya hay datos, no cargar demo
-      } catch {}
+    fetch("/api/projects")
+      .then(r => r.json())
+      .then(d => { setProjects(Array.isArray(d) ? d : (d?.data ?? [])); })
+      .catch(() => setProjects([]))
+      .finally(() => setProjectsLoaded(true));
+  }, []);
+
+  // Autoseleccionar el primer cliente disponible; reajustar si el filtro de
+  // vertical deja fuera al cliente activo.
+  useEffect(() => {
+    if (filteredClients.length === 0) { if (selectedClient) setSelectedClient(""); return; }
+    if (!selectedClient || !filteredClients.some(c => c.name === selectedClient)) {
+      setSelectedClient(filteredClients[0].name);
     }
-    // 2. DB fetch
-    fetch("/api/mmm/config").then(r => r.json()).then(d => {
-      if (d?.data?.config) {
-        const cfg: MmmSavedConfig = d.data.config;
-        if (cfg.channels?.length) setChannels(cfg.channels);
-        if (cfg.rows?.length) setRows(cfg.rows);
-      } else {
-        setRows([...DEMO_ROWS]); // demo data si no hay nada guardado
-      }
-    }).catch(() => { setRows([...DEMO_ROWS]); });
-  }, [localKey]);
+  }, [filteredClients, selectedClient]);
 
-  // ── Auto-save con debounce ────────────────────────────────────────────────
+  // ── Load config DEL CLIENTE seleccionado (sin datos demo) ─────────────────
   useEffect(() => {
+    // Cancela cualquier guardado pendiente del cliente anterior.
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    if (!selectedClient) {
+      setChannels(REAL_DEFAULT_CHANNELS); setRows([]); setModel(null);
+      return;
+    }
+    loadingClientRef.current = true;
+    let cancelled = false;
+    const apply = (cfg: MmmSavedConfig | null) => {
+      if (cancelled) return;
+      setChannels(cfg?.channels?.length ? cfg.channels : REAL_DEFAULT_CHANNELS);
+      setRows(cfg?.rows ?? []);
+      loadingClientRef.current = false;
+    };
+    // 1. localStorage inmediato
+    const cached = localKey ? localStorage.getItem(localKey) : null;
+    if (cached) {
+      try { apply(JSON.parse(cached) as MmmSavedConfig); return () => { cancelled = true; }; } catch {}
+    }
+    // 2. DB fetch — si no hay config guardada, arrancamos VACÍO (no demo).
+    fetch(`/api/mmm/config?client=${encodeURIComponent(selectedClient)}`)
+      .then(r => r.json())
+      .then(d => apply((d?.data?.config as MmmSavedConfig | null) ?? null))
+      .catch(() => apply(null));
+    return () => { cancelled = true; };
+  }, [selectedClient, localKey]);
+
+  // ── Auto-save con debounce (scopeado por cliente) ─────────────────────────
+  useEffect(() => {
+    if (!selectedClient || loadingClientRef.current) return;
     if (!rows.length && !channels.length) return;
     if (saveTimer.current) clearTimeout(saveTimer.current);
     setSaveState("saving");
+    const clientAtSave = selectedClient;
+    const verticalAtSave = selectedClientObj?.vertical ?? undefined;
     saveTimer.current = setTimeout(async () => {
-      const cfg: MmmSavedConfig = { channels, rows, savedAt: new Date().toISOString() };
+      const cfg: MmmSavedConfig = { channels, rows, savedAt: new Date().toISOString(), client: clientAtSave, ...(verticalAtSave ? { vertical: verticalAtSave } : {}) };
       // localStorage (instantaneo)
-      try { localStorage.setItem(localKey, JSON.stringify(cfg)); } catch {}
+      try { if (localKey) localStorage.setItem(localKey, JSON.stringify(cfg)); } catch {}
       // DB
       try {
-        await fetch("/api/mmm/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ channels, rows }) });
+        await fetch("/api/mmm/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client: clientAtSave, vertical: verticalAtSave, channels, rows }) });
         setSaveState("saved");
         setTimeout(() => setSaveState("idle"), 2000);
       } catch { setSaveState("error"); }
     }, SAVE_DEBOUNCE);
-  }, [JSON.stringify(channels), JSON.stringify(rows)]);
+  }, [JSON.stringify(channels), JSON.stringify(rows), selectedClient]);
 
   // ── Modelo ────────────────────────────────────────────────────────────────
   const runModel = useCallback(() => {
@@ -699,6 +740,28 @@ export default function MediaMixPage() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {/* Selector de Vertical (filtro) + Cliente — datos reales del workspace */}
+            {verticals.length > 0 && (
+              <select
+                value={selectedVertical}
+                onChange={e => setSelectedVertical(e.target.value)}
+                title="Filtrar clientes por vertical"
+                style={{ padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--foreground)", fontFamily: "inherit", cursor: "pointer", maxWidth: 170 }}
+              >
+                <option value="">Todas las verticales</option>
+                {verticals.map(v => <option key={v} value={v}>{v}</option>)}
+              </select>
+            )}
+            {filteredClients.length > 0 && (
+              <select
+                value={selectedClient}
+                onChange={e => setSelectedClient(e.target.value)}
+                title="Cliente cuyo media mix se está modelando"
+                style={{ padding: "6px 10px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, color: VIOLET, fontFamily: "inherit", cursor: "pointer", maxWidth: 200 }}
+              >
+                {filteredClients.map(c => <option key={c.name} value={c.name}>{c.name}{c.vertical ? ` · ${c.vertical}` : ""}</option>)}
+              </select>
+            )}
             {model && <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 10px", borderRadius: 8, background: "rgba(5,150,105,0.08)", border: "1px solid rgba(5,150,105,0.2)", fontSize: 11, fontWeight: 600, color: "#059669" }}><CheckCircle2 size={11} /> Modelo activo</div>}
             {/* Export dropdown */}
             <div style={{ position: "relative" }}>
@@ -727,11 +790,32 @@ export default function MediaMixPage() {
         {/* Content */}
         {exportOpen && <div onClick={() => setExportOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 99 }} />}
         <div style={{ flex: 1, overflowY: "auto", padding: "26px", scrollbarWidth: "none" }}>
-          {activeTab === "resumen"   && <TabResumen   model={model} channels={channels} rows={rows} />}
-          {activeTab === "datos"     && <TabDatos     rows={rows} setRows={setRows} channels={channels} onImport={handleImport} />}
-          {activeTab === "modelo"    && <TabModelo    model={model} channels={channels} rows={rows} />}
-          {activeTab === "simulador" && <TabSimulador model={model} channels={channels} rows={rows} />}
-          {activeTab === "config"    && <TabConfig    channels={channels} setChannels={setChannels} rows={rows} />}
+          {projectsLoaded && clients.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "70px 20px", color: "var(--text-secondary)" }}>
+              <Layers size={42} color="var(--text-muted)" style={{ marginBottom: 16 }} />
+              <p style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>No hay clientes para modelar</p>
+              <p style={{ fontSize: 13, margin: "0 0 20px", maxWidth: 420, marginLeft: "auto", marginRight: "auto" }}>
+                El Media Mix se construye sobre tus <strong>clientes y verticales reales</strong>. Crea al menos un proyecto con cliente asignado en Proyectos para empezar.
+              </p>
+              <button onClick={() => router.push("/dashboard/proyectos")} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 18px", borderRadius: 8, fontSize: 13, fontWeight: 600, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, color: VIOLET, cursor: "pointer", fontFamily: "inherit" }}>
+                <Plus size={14} /> Ir a Proyectos
+              </button>
+            </div>
+          ) : !selectedClient ? (
+            <div style={{ textAlign: "center", padding: "70px 20px", color: "var(--text-secondary)" }}>
+              <PieChartIcon size={42} color="var(--text-muted)" style={{ marginBottom: 16 }} />
+              <p style={{ fontSize: 15, fontWeight: 600, color: "var(--foreground)", margin: "0 0 8px" }}>Selecciona un cliente</p>
+              <p style={{ fontSize: 13, margin: 0 }}>Elige un cliente en el selector superior para ver y configurar su media mix.</p>
+            </div>
+          ) : (
+            <>
+              {activeTab === "resumen"   && <TabResumen   model={model} channels={channels} rows={rows} />}
+              {activeTab === "datos"     && <TabDatos     rows={rows} setRows={setRows} channels={channels} onImport={handleImport} />}
+              {activeTab === "modelo"    && <TabModelo    model={model} channels={channels} rows={rows} />}
+              {activeTab === "simulador" && <TabSimulador model={model} channels={channels} rows={rows} />}
+              {activeTab === "config"    && <TabConfig    channels={channels} setChannels={setChannels} rows={rows} />}
+            </>
+          )}
         </div>
       </div>
     </>

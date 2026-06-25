@@ -103,4 +103,19 @@ export interface MmmSavedConfig {
   rows: WeeklyRow[];
   savedAt: string;
   workspaceId?: string;
+  /** Cliente (Project.client) al que pertenece este modelo. El MMM se scopea
+   *  por cliente: cada anunciante optimiza su propio mix de canales. */
+  client?: string;
+  /** Vertical (Project.vertical) del cliente — contexto/agrupación. */
+  vertical?: string;
+}
+
+/** Cliente real derivado de los proyectos del workspace (no datos demo). */
+export interface MmmClient {
+  /** Nombre del cliente (Project.client). Clave de scoping. */
+  name: string;
+  /** Vertical asociada (Project.vertical), si existe. */
+  vertical: string | null;
+  /** Cuántos proyectos del workspace pertenecen a este cliente. */
+  projectCount: number;
 }
