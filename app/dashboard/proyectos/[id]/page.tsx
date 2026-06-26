@@ -201,6 +201,7 @@ export default function ProjectDashboardPage() {
   const [editForm, setEditForm] = useState<Partial<Project>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [activeIntegrations, setActiveIntegrations] = useState<{id: string, provider: string}[]>([]);
+  const [heatMetricState, setHeatMetricState] = useState<"results" | "impressions" | "spend">("results");
 
   // Load project from API
   useEffect(() => {
@@ -752,27 +753,81 @@ export default function ProjectDashboardPage() {
           };
 
           // Find max for color scaling
-          let maxResults = 0;
+              // Metric selector state (scoped inside this IIFE so it's a local var rendered inline)
+          // We use a dataset attribute trick since we can't use useState inside IIFE
+          // Instead, wire up a simple toggle via a controlled span + onClick trick with data-attr
+          const heatMetrics = [
+            { key: "results" as const, label: goalLabel(ch?.goal) || "Resultados" },
+            { key: "impressions" as const, label: "Impresiones" },
+            { key: "spend" as const, label: "Gasto" },
+          ];
+
+          // Determine which metric key is selected (stored in a sibling div via id)
+          // We can't use useState here, so we use a JavaScript module-level approach:
+          // Render buttons that swap via inline onclick + DOM class toggling.
+          // To keep it simple and React-idiomatic, we will just render all 3 variants
+          // using a React.useState-style approach by using the parent component's state.
+          // Since this is inside an IIFE, we read from a ref set above the IIFE.
+          const [heatMetric, setHeatMetric] = [
+            heatMetricState ?? "results",
+            (v: "results" | "impressions" | "spend") => setHeatMetricState(v),
+          ] as const;
+
+          const getVal = (cell: { impressions: number; spend: number; clicks: number; results: number }) => {
+            if (heatMetric === "impressions") return cell.impressions;
+            if (heatMetric === "spend") return cell.spend;
+            return cell.results;
+          };
+
+          const fmtVal = (cell: { impressions: number; spend: number; clicks: number; results: number }) => {
+            const v = getVal(cell);
+            if (heatMetric === "spend") return v > 0 ? fmtMXN(v) : "";
+            return v > 0 ? (v > 999 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v))) : "";
+          };
+
+          let maxVal = 0;
           sortedDates.forEach(date => {
             for (let h = 0; h < 24; h++) {
-              if (dateMap[date][h].results > maxResults) maxResults = dateMap[date][h].results;
+              const v = getVal(dateMap[date][h]);
+              if (v > maxVal) maxVal = v;
             }
           });
 
-          const getColor = (val: number) => {
-            if (maxResults === 0 || val === 0) return "rgba(255,255,255,0.05)";
-            const intensity = val / maxResults;
-            if (intensity > 0.75) return "rgba(0,200,117,0.6)";
-            if (intensity > 0.5) return "rgba(0,200,117,0.35)";
-            if (intensity > 0.25) return "rgba(0,212,255,0.25)";
-            if (intensity > 0.1) return "rgba(0,212,255,0.12)";
+          const getColor2 = (val: number) => {
+            if (maxVal === 0 || val === 0) return "rgba(255,255,255,0.05)";
+            const intensity = val / maxVal;
+            if (intensity > 0.75) return heatMetric === "spend" ? "rgba(251,191,36,0.7)" : "rgba(0,200,117,0.6)";
+            if (intensity > 0.5)  return heatMetric === "spend" ? "rgba(251,191,36,0.45)" : "rgba(0,200,117,0.35)";
+            if (intensity > 0.25) return heatMetric === "spend" ? "rgba(251,191,36,0.25)" : "rgba(0,212,255,0.25)";
+            if (intensity > 0.1)  return heatMetric === "spend" ? "rgba(251,191,36,0.12)" : "rgba(0,212,255,0.12)";
             return "rgba(255,255,255,0.1)";
           };
 
           return (
             <div style={{ ...panelStyle, marginTop: 12 }}>
-              <h3 style={headingStyle}>Distribución por Hora y Día</h3>
-              <p style={subStyle}>Resultados por fecha y hora · Hover para ver gasto e impresiones</p>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+                <div>
+                  <h3 style={headingStyle}>Distribución por Hora y Día</h3>
+                  <p style={subStyle}>Hover para ver detalle · Las horas son en zona horaria de la audiencia</p>
+                </div>
+                {/* Metric switcher */}
+                <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: 3 }}>
+                  {heatMetrics.map(m => (
+                    <button
+                      key={m.key}
+                      onClick={() => setHeatMetric(m.key)}
+                      style={{
+                        padding: "4px 10px", fontSize: 10, fontWeight: 600, border: "none",
+                        borderRadius: 4, cursor: "pointer", transition: "all 0.15s",
+                        background: heatMetric === m.key ? "var(--cyan)" : "transparent",
+                        color: heatMetric === m.key ? "#000" : "rgba(148,163,184,0.8)",
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <div style={{ overflowX: "auto", maxHeight: 500, overflowY: "auto" }}>
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 700 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
@@ -780,7 +835,7 @@ export default function ProjectDashboardPage() {
                       <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.75)", textAlign: "left", fontWeight: 600, width: 70, background: "var(--panel-bg)" }}></th>
                       {HOURS.map(h => (
                         <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.7)", textAlign: "center", fontWeight: 500, minWidth: 26, background: "var(--panel-bg)" }}>
-                          {h.toString().padStart(2, "0")}
+                          {h.toString().padStart(2, "00")}
                         </th>
                       ))}
                     </tr>
@@ -802,6 +857,7 @@ export default function ProjectDashboardPage() {
                           </td>
                           {HOURS.map(h => {
                             const cell = dateMap[dateStr][h];
+                            const val = getVal(cell);
                             return (
                               <td
                                 key={h}
@@ -810,11 +866,11 @@ export default function ProjectDashboardPage() {
                               >
                                 <div style={{
                                   width: "100%", height: 22,
-                                  background: getColor(cell.results),
+                                  background: getColor2(val),
                                   borderRadius: 2,
                                   margin: 1,
                                   display: "flex", alignItems: "center", justifyContent: "center",
-                                  fontSize: 8, color: cell.results > 0 ? "rgba(255,255,255,0.8)" : "transparent",
+                                  fontSize: 8, color: val > 0 ? "rgba(255,255,255,0.85)" : "transparent",
                                   fontWeight: 600,
                                   cursor: "default",
                                   transition: "background 0.15s, transform 0.1s",
@@ -822,7 +878,7 @@ export default function ProjectDashboardPage() {
                                 onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.3)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; }}
                                 onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; }}
                                 >
-                                  {cell.results > 0 ? (cell.results > 999 ? `${(cell.results / 1000).toFixed(1)}k` : cell.results) : ""}
+                                  {fmtVal(cell)}
                                 </div>
                               </td>
                             );
