@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState, useRef } from "react";
 import { X, Upload, FileSpreadsheet, AlertCircle, CheckCircle2, Loader2, Download } from "lucide-react";
 // NOTE: xlsx@0.18.5 has known CVEs (CVE-2023-30533, CVE-2024-22363) but is used
@@ -65,12 +65,22 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
         const result = Papa.parse(text, { header: true, skipEmptyLines: true });
         validateAndSet(result.data as any[]);
       } else if (ext === "xlsx" || ext === "xls") {
-        const XLSX = await import("xlsx");
+        const ExcelJS = (await import("exceljs")).default;
         const buffer = await f.arrayBuffer();
-        const wb = XLSX.read(buffer, { type: "array" });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-        const data = XLSX.utils.sheet_to_json(ws) as any[];
-        validateAndSet(data);
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(buffer);
+        const ws = workbook.worksheets[0];
+        if (!ws) throw new Error("No worksheet found");
+        const headerRow = ws.getRow(1).values as (string | undefined)[];
+        const headers = headerRow.slice(1).map((h) => String(h ?? "").trim());
+        const data: Record<string, unknown>[] = [];
+        for (let r = 2; r <= ws.rowCount; r++) {
+          const rowValues = ws.getRow(r).values as unknown[];
+          const obj: Record<string, unknown> = {};
+          headers.forEach((h, i) => { obj[h] = rowValues[i + 1] ?? ""; });
+          data.push(obj);
+        }
+        validateAndSet(data as any[]);
       } else {
         setErrors(["Formato no soportado. Usa .csv o .xlsx"]);
       }
@@ -178,19 +188,22 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
   };
 
   const handleDownloadTemplate = async () => {
-    const XLSX = await import("xlsx");
     const headers = TEMPLATE_HEADERS[level];
-    const ws = XLSX.utils.aoa_to_sheet([
-      headers,
-      level === "campaigns"
-        ? ["Mi campaña ejemplo", "PAUSED", "OUTCOME_TRAFFIC", "50", "", ""]
-        : level === "adsets"
-        ? ["Mi conjunto ejemplo", "PAUSED", "100", "", "LINK_CLICKS", "IMPRESSIONS", "5"]
-        : ["Mi anuncio ejemplo", "PAUSED", ""],
-    ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Plantilla");
-    XLSX.writeFile(wb, `plantilla_${level}.xlsx`);
+    const exampleRow = level === "campaigns"
+      ? ["Mi campaña ejemplo", "PAUSED", "OUTCOME_TRAFFIC", "50", "", ""]
+      : level === "adsets"
+      ? ["Mi conjunto ejemplo", "PAUSED", "100", "", "LINK_CLICKS", "IMPRESSIONS", "5"]
+      : ["Mi anuncio ejemplo", "PAUSED", ""];
+
+    // Generate CSV as a reliable fallback that doesn't need xlsx
+    const csv = [headers.join(","), exampleRow.join(",")].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `plantilla_${level}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const inputStyle: React.CSSProperties = {

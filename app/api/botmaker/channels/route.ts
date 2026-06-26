@@ -7,7 +7,7 @@ import prisma from "@/lib/prisma";
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 
 function resolveInstagramUsername(name: string): string {
-  let cleanName = name.replace(/^IG\s*-\s*/i, "").trim();
+  const cleanName = name.replace(/^IG\s*-\s*/i, "").trim();
   if (cleanName === "Cambia fácil") return "_cambiafacil";
   if (cleanName === "Centro de Portabilidad") return "centrodeportabilidad";
   return cleanName

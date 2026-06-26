@@ -1,5 +1,6 @@
 import { Resend } from "resend";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 const resend = env.RESEND_API_KEY
   ? new Resend(env.RESEND_API_KEY)
@@ -23,7 +24,7 @@ export async function sendAlertEmail({
   dashboardUrl,
 }: AlertEmailParams) {
   if (!resend || to.length === 0) {
-    console.log("[EMAIL] Resend not configured or no recipients, skipping email");
+    logger.info("[EMAIL] Resend not configured or no recipients, skipping email");
     return null;
   }
 
@@ -96,10 +97,10 @@ export async function sendAlertEmail({
       subject: `[SODARE] ${projectName} - Health Score: ${healthScore} (${healthLabel})`,
       html,
     });
-    console.log("[EMAIL] Sent alert email:", result);
+    logger.info("[EMAIL] Sent alert email", { projectName, healthScore, recipients: to.length });
     return result;
   } catch (err) {
-    console.error("[EMAIL] Failed to send:", err);
+    logger.error("[EMAIL] Failed to send alert email", { projectName, err });
     return null;
   }
 }
@@ -118,7 +119,7 @@ export async function sendInviteEmail({
   inviteUrl: string;
 }) {
   if (!resend || !to) {
-    console.log("[EMAIL] Resend not configured or no recipients, skipping invite email");
+    logger.info("[EMAIL] Resend not configured or no recipients, skipping invite email");
     return null;
   }
 
@@ -132,10 +133,10 @@ export async function sendInviteEmail({
       subject: `Invitación a ${workspaceName} — SODARE`,
       html,
     });
-    console.log("[EMAIL] Sent invite email:", result);
+    logger.info("[EMAIL] Sent invite email", { to, workspaceName });
     return result;
   } catch (err) {
-    console.error("[EMAIL] Failed to send invite:", err);
+    logger.error("[EMAIL] Failed to send invite email", { to, workspaceName, err });
     return null;
   }
 }
@@ -150,7 +151,7 @@ export async function sendPasswordResetEmail({
   resetUrl: string;
 }) {
   if (!resend || !to) {
-    console.log("[EMAIL] Resend not configured or no recipients, skipping password reset email");
+    logger.info("[EMAIL] Resend not configured or no recipients, skipping password reset email");
     return null;
   }
 
@@ -164,10 +165,10 @@ export async function sendPasswordResetEmail({
       subject: "Recuperar contraseña — SODARE",
       html,
     });
-    console.log("[EMAIL] Sent password reset email:", result);
+    logger.info("[EMAIL] Sent password reset email", { to });
     return result;
   } catch (err) {
-    console.error("[EMAIL] Failed to send password reset:", err);
+    logger.error("[EMAIL] Failed to send password reset email", { to, err });
     return null;
   }
 }
@@ -182,7 +183,7 @@ export async function sendWelcomeEmail({
   dashboardUrl: string;
 }) {
   if (!resend || !to) {
-    console.log("[EMAIL] Resend not configured or no recipients, skipping welcome email");
+    logger.info("[EMAIL] Resend not configured or no recipients, skipping welcome email");
     return null;
   }
 
@@ -196,10 +197,10 @@ export async function sendWelcomeEmail({
       subject: "Bienvenido a SODARE",
       html,
     });
-    console.log("[EMAIL] Sent welcome email:", result);
+    logger.info("[EMAIL] Sent welcome email", { to });
     return result;
   } catch (err) {
-    console.error("[EMAIL] Failed to send welcome email:", err);
+    logger.error("[EMAIL] Failed to send welcome email", { to, err });
     return null;
   }
 }

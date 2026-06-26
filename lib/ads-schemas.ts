@@ -109,6 +109,7 @@ export const CampaignCreateSchema = z.object({
   daily_budget: Money.optional(),
   lifetime_budget: Money.optional(),
   bid_strategy: BidStrategy.optional(),
+  smart_promotion_type: z.enum(["SMART_APP_PROMOTION", "SMART_SHOPPING", "AUTOMATED_SHOPPING_ADS"]).optional(),
   confirmed_by_user: ConfirmedByUser,
 });
 

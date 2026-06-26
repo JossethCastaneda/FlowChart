@@ -4,6 +4,7 @@ import { apiSuccess, apiCreated, apiError, apiNotFound, apiForbidden } from "@/l
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { logger } from "@/lib/logger";
 import { getBaseUrl } from "@/lib/get-base-url";
+import { checkPlanLimit } from "@/lib/plan-limits";
 import prisma from "@/lib/prisma";
 import crypto from "crypto";
 import { z } from "zod";
@@ -60,6 +61,19 @@ export const POST = withAuth(async (req, ctx) => {
       return apiError("Este usuario ya es miembro del workspace", "ALREADY_MEMBER", 409);
     }
   }
+
+  // ── Plan limit enforcement (member seats) ────────────────────────────────
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    select: { plan: true, _count: { select: { members: true } } },
+  });
+  if (!workspace) return apiForbidden();
+
+  const planCheck = checkPlanLimit(workspace.plan, "members", workspace._count.members);
+  if (planCheck.exceeded) {
+    return apiError(planCheck.message, "PLAN_LIMIT", 402);
+  }
+  // ───────────────────────────────────────────────────────────────────────────
 
   // Revoke any previous pending invites for this email+workspace
   await prisma.workspaceInvite.deleteMany({

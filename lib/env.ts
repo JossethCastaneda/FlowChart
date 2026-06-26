@@ -78,13 +78,6 @@ const envSchema = z.object({
   CRON_SECRET: z.string().optional(),
   PUBLISH_WORKER_SECRET: z.string().optional(),
 
-  // QStash (Upstash) — cola de publicación programada
-  QSTASH_TOKEN: z.string().optional(),
-  QSTASH_CURRENT_SIGNING_KEY: z.string().optional(),
-  QSTASH_NEXT_SIGNING_KEY: z.string().optional(),
-  // URL pública estable a la que QStash entrega el job (la de Production).
-  // Si falta, se deriva de NEXT_PUBLIC_APP_URL.
-  QSTASH_WORKER_BASE_URL: z.string().url().optional(),
 
   // Vercel Blob
   BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),

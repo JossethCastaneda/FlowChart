@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import prisma from "@/lib/prisma";
 import { resolveVariableBag } from "@/lib/botmaker/aliases";
 import type { CanonicalFieldSnapshot } from "@/lib/botmaker/aliases";
@@ -106,140 +106,146 @@ export async function POST(req: NextRequest) {
     const zapierResponse = payload.zapierResponse as Record<string, unknown> | undefined;
     const leadStatus = deriveLeadStatus(event, canonicalBag, intelixResponse, zapierResponse);
 
-    // ── 8. Upsert lead request (find by workspaceId + sessionId) ─────────────
+    // ── 8. Upsert lead request in background to prevent Botmaker timeouts ──────
     const now = new Date();
     const storeRaw = process.env.BOTMAKER_STORE_RAW_PAYLOADS === "true";
 
-    let leadRequest = await prisma.botmakerLeadRequest.findFirst({
-      where: { workspaceId, sessionId },
-      select: { id: true, leadStatus: true },
+    after(async () => {
+      try {
+        let leadRequest = await prisma.botmakerLeadRequest.findFirst({
+          where: { workspaceId, sessionId },
+          select: { id: true, leadStatus: true },
+        });
+
+        if (!leadRequest) {
+          leadRequest = await prisma.botmakerLeadRequest.create({
+            data: {
+              workspaceId,
+              sessionId,
+              requestId: `${workspaceId.slice(0, 8)}-${sessionId.slice(0, 12)}-${Date.now()}`,
+              botId: botId || null,
+              channelId: channelId || null,
+              platform: platform || null,
+              sourceKind,
+              productType,
+              leadStatus,
+              startedAt: now,
+              lastStepName: event,
+            },
+            select: { id: true, leadStatus: true },
+          });
+        } else {
+          await prisma.botmakerLeadRequest.update({
+            where: { id: leadRequest.id },
+            data: {
+              leadStatus,
+              lastStepName: event,
+              botId: botId || undefined,
+              channelId: channelId || undefined,
+              ...(["intelix_accepted", "zapier_sent", "ads_attributed"].includes(leadStatus) ? { completedAt: now } : {}),
+              ...(leadStatus === "abandoned" ? { abandonedAt: now } : {}),
+            },
+          });
+        }
+
+        const leadRequestId = leadRequest.id;
+
+        // ── 9. Upsert field snapshots ─────────────────────────────────────────────
+        for (const [canonicalField, snapshot] of canonicalBag.entries()) {
+          const maskedValue = maskCanonicalValue(canonicalField, snapshot.rawValue);
+          const normalizedValue = normalizeCanonicalValue(canonicalField, snapshot.rawValue);
+          const { isValid, validationError } = validateCanonicalField(canonicalField, snapshot.rawValue);
+
+          const existing = await prisma.botmakerLeadFieldSnapshot.findFirst({
+            where: { leadRequestId, canonicalField },
+            select: { id: true },
+          });
+
+          if (existing) {
+            await prisma.botmakerLeadFieldSnapshot.update({
+              where: { id: existing.id },
+              data: {
+                sourceVariableName: snapshot.sourceVariableName,
+                rawValue: storeRaw ? snapshot.rawValue : null,
+                normalizedValue,
+                maskedValue,
+                isPresent: snapshot.isPresent,
+                isValid,
+                validationError: isValid ? null : validationError,
+                capturedAt: now,
+              },
+            });
+          } else {
+            await prisma.botmakerLeadFieldSnapshot.create({
+              data: {
+                leadRequestId,
+                canonicalField,
+                sessionId,
+                sourceVariableName: snapshot.sourceVariableName,
+                rawValue: storeRaw ? snapshot.rawValue : null,
+                normalizedValue,
+                maskedValue,
+                isPresent: snapshot.isPresent,
+                isValid,
+                validationError: isValid ? null : validationError,
+                capturedAt: now,
+              },
+            });
+          }
+        }
+
+        // ── 10. Persist Intelix submission ────────────────────────────────────────
+        if (intelixResponse) {
+          const intelixCode = String(intelixResponse.code ?? intelixResponse.status ?? "unknown");
+          const isAccepted = ["0", "00", "OK", "ACEPTADO", "ACCEPTED"].includes(intelixCode.toUpperCase());
+
+          await prisma.intelixSubmission.create({
+            data: {
+              leadRequestId,
+              sessionId,
+              productType,
+              status: isAccepted ? "accepted" : "rejected",
+              intelixFolio: String(intelixResponse.folio ?? intelixResponse.folioId ?? "") || null,
+              intelixErrorCode: isAccepted ? null : intelixCode,
+              intelixErrorMessage: isAccepted ? null : String(intelixResponse.message ?? intelixResponse.descripcion ?? "") || null,
+              submittedAt: now,
+              requestPayload: storeRaw ? (intelixResponse as Parameters<typeof prisma.intelixSubmission.create>[0]["data"]["requestPayload"]) : undefined,
+              responsePayload: storeRaw ? (intelixResponse as Parameters<typeof prisma.intelixSubmission.create>[0]["data"]["responsePayload"]) : undefined,
+            },
+          });
+        }
+
+        // ── 11. Persist Zapier event ──────────────────────────────────────────────
+        if (zapierResponse) {
+          const zapierStatus = String(zapierResponse.status ?? zapierResponse.success ?? "");
+          const isSuccess = ["ok", "success", "true", "1", "200"].includes(zapierStatus.toLowerCase());
+
+          const gaCid = String(getCanonical("ga_cid")?.rawValue ?? zapierResponse.gaCid ?? "") || null;
+          const igPostId = String(getCanonical("ig_post_id")?.rawValue ?? zapierResponse.igPostId ?? "") || null;
+          const fromName = String(getCanonical("from_name")?.rawValue ?? zapierResponse.fromName ?? "") || null;
+
+          await prisma.zapierConversionEvent.create({
+            data: {
+              leadRequestId,
+              sessionId,
+              platformTarget: detectPlatformTarget(normalizedVars, gaCid, igPostId),
+              status: isSuccess ? "success" : "failed",
+              gaCid,
+              igPostId,
+              fromName,
+              sentAt: now,
+              responseAt: now,
+              errorMessage: isSuccess ? null : String(zapierResponse.error ?? zapierResponse.message ?? "") || null,
+            },
+          });
+        }
+      } catch (dbErr) {
+        console.error("[botmaker-webhook] Background DB error:", dbErr);
+      }
     });
 
-    if (!leadRequest) {
-      leadRequest = await prisma.botmakerLeadRequest.create({
-        data: {
-          workspaceId,
-          sessionId,
-          requestId: `${workspaceId.slice(0, 8)}-${sessionId.slice(0, 12)}-${Date.now()}`,
-          botId: botId || null,
-          channelId: channelId || null,
-          platform: platform || null,
-          sourceKind,
-          productType,
-          leadStatus,
-          startedAt: now,
-          lastStepName: event,
-        },
-        select: { id: true, leadStatus: true },
-      });
-    } else {
-      await prisma.botmakerLeadRequest.update({
-        where: { id: leadRequest.id },
-        data: {
-          leadStatus,
-          lastStepName: event,
-          botId: botId || undefined,
-          channelId: channelId || undefined,
-          ...(["intelix_accepted", "zapier_sent", "ads_attributed"].includes(leadStatus) ? { completedAt: now } : {}),
-          ...(leadStatus === "abandoned" ? { abandonedAt: now } : {}),
-        },
-      });
-    }
-
-    const leadRequestId = leadRequest.id;
-
-    // ── 9. Upsert field snapshots ─────────────────────────────────────────────
-    for (const [canonicalField, snapshot] of canonicalBag.entries()) {
-      const maskedValue = maskCanonicalValue(canonicalField, snapshot.rawValue);
-      const normalizedValue = normalizeCanonicalValue(canonicalField, snapshot.rawValue);
-      const { isValid, validationError } = validateCanonicalField(canonicalField, snapshot.rawValue);
-
-      // Try to find existing record first (no unique compound index)
-      const existing = await prisma.botmakerLeadFieldSnapshot.findFirst({
-        where: { leadRequestId, canonicalField },
-        select: { id: true },
-      });
-
-      if (existing) {
-        await prisma.botmakerLeadFieldSnapshot.update({
-          where: { id: existing.id },
-          data: {
-            sourceVariableName: snapshot.sourceVariableName,
-            rawValue: storeRaw ? snapshot.rawValue : null,
-            normalizedValue,
-            maskedValue,
-            isPresent: snapshot.isPresent,
-            isValid,
-            validationError: isValid ? null : validationError,
-            capturedAt: now,
-          },
-        });
-      } else {
-        await prisma.botmakerLeadFieldSnapshot.create({
-          data: {
-            leadRequestId,
-            canonicalField,
-            sessionId,
-            sourceVariableName: snapshot.sourceVariableName,
-            rawValue: storeRaw ? snapshot.rawValue : null,
-            normalizedValue,
-            maskedValue,
-            isPresent: snapshot.isPresent,
-            isValid,
-            validationError: isValid ? null : validationError,
-            capturedAt: now,
-          },
-        });
-      }
-    }
-
-    // ── 10. Persist Intelix submission ────────────────────────────────────────
-    if (intelixResponse) {
-      const intelixCode = String(intelixResponse.code ?? intelixResponse.status ?? "unknown");
-      const isAccepted = ["0", "00", "OK", "ACEPTADO", "ACCEPTED"].includes(intelixCode.toUpperCase());
-
-      await prisma.intelixSubmission.create({
-        data: {
-          leadRequestId,
-          sessionId,
-          productType,
-          status: isAccepted ? "accepted" : "rejected",
-          intelixFolio: String(intelixResponse.folio ?? intelixResponse.folioId ?? "") || null,
-          intelixErrorCode: isAccepted ? null : intelixCode,
-          intelixErrorMessage: isAccepted ? null : String(intelixResponse.message ?? intelixResponse.descripcion ?? "") || null,
-          submittedAt: now,
-          requestPayload: storeRaw ? (intelixResponse as Parameters<typeof prisma.intelixSubmission.create>[0]["data"]["requestPayload"]) : undefined,
-          responsePayload: storeRaw ? (intelixResponse as Parameters<typeof prisma.intelixSubmission.create>[0]["data"]["responsePayload"]) : undefined,
-        },
-      });
-    }
-
-    // ── 11. Persist Zapier event ──────────────────────────────────────────────
-    if (zapierResponse) {
-      const zapierStatus = String(zapierResponse.status ?? zapierResponse.success ?? "");
-      const isSuccess = ["ok", "success", "true", "1", "200"].includes(zapierStatus.toLowerCase());
-
-      const gaCid = String(getCanonical("ga_cid")?.rawValue ?? zapierResponse.gaCid ?? "") || null;
-      const igPostId = String(getCanonical("ig_post_id")?.rawValue ?? zapierResponse.igPostId ?? "") || null;
-      const fromName = String(getCanonical("from_name")?.rawValue ?? zapierResponse.fromName ?? "") || null;
-
-      await prisma.zapierConversionEvent.create({
-        data: {
-          leadRequestId,
-          sessionId,
-          platformTarget: detectPlatformTarget(normalizedVars, gaCid, igPostId),
-          status: isSuccess ? "success" : "failed",
-          gaCid,
-          igPostId,
-          fromName,
-          sentAt: now,
-          responseAt: now,
-          errorMessage: isSuccess ? null : String(zapierResponse.error ?? zapierResponse.message ?? "") || null,
-        },
-      });
-    }
-
-    return NextResponse.json({ success: true, leadRequestId });
+    // Respond immediately to prevent Botmaker timeout
+    return NextResponse.json({ success: true, received: true });
   } catch (err) {
     console.error("[webhook]", err);
     return NextResponse.json({ error: "Internal error" }, { status: 500 });

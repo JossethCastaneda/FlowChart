@@ -1,16 +1,9 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown, Plus, Check } from "lucide-react";
 import { HoloIcon } from "@/components/ui/HoloIcon";
-
-interface Workspace {
-  id: string;
-  name: string;
-  slug: string;
-  role: string;
-  memberCount: number;
-}
+import type { Workspace } from "@/types/workspace";
 
 export function WorkspaceSwitcher() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);

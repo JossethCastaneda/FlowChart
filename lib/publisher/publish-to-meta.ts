@@ -134,30 +134,83 @@ export async function publishPostToMeta(params: {
         if (resolved) {
           // Subida binaria multipart (data: URLs)
           const isVideo = resolved.contentType.startsWith("video/");
-          const endpoint = isVideo ? "videos" : "photos";
-          const domain = isVideo ? "graph-video.facebook.com" : "graph.facebook.com";
-
-          const form = new FormData();
-          if (useFbSchedule) {
-            form.append("published", "false");
-            form.append(
-              "scheduled_publish_time",
-              Math.floor(new Date(post.scheduledAt!).getTime() / 1000).toString()
-            );
-          }
-          if (isVideo) form.append("description", fbContent);
-          else form.append("message", fbContent);
-          // SEGURIDAD: token en header Authorization, NO en el body del form.
           const blob = new Blob([resolved.buffer as any], { type: resolved.contentType });
-          form.append("source", blob, resolved.filename);
 
-          const fbRes = await fetch(
-            `https://${domain}/${META_VERSION}/${pageId}/${endpoint}`,
-            { method: "POST", headers: { Authorization: `Bearer ${pageToken}` }, body: form }
-          );
-          const fbData = await fbRes.json();
-          if (fbRes.ok && fbData.id) externalIds.facebook = fbData.id;
-          else errors.push(`Facebook: ${fbData?.error?.message || "Error desconocido"}`);
+          if (isVideo) {
+            // B. Subida de Videos por Fases (Resumable Uploads)
+            try {
+              // 1. START
+              const startForm = new FormData();
+              startForm.append("upload_phase", "start");
+              startForm.append("file_size", resolved.buffer.length.toString());
+              
+              const startRes = await fetch(`https://graph-video.facebook.com/${META_VERSION}/${pageId}/videos`, {
+                method: "POST", headers: { Authorization: `Bearer ${pageToken}` }, body: startForm
+              });
+              const startData = await startRes.json();
+              if (!startRes.ok) throw new Error(startData?.error?.message || "Error en fase START de video");
+              
+              const sessionId = startData.upload_session_id;
+
+              // 2. TRANSFER (Asumimos que el buffer cabe en 1 solo chunk por ser data URL en memoria)
+              const transferForm = new FormData();
+              transferForm.append("upload_phase", "transfer");
+              transferForm.append("upload_session_id", sessionId);
+              transferForm.append("start_offset", "0");
+              transferForm.append("video_file_chunk", blob, resolved.filename);
+              
+              const transferRes = await fetch(`https://graph-video.facebook.com/${META_VERSION}/${pageId}/videos`, {
+                method: "POST", headers: { Authorization: `Bearer ${pageToken}` }, body: transferForm
+              });
+              if (!transferRes.ok) {
+                 const tData = await transferRes.json();
+                 throw new Error(tData?.error?.message || "Error en fase TRANSFER de video");
+              }
+
+              // 3. FINISH
+              const finishForm = new FormData();
+              finishForm.append("upload_phase", "finish");
+              finishForm.append("upload_session_id", sessionId);
+              finishForm.append("description", fbContent);
+              if (useFbSchedule) {
+                finishForm.append("published", "false");
+                finishForm.append("scheduled_publish_time", Math.floor(new Date(post.scheduledAt!).getTime() / 1000).toString());
+              }
+
+              const finishRes = await fetch(`https://graph-video.facebook.com/${META_VERSION}/${pageId}/videos`, {
+                method: "POST", headers: { Authorization: `Bearer ${pageToken}` }, body: finishForm
+              });
+              const fbData = await finishRes.json();
+              if (finishRes.ok && fbData.success && startData.video_id) {
+                 externalIds.facebook = startData.video_id;
+              } else if (finishRes.ok && fbData.id) {
+                 externalIds.facebook = fbData.id;
+              } else {
+                 errors.push(`Facebook (Finish): ${fbData?.error?.message || "Error desconocido"}`);
+              }
+
+            } catch (err: any) {
+              errors.push(`Facebook Video Upload: ${err.message}`);
+            }
+
+          } else {
+            // FOTOS (One-pass upload normal)
+            const form = new FormData();
+            if (useFbSchedule) {
+              form.append("published", "false");
+              form.append("scheduled_publish_time", Math.floor(new Date(post.scheduledAt!).getTime() / 1000).toString());
+            }
+            form.append("message", fbContent);
+            form.append("source", blob, resolved.filename);
+
+            const fbRes = await fetch(
+              `https://graph.facebook.com/${META_VERSION}/${pageId}/photos`,
+              { method: "POST", headers: { Authorization: `Bearer ${pageToken}` }, body: form }
+            );
+            const fbData = await fbRes.json();
+            if (fbRes.ok && fbData.id) externalIds.facebook = fbData.id;
+            else errors.push(`Facebook: ${fbData?.error?.message || "Error desconocido"}`);
+          }
         } else {
           // Subida por URL (https://)
           const isVideo = await checkIfVideo(mediaUrl);

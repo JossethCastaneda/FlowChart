@@ -25,7 +25,7 @@ export async function POST(req: NextRequest) {
     const _validate = await validateBody(req, CampaignCreateSchema);
     if (!_validate.ok) return _validate.response;
     let { adAccountId } = _validate.data;
-    const { name, objective, special_ad_categories, buying_type, daily_budget, lifetime_budget, bid_strategy } = _validate.data;
+    const { name, objective, special_ad_categories, buying_type, daily_budget, lifetime_budget, bid_strategy, smart_promotion_type } = _validate.data;
 
     if (!String(adAccountId).startsWith("act_")) adAccountId = `act_${adAccountId}`;
 
@@ -36,6 +36,11 @@ export async function POST(req: NextRequest) {
       buying_type: buying_type === "RESERVED" ? "RESERVED" : "AUCTION",
       special_ad_categories: special_ad_categories ?? [],
     };
+    
+    // C. Advantage+ Shopping (ASC)
+    if (smart_promotion_type) {
+      payload.smart_promotion_type = smart_promotion_type;
+    }
 
     // Optional Campaign Budget Optimization (CBO). Requires a bid strategy.
     const bid = bid_strategy ?? "LOWEST_COST_WITHOUT_CAP";

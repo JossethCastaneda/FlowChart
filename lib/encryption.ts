@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { env } from "./env";
+import { logger } from "./logger";
 
 const ALGORITHM = "aes-256-gcm";
 // ENCRYPTION_KEY must be a 32-byte hex string (64 characters)
@@ -20,7 +21,7 @@ export function encryptToken(text: string | null | undefined): string {
     if (env.NODE_ENV === "production") {
       throw new Error(`${msg} Refusing to store credentials unencrypted.`);
     }
-    console.warn(`${msg} Storing token as plain text (dev only).`);
+    logger.warn(`${msg} Storing token as plain text (dev only).`);
     return text;
   }
   
@@ -38,7 +39,7 @@ export function encryptToken(text: string | null | undefined): string {
     
     return `enc:${iv.toString("hex")}:${authTag}:${encrypted}`;
   } catch (err) {
-    console.error("[ENCRYPTION] Failed to encrypt token:", err);
+    logger.error("[ENCRYPTION] Failed to encrypt token", { err });
     throw new Error("[ENCRYPTION] Failed to encrypt token. Refusing to store unencrypted credentials.");
   }
 }
@@ -55,12 +56,12 @@ export function decryptToken(encryptedText: string | null | undefined): string {
   // We throw an error if we encounter unencrypted tokens.
   if (!encryptedText.startsWith("enc:")) {
     const msg = "[ENCRYPTION] Plaintext credential encountered! Rejecting to decrypt/use unencrypted token.";
-    console.error(msg);
+    logger.error(msg);
     throw new Error(msg);
   }
 
   if (!ENCRYPTION_KEY || ENCRYPTION_KEY.length !== 64) {
-    console.error("[ENCRYPTION] Cannot decrypt token because ENCRYPTION_KEY is missing or invalid.");
+    logger.error("[ENCRYPTION] Cannot decrypt token because ENCRYPTION_KEY is missing or invalid.");
     return encryptedText; // Will likely cause auth failures, but we can't do anything else
   }
 
@@ -81,7 +82,7 @@ export function decryptToken(encryptedText: string | null | undefined): string {
     
     return decrypted;
   } catch (err) {
-    console.error("[ENCRYPTION] Failed to decrypt token:", err);
+    logger.error("[ENCRYPTION] Failed to decrypt token", { err });
     throw new Error("[ENCRYPTION] Decryption failed. Cannot retrieve token.");
   }
 }

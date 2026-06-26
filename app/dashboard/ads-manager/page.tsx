@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback, Suspense } from "react";
 import { useSession as useSessionHook } from "next-auth/react";
@@ -912,47 +912,66 @@ function AdsManagerContent() {
   };
 
   const handleExportExcel = () => {
-    import("xlsx").then((XLSX) => {
-      const headers = visibleColumns;
-      const rows = filteredData.map((item: any) => {
-        const row: Record<string, any> = {};
-        const ins = item.insights || {};
-        headers.forEach((col) => {
-          if (col === "name") row["Nombre"] = item.name;
-          else if (col === "spend") row["Gasto"] = parseFloat(ins.spend || "0");
-          else if (col === "impressions") row["Impresiones"] = parseInt(ins.impressions || "0");
-          else if (col === "clicks") row["Clics"] = parseInt(ins.clicks || "0");
-          else if (col === "ctr") row["CTR %"] = parseFloat(ins.ctr || "0");
-          else if (col === "roas") row["ROAS"] = calcROAS(ins);
-          else row[col] = ins[col] || "";
-        });
-        return row;
+    const headers = visibleColumns;
+    const rows = filteredData.map((item: any) => {
+      const ins = item.insights || {};
+      const row: Record<string, any> = {};
+      headers.forEach((col) => {
+        if (col === "name") row["Nombre"] = item.name;
+        else if (col === "spend") row["Gasto"] = parseFloat(ins.spend || "0");
+        else if (col === "impressions") row["Impresiones"] = parseInt(ins.impressions || "0");
+        else if (col === "clicks") row["Clics"] = parseInt(ins.clicks || "0");
+        else if (col === "ctr") row["CTR %"] = parseFloat(ins.ctr || "0");
+        else if (col === "roas") row["ROAS"] = calcROAS(ins);
+        else row[col] = ins[col] || "";
       });
-      const ws = XLSX.utils.json_to_sheet(rows);
-      ws["!freeze"] = { xSplit: 0, ySplit: 1 };
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, activeLevel);
-      XLSX.writeFile(wb, `sodare_${activeLevel}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      addToast("success", "📊 Excel exportado correctamente");
+      return row;
     });
+    // Export as CSV (avoids xlsx CVE while maintaining functionality)
+    const csvHeaders = Object.keys(rows[0] || {});
+    const csvRows = rows.map(r => csvHeaders.map(h => {
+      const v = String(r[h] ?? "");
+      return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v;
+    }).join(","));
+    const csv = [csvHeaders.join(","), ...csvRows].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sodare_${activeLevel}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast("success", "📊 Exportado correctamente");
   };
 
   const handleDownloadTemplate = () => {
-    import("xlsx").then((XLSX) => {
-      const templateData = [
-        { "Nombre campaña": "", "Objetivo": "OUTCOME_SALES", "Presupuesto diario ($)": "", "Estado": "PAUSED" },
-      ];
-      const instructions = [
-        { Campo: "Objetivo", "Valores válidos": "OUTCOME_AWARENESS, OUTCOME_TRAFFIC, OUTCOME_ENGAGEMENT, OUTCOME_LEADS, OUTCOME_APP_PROMOTION, OUTCOME_SALES" },
-        { Campo: "Estado", "Valores válidos": "ACTIVE, PAUSED" },
-      ];
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(templateData), "Plantilla");
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(instructions), "Instrucciones");
-      XLSX.writeFile(wb, "sodare_plantilla_importacion.xlsx");
-      addToast("info", "📥 Plantilla descargada");
-    });
+    const templateHeaders = ["Nombre campaña", "Objetivo", "Presupuesto diario ($)", "Estado"];
+    const exampleRow = ["", "OUTCOME_SALES", "", "PAUSED"];
+    const instructionHeaders = ["Campo", "Valores válidos"];
+    const instructionRows = [
+      ["Objetivo", "OUTCOME_AWARENESS, OUTCOME_TRAFFIC, OUTCOME_ENGAGEMENT, OUTCOME_LEADS, OUTCOME_APP_PROMOTION, OUTCOME_SALES"],
+      ["Estado", "ACTIVE, PAUSED"],
+    ];
+    // Export as CSV
+    const csv = [
+      templateHeaders.join(","),
+      exampleRow.join(","),
+      "",
+      "--- INSTRUCCIONES ---",
+      instructionHeaders.join(","),
+      ...instructionRows.map(r => r.join(",")),
+    ].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sodare_plantilla_importacion.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast("info", "📥 Plantilla descargada");
   };
+
+
 
   // Get current dataset based on tab
   const getCurrentData = () => {

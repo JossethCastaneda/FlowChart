@@ -5,6 +5,8 @@ import { pickAssignee } from "@/lib/auto-assign";
 import { parseWorkflow, findUserArea, getPermissions, estimateEtaHours, etaDate } from "@/lib/workflow-config";
 import { notifyTaskAssigned } from "@/lib/notifications";
 import { logger } from "@/lib/logger";
+import { start } from "workflow/api";
+import { slaEngineWorkflow } from "@/workflows/sla-engine";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
@@ -241,5 +243,14 @@ export const POST = withWorkspace(async (req, ctx) => {
     );
   }
 
-  return apiCreated(task);
+  // Lanzar SLA Engine si la tarea tiene un vencimiento
+  if (task.dueDate) {
+    const delayMs = task.dueDate.getTime() - Date.now();
+    const delaySeconds = Math.max(0, Math.floor(delayMs / 1000));
+    start(slaEngineWorkflow, [task.id, workspaceId, delaySeconds]).catch(err => 
+      logger.warn("Failed to start SLA engine workflow", { taskId: task.id, error: err })
+    );
+  }
+
+  return apiCreated({ task });
 });

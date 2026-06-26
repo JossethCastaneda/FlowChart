@@ -92,6 +92,17 @@ async function refreshWorkspaceMetaTokens(workspaceId: string): Promise<RefreshR
       continue;
     }
 
+    // D. Motor Proactivo: Solo refrescar si caduca en menos de 7 días o lleva >50 días
+    const expiresAtDate = creds.expiresAt ? new Date(creds.expiresAt as string) : new Date();
+    const refreshedAtDate = creds.refreshedAt ? new Date(creds.refreshedAt as string) : new Date(0);
+    const daysUntilExpiry = (expiresAtDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+    const daysSinceRefresh = (Date.now() - refreshedAtDate.getTime()) / (1000 * 60 * 60 * 24);
+
+    if (daysUntilExpiry > 7 && daysSinceRefresh < 50) {
+      // Token is still fresh enough, skip to save rate limits
+      continue;
+    }
+
     const exchange = await exchangeToken(currentToken);
 
     if (!exchange.ok) {
@@ -185,13 +196,15 @@ export async function GET(req: NextRequest) {
       select: { workspaceId: true },
     });
 
-    // Parallel refresh across all workspaces with allSettled (no one blocks another)
-    const settled = await Promise.allSettled(
-      workspaces.map((ws) => refreshWorkspaceMetaTokens(ws.workspaceId))
-    );
-    const results = settled.map((r) =>
-      r.status === "fulfilled" ? r.value : { status: "failed", workspaceId: "unknown", error: String(r.reason) }
-    );
+    // D. Motor Proactivo: Procesamiento en lotes/secuencial para evitar Rate Limits masivos
+    // Se procesa de forma secuencial para no detonar alarmas de abuso de Meta.
+    const results: RefreshResult[] = [];
+    for (const ws of workspaces) {
+      const result = await refreshWorkspaceMetaTokens(ws.workspaceId);
+      results.push(result);
+      // Pequeño delay de 500ms entre workspaces para respetar rate limits
+      await new Promise((r) => setTimeout(r, 500));
+    }
 
     return NextResponse.json({
       processed: results.length,

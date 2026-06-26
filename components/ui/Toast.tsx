@@ -12,10 +12,15 @@ interface Toast {
 }
 
 let addToastFn: ((type: ToastType, message: string) => void) | null = null;
+let toastQueue: Array<{type: ToastType, message: string}> = [];
 
 /** Call this from anywhere to show a toast */
 export function showToast(type: ToastType, message: string) {
-  if (addToastFn) addToastFn(type, message);
+  if (addToastFn) {
+    addToastFn(type, message);
+  } else {
+    toastQueue.push({ type, message });
+  }
 }
 
 import { AlertTriangle } from "lucide-react";
@@ -40,6 +45,11 @@ export function ToastContainer() {
 
   useEffect(() => {
     addToastFn = addToast;
+    // Drain queue
+    if (toastQueue.length > 0) {
+      toastQueue.forEach(t => addToast(t.type, t.message));
+      toastQueue = [];
+    }
     return () => { addToastFn = null; };
   }, [addToast]);
 

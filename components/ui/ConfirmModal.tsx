@@ -15,24 +15,23 @@ interface ModalConfig {
 }
 
 let showModalFn: ((config: ModalConfig) => void) | null = null;
+let modalQueue: ModalConfig[] = [];
 
 /** Show a confirmation modal. Returns a promise that resolves when confirmed. */
 export function showConfirm(config: Omit<ModalConfig, "onConfirm"> & { onConfirm?: () => void }): Promise<boolean> {
   return new Promise((resolve) => {
+    const fullConfig = {
+      ...config,
+      onConfirm: () => {
+        config.onConfirm?.();
+        resolve(true);
+      },
+      onCancel: () => resolve(false),
+    };
     if (showModalFn) {
-      showModalFn({
-        ...config,
-        onConfirm: () => {
-          config.onConfirm?.();
-          resolve(true);
-        },
-        onCancel: () => resolve(false),
-      });
+      showModalFn(fullConfig);
     } else {
-      // Fallback to native
-      const result = window.confirm(config.message);
-      if (result) config.onConfirm?.();
-      resolve(result);
+      modalQueue.push(fullConfig);
     }
   });
 }
@@ -40,17 +39,18 @@ export function showConfirm(config: Omit<ModalConfig, "onConfirm"> & { onConfirm
 /** Show a prompt modal with input. */
 export function showPrompt(config: { title: string; message: string; placeholder?: string }): Promise<string | null> {
   return new Promise((resolve) => {
+    const fullConfig: ModalConfig = {
+      title: config.title,
+      message: config.message,
+      inputPlaceholder: config.placeholder,
+      confirmLabel: "Confirmar",
+      onConfirm: (val) => resolve(val || null),
+      onCancel: () => resolve(null),
+    };
     if (showModalFn) {
-      showModalFn({
-        title: config.title,
-        message: config.message,
-        inputPlaceholder: config.placeholder,
-        confirmLabel: "Confirmar",
-        onConfirm: (val) => resolve(val || null),
-        onCancel: () => resolve(null),
-      });
+      showModalFn(fullConfig);
     } else {
-      resolve(window.prompt(config.message));
+      modalQueue.push(fullConfig);
     }
   });
 }
@@ -65,6 +65,9 @@ export function ConfirmModalContainer() {
       setConfig(c);
       setInputValue("");
     };
+    if (modalQueue.length > 0) {
+      showModalFn(modalQueue.shift()!);
+    }
     return () => { showModalFn = null; };
   }, []);
 

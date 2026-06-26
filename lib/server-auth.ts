@@ -3,6 +3,7 @@ import { NextRequest } from "next/server";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { decryptToken } from "@/lib/encryption";
+import { logger } from "@/lib/logger";
 
 import { env } from "./env";
 
@@ -72,7 +73,7 @@ export async function getMetaAccessToken(
           const isExpired = !!expiresAt && expiresAt.getTime() < Date.now();
           if (creds.accessToken && !isExpired) return decryptToken(creds.accessToken);
           if (isExpired) {
-            console.warn(`[SERVER-AUTH] Token expired for ${module} (expired ${expiresAt?.toISOString()})`);
+            logger.warn(`[SERVER-AUTH] Token expired for ${module}`, { expiresAt: expiresAt?.toISOString() });
           }
         }
       }
@@ -89,7 +90,7 @@ export async function getMetaAccessToken(
         const isExpired = !!expiresAt && expiresAt.getTime() < Date.now();
         if (creds.accessToken && !isExpired) return decryptToken(creds.accessToken);
         if (isExpired) {
-          console.warn(`[SERVER-AUTH] Generic meta token expired (expired ${expiresAt?.toISOString()})`);
+          logger.warn(`[SERVER-AUTH] Generic meta token expired`, { expiresAt: expiresAt?.toISOString() });
         }
       }
     }
@@ -100,7 +101,7 @@ export async function getMetaAccessToken(
     // Integraciones (api/connect/[module]).
     return null;
   } catch (err) {
-    console.error("[SERVER-AUTH] getMetaAccessToken error:", err);
+    logger.error("[SERVER-AUTH] getMetaAccessToken error", { err });
     return null;
   }
 }
@@ -152,18 +153,48 @@ export async function metaFetch(
       }
 
       if (isRateLimit) {
-        // Log headers for debugging Meta's specific rate limit buckets
-        const usageHeader = res.headers.get("x-business-use-case-usage") || res.headers.get("x-app-usage");
-        if (usageHeader) {
-          console.log(`[META FETCH] Usage Header: ${usageHeader}`);
-        }
-
         retries++;
         // Exponential backoff: 2s, 4s, 8s + jitter
         const delay = Math.pow(2, retries) * 1000 + Math.random() * 500;
-        console.warn(`[META FETCH] Rate limit (status ${res.status}) on ${cleanUrl.split('?')[0]}. Retry ${retries}/${maxRetries} in ${Math.round(delay)}ms...`);
+        logger.warn(`[META FETCH] Rate limit`, { status: res.status, url: cleanUrl.split('?')[0], retry: retries, maxRetries, delayMs: Math.round(delay) });
         await new Promise(r => setTimeout(r, delay));
         continue; // Try again
+      }
+    }
+
+    // A. Proactive Rate Limit Compliance: Leer X-Business-Use-Case-Usage
+    const usageHeader = res.headers.get("x-business-use-case-usage") || res.headers.get("x-app-usage");
+    if (usageHeader) {
+      try {
+        const usageData = JSON.parse(usageHeader);
+        let maxUsage = 0;
+        let timeToRegain = 0;
+        
+        // Parse x-business-use-case-usage: {"{id}": [{"type": "...", "call_count": 80, ...}]}
+        // Parse x-app-usage: {"call_count":80, "total_cputime":15, "total_time":12}
+        Object.values(usageData).forEach((val: any) => {
+          if (Array.isArray(val)) {
+            val.forEach(item => {
+              maxUsage = Math.max(maxUsage, item.call_count || 0, item.total_cputime || 0, item.total_time || 0);
+              if (item.estimated_time_to_regain_access) {
+                timeToRegain = Math.max(timeToRegain, item.estimated_time_to_regain_access);
+              }
+            });
+          } else if (typeof val === "number") {
+             // For x-app-usage flat object
+             maxUsage = Math.max(maxUsage, val);
+          }
+        });
+
+        if (maxUsage >= 90) {
+           const sleepTime = timeToRegain > 0 ? timeToRegain * 1000 : 5000;
+           logger.warn(`[META FETCH] Preemptive throttle. Usage at ${maxUsage}%. Sleeping for ${sleepTime}ms`);
+           await new Promise(r => setTimeout(r, sleepTime));
+        } else if (maxUsage >= 70) {
+           logger.info(`[META FETCH] Usage at ${maxUsage}%`);
+        }
+      } catch (e) {
+        logger.warn(`[META FETCH] Error parsing usage header`, { usageHeader });
       }
     }
 

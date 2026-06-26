@@ -13,6 +13,8 @@ import { AreasManager } from "@/components/settings/AreasManager";
 import { PermissionsManager } from "@/components/settings/PermissionsManager";
 import { MemberPermissionsModal, type MemberPermissions } from "@/components/settings/MemberPermissionsModal";
 import { ClientPortalsManager } from "@/components/settings/ClientPortalsManager";
+import { PlanUsageMeter } from "@/components/settings/PlanUsageMeter";
+import { BrandingManager } from "@/components/settings/BrandingManager";
 
 // ── Settings catalogue: groups (menus) → sections (submenus) ──
 // Single source of truth — add a section here and render it in the switch below.
@@ -665,6 +667,7 @@ export default function SettingsPage() {
 
               {/* General */}
               {workspaceTab === "general" && (
+                <>
                 <div className="glass-panel p-4 md:p-6">
                   <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                     <span className="section-title flex items-center gap-2">
@@ -687,6 +690,8 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
+                {isAdmin && <BrandingManager />}
+                </>
               )}
 
               {/* Equipo y roles */}
@@ -850,19 +855,20 @@ export default function SettingsPage() {
             <div className="glass-panel p-4 md:p-6">
               <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4 md:mb-5">
                 <span className="section-title flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-[var(--cyan)]" /> Plan
+                  <CreditCard className="w-4 h-4 text-[var(--cyan)]" /> Plan y Uso
                 </span>
               </div>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 rounded-lg bg-[rgba(0,212,255,0.04)] border border-[rgba(0,212,255,0.12)] gap-4 sm:gap-0">
-                <div>
-                  <div className="text-[11px] text-slate-500">Plan actual</div>
-                  <div className="text-lg font-bold text-slate-200 capitalize">{workspacePlan}</div>
-                </div>
-                {workspacePlan === "free" && isAdmin && (
-                  <button className="btn-primary w-full sm:w-auto opacity-60 cursor-not-allowed" disabled title="Próximamente">Mejorar plan (pronto)</button>
-                )}
-              </div>
-              <p className="text-[11px] text-slate-500 mt-3">Free · Pro · Agency. La gestión de planes y facturación llegará pronto.</p>
+
+              <PlanUsageMeter
+                onUpgrade={() => {
+                  window.open("mailto:soporte@sodare.com?subject=Quiero%20mejorar%20mi%20plan", "_blank");
+                }}
+              />
+
+              <p className="text-[11px] text-slate-500 mt-4">
+                Para cambiar de plan o gestionar la facturación, contacta a
+                {" "}<a href="mailto:soporte@sodare.com" className="text-[var(--cyan)] hover:underline">soporte@sodare.com</a>.
+              </p>
             </div>
           )}
 

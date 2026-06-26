@@ -399,20 +399,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {theme !== 'claro' && <GalaxyBackground />}
       <div className="dashboard-grid" />
 
-      {/* ─── Hover trigger zone (invisible strip at left edge, desktop only) ─── */}
-      <div
-        className="hidden lg:block"
-        onMouseEnter={handleMouseEnterTrigger}
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          width: HOVER_TRIGGER_WIDTH,
-          height: "100vh",
-          zIndex: 60,
-        }}
-      />
-
+      {/* Hover trigger zone removed to prevent user fatigue */}
 
 
       {/* Mobile overlay */}
@@ -426,8 +413,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {/* ─── Floating Sidebar ─── */}
       <aside
         ref={sidebarRef}
-        onMouseEnter={handleMouseEnterSidebar}
-        onMouseLeave={handleMouseLeaveSidebar}
         className="sidebar-floating"
         style={{
           position: "fixed",

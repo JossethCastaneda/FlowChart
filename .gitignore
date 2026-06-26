@@ -77,3 +77,10 @@ analytics-results-before-project-scope.patch
 
 # Build cache
 .swc/
+
+# Diagnostic / analysis scripts (dangerous — can truncate DB, contain PII)
+truncate-db.mjs
+botmaker-data.json
+_analyze_bots.mjs
+check-db.mjs
+ts-prune-results.txt

@@ -60,11 +60,11 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
             90% { opacity: 1; }
           }
           .sodare-emblem {
-            animation: sodare-glow-breathe 3s ease-in-out infinite;
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, filter 0.3s ease;
           }
           .sodare-emblem:hover {
             transform: scale(1.08);
+            animation: sodare-glow-breathe 2s ease-in-out infinite;
           }
           .sodare-wordmark-animated {
             background: linear-gradient(
@@ -79,7 +79,10 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            animation: sodare-text-shimmer 4s linear infinite;
+            transition: background-position 0.3s ease;
+          }
+          .sodare-wordmark-animated:hover {
+            animation: sodare-text-shimmer 2s linear infinite;
           }
         `}</style>
       )}

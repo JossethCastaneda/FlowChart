@@ -73,8 +73,10 @@ function createPrismaClient(): PrismaClient {
     // fail on serverless runtimes (Vercel) where the CA store may not include Neon's
     // certificate chain, causing silent connection failures.
     ssl: { rejectUnauthorized: false },
-    max: env.NODE_ENV === "production" ? 10 : 5,
-    idleTimeoutMillis: 30_000,
+    // Optimización Vercel Serverless: Reducir max y idleTimeout para evitar
+    // Connection Exhaustion en PgBouncer ante picos de lambdas concurrentes.
+    max: env.NODE_ENV === "production" ? 2 : 5,
+    idleTimeoutMillis: env.NODE_ENV === "production" ? 1_000 : 30_000,
     connectionTimeoutMillis: 10_000,
   });
 

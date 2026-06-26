@@ -26,6 +26,7 @@
  */
 
 // ── Tipos de soporte ─────────────────────────────────────────────────────────
+import { logger } from "@/lib/logger";
 
 export interface BmConnection {
   /** URL base (default: https://api.botmaker.com/v2.0) */
@@ -232,13 +233,13 @@ export async function listSessions(
     const path = next; // DO NOT replace %3A on nextPage! We must call the EXACT URL!
     
     if (pages > 0) {
-      console.log(`[listSessions DEBUG] Fetching Page ${pages + 1} with path: ${path}`);
+      logger.debug(`[listSessions] Fetching Page ${pages + 1}`, { path });
     }
     
     const res = await bmFetch(conn, path);
     if (!res.ok) {
       const errText = await res.text();
-      console.warn(`[listSessions] Page ${pages + 1} returned ${res.status} for ${from} → ${to}, stopping pagination. Response: ${errText.substring(0, 200)}`);
+      logger.warn(`[listSessions] Page ${pages + 1} returned ${res.status} for ${from} → ${to}, stopping pagination.`);
       break;
     }
     const data: BmSessionsPage = await res.json().catch(() => ({}));
@@ -255,7 +256,7 @@ export async function listSessions(
       catch { return u; }
     };
     if (data.nextPage && getPath(data.nextPage) === getPath(next)) {
-      console.warn(`[listSessions] Infinite loop detected! nextPage is identical: ${next}`);
+      logger.warn(`[listSessions] Infinite loop detected!`, { nextPage: next });
       break;
     }
     
@@ -269,7 +270,7 @@ export async function listSessions(
   }
 
   if (pages > 1 || all.length > 0) {
-    console.log(`[listSessions] ${from.slice(0,10)} → ${to.slice(0,10)}: ${pages} pages, ${all.length} sessions`);
+    logger.info(`[listSessions] Pagination complete`, { from: from.slice(0,10), to: to.slice(0,10), pages, total: all.length });
   }
 
   return all;
