@@ -693,13 +693,13 @@ export default function ProjectDashboardPage() {
           });
 
           const getColor = (val: number) => {
-            if (maxResults === 0 || val === 0) return "rgba(255,255,255,0.02)";
+            if (maxResults === 0 || val === 0) return "rgba(255,255,255,0.05)";
             const intensity = val / maxResults;
             if (intensity > 0.75) return "rgba(0,200,117,0.6)";
             if (intensity > 0.5) return "rgba(0,200,117,0.35)";
             if (intensity > 0.25) return "rgba(0,212,255,0.25)";
             if (intensity > 0.1) return "rgba(0,212,255,0.12)";
-            return "var(--surface-hover)";
+            return "rgba(255,255,255,0.1)";
           };
 
           return (
@@ -769,7 +769,7 @@ export default function ProjectDashboardPage() {
               {/* Legend */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
                 <span style={{ fontSize: 8, color: "var(--text-muted)" }}>Menos</span>
-                {["var(--surface-hover)", "rgba(0,212,255,0.12)", "rgba(0,212,255,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
+                {["rgba(255,255,255,0.05)", "rgba(255,255,255,0.1)", "rgba(0,212,255,0.12)", "rgba(0,212,255,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
                   <div key={i} style={{ width: 14, height: 10, borderRadius: 2, background: c }} />
                 ))}
                 <span style={{ fontSize: 8, color: "var(--text-muted)" }}>Más</span>
@@ -1015,12 +1015,18 @@ export default function ProjectDashboardPage() {
                 {(() => {
                   const raw = breakdownData["platform"];
                   if (raw === undefined) return <NoData msg="Cargando..." />;
-                  const d = raw.map((r: any) => ({
-                    name: (r.publisher_platform || "otro").charAt(0).toUpperCase() + (r.publisher_platform || "otro").slice(1),
-                    spend: Number(r.spend) || 0,
-                    impressions: Number(r.impressions) || 0,
-                    clicks: Number(r.clicks) || 0,
-                  }));
+                  
+                  const aggregated = raw.reduce((acc: any, r: any) => {
+                    const rawName = (r.publisher_platform || "otro").toLowerCase();
+                    const name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+                    if (!acc[name]) acc[name] = { name, spend: 0, impressions: 0, clicks: 0 };
+                    acc[name].spend += Number(r.spend) || 0;
+                    acc[name].impressions += Number(r.impressions) || 0;
+                    acc[name].clicks += Number(r.clicks) || 0;
+                    return acc;
+                  }, {});
+                  
+                  const d = Object.values(aggregated);
                   if (!d.length) return <NoData msg="Sin datos de plataforma" />;
                   return (
                     <ResponsiveContainer width="100%" height="100%">
