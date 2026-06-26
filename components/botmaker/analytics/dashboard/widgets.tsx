@@ -96,16 +96,19 @@ const ChartBox: React.FC<{ children: React.ReactElement }> = ({ children }) => (
 
 const KpisWidget = ({ data }: WidgetCtx) => {
   const k = data.kpis;
+  // "Cambio de compañía completado" = sesión tipificada como venta (mensaje de
+  // felicitación del bot). Conteo honesto desde el último paso del embudo.
+  const completed = data.funnel.find((f) => f.key === "sale")?.count ?? 0;
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-      <Kpi label="Sesiones" value={fmt(k.sessions)} accent={P} icon={<Bot size={14} />} sub={`${fmt(k.users)} usuarios`} />
-      <Kpi label="Mensajes" value={fmt(k.messages)} accent={C} icon={<MessageSquare size={14} />} sub={`${fmt(k.userMessages)} de usuarios`} />
-      <Kpi label="Automatización" value={pctTxt(k.automationRate)} accent={G} icon={<Zap size={14} />} sub="sin agente" />
-      <Kpi label="Escalación" value={pctTxt(k.agentRate)} accent={A} icon={<Users size={14} />} sub="llegan a agente" />
-      <Kpi label="Fallback" value={pctTxt(k.fallbackRate)} accent={R} icon={<AlertTriangle size={14} />} sub="no entendió" />
-      <Kpi label="Reintentos" value={pctTxt(k.retryRate)} accent={A} icon={<RefreshCw size={14} />} sub="sesiones c/ error de dato" />
-      <Kpi label="1ª respuesta" value={secTxt(k.avgFirstResponseSec)} accent={C} icon={<Clock size={14} />} sub="promedio bot" />
-      <Kpi label="Conversión" value={pctTxt(k.conversionRate)} accent={G} icon={<Target size={14} />} sub="tipificada venta" />
+      <Kpi label="Conversaciones" value={fmt(k.sessions)} accent={P} icon={<Bot size={14} />} sub={`${fmt(k.users)} usuarios únicos`} />
+      <Kpi label="Cambios completados" value={fmt(completed)} accent={G} icon={<Target size={14} />} sub="portabilidad exitosa" />
+      <Kpi label="Tasa de portabilidad" value={pctTxt(k.conversionRate)} accent={G} icon={<TrendingDown size={14} />} sub="de las conversaciones" />
+      <Kpi label="Atención humana" value={pctTxt(k.agentRate)} accent={A} icon={<Users size={14} />} sub="escalan a un agente" />
+      <Kpi label="No entendidas" value={pctTxt(k.fallbackRate)} accent={R} icon={<AlertTriangle size={14} />} sub="el bot no comprende" />
+      <Kpi label="Reintentos de captura" value={pctTxt(k.retryRate)} accent={A} icon={<RefreshCw size={14} />} sub="error al pedir datos (NIP, número…)" />
+      <Kpi label="1ª respuesta" value={secTxt(k.avgFirstResponseSec)} accent={C} icon={<Clock size={14} />} sub="promedio del bot" />
+      <Kpi label="Automatización" value={pctTxt(k.automationRate)} accent={C} icon={<Zap size={14} />} sub="resueltas sin agente" />
     </div>
   );
 };
@@ -479,19 +482,19 @@ const InsightsWidget = ({ data }: WidgetCtx) => {
 // ── registry + default layout ───────────────────────────────────────────────────
 
 export const WIDGETS: Record<string, WidgetDef> = {
-  kpis: { id: "kpis", title: "Resumen ejecutivo", size: { w: 12, h: 2, minW: 4, minH: 2 }, render: (c) => <KpisWidget {...c} /> },
+  kpis: { id: "kpis", title: "Resumen de portabilidad", size: { w: 12, h: 2, minW: 4, minH: 2 }, render: (c) => <KpisWidget {...c} /> },
   botAgentSplit: { id: "botAgentSplit", title: "Carga Bot vs. Humano", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <BotVsAgentWidget {...c} /> },
   channelDistribution: { id: "channelDistribution", title: "Distribución por Canal", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelDistributionWidget {...c} /> },
-  insights: { id: "insights", title: "Insights automáticos", size: { w: 12, h: 2, minW: 4, minH: 2 }, render: (c) => <InsightsWidget {...c} /> },
-  timeseries: { id: "timeseries", title: "Evolución Temporal", size: { w: 12, h: 4, minW: 4, minH: 3 }, render: (c) => <TimeseriesWidget {...c} /> },
+  insights: { id: "insights", title: "Dónde accionar · alertas y recomendaciones", size: { w: 12, h: 3, minW: 4, minH: 2 }, render: (c) => <InsightsWidget {...c} /> },
+  timeseries: { id: "timeseries", title: "Evolución de conversaciones", size: { w: 12, h: 4, minW: 4, minH: 3 }, render: (c) => <TimeseriesWidget {...c} /> },
   heatmap: { id: "heatmap", title: "Mapa de Calor por Demanda", size: { w: 12, h: 4, minW: 6, minH: 3 }, render: (c) => <HeatmapWidget {...c} /> },
-  funnel: { id: "funnel", title: "Funnel conversacional", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <FunnelWidget {...c} /> },
-  botflow: { id: "botflow", title: "Flow Explorer · Recorrido del Bot", size: { w: 12, h: 6, minW: 6, minH: 4 }, render: (c) => <BotFlowWidget {...c} /> },
-  fallback: { id: "fallback", title: "Intenciones no entendidas (fallback)", size: { w: 6, h: 5, minW: 3, minH: 3 }, render: (c) => <FallbackWidget {...c} /> },
+  funnel: { id: "funnel", title: "Embudo de cambio de compañía", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <FunnelWidget {...c} /> },
+  botflow: { id: "botflow", title: "Recorrido de portabilidad · dónde se caen los usuarios", size: { w: 12, h: 6, minW: 6, minH: 4 }, render: (c) => <BotFlowWidget {...c} /> },
+  fallback: { id: "fallback", title: "Mensajes que el bot no entendió", size: { w: 6, h: 5, minW: 3, minH: 3 }, render: (c) => <FallbackWidget {...c} /> },
   buttons: { id: "buttons", title: "Botoneras · CTR de botones", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ButtonsWidget {...c} /> },
   channels: { id: "channels", title: "Detalle Canal / Bot", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelsWidget {...c} /> },
   flow: { id: "flow", title: "Flujo · transiciones más frecuentes", size: { w: 6, h: 4, minW: 4, minH: 3 }, render: (c) => <FlowWidget {...c} /> },
-  typifications: { id: "typifications", title: "Tipificaciones de cierre", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <TypificationsWidget {...c} /> },
+  typifications: { id: "typifications", title: "Motivos de cierre", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <TypificationsWidget {...c} /> },
   copies: { id: "copies", title: "Copys con baja conversión", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <CopiesWidget {...c} /> },
   bots: { id: "bots", title: "Sub-bots más activos", size: { w: 3, h: 4, minW: 2, minH: 3 }, render: (c) => <BotsWidget {...c} /> },
   errors: { id: "errors", title: "Errores de entrega", size: { w: 3, h: 4, minW: 2, minH: 3 }, render: (c) => <ErrorsWidget {...c} /> },
@@ -500,22 +503,25 @@ export const WIDGETS: Record<string, WidgetDef> = {
 
 export interface LayoutCell { id: string; x: number; y: number; w: number; h: number }
 
+// Orden con narrativa telco: primero el resultado (KPIs de portabilidad), luego
+// QUÉ ACCIONAR (alertas), luego el recorrido donde se caen los usuarios y el
+// embudo de cambio de compañía; el resto (tendencias, canales, detalle) abajo.
 export const DEFAULT_LAYOUT: LayoutCell[] = [
   { id: "kpis", x: 0, y: 0, w: 12, h: 2 },
-  { id: "botAgentSplit", x: 0, y: 2, w: 6, h: 4 },
-  { id: "channelDistribution", x: 6, y: 2, w: 6, h: 4 },
-  { id: "timeseries", x: 0, y: 6, w: 12, h: 4 },
-  { id: "heatmap", x: 0, y: 10, w: 12, h: 4 },
-  { id: "insights", x: 0, y: 14, w: 12, h: 2 },
-  { id: "funnel", x: 0, y: 16, w: 6, h: 4 },
-  { id: "typifications", x: 6, y: 16, w: 3, h: 4 },
-  { id: "copies", x: 9, y: 16, w: 3, h: 4 },
-  { id: "botflow", x: 0, y: 20, w: 12, h: 6 },
-  { id: "fallback", x: 0, y: 26, w: 6, h: 5 },
-  { id: "buttons", x: 6, y: 26, w: 6, h: 4 },
-  { id: "channels", x: 0, y: 31, w: 6, h: 4 },
-  { id: "flow", x: 6, y: 31, w: 6, h: 4 },
-  { id: "bots", x: 0, y: 35, w: 3, h: 4 },
-  { id: "errors", x: 3, y: 35, w: 3, h: 4 },
-  { id: "variables", x: 0, y: 39, w: 12, h: 4 },
+  { id: "insights", x: 0, y: 2, w: 12, h: 3 },
+  { id: "botflow", x: 0, y: 5, w: 12, h: 6 },
+  { id: "funnel", x: 0, y: 11, w: 6, h: 4 },
+  { id: "botAgentSplit", x: 6, y: 11, w: 6, h: 4 },
+  { id: "timeseries", x: 0, y: 15, w: 12, h: 4 },
+  { id: "fallback", x: 0, y: 19, w: 6, h: 5 },
+  { id: "buttons", x: 6, y: 19, w: 6, h: 4 },
+  { id: "channelDistribution", x: 0, y: 24, w: 6, h: 4 },
+  { id: "channels", x: 6, y: 24, w: 6, h: 4 },
+  { id: "heatmap", x: 0, y: 28, w: 12, h: 4 },
+  { id: "typifications", x: 0, y: 32, w: 3, h: 4 },
+  { id: "copies", x: 3, y: 32, w: 3, h: 4 },
+  { id: "bots", x: 6, y: 32, w: 3, h: 4 },
+  { id: "errors", x: 9, y: 32, w: 3, h: 4 },
+  { id: "flow", x: 0, y: 36, w: 6, h: 4 },
+  { id: "variables", x: 6, y: 36, w: 6, h: 4 },
 ];

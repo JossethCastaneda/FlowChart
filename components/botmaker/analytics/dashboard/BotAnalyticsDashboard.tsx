@@ -16,7 +16,7 @@ import { WIDGETS, DEFAULT_LAYOUT, LayoutCell, WidgetCtx } from "./widgets";
 import type { DashboardData, Granularity } from "@/lib/botmaker/insights";
 import { cdmxRange, cdmxDayStartISO, cdmxDayEndISO } from "@/lib/crm/timezone";
 
-const LS_KEY = "botmaker-dashboard-layout-v4";
+const LS_KEY = "botmaker-dashboard-layout-v5";
 const LS_FILTERS_KEY = "botmaker-dashboard-filters-v1";
 const P = "var(--purple)";
 
@@ -180,14 +180,14 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
           </>
         )}
         <LayoutGrid style={{ width: 15, height: 15, color: P }} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{embedded ? "Métricas del Bot" : "Bot Analytics"}</span>
-        {data && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>· {data.kpis.sessions.toLocaleString("es-MX")} sesiones</span>}
+        <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{embedded ? "Métricas del Bot · Portabilidad" : "Portabilidad · Cambios de compañía"}</span>
+        {data && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>· {data.kpis.sessions.toLocaleString("es-MX")} conversaciones</span>}
 
         <div style={{ flex: 1 }} />
 
         {!embedded && (
           <Link href="/dashboard/botmaker/analytics/portabilidad" style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 20, color: "var(--cyan)", fontSize: 11, fontWeight: 600, textDecoration: "none" }}>
-            <Smartphone style={{ width: 12, height: 12 }} /> Portabilidad (BAIT)
+            <Smartphone style={{ width: 12, height: 12 }} /> Análisis de portabilidad
           </Link>
         )}
 

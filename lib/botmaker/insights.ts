@@ -704,8 +704,8 @@ function buildInsights(
 ): InsightCard[] {
   const out: InsightCard[] = [];
 
-  if (fb.rate >= 15) out.push({ severity: "critical", title: `Fallback alto: ${fb.rate}% de sesiones`, detail: `El bot respondió "Mensaje por defecto" en ${fb.sessions} sesiones (${fb.occurrences} veces). Revisa intenciones no cubiertas — top no entendido: ${fb.topUnrecognized[0]?.name ?? "—"}.` });
-  else if (fb.rate >= 5) out.push({ severity: "warning", title: `Fallback: ${fb.rate}%`, detail: `Hay intenciones sin cubrir. Mensaje no entendido más común: "${fb.topUnrecognized[0]?.name ?? "—"}".` });
+  if (fb.rate >= 15) out.push({ severity: "critical", title: `El bot no entendió el ${fb.rate}% de las conversaciones`, detail: `Respondió "Mensaje por defecto" en ${fb.sessions} conversaciones (${fb.occurrences} veces). Agrega estas intenciones al bot — lo más repetido que no entendió: "${fb.topUnrecognized[0]?.name ?? "—"}".` });
+  else if (fb.rate >= 5) out.push({ severity: "warning", title: `Mensajes no entendidos: ${fb.rate}%`, detail: `Hay preguntas del cliente sin cubrir. Lo más común que el bot no entendió: "${fb.topUnrecognized[0]?.name ?? "—"}".` });
 
   const worstField = bp.find((b) => b.failRate >= 20 && b.prompts >= 10);
   if (worstField) out.push({ severity: "critical", title: `"${worstField.field}" falla el ${worstField.failRate}%`, detail: `${worstField.failed} de ${worstField.prompts} sesiones nunca dan una respuesta válida en este paso. ${worstField.okAfterRetry} lo logran tras reintentar (avg ${worstField.avgAttempts} intentos).` });
@@ -720,15 +720,15 @@ function buildInsights(
 
   if (errors.length && errors[0].count >= 10) out.push({ severity: "critical", title: `Errores de entrega: ${errors[0].count}`, detail: `"${errors[0].name}" — mensajes que no llegaron (ventana de 24h / cuenta bloqueada). Revisa plantillas HSM y estado de la cuenta WhatsApp.` });
 
-  if (k.agentRate >= 50) out.push({ severity: "warning", title: `Escalación alta: ${k.agentRate}%`, detail: `La mitad o más de las sesiones llegan a un agente humano. Automatiza las preguntas frecuentes para descargar al equipo.` });
-  else if (k.automationRate >= 70) out.push({ severity: "ok", title: `Automatización ${k.automationRate}%`, detail: `El bot resuelve la mayoría sin agente. Buen nivel de autoservicio.` });
+  if (k.agentRate >= 50) out.push({ severity: "warning", title: `Demasiadas conversaciones pasan a un agente: ${k.agentRate}%`, detail: `La mitad o más necesitan atención humana. Automatiza las preguntas frecuentes del cambio de compañía para descargar al equipo.` });
+  else if (k.automationRate >= 70) out.push({ severity: "ok", title: `El bot resuelve solo el ${k.automationRate}%`, detail: `La mayoría de los cambios de compañía se gestionan sin agente. Buen nivel de autoservicio.` });
 
   const biggestDrop = funnel.slice(1).sort((a, b) => b.dropOffPct - a.dropOffPct)[0];
-  if (biggestDrop && biggestDrop.dropOffPct >= 40) out.push({ severity: "info", title: `Mayor caída del funnel en "${biggestDrop.label}"`, detail: `Se pierde ${biggestDrop.dropOffPct}% en este paso (${biggestDrop.dropOff} sesiones). Es el cuello de botella principal.` });
+  if (biggestDrop && biggestDrop.dropOffPct >= 40) out.push({ severity: "info", title: `Mayor abandono en el paso "${biggestDrop.label}"`, detail: `Se pierde el ${biggestDrop.dropOffPct}% de los usuarios aquí (${biggestDrop.dropOff} conversaciones). Es el cuello de botella principal del cambio de compañía.` });
 
   const worstChannel = channels.filter((c) => c.sessions >= 20).sort((a, b) => b.fallbackRate - a.fallbackRate)[0];
-  if (worstChannel && worstChannel.fallbackRate >= 20) out.push({ severity: "info", title: `Canal con más fallback: ${worstChannel.name}`, detail: `${worstChannel.fallbackRate}% de fallback en ${worstChannel.sessions} sesiones. Ese bot/canal necesita más cobertura de intenciones.` });
+  if (worstChannel && worstChannel.fallbackRate >= 20) out.push({ severity: "info", title: `Canal donde el bot menos entiende: ${worstChannel.name}`, detail: `${worstChannel.fallbackRate}% de mensajes no entendidos en ${worstChannel.sessions} conversaciones. Ese canal necesita más cobertura de intenciones.` });
 
-  if (!out.length) out.push({ severity: "ok", title: "Sin alertas críticas", detail: "No se detectaron puntos de quiebre relevantes en el periodo seleccionado." });
+  if (!out.length) out.push({ severity: "ok", title: "Sin alertas críticas", detail: "No se detectaron puntos de quiebre relevantes en el periodo seleccionado. El bot de portabilidad opera con normalidad." });
   return out;
 }
