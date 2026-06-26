@@ -654,7 +654,7 @@ export default function ProjectDashboardPage() {
 
           // Build date × hour matrix from hourly_daily breakdown
           // Each row is a specific date (not aggregated by day-of-week)
-          const dateMap: Record<string, Record<number, { impressions: number; spend: number; clicks: number }>> = {};
+          const dateMap: Record<string, Record<number, { impressions: number; spend: number; clicks: number; results: number }>> = {};
 
           hourlyData.forEach((row: any) => {
             const hour = parseInt(row.hourly_stats_aggregated_by_audience_time_zone || "0", 10);
@@ -662,11 +662,14 @@ export default function ProjectDashboardPage() {
             if (!dateStr) return;
             if (!dateMap[dateStr]) {
               dateMap[dateStr] = {};
-              for (let h = 0; h < 24; h++) dateMap[dateStr][h] = { impressions: 0, spend: 0, clicks: 0 };
+              for (let h = 0; h < 24; h++) dateMap[dateStr][h] = { impressions: 0, spend: 0, clicks: 0, results: 0 };
             }
             dateMap[dateStr][hour].impressions += row.impressions || 0;
             dateMap[dateStr][hour].spend += row.spend || 0;
             dateMap[dateStr][hour].clicks += row.clicks || 0;
+            
+            const ra = findResultAction(row.actions, ch?.goal);
+            dateMap[dateStr][hour].results += ra ? parseInt(ra.value, 10) : 0;
           });
 
           // Sort dates chronologically
@@ -682,16 +685,16 @@ export default function ProjectDashboardPage() {
           };
 
           // Find max for color scaling
-          let maxImpressions = 0;
+          let maxResults = 0;
           sortedDates.forEach(date => {
             for (let h = 0; h < 24; h++) {
-              if (dateMap[date][h].impressions > maxImpressions) maxImpressions = dateMap[date][h].impressions;
+              if (dateMap[date][h].results > maxResults) maxResults = dateMap[date][h].results;
             }
           });
 
           const getColor = (val: number) => {
-            if (maxImpressions === 0 || val === 0) return "rgba(255,255,255,0.02)";
-            const intensity = val / maxImpressions;
+            if (maxResults === 0 || val === 0) return "rgba(255,255,255,0.02)";
+            const intensity = val / maxResults;
             if (intensity > 0.75) return "rgba(0,200,117,0.6)";
             if (intensity > 0.5) return "rgba(0,200,117,0.35)";
             if (intensity > 0.25) return "rgba(0,212,255,0.25)";
@@ -702,7 +705,7 @@ export default function ProjectDashboardPage() {
           return (
             <div style={{ ...panelStyle, marginTop: 12 }}>
               <h3 style={headingStyle}>Distribución por Hora y Día</h3>
-              <p style={subStyle}>Impresiones por fecha y hora · Hover para ver gasto y clics</p>
+              <p style={subStyle}>Resultados por fecha y hora · Hover para ver gasto e impresiones</p>
               <div style={{ overflowX: "auto", maxHeight: 500, overflowY: "auto" }}>
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 700 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
@@ -735,16 +738,16 @@ export default function ProjectDashboardPage() {
                             return (
                               <td
                                 key={h}
-                                title={`${dateLabel} ${h.toString().padStart(2, "0")}:00\nImpresiones: ${fmtNum(cell.impressions)}\nGasto: ${fmtMXN(cell.spend)}\nClics: ${fmtNum(cell.clicks)}`}
+                                title={`${dateLabel} ${h.toString().padStart(2, "0")}:00\nResultados: ${fmtNum(cell.results)}\nGasto: ${fmtMXN(cell.spend)}\nImpresiones: ${fmtNum(cell.impressions)}`}
                                 style={{ padding: 0, textAlign: "center" }}
                               >
                                 <div style={{
                                   width: "100%", height: 22,
-                                  background: getColor(cell.impressions),
+                                  background: getColor(cell.results),
                                   borderRadius: 2,
                                   margin: 1,
                                   display: "flex", alignItems: "center", justifyContent: "center",
-                                  fontSize: 7, color: cell.impressions > 0 ? "rgba(255,255,255,0.6)" : "transparent",
+                                  fontSize: 8, color: cell.results > 0 ? "rgba(255,255,255,0.8)" : "transparent",
                                   fontWeight: 600,
                                   cursor: "default",
                                   transition: "background 0.15s, transform 0.1s",
@@ -752,7 +755,7 @@ export default function ProjectDashboardPage() {
                                 onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.3)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; }}
                                 onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; }}
                                 >
-                                  {cell.impressions > 0 ? (cell.impressions > 999 ? `${(cell.impressions / 1000).toFixed(0)}k` : cell.impressions) : ""}
+                                  {cell.results > 0 ? (cell.results > 999 ? `${(cell.results / 1000).toFixed(1)}k` : cell.results) : ""}
                                 </div>
                               </td>
                             );
