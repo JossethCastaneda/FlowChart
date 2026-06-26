@@ -16,7 +16,7 @@ import { WIDGETS, DEFAULT_LAYOUT, LayoutCell, WidgetCtx } from "./widgets";
 import type { DashboardData, Granularity } from "@/lib/botmaker/insights";
 import { cdmxRange, cdmxDayStartISO, cdmxDayEndISO } from "@/lib/crm/timezone";
 
-const LS_KEY = "botmaker-dashboard-layout-v3";
+const LS_KEY = "botmaker-dashboard-layout-v4";
 const LS_FILTERS_KEY = "botmaker-dashboard-filters-v1";
 const P = "var(--purple)";
 

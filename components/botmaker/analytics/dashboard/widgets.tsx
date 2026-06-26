@@ -7,6 +7,7 @@
 import React from "react";
 import {
   Area, ComposedChart, Line, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
 } from "recharts";
 import {
   Bot, Users, MessageSquare, Zap, AlertTriangle, RefreshCw, Clock, Target,
@@ -125,7 +126,7 @@ const TimeseriesWidget = ({ data, granularity, setGranularity }: WidgetCtx) => {
           }}>{GRAN_LABEL[g]}</button>
         ))}
         <div style={{ flex: 1 }} />
-        <Legend2 items={[["Sesiones", P], ["Ventas", G], ["Fallback", R]]} />
+        <Legend2 items={[["Sesiones", P], ["Usuarios", C], ["Agentes", A]]} />
       </div>
       {series.length === 0 ? <Empty /> : (
         <ChartBox>
@@ -140,8 +141,8 @@ const TimeseriesWidget = ({ data, granularity, setGranularity }: WidgetCtx) => {
             <YAxis tick={{ fontSize: 9, fill: muted }} />
             <Tooltip contentStyle={TT} />
             <Area type="monotone" dataKey="sessions" name="Sesiones" stroke={P} strokeWidth={2} fill="url(#gSess)" />
-            <Line type="monotone" dataKey="sales" name="Ventas" stroke={G} strokeWidth={2} dot={false} />
-            <Bar dataKey="fallbacks" name="Fallback" fill={R} opacity={0.6} barSize={8} />
+            <Line type="monotone" dataKey="users" name="Usuarios" stroke={C} strokeWidth={2} dot={false} />
+            <Line type="monotone" dataKey="handoffs" name="Agentes" stroke={A} strokeWidth={2} dot={false} />
           </ComposedChart>
         </ChartBox>
       )}
@@ -179,6 +180,48 @@ const FunnelWidget = ({ data }: WidgetCtx) => {
           )}
         </div>
       ))}
+    </div>
+  );
+};
+
+const BotVsAgentWidget = ({ data }: WidgetCtx) => {
+  const { botSessions, agentSessions } = data.botAgentSplit;
+  const total = botSessions + agentSessions;
+  if (!total) return <Empty />;
+  const d = [
+    { name: "Bot", value: botSessions, color: P },
+    { name: "Agente", value: agentSessions, color: A },
+  ];
+  return (
+    <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <PieChart>
+            <Pie data={d} cx="50%" cy="50%" innerRadius="60%" outerRadius="85%" dataKey="value" stroke="none">
+              {d.map((e, i) => <Cell key={i} fill={e.color} />)}
+            </Pie>
+            <Tooltip contentStyle={TT} itemStyle={{ fontSize: 12, fontWeight: 700 }} />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 12 }}>
+        {d.map(e => (
+          <div key={e.name} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <span style={{ fontSize: 12, color: muted }}>{e.name}</span>
+            <span style={{ fontSize: 18, fontWeight: 700, color: e.color }}>
+              {Math.round((e.value / total) * 100)}% <span style={{ fontSize: 11, color: muted, fontWeight: 400 }}>({fmt(e.value)})</span>
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const ChannelDistributionWidget = ({ data }: WidgetCtx) => {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", justifyContent: "center" }}>
+      <BarList rows={data.channelDistribution.map(c => ({ label: c.platform, value: c.count, hint: `(${c.pct}%)` }))} color={(i) => SERIES[i % SERIES.length]} />
     </div>
   );
 };
@@ -437,14 +480,16 @@ const InsightsWidget = ({ data }: WidgetCtx) => {
 
 export const WIDGETS: Record<string, WidgetDef> = {
   kpis: { id: "kpis", title: "Resumen ejecutivo", size: { w: 12, h: 2, minW: 4, minH: 2 }, render: (c) => <KpisWidget {...c} /> },
+  botAgentSplit: { id: "botAgentSplit", title: "Carga Bot vs. Humano", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <BotVsAgentWidget {...c} /> },
+  channelDistribution: { id: "channelDistribution", title: "Distribución por Canal", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelDistributionWidget {...c} /> },
   insights: { id: "insights", title: "Insights automáticos", size: { w: 12, h: 2, minW: 4, minH: 2 }, render: (c) => <InsightsWidget {...c} /> },
-  timeseries: { id: "timeseries", title: "Volumen en el tiempo · hora / día / semana / mes", size: { w: 8, h: 4, minW: 4, minH: 3 }, render: (c) => <TimeseriesWidget {...c} /> },
-  funnel: { id: "funnel", title: "Funnel conversacional", size: { w: 4, h: 4, minW: 3, minH: 3 }, render: (c) => <FunnelWidget {...c} /> },
+  timeseries: { id: "timeseries", title: "Evolución Temporal", size: { w: 12, h: 4, minW: 4, minH: 3 }, render: (c) => <TimeseriesWidget {...c} /> },
+  heatmap: { id: "heatmap", title: "Mapa de Calor por Demanda", size: { w: 12, h: 4, minW: 6, minH: 3 }, render: (c) => <HeatmapWidget {...c} /> },
+  funnel: { id: "funnel", title: "Funnel conversacional", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <FunnelWidget {...c} /> },
   botflow: { id: "botflow", title: "Flow Explorer · Recorrido del Bot", size: { w: 12, h: 6, minW: 6, minH: 4 }, render: (c) => <BotFlowWidget {...c} /> },
   fallback: { id: "fallback", title: "Intenciones no entendidas (fallback)", size: { w: 6, h: 5, minW: 3, minH: 3 }, render: (c) => <FallbackWidget {...c} /> },
-  heatmap: { id: "heatmap", title: "Mapa de calor · día × hora", size: { w: 6, h: 4, minW: 4, minH: 3 }, render: (c) => <HeatmapWidget {...c} /> },
   buttons: { id: "buttons", title: "Botoneras · CTR de botones", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ButtonsWidget {...c} /> },
-  channels: { id: "channels", title: "Distribución por canal / bot", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelsWidget {...c} /> },
+  channels: { id: "channels", title: "Detalle Canal / Bot", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelsWidget {...c} /> },
   flow: { id: "flow", title: "Flujo · transiciones más frecuentes", size: { w: 6, h: 4, minW: 4, minH: 3 }, render: (c) => <FlowWidget {...c} /> },
   typifications: { id: "typifications", title: "Tipificaciones de cierre", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <TypificationsWidget {...c} /> },
   copies: { id: "copies", title: "Copys con baja conversión", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <CopiesWidget {...c} /> },
@@ -457,18 +502,20 @@ export interface LayoutCell { id: string; x: number; y: number; w: number; h: nu
 
 export const DEFAULT_LAYOUT: LayoutCell[] = [
   { id: "kpis", x: 0, y: 0, w: 12, h: 2 },
-  { id: "insights", x: 0, y: 2, w: 12, h: 2 },
-  { id: "timeseries", x: 0, y: 4, w: 8, h: 4 },
-  { id: "funnel", x: 8, y: 4, w: 4, h: 4 },
-  { id: "botflow", x: 0, y: 8, w: 12, h: 6 },
-  { id: "fallback", x: 0, y: 14, w: 6, h: 5 },
-  { id: "heatmap", x: 6, y: 14, w: 6, h: 5 },
-  { id: "buttons", x: 0, y: 19, w: 6, h: 4 },
-  { id: "channels", x: 6, y: 19, w: 6, h: 4 },
-  { id: "flow", x: 0, y: 23, w: 6, h: 4 },
-  { id: "typifications", x: 6, y: 23, w: 3, h: 4 },
-  { id: "copies", x: 9, y: 23, w: 3, h: 4 },
-  { id: "bots", x: 0, y: 27, w: 3, h: 4 },
-  { id: "errors", x: 3, y: 27, w: 3, h: 4 },
-  { id: "variables", x: 0, y: 31, w: 12, h: 4 },
+  { id: "botAgentSplit", x: 0, y: 2, w: 6, h: 4 },
+  { id: "channelDistribution", x: 6, y: 2, w: 6, h: 4 },
+  { id: "timeseries", x: 0, y: 6, w: 12, h: 4 },
+  { id: "heatmap", x: 0, y: 10, w: 12, h: 4 },
+  { id: "insights", x: 0, y: 14, w: 12, h: 2 },
+  { id: "funnel", x: 0, y: 16, w: 6, h: 4 },
+  { id: "typifications", x: 6, y: 16, w: 3, h: 4 },
+  { id: "copies", x: 9, y: 16, w: 3, h: 4 },
+  { id: "botflow", x: 0, y: 20, w: 12, h: 6 },
+  { id: "fallback", x: 0, y: 26, w: 6, h: 5 },
+  { id: "buttons", x: 6, y: 26, w: 6, h: 4 },
+  { id: "channels", x: 0, y: 31, w: 6, h: 4 },
+  { id: "flow", x: 6, y: 31, w: 6, h: 4 },
+  { id: "bots", x: 0, y: 35, w: 3, h: 4 },
+  { id: "errors", x: 3, y: 35, w: 3, h: 4 },
+  { id: "variables", x: 0, y: 39, w: 12, h: 4 },
 ];

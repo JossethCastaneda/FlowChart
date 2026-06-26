@@ -90,6 +90,7 @@ export interface BreakpointRow {
   avgAttempts: number;    // mean attempts among sessions that eventually succeeded
   maxAttempts: number;
   failRate: number;       // failed / prompts
+  avgStep: number;        // mean sequence step where this occurs
 }
 
 export interface ButtonRow {
@@ -138,6 +139,8 @@ export interface DashboardData {
   timeseries: Record<Granularity, TimeBucket[]>;
   heatmap: number[][];               // [7 weekdays][24 hours]
   funnel: FunnelStep[];
+  botAgentSplit: { botSessions: number; agentSessions: number };
+  channelDistribution: { platform: string; count: number; pct: number }[];
   flowEdges: FlowEdge[];
   breakpoints: BreakpointRow[];      // ranked by impact
   fallback: { sessions: number; rate: number; occurrences: number; topUnrecognized: NamedCount[] };
@@ -568,12 +571,15 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     .sort((a, b) => b.count - a.count).slice(0, 12);
 
   // ── channels ──
+  let totalPlatformDistribution: Record<string, number> = {};
   const channels: ChannelRow[] = Object.entries(chAgg).map(([id, a]) => {
     const c = channelMap.get(id);
+    const platform = c?.platform || "WhatsApp";
+    totalPlatformDistribution[platform] = (totalPlatformDistribution[platform] || 0) + a.sessions;
     return {
       id,
       name: c?.name || prettyChannelId(id),
-      platform: c?.platform || "",
+      platform,
       canonical: c?.canonical ?? null,
       sessions: a.sessions,
       pct: total ? Math.round((a.sessions / total) * 1000) / 10 : 0,
@@ -581,6 +587,17 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
       fallbackRate: a.sessions ? Math.round((a.fallback / a.sessions) * 1000) / 10 : 0,
     };
   }).sort((a, b) => b.sessions - a.sessions);
+
+  const channelDistribution = Object.entries(totalPlatformDistribution).map(([platform, count]) => ({
+    platform,
+    count,
+    pct: total ? Math.round((count / total) * 100) : 0
+  })).sort((a, b) => b.count - a.count);
+
+  const botAgentSplit = {
+    botSessions: total - sessionsWithAgent,
+    agentSessions: sessionsWithAgent
+  };
 
   // ── bots ──
   const bots: NamedCount[] = Object.entries(botTouch)
@@ -627,6 +644,8 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     timeseries,
     heatmap,
     funnel,
+    botAgentSplit,
+    channelDistribution,
     flowEdges,
     breakpoints,
     fallback,
