@@ -53,8 +53,8 @@ const BREAKDOWN_MAP: Record<string, { breakdowns?: string; time_increment?: stri
   platform:           { breakdowns: "publisher_platform" },
   placement:          { breakdowns: "publisher_platform,platform_position" },
   device:             { breakdowns: "device_platform" },
-  time_of_day:        { breakdowns: "hourly_stats_aggregated_by_advertiser_time_zone" },
-  hourly_daily:       { breakdowns: "hourly_stats_aggregated_by_advertiser_time_zone", time_increment: "1" },
+  time_of_day:        { breakdowns: "hourly_stats_aggregated_by_audience_time_zone" },
+  hourly_daily:       { breakdowns: "hourly_stats_aggregated_by_audience_time_zone", time_increment: "1" },
   conversion_device:  { breakdowns: "impression_device" },
   destination:        { breakdowns: "place_page_id" },
   // Dynamic creative (ad-level only)
@@ -140,16 +140,42 @@ export async function GET(req: NextRequest) {
     const json = await res.json();
 
     // Normalise numerics server-side — frontend gets clean numbers
-    const data = (json.data || []).map((d: any) => ({
-      ...d,
-      spend:       parseFloat(d.spend || "0"),
-      impressions: parseInt(d.impressions || "0", 10),
-      reach:       parseInt(d.reach || "0", 10),
-      clicks:      parseInt(d.clicks || "0", 10),
-      cpc:         parseFloat(d.cpc || "0"),
-      cpm:         parseFloat(d.cpm || "0"),
-      ctr:         parseFloat(d.ctr || "0"),
-    }));
+    const data = (json.data || []).map((d: any) => {
+      // Meta returns the hour field with the breakdown name as the key.
+      // Normalize to a clean integer 'hour' field regardless of which TZ field was used.
+      const hourRaw =
+        d.hourly_stats_aggregated_by_audience_time_zone ??
+        d.hourly_stats_aggregated_by_advertiser_time_zone ??
+        null;
+      return {
+        ...d,
+        // Expose a clean 'hour' integer (null if not an hourly breakdown)
+        hour: hourRaw !== null ? parseInt(String(hourRaw), 10) : null,
+        spend:       parseFloat(d.spend || "0"),
+        impressions: parseInt(d.impressions || "0", 10),
+        reach:       parseInt(d.reach || "0", 10),
+        clicks:      parseInt(d.clicks || "0", 10),
+        cpc:         parseFloat(d.cpc || "0"),
+        cpm:         parseFloat(d.cpm || "0"),
+        ctr:         parseFloat(d.ctr || "0"),
+      };
+    });
+
+    // Debug: log keys from first row so we can see what field names Meta sends
+    if ((breakdownKey === "hourly_daily" || breakdownKey === "time_of_day") && data.length > 0) {
+      logger.info(`[BREAKDOWNS:${breakdownKey}] First row keys: ${JSON.stringify(Object.keys(data[0]))}`);
+      logger.info(`[BREAKDOWNS:${breakdownKey}] First row sample: date=${data[0].date_start}, hour=${data[0].hour}, spend=${data[0].spend}`);
+      logger.info(`[BREAKDOWNS:${breakdownKey}] Total rows returned: ${data.length}`);
+      // Show unique dates and their hour ranges
+      const dateHourMap: Record<string, number[]> = {};
+      data.forEach((r: any) => {
+        if (!dateHourMap[r.date_start]) dateHourMap[r.date_start] = [];
+        if (r.hour !== null) dateHourMap[r.date_start].push(r.hour);
+      });
+      Object.entries(dateHourMap).forEach(([date, hours]) => {
+        logger.info(`[BREAKDOWNS:hourly_daily] ${date}: hours ${Math.min(...hours)}-${Math.max(...hours)} (${hours.length} rows)`);
+      });
+    }
 
     return NextResponse.json({
       data,

@@ -656,8 +656,37 @@ export default function ProjectDashboardPage() {
           // Each row is a specific date (not aggregated by day-of-week)
           const dateMap: Record<string, Record<number, { impressions: number; spend: number; clicks: number; results: number }>> = {};
 
+          // Debug: log first few rows to understand the data shape
+          if (hourlyData.length > 0) {
+            console.debug("[Heatmap] Sample row keys:", Object.keys(hourlyData[0]));
+            console.debug("[Heatmap] Sample row:", hourlyData[0]);
+            console.debug("[Heatmap] Total rows:", hourlyData.length);
+          }
+
+          // Helper: subtract one day from a YYYY-MM-DD string
+          const prevDate = (dateStr: string) => {
+            const dt = new Date(dateStr + "T12:00:00");
+            dt.setDate(dt.getDate() - 1);
+            return dt.toISOString().slice(0, 10);
+          };
+
           hourlyData.forEach((row: any) => {
-            const hour = parseInt(row.hourly_stats_aggregated_by_advertiser_time_zone || "0", 10);
+            // Use the normalized 'hour' field from the API route
+            // Fall back to the raw field names in case of older cached data
+            const hourRaw =
+              row.hour ??
+              row.hourly_stats_aggregated_by_audience_time_zone ??
+              row.hourly_stats_aggregated_by_advertiser_time_zone;
+            if (hourRaw === null || hourRaw === undefined) return;
+            const hour = parseInt(String(hourRaw), 10);
+            if (isNaN(hour) || hour < 0 || hour > 23) return;
+
+            // Detect "day overflow": Meta sometimes reports hours 0-5 under
+            // the NEXT calendar date when the account timezone is behind UTC
+            // (e.g., UTC-6 account: hour 18 UTC = hour 00 of account's tomorrow).
+            // Heuristic: if ALL the data for a date are hours 0-5 AND there's a
+            // previous date, assign those rows to the previous date instead.
+            // We process this in a second pass below, so for now just use date_start.
             const dateStr = row.date_start;
             if (!dateStr) return;
             if (!dateMap[dateStr]) {
@@ -672,8 +701,46 @@ export default function ProjectDashboardPage() {
             dateMap[dateStr][hour].results += ra ? parseInt(ra.value, 10) : 0;
           });
 
-          // Sort dates chronologically
-          const sortedDates = Object.keys(dateMap).sort();
+          // ── Timezone-stitch pass ──────────────────────────────────────────
+          // Meta reports hourly data using audience_time_zone. For Mexican accounts
+          // (UTC-6), this means hours 18-23 local time get logged as hours 0-5 of
+          // the NEXT calendar day in UTC. We detect and fix this:
+          // If a date's data ONLY exists in hours 0-5 (no activity in hours 6-23)
+          // AND the previous date exists, we remap hours 0-5 → 18-23 of previous day.
+          const allDates = Object.keys(dateMap).sort();
+          const datesToRemove = new Set<string>();
+
+          allDates.forEach((dateStr) => {
+            const hours = dateMap[dateStr];
+            const prev = prevDate(dateStr);
+            if (!dateMap[prev]) return; // no previous date to stitch into
+
+            // Count data in early (0-5) vs late (6-23) hours
+            const earlyActivity = [0, 1, 2, 3, 4, 5].filter(
+              h => hours[h].spend > 0 || hours[h].results > 0 || hours[h].impressions > 0
+            );
+            const lateActivity = Array.from({ length: 18 }, (_, i) => i + 6).filter(
+              h => hours[h].spend > 0 || hours[h].results > 0 || hours[h].impressions > 0
+            );
+
+            // Only stitch if this date has NO late activity (6-23) but DOES have early activity (0-5)
+            // AND the early hours are in the range 0-5 (typical UTC-6 overflow)
+            if (lateActivity.length === 0 && earlyActivity.length > 0) {
+              console.debug(`[Heatmap] Stitching TZ overflow: ${dateStr} hours [${earlyActivity.join(',')}] → prev date ${prev} as hours [${earlyActivity.map(h => h + 18).join(',')}]`);
+              earlyActivity.forEach(h => {
+                const targetH = h + 18;
+                dateMap[prev][targetH].impressions += hours[h].impressions;
+                dateMap[prev][targetH].spend       += hours[h].spend;
+                dateMap[prev][targetH].clicks      += hours[h].clicks;
+                dateMap[prev][targetH].results     += hours[h].results;
+              });
+              // Mark this date for removal from display (all its data moved)
+              datesToRemove.add(dateStr);
+            }
+          });
+
+          // Sort dates chronologically, excluding stitched-away dates
+          const sortedDates = Object.keys(dateMap).sort().filter(d => !datesToRemove.has(d));
 
           // Format date label: "Lun 02/06"
           const formatDateLabel = (dateStr: string) => {
