@@ -455,26 +455,57 @@ export default function ProjectDashboardPage() {
   const trackStatus = goalNum > 0 ? (goalCompletion >= (daysElapsed / daysInMonth) * 100 ? "on-track" : goalCompletion >= (daysElapsed / daysInMonth) * 70 ? "at-risk" : "off-track") : "unknown";
 
   // Chart data
-  const timeSeriesData = (insights?.timeSeries || []).map((d: any) => {
-    const s = parseFloat(d.spend || "0"); const ra = findResultAction(d.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0;
-    const imp = parseInt(d.impressions || "0", 10); const cl = parseInt(d.clicks || "0", 10);
-    const parts = d.date_start?.split('-') || []; const dateLabel = parts.length >= 3 ? `${parts[2]}/${parts[1]}` : d.date_start || "";
-    return { date: dateLabel, fullDate: d.date_start || "", spend: +s.toFixed(2), results: r, cpr: r > 0 ? +(s / r).toFixed(2) : 0, ctr: imp > 0 ? +((cl / imp) * 100).toFixed(2) : 0, cpc: cl > 0 ? +(s / cl).toFixed(2) : 0, impressions: imp, clicks: cl };
-  }).sort((a: any, b: any) => a.fullDate.localeCompare(b.fullDate));
+  const timeSeriesData = useMemo(() => {
+    const grouped: Record<string, any> = {};
+    (insights?.timeSeries || []).forEach((d: any) => {
+      const fd = d.date_start || "";
+      if (!grouped[fd]) {
+        grouped[fd] = { fullDate: fd, spend: 0, results: 0, impressions: 0, clicks: 0 };
+      }
+      const s = parseFloat(d.spend || "0");
+      const ra = findResultAction(d.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0;
+      const imp = parseInt(d.impressions || "0", 10); const cl = parseInt(d.clicks || "0", 10);
+      
+      grouped[fd].spend += s;
+      grouped[fd].results += r;
+      grouped[fd].impressions += imp;
+      grouped[fd].clicks += cl;
+    });
+
+    return Object.values(grouped).map((g: any) => {
+      const parts = g.fullDate.split('-');
+      const dateLabel = parts.length >= 3 ? `${parts[2]}/${parts[1]}` : g.fullDate;
+      return {
+        date: dateLabel, fullDate: g.fullDate, spend: +g.spend.toFixed(2), results: g.results,
+        cpr: g.results > 0 ? +(g.spend / g.results).toFixed(2) : 0,
+        ctr: g.impressions > 0 ? +((g.clicks / g.impressions) * 100).toFixed(2) : 0,
+        cpc: g.clicks > 0 ? +(g.spend / g.clicks).toFixed(2) : 0,
+        impressions: g.impressions, clicks: g.clicks
+      };
+    }).sort((a: any, b: any) => a.fullDate.localeCompare(b.fullDate));
+  }, [insights, ch?.goal]);
 
   // Spend table with aggregation
   const getSpendTable = () => {
-    if (timeGranularity === "day") return timeSeriesData;
     const grouped: Record<string, any> = {};
     timeSeriesData.forEach((d: any) => {
       let key: string;
       const parts = d.date.split("/");
       if (timeGranularity === "month") key = parts[1] || d.date;
-      else { const dayNum = parseInt(parts[1] || "1", 10); key = `S${Math.ceil(dayNum / 7)}`; }
-      if (!grouped[key]) grouped[key] = { date: key, spend: 0, results: 0, impressions: 0, clicks: 0 };
-      grouped[key].spend += d.spend; grouped[key].results += d.results; grouped[key].impressions += d.impressions; grouped[key].clicks += d.clicks;
+      else if (timeGranularity === "week") {
+        const dayNum = parseInt(parts[0] || "1", 10);
+        key = `S${Math.ceil(dayNum / 7)}`;
+      } else {
+        key = d.fullDate;
+      }
+      
+      if (!grouped[key]) grouped[key] = { date: timeGranularity === "day" ? d.date : key, fullDate: d.fullDate, spend: 0, results: 0, impressions: 0, clicks: 0 };
+      grouped[key].spend += d.spend;
+      grouped[key].results += d.results;
+      grouped[key].impressions += d.impressions;
+      grouped[key].clicks += d.clicks;
     });
-    return Object.values(grouped).map((g: any) => ({ ...g, spend: +g.spend.toFixed(2), cpr: g.results > 0 ? +(g.spend / g.results).toFixed(2) : 0, ctr: g.impressions > 0 ? +((g.clicks / g.impressions) * 100).toFixed(2) : 0 }));
+    return Object.values(grouped).map((g: any) => ({ ...g, spend: +g.spend.toFixed(2), cpr: g.results > 0 ? +(g.spend / g.results).toFixed(2) : 0, ctr: g.impressions > 0 ? +((g.clicks / g.impressions) * 100).toFixed(2) : 0, cpc: g.clicks > 0 ? +(g.spend / g.clicks).toFixed(2) : 0 })).sort((a: any, b: any) => (a.fullDate || "").localeCompare(b.fullDate || ""));
   };
 
 

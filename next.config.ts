@@ -73,8 +73,8 @@ const nextConfig: NextConfig = {
               "img-src 'self' data: blob: https://*.fbcdn.net https://*.xx.fbcdn.net https://graph.facebook.com https://platform-lookaside.fbsbx.com https://*.cdninstagram.com https://www.googletagmanager.com https://www.google-analytics.com https://static.xx.fbcdn.net",
               "connect-src 'self' https://dev.sodare.xyz https://sodare.xyz https://graph.facebook.com https://*.facebook.com https://*.facebook.net https://api.resend.com https://vitals.vercel-insights.com https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com https://stats.g.doubleclick.net",
               "media-src 'self' blob: https://*.fbcdn.net https://*.cdninstagram.com",
-              // frame-src: permite el popup/iframe del login de Facebook
-              "frame-src https://www.facebook.com https://staticxx.facebook.com https://web.facebook.com",
+              // frame-src: permite el popup/iframe del login de Facebook e iframe interno
+              "frame-src 'self' https://www.facebook.com https://staticxx.facebook.com https://web.facebook.com",
               "frame-ancestors 'self'",
               "base-uri 'self'",
               "form-action 'self'",
