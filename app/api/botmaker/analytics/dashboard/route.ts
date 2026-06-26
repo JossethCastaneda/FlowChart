@@ -6,6 +6,7 @@ import { getBotmakerConnection } from "@/lib/botmaker";
 import { createConnection, listChannels, bmFetch } from "@/lib/botmaker-api";
 import { fetchWorkspaceSessions } from "@/lib/botmaker/fetch-sessions";
 import { computeDashboard } from "@/lib/botmaker/insights";
+import { resolveProjectChannelIds } from "@/lib/botmaker/project-channels";
 import type { ChannelLite, VarDef } from "@/lib/botmaker/insights";
 
 /**
@@ -89,28 +90,50 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const to = sp.get("to") || new Date(now).toISOString();
   const from = sp.get("from") || new Date(now - 7 * 86400000).toISOString();
   const channelId = sp.get("channelId") || null;
+  const projectId = sp.get("projectId") || null;
   const timezone = sp.get("timezone") || process.env.APP_TIMEZONE || "America/Mexico_City";
   const forceRefresh = sp.get("forceRefresh") === "true";
 
   try {
+    // Cuando el dashboard se embebe dentro de un proyecto, resolvemos los canales
+    // de Botmaker que le pertenecen (auto-mapeo) y acotamos TODO a ese set.
+    const project = projectId
+      ? await prisma.project.findFirst({
+          where: { id: projectId, workspaceId: ctx.workspaceId },
+          select: { whatsapp: true, instagram: true, fanpage: true, webchat: true },
+        })
+      : null;
+
     const [{ sessions }, channelsRaw, meta] = await Promise.all([
       fetchWorkspaceSessions(ctx.workspaceId, conn, from, to, forceRefresh, req.signal),
       listChannels(createConnection(conn.accessToken, conn.baseUrl)),
       loadMeta(ctx.workspaceId, conn),
     ]);
 
+    // Set de canales del proyecto (vacío ⇒ sin auto-scope: fallback a todo el workspace).
+    const projectChannelIds = project ? resolveProjectChannelIds(project, channelsRaw) : [];
+    const autoScoped = projectChannelIds.length > 0;
+    const allowSet = autoScoped ? new Set(projectChannelIds) : null;
+
     const channels: ChannelLite[] = channelsRaw.map((c) => ({
       id: c.id, name: c.name, platform: c.platform, canonical: c.canonical,
     }));
+    // Las opciones del selector quedan acotadas a los canales del proyecto.
+    const scopedChannels = allowSet ? channels.filter((c) => allowSet.has(c.id)) : channels;
 
     const data = computeDashboard(sessions, {
       from, to, timezone, channels,
       botNames: meta.botNames,
       variables: meta.variables,
       channelId,
+      channelIds: autoScoped ? projectChannelIds : null,
     });
 
-    return apiSuccess({ ...data, channelOptions: channels.map((c) => ({ id: c.id, name: c.name, platform: c.platform })) });
+    return apiSuccess({
+      ...data,
+      channelOptions: scopedChannels.map((c) => ({ id: c.id, name: c.name, platform: c.platform })),
+      channelScope: { projectId, autoScoped, resolved: projectChannelIds.length },
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Error desconocido";
     console.error("[BOT ANALYTICS DASHBOARD]", message);

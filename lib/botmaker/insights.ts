@@ -40,6 +40,12 @@ export interface DashboardOptions {
   variables: VarDef[];
   /** Optional channel filter — limit every metric to one channel. */
   channelId?: string | null;
+  /**
+   * Optional channel allow-list — scope every metric to this set of channels
+   * (e.g. the Botmaker channels that belong to a given project). Ignored when a
+   * single `channelId` is set (the dropdown selection wins).
+   */
+  channelIds?: string[] | null;
 }
 
 export interface Kpis {
@@ -268,12 +274,19 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
   const filterFromMs = new Date(opts.from).getTime();
   const filterToMs = new Date(opts.to).getTime();
   
+  // Project scope: when no single channel is selected, restrict to the project's
+  // channel allow-list (if any). Empty/absent list ⇒ no restriction.
+  const allowSet = opts.channelIds && opts.channelIds.length ? new Set(opts.channelIds) : null;
+
   const sessions = (Array.isArray(sessionsIn) ? sessionsIn : []).filter((s) => {
     const start = toMs(s.creationTime);
     if (start == null || start < filterFromMs || start > filterToMs) return false;
-    
-    if (!opts.channelId) return (s.messages || []).length > 0;
-    return s.chat?.chat?.channelId === opts.channelId && (s.messages || []).length > 0;
+    if ((s.messages || []).length === 0) return false;
+
+    const ch = s.chat?.chat?.channelId;
+    if (opts.channelId) return ch === opts.channelId;
+    if (allowSet) return ch != null && allowSet.has(ch);
+    return true;
   });
 
   // ── accumulators ──

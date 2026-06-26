@@ -18,7 +18,7 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import { CreativeCard, CreativeLightbox } from "@/components/shared/CreativePreview";
 import { useInsightsStore } from "@/stores/insightsStore";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
-import { AdvancedAnalyticsDashboard } from "@/components/analytics-v2/AdvancedAnalyticsDashboard";
+import BotAnalyticsDashboard from "@/components/botmaker/analytics/dashboard/BotAnalyticsDashboard";
 import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 
 /* ═══ TYPES ═══ */
@@ -1712,10 +1712,12 @@ export default function ProjectDashboardPage() {
       )}
 
 
-      {/* ═══ TAB: ANÁLISIS DE RESULTADOS (Botmaker / Cari AI) ═══ */}
+      {/* ═══ TAB: ANÁLISIS DE RESULTADOS (Métricas del Bot, acotado al proyecto) ═══ */}
       {activeTab === "resultados" && (
         <ErrorBoundary name="Tab Análisis de Resultados">
-          <AdvancedAnalyticsDashboard projectId={project.id} clientId={project.client} />
+          <div style={{ height: "calc(100vh - 180px)", margin: "8px 0 0", borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <BotAnalyticsDashboard projectId={project.id} embedded />
+          </div>
         </ErrorBoundary>
       )}
 

@@ -21,7 +21,10 @@ const LS_FILTERS_KEY = "botmaker-dashboard-filters-v1";
 const P = "var(--purple)";
 
 type Period = "Hoy" | "7 días" | "30 días" | "custom";
-type ApiData = DashboardData & { channelOptions: { id: string; name: string; platform: string }[] };
+type ApiData = DashboardData & {
+  channelOptions: { id: string; name: string; platform: string }[];
+  channelScope?: { projectId: string | null; autoScoped: boolean; resolved: number };
+};
 
 // Ventanas de descarga ancladas a días CDMX (America/Mexico_City). Botmaker
 // recibe instantes UTC, así que enviamos el UTC que corresponde a la medianoche
@@ -35,10 +38,10 @@ function dateRange(period: Period, cf: string, ct: string): { from: string; to: 
   return { from: r.fromISO, to: r.toISO };
 }
 
-function loadLayout(): LayoutCell[] {
+function loadLayout(key: string): LayoutCell[] {
   if (typeof window === "undefined") return DEFAULT_LAYOUT;
   try {
-    const raw = window.localStorage.getItem(LS_KEY);
+    const raw = window.localStorage.getItem(key);
     if (!raw) return DEFAULT_LAYOUT;
     const parsed = JSON.parse(raw) as LayoutCell[];
     const valid = parsed.filter((c) => WIDGETS[c.id] && typeof c.x === "number" && typeof c.y === "number");
@@ -46,7 +49,20 @@ function loadLayout(): LayoutCell[] {
   } catch { return DEFAULT_LAYOUT; }
 }
 
-export default function BotAnalyticsDashboard() {
+interface BotAnalyticsDashboardProps {
+  /** Embeds the dashboard inside a project, auto-scoped to its Botmaker channels. */
+  projectId?: string;
+  /** Hide the standalone Botmaker chrome (breadcrumb, Portabilidad link). */
+  embedded?: boolean;
+}
+
+export default function BotAnalyticsDashboard({ projectId, embedded = false }: BotAnalyticsDashboardProps = {}) {
+  // Namespace localStorage by project so cada proyecto recuerda su layout/filtros
+  // sin pisar el tablero global de /dashboard/botmaker/analytics.
+  const ns = projectId ? `::${projectId}` : "";
+  const lsKey = LS_KEY + ns;
+  const lsFiltersKey = LS_FILTERS_KEY + ns;
+
   const [period, setPeriod] = useState<Period>("Hoy");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
@@ -63,15 +79,15 @@ export default function BotAnalyticsDashboard() {
   const periodRef = useRef<HTMLDivElement>(null);
 
   // hydrate layout from localStorage (client only)
-  useEffect(() => { setLayout(loadLayout()); }, []);
+  useEffect(() => { setLayout(loadLayout(lsKey)); }, [lsKey]);
   useEffect(() => {
-    if (typeof window !== "undefined") window.localStorage.setItem(LS_KEY, JSON.stringify(layout));
-  }, [layout]);
+    if (typeof window !== "undefined") window.localStorage.setItem(lsKey, JSON.stringify(layout));
+  }, [layout, lsKey]);
 
   // hydrate filters from localStorage
   useEffect(() => {
     try {
-      const raw = window.localStorage.getItem(LS_FILTERS_KEY);
+      const raw = window.localStorage.getItem(lsFiltersKey);
       if (raw) {
         const p = JSON.parse(raw);
         if (p.period) setPeriod(p.period);
@@ -81,13 +97,13 @@ export default function BotAnalyticsDashboard() {
         if (p.granularity) setGranularity(p.granularity);
       }
     } catch {}
-  }, []);
+  }, [lsFiltersKey]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(LS_FILTERS_KEY, JSON.stringify({ period, customFrom, customTo, channelId, granularity }));
+      window.localStorage.setItem(lsFiltersKey, JSON.stringify({ period, customFrom, customTo, channelId, granularity }));
     }
-  }, [period, customFrom, customTo, channelId, granularity]);
+  }, [period, customFrom, customTo, channelId, granularity, lsFiltersKey]);
 
   // default granularity when switching to "Hoy"
   useEffect(() => { if (period === "Hoy") setGranularity("hour"); else if (granularity === "hour") setGranularity("day"); /* eslint-disable-next-line */ }, [period]);
@@ -106,16 +122,22 @@ export default function BotAnalyticsDashboard() {
     try {
       const qs = new URLSearchParams({ from, to });
       if (channelId) qs.set("channelId", channelId);
+      if (projectId) qs.set("projectId", projectId);
       if (forceRefresh) qs.set("forceRefresh", "true");
       const res = await fetch(`/api/botmaker/analytics/dashboard?${qs.toString()}`);
       const json = await res.json();
       if (!res.ok || !json?.success) throw new Error(json?.error || `HTTP ${res.status}`);
-      setData(json.data as ApiData);
+      const payload = json.data as ApiData;
+      setData(payload);
+      // Si el canal recordado ya no pertenece al proyecto (selector acotado), límpialo.
+      if (channelId && !(payload.channelOptions || []).some((c) => c.id === channelId)) {
+        setChannelId("");
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error al cargar");
       setData(null);
     } finally { setLoading(false); }
-  }, [from, to, channelId]);
+  }, [from, to, channelId, projectId]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -149,25 +171,31 @@ export default function BotAnalyticsDashboard() {
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#030508", overflow: "hidden" }}>
       {/* ── Toolbar ── */}
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(4,7,18,0.9)", flexShrink: 0, flexWrap: "wrap" }}>
-        <Link href="/dashboard/botmaker" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(148,163,184,0.5)", textDecoration: "none" }}>
-          <ArrowLeft style={{ width: 12, height: 12 }} /> Botmaker
-        </Link>
-        <span style={{ color: "rgba(255,255,255,0.15)" }}>›</span>
+        {!embedded && (
+          <>
+            <Link href="/dashboard/botmaker" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(148,163,184,0.5)", textDecoration: "none" }}>
+              <ArrowLeft style={{ width: 12, height: 12 }} /> Botmaker
+            </Link>
+            <span style={{ color: "rgba(255,255,255,0.15)" }}>›</span>
+          </>
+        )}
         <LayoutGrid style={{ width: 15, height: 15, color: P }} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Bot Analytics</span>
+        <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{embedded ? "Métricas del Bot" : "Bot Analytics"}</span>
         {data && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>· {data.kpis.sessions.toLocaleString("es-MX")} sesiones</span>}
 
         <div style={{ flex: 1 }} />
 
-        <Link href="/dashboard/botmaker/analytics/portabilidad" style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 20, color: "var(--cyan)", fontSize: 11, fontWeight: 600, textDecoration: "none" }}>
-          <Smartphone style={{ width: 12, height: 12 }} /> Portabilidad (BAIT)
-        </Link>
+        {!embedded && (
+          <Link href="/dashboard/botmaker/analytics/portabilidad" style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 20, color: "var(--cyan)", fontSize: 11, fontWeight: 600, textDecoration: "none" }}>
+            <Smartphone style={{ width: 12, height: 12 }} /> Portabilidad (BAIT)
+          </Link>
+        )}
 
         {/* Channel filter */}
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <Filter style={{ width: 13, height: 13, color: "rgba(255,255,255,0.4)" }} />
           <select value={channelId} onChange={(e) => setChannelId(e.target.value)} style={selStyle}>
-            <option value="">Todos los bots / canales</option>
+            <option value="">{projectId ? "Todos los canales del proyecto" : "Todos los bots / canales"}</option>
             {(data?.channelOptions || []).map((c) => <option key={c.id} value={c.id}>{c.name || c.id}</option>)}
           </select>
         </div>
@@ -238,6 +266,12 @@ export default function BotAnalyticsDashboard() {
         {error && !loading && (
           <div style={{ display: "flex", alignItems: "center", gap: 10, padding: 24, color: "var(--red)", fontSize: 13, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 12 }}>
             <AlertCircle style={{ width: 18, height: 18 }} /> {error}
+          </div>
+        )}
+        {embedded && data?.channelScope && !data.channelScope.autoScoped && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", marginBottom: 12, color: "var(--amber)", fontSize: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 10 }}>
+            <AlertCircle style={{ width: 15, height: 15, flexShrink: 0 }} />
+            No se detectaron canales de Botmaker para este proyecto; mostrando todo el workspace. Asocia los canales del bot en <b style={{ margin: "0 3px" }}>Configuración</b> para acotar automáticamente.
           </div>
         )}
         {ctx && (
