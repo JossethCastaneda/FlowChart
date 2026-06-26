@@ -657,7 +657,7 @@ export default function ProjectDashboardPage() {
           const dateMap: Record<string, Record<number, { impressions: number; spend: number; clicks: number; results: number }>> = {};
 
           hourlyData.forEach((row: any) => {
-            const hour = parseInt(row.hourly_stats_aggregated_by_audience_time_zone || "0", 10);
+            const hour = parseInt(row.hourly_stats_aggregated_by_advertiser_time_zone || "0", 10);
             const dateStr = row.date_start;
             if (!dateStr) return;
             if (!dateMap[dateStr]) {
