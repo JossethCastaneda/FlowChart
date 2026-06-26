@@ -1588,16 +1588,34 @@ export default function ProjectDashboardPage() {
                   </div>
 
                   {/* 6 Indicator Cards */}
-                  <div className="lg:col-span-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
+                  <div className="lg:col-span-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
                     {indicators.map((ind, i) => (
-                      <div key={i} style={{ ...panelStyle, padding: 14, position: "relative", overflow: "hidden" }}>
-                        <div style={{ position: "absolute", top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle, ${ind.color}15 0%, transparent 70%)`, transform: "translate(20%, -20%)" }} />
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, color: ind.color }}>{ind.icon}<span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{ind.name}</span></div>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{ind.value}</span>
-                          <span style={{ fontSize: 20, fontWeight: 800, color: ind.color, fontFamily: "'Orbitron',sans-serif" }}>{ind.score}</span>
+                      <div key={i} style={{ ...panelStyle, padding: 16, position: "relative", overflow: "hidden", border: `1px solid ${ind.color}30` }}>
+                        <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: `radial-gradient(circle, ${ind.color}20 0%, transparent 70%)`, transform: "translate(20%, -20%)" }} />
+                        
+                        {/* Header: Label + Icon */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{ind.name}</span>
+                          <div style={{ color: ind.color, padding: 4, background: `${ind.color}15`, borderRadius: 6 }}>
+                            {ind.icon}
+                          </div>
                         </div>
-                        <p style={{ fontSize: 9, color: "rgba(148,163,184,0.7)", marginBottom: 6 }}>{ind.bench}</p>
+
+                        {/* Value */}
+                        <div style={{ fontSize: 24, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif", marginBottom: 6 }}>
+                          {ind.value}
+                        </div>
+
+                        {/* Benchmark & Score */}
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{ind.bench}</span>
+                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                             <span style={{ fontSize: 9, color: "rgba(148,163,184,0.6)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Score</span>
+                             <span style={{ fontSize: 14, fontWeight: 700, color: ind.color, fontFamily: "'Orbitron',sans-serif" }}>{ind.score}</span>
+                          </div>
+                        </div>
+
+                        {/* Progress Bar */}
                         <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
                           <div style={{ height: "100%", width: `${ind.score}%`, background: ind.color, borderRadius: 2, transition: "width 0.8s ease-out" }} />
                         </div>
