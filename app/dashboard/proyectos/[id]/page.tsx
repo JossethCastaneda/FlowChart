@@ -1551,147 +1551,168 @@ export default function ProjectDashboardPage() {
               { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
             ];
 
-            // Recommendations
+            // Recommendations (Cross-diagnostic logic)
             const recs: { severity: string; text: string }[] = [];
-            if (freqScore < 60) recs.push({ severity: "warning", text: `Frecuencia elevada (${frequency.toFixed(1)}). Amplía audiencias o rota creativos para evitar fatiga publicitaria.` });
-            if (ctrScore < 50) recs.push({ severity: "critical", text: `CTR bajo (${pct(ctr)}). Renueva creativos con nuevos ángulos. Prueba formatos de video o carrusel.` });
-            if (cprScore < 50 && cprTarget > 0) recs.push({ severity: "critical", text: `CPR por encima de meta (${fmtMXN(cpr)} vs ${fmtMXN(cprTarget)}). Pausa adsets de bajo rendimiento y redistribuye presupuesto.` });
-            if (convScore < 50) recs.push({ severity: "warning", text: `Tasa de conversión baja (${pct(conversionRate)}). Revisa landing page, formulario o experiencia post-clic.` });
-            if (paceScore < 50) recs.push({ severity: "warning", text: `Ritmo de gasto desviado (${pct(spendPaceRatio * 100)} del ideal). Ajusta presupuesto diario o estrategia de puja.` });
-            if (trendScore < 50) recs.push({ severity: "critical", text: "CPR en tendencia alcista. Considera optimizar por conversiones, no por tráfico." });
-            if (frequency > 3 && ctrScore < 60) recs.push({ severity: "warning", text: "Fatiga creativa detectada: alta frecuencia + CTR en descenso. Rota creativos cada 5-7 días." });
+            
+            if (cprScore >= 80) {
+              recs.push({ severity: "success", text: `Costo por Resultado excelente (${fmtMXN(cpr)}). El embudo está sano y convirtiendo eficientemente. Sugerencia: Escalar presupuesto un 15-20%.` });
+            } else if (cprScore < 50 && cprTarget > 0) {
+              recs.push({ severity: "critical", text: `Costo por Resultado en riesgo (${fmtMXN(cpr)} vs meta ${fmtMXN(cprTarget)}). Costos de adquisición elevados.` });
+            }
+
+            if (ctrScore >= 60 && convScore < 50) {
+              recs.push({ severity: "warning", text: `Fuga en Bottom-Funnel: Alto CTR (${pct(ctr)}) pero baja conversión (${pct(conversionRate)}). El anuncio atrae pero la landing page no convence o el lead es de baja intención.` });
+            } else if (ctrScore < 50 && convScore >= 60) {
+              recs.push({ severity: "warning", text: `Fuga en Mid-Funnel: Baja atracción (${pct(ctr)}) pero buena conversión (${pct(conversionRate)}). Mejora los creativos y hooks, tu landing page funciona bien.` });
+            } else if (ctrScore < 50 && convScore < 50) {
+              recs.push({ severity: "critical", text: `Fuga General: Los creativos no atraen (${pct(ctr)}) y la oferta no convierte (${pct(conversionRate)}). Revisión total de campaña requerida.` });
+            }
+
+            if (freqScore < 50 && ctrScore < 50) {
+              recs.push({ severity: "warning", text: `Fatiga Creativa: Frecuencia alta (${frequency.toFixed(1)}) y CTR cayendo. La audiencia ya se cansó de los anuncios actuales. Rota creativos inmediatamente.` });
+            }
+
+            if (paceScore < 40) {
+               if (spendPaceRatio < 1) {
+                  recs.push({ severity: "warning", text: `Sub-inversión: El gasto está por debajo del ritmo ideal. Revisa si las pujas son muy bajas o la audiencia muy pequeña.` });
+               } else {
+                  recs.push({ severity: "warning", text: `Sobre-inversión: El gasto está muy acelerado. Ajusta límites diarios para no quedarte sin presupuesto antes de fin de mes.` });
+               }
+            }
+
             if (recs.length === 0) recs.push({ severity: "success", text: "Todas las métricas están dentro de rangos saludables. Mantén la estrategia actual y monitorea diariamente." });
 
+            const funnelSteps = [
+              { ...indicators[1], step: "1. Atracción", desc: "¿A cuántos llegamos sin saturar?" },
+              { ...indicators[2], step: "2. Interacción", desc: "¿El creativo llama la atención?" },
+              { ...indicators[3], step: "3. Conversión", desc: "¿La oferta o página convence?" },
+              { ...indicators[4], step: "4. Gasto", desc: "¿Estamos gastando al ritmo ideal?" },
+            ];
+
             return (
-              <div className="space-y-3">
-                {/* Top row: Gauge + Indicators */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                  {/* Health Score Gauge */}
-                  <div style={{ ...panelStyle, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 280 }}>
-                    <h3 style={{ ...headingStyle, marginBottom: 16 }}>Health Score</h3>
-                    <div style={{ position: "relative", width: 200, height: 200 }}>
-                      <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: "rotate(-90deg)" }}>
-                        <circle cx="100" cy="100" r={radius} fill="none" stroke="var(--surface-hover)" strokeWidth="12" />
-                        <circle cx="100" cy="100" r={radius} fill="none" stroke={healthColor} strokeWidth="12" strokeLinecap="round"
-                          strokeDasharray={circumference} strokeDashoffset={dashOffset}
-                          style={{ transition: "stroke-dashoffset 1s ease-out, stroke 0.5s" }} />
-                        <circle cx="100" cy="100" r={radius} fill="none" stroke={`${healthColor}30`} strokeWidth="20" strokeLinecap="round"
-                          strokeDasharray={circumference} strokeDashoffset={dashOffset}
-                          style={{ transition: "stroke-dashoffset 1s ease-out", filter: "blur(8px)" }} />
-                      </svg>
-                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontSize: 42, fontWeight: 800, color: healthColor, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{healthScore}</span>
-                        <span style={{ fontSize: 10, color: healthColor, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.15em", marginTop: 4 }}>{healthLabel}</span>
+              <div className="space-y-4">
+                {/* Top row: Pulse Check (Resumen Ejecutivo) */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* Health Score Gauge (Pulse) */}
+                  <div style={{ ...panelStyle, display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, minHeight: 140 }}>
+                    <div>
+                      <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Pulse Check</h3>
+                      <p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)" }}>Estado general de la campaña</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
+                         <div style={{ width: 12, height: 12, borderRadius: "50%", background: healthColor, boxShadow: `0 0 10px ${healthColor}` }} />
+                         <span style={{ fontSize: 16, fontWeight: 700, color: "white", textTransform: "uppercase" }}>{healthLabel}</span>
                       </div>
                     </div>
-                    <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", marginTop: 12, textAlign: "center" }}>Ponderación: CPR 25% · Frecuencia 20% · CTR 15% · Conv 15% · Gasto 15% · Tendencia 10%</p>
+                    
+                    <div style={{ position: "relative", width: 100, height: 100 }}>
+                      <svg width="100" height="100" viewBox="0 0 200 200" style={{ transform: "rotate(-90deg)" }}>
+                        <circle cx="100" cy="100" r={radius} fill="none" stroke="var(--surface-hover)" strokeWidth="16" />
+                        <circle cx="100" cy="100" r={radius} fill="none" stroke={healthColor} strokeWidth="16" strokeLinecap="round"
+                          strokeDasharray={circumference} strokeDashoffset={dashOffset}
+                          style={{ transition: "stroke-dashoffset 1s ease-out, stroke 0.5s" }} />
+                      </svg>
+                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: 24, fontWeight: 800, color: healthColor, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{healthScore}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* 6 Indicator Cards */}
-                  <div className="lg:col-span-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 12 }}>
-                    {indicators.map((ind, i) => (
-                      <div key={i} style={{ ...panelStyle, padding: 16, position: "relative", overflow: "hidden", border: `1px solid ${ind.color}30` }}>
-                        <div style={{ position: "absolute", top: 0, right: 0, width: 80, height: 80, background: `radial-gradient(circle, ${ind.color}20 0%, transparent 70%)`, transform: "translate(20%, -20%)" }} />
-                        
-                        {/* Header: Label + Icon */}
+                  {/* Eficiencia CPR (Métrica Estrella) */}
+                  <div className="lg:col-span-2" style={{ ...panelStyle, position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 30px", background: `linear-gradient(135deg, rgba(15,23,42,1) 0%, ${indicators[0].color}15 100%)`, border: `1px solid ${indicators[0].color}30` }}>
+                    <div style={{ zIndex: 2 }}>
+                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, color: indicators[0].color }}>
+                         <div style={{ padding: 6, background: `${indicators[0].color}20`, borderRadius: 8 }}>{indicators[0].icon}</div>
+                         <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Eficiencia General (Costo por Resultado)</span>
+                       </div>
+                       <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                          <span style={{ fontSize: 42, fontWeight: 800, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{indicators[0].value}</span>
+                          <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>{indicators[0].bench}</span>
+                       </div>
+                    </div>
+                    <div style={{ zIndex: 2, textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                       <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Score de Eficiencia</span>
+                       <span style={{ fontSize: 32, fontWeight: 800, color: indicators[0].color, fontFamily: "'Orbitron',sans-serif" }}>{indicators[0].score}</span>
+                       <div style={{ width: 100, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, marginTop: 8, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${indicators[0].score}%`, background: indicators[0].color, borderRadius: 2 }} />
+                       </div>
+                    </div>
+                    <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, background: `radial-gradient(circle, ${indicators[0].color}20 0%, transparent 70%)` }} />
+                  </div>
+                </div>
+
+                {/* Fila 2: Análisis del Embudo (Funnel Health) */}
+                <div style={panelStyle}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+                    <h3 style={headingStyle}>Análisis del Embudo de Conversión</h3>
+                    <p style={subStyle}>Diagnóstico del viaje del usuario: Atracción, Interacción, Conversión y Gasto.</p>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 0 }}>
+                    {funnelSteps.map((step, i) => (
+                      <div key={i} style={{ padding: 20, position: "relative", borderRight: i < funnelSteps.length - 1 ? "1px dashed rgba(255,255,255,0.1)" : "none" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                          <span style={{ fontSize: 11, fontWeight: 600, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{ind.name}</span>
-                          <div style={{ color: ind.color, padding: 4, background: `${ind.color}15`, borderRadius: 6 }}>
-                            {ind.icon}
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(148,163,184,0.8)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{step.step}</span>
+                          <div style={{ color: step.color, padding: 4, background: `${step.color}15`, borderRadius: 6 }}>
+                            {step.icon}
                           </div>
                         </div>
-
-                        {/* Value */}
-                        <div style={{ fontSize: 24, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif", marginBottom: 6 }}>
-                          {ind.value}
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "white", marginBottom: 4 }}>{step.name}</p>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif", marginBottom: 8 }}>
+                          {step.value}
                         </div>
-
-                        {/* Benchmark & Score */}
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{ind.bench}</span>
-                          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                             <span style={{ fontSize: 9, color: "rgba(148,163,184,0.6)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Score</span>
-                             <span style={{ fontSize: 14, fontWeight: 700, color: ind.color, fontFamily: "'Orbitron',sans-serif" }}>{ind.score}</span>
-                          </div>
+                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.6)" }}>{step.bench}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: step.color, fontFamily: "'Orbitron',sans-serif" }}>{step.score}</span>
                         </div>
-
-                        {/* Progress Bar */}
-                        <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${ind.score}%`, background: ind.color, borderRadius: 2, transition: "width 0.8s ease-out" }} />
+                        <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
+                          <div style={{ height: "100%", width: `${step.score}%`, background: step.color, borderRadius: 2 }} />
                         </div>
+                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.5)", lineHeight: 1.4 }}>{step.desc}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* CPR Trend Chart */}
-                <div style={panelStyle}>
-                  <h3 style={headingStyle}>Tendencia de CPR vs Meta</h3>
-                  <p style={subStyle}>Evolución del costo por resultado a lo largo del periodo</p>
-                  <div style={{ width: "100%", height: 280 }}>
-                    {tsd.length > 0 ? (
-                      <ResponsiveContainer>
-                        <ComposedChart data={tsd} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                          <defs>
-                            <linearGradient id="gcpr" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="var(--cyan)" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="var(--cyan)" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                          <XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} />
-                          <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
-                          <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
-                          <Area type="monotone" dataKey="cpr" name="CPR" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
-                          {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="var(--red)" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "var(--red)", fontSize: 10 }} />}
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    ) : <NoData />}
+                {/* Fila 3: Tendencia vs Diagnóstico Cruzado */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* CPR Trend Chart */}
+                  <div className="lg:col-span-2" style={panelStyle}>
+                    <h3 style={headingStyle}>Tendencia de CPR vs Meta</h3>
+                    <p style={subStyle}>Evolución del costo por resultado a lo largo del periodo</p>
+                    <div style={{ width: "100%", height: 280 }}>
+                      {tsd.length > 0 ? (
+                        <ResponsiveContainer>
+                          <ComposedChart data={tsd} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                            <defs>
+                              <linearGradient id="gcpr" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--cyan)" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="var(--cyan)" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
+                            <XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} />
+                            <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
+                            <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
+                            <Area type="monotone" dataKey="cpr" name="CPR" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
+                            {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="var(--red)" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "var(--red)", fontSize: 10 }} />}
+                          </ComposedChart>
+                        </ResponsiveContainer>
+                      ) : <NoData />}
+                    </div>
                   </div>
-                </div>
 
-                {/* Diagnostic + Recommendations */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  <div style={panelStyle}>
-                    <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Diagnóstico</h3>
-                    <p style={subStyle}>Evaluación automática basada en benchmarks de industria</p>
-                    <div className="space-y-3">
+                  {/* Diagnostic + Recommendations */}
+                  <div style={{ ...panelStyle, display: "flex", flexDirection: "column" }}>
+                    <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Plan de Acción Inmediato</h3>
+                    <p style={subStyle}>Diagnóstico cruzado y sugerencias</p>
+                    <div className="space-y-3 flex-1 overflow-y-auto pr-2">
                       {recs.map((r, i) => (
-                        <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 6 }}>
+                        <div key={i} style={{ display: "flex", gap: 10, padding: "12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 8 }}>
                           <div style={{ flexShrink: 0, marginTop: 2 }}>
-                            {r.severity === "critical" ? <AlertTriangle style={{ width: 14, height: 14, color: "var(--red)" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 14, height: 14, color: "var(--amber)" }} /> : <CheckCircle style={{ width: 14, height: 14, color: "var(--emerald)" }} />}
+                            {r.severity === "critical" ? <AlertTriangle style={{ width: 16, height: 16, color: "var(--red)" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 16, height: 16, color: "var(--amber)" }} /> : <CheckCircle style={{ width: 16, height: 16, color: "var(--emerald)" }} />}
                           </div>
                           <p style={{ fontSize: 12, color: "var(--foreground)", lineHeight: 1.5 }}>{r.text}</p>
                         </div>
                       ))}
-                    </div>
-                  </div>
-
-                  <div style={panelStyle}>
-                    <h3 style={headingStyle}>Configuración Recomendada</h3>
-                    <p style={subStyle}>Sugerencias para las próximas campañas</p>
-                    <div className="space-y-3">
-                      {/* Budget recommendation */}
-                      <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "var(--cyan)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Presupuesto Diario Óptimo</p>
-                        <p style={{ fontSize: 16, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p>
-                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>Basado en {fmtMXN0(bk.monthly)} {bk.label.toLowerCase()}</p>
-                      </div>
-                      {/* Optimization target */}
-                      <div style={{ padding: "10px 12px", background: "rgba(0,200,117,0.04)", border: "1px solid rgba(0,200,117,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "var(--emerald)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Objetivo de Optimización</p>
-                        <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{convScore < 50 ? "Optimizar por conversiones (no tráfico). Usa CBO con bid cap." : ctrScore < 50 ? "Mejorar engagement. Prueba Advantage+ Creative." : "Mantener optimización actual. Escalar presupuesto gradualmente (+20% cada 3 días)."}</p>
-                      </div>
-                      {/* Audience suggestion */}
-                      <div style={{ padding: "10px 12px", background: "rgba(123,97,255,0.04)", border: "1px solid rgba(123,97,255,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "var(--purple)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Audiencia</p>
-                        <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{freqScore < 50 ? "Frecuencia alta. Amplía audiencia: agrega intereses, prueba Lookalike 3-5%, o usa Advantage+ Audience." : "Audiencia saludable. Considera escalar con Broad targeting."}</p>
-                      </div>
-                      {/* Creative suggestion */}
-                      <div style={{ padding: "10px 12px", background: "rgba(253,171,61,0.04)", border: "1px solid rgba(253,171,61,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "var(--amber)", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Creativos</p>
-                        <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{ctrScore < 50 || freqScore < 50 ? "Urgente: Rota creativos. Prueba UGC, testimoniales, o ángulos de dolor/beneficio diferentes." : "Creativos funcionando bien. Itera sobre los ganadores con variaciones A/B."}</p>
-                      </div>
                     </div>
                   </div>
                 </div>
