@@ -58,17 +58,11 @@ export const GET = withWorkspace(async (_req: NextRequest, ctx) => {
     scopes: flag(env.INSTAGRAM_SCOPES),
   };
 
+  // Scheduler: las tareas en segundo plano migraron de QStash a Vercel Cron +
+  // Workflow DevKit. CRON_SECRET protege los endpoints /api/cron/*.
   result.scheduler = {
     cronSecret: flag(env.CRON_SECRET),
     workerSecret: flag(env.PUBLISH_WORKER_SECRET),
-  };
-  result.qstash = {
-    token: flag(env.QSTASH_TOKEN),
-    signingKeys:
-      env.QSTASH_CURRENT_SIGNING_KEY && env.QSTASH_NEXT_SIGNING_KEY
-        ? "ok"
-        : "missing",
-    workerBaseUrl: flag(env.QSTASH_WORKER_BASE_URL || env.NEXT_PUBLIC_APP_URL),
   };
   result.security = {
     encryptionKey: flag(env.ENCRYPTION_KEY),
