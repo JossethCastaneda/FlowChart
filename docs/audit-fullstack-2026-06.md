@@ -141,3 +141,35 @@ lo absorbe con mensaje equivocado), (b) imposible revisar por PR, (c) cualquier 
 - `grep` de imports `@/lib/qstash` / `@upstash/qstash` → 0 colgantes.
 - Resolución de cada `vercel.json/crons[].path` a `app/api/.../route.ts` → 6/6 OK; 2 rutas cron sin agendar.
 - Lectura directa: `lib/prisma.ts`, `lib/email.ts`, `lib/env.ts`, `next.config.ts`, `vercel.json`.
+
+---
+
+## 8. SEGUIMIENTO (acciones aplicadas tras estabilizar el árbol)
+
+El working tree resultó estar **estático** (sin escritura concurrente — `find -mmin -3` vacío) y **verde**
+(tsc + 197 tests). Por eso se estabilizó y se aplicaron las correcciones decision-free:
+
+- **`347e3f7`** — checkpoint del refactor en curso (55 archivos), para dejar el árbol limpio.
+- **`b40a791`** — eliminado el bloque QStash muerto del health-check (§3).
+- **`bd72a1a`** — `lib/env.ts`: tipo de `env` restaurado (`z.infer` en vez de `any`) y `ENCRYPTION_KEY`
+  endurecido a `length(64)` (§2.2, §6.2). tsc + tests verdes.
+
+**Las 3 correcciones restantes NO se aplicaron — y tras inspección a fondo, NO son limpiezas mecánicas
+sino decisiones a medio tomar del refactor (forzarlas = adivinar intención y deshacer su migración):**
+
+1. **Shim `cancelLegacyQstashSchedule` (no-op) — es un BUG LATENTE, no código muerto.** `qStashMessageId`
+   ahora guarda el **token de Workflow** (`app/api/publisher/posts/[id]/route.ts:133`), pero la cancelación
+   es no-op → **reprogramar o borrar un post NO cancela el workflow pendiente** ⇒ riesgo de publicación
+   doble/no deseada. **Acción del dueño del refactor:** implementar cancelación real con `workflow/api`.
+2. **Refresh de token Meta DUPLICADO (decisión de arquitectura).** Existen DOS implementaciones:
+   - `app/api/meta/refresh-token` (agendado): maduro — `verifyCronAuth`, `maxDuration=300`, notifica admins,
+     maneja code 190, refresca por workspace. **Solo refresca el user token.**
+   - `app/api/cron/meta/refresh-tokens` (HUÉRFANO, no agendado): inferior, con resto de QStash
+     (`x-qstash-token`), pero **también refresca page-tokens**. No corre ⇒ no hay colisión en runtime, es
+     duplicado muerto. **Decisión:** unificar (portar el refresh de page-tokens al maduro y borrar el huérfano)
+     o agendar el nuevo y deprecar el viejo.
+3. **Tipo `Project` con estados en CONFLICTO (migración de estados a medias).** Tres fuentes discrepan:
+   `lib/project-constants.ts/STATUSES` = `[EN VUELO, EN ÓRBITA, Draft, Completado]`; `types/project.ts` añade
+   `Activo`; el inline de `proyectos/[id]/page.tsx` añade `Activo` **y** `Pausado`. El refactor está migrando
+   `Activo/Pausado → EN VUELO/EN ÓRBITA`. **Decisión:** fijar el enum canónico definitivo, luego migrar el
+   detalle a `@/types/project` (mecánico una vez fijado el enum).
