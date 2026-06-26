@@ -7,7 +7,8 @@ import {
   BarChart2, Activity, Zap, CreditCard, CheckCircle, Clock, Edit3, Save, X,
   Users, Palette, Settings, ChevronDown, ChevronUp, AlertTriangle,
   Layers, Monitor, Smartphone, Globe, PieChart as PieIcon,
-  HeartPulse, RefreshCw, MousePointer, Shield
+  HeartPulse, RefreshCw, MousePointer, Shield,
+  Tag, Building, MapPin, Link
 } from "lucide-react";
 import { normalizeIntegrationProvider } from "@/lib/analytics/project-scope";
 import {
@@ -105,25 +106,57 @@ function getBudgetBreakdown(budget: number, period: string) {
 }
 
 /* ═══ SHARED UI ═══ */
-const panelStyle: React.CSSProperties = { background: "var(--row-hover)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 };
-const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 };
-const headingStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 };
-const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.75)", marginBottom: 10 };
-const tooltipStyle = { backgroundColor: "rgba(10,15,30,0.95)", border: "1px solid var(--hairline)", borderRadius: 8, fontSize: 12, color: "white" };
+const panelStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.025)",
+  border: "1px solid rgba(255,255,255,0.07)",
+  borderRadius: 12,
+  padding: 18,
+  backdropFilter: "blur(8px)",
+};
+const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
+const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.03em", marginBottom: 4 };
+const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.65)", marginBottom: 12, lineHeight: 1.5 };
+const tooltipStyle = { backgroundColor: "rgba(6,8,20,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, fontSize: 12, color: "white", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" };
 const CHART_COLORS = ["var(--cyan)", "var(--emerald)", "var(--amber)", "var(--red)", "var(--purple)", "#579bfc", "#ff007f", "#25F4EE"];
 
 function KpiBox({ title, value, sub, icon, color, progress }: any) {
   const c = color.startsWith("#") ? color : `var(--${color})`;
+  const progressPct = progress !== undefined ? Math.min(Math.max(progress, 0), 100) : undefined;
+  const isOverBudget = progress !== undefined && progress > 100;
+  const progressColor = isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c;
   return (
-    <div style={{ ...panelStyle, position: "relative", overflow: "hidden", paddingBottom: progress !== undefined ? 24 : 20 }}>
-      <div style={{ position: "absolute", top: 0, right: 0, width: 100, height: 100, background: `radial-gradient(circle, ${c}15 0%, transparent 70%)`, transform: "translate(30%, -30%)" }} />
-      <div style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(148,163,184,0.6)", marginBottom: 8 }}>
-        <div style={{ padding: 4, background: "var(--surface-hover)", borderRadius: 4, color: c }}>{icon}</div>
-        <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>{title}</span>
+    <div style={{
+      ...panelStyle,
+      position: "relative", overflow: "hidden",
+      paddingBottom: progress !== undefined ? 20 : 18,
+      borderTop: `2px solid ${c}44`,
+      transition: "transform 0.2s, box-shadow 0.2s",
+    }}
+    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 24px rgba(0,0,0,0.25), 0 0 0 1px ${c}22`; }}
+    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
+    >
+      {/* Background glow */}
+      <div style={{ position: "absolute", top: 0, right: 0, width: 120, height: 120, background: `radial-gradient(circle, ${c}12 0%, transparent 70%)`, transform: "translate(30%, -30%)", pointerEvents: "none" }} />
+      {/* Icon + Label */}
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+        <div style={{ padding: "5px", background: `${c}18`, border: `1px solid ${c}30`, borderRadius: 7, color: c, display: "flex" }}>{icon}</div>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)" }}>{title}</span>
       </div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: "white", marginBottom: 2, fontFamily: "'Orbitron',sans-serif" }}>{value}</div>
-      <div style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{sub}</div>
-      {progress !== undefined && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "rgba(148,163,184,0.1)" }}><div style={{ height: "100%", width: `${Math.min(progress, 100)}%`, background: c, transition: "width 1s" }} /></div>}
+      {/* Value */}
+      <div style={{ fontSize: 22, fontWeight: 700, color: "white", marginBottom: 3, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 10, color: "rgba(148,163,184,0.6)", marginBottom: progress !== undefined ? 10 : 0 }}>{sub}</div>
+      {/* Progress bar */}
+      {progress !== undefined && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+            <span style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", fontWeight: 600, letterSpacing: "0.08em" }}>PROGRESO</span>
+            <span style={{ fontSize: 9, fontWeight: 700, color: isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c }}>{progress.toFixed(0)}%</span>
+          </div>
+          <div style={{ position: "relative", bottom: 0, left: 0, right: 0, height: 3, background: "rgba(148,163,184,0.08)", borderRadius: 2 }}>
+            <div style={{ height: "100%", width: `${Math.min(progress, 100)}%`, background: `linear-gradient(90deg, ${progressColor}, ${progressColor}cc)`, borderRadius: 2, transition: "width 1s ease" }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -139,12 +172,18 @@ function LoadingOverlay() {
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
-      display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", fontSize: 10, fontWeight: 600,
-      background: active ? "rgba(0,212,255,0.08)" : "transparent",
-      border: `1px solid ${active ? "rgba(0,212,255,0.2)" : "transparent"}`,
-      color: active ? "var(--cyan)" : "rgba(148,163,184,0.75)",
-      borderRadius: 4, cursor: "pointer", transition: "all 0.2s", letterSpacing: "0.03em",
-    }}>{icon}{label}</button>
+      display: "flex", alignItems: "center", gap: 5,
+      padding: "6px 13px", fontSize: 11, fontWeight: 600,
+      background: active ? "rgba(0,212,255,0.1)" : "transparent",
+      border: `1px solid ${active ? "rgba(0,212,255,0.25)" : "rgba(255,255,255,0.05)"}`,
+      color: active ? "var(--cyan)" : "rgba(148,163,184,0.65)",
+      borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
+      letterSpacing: "0.02em", whiteSpace: "nowrap",
+      boxShadow: active ? "0 0 16px rgba(0,212,255,0.12)" : "none",
+    }}
+    onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.85)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.12)"; } }}
+    onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.color = "rgba(148,163,184,0.65)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.05)"; } }}
+    >{icon}{label}</button>
   );
 }
 
@@ -513,15 +552,58 @@ export default function ProjectDashboardPage() {
   return (
     <div className="space-y-4 page-enter">
       {/* ── HEADER ── */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => router.push("/dashboard/proyectos")} style={{ width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(10,15,30,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, color: "rgba(148,163,184,0.7)", cursor: "pointer" }}><ArrowLeft style={{ width: 14, height: 14 }} /></button>
+      <div style={{
+        display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+        flexWrap: "wrap", gap: 12,
+        background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+        borderRadius: 14, padding: "14px 18px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => router.push("/dashboard/proyectos")}
+            style={{
+              width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
+              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)",
+              borderRadius: 8, color: "rgba(148,163,184,0.8)", cursor: "pointer",
+              transition: "all 0.15s", flexShrink: 0,
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.09)"; (e.currentTarget as HTMLButtonElement).style.color = "white"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(148,163,184,0.8)"; }}
+          >
+            <ArrowLeft style={{ width: 15, height: 15 }} />
+          </button>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-              <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 20, fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>{project.alias}</h1>
-              <span className={`badge badge-${STATUS_COLORS[project.status]}`}>{project.status}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              {/* Live pulse for active projects */}
+              {(project.status === "EN VUELO" || project.status === "Activo") && (
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 10px rgba(6,214,160,0.8)", animation: "status-pulse 2s infinite", display: "inline-block", flexShrink: 0 }} />
+              )}
+              <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 21, fontWeight: 700, color: "white", letterSpacing: "0.04em", lineHeight: 1 }}>{project.alias}</h1>
+              <span className={`badge badge-${STATUS_COLORS[project.status] || "muted"}`}>{project.status}</span>
             </div>
-            <p style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>{project.vertical}{project.client && ` · ${project.client}`}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              {project.client && <span style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", fontWeight: 500 }}>{project.client}</span>}
+              {project.client && project.vertical && <span style={{ fontSize: 10, color: "rgba(148,163,184,0.3)" }}>·</span>}
+              {project.vertical && <span style={{ fontSize: 11, color: "rgba(148,163,184,0.55)", fontWeight: 500 }}>{project.vertical}</span>}
+              {project.channels.length > 0 && (
+                <>
+                  <span style={{ fontSize: 10, color: "rgba(148,163,184,0.3)" }}>·</span>
+                  {project.channels.slice(0, 3).map(c => {
+                    const pl = PLATFORMS.find(x => x.id === c.platformId);
+                    return (
+                      <span key={c.platformId} style={{
+                        fontSize: 10, padding: "2px 7px", borderRadius: 4, fontWeight: 700,
+                        border: `1px solid ${pl?.color ? pl.color + "50" : "rgba(148,163,184,0.2)"}`,
+                        color: pl?.color || "rgba(148,163,184,0.6)",
+                        background: pl?.color ? pl.color + "14" : "transparent",
+                      }}>
+                        {c.platformName}
+                      </span>
+                    );
+                  })}
+                </>
+              )}
+            </div>
           </div>
         </div>
         <DateRangePicker datePreset={datePreset} dateStart={dateStart} dateEnd={dateEnd} showDatePicker={showDatePicker} setShowDatePicker={setShowDatePicker}
@@ -542,29 +624,49 @@ export default function ProjectDashboardPage() {
       )}
 
       {/* ── TABS + PLATFORM SELECTOR ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: 8 }}>
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-          <TabButton active={activeTab === "resumen"} label="Resumen" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resumen")} />
-          <TabButton active={activeTab === "gasto"} label="Gasto & Presupuesto" icon={<DollarSign style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("gasto")} />
-          <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
-          <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
-          <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
-          <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
-          {(!!project.crmIntegrationIds?.length || !!project.crmIntegrationId || !!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
-            <TabButton active={activeTab === "resultados"} label="Análisis de Resultados" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
-          )}
-          {!!project.website && (
-            <TabButton active={activeTab === "trafico"} label="Análisis de tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
-          )}
-          <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+        {/* Tabs scrollable container */}
+        <div style={{ overflowX: "auto", flexShrink: 1, minWidth: 0, paddingBottom: 2 }}>
+          <div style={{ display: "flex", gap: 6, padding: "4px", background: "rgba(255,255,255,0.03)", borderRadius: 24, border: "1px solid rgba(255,255,255,0.06)", width: "max-content" }}>
+            <TabButton active={activeTab === "resumen"} label="Resumen" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resumen")} />
+            <TabButton active={activeTab === "gasto"} label="Gasto" icon={<DollarSign style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("gasto")} />
+            <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
+            <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
+            <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
+            <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
+            {(!!project.crmIntegrationIds?.length || !!project.crmIntegrationId || !!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
+              <TabButton active={activeTab === "resultados"} label="Resultados Bot" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
+            )}
+            {!!project.website && (
+              <TabButton active={activeTab === "trafico"} label="Tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
+            )}
+            <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+        {/* Platform + Account selectors */}
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
           {project.channels.map(c => {
             const pl = PLATFORMS.find(p => p.id === c.platformId) || PLATFORMS[0];
-            return <button key={c.platformId} onClick={() => { setActivePlatform(c.platformId); setBreakdownData({}); }} style={{ padding: "5px 12px", fontSize: 11, fontWeight: 600, background: activePlatform === c.platformId ? `${pl.color}15` : "transparent", border: `1px solid ${activePlatform === c.platformId ? pl.color : "transparent"}`, color: activePlatform === c.platformId ? pl.color : "rgba(148,163,184,0.75)", borderRadius: 4, cursor: "pointer" }}>{pl.name}</button>;
+            const isActive = activePlatform === c.platformId;
+            return (
+              <button key={c.platformId} onClick={() => { setActivePlatform(c.platformId); setBreakdownData({}); }} style={{
+                padding: "6px 14px", fontSize: 11, fontWeight: 700,
+                background: isActive ? `${pl.color}20` : "rgba(255,255,255,0.04)",
+                border: `1px solid ${isActive ? pl.color + "60" : "rgba(255,255,255,0.08)"}`,
+                color: isActive ? pl.color : "rgba(148,163,184,0.6)",
+                borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
+                boxShadow: isActive ? `0 0 16px ${pl.color}25` : "none",
+              }}>
+                {pl.name}
+              </button>
+            );
           })}
           {ch?.adAccounts && ch.adAccounts.length > 1 && (
-            <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{ background: "rgba(10,15,30,0.6)", border: "1px solid rgba(255,255,255,0.06)", color: "var(--foreground)", fontSize: 11, padding: "5px 24px 5px 8px", borderRadius: 4, cursor: "pointer", appearance: "none" }}>
+            <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{
+background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+              color: "var(--foreground)", fontSize: 11, padding: "6px 24px 6px 12px",
+              borderRadius: 20, cursor: "pointer", appearance: "none", fontWeight: 600,
+            }}>
               <option value="all">Todas ({ch.adAccounts.length})</option>
               {ch.adAccounts.map(a => <option key={a} value={a}>{accountNames[a] || a}</option>)}
             </select>
@@ -580,19 +682,51 @@ export default function ProjectDashboardPage() {
             {/* Proyeccion al Cierre */}
             <div style={panelStyle}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <div><h3 style={headingStyle}>Proyección al Cierre</h3><p style={subStyle}>Día {daysElapsed} de {daysInMonth} del mes{goalNum > 0 ? ` · Meta: ${fmtNum(goalNum)} resultados (${fmtMXN0(bk.monthly)} ÷ ${fmtMXN(cprTarget)})` : ""}</p></div>
-                <div style={{ padding: "4px 12px", borderRadius: 4, fontSize: 10, fontWeight: 700, background: trackStatus === "on-track" ? "rgba(0,200,117,0.1)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.1)" : "rgba(226,68,92,0.1)", color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)", border: `1px solid ${trackStatus === "on-track" ? "rgba(0,200,117,0.2)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.2)" : "rgba(226,68,92,0.2)"}` }}>
-                  {trackStatus === "on-track" ? "EN TRACK" : trackStatus === "at-risk" ? "EN RIESGO" : trackStatus === "off-track" ? "FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
+                <div>
+                  <h3 style={headingStyle}>Proyección al Cierre</h3>
+                  <p style={subStyle}>Día {daysElapsed} de {daysInMonth} del mes{goalNum > 0 ? ` · Meta: ${fmtNum(goalNum)} resultados (${fmtMXN0(bk.monthly)} ÷ ${fmtMXN(cprTarget)})` : ""}</p>
+                </div>
+                <div style={{
+                  padding: "5px 14px", borderRadius: 20, fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
+                  background: trackStatus === "on-track" ? "rgba(0,200,117,0.12)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.12)" : "rgba(226,68,92,0.12)",
+                  color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)",
+                  border: `1px solid ${trackStatus === "on-track" ? "rgba(0,200,117,0.25)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.25)" : "rgba(226,68,92,0.25)"}`,
+                  boxShadow: trackStatus === "on-track" ? "0 0 12px rgba(0,200,117,0.15)" : trackStatus === "at-risk" ? "0 0 12px rgba(253,171,61,0.15)" : "0 0 12px rgba(226,68,92,0.15)",
+                }}>
+                  {trackStatus === "on-track" ? "✓ EN TRACK" : trackStatus === "at-risk" ? "⚠ EN RIESGO" : trackStatus === "off-track" ? "✕ FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <div><p style={labelStyle}>Resultados proyectados</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtNum(projectedResults)}</p>{goalNum > 0 && <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtNum(goalNum)} objetivo</p>}</div>
-                <div><p style={labelStyle}>Gasto proyectado</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(projectedSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtMXN0(bk.monthly)} mensual</p></div>
-                <div><p style={labelStyle}>Meta diaria ideal</p><p style={{ fontSize: 18, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif" }}>{goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día</p></div>
-                <div><p style={labelStyle}>Ritmo diario necesario</p><p style={{ fontSize: 18, fontWeight: 700, color: dailyNeeded > 0 ? "var(--amber)" : "white", fontFamily: "'Orbitron',sans-serif" }}>{dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día restantes</p></div>
-                <div><p style={labelStyle}>Cumplimiento</p><p style={{ fontSize: 18, fontWeight: 700, color: goalCompletion >= 100 ? "var(--emerald)" : "white", fontFamily: "'Orbitron',sans-serif" }}>{goalNum > 0 ? pct(goalCompletion) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{daysRemaining} días restantes</p></div>
+              {/* Sub-KPI mini-cards */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {[
+                  { label: "Res. proyectados", value: fmtNum(projectedResults), sub: goalNum > 0 ? `de ${fmtNum(goalNum)} objetivo` : "sin meta", color: "var(--emerald)", accentColor: "rgba(0,200,117,0.35)" },
+                  { label: "Gasto proyectado", value: fmtMXN0(projectedSpend), sub: `de ${fmtMXN0(bk.monthly)} mensual`, color: "var(--amber)", accentColor: "rgba(253,171,61,0.35)" },
+                  { label: "Meta diaria ideal", value: goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—", sub: "resultados/día", color: "var(--cyan)", accentColor: "rgba(0,212,255,0.35)" },
+                  { label: "Ritmo necesario", value: dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—", sub: "res/día restantes", color: dailyNeeded > 0 ? "var(--amber)" : "var(--text-muted)", accentColor: dailyNeeded > 0 ? "rgba(253,171,61,0.35)" : "rgba(255,255,255,0.1)" },
+                  { label: "Cumplimiento", value: goalNum > 0 ? pct(goalCompletion) : "—", sub: `${daysRemaining} días restantes`, color: goalCompletion >= 100 ? "var(--emerald)" : "white", accentColor: goalCompletion >= 100 ? "rgba(0,200,117,0.35)" : "rgba(255,255,255,0.1)" },
+                ].map((item, i) => (
+                  <div key={i} style={{
+                    background: "rgba(255,255,255,0.025)", borderRadius: 10,
+                    border: "1px solid rgba(255,255,255,0.07)", padding: "12px 14px",
+                    borderTop: `2px solid ${item.accentColor}`, position: "relative", overflow: "hidden",
+                  }}>
+                    <p style={{ ...labelStyle, marginBottom: 6 }}>{item.label}</p>
+                    <p style={{ fontSize: 18, fontWeight: 700, color: item.color, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{item.value}</p>
+                    <p style={{ fontSize: 9, color: "rgba(148,163,184,0.6)", marginTop: 4 }}>{item.sub}</p>
+                  </div>
+                ))}
               </div>
-              {goalNum > 0 && <div style={{ marginTop: 16, height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: `${Math.min(goalCompletion, 100)}%`, background: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)", borderRadius: 3, transition: "width 0.5s" }} /></div>}
+              {goalNum > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                    <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em" }}>PROGRESO DEL MES</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)" }}>{pct(Math.min(goalCompletion, 100))}</span>
+                  </div>
+                  <div style={{ height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${Math.min(goalCompletion, 100)}%`, background: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)", borderRadius: 3, transition: "width 0.5s", boxShadow: `0 0 8px ${trackStatus === "on-track" ? "rgba(0,200,117,0.5)" : "rgba(253,171,61,0.5)"}` }} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Charts Row */}
@@ -617,29 +751,81 @@ export default function ProjectDashboardPage() {
 
           {/* Right: Accounts Panel */}
           <div className="space-y-3">
+            {/* Cuentas Vinculadas */}
             <div style={panelStyle}>
-              <h3 style={headingStyle}>Cuentas Vinculadas</h3>
-              <p style={subStyle}>{ch?.adAccounts?.length || 0} cuentas seleccionadas</p>
-              {ch?.adAccounts?.map(acc => (
-                <div key={acc} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 4, marginBottom: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)" }} />
-                  <div style={{ flex: 1 }}><p style={{ fontSize: 12, color: "var(--foreground)", fontWeight: 500 }}>{accountNames[acc] || acc}</p><p style={{ fontSize: 9, color: "var(--text-muted)" }}>{acc}</p></div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Link style={{ width: 14, height: 14, color: "var(--cyan)" }} />
                 </div>
-              ))}
+                <div>
+                  <h3 style={headingStyle}>Cuentas Vinculadas</h3>
+                  <p style={subStyle}>{ch?.adAccounts?.length || 0} cuenta{(ch?.adAccounts?.length || 0) !== 1 ? "s" : ""} conectada{(ch?.adAccounts?.length || 0) !== 1 ? "s" : ""}</p>
+                </div>
+              </div>
+              {ch?.adAccounts?.length ? ch.adAccounts.map(acc => (
+                <div key={acc} style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 12px", marginBottom: 6, borderRadius: 10,
+                  background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)",
+                  transition: "background 0.15s", cursor: "default",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.025)")}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #1877F2, #0A4FBD)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 900, color: "white", fontFamily: "serif" }}>f</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 12, color: "var(--foreground)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{accountNames[acc] || "Ad Account"}</p>
+                    <p style={{ fontSize: 9, color: "var(--text-muted)", fontFamily: "monospace" }}>{acc}</p>
+                  </div>
+                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 6px rgba(0,200,117,0.6)", flexShrink: 0 }} />
+                </div>
+              )) : (
+                <div style={{ padding: "16px", textAlign: "center", color: "var(--text-muted)", fontSize: 12 }}>
+                  <p style={{ marginBottom: 4 }}>Sin cuentas vinculadas</p>
+                  <p style={{ fontSize: 10 }}>Ve a Configuración para conectar</p>
+                </div>
+              )}
             </div>
+
+            {/* Presupuesto Diario */}
             <div style={panelStyle}>
-              <h3 style={headingStyle}>Presupuesto Diario</h3>
-              <p style={subStyle}>{bk.label}: {fmtMXN0(budgetNum)}</p>
-              <div className="space-y-3">
-                <div><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
-                <div><p style={labelStyle}>Semanal ideal</p><p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>{fmtMXN(bk.weekly)}</p></div>
-                <div style={{ marginTop: 12, padding: "10px 12px", background: spendPace > 10 ? "rgba(226,68,92,0.08)" : spendPace < -10 ? "rgba(253,171,61,0.08)" : "rgba(0,200,117,0.08)", borderRadius: 4, border: `1px solid ${spendPace > 10 ? "rgba(226,68,92,0.15)" : spendPace < -10 ? "rgba(253,171,61,0.15)" : "rgba(0,200,117,0.15)"}` }}>
-                  <p style={{ fontSize: 10, color: "rgba(148,163,184,0.75)", marginBottom: 4 }}>Ritmo de gasto</p>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }}>
-                    {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo"}
-                  </p>
-                  <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", marginTop: 2 }}>Ideal hoy: {fmtMXN(idealSpendToday)} | Real: {fmtMXN(totalSpend)}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <DollarSign style={{ width: 14, height: 14, color: "var(--amber)" }} />
                 </div>
+                <div>
+                  <h3 style={headingStyle}>Presupuesto</h3>
+                  <p style={subStyle}>{bk.label}: {fmtMXN0(budgetNum)}</p>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+                <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.05)", border: "1px solid rgba(0,212,255,0.12)", borderRadius: 10 }}>
+                  <p style={{ ...labelStyle, marginBottom: 4 }}>Diario ideal</p>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p>
+                </div>
+                <div style={{ padding: "10px 12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10 }}>
+                  <p style={{ ...labelStyle, marginBottom: 4 }}>Semanal ideal</p>
+                  <p style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.weekly)}</p>
+                </div>
+              </div>
+              {/* Ritmo de gasto */}
+              <div style={{
+                padding: "12px 14px", borderRadius: 10,
+                background: spendPace > 10 ? "rgba(226,68,92,0.08)" : spendPace < -10 ? "rgba(253,171,61,0.08)" : "rgba(0,200,117,0.08)",
+                border: `1px solid ${spendPace > 10 ? "rgba(226,68,92,0.2)" : spendPace < -10 ? "rgba(253,171,61,0.2)" : "rgba(0,200,117,0.2)"}`,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <TrendingUp style={{ width: 12, height: 12, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }} />
+                  <p style={{ fontSize: 9, color: "rgba(148,163,184,0.75)", fontWeight: 700, letterSpacing: "0.1em" }}>RITMO DE GASTO</p>
+                </div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }}>
+                  {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo ✓"}
+                </p>
+                <p style={{ fontSize: 10, color: "rgba(148,163,184,0.6)", marginTop: 4 }}>
+                  Ideal hoy: <strong style={{ color: "rgba(148,163,184,0.9)" }}>{fmtMXN(idealSpendToday)}</strong> · Real: <strong style={{ color: "rgba(148,163,184,0.9)" }}>{fmtMXN(totalSpend)}</strong>
+                </p>
               </div>
             </div>
           </div>
@@ -803,24 +989,28 @@ export default function ProjectDashboardPage() {
             return "rgba(255,255,255,0.1)";
           };
 
+          // Today's date string for highlighting
+          const todayStr = new Date().toISOString().slice(0, 10);
+
           return (
             <div style={{ ...panelStyle, marginTop: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 8 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
                 <div>
                   <h3 style={headingStyle}>Distribución por Hora y Día</h3>
-                  <p style={subStyle}>Hover para ver detalle · Las horas son en zona horaria de la audiencia</p>
+                  <p style={subStyle}>Hover para ver detalle · Horas en zona horaria de la audiencia</p>
                 </div>
                 {/* Metric switcher */}
-                <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: 3 }}>
+                <div style={{ display: "flex", gap: 3, background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "3px" }}>
                   {heatMetrics.map(m => (
                     <button
                       key={m.key}
                       onClick={() => setHeatMetric(m.key)}
                       style={{
-                        padding: "4px 10px", fontSize: 10, fontWeight: 600, border: "none",
-                        borderRadius: 4, cursor: "pointer", transition: "all 0.15s",
+                        padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
+                        borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
                         background: heatMetric === m.key ? "var(--cyan)" : "transparent",
-                        color: heatMetric === m.key ? "#000" : "rgba(148,163,184,0.8)",
+                        color: heatMetric === m.key ? "#000" : "rgba(148,163,184,0.7)",
+                        letterSpacing: "0.04em",
                       }}
                     >
                       {m.label}
@@ -828,16 +1018,17 @@ export default function ProjectDashboardPage() {
                   ))}
                 </div>
               </div>
-              <div style={{ overflowX: "auto", maxHeight: 500, overflowY: "auto" }}>
-                <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 700 }}>
+              <div style={{ overflowX: "auto", maxHeight: 520, overflowY: "auto" }}>
+                <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 740 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
                     <tr>
-                      <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.75)", textAlign: "left", fontWeight: 600, width: 70, background: "var(--panel-bg)" }}></th>
+                      <th style={{ padding: "5px 10px", fontSize: 9, color: "rgba(148,163,184,0.6)", textAlign: "left", fontWeight: 700, width: 76, background: "rgba(8,12,24,0.97)", letterSpacing: "0.06em" }}>FECHA</th>
                       {HOURS.map(h => (
-                        <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.7)", textAlign: "center", fontWeight: 500, minWidth: 26, background: "var(--panel-bg)" }}>
-                          {h.toString().padStart(2, "00")}
+                        <th key={h} style={{ padding: "5px 2px", fontSize: 9, color: "rgba(148,163,184,0.6)", textAlign: "center", fontWeight: 600, minWidth: 28, background: "rgba(8,12,24,0.97)" }}>
+                          {h.toString().padStart(2, "0")}
                         </th>
                       ))}
+                      <th style={{ padding: "5px 8px", fontSize: 9, color: "rgba(0,212,255,0.6)", textAlign: "right", fontWeight: 700, minWidth: 52, background: "rgba(8,12,24,0.97)", letterSpacing: "0.06em" }}>TOTAL</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -845,15 +1036,18 @@ export default function ProjectDashboardPage() {
                       const dateLabel = formatDateLabel(dateStr);
                       const dt = new Date(dateStr + "T12:00:00");
                       const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
+                      const isToday = dateStr === todayStr;
+                      // Row total
+                      const rowTotal = HOURS.reduce((sum, h) => sum + getVal(dateMap[dateStr][h]), 0);
                       return (
-                        <tr key={dateStr}>
+                        <tr key={dateStr} style={{ background: isToday ? "rgba(0,212,255,0.04)" : "transparent" }}>
                           <td style={{
-                            padding: "4px 8px", fontSize: 9,
-                            color: isWeekend ? "rgba(0,212,255,0.5)" : "rgba(148,163,184,0.6)",
-                            fontWeight: 600, whiteSpace: "nowrap",
-                            background: isWeekend ? "rgba(0,212,255,0.03)" : "transparent",
+                            padding: "3px 10px", fontSize: 10,
+                            color: isToday ? "var(--cyan)" : isWeekend ? "rgba(0,212,255,0.45)" : "rgba(148,163,184,0.7)",
+                            fontWeight: isToday ? 800 : 600, whiteSpace: "nowrap",
+                            borderRight: isToday ? "2px solid rgba(0,212,255,0.35)" : "1px solid rgba(255,255,255,0.03)",
                           }}>
-                            {dateLabel}
+                            {isToday ? "● " : ""}{dateLabel}
                           </td>
                           {HOURS.map(h => {
                             const cell = dateMap[dateStr][h];
@@ -862,40 +1056,62 @@ export default function ProjectDashboardPage() {
                               <td
                                 key={h}
                                 title={`${dateLabel} ${h.toString().padStart(2, "0")}:00\nResultados: ${fmtNum(cell.results)}\nGasto: ${fmtMXN(cell.spend)}\nImpresiones: ${fmtNum(cell.impressions)}`}
-                                style={{ padding: 0, textAlign: "center" }}
+                                style={{ padding: "1px", textAlign: "center" }}
                               >
                                 <div style={{
-                                  width: "100%", height: 22,
+                                  width: "100%", height: 26,
                                   background: getColor2(val),
-                                  borderRadius: 2,
-                                  margin: 1,
+                                  borderRadius: 3,
                                   display: "flex", alignItems: "center", justifyContent: "center",
-                                  fontSize: 8, color: val > 0 ? "rgba(255,255,255,0.85)" : "transparent",
-                                  fontWeight: 600,
+                                  fontSize: 9, color: val > 0 ? "rgba(255,255,255,0.9)" : "transparent",
+                                  fontWeight: 700,
                                   cursor: "default",
-                                  transition: "background 0.15s, transform 0.1s",
+                                  transition: "transform 0.1s",
                                 }}
-                                onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.3)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; }}
-                                onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; }}
+                                onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.4)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.5)"; }}
+                                onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; e.currentTarget.style.boxShadow = "none"; }}
                                 >
                                   {fmtVal(cell)}
                                 </div>
                               </td>
                             );
                           })}
+                          {/* Row total */}
+                          <td style={{ padding: "3px 8px", textAlign: "right" }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: rowTotal > 0 ? "rgba(0,212,255,0.8)" : "rgba(148,163,184,0.3)" }}>
+                              {rowTotal > 0 ? (heatMetric === "spend" ? fmtMXN(rowTotal) : fmtNum(Math.round(rowTotal))) : "—"}
+                            </span>
+                          </td>
                         </tr>
                       );
                     })}
                   </tbody>
+                  {/* Column totals footer */}
+                  <tfoot style={{ position: "sticky", bottom: 0 }}>
+                    <tr style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "rgba(8,12,24,0.97)" }}>
+                      <td style={{ padding: "5px 10px", fontSize: 9, color: "rgba(0,212,255,0.6)", fontWeight: 700, letterSpacing: "0.08em" }}>TOTAL</td>
+                      {HOURS.map(h => {
+                        const colTotal = sortedDates.reduce((sum, dateStr) => sum + getVal(dateMap[dateStr][h]), 0);
+                        return (
+                          <td key={h} style={{ padding: "3px 1px", textAlign: "center" }}>
+                            <span style={{ fontSize: 8, fontWeight: 700, color: colTotal > 0 ? "rgba(0,212,255,0.7)" : "rgba(148,163,184,0.2)" }}>
+                              {colTotal > 0 ? (colTotal > 999 ? `${(colTotal / 1000).toFixed(1)}k` : Math.round(colTotal)) : ""}
+                            </span>
+                          </td>
+                        );
+                      })}
+                      <td />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
               {/* Legend */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
-                <span style={{ fontSize: 8, color: "var(--text-muted)" }}>Menos</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end" }}>
+                <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Menor actividad</span>
                 {["rgba(255,255,255,0.05)", "rgba(255,255,255,0.1)", "rgba(0,212,255,0.12)", "rgba(0,212,255,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
-                  <div key={i} style={{ width: 14, height: 10, borderRadius: 2, background: c }} />
+                  <div key={i} style={{ width: 16, height: 12, borderRadius: 3, background: c }} />
                 ))}
-                <span style={{ fontSize: 8, color: "var(--text-muted)" }}>Más</span>
+                <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Mayor actividad</span>
               </div>
             </div>
           );
@@ -909,10 +1125,56 @@ export default function ProjectDashboardPage() {
         <div className="space-y-3">
           {/* Budget Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div style={panelStyle}><p style={labelStyle}>Presupuesto {bk.label}</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(budgetNum)}</p></div>
-            <div style={panelStyle}><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 20, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
-            <div style={panelStyle}><p style={labelStyle}>Gastado hoy</p><p style={{ fontSize: 20, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(totalSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtMXN0(idealSpendToday)} ideal</p></div>
-            <div style={panelStyle}><p style={labelStyle}>Restante</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p></div>
+            {/* Presupuesto mensual */}
+            <div style={{ ...panelStyle, borderTop: "2px solid rgba(251,191,36,0.5)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(251,191,36,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <DollarSign style={{ width: 12, height: 12, color: "var(--amber)" }} />
+                </div>
+                <p style={labelStyle}>Presupuesto {bk.label}</p>
+              </div>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--amber)", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN0(budgetNum)}</p>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)} · Semanal: {fmtMXN(bk.weekly)}</p>
+            </div>
+            {/* Diario ideal */}
+            <div style={{ ...panelStyle, borderTop: "2px solid rgba(0,212,255,0.5)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(0,212,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Target style={{ width: 12, height: 12, color: "var(--cyan)" }} />
+                </div>
+                <p style={labelStyle}>Diario ideal</p>
+              </div>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN(bk.daily)}</p>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>Ritmo objetivo por día</p>
+            </div>
+            {/* Gastado hoy */}
+            <div style={{ ...panelStyle, borderTop: `2px solid ${totalSpend > idealSpendToday * 1.1 ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: totalSpend > idealSpendToday * 1.1 ? "rgba(226,68,92,0.1)" : "rgba(0,200,117,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Activity style={{ width: 12, height: 12, color: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)" }} />
+                </div>
+                <p style={labelStyle}>Gastado hoy</p>
+              </div>
+              <p style={{ fontSize: 22, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN0(totalSpend)}</p>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>de {fmtMXN0(idealSpendToday)} ideal</p>
+              {/* mini progress bar */}
+              {idealSpendToday > 0 && (
+                <div style={{ marginTop: 8, height: 3, background: "rgba(255,255,255,0.07)", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${Math.min((totalSpend / idealSpendToday) * 100, 100)}%`, background: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", borderRadius: 2 }} />
+                </div>
+              )}
+            </div>
+            {/* Restante */}
+            <div style={{ ...panelStyle, borderTop: "2px solid rgba(123,97,255,0.5)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(123,97,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <TrendingDown style={{ width: 12, height: 12, color: "var(--purple)" }} />
+                </div>
+                <p style={labelStyle}>Restante</p>
+              </div>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>{budgetNum > 0 ? `${pct(Math.min((totalSpend / budgetNum) * 100, 100))} utilizado` : "Sin presupuesto configurado"}</p>
+            </div>
           </div>
 
           {/* Spend Table — Spreadsheet Style (dates as columns) */}
@@ -1026,15 +1288,38 @@ export default function ProjectDashboardPage() {
           {/* Loading state when no breakdowns loaded yet */}
           {Object.keys(breakdownData).length === 0 && <LoadingOverlay />}
 
-          {/* Section header */}
-          <div style={{ ...panelStyle, padding: "14px 18px", background: "linear-gradient(135deg, rgba(0,129,251,0.06), rgba(0,212,255,0.04))" }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 4 }}>
-              <Users style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "var(--cyan)" }} />
-              ¿A quién estás llegando?
-            </h3>
-            <p style={{ fontSize: 11, color: "rgba(148,163,184,0.6)", lineHeight: 1.5 }}>
-              Demografía, ubicación geográfica, plataformas y horarios de tu audiencia. Datos basados en la inversión del periodo seleccionado.
-            </p>
+          {/* Section header — enriched banner */}
+          <div style={{
+            ...panelStyle,
+            padding: "18px 22px",
+            background: "linear-gradient(135deg, rgba(0,129,251,0.1) 0%, rgba(0,212,255,0.06) 50%, rgba(123,97,255,0.06) 100%)",
+            borderLeft: "3px solid var(--cyan)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(0,212,255,0.15)", border: "1px solid rgba(0,212,255,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Users style={{ width: 20, height: 20, color: "var(--cyan)" }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 3 }}>
+                  ¿A quién estás llegando?
+                </h3>
+                <p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.5 }}>
+                  Demografía, ubicación geográfica, plataformas y dispositivos — basado en inversión del periodo.
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                {[
+                  { label: "Edad/Género", color: "var(--cyan)" },
+                  { label: "Región", color: "var(--amber)" },
+                  { label: "Dispositivo", color: "var(--purple)" },
+                  { label: "Plataforma", color: "var(--emerald)" },
+                ].map((chip, i) => (
+                  <div key={i} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 9, fontWeight: 700, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: chip.color, letterSpacing: "0.06em" }}>
+                    {chip.label}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -1047,7 +1332,17 @@ export default function ProjectDashboardPage() {
                 {(() => {
                   // 3-state: undefined = loading, [] = empty, [...] = data
                   const raw = breakdownData["age_gender"];
-                  if (raw === undefined) return <NoData msg="Cargando..." />;
+                  if (raw === undefined) return (
+                    <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 8, padding: "8px 0" }}>
+                      {[70, 90, 55, 80, 65, 45].map((w, i) => (
+                        <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <div style={{ width: 36, height: 14, borderRadius: 4, background: "rgba(255,255,255,0.06)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
+                          <div style={{ height: 24, borderRadius: 4, background: "rgba(0,212,255,0.08)", flex: 1, maxWidth: `${w}%`, animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
+                        </div>
+                      ))}
+                      <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 11, marginTop: 8 }}>Cargando datos de audiencia...</p>
+                    </div>
+                  );
                   const buckets: Record<string, { age: string; Hombres: number; Mujeres: number; Otro: number }> = {};
                   for (const r of raw) {
                     const age = r.age || "?";
@@ -1602,17 +1897,76 @@ export default function ProjectDashboardPage() {
           </div>
 
           {/* Combinación Ganadora */}
-          <div style={panelStyle}>
-            <h3 style={headingStyle}><Zap style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--amber)" }} />Combinación Ganadora</h3>
-            <p style={subStyle}>Campaña y conjunto con mejor rendimiento</p>
+          <div style={{
+            ...panelStyle,
+            background: "linear-gradient(135deg, rgba(253,171,61,0.06) 0%, rgba(0,0,0,0) 60%)",
+            borderTop: "2px solid rgba(253,171,61,0.3)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(253,171,61,0.15)", border: "1px solid rgba(253,171,61,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
+              </div>
+              <div>
+                <h3 style={headingStyle}>Combinación Ganadora</h3>
+                <p style={subStyle}>Campaña y conjunto de anuncios con mejor rendimiento del periodo</p>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(() => {
                 const top = (insights?.campaigns || []).map((c: any) => { const s = parseFloat(c.spend || "0"); const ra = findResultAction(c.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: c.campaign_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
-                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Campaña Ganadora</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "var(--text-muted)", fontSize: 12 }}>Sin datos</div>;
+                return top ? (
+                  <div style={{
+                    background: "linear-gradient(135deg, rgba(253,171,61,0.08), rgba(0,0,0,0.15))",
+                    border: "1px solid rgba(253,171,61,0.2)", borderRadius: 12, padding: 18,
+                    position: "relative", overflow: "hidden",
+                  }}>
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(253,171,61,0.08)" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(253,171,61,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🏆</div>
+                      <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
+                    </div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
+                      </div>
+                      <div style={{ padding: "4px 10px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
+                      </div>
+                      <div style={{ padding: "4px 10px", background: "rgba(253,171,61,0.1)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Inversión: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: 12 }}>Sin datos de campaña</div>;
               })()}
               {(() => {
                 const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
-                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Adset Ganador</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "var(--text-muted)", fontSize: 12 }}>Sin datos</div>;
+                return top ? (
+                  <div style={{
+                    background: "linear-gradient(135deg, rgba(123,97,255,0.08), rgba(0,0,0,0.15))",
+                    border: "1px solid rgba(123,97,255,0.2)", borderRadius: 12, padding: 18,
+                    position: "relative", overflow: "hidden",
+                  }}>
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(123,97,255,0.08)" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(123,97,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🥇</div>
+                      <p style={{ fontSize: 9, color: "var(--purple)", fontWeight: 800, letterSpacing: "0.12em" }}>ADSET GANADOR</p>
+                    </div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
+                      </div>
+                      <div style={{ padding: "4px 10px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
+                      </div>
+                      <div style={{ padding: "4px 10px", background: "rgba(123,97,255,0.1)", border: "1px solid rgba(123,97,255,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Inversión: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: 12 }}>Sin datos de adset</div>;
               })()}
             </div>
           </div>
@@ -1904,32 +2258,101 @@ export default function ProjectDashboardPage() {
         <ErrorBoundary name="Tab Configuracion">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div style={panelStyle}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <h3 style={headingStyle}>Información General</h3>
-              {!isEditing ? <button onClick={() => setIsEditing(true)} style={{ background: "none", border: "none", color: "rgba(148,163,184,0.6)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}><Edit3 style={{ width: 14, height: 14 }} /> Editar</button>
-                : <div style={{ display: "flex", gap: 8 }}><button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ background: "none", border: "none", color: "var(--red)", cursor: "pointer" }}><X style={{ width: 14, height: 14 }} /></button><button onClick={saveChanges} style={{ background: "none", border: "none", color: "var(--emerald)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}><Save style={{ width: 14, height: 14 }} /> Guardar</button></div>}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Settings style={{ width: 14, height: 14, color: "var(--cyan)" }} />
+                </div>
+                <h3 style={headingStyle}>Información General</h3>
+              </div>
+              {!isEditing ? (
+                <button onClick={() => setIsEditing(true)} style={{
+                  display: "flex", alignItems: "center", gap: 6, padding: "6px 14px",
+                  background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)",
+                  color: "var(--cyan)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600,
+                  transition: "all 0.15s",
+                }}>
+                  <Edit3 style={{ width: 12, height: 12 }} /> Editar
+                </button>
+              ) : (
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "rgba(226,68,92,0.08)", border: "1px solid rgba(226,68,92,0.2)", color: "var(--red)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
+                    <X style={{ width: 12, height: 12 }} /> Cancelar
+                  </button>
+                  <button onClick={saveChanges} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 14px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", color: "var(--emerald)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
+                    <Save style={{ width: 12, height: 12 }} /> Guardar
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="space-y-4">
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {([
-                { label: "Alias", key: "alias" }, { label: "Cliente", key: "client" },
-                { label: "Vertical", key: "vertical" }, { label: "Website", key: "website" },
-                { label: "Buyer Persona", key: "persona" }, { label: "Geo Target", key: "geo" },
+                { label: "Alias", key: "alias", icon: <Tag style={{ width: 12, height: 12 }} /> },
+                { label: "Cliente", key: "client", icon: <Building style={{ width: 12, height: 12 }} /> },
+                { label: "Vertical", key: "vertical", icon: <Layers style={{ width: 12, height: 12 }} /> },
+                { label: "Website", key: "website", icon: <Globe style={{ width: 12, height: 12 }} /> },
+                { label: "Buyer Persona", key: "persona", icon: <Users style={{ width: 12, height: 12 }} /> },
+                { label: "Geo Target", key: "geo", icon: <MapPin style={{ width: 12, height: 12 }} /> },
               ] as const).map(f => (
-                <div key={f.key}>
-                  <p style={labelStyle}>{f.label}</p>
-                  {isEditing ? <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, outline: "none" }} />
-                    : <p style={{ fontSize: 13, color: "var(--foreground)" }}>{(project as any)[f.key] || "—"}</p>}
+                <div key={f.key} style={{
+                  display: "flex", alignItems: isEditing ? "flex-start" : "center", gap: 12,
+                  padding: "10px 12px", borderRadius: 8, transition: "background 0.15s",
+                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                }}
+                onMouseEnter={e => !isEditing && (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                >
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)" }}>
+                    {f.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ ...labelStyle, marginBottom: 2 }}>{f.label}</p>
+                    {isEditing ? (
+                      <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 6, outline: "none" }} />
+                    ) : (
+                      <p style={{ fontSize: 13, color: (project as any)[f.key] ? "var(--foreground)" : "rgba(148,163,184,0.3)", fontStyle: (project as any)[f.key] ? "normal" : "italic" }}>
+                        {(project as any)[f.key] || "Sin configurar"}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
-              <div>
-                <p style={labelStyle}>Estado</p>
-                {isEditing ? <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}>
-                  <option value="Activo">Activo</option><option value="Pausado">Pausado</option><option value="Draft">Draft</option><option value="Completado">Completado</option></select>
-                  : <span className={`badge badge-${STATUS_COLORS[project.status]}`}>{project.status}</span>}
+              {/* Estado */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)" }}>
+                  <Activity style={{ width: 12, height: 12 }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ ...labelStyle, marginBottom: 2 }}>Estado</p>
+                  {isEditing ? (
+                    <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 6, cursor: "pointer" }}>
+                      <option value="Activo">Activo</option><option value="Pausado">Pausado</option><option value="Draft">Draft</option><option value="Completado">Completado</option>
+                    </select>
+                  ) : (
+                    <span className={`badge badge-${STATUS_COLORS[project.status]}`}>{project.status}</span>
+                  )}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><p style={labelStyle}>Fecha Inicio</p>{isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "var(--foreground)" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString() : "—"}</p>}</div>
-                <div><p style={labelStyle}>Fecha Fin</p>{isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "var(--foreground)" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString() : "—"}</p>}</div>
+              {/* Fechas */}
+              <div className="grid grid-cols-2 gap-3" style={{ padding: "10px 0" }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)", marginLeft: 12 }}>
+                    <Calendar style={{ width: 12, height: 12 }} />
+                  </div>
+                  <div>
+                    <p style={labelStyle}>Fecha Inicio</p>
+                    {isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateStart ? "var(--foreground)" : "rgba(148,163,184,0.3)", fontStyle: project.dateStart ? "normal" : "italic" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)" }}>
+                    <Calendar style={{ width: 12, height: 12 }} />
+                  </div>
+                  <div>
+                    <p style={labelStyle}>Fecha Fin</p>
+                    {isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateEnd ? "var(--foreground)" : "rgba(148,163,184,0.3)", fontStyle: project.dateEnd ? "normal" : "italic" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                  </div>
+                </div>
               </div>
               <div>
                 <p style={labelStyle}>Plataforma del bot (Análisis de Resultados)</p>

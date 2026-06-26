@@ -503,6 +503,7 @@ select option:disabled { color: var(--text-muted); }
 .interactive-row:hover { background: var(--surface-hover); }
 .interactive-row:last-child { border-bottom: none; }
 
+
 /* NEON TEXT VARIANTS */
 .neon-cyan   { color: var(--cyan);    text-shadow: 0 0 12px rgba(0,212,255,0.5); }
 .neon-emerald { color: var(--emerald); text-shadow: 0 0 12px rgba(6,214,160,0.5); }
@@ -510,3 +511,198 @@ select option:disabled { color: var(--text-muted); }
 .neon-red    { color: var(--red);     text-shadow: 0 0 12px rgba(255,45,85,0.5); }
 .neon-purple { color: var(--purple);  text-shadow: 0 0 12px rgba(123,97,255,0.5); }
 
+/* ═══════════════════════════════════════════════════════════════
+   ENHANCED ANIMATIONS & MICRO-INTERACTIONS
+   ═══════════════════════════════════════════════════════════════ */
+
+/* Staggered page entrance */
+.page-enter > * {
+  animation: card-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.page-enter > *:nth-child(1) { animation-delay: 0ms; }
+.page-enter > *:nth-child(2) { animation-delay: 55ms; }
+.page-enter > *:nth-child(3) { animation-delay: 110ms; }
+.page-enter > *:nth-child(4) { animation-delay: 165ms; }
+.page-enter > *:nth-child(5) { animation-delay: 220ms; }
+.page-enter > *:nth-child(6) { animation-delay: 275ms; }
+
+@keyframes card-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── GLASS PANEL v2 ── more refined surface */
+.glass-panel-v2 {
+  background: rgba(255,255,255,0.026);
+  backdrop-filter: blur(16px) saturate(1.5);
+  border: 1px solid rgba(255,255,255,0.075);
+  border-radius: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: border-color 0.25s, box-shadow 0.25s;
+}
+.glass-panel-v2::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+  pointer-events: none;
+}
+.glass-panel-v2:hover {
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 0 32px rgba(0,212,255,0.06), 0 8px 40px rgba(0,0,0,0.2);
+}
+
+/* ── TAB PILL CONTAINER ── */
+.tab-pill-nav {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.06);
+  width: max-content;
+  overflow-x: auto;
+}
+.tab-pill-nav::-webkit-scrollbar { display: none; }
+
+/* ── METRIC CARDS ── improved KPI card look */
+.metric-card {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 14px;
+  padding: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.metric-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.metric-card-value {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: white;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.metric-card-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+/* ── PROJECT GRID CARD ── */
+.project-card {
+  background: var(--surface);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
+  cursor: pointer;
+  position: relative;
+}
+.project-card:hover {
+  transform: translateY(-4px);
+}
+.project-card-accent {
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-color, var(--cyan)), transparent);
+}
+
+/* ── IMPROVED SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 3px; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,0.1);
+  border-radius: 3px;
+  transition: background 0.2s;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
+
+/* ── BADGE IMPROVEMENTS ── */
+.badge {
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.15em !important;
+  padding: 3px 10px !important;
+  border-radius: 20px !important;
+}
+
+/* ── CHART CONTAINER ── */
+.chart-wrapper {
+  position: relative;
+  background: rgba(255,255,255,0.02);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+  padding: 16px;
+}
+
+/* ── GLOW BUTTON ── */
+.btn-glow {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 22px; border-radius: 24px; border: none;
+  background: linear-gradient(135deg, rgba(0,212,255,0.9) 0%, rgba(79,70,229,0.9) 100%);
+  color: #fff; font-family: var(--font-sans); font-size: 12px; font-weight: 700;
+  cursor: pointer; transition: all 0.25s ease;
+  box-shadow: 0 4px 20px rgba(0,212,255,0.3);
+  letter-spacing: 0.04em;
+}
+.btn-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,212,255,0.45);
+}
+.btn-glow:active { transform: translateY(0); }
+
+/* ── SECTION DIVIDER ── */
+.section-divider {
+  display: flex; align-items: center; gap: 12px;
+  margin: 20px 0;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.15em;
+  text-transform: uppercase; color: var(--text-muted);
+}
+.section-divider::before,
+.section-divider::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), transparent);
+}
+
+/* ── STAT TABLE ── */
+.stat-table { width: 100%; border-collapse: collapse; }
+.stat-table th {
+  font-size: 9px; font-weight: 700; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--text-muted);
+  padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.06);
+  text-align: left;
+}
+.stat-table td {
+  font-size: 12px; color: var(--foreground);
+  padding: 10px 12px; border-bottom: 1px solid rgba(255,255,255,0.04);
+  transition: background 0.15s;
+}
+.stat-table tr:hover td { background: rgba(255,255,255,0.03); }
+.stat-table tr:last-child td { border-bottom: none; }
+
+/* ── FLOATING ACTION ── */
+@keyframes float-up {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-4px); }
+}
+.float-animation { animation: float-up 3s ease-in-out infinite; }
+
+/* ── RESPONSIVE GRID ── */
+@media (max-width: 640px) {
+  .project-grid { grid-template-columns: 1fr !important; }
+}
+
+/* ── SKELETON PULSE ANIMATION ── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.skeleton-pulse { animation: pulse 1.5s ease-in-out infinite; }
