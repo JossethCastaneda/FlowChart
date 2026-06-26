@@ -455,7 +455,7 @@ export default function ProjectDashboardPage() {
   const trackStatus = goalNum > 0 ? (goalCompletion >= (daysElapsed / daysInMonth) * 100 ? "on-track" : goalCompletion >= (daysElapsed / daysInMonth) * 70 ? "at-risk" : "off-track") : "unknown";
 
   // Chart data
-  const timeSeriesData = useMemo(() => {
+  const timeSeriesData = (() => {
     const grouped: Record<string, any> = {};
     (insights?.timeSeries || []).forEach((d: any) => {
       const fd = d.date_start || "";
@@ -483,7 +483,7 @@ export default function ProjectDashboardPage() {
         impressions: g.impressions, clicks: g.clicks
       };
     }).sort((a: any, b: any) => a.fullDate.localeCompare(b.fullDate));
-  }, [insights, ch?.goal]);
+  })();
 
   // Spend table with aggregation
   const getSpendTable = () => {
@@ -1761,7 +1761,7 @@ export default function ProjectDashboardPage() {
                 <div><p style={labelStyle}>Fecha Fin</p>{isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "var(--foreground)" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString() : "—"}</p>}</div>
               </div>
               <div>
-                <p style={labelStyle}>CRMs conectados (análisis de resultados)</p>
+                <p style={labelStyle}>Plataforma del bot (Análisis de Resultados)</p>
                 {(() => {
                   const CRM_PROVIDERS = ["botmaker", "cari", "custom_crm", "hubspot"];
                   // Solo botmaker/cari/cari_ai alimentan Análisis de Resultados; el resto
@@ -1771,53 +1771,41 @@ export default function ProjectDashboardPage() {
                     return normalizeIntegrationProvider(p) ? base : `${base} — no compatible con Análisis de Resultados`;
                   };
                   const crmOptions = activeIntegrations.filter(i => CRM_PROVIDERS.includes(i.provider));
-                  // Selección efectiva: arreglo nuevo, con fallback al campo legacy.
-                  const selected: string[] = (editForm.crmIntegrationIds && editForm.crmIntegrationIds.length > 0)
-                    ? editForm.crmIntegrationIds
-                    : editForm.crmIntegrationId ? [editForm.crmIntegrationId] : [];
+                  // Una sola plataforma de bot por proyecto: el análisis ahora se acota a
+                  // los canales de Botmaker del proyecto, así que la multi-selección dejó
+                  // de tener sentido. Se conserva crmIntegrationIds (1 elemento) por compat.
+                  const selectedId = (editForm.crmIntegrationIds && editForm.crmIntegrationIds[0])
+                    || editForm.crmIntegrationId || "";
                   if (isEditing) {
                     return (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        {crmOptions.length === 0 && <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Conecta un CRM en Integraciones primero.</p>}
-                        {crmOptions.map(i => {
-                          const checked = selected.includes(i.id);
-                          return (
-                            <label key={i.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "var(--foreground)", cursor: "pointer", padding: "6px 10px", borderRadius: 4, background: checked ? "rgba(0,212,255,0.06)" : "rgba(0,0,0,0.2)", border: `1px solid ${checked ? "rgba(0,212,255,0.3)" : "rgba(255,255,255,0.06)"}` }}>
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={e => {
-                                  const next = e.target.checked ? [...selected, i.id] : selected.filter(x => x !== i.id);
-                                  const first = activeIntegrations.find(a => a.id === next[0]);
-                                  setEditForm(prev => ({
-                                    ...prev,
-                                    crmIntegrationIds: next,
-                                    // legacy en sync: primer CRM seleccionado
-                                    crmIntegrationId: next[0] || null,
-                                    crmType: first ? first.provider : null,
-                                  }));
-                                }}
-                                style={{ accentColor: "var(--cyan)" }}
-                              />
-                              {crmLabel(i.provider)}
-                            </label>
-                          );
-                        })}
-                        {selected.length > 1 && <p style={{ fontSize: 10, color: "var(--text-muted)" }}>El análisis de resultados se mostrará segmentado por cada herramienta.</p>}
-                      </div>
+                      <>
+                        <select
+                          value={selectedId}
+                          onChange={e => {
+                            const sel = e.target.value;
+                            const intg = activeIntegrations.find(a => a.id === sel);
+                            setEditForm(prev => ({
+                              ...prev,
+                              crmIntegrationId: sel || null,
+                              crmIntegrationIds: sel ? [sel] : [],
+                              crmType: intg ? intg.provider : null,
+                            }));
+                          }}
+                          style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer", appearance: "auto" }}
+                        >
+                          <option value="">Ninguna</option>
+                          {crmOptions.map(i => <option key={i.id} value={i.id}>{crmLabel(i.provider)}</option>)}
+                        </select>
+                        {crmOptions.length === 0 && <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>Conecta Botmaker o Cari AI en Integraciones primero.</p>}
+                      </>
                     );
                   }
-                  const current: string[] = (project.crmIntegrationIds && project.crmIntegrationIds.length > 0)
-                    ? project.crmIntegrationIds
-                    : project.crmIntegrationId ? [project.crmIntegrationId] : [];
+                  const currentId = (project.crmIntegrationIds && project.crmIntegrationIds[0])
+                    || project.crmIntegrationId || "";
+                  const cur = currentId ? activeIntegrations.find(a => a.id === currentId) : null;
                   return (
-                    <p style={{ fontSize: 13, color: current.length ? "var(--cyan)" : "var(--foreground)" }}>
-                      {current.length
-                        ? current.map(id => {
-                            const i = activeIntegrations.find(a => a.id === id);
-                            return i ? crmLabel(i.provider) : "Conectado";
-                          }).join(" · ")
-                        : "—"}
+                    <p style={{ fontSize: 13, color: currentId ? "var(--cyan)" : "var(--foreground)" }}>
+                      {currentId ? (cur ? crmLabel(cur.provider) : "Conectado") : "—"}
                     </p>
                   );
                 })()}
