@@ -826,18 +826,18 @@ export default function ProjectDashboardPage() {
                 const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "var(--foreground)", borderBottom: "1px solid rgba(255,255,255,0.03)", whiteSpace: "nowrap" };
                 const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 700, fontSize: 10, background: "var(--cyan)", borderBottom: "none" };
                 const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 600, fontSize: 9, background: "rgba(0,120,255,0.5)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
-                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 500, color: "rgba(148,163,184,0.7)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "var(--panel-bg)", zIndex: 2 };
-                const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "rgba(255,255,255,0.02)", position: "sticky" as const, left: 0, zIndex: 2 };
+                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 600, color: "rgba(255,255,255,0.9)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "rgba(15,23,42,0.95)", borderRight: "1px solid rgba(255,255,255,0.1)", zIndex: 2 };
+                const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "rgba(30,41,59,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", position: "sticky" as const, left: 0, zIndex: 2 };
 
                 const metricRows = [
                   { label: "Presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "var(--foreground)" },
                   { label: "Importe Gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "var(--amber)" },
                   { label: "%Gastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "var(--foreground)" },
                   { label: goalLabel(ch?.goal), total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "var(--emerald)" },
-                  { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map(() => "—"), color: "var(--purple)" },
+                  { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map((c: any) => goalBreakdown.daily > 0 ? pct((c.results / goalBreakdown.daily) * 100) : "—"), color: "#c084fc" },
                   { label: CPR_MAP[ch?.goal || ""] || "CPR", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "var(--cyan)" },
-                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Proyección`, total: fmtMXN(projCPL), values: cols.map(() => "—"), color: "rgba(148,163,184,0.75)" },
-                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(0)}%`; }), color: "rgba(148,163,184,0.75)" },
+                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Objetivo`, total: cprTarget > 0 ? fmtMXN(cprTarget) : "—", values: cols.map(() => cprTarget > 0 ? fmtMXN(cprTarget) : "—"), color: "rgba(255,255,255,0.85)" },
+                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(1)}%`; }), color: "rgba(255,255,255,0.85)" },
                 ];
 
                 return (
@@ -845,13 +845,13 @@ export default function ProjectDashboardPage() {
                     {/* Day names header */}
                     <thead>
                       <tr>
-                        <th style={{ ...totalCellStyle, background: "var(--panel-bg)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 9, color: "var(--text-muted)" }}>AL DÍA</th>
-                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 9, color: "var(--text-muted)" }}>FECHA</th>
+                        <th style={{ ...totalCellStyle, background: "rgba(30,41,59,0.95)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 10, color: "rgba(255,255,255,0.9)" }}>AL DÍA</th>
+                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 10, color: "rgba(255,255,255,0.9)" }}>FECHA</th>
                         {cols.map((c: any, i: number) => <th key={i} style={headerCellStyle}>{c.dayName}</th>)}
                       </tr>
                       {/* Date numbers row */}
                       <tr>
-                        <th style={{ ...totalCellStyle, background: "var(--panel-bg)", borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
+                        <th style={{ ...totalCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
                         <th style={{ ...labelCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
                         {cols.map((c: any, i: number) => <th key={i} style={subHeaderStyle}>{c.date}</th>)}
                       </tr>
