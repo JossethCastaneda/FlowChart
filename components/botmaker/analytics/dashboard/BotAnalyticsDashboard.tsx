@@ -16,8 +16,8 @@ import { WIDGETS, DEFAULT_LAYOUT, LayoutCell, WidgetCtx } from "./widgets";
 import type { DashboardData, Granularity } from "@/lib/botmaker/insights";
 import { cdmxRange, cdmxDayStartISO, cdmxDayEndISO } from "@/lib/crm/timezone";
 
-const LS_KEY = "botmaker-dashboard-layout-v5";
-const LS_FILTERS_KEY = "botmaker-dashboard-filters-v1";
+const LS_KEY = "botmaker-dashboard-layout-v6";
+const LS_FILTERS_KEY = "botmaker-dashboard-filters-v2";
 const P = "var(--purple)";
 
 type Period = "Hoy" | "7 días" | "30 días" | "custom";
@@ -68,6 +68,7 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
   const [customTo, setCustomTo] = useState("");
   const [channelId, setChannelId] = useState("");
   const [granularity, setGranularity] = useState<Granularity>("hour");
+  const [includeTest, setIncludeTest] = useState(false);
 
   const [data, setData] = useState<ApiData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,15 +96,16 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
         if (p.customTo) setCustomTo(p.customTo);
         if (p.channelId !== undefined) setChannelId(p.channelId);
         if (p.granularity) setGranularity(p.granularity);
+        if (typeof p.includeTest === "boolean") setIncludeTest(p.includeTest);
       }
     } catch {}
   }, [lsFiltersKey]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      window.localStorage.setItem(lsFiltersKey, JSON.stringify({ period, customFrom, customTo, channelId, granularity }));
+      window.localStorage.setItem(lsFiltersKey, JSON.stringify({ period, customFrom, customTo, channelId, granularity, includeTest }));
     }
-  }, [period, customFrom, customTo, channelId, granularity, lsFiltersKey]);
+  }, [period, customFrom, customTo, channelId, granularity, includeTest, lsFiltersKey]);
 
   // default granularity when switching to "Hoy"
   useEffect(() => { if (period === "Hoy") setGranularity("hour"); else if (granularity === "hour") setGranularity("day"); /* eslint-disable-next-line */ }, [period]);
@@ -123,6 +125,7 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
       const qs = new URLSearchParams({ from, to });
       if (channelId) qs.set("channelId", channelId);
       if (projectId) qs.set("projectId", projectId);
+      if (includeTest) qs.set("includeTest", "true");
       if (forceRefresh) qs.set("forceRefresh", "true");
       const res = await fetch(`/api/botmaker/analytics/dashboard?${qs.toString()}`);
       const json = await res.json();
@@ -137,7 +140,7 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
       setError(e instanceof Error ? e.message : "Error al cargar");
       setData(null);
     } finally { setLoading(false); }
-  }, [from, to, channelId, projectId]);
+  }, [from, to, channelId, projectId, includeTest]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -199,6 +202,15 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
             {(data?.channelOptions || []).map((c) => <option key={c.id} value={c.id}>{c.name || c.id}</option>)}
           </select>
         </div>
+
+        {/* Incluir bots de prueba en el agregado (por defecto se excluyen) */}
+        <button
+          onClick={() => setIncludeTest((v) => !v)}
+          title="Incluir bots de prueba/QA en las métricas agregadas"
+          style={{ ...pillStyle, background: includeTest ? `${P}22` : "rgba(255,255,255,0.05)", borderColor: includeTest ? `${P}70` : "rgba(255,255,255,0.12)", color: includeTest ? "var(--purple)" : "rgba(255,255,255,0.6)" }}
+        >
+          {includeTest ? "Con bots de prueba" : "Solo producción"}
+        </button>
 
         {/* Period */}
         <div ref={periodRef} style={{ position: "relative" }}>

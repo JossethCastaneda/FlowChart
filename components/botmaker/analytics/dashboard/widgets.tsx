@@ -10,12 +10,16 @@ import {
   PieChart, Pie, Cell,
 } from "recharts";
 import {
-  Bot, Users, MessageSquare, Zap, AlertTriangle, RefreshCw, Clock, Target,
-  TrendingDown, Activity, ShieldAlert, Layers,
+  Bot, Users, Zap, AlertTriangle, RefreshCw, Clock, Target,
+  TrendingDown, TrendingUp, Activity, ShieldAlert, Layers, Lightbulb, ShieldCheck,
 } from "lucide-react";
 import type {
-  DashboardData, Granularity, TimeBucket, BreakpointRow, ButtonRow, NamedCount,
+  DashboardData, Granularity, TimeBucket, BreakpointRow, ButtonRow, NamedCount, KpiDelta, Opportunity,
 } from "@/lib/botmaker/insights";
+import type { OutcomeRow } from "@/lib/botmaker/outcomes";
+import { CATEGORY_COLOR } from "@/lib/botmaker/outcomes";
+import type { CaptureFunnelStep } from "@/lib/botmaker/fields";
+import type { BotPerf, CoverageInfo } from "@/lib/botmaker/bot-perf";
 
 // ── tokens ───────────────────────────────────────────────────────────────────
 const P = "var(--purple)", C = "var(--cyan)", G = "var(--emerald)", R = "var(--red)", A = "var(--amber)", B = "var(--cyan)";
@@ -49,14 +53,17 @@ const Col: React.FC<{ children: React.ReactNode; gap?: number }> = ({ children, 
   <div style={{ height: "100%", display: "flex", flexDirection: "column", gap, minHeight: 0 }}>{children}</div>
 );
 
-function Kpi({ label, value, sub, accent = P, icon }: { label: string; value: string | number; sub?: string; accent?: string; icon?: React.ReactNode }) {
+function Kpi({ label, value, sub, accent = P, icon, trend }: { label: string; value: string | number; sub?: string; accent?: string; icon?: React.ReactNode; trend?: KpiDelta }) {
   return (
-    <div style={{ flex: "1 1 130px", minWidth: 120, background: "rgba(255,255,255,0.03)", border: `1px solid ${accent}28`, borderRadius: 10, padding: "10px 12px", display: "flex", flexDirection: "column", gap: 3 }}>
+    <div style={{ flex: "1 1 140px", minWidth: 128, background: "rgba(255,255,255,0.03)", border: `1px solid ${accent}28`, borderRadius: 10, padding: "11px 13px", display: "flex", flexDirection: "column", gap: 4 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-        <span style={{ fontSize: 10, color: muted, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>{label}</span>
+        <span style={{ fontSize: 10.5, color: muted, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>{label}</span>
         {icon && <span style={{ color: accent, opacity: 0.7, display: "flex" }}>{icon}</span>}
       </div>
-      <span style={{ fontSize: 22, fontWeight: 800, color: accent, lineHeight: 1.05 }}>{value}</span>
+      <div style={{ display: "flex", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>
+        <span style={{ fontSize: 23, fontWeight: 800, color: accent, lineHeight: 1.05 }}>{value}</span>
+        <DeltaChip d={trend} />
+      </div>
       {sub && <span style={{ fontSize: 10.5, color: muted }}>{sub}</span>}
     </div>
   );
@@ -96,19 +103,19 @@ const ChartBox: React.FC<{ children: React.ReactElement }> = ({ children }) => (
 
 const KpisWidget = ({ data }: WidgetCtx) => {
   const k = data.kpis;
-  // "Cambio de compañía completado" = sesión tipificada como venta (mensaje de
-  // felicitación del bot). Conteo honesto desde el último paso del embudo.
-  const completed = data.funnel.find((f) => f.key === "sale")?.count ?? 0;
+  const d = data.kpiDeltas;
+  // "Cambio de compañía completado" = conteo exacto de ventas (outcome canónico).
+  const completed = data.outcomes.find((o) => o.key === "venta")?.count ?? 0;
   return (
     <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-      <Kpi label="Conversaciones" value={fmt(k.sessions)} accent={P} icon={<Bot size={14} />} sub={`${fmt(k.users)} usuarios únicos`} />
-      <Kpi label="Cambios completados" value={fmt(completed)} accent={G} icon={<Target size={14} />} sub="portabilidad exitosa" />
-      <Kpi label="Tasa de portabilidad" value={pctTxt(k.conversionRate)} accent={G} icon={<TrendingDown size={14} />} sub="de las conversaciones" />
-      <Kpi label="Atención humana" value={pctTxt(k.agentRate)} accent={A} icon={<Users size={14} />} sub="escalan a un agente" />
-      <Kpi label="No entendidas" value={pctTxt(k.fallbackRate)} accent={R} icon={<AlertTriangle size={14} />} sub="el bot no comprende" />
-      <Kpi label="Reintentos de captura" value={pctTxt(k.retryRate)} accent={A} icon={<RefreshCw size={14} />} sub="error al pedir datos (NIP, número…)" />
-      <Kpi label="1ª respuesta" value={secTxt(k.avgFirstResponseSec)} accent={C} icon={<Clock size={14} />} sub="promedio del bot" />
-      <Kpi label="Automatización" value={pctTxt(k.automationRate)} accent={C} icon={<Zap size={14} />} sub="resueltas sin agente" />
+      <Kpi label="Conversaciones" value={fmt(k.sessions)} accent={P} icon={<Bot size={14} />} sub={`${fmt(k.users)} usuarios únicos`} trend={d?.sessions} />
+      <Kpi label="Cambios completados" value={fmt(completed)} accent={G} icon={<Target size={14} />} sub="portabilidad exitosa" trend={d?.conversionRate} />
+      <Kpi label="Tasa de portabilidad" value={pctTxt(k.conversionRate)} accent={G} icon={<TrendingUp size={14} />} sub="de las conversaciones" trend={d?.conversionRate} />
+      <Kpi label="Atención humana" value={pctTxt(k.agentRate)} accent={A} icon={<Users size={14} />} sub="escalan a un agente" trend={d?.agentRate} />
+      <Kpi label="No entendidas" value={pctTxt(k.fallbackRate)} accent={R} icon={<AlertTriangle size={14} />} sub="el bot no comprende" trend={d?.fallbackRate} />
+      <Kpi label="Reintentos de captura" value={pctTxt(k.retryRate)} accent={A} icon={<RefreshCw size={14} />} sub="error al pedir datos (NIP, número…)" trend={d?.retryRate} />
+      <Kpi label="1ª respuesta" value={secTxt(k.avgFirstResponseSec)} accent={C} icon={<Clock size={14} />} sub="promedio del bot" trend={d?.avgFirstResponseSec} />
+      <Kpi label="Cobertura" value={pctTxt(data.coverage.coveragePct)} accent={C} icon={<Zap size={14} />} sub="atribuidas a un bot" />
     </div>
   );
 };
@@ -479,49 +486,259 @@ const InsightsWidget = ({ data }: WidgetCtx) => {
   );
 };
 
+// ── rediseño: deltas, cobertura, outcomes, leaderboard por bot, captura ─────────
+
+/** ▲▼ chip de variación vs periodo previo, coloreado por si el movimiento es bueno. */
+function DeltaChip({ d, unit = "%" }: { d?: KpiDelta; unit?: string }) {
+  if (!d || d.dir === "flat") return null;
+  const col = d.good ? G : R;
+  const Icon = d.dir === "up" ? TrendingUp : TrendingDown;
+  const txt = Math.abs(d.pct) >= 0.1 ? `${d.pct > 0 ? "+" : ""}${d.pct}%` : `${d.abs > 0 ? "+" : ""}${d.abs}${unit}`;
+  return (
+    <span title="vs periodo previo" style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 10.5, fontWeight: 800, color: col }}>
+      <Icon size={11} /> {txt}
+    </span>
+  );
+}
+
+const Tag: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = muted }) => (
+  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10.5, fontWeight: 600, color, background: "rgba(255,255,255,0.04)", border: `1px solid ${color}30`, borderRadius: 12, padding: "2px 9px", whiteSpace: "nowrap" }}>
+    {children}
+  </span>
+);
+
+/** Color por tasa donde ALTO es malo (fallback / agente). */
+const rateColorHigh = (v: number) => (v >= 50 ? R : v >= 25 ? A : "rgba(255,255,255,0.72)");
+
+// ── Cobertura / atribución (honestidad primero) ──
+const CoverageWidget = ({ data }: WidgetCtx) => {
+  const c: CoverageInfo = data.coverage;
+  const attrPct = c.coveragePct;
+  const unattrPct = c.total ? Math.round((c.unattributed / c.total) * 1000) / 10 : 0;
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%", justifyContent: "center" }}>
+      <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", background: "rgba(255,255,255,0.05)" }}>
+        <div style={{ width: `${attrPct}%`, background: P }} />
+        <div style={{ width: `${unattrPct}%`, background: "rgba(255,255,255,0.18)" }} />
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
+        <Tag color={P}><ShieldCheck size={11} /> {attrPct}% atribuidas a un bot</Tag>
+        {c.unattributed > 0 && <Tag>{fmt(c.unattributed)} sin bot identificado</Tag>}
+        {c.unnamedBots > 0 && <Tag color={A}>{c.unnamedBots} bots sin nombre</Tag>}
+        {c.testBotsExcluded > 0 && <Tag>{c.testBotsExcluded} de prueba excluidos ({fmt(c.testSessionsExcluded)} conv)</Tag>}
+        {!c.paidTrafficAvailable && <Tag>tráfico pagado 0% · sin ctwa_clid (brecha conocida)</Tag>}
+      </div>
+    </div>
+  );
+};
+
+// ── "¿Qué pasó?" — distribución canónica de resultados (suma 100%) ──
+const OutcomesWidget = ({ data }: WidgetCtx) => {
+  const rows: OutcomeRow[] = data.outcomes;
+  if (!rows.length) return <Empty />;
+  const venta = rows.find((r) => r.key === "venta");
+  return (
+    <Col gap={10}>
+      <div style={{ display: "flex", height: 26, borderRadius: 6, overflow: "hidden", background: "rgba(255,255,255,0.04)", flexShrink: 0 }}>
+        {rows.map((r) => (
+          <div key={r.key}
+            title={`${r.label}: ${fmt(r.count)} (${r.pct}%)${r.rawLabels.length ? " ← " + r.rawLabels.map((x) => x.name).join(", ") : ""}`}
+            style={{ width: `${r.pct}%`, background: CATEGORY_COLOR[r.category], minWidth: r.count ? 2 : 0 }} />
+        ))}
+      </div>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 14px", flexShrink: 0 }}>
+        {rows.map((r) => (
+          <span key={r.key} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5 }}>
+            <span style={{ width: 9, height: 9, borderRadius: 2, background: CATEGORY_COLOR[r.category] }} />
+            <span style={{ color: "rgba(255,255,255,0.78)" }}>{r.label}</span>
+            <span style={{ color: "#fff", fontWeight: 700 }}>{r.pct}%</span>
+            <span style={{ color: muted }}>({fmt(r.count)})</span>
+          </span>
+        ))}
+      </div>
+      {venta && venta.rawLabels.length > 1 && (
+        <div style={{ fontSize: 10.5, color: muted, flexShrink: 0 }}>
+          {fmt(venta.count)} ventas reales — antes dispersas en {venta.rawLabels.length} etiquetas distintas ({venta.rawLabels.slice(0, 3).map((x) => x.name).join(", ")}…)
+        </div>
+      )}
+    </Col>
+  );
+};
+
+// ── Libro mayor POR BOT (el corte que el promedio ocultaba) ──
+const HEALTH_COLOR: Record<BotPerf["health"], string> = { ok: G, warn: A, broken: R };
+const HEALTH_LABEL: Record<BotPerf["health"], string> = { ok: "OK", warn: "Atención", broken: "Roto" };
+
+function HealthChip({ h }: { h: BotPerf["health"] }) {
+  const c = HEALTH_COLOR[h];
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10.5, fontWeight: 700, color: c }}>
+      <span style={{ width: 7, height: 7, borderRadius: "50%", background: c }} /> {HEALTH_LABEL[h]}
+    </span>
+  );
+}
+
+const cell: React.CSSProperties = { padding: "6px 8px", textAlign: "right", whiteSpace: "nowrap", color: "rgba(255,255,255,0.82)" };
+
+function BotRow({ b }: { b: BotPerf }) {
+  const dim = !b.sufficient || b.isUnattributed;
+  return (
+    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: b.health === "broken" && !b.isUnattributed ? "rgba(239,68,68,0.06)" : "transparent", opacity: dim ? 0.65 : 1 }}>
+      <td style={{ padding: "6px 8px", textAlign: "left", maxWidth: 230 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <span title={b.botName} style={{ color: b.isUnattributed ? muted : "rgba(255,255,255,0.92)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>{b.botName}</span>
+          {b.isUnnamed && <span style={{ fontSize: 9, fontFamily: "monospace", color: muted, background: "rgba(255,255,255,0.06)", padding: "1px 4px", borderRadius: 4 }}>{b.botId.slice(0, 6)}</span>}
+          {!b.sufficient && !b.isUnattributed && <span style={{ fontSize: 9, color: muted }}>n={b.sessions}</span>}
+        </div>
+      </td>
+      <td style={cell}>
+        {fmt(b.sessions)}{" "}
+        {b.delta && b.delta.sessions !== 0 && <span style={{ fontSize: 10, color: b.delta.sessions > 0 ? G : muted }}>{b.delta.sessions > 0 ? "+" : ""}{b.delta.sessions}</span>}
+      </td>
+      <td style={{ ...cell, fontWeight: 700, color: b.sales > 0 ? G : muted }}>{fmt(b.sales)}</td>
+      <td style={cell}>{b.conversionRate}%</td>
+      <td style={{ ...cell, color: rateColorHigh(b.fallbackRate) }}>{b.fallbackRate}%</td>
+      <td style={{ ...cell, color: rateColorHigh(b.agentRate) }}>{b.agentRate}%</td>
+      <td style={{ ...cell, color: muted }}>{b.captureCompleteRate}%</td>
+      <td style={cell}>{b.isUnattributed ? <span style={{ color: muted }}>—</span> : <HealthChip h={b.health} />}</td>
+    </tr>
+  );
+}
+
+const BotLeaderboardWidget = ({ data }: WidgetCtx) => {
+  const all: BotPerf[] = data.botPerf;
+  if (!all.length) return <Empty msg="Sin actividad por bot en el periodo" />;
+  const prod = all.filter((b) => !b.isTest && !b.isUnattributed);
+  const unattr = all.find((b) => b.isUnattributed);
+  const test = all.filter((b) => b.isTest);
+  const ordered = [...prod, ...(unattr ? [unattr] : [])];
+  const HEADERS = ["Bot", "Sesiones", "Ventas", "Conv.", "Fallback", "Agente", "Captura", "Salud"];
+  return (
+    <div style={{ height: "100%", overflow: "auto" }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+        <thead>
+          <tr>
+            {HEADERS.map((h, i) => (
+              <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "6px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.1)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "#070b14" }}>{h}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {ordered.map((b) => <BotRow key={b.botId} b={b} />)}
+        </tbody>
+      </table>
+      {test.length > 0 && (
+        <div style={{ marginTop: 8, fontSize: 10.5, color: muted }}>
+          {test.length} bot(s) de prueba excluidos del agregado: {test.map((t) => t.botName).join(", ")}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// ── Embudo de captura real (número → NIP → nombre → venta) + oportunidad ──
+const CaptureFunnelWidget = ({ data }: WidgetCtx) => {
+  const steps: CaptureFunnelStep[] = data.captureFunnel;
+  if (!steps.length) return <Empty msg="Sin datos de captura" />;
+  const opp: Opportunity = data.opportunity;
+  const oppByLeak = new Map(opp.items.map((i) => [i.leak, i]));
+  const maxDrop = Math.max(0, ...steps.slice(1).map((s) => s.dropOffPct));
+  return (
+    <Col gap={8}>
+      <div style={{ fontSize: 10.5, color: muted, flexShrink: 0 }}>Orden BAIT · captura inferida del texto del bot (aprox.)</div>
+      <div style={{ flex: 1, overflow: "auto", minHeight: 0, display: "flex", flexDirection: "column", gap: 9 }}>
+        {steps.map((s, i) => {
+          const isBottleneck = i > 0 && s.dropOffPct > 0 && s.dropOffPct === maxDrop;
+          const o = oppByLeak.get(`Se cae en "${s.label}"`);
+          const isVenta = s.key === "venta";
+          return (
+            <div key={s.key} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
+                <span style={{ color: "rgba(255,255,255,0.82)", fontWeight: isVenta ? 700 : 500 }}>{s.label}</span>
+                <span style={{ fontWeight: 700, color: isVenta ? G : "rgba(255,255,255,0.85)" }}>{fmt(s.count)} <span style={{ color: muted, fontWeight: 400 }}>({s.pct}%)</span></span>
+              </div>
+              <div style={{ height: 16, background: "rgba(255,255,255,0.05)", borderRadius: 5, overflow: "hidden" }}>
+                <div style={{ width: `${s.pct}%`, height: "100%", background: isVenta ? G : P, opacity: 0.82, borderRadius: 5 }} />
+              </div>
+              {i > 0 && s.dropOff > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, fontSize: 10.5 }}>
+                  <span style={{ color: isBottleneck ? R : muted, display: "flex", alignItems: "center", gap: 3 }}>
+                    <TrendingDown size={11} /> −{fmt(s.dropOff)} ({s.dropOffPct}%){isBottleneck ? " · cuello de botella" : ""}
+                  </span>
+                  {o && <span style={{ color: A, fontWeight: 600, whiteSpace: "nowrap" }}>≈ +{o.extraSales} ventas</span>}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {opp.totalExtraSales > 0 && (
+        <div style={{ fontSize: 11.5, color: A, fontWeight: 600, flexShrink: 0, display: "flex", alignItems: "center", gap: 5 }}>
+          <Lightbulb size={13} /> Potencial: +{opp.totalExtraSales} cambios recuperables
+        </div>
+      )}
+    </Col>
+  );
+};
+
 // ── registry + default layout ───────────────────────────────────────────────────
 
 export const WIDGETS: Record<string, WidgetDef> = {
-  kpis: { id: "kpis", title: "Resumen de portabilidad", size: { w: 12, h: 2, minW: 4, minH: 2 }, render: (c) => <KpisWidget {...c} /> },
-  botAgentSplit: { id: "botAgentSplit", title: "Carga Bot vs. Humano", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <BotVsAgentWidget {...c} /> },
-  channelDistribution: { id: "channelDistribution", title: "Distribución por Canal", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelDistributionWidget {...c} /> },
+  // Nivel 1 — honestidad + titulares
+  coverage: { id: "coverage", title: "Cobertura y atribución", size: { w: 12, h: 2, minW: 6, minH: 2 }, render: (c) => <CoverageWidget {...c} /> },
+  kpis: { id: "kpis", title: "Resumen de portabilidad", size: { w: 12, h: 3, minW: 4, minH: 2 }, render: (c) => <KpisWidget {...c} /> },
+  // Nivel 2 — el corte accionable
+  botPerf: { id: "botPerf", title: "Desempeño por bot · quién vende y quién está roto", size: { w: 12, h: 6, minW: 6, minH: 4 }, render: (c) => <BotLeaderboardWidget {...c} /> },
   insights: { id: "insights", title: "Dónde accionar · alertas y recomendaciones", size: { w: 12, h: 3, minW: 4, minH: 2 }, render: (c) => <InsightsWidget {...c} /> },
+  outcomes: { id: "outcomes", title: "¿Qué pasó con las conversaciones?", size: { w: 6, h: 5, minW: 4, minH: 3 }, render: (c) => <OutcomesWidget {...c} /> },
+  captureFunnel: { id: "captureFunnel", title: "Embudo de captura · número → NIP → nombre → venta", size: { w: 6, h: 5, minW: 4, minH: 4 }, render: (c) => <CaptureFunnelWidget {...c} /> },
+  // Nivel 3 — diagnóstico de detalle
   timeseries: { id: "timeseries", title: "Evolución de conversaciones", size: { w: 12, h: 4, minW: 4, minH: 3 }, render: (c) => <TimeseriesWidget {...c} /> },
-  heatmap: { id: "heatmap", title: "Mapa de Calor por Demanda", size: { w: 12, h: 4, minW: 6, minH: 3 }, render: (c) => <HeatmapWidget {...c} /> },
-  funnel: { id: "funnel", title: "Embudo de cambio de compañía", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <FunnelWidget {...c} /> },
   botflow: { id: "botflow", title: "Recorrido de portabilidad · dónde se caen los usuarios", size: { w: 12, h: 6, minW: 6, minH: 4 }, render: (c) => <BotFlowWidget {...c} /> },
   fallback: { id: "fallback", title: "Mensajes que el bot no entendió", size: { w: 6, h: 5, minW: 3, minH: 3 }, render: (c) => <FallbackWidget {...c} /> },
   buttons: { id: "buttons", title: "Botoneras · CTR de botones", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ButtonsWidget {...c} /> },
+  channelDistribution: { id: "channelDistribution", title: "Distribución por Canal", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelDistributionWidget {...c} /> },
   channels: { id: "channels", title: "Detalle Canal / Bot", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelsWidget {...c} /> },
-  flow: { id: "flow", title: "Flujo · transiciones más frecuentes", size: { w: 6, h: 4, minW: 4, minH: 3 }, render: (c) => <FlowWidget {...c} /> },
-  typifications: { id: "typifications", title: "Motivos de cierre", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <TypificationsWidget {...c} /> },
+  heatmap: { id: "heatmap", title: "Mapa de Calor por Demanda", size: { w: 12, h: 4, minW: 6, minH: 3 }, render: (c) => <HeatmapWidget {...c} /> },
+  typifications: { id: "typifications", title: "Motivos de cierre (crudo)", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <TypificationsWidget {...c} /> },
   copies: { id: "copies", title: "Copys con baja conversión", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <CopiesWidget {...c} /> },
   bots: { id: "bots", title: "Sub-bots más activos", size: { w: 3, h: 4, minW: 2, minH: 3 }, render: (c) => <BotsWidget {...c} /> },
   errors: { id: "errors", title: "Errores de entrega", size: { w: 3, h: 4, minW: 2, minH: 3 }, render: (c) => <ErrorsWidget {...c} /> },
+  flow: { id: "flow", title: "Flujo · transiciones más frecuentes", size: { w: 6, h: 4, minW: 4, minH: 3 }, render: (c) => <FlowWidget {...c} /> },
+  // Extra (no en el layout por defecto, se agregan desde el editor)
+  funnel: { id: "funnel", title: "Embudo de engagement (genérico)", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <FunnelWidget {...c} /> },
+  botAgentSplit: { id: "botAgentSplit", title: "Carga Bot vs. Humano", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <BotVsAgentWidget {...c} /> },
   variables: { id: "variables", title: "Diccionario de variables personalizadas", size: { w: 12, h: 4, minW: 4, minH: 3 }, render: (c) => <VariablesWidget {...c} /> },
 };
 
 export interface LayoutCell { id: string; x: number; y: number; w: number; h: number }
 
-// Orden con narrativa telco: primero el resultado (KPIs de portabilidad), luego
-// QUÉ ACCIONAR (alertas), luego el recorrido donde se caen los usuarios y el
-// embudo de cambio de compañía; el resto (tendencias, canales, detalle) abajo.
+// Narrativa de 3 niveles (de arriba abajo): (1) HONESTIDAD — cobertura/atribución
+// y KPIs con tendencia, para que todo lo de abajo se lea con la confianza justa;
+// (2) EL CORTE ACCIONABLE — desempeño por bot (lo que el promedio ocultaba),
+// alertas, qué pasó con las conversaciones y el embudo de captura con su
+// oportunidad; (3) DIAGNÓSTICO — tendencias, recorrido, canales, mapa de calor y
+// detalle. El dato que decide la acción manda; la referencia granular baja.
 export const DEFAULT_LAYOUT: LayoutCell[] = [
-  { id: "kpis", x: 0, y: 0, w: 12, h: 2 },
-  { id: "insights", x: 0, y: 2, w: 12, h: 3 },
-  { id: "botflow", x: 0, y: 5, w: 12, h: 6 },
-  { id: "funnel", x: 0, y: 11, w: 6, h: 4 },
-  { id: "botAgentSplit", x: 6, y: 11, w: 6, h: 4 },
-  { id: "timeseries", x: 0, y: 15, w: 12, h: 4 },
-  { id: "fallback", x: 0, y: 19, w: 6, h: 5 },
-  { id: "buttons", x: 6, y: 19, w: 6, h: 4 },
-  { id: "channelDistribution", x: 0, y: 24, w: 6, h: 4 },
-  { id: "channels", x: 6, y: 24, w: 6, h: 4 },
-  { id: "heatmap", x: 0, y: 28, w: 12, h: 4 },
-  { id: "typifications", x: 0, y: 32, w: 3, h: 4 },
-  { id: "copies", x: 3, y: 32, w: 3, h: 4 },
-  { id: "bots", x: 6, y: 32, w: 3, h: 4 },
-  { id: "errors", x: 9, y: 32, w: 3, h: 4 },
-  { id: "flow", x: 0, y: 36, w: 6, h: 4 },
-  { id: "variables", x: 6, y: 36, w: 6, h: 4 },
+  // Nivel 1 — honestidad + titulares
+  { id: "coverage", x: 0, y: 0, w: 12, h: 2 },
+  { id: "kpis", x: 0, y: 2, w: 12, h: 3 },
+  // Nivel 2 — el corte accionable
+  { id: "botPerf", x: 0, y: 5, w: 12, h: 6 },
+  { id: "insights", x: 0, y: 11, w: 12, h: 3 },
+  { id: "outcomes", x: 0, y: 14, w: 6, h: 5 },
+  { id: "captureFunnel", x: 6, y: 14, w: 6, h: 5 },
+  // Nivel 3 — diagnóstico de detalle
+  { id: "timeseries", x: 0, y: 19, w: 12, h: 4 },
+  { id: "botflow", x: 0, y: 23, w: 12, h: 6 },
+  { id: "fallback", x: 0, y: 29, w: 6, h: 5 },
+  { id: "buttons", x: 6, y: 29, w: 6, h: 5 },
+  { id: "channelDistribution", x: 0, y: 34, w: 6, h: 4 },
+  { id: "channels", x: 6, y: 34, w: 6, h: 4 },
+  { id: "heatmap", x: 0, y: 38, w: 12, h: 4 },
+  { id: "typifications", x: 0, y: 42, w: 3, h: 4 },
+  { id: "copies", x: 3, y: 42, w: 3, h: 4 },
+  { id: "bots", x: 6, y: 42, w: 3, h: 4 },
+  { id: "errors", x: 9, y: 42, w: 3, h: 4 },
+  { id: "flow", x: 0, y: 46, w: 6, h: 4 },
 ];
