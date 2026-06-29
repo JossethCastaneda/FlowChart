@@ -5,7 +5,7 @@ import prisma from "@/lib/prisma";
 import { getBotmakerConnection } from "@/lib/botmaker";
 import { createConnection, listChannels, bmFetch } from "@/lib/botmaker-api";
 import { fetchWorkspaceSessions } from "@/lib/botmaker/fetch-sessions";
-import { computeDashboard } from "@/lib/botmaker/insights";
+import { computeDashboard, diffKpis } from "@/lib/botmaker/insights";
 import { resolveProjectChannelIds } from "@/lib/botmaker/project-channels";
 import type { ChannelLite, VarDef } from "@/lib/botmaker/insights";
 
@@ -93,6 +93,14 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const projectId = sp.get("projectId") || null;
   const timezone = sp.get("timezone") || process.env.APP_TIMEZONE || "America/Mexico_City";
   const forceRefresh = sp.get("forceRefresh") === "true";
+  const includeTest = sp.get("includeTest") === "true";
+
+  // Ventana previa de IGUAL longitud (para deltas ▲▼). Inmediatamente anterior.
+  const fromMs = new Date(from).getTime();
+  const toMs = new Date(to).getTime();
+  const span = Number.isFinite(fromMs) && Number.isFinite(toMs) ? toMs - fromMs : 0;
+  const prevFrom = span > 0 ? new Date(fromMs - span).toISOString() : from;
+  const prevTo = from;
 
   try {
     // Cuando el dashboard se embebe dentro de un proyecto, resolvemos los canales
@@ -104,8 +112,13 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
         })
       : null;
 
-    const [{ sessions }, channelsRaw, meta] = await Promise.all([
+    // Fetch ventana actual + previa (para deltas) + metadatos, en paralelo. La
+    // previa cae enteramente en el pasado → chunks cacheados (coste marginal bajo).
+    const [{ sessions }, prevFetch, channelsRaw, meta] = await Promise.all([
       fetchWorkspaceSessions(ctx.workspaceId, conn, from, to, forceRefresh, req.signal),
+      span > 0
+        ? fetchWorkspaceSessions(ctx.workspaceId, conn, prevFrom, prevTo, false, req.signal).catch(() => null)
+        : Promise.resolve(null),
       listChannels(createConnection(conn.accessToken, conn.baseUrl)),
       loadMeta(ctx.workspaceId, conn),
     ]);
@@ -121,13 +134,35 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
     // Las opciones del selector quedan acotadas a los canales del proyecto.
     const scopedChannels = allowSet ? channels.filter((c) => allowSet.has(c.id)) : channels;
 
-    const data = computeDashboard(sessions, {
-      from, to, timezone, channels,
+    const baseOpts = {
+      timezone, channels,
       botNames: meta.botNames,
       variables: meta.variables,
       channelId,
       channelIds: autoScoped ? projectChannelIds : null,
-    });
+      excludeTestBots: !includeTest,
+    };
+
+    const data = computeDashboard(sessions, { from, to, ...baseOpts });
+
+    // Deltas vs ventana previa (best-effort: si falla, el tablero va sin ▲▼).
+    if (prevFetch && prevFetch.sessions.length) {
+      try {
+        const prev = computeDashboard(prevFetch.sessions, { from: prevFrom, to: prevTo, ...baseOpts });
+        data.kpisPrev = prev.kpis;
+        data.kpiDeltas = diffKpis(data.kpis, prev.kpis);
+        const prevByBot = new Map(prev.botPerf.map((b) => [b.botId, b]));
+        for (const b of data.botPerf) {
+          const pb = prevByBot.get(b.botId);
+          if (pb) b.delta = {
+            sessions: b.sessions - pb.sessions,
+            conversionRate: Math.round((b.conversionRate - pb.conversionRate) * 10) / 10,
+          };
+        }
+      } catch (e) {
+        console.warn("[BOT ANALYTICS] deltas omitidos:", e instanceof Error ? e.message : e);
+      }
+    }
 
     return apiSuccess({
       ...data,
