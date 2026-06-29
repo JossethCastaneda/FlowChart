@@ -1,14 +1,15 @@
-"use client";
+﻿"use client";
 
 import React, { useState } from "react";
-import { Calendar, CheckCircle2, Images, Zap } from "lucide-react";
+import Link from "next/link";
+import { Calendar, CheckCircle2, Clock, Images, Zap } from "lucide-react";
 import { Composer } from "./Composer";
 import { ScheduledCalendar } from "./ScheduledCalendar";
 
 const TABS = [
-  { key: "composer", label: "Redactor", icon: Zap, color: "#ffbe0b" },
-  { key: "calendar", label: "Calendario", icon: Calendar, color: "#06d6a0" },
-  { key: "approvals", label: "Aprobaciones", icon: CheckCircle2, color: "#22c55e" },
+  { key: "composer", label: "Redactor", icon: Zap, color: "var(--amber)" },
+  { key: "calendar", label: "Calendario", icon: Calendar, color: "var(--emerald)" },
+  { key: "approvals", label: "Aprobaciones", icon: CheckCircle2, color: "var(--emerald)" },
   { key: "library", label: "Biblioteca", icon: Images, color: "#f472b6" },
 ] as const;
 
@@ -44,7 +45,7 @@ export function PublisherTabs() {
                 borderRadius: 8,
                 background: isActive ? "rgba(255,255,255,0.1)" : "transparent",
                 border: "none",
-                color: isActive ? "white" : "#64748b",
+                color: isActive ? "white" : "var(--text-muted)",
                 fontSize: 12,
                 fontWeight: isActive ? 700 : 600,
                 cursor: "pointer",
@@ -72,6 +73,29 @@ export function PublisherTabs() {
             </button>
           );
         })}
+
+        {/* Historial vive en su propia ruta (/dashboard/historial) — enlace de pestaña */}
+        <Link
+          href="/dashboard/historial"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            padding: "9px 16px",
+            borderRadius: 8,
+            background: "transparent",
+            border: "none",
+            color: "var(--text-muted)",
+            fontSize: 12,
+            fontWeight: 600,
+            textDecoration: "none",
+            whiteSpace: "nowrap",
+            flex: "none",
+          }}
+        >
+          <Clock style={{ width: 14, height: 14 }} />
+          Historial
+        </Link>
       </div>
 
       <PlannerOverview />
@@ -116,8 +140,8 @@ function PlannerOverview() {
         ["Estado Meta", "Valida permisos en Integraciones si falta algun canal."],
       ].map(([title, text]) => (
         <div key={title} style={{ padding: 14, background: "rgba(5,8,18,0.96)" }}>
-          <div style={{ fontSize: 12, fontWeight: 800, color: "#f8fafc" }}>{title}</div>
-          <div style={{ marginTop: 5, fontSize: 11, lineHeight: 1.45, color: "#94a3b8" }}>{text}</div>
+          <div style={{ fontSize: 12, fontWeight: 800, color: "var(--foreground)" }}>{title}</div>
+          <div style={{ marginTop: 5, fontSize: 11, lineHeight: 1.45, color: "var(--text-secondary)" }}>{text}</div>
         </div>
       ))}
     </div>
@@ -135,8 +159,8 @@ function PlannerPlaceholder({
 }) {
   return (
     <div className="glass-panel" style={{ padding: 28 }}>
-      <h2 style={{ margin: 0, color: "#f8fafc", fontSize: 18, fontWeight: 800 }}>{title}</h2>
-      <p style={{ margin: "8px 0 18px", color: "#94a3b8", fontSize: 13, lineHeight: 1.55, maxWidth: 680 }}>
+      <h2 style={{ margin: 0, color: "var(--foreground)", fontSize: 18, fontWeight: 800 }}>{title}</h2>
+      <p style={{ margin: "8px 0 18px", color: "var(--text-secondary)", fontSize: 13, lineHeight: 1.55, maxWidth: 680 }}>
         {description}
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
@@ -146,9 +170,9 @@ function PlannerPlaceholder({
             style={{
               padding: 12,
               borderRadius: 8,
-              background: "rgba(255,255,255,0.04)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              color: "#cbd5e1",
+              background: "var(--surface-hover)",
+              border: "1px solid var(--hairline)",
+              color: "var(--foreground)",
               fontSize: 12,
             }}
           >

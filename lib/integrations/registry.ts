@@ -19,6 +19,19 @@ export interface ProviderConfig {
   authUrl: string;
   tokenUrl: string;
   scopes: string[];
+  /** Separator between scopes — default " " (space), TikTok uses "," */
+  scopeSeparator?: string;
+  /** Name of the client_id param in the auth URL — default "client_id", TikTok uses "app_id" */
+  clientIdParam?: string;
+  /** Some providers (TikTok) use a different env var for the auth URL param vs token exchange.
+   *  If set, the auth URL will use env[appIdEnv] instead of env[clientIdEnv]. */
+  appIdEnv?: string;
+  /** If true, skip adding response_type=code (TikTok doesn't use it) */
+  skipResponseType?: boolean;
+  /** Format for token exchange — "form" (default) | "json" (TikTok) */
+  tokenBodyFormat?: "form" | "json";
+  /** Param name for the auth code in token exchange — default "code", TikTok uses "auth_code" */
+  authCodeParam?: string;
   clientIdEnv: string;
   clientSecretEnv: string;
   capabilities: ("read" | "manage")[];
@@ -31,14 +44,31 @@ export const PROVIDERS: Record<string, ProviderConfig> = {
   // Google vive en el Hub (app/api/oauth/google), no aquí. Ver comentario arriba.
   tiktok_ads: {
     id: "tiktok_ads",
-    label: "TikTok Ads",
-    authUrl: "https://business-api.tiktok.com/portal/auth",
-    tokenUrl: "https://business-api.tiktok.com/open_api/v1.3/oauth2/access_token/",
-    scopes: [],
+    label: "TikTok",
+    // TikTok for Developers — Content Posting API (v2)
+    // This is the standard OAuth for publishing videos and reading user content.
+    // The Marketing/Ads API (business-api.tiktok.com) requires separate Business Center approval.
+    authUrl: "https://www.tiktok.com/v2/auth/authorize/",
+    tokenUrl: "https://open.tiktokapis.com/v2/oauth/token/",
+    // Content Posting scopes — comma-separated as required by TikTok v2
+    // NOTE: video.* scopes require "Content Posting API" product to be added
+    // in the TikTok Developer Portal (separate from Login Kit).
+    // Start with user.info.basic to verify the OAuth flow, then expand.
+    scopes: [
+      "user.info.basic",
+      "user.info.profile",
+      "user.info.stats",
+      "video.list",
+      "video.publish",
+      "video.upload",
+    ],
+    scopeSeparator: ",",
+    // TikTok v2 uses "client_key" instead of "client_id" in both auth URL and token exchange
+    clientIdParam: "client_key",
     clientIdEnv: "TIKTOK_ADS_CLIENT_ID",
     clientSecretEnv: "TIKTOK_ADS_CLIENT_SECRET",
     capabilities: ["read", "manage"],
-    docsUrl: "https://business-api.tiktok.com/portal/docs?id=1738373164380162",
+    docsUrl: "https://developers.tiktok.com/doc/content-posting-api-get-started/",
   },
 
   linkedin_ads: {

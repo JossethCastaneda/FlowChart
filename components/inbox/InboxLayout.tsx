@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -25,7 +25,7 @@ import { PageSelector, PostView, ChatView, ProfileSection, ContactProfile } from
 // HELPERS
 // ═══════════════════════════════════════════════════════════════
 const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; platforms: Platform[] }[] = [
-  { key: "all", label: "Todos los mensajes", color: "#00d4ff", platforms: [] },
+  { key: "all", label: "Todos los mensajes", color: "var(--cyan)", platforms: [] },
   { key: "messenger", label: "Messenger", color: "#0084ff", platforms: ["fb_messenger"] },
   { key: "instagram", label: "Instagram", color: "#E1306C", platforms: ["ig_dm"] },
   { key: "fb_comment", label: "Comentarios de Facebook", color: "#1877F2", platforms: ["fb_comment"] },
@@ -34,11 +34,11 @@ const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; platform
 ];
 
 const QUEUE_TABS: { key: QueueFilter; label: string; color: string }[] = [
-  { key: "all", label: "Todo", color: "#00d4ff" },
-  { key: "unassigned", label: "Sin asignar", color: "#fbbf24" },
-  { key: "mine", label: "Mias", color: "#22c55e" },
-  { key: "needs_reply", label: "Requiere respuesta", color: "#fb7185" },
-  { key: "done", label: "Cerradas", color: "#94a3b8" },
+  { key: "all", label: "Todo", color: "var(--cyan)" },
+  { key: "unassigned", label: "Sin asignar", color: "var(--amber)" },
+  { key: "mine", label: "Mias", color: "var(--emerald)" },
+  { key: "needs_reply", label: "Requiere respuesta", color: "var(--red)" },
+  { key: "done", label: "Cerradas", color: "var(--text-secondary)" },
 ];
 // ═══════════════════════════════════════════════════════════════
 // TYPES — Connected Pages
@@ -356,13 +356,13 @@ export function InboxLayout() {
             {/* Page selector skeleton */}
             <div style={{
               height: 44, borderRadius: 10, marginBottom: 8,
-              background: "rgba(255,255,255,0.03)",
+              background: "var(--row-hover)",
               animation: "pulse 1.5s ease-in-out infinite",
             }} />
             {/* Search skeleton */}
             <div style={{
               height: 36, borderRadius: 8, marginBottom: 12,
-              background: "rgba(255,255,255,0.03)",
+              background: "var(--row-hover)",
               animation: "pulse 1.5s ease-in-out infinite",
               animationDelay: "0.1s",
             }} />
@@ -380,9 +380,9 @@ export function InboxLayout() {
                 }} />
                 <div style={{ flex: 1 }}>
                   <div style={{ height: 12, width: `${60 + (i % 3) * 15}%`, borderRadius: 4, marginBottom: 6, background: "rgba(255,255,255,0.09)" }} />
-                  <div style={{ height: 10, width: `${40 + (i % 4) * 12}%`, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
+                  <div style={{ height: 10, width: `${40 + (i % 4) * 12}%`, borderRadius: 4, background: "var(--row-hover)" }} />
                 </div>
-                <div style={{ height: 10, width: 24, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
+                <div style={{ height: 10, width: 24, borderRadius: 4, background: "var(--row-hover)" }} />
               </div>
             ))}
           </div>
@@ -398,7 +398,7 @@ export function InboxLayout() {
               <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.09)" }} />
               <div>
                 <div style={{ height: 13, width: 120, borderRadius: 4, marginBottom: 4, background: "rgba(255,255,255,0.09)" }} />
-                <div style={{ height: 10, width: 80, borderRadius: 4, background: "rgba(255,255,255,0.03)" }} />
+                <div style={{ height: 10, width: 80, borderRadius: 4, background: "var(--row-hover)" }} />
               </div>
             </div>
             {/* Messages skeleton */}
@@ -412,7 +412,7 @@ export function InboxLayout() {
                   <div style={{
                     height: 32 + (i % 3) * 10, width: 140 + (i % 4) * 40,
                     borderRadius: 14,
-                    background: incoming ? "rgba(255,255,255,0.03)" : "rgba(168,85,247,0.06)",
+                    background: incoming ? "var(--row-hover)" : "rgba(168,85,247,0.06)",
                   }} />
                 </div>
               ))}
@@ -422,7 +422,7 @@ export function InboxLayout() {
               padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)",
               animation: "pulse 1.5s ease-in-out infinite",
             }}>
-              <div style={{ height: 40, borderRadius: 20, background: "rgba(255,255,255,0.03)" }} />
+              <div style={{ height: 40, borderRadius: 20, background: "var(--row-hover)" }} />
             </div>
           </div>
         </div>
@@ -439,28 +439,28 @@ export function InboxLayout() {
             background: "rgba(168,85,247,0.08)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <MessageSquare style={{ width: 26, height: 26, color: "#a855f7" }} />
+            <MessageSquare style={{ width: 26, height: 26, color: "var(--purple)" }} />
           </div>
           <div style={{ textAlign: "center" }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: "white", margin: "0 0 8px" }}>Sin conversaciones</h3>
-            <p style={{ fontSize: 12, color: "#64748b", textAlign: "center", maxWidth: 320, margin: 0 }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: "0 0 8px" }}>Sin conversaciones</h3>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", maxWidth: 320, margin: 0 }}>
               Conecta tus cuentas de Meta para recibir mensajes de Facebook Messenger e Instagram Direct.
             </p>
           </div>
 
           {/* Quick connect buttons */}
           <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 340 }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: "#475569", margin: 0, letterSpacing: "0.08em", textAlign: "center" }}>ACCESO RÁPIDO</p>
+            <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-secondary)", margin: 0, letterSpacing: "0.08em", textAlign: "center" }}>ACCESO RÁPIDO</p>
             <button
               onClick={() => openConnectPopup("community", () => window.location.reload())}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(0,100,224,0.08)", border: "1px solid rgba(0,100,224,0.2)", color: "#60a5fa", cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(0,100,224,0.08)", border: "1px solid rgba(0,100,224,0.2)", color: "var(--cyan)", cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}
             >
               <div style={{ width: 32, height: 32, borderRadius: 8, background: "#0064E0", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                 <svg viewBox="0 0 24 24" width={16} height={16} fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
               </div>
               <div>
-                <p style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>Facebook & Messenger</p>
-                <p style={{ fontSize: 10, color: "#475569", margin: 0 }}>Páginas, inbox y comentarios</p>
+                <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Facebook & Messenger</p>
+                <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0 }}>Páginas, inbox y comentarios</p>
               </div>
               <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: "auto" }}><path d="M9 18l6-6-6-6"/></svg>
             </button>
@@ -473,14 +473,14 @@ export function InboxLayout() {
                 <svg viewBox="0 0 24 24" width={16} height={16} fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
               </div>
               <div>
-                <p style={{ fontSize: 12, fontWeight: 700, color: "#e2e8f0", margin: 0 }}>Instagram DMs</p>
-                <p style={{ fontSize: 10, color: "#475569", margin: 0 }}>Mensajes directos e interacciones</p>
+                <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Instagram DMs</p>
+                <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0 }}>Mensajes directos e interacciones</p>
               </div>
               <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: "auto" }}><path d="M9 18l6-6-6-6"/></svg>
             </button>
 
-            <p style={{ fontSize: 10, color: "#334155", margin: 0, textAlign: "center" }}>
-              O ve a <a onClick={() => window.location.href = "/dashboard/integrations"} style={{ color: "#00d4ff", cursor: "pointer", textDecoration: "underline" }}>Integraciones</a> para gestionar todos los canales
+            <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0, textAlign: "center" }}>
+              O ve a <a onClick={() => window.location.href = "/dashboard/integrations"} style={{ color: "var(--cyan)", cursor: "pointer", textDecoration: "underline" }}>Integraciones</a> para gestionar todos los canales
             </p>
           </div>
         </div>
@@ -510,7 +510,7 @@ export function InboxLayout() {
                   style={{
                     padding: "10px 14px",
                     fontSize: 12, fontWeight: isActive ? 600 : 400,
-                    color: isActive ? tab.color : "#64748b",
+                    color: isActive ? tab.color : "var(--text-muted)",
                     background: "transparent",
                     border: "none",
                     borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
@@ -522,16 +522,16 @@ export function InboxLayout() {
                     position: "relative",
                   }}
                   onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
-                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "#64748b"; }}
+                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "var(--text-muted)"; }}
                 >
                   {tab.label}
                   {total > 0 && (
                     <span style={{
                       minWidth: 18, height: 18, borderRadius: 9,
                       background: unreadCount > 0
-                        ? (tab.key === "all" ? "#ef4444" : tab.color)
+                        ? (tab.key === "all" ? "var(--red)" : tab.color)
                         : "rgba(148,163,184,0.22)",
-                      color: unreadCount > 0 ? "white" : "#94a3b8",
+                      color: unreadCount > 0 ? "white" : "var(--text-secondary)",
                       fontSize: 10, fontWeight: 700,
                       display: "inline-flex", alignItems: "center", justifyContent: "center",
                       padding: "0 5px",
@@ -557,8 +557,8 @@ export function InboxLayout() {
                     display: "inline-flex", alignItems: "center", gap: 6,
                     padding: "6px 10px", borderRadius: 8,
                     border: `1px solid ${filterActive ? `${active.color}55` : "rgba(255,255,255,0.08)"}`,
-                    background: filterActive ? `${active.color}14` : "rgba(255,255,255,0.03)",
-                    color: filterActive ? active.color : "#94a3b8",
+                    background: filterActive ? `${active.color}14` : "var(--row-hover)",
+                    color: filterActive ? active.color : "var(--text-secondary)",
                     fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
                     whiteSpace: "nowrap",
                   }}
@@ -572,7 +572,7 @@ export function InboxLayout() {
             {queueMenuOpen && (
               <div style={{
                 position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 200,
-                background: "rgba(12,12,24,0.98)", border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(12,12,24,0.98)", border: "1px solid var(--hairline)",
                 borderRadius: 10, zIndex: 50, overflow: "hidden",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
               }}>
@@ -596,7 +596,7 @@ export function InboxLayout() {
                         background: isActive ? `${tab.color}12` : "transparent",
                         border: "none", borderBottom: "1px solid rgba(255,255,255,0.04)",
                         borderLeft: isActive ? `3px solid ${tab.color}` : "3px solid transparent",
-                        color: isActive ? tab.color : "#94a3b8",
+                        color: isActive ? tab.color : "var(--text-secondary)",
                         fontSize: 12, fontWeight: isActive ? 600 : 400,
                         cursor: "pointer", textAlign: "left", fontFamily: "inherit",
                       }}
@@ -606,7 +606,7 @@ export function InboxLayout() {
                         minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px",
                         display: "inline-flex", alignItems: "center", justifyContent: "center",
                         background: isActive ? `${tab.color}2b` : "rgba(148,163,184,0.16)",
-                        color: isActive ? tab.color : "#94a3b8", fontSize: 10, fontWeight: 700,
+                        color: isActive ? tab.color : "var(--text-secondary)", fontSize: 10, fontWeight: 700,
                       }}>{total}</span>
                     </button>
                   );
@@ -618,7 +618,7 @@ export function InboxLayout() {
       )}
 
       {conversations.length > 0 && filtered.length === 0 && initialFetchDone && (
-        <div style={{ padding: 32, textAlign: "center", color: "#94a3b8", fontSize: 12 }}>
+        <div style={{ padding: 32, textAlign: "center", color: "var(--text-secondary)", fontSize: 12 }}>
           No hay conversaciones en esta vista. Cambia el filtro de cola o canal para revisar otros mensajes.
         </div>
       )}
@@ -631,7 +631,7 @@ export function InboxLayout() {
         <div className={`w-full md:w-[300px] md:min-w-[300px] flex-col border-r border-white/5 bg-white/5 ${selected ? 'hidden md:flex' : 'flex'}`}>
           {/* Page Selector */}
           {connectedPages.length > 0 && (
-            <div style={{ padding: "10px 12px 6px", borderBottom: "1px solid rgba(255,255,255,0.09)" }}>
+            <div style={{ padding: "10px 12px 6px", borderBottom: "1px solid var(--hairline)" }}>
               <PageSelector
                 pages={connectedPages}
                 selectedPage={selectedPage}
@@ -657,7 +657,7 @@ export function InboxLayout() {
                 onChange={e => setSearchQuery(e.target.value)}
                 style={{
                   background: "transparent", border: "none", outline: "none",
-                  color: "white", fontSize: 12, width: "100%", fontFamily: "inherit",
+                  color: "var(--foreground)", fontSize: 12, width: "100%", fontFamily: "inherit",
                 }}
               />
             </div>
@@ -668,7 +668,7 @@ export function InboxLayout() {
           {/* Conversation List */}
           <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
             {filtered.length === 0 ? (
-              <div style={{ padding: 24, textAlign: "center", color: "rgba(148,163,184,0.65)", fontSize: 11 }}>
+              <div style={{ padding: 24, textAlign: "center", color: "var(--text-muted)", fontSize: 11 }}>
                 No hay conversaciones
               </div>
             ) : (
@@ -683,7 +683,7 @@ export function InboxLayout() {
                       padding: "12px 14px",
                       cursor: "pointer",
                       background: isActive ? "rgba(168,85,247,0.06)" : "transparent",
-                      borderLeft: isActive ? "3px solid #a855f7" : "3px solid transparent",
+                      borderLeft: isActive ? "3px solid var(--purple)" : "3px solid transparent",
                       borderBottom: "1px solid rgba(255,255,255,0.03)",
                       transition: "all 0.12s",
                       display: "flex", gap: 10, alignItems: "flex-start",
@@ -729,7 +729,7 @@ export function InboxLayout() {
                         <div style={{
                           position: "absolute", top: -1, right: -1,
                           width: 10, height: 10, borderRadius: "50%",
-                          background: "#a855f7",
+                          background: "var(--purple)",
                           border: "2px solid rgba(10,10,20,1)",
                         }} />
                       )}
@@ -741,7 +741,7 @@ export function InboxLayout() {
                         display: "flex", alignItems: "center", justifyContent: "center",
                         border: "2px solid rgba(10,10,20,1)",
                       }}>
-                        <pc.icon style={{ width: 8, height: 8, color: "white" }} />
+                        <pc.icon style={{ width: 8, height: 8, color: "var(--foreground)" }} />
                       </div>
                     </div>
 
@@ -756,7 +756,7 @@ export function InboxLayout() {
                           {conv.contactName}
                         </span>
                         <span style={{
-                          fontSize: 10, color: conv.unread ? "#a855f7" : "rgba(148,163,184,0.65)",
+                          fontSize: 10, color: conv.unread ? "var(--purple)" : "rgba(148,163,184,0.65)",
                           whiteSpace: "nowrap", marginLeft: 8, fontWeight: conv.unread ? 600 : 400,
                         }}>
                           {relativeTime(conv.lastMessageTime)}
@@ -779,7 +779,7 @@ export function InboxLayout() {
                         <span style={{
                           display: "inline-block", fontSize: 8, fontWeight: 600,
                           padding: "1px 6px", marginTop: 4,
-                          color: "rgba(148,163,184,0.65)",
+                          color: "var(--text-muted)",
                           background: "rgba(148,163,184,0.16)",
                           border: "1px solid rgba(148,163,184,0.22)",
                           borderRadius: 3,
@@ -801,8 +801,8 @@ export function InboxLayout() {
             name="InboxConversation"
             fallback={
               <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40, textAlign: "center" }}>
-                <AlertCircle style={{ width: 28, height: 28, color: "#ef4444" }} />
-                <p style={{ fontSize: 13, color: "#94a3b8", maxWidth: 280 }}>
+                <AlertCircle style={{ width: 28, height: 28, color: "var(--red)" }} />
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 280 }}>
                   No se pudo mostrar esta conversación. Selecciona otra en la lista.
                 </p>
               </div>

@@ -19,21 +19,21 @@ const LEVEL_CONFIG: Record<AlertLevel, {
     icon: <AlertCircle className="w-3.5 h-3.5" />,
     borderColor: "rgba(239,68,68,0.3)",
     bgColor: "rgba(239,68,68,0.06)",
-    textColor: "#ef4444",
+    textColor: "var(--red)",
     label: "ALERTA CRÍTICA",
   },
   warning: {
     icon: <AlertTriangle className="w-3.5 h-3.5" />,
     borderColor: "rgba(251,191,36,0.3)",
     bgColor: "rgba(251,191,36,0.06)",
-    textColor: "#fbbf24",
+    textColor: "var(--amber)",
     label: "ADVERTENCIA",
   },
   positive: {
     icon: <TrendingUp className="w-3.5 h-3.5" />,
     borderColor: "rgba(52,211,153,0.3)",
     bgColor: "rgba(52,211,153,0.06)",
-    textColor: "#34d399",
+    textColor: "var(--emerald)",
     label: "POSITIVO",
   },
 };
@@ -61,7 +61,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
         : warningCount > 0
         ? "1px solid rgba(251,191,36,0.12)"
         : "1px solid rgba(52,211,153,0.12)",
-      background: "rgba(255,255,255,0.03)",
+      background: "var(--row-hover)",
       overflow: "hidden",
     }}>
       {/* Summary header */}
@@ -75,22 +75,22 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "10px" }}>
           {criticalCount > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "#ef4444", fontWeight: 700 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--red)", fontWeight: 700 }}>
               <AlertCircle className="w-3.5 h-3.5" /> {criticalCount} crítica{criticalCount !== 1 ? "s" : ""}
             </span>
           )}
           {warningCount > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "#fbbf24", fontWeight: 700 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--amber)", fontWeight: 700 }}>
               <AlertTriangle className="w-3.5 h-3.5" /> {warningCount} advertencia{warningCount !== 1 ? "s" : ""}
             </span>
           )}
           {positiveCount > 0 && (
-            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "#34d399", fontWeight: 700 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: "3px", color: "var(--emerald)", fontWeight: 700 }}>
               <TrendingUp className="w-3.5 h-3.5" /> {positiveCount} positiva{positiveCount !== 1 ? "s" : ""}
             </span>
           )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "#64748b", fontSize: "9px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "4px", color: "var(--text-muted)", fontSize: "9px" }}>
           {expanded ? "Colapsar" : `Ver ${visible.length} alertas`}
           {expanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
         </div>
@@ -127,7 +127,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
                   setDismissed(prev => new Set(prev).add(alert.id));
                 }}
                 style={{
-                  background: "none", border: "none", color: "rgba(148,163,184,0.65)",
+                  background: "none", border: "none", color: "var(--text-muted)",
                   cursor: "pointer", padding: 0, flexShrink: 0,
                 }}
               >
@@ -144,7 +144,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
           onClick={() => setExpanded(true)}
           style={{
             padding: "6px 14px", textAlign: "center",
-            fontSize: "9px", color: "#64748b", cursor: "pointer",
+            fontSize: "9px", color: "var(--text-muted)", cursor: "pointer",
             borderTop: "1px solid rgba(255,255,255,0.03)",
           }}
         >

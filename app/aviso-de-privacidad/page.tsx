@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import Link from "next/link";
@@ -7,8 +7,8 @@ export default function AvisoDePrivacidad() {
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(135deg, #0a0f1e 0%, #111827 100%)",
-      color: "#e2e8f0",
+      background: "linear-gradient(135deg, var(--background) 0%, var(--background) 100%)",
+      color: "var(--foreground)",
       fontFamily: "Inter, system-ui, sans-serif",
       padding: "80px 20px 40px",
       display: "flex",
@@ -102,7 +102,7 @@ export default function AvisoDePrivacidad() {
               <li>Ve a la sección de Configuración de tu cuenta de Facebook (Configuración y Privacidad &gt; Configuración).</li>
               <li>Busca la sección de <strong>"Aplicaciones y sitios web"</strong>.</li>
               <li>Busca la aplicación <strong>SODARE</strong> y haz clic en <strong>"Eliminar"</strong>.</li>
-              <li>Si deseas iniciar una solicitud formal de eliminación de datos de nuestros servidores inmediatamente, puedes hacerlo a través de nuestra herramienta de autoservicio ingresando aquí: <Link href="/data-deletion" style={{ color: "#00d4ff", textDecoration: "underline" }}>Página de Solicitud de Eliminación de Datos</Link>.</li>
+              <li>Si deseas iniciar una solicitud formal de eliminación de datos de nuestros servidores inmediatamente, puedes hacerlo a través de nuestra herramienta de autoservicio ingresando aquí: <Link href="/data-deletion" style={{ color: "var(--cyan)", textDecoration: "underline" }}>Página de Solicitud de Eliminación de Datos</Link>.</li>
             </ol>
             <p>
               Una vez recibida la solicitud (ya sea vía la callback de Meta o mediante el formulario web), procesaremos la eliminación definitiva de tu perfil, tokens de acceso e historial en un plazo no mayor a 90 días, entregándote un código de confirmación de eliminación para tu seguimiento.
@@ -119,7 +119,7 @@ export default function AvisoDePrivacidad() {
                 href="https://developers.google.com/terms/api-services-user-data-policy"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "#00d4ff", textDecoration: "underline" }}
+                style={{ color: "var(--cyan)", textDecoration: "underline" }}
               >
                 Política de Datos de Usuario de los Servicios API de Google
               </a>
@@ -139,7 +139,7 @@ export default function AvisoDePrivacidad() {
                 href="https://myaccount.google.com/permissions"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "#00d4ff", textDecoration: "underline" }}
+                style={{ color: "var(--cyan)", textDecoration: "underline" }}
               >
                 los permisos de tu cuenta de Google
               </a>
@@ -153,7 +153,7 @@ export default function AvisoDePrivacidad() {
             </h2>
             <p>
               Si tienes alguna duda o comentario sobre este Aviso de Privacidad o deseas ejercer tus derechos ARCO, por favor contáctanos vía correo electrónico a:{" "}
-              <a href="mailto:soporte@sodare.xyz" style={{ color: "#00d4ff", textDecoration: "none" }}>
+              <a href="mailto:soporte@sodare.xyz" style={{ color: "var(--cyan)", textDecoration: "none" }}>
                 soporte@sodare.xyz
               </a>
             </p>

@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -49,23 +49,23 @@ function fmtDate(dateStr?: string | null): string {
 function StatusBadge({ status, error }: { status: Post["status"]; error?: string | null }) {
   const cfg: Record<string, { color: string; bg: string; border: string; icon: React.ReactNode; label: string }> = {
     Published: {
-      color: "#06d6a0", bg: "rgba(6,214,160,0.1)", border: "rgba(6,214,160,0.3)",
+      color: "var(--emerald)", bg: "rgba(6,214,160,0.1)", border: "rgba(6,214,160,0.3)",
       icon: <CheckCircle2 size={11} />, label: "Publicado",
     },
     Failed: {
-      color: "#ff2d55", bg: "rgba(255,45,85,0.1)", border: "rgba(255,45,85,0.3)",
+      color: "var(--red)", bg: "rgba(255,45,85,0.1)", border: "rgba(255,45,85,0.3)",
       icon: <XCircle size={11} />, label: "Error",
     },
     Scheduled: {
-      color: "#7b61ff", bg: "rgba(123,97,255,0.1)", border: "rgba(123,97,255,0.3)",
+      color: "var(--purple)", bg: "rgba(123,97,255,0.1)", border: "rgba(123,97,255,0.3)",
       icon: <Calendar size={11} />, label: "Programado",
     },
     Processing: {
-      color: "#ffbe0b", bg: "rgba(255,190,11,0.1)", border: "rgba(255,190,11,0.3)",
+      color: "var(--amber)", bg: "rgba(255,190,11,0.1)", border: "rgba(255,190,11,0.3)",
       icon: <RefreshCw size={11} className="animate-spin" />, label: "Procesando",
     },
     Draft: {
-      color: "#64748b", bg: "rgba(100,116,139,0.1)", border: "rgba(100,116,139,0.3)",
+      color: "var(--text-muted)", bg: "rgba(100,116,139,0.1)", border: "rgba(100,116,139,0.3)",
       icon: <AlignLeft size={11} />, label: "Borrador",
     },
   };
@@ -112,7 +112,7 @@ function ChannelIcons({ channels }: { channels: string[] }) {
             background: "rgba(148,163,184,0.1)", border: "1px solid rgba(148,163,184,0.2)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <Globe size={11} color="#94a3b8" />
+            <Globe size={11} color="var(--text-secondary)" />
           </span>
         );
       })}
@@ -125,8 +125,8 @@ function FormatIcon({ post }: { post: Post }) {
   const hasMedia = post.mediaUrls && post.mediaUrls.length > 0;
   const hasVideo = post.type === "video";
   if (hasVideo) return <Play size={12} color="#a25ddc" />;
-  if (hasMedia) return <Image size={12} color="#00d4ff" />;
-  return <AlignLeft size={12} color="#94a3b8" />;
+  if (hasMedia) return <Image size={12} color="var(--cyan)" />;
+  return <AlignLeft size={12} color="var(--text-secondary)" />;
 }
 
 /* ─── Main Page ─── */
@@ -188,14 +188,14 @@ export default function DeploymentHistoryPage() {
             width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
             background: "rgba(255,190,11,0.1)", border: "1px solid rgba(255,190,11,0.3)",
           }}>
-            <Activity size={16} color="#ffbe0b" />
+            <Activity size={16} color="var(--amber)" />
           </div>
           <div>
             <h1 style={{
               fontFamily: "Orbitron, sans-serif", fontSize: 13, fontWeight: 700,
-              letterSpacing: "0.2em", textTransform: "uppercase", color: "#e2e8f0", margin: 0,
+              letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--foreground)", margin: 0,
             }}>Historial de Publicaciones</h1>
-            <p style={{ fontSize: 11, color: "#64748b", margin: 0, marginTop: 2 }}>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0, marginTop: 2 }}>
               {stats.total} publicaciones — {stats.published} exitosas
             </p>
           </div>
@@ -204,7 +204,7 @@ export default function DeploymentHistoryPage() {
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {/* Search */}
           <div style={{ position: "relative" }}>
-            <Search size={12} color="#64748b" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
+            <Search size={12} color="var(--text-muted)" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
             <input
               type="text"
               placeholder="Buscar publicación..."
@@ -212,7 +212,7 @@ export default function DeploymentHistoryPage() {
               onChange={e => setSearch(e.target.value)}
               style={{
                 paddingLeft: 28, paddingRight: 12, paddingTop: 6, paddingBottom: 6,
-                fontSize: 11, color: "#94a3b8", width: 200,
+                fontSize: 11, color: "var(--text-secondary)", width: 200,
                 background: "rgba(8,12,24,0.6)", border: "1px solid rgba(148,163,184,0.16)",
                 borderRadius: 3,
               }}
@@ -221,13 +221,13 @@ export default function DeploymentHistoryPage() {
 
           {/* Status filter */}
           <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-            <Filter size={11} color="#64748b" style={{ position: "absolute", left: 9, pointerEvents: "none" }} />
+            <Filter size={11} color="var(--text-muted)" style={{ position: "absolute", left: 9, pointerEvents: "none" }} />
             <select
               value={statusFilter}
               onChange={e => setStatusFilter(e.target.value)}
               style={{
                 paddingLeft: 26, paddingRight: 22, paddingTop: 6, paddingBottom: 6,
-                fontSize: 11, color: "#94a3b8", cursor: "pointer",
+                fontSize: 11, color: "var(--text-secondary)", cursor: "pointer",
                 background: "rgba(8,12,24,0.6)", border: "1px solid rgba(148,163,184,0.16)",
                 borderRadius: 3, appearance: "none",
               }}
@@ -236,18 +236,18 @@ export default function DeploymentHistoryPage() {
                 <option key={s} value={s}>{s === "All" ? "All Status" : s}</option>
               ))}
             </select>
-            <ChevronDown size={10} color="#64748b" style={{ position: "absolute", right: 7, pointerEvents: "none" }} />
+            <ChevronDown size={10} color="var(--text-muted)" style={{ position: "absolute", right: 7, pointerEvents: "none" }} />
           </div>
 
           {/* Channel filter */}
           <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
-            <Globe size={11} color="#64748b" style={{ position: "absolute", left: 9, pointerEvents: "none" }} />
+            <Globe size={11} color="var(--text-muted)" style={{ position: "absolute", left: 9, pointerEvents: "none" }} />
             <select
               value={channelFilter}
               onChange={e => setChannelFilter(e.target.value)}
               style={{
                 paddingLeft: 26, paddingRight: 22, paddingTop: 6, paddingBottom: 6,
-                fontSize: 11, color: "#94a3b8", cursor: "pointer",
+                fontSize: 11, color: "var(--text-secondary)", cursor: "pointer",
                 background: "rgba(8,12,24,0.6)", border: "1px solid rgba(148,163,184,0.16)",
                 borderRadius: 3, appearance: "none",
               }}
@@ -256,7 +256,7 @@ export default function DeploymentHistoryPage() {
                 <option key={c} value={c}>{c === "All" ? "All Channels" : c.charAt(0).toUpperCase() + c.slice(1)}</option>
               ))}
             </select>
-            <ChevronDown size={10} color="#64748b" style={{ position: "absolute", right: 7, pointerEvents: "none" }} />
+            <ChevronDown size={10} color="var(--text-muted)" style={{ position: "absolute", right: 7, pointerEvents: "none" }} />
           </div>
 
           {/* Status count pills */}
@@ -264,11 +264,11 @@ export default function DeploymentHistoryPage() {
             display: "flex", alignItems: "center", gap: 0,
             background: "rgba(8,12,24,0.6)", border: "1px solid rgba(148,163,184,0.16)",
             borderRadius: 3, overflow: "hidden", padding: "4px 10px",
-            fontSize: 11, color: "#94a3b8", fontWeight: 600,
+            fontSize: 11, color: "var(--text-secondary)", fontWeight: 600,
           }}>
-            <span style={{ color: "#06d6a0", marginRight: 2 }}>●</span> {stats.published}&nbsp;
-            <span style={{ color: "#ff2d55", marginLeft: 6, marginRight: 2 }}>●</span> {stats.failed}
-            <span style={{ fontSize: 10, color: "#475569", marginLeft: 6 }}>{stats.total}</span>
+            <span style={{ color: "var(--emerald)", marginRight: 2 }}>●</span> {stats.published}&nbsp;
+            <span style={{ color: "var(--red)", marginLeft: 6, marginRight: 2 }}>●</span> {stats.failed}
+            <span style={{ fontSize: 10, color: "var(--text-secondary)", marginLeft: 6 }}>{stats.total}</span>
           </div>
 
           {/* Refresh */}
@@ -280,7 +280,7 @@ export default function DeploymentHistoryPage() {
               borderRadius: 3, cursor: "pointer",
             }}
           >
-            <RefreshCw size={12} color="#64748b" style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
+            <RefreshCw size={12} color="var(--text-muted)" style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
           </button>
         </div>
       </div>
@@ -297,7 +297,7 @@ export default function DeploymentHistoryPage() {
         {["Contenido", "Canales", "Formato", "Estado", "Página", "Publicado", "ID"].map(h => (
           <span key={h} style={{
             fontSize: 9, fontWeight: 700, letterSpacing: "0.18em",
-            textTransform: "uppercase", color: "#475569",
+            textTransform: "uppercase", color: "var(--text-secondary)",
           }}>{h}</span>
         ))}
       </div>
@@ -317,10 +317,10 @@ export default function DeploymentHistoryPage() {
         ) : filtered.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center" }}>
             <Zap size={32} color="rgba(148,163,184,0.3)" style={{ margin: "0 auto 12px" }} />
-            <p style={{ fontSize: 13, color: "#475569", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.1em" }}>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.1em" }}>
               SIN PUBLICACIONES
             </p>
-            <p style={{ fontSize: 11, color: "#334155", marginTop: 4 }}>Crea tu primer post desde el Publisher</p>
+            <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>Crea tu primer post desde el Publisher</p>
           </div>
         ) : (
           filtered.map((post, i) => (
@@ -356,12 +356,12 @@ export default function DeploymentHistoryPage() {
                 {/* Content */}
                 <div style={{ display: "flex", flexDirection: "column", gap: 3, minWidth: 0 }}>
                   <span style={{
-                    fontSize: 12, color: "#dde6f0", fontWeight: 500,
+                    fontSize: 12, color: "var(--foreground)", fontWeight: 500,
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>
                     {post.content.slice(0, 80)}{post.content.length > 80 ? "…" : ""}
                   </span>
-                  <span style={{ fontSize: 10, color: "#475569" }}>
+                  <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>
                     {fmtDate(post.scheduledAt || post.createdAt)}
                   </span>
                 </div>
@@ -374,7 +374,7 @@ export default function DeploymentHistoryPage() {
                 {/* Format */}
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <FormatIcon post={post} />
-                  <span style={{ fontSize: 10, color: "#64748b" }}>
+                  <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
                     {post.type === "video" ? "Video" : (post.mediaUrls?.length ? "Imagen" : "Texto")}
                   </span>
                 </div>
@@ -387,7 +387,7 @@ export default function DeploymentHistoryPage() {
                 {/* Page */}
                 <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
                   <span style={{
-                    fontSize: 11, color: "#94a3b8", fontFamily: "monospace",
+                    fontSize: 11, color: "var(--text-secondary)", fontFamily: "monospace",
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>
                     {post.pageName || "—"}
@@ -396,15 +396,15 @@ export default function DeploymentHistoryPage() {
 
                 {/* Published At */}
                 <div style={{ display: "flex", alignItems: "center" }}>
-                  <span style={{ fontSize: 11, color: "#64748b" }}>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>
                     {post.publishedAt ? relTime(post.publishedAt) + " ago" : "—"}
                   </span>
                 </div>
 
                 {/* ID */}
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <GitBranch size={10} color="#475569" />
-                  <span style={{ fontSize: 10, color: "#475569", fontFamily: "monospace" }}>
+                  <GitBranch size={10} color="var(--text-secondary)" />
+                  <span style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "monospace" }}>
                     {post.id.slice(0, 8)}
                   </span>
                 </div>
@@ -422,13 +422,13 @@ export default function DeploymentHistoryPage() {
                 }}>
                   {/* Content full */}
                   <div>
-                    <p style={{ fontSize: 9, color: "#475569", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>CONTENIDO</p>
-                    <p style={{ fontSize: 12, color: "#94a3b8", lineHeight: 1.6 }}>{post.content}</p>
+                    <p style={{ fontSize: 9, color: "var(--text-secondary)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>CONTENIDO</p>
+                    <p style={{ fontSize: 12, color: "var(--text-secondary)", lineHeight: 1.6 }}>{post.content}</p>
                   </div>
 
                   {/* Meta */}
                   <div>
-                    <p style={{ fontSize: 9, color: "#475569", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>DETALLES</p>
+                    <p style={{ fontSize: 9, color: "var(--text-secondary)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>DETALLES</p>
                     <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
                       {[
                         { label: "ID", value: post.id },
@@ -438,8 +438,8 @@ export default function DeploymentHistoryPage() {
                         { label: "Página ID", value: post.pageId || "—" },
                       ].map(({ label, value }) => (
                         <div key={label} style={{ display: "flex", gap: 8 }}>
-                          <span style={{ fontSize: 10, color: "#475569", width: 80, flexShrink: 0 }}>{label}</span>
-                          <span style={{ fontSize: 10, color: "#94a3b8", fontFamily: "monospace", wordBreak: "break-all" }}>{value}</span>
+                          <span style={{ fontSize: 10, color: "var(--text-secondary)", width: 80, flexShrink: 0 }}>{label}</span>
+                          <span style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "monospace", wordBreak: "break-all" }}>{value}</span>
                         </div>
                       ))}
                     </div>
@@ -449,24 +449,24 @@ export default function DeploymentHistoryPage() {
                   <div>
                     {post.error ? (
                       <>
-                        <p style={{ fontSize: 9, color: "#ff2d55", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>ERROR</p>
-                        <p style={{ fontSize: 11, color: "#ff6b84", lineHeight: 1.5, background: "rgba(255,45,85,0.08)", padding: "8px 10px", borderRadius: 3, border: "1px solid rgba(255,45,85,0.2)" }}>
+                        <p style={{ fontSize: 9, color: "var(--red)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>ERROR</p>
+                        <p style={{ fontSize: 11, color: "var(--red)", lineHeight: 1.5, background: "rgba(255,45,85,0.08)", padding: "8px 10px", borderRadius: 3, border: "1px solid rgba(255,45,85,0.2)" }}>
                           {post.error}
                         </p>
                       </>
                     ) : post.externalIds && Object.keys(post.externalIds).length > 0 ? (
                       <>
-                        <p style={{ fontSize: 9, color: "#06d6a0", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>IDs EXTERNOS</p>
+                        <p style={{ fontSize: 9, color: "var(--emerald)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>IDs EXTERNOS</p>
                         {Object.entries(post.externalIds).map(([platform, id]) => (
                           <div key={platform} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
-                            <span style={{ fontSize: 10, color: "#64748b", width: 70, flexShrink: 0, textTransform: "capitalize" }}>{platform}</span>
-                            <span style={{ fontSize: 10, fontFamily: "monospace", color: "#00d4ff" }}>{id}</span>
-                            <ExternalLink size={10} color="#00d4ff" style={{ cursor: "pointer" }} />
+                            <span style={{ fontSize: 10, color: "var(--text-muted)", width: 70, flexShrink: 0, textTransform: "capitalize" }}>{platform}</span>
+                            <span style={{ fontSize: 10, fontFamily: "monospace", color: "var(--cyan)" }}>{id}</span>
+                            <ExternalLink size={10} color="var(--cyan)" style={{ cursor: "pointer" }} />
                           </div>
                         ))}
                       </>
                     ) : (
-                      <p style={{ fontSize: 11, color: "#334155" }}>Sin IDs externos</p>
+                      <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>Sin IDs externos</p>
                     )}
 
                     {/* Media preview */}
@@ -485,7 +485,7 @@ export default function DeploymentHistoryPage() {
                             width: 48, height: 48, borderRadius: 3,
                             background: "rgba(148,163,184,0.08)", border: "1px solid rgba(148,163,184,0.16)",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            fontSize: 11, color: "#64748b",
+                            fontSize: 11, color: "var(--text-muted)",
                           }}>
                             +{post.mediaUrls.length - 4}
                           </div>
@@ -508,14 +508,14 @@ export default function DeploymentHistoryPage() {
         flexShrink: 0,
       }}>
         {[
-          { label: "Total", value: stats.total, color: "#e2e8f0" },
-          { label: "Publicados", value: stats.published, color: "#06d6a0" },
-          { label: "Fallidos", value: stats.failed, color: "#ff2d55" },
-          { label: "Programados", value: stats.scheduled, color: "#7b61ff" },
-          { label: "Borradores", value: stats.drafts, color: "#64748b" },
+          { label: "Total", value: stats.total, color: "var(--foreground)" },
+          { label: "Publicados", value: stats.published, color: "var(--emerald)" },
+          { label: "Fallidos", value: stats.failed, color: "var(--red)" },
+          { label: "Programados", value: stats.scheduled, color: "var(--purple)" },
+          { label: "Borradores", value: stats.drafts, color: "var(--text-muted)" },
         ].map(({ label, value, color }) => (
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 10, color: "#475569", letterSpacing: "0.1em", textTransform: "uppercase" }}>{label}</span>
+            <span style={{ fontSize: 10, color: "var(--text-secondary)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{label}</span>
             <span style={{
               fontFamily: "Orbitron, sans-serif", fontSize: 13, fontWeight: 700, color,
             }}>{value}</span>
@@ -523,8 +523,8 @@ export default function DeploymentHistoryPage() {
         ))}
 
         <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
-          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#06d6a0", boxShadow: "0 0 8px #06d6a0" }} />
-          <span style={{ fontSize: 10, color: "#475569" }}>
+          <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 8px var(--emerald)" }} />
+          <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>
             {filtered.length} resultado{filtered.length !== 1 ? "s" : ""}
           </span>
         </div>

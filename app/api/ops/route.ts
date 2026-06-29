@@ -3,7 +3,10 @@ import { validateBody } from "@/lib/validate";
 import { apiSuccess, apiCreated, apiNotFound, apiForbidden, apiError } from "@/lib/api-response";
 import { pickAssignee } from "@/lib/auto-assign";
 import { parseWorkflow, findUserArea, getPermissions, estimateEtaHours, etaDate } from "@/lib/workflow-config";
+import { notifyTaskAssigned } from "@/lib/notifications";
 import { logger } from "@/lib/logger";
+import { start } from "workflow/api";
+import { slaEngineWorkflow } from "@/workflows/sla-engine";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
@@ -216,5 +219,38 @@ export const POST = withWorkspace(async (req, ctx) => {
     byUserId: userId,
   });
 
-  return apiCreated(task);
+  // Notify the assignee (fire-and-forget, non-blocking)
+  if (task.assignee && task.assigneeId) {
+    // Get creator name
+    const creator = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { name: true, email: true },
+    });
+    const creatorName = creator?.name || creator?.email?.split("@")[0] || "Un colaborador";
+
+    notifyTaskAssigned({
+      taskId: task.id,
+      taskTitle: task.title,
+      assigneeName: task.assignee,
+      assigneeUserId: task.assigneeId,
+      assignerName: creatorName,
+      assignerUserId: userId,
+      priority: task.priority,
+      dueDate: task.dueDate?.toISOString() || null,
+      workspaceId,
+    }).catch((err) =>
+      logger.warn("Notify task created failed", { taskId: task.id, error: err })
+    );
+  }
+
+  // Lanzar SLA Engine si la tarea tiene un vencimiento
+  if (task.dueDate) {
+    const delayMs = task.dueDate.getTime() - Date.now();
+    const delaySeconds = Math.max(0, Math.floor(delayMs / 1000));
+    start(slaEngineWorkflow, [task.id, workspaceId, delaySeconds]).catch(err => 
+      logger.warn("Failed to start SLA engine workflow", { taskId: task.id, error: err })
+    );
+  }
+
+  return apiCreated({ task });
 });

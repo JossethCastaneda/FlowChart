@@ -12,6 +12,12 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
+    coverage: {
+      provider: "v8",
+      reporter: ["text", "json", "html"],
+      include: ["lib/**/*.ts", "app/**/*.ts", "app/**/*.tsx"],
+      exclude: ["node_modules/", "tests/"]
+    },
     env: {
       // Valores dummy SOLO para tests: lib/env.ts valida el entorno al importar
       // (parseEnv lanza si faltan variables críticas), y varios módulos lo

@@ -1,58 +1,30 @@
 "use client";
-
+import { ProjectModal } from "@/components/projects/ProjectModal";
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
+import { signOut } from "next-auth/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Orbi } from "@/components/ui/Orbi";
 import { KpiCard } from "@/components/ui/KpiCard";
 import {
   FolderKanban, Plus, X, Users, Globe, DollarSign, Target, Rocket,
   Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown, AlertTriangle, CheckCircle
 } from "lucide-react";
-import { normalizeIntegrationProvider, PROVIDER_LABELS } from "@/lib/analytics/project-scope";
+import { PlanLimitBanner } from "@/components/settings/PlanUsageMeter";
+import type { Project, ChannelConfig } from "@/types/project";
+import { ProjectCard } from "@/components/projects/ProjectCard";
+import {
+  PLATFORMS, VERTICALS, GOALS, BOT_PLATFORM_CHANNELS, GOOGLE_PLATFORM, NO_BOT_PLATFORM,
+  CPR_MAP, STATUSES, STATUS_COLORS, type BotChannel
+} from "@/lib/project-constants";
 
 /* ═══════════════════════════════════════
    TYPES
    ═══════════════════════════════════════ */
-
-interface ChannelConfig {
-  platformId: string;
-  platformName: string;
-  adAccounts: string[];
-  budget: string;
-  period: string;
-  goal: string;
-  cpr: string;
-}
-
-interface Project {
-  id: string;
-  name?: string;
-  alias: string;
-  client: string;
-  vertical: string;
-  fanpage: string[];
-  instagram: string[];
-  whatsapp: string[];
-  webchat: string[];
-  website: string;
-  channels: ChannelConfig[];
-  dateStart: string;
-  dateEnd: string;
-  persona: string;
-  geo: string;
-  status: "EN VUELO" | "EN ÓRBITA" | "Draft" | "Completado";
-  workspaceId?: string;
-  createdAt: string;
-  updatedAt?: string;
-  crmIntegrationId?: string | null;
-  crmIntegrationIds?: string[];
-  crmType?: string | null;
-  botFlowType?: string | null;
-}
 
 interface MetaPage {
   id: string;
@@ -77,56 +49,7 @@ const EMPTY_PROJECT: Omit<Project, "id" | "createdAt"> = {
    DATA
    ═══════════════════════════════════════ */
 
-const VERTICALS = [
-  "E-commerce", "Real Estate", "Fintech", "Health & Wellness", "Education",
-  "Food & Beverage", "Automotive", "SaaS / Tech", "Fashion", "Travel",
-];
 
-const PLATFORMS = [
-  { id: "meta",      name: "Meta Ads",            connected: true,  color: "#0081FB" },
-  { id: "google",    name: "Google Ads",           connected: false, color: "#4285F4" },
-  { id: "tiktok",    name: "TikTok Ads",           connected: false, color: "#25F4EE" },
-  { id: "whatsapp",  name: "WhatsApp Business",    connected: false, color: "#25D366" },
-];
-
-const GOALS = [
-  "Conversaciones", "Clics al sitio", "Seguidores", "Leads",
-  "Ventas (Purchase)", "Registros", "Descargas app", "Video views",
-  "Alcance (Reach)", "Tráfico a tienda",
-];
-
-// Canales de bot disponibles por Plataforma Analítica. Al elegir la plataforma,
-// el formulario solo ofrece SUS canales (Cari/Botmaker → WhatsApp + Web Chat).
-// Facebook/Instagram NO se filtran por plataforma: son cuentas Meta independientes
-// (van siempre en "Redes Sociales"). Google maneja Web Chat + tráfico de landing
-// (GA4/GTM/Ads) en la pestaña "Análisis de Tráfico" del proyecto.
-type BotChannel = "whatsapp" | "webchat" | "instagram" | "facebook";
-const BOT_PLATFORM_CHANNELS: Record<string, BotChannel[]> = {
-  cari_ai: ["whatsapp", "webchat"],
-  // Botmaker también conversa por Instagram y Facebook (se capturan manualmente
-  // abajo). Cari solo opera WhatsApp + Web Chat.
-  botmaker: ["whatsapp", "webchat", "instagram", "facebook"],
-  // Google: solo Web Chat aquí; el tráfico de landing (GA4/GTM/Ads) se ve en la
-  // pestaña "Análisis de Tráfico" del proyecto.
-  google: ["webchat"],
-};
-
-/** Valor centinela del selector para elegir "Google" (no es una Integration). */
-const GOOGLE_PLATFORM = "__google__";
-/** Valor centinela para "No aplica": el proyecto no envía a ninguna plataforma de bot. */
-const NO_BOT_PLATFORM = "__none__";
-const CPR_MAP: Record<string, string> = {
-  "Conversaciones": "Costo / conversación",
-  "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
-  "Leads": "CPL", "Ventas (Purchase)": "CPA",
-  "Registros": "Costo / registro", "Descargas app": "CPI",
-  "Video views": "CPV", "Alcance (Reach)": "CPM",
-  "Tráfico a tienda": "Costo / visita",
-};
-const STATUSES = ["EN VUELO", "EN ÓRBITA", "Draft", "Completado"] as const;
-const STATUS_COLORS: Record<string, string> = {
-  "EN VUELO": "emerald", "EN ÓRBITA": "amber", Draft: "muted", Completado: "cyan",
-};
 
 /* ═══════════════════════════════════════
    PERSISTENCE — API (database)
@@ -149,9 +72,9 @@ async function fetchProjectsFromAPI(retries = 2): Promise<FetchResult> {
           message = json.error || message;
         } catch { /* ignore parse error */ }
         if (res.status === 401) {
-          // Stale/orphan session — redirect to login automatically
+          // Stale/orphan session — gracefully sign out
           if (typeof window !== "undefined") {
-            window.location.href = "/login?reason=session_expired";
+            signOut({ callbackUrl: "/login?reason=session_expired" });
           }
           return { ok: false, status: res.status, code, message: "Tu sesión expiró. Redirigiendo al login..." };
         }
@@ -200,16 +123,7 @@ async function fetchProjectsFromAPI(retries = 2): Promise<FetchResult> {
    STYLES
    ═══════════════════════════════════════ */
 
-const inp: React.CSSProperties = {
-  width: "100%", padding: "10px 12px", fontSize: "13px", color: "var(--foreground)",
-  background: "var(--surface)", border: "1px solid var(--border)",
-  outline: "none", fontFamily: "inherit", transition: "border-color 0.15s",
-};
-const sel: React.CSSProperties = {
-  ...inp, appearance: "none" as const, cursor: "pointer", paddingRight: "28px",
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='#64748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E")`,
-  backgroundRepeat: "no-repeat", backgroundPosition: "right 8px center",
-};
+/* Using f-input and f-select from forms.css */
 
 /* ═══════════════════════════════════════
    CUSTOM UI COMPONENTS
@@ -245,7 +159,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
     <div ref={ref} style={{ position: "relative", width: "100%" }}>
       <div 
         onClick={() => !ro && !disabled && setOpen(!open)}
-        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1 }}
+        className="f-input" style={{ cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1 }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
           {selected?.picture && <img src={selected.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
@@ -256,15 +170,15 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
-          <div style={{ padding: "8px", position: "sticky", top: 0, background: "rgba(10,15,30,0.95)", zIndex: 10 }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+          <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input 
               type="text" 
               placeholder="Buscar..." 
               value={search} 
               onChange={e => setSearch(e.target.value)}
               onClick={e => e.stopPropagation()}
-              style={{ ...inp, padding: "6px 8px", fontSize: "11px", background: "rgba(0,0,0,0.3)" }} 
+              className="f-input" style={{ padding: "6px 8px", fontSize: "11px", background: "var(--surface-hover)" }} 
             />
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
@@ -283,298 +197,16 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
               ))}
             </div>
           ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "#64748b", textAlign: "center" }}>Sin opciones disponibles</div>}
+          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "var(--text-muted)", textAlign: "center" }}>Sin opciones disponibles</div>}
         </div>
       )}
     </div>
   );
 }
-
-function CustomMultiSelectPictures({ values, options, onChange, placeholder, disabled, ro }: any) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-        setSearch("");
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const filtered = options.filter((o: any) => o.label.toLowerCase().includes(search.toLowerCase()));
-  const grouped: Record<string, any[]> = {};
-  filtered.forEach((o: any) => {
-    const p = o.portfolio || "Páginas";
-    if (!grouped[p]) grouped[p] = [];
-    grouped[p].push(o);
-  });
-
-  return (
-    <div ref={ref} style={{ position: "relative", width: "100%" }}>
-      <div
-        onClick={() => !ro && !disabled && setOpen(!open)}
-        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "34px", height: "auto" }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap" }}>
-          {values.length === 0 ? <span style={{ color: "#64748b" }}>{placeholder}</span> :
-            values.map((v: string) => {
-              const opt = options.find((o: any) => o.value === v);
-              return (
-                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
-                  {opt?.picture && <img src={opt.picture} alt="" style={{ width: 12, height: 12, borderRadius: "50%", objectFit: "cover" }} />}
-                  {opt ? opt.label : v}
-                  {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
-                </span>
-              );
-            })
-          }
-        </div>
-        {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
-      </div>
-      {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
-          <div style={{ padding: "8px", position: "sticky", top: 0, background: "rgba(10,15,30,0.95)", zIndex: 10 }}>
-            <input
-              type="text"
-              placeholder="Buscar..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              onClick={e => e.stopPropagation()}
-              style={{ ...inp, padding: "6px 8px", fontSize: "11px", background: "rgba(0,0,0,0.3)" }}
-            />
-          </div>
-          {Object.entries(grouped).map(([portfolio, items]) => (
-            <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
-                {portfolio}
-              </div>
-              {items.map((o: any) => {
-                const selected = values.includes(o.value);
-                return (
-                  <div key={o.value} onClick={() => {
-                    if (selected) onChange(values.filter((v: string) => v !== o.value));
-                    else onChange([...values, o.value]);
-                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
-                    <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "#00d4ff" : "rgba(255,255,255,0.65)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "#00d4ff" : "transparent" }}>
-                      {selected && <Check className="w-2 h-2 text-black" />}
-                    </div>
-                    {o.picture && <img src={o.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
-                    {o.label}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "#64748b", textAlign: "center" }}>Sin opciones disponibles</div>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function TagsInput({ values, onChange, placeholder, ro }: { values: string[]; onChange: (v: string[]) => void; placeholder: string; ro?: boolean }) {
-  const [input, setInput] = useState("");
-
-  function handleKeyDown(e: React.KeyboardEvent) {
-    if (e.key === "Enter" || e.key === "," || e.key === "Tab") {
-      e.preventDefault();
-      const val = input.trim();
-      if (val && !values.includes(val)) {
-        onChange([...values, val]);
-      }
-      setInput("");
-    } else if (e.key === "Backspace" && !input && values.length > 0) {
-      onChange(values.slice(0, -1));
-    }
-  }
-
-  return (
-    <div style={{ ...inp, display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", minHeight: "34px", height: "auto", cursor: ro ? "not-allowed" : "text" }}>
-      {values.map((v, i) => (
-        <span key={i} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
-          {v}
-          {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={() => onChange(values.filter((_, j) => j !== i))} />}
-        </span>
-      ))}
-      {!ro && (
-        <input
-          type="tel"
-          value={input}
-          onChange={e => setInput(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={() => {
-            const val = input.trim();
-            if (val && !values.includes(val)) {
-              onChange([...values, val]);
-            }
-            setInput("");
-          }}
-          placeholder={values.length === 0 ? placeholder : "Agregar..."}
-          style={{ flex: 1, minWidth: "80px", background: "transparent", border: "none", outline: "none", color: "var(--foreground)", fontSize: "13px", padding: "0" }}
-        />
-      )}
-    </div>
-  );
-}
-
-function CustomMultiSelect({ values, options, onChange, placeholder, disabled, ro }: any) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-        setSearch("");
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const filtered = options.filter((o: any) => o.name.toLowerCase().includes(search.toLowerCase()));
-  
-  const grouped: Record<string, any[]> = {};
-  filtered.forEach((o: any) => {
-    const p = o.portfolio || "Independientes";
-    if (!grouped[p]) grouped[p] = [];
-    grouped[p].push(o);
-  });
-
-  return (
-    <div ref={ref} style={{ position: "relative", width: "100%" }}>
-      <div 
-        onClick={() => !ro && !disabled && setOpen(!open)}
-        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "space-between", minHeight: "34px", height: "auto" }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap" }}>
-          {values.length === 0 ? <span style={{ color: "#64748b" }}>{placeholder}</span> : 
-            values.map((v: string) => {
-              const opt = options.find((o: any) => o.id === v);
-              return (
-                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
-                  {opt ? opt.name : v} 
-                  {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
-                </span>
-              );
-            })
-          }
-        </div>
-        {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
-      </div>
-      {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
-          <div style={{ padding: "8px", position: "sticky", top: 0, background: "rgba(10,15,30,0.95)", zIndex: 10 }}>
-            <input 
-              type="text" 
-              placeholder="Buscar..." 
-              value={search} 
-              onChange={e => setSearch(e.target.value)}
-              onClick={e => e.stopPropagation()}
-              style={{ ...inp, padding: "6px 8px", fontSize: "11px", background: "rgba(0,0,0,0.3)" }} 
-            />
-          </div>
-          {Object.entries(grouped).map(([portfolio, items]) => (
-            <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
-                {portfolio}
-              </div>
-              {items.map((o: any) => {
-                const selected = values.includes(o.id);
-                return (
-                  <div key={o.id} onClick={() => {
-                    if (selected) onChange(values.filter((v: string) => v !== o.id));
-                    else onChange([...values, o.id]);
-                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
-                    <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "#00d4ff" : "rgba(255,255,255,0.65)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "#00d4ff" : "transparent" }}>
-                      {selected && <Check className="w-2 h-2 text-black" />}
-                    </div>
-                    {o.name}
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-          {filtered.length === 0 && <div style={{ padding: "10px", fontSize: "11px", color: "#64748b", textAlign: "center" }}>No hay cuentas publicitarias</div>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-function CustomCreatableSelect({ value, options, onChange, placeholder, disabled, ro }: any) {
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState("");
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
-  const filtered = options.filter((o: any) => o.label.toLowerCase().includes(search.toLowerCase()));
-  const exactMatch = options.some((o: any) => o.label.toLowerCase() === search.toLowerCase());
-
-  return (
-    <div ref={ref} style={{ position: "relative", width: "100%" }}>
-      <div 
-        onClick={() => !ro && !disabled && setOpen(true)}
-        style={{ ...inp, cursor: ro || disabled ? "not-allowed" : "text", display: "flex", alignItems: "center", justifyContent: "space-between", opacity: disabled ? 0.5 : 1, padding: 0 }}
-      >
-        <input 
-          type="text" 
-          placeholder={placeholder}
-          value={open ? search : value}
-          onChange={e => { setSearch(e.target.value); setOpen(true); onChange(e.target.value); }}
-          onFocus={() => { setOpen(true); setSearch(value); }}
-          readOnly={ro || disabled}
-          style={{ width: "100%", height: "100%", background: "transparent", border: "none", outline: "none", color: "var(--foreground)", fontSize: "13px", padding: "10px 12px" }}
-        />
-        {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, marginRight: "10px", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); setOpen(!open); }} />}
-      </div>
-      {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "rgba(10,15,30,0.95)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
-          {filtered.map((o: any) => (
-            <div key={o.value} onClick={() => { onChange(o.value); setSearch(o.value); setOpen(false); }} 
-                 style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--foreground)" }} 
-                 onMouseEnter={e => e.currentTarget.style.background = "rgba(0,212,255,0.1)"} 
-                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-              {o.label}
-            </div>
-          ))}
-          {search && !exactMatch && (
-            <div onClick={() => { onChange(search); setOpen(false); }} 
-                 style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--emerald)" }} 
-                 onMouseEnter={e => e.currentTarget.style.background = "rgba(6,214,160,0.1)"} 
-                 onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-              <Plus className="w-3 h-3" /> Crear "{search}"
-            </div>
-          )}
-          {filtered.length === 0 && !search && <div style={{ padding: "10px", fontSize: "11px", color: "#64748b", textAlign: "center" }}>Empieza a escribir...</div>}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════
-   PAGE
-   ═══════════════════════════════════════ */
 
 export default function ProyectosPage() {
   return (
-    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>Cargando Proyectos...</div>}>
+    <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>Cargando Proyectos...</div>}>
       <ProyectosContent />
     </Suspense>
   );
@@ -797,7 +429,7 @@ function ProyectosContent() {
   }
 
   const editingProject = editingId ? projects.find(p => p.id === editingId) : null;
-  const activeCount = projects.filter(p => p.status === "EN VUELO").length;
+  const activeCount = projects.filter(p => p.status === "EN VUELO" || p.status === "Activo").length;
   const totalBudget = projects.reduce((acc, p) => {
     return acc + p.channels.reduce((a, c) => a + (parseFloat(c.budget.replace(/[^0-9.]/g, "")) || 0), 0);
   }, 0);
@@ -807,7 +439,7 @@ function ProyectosContent() {
       <PageHeader
         title="Proyectos"
         description="Gestiona tus proyectos de clientes, campañas y presupuestos."
-        icon={<FolderKanban className="w-6 h-6" style={{ color: "#06d6a0" }} />}
+        icon={<FolderKanban className="w-6 h-6" style={{ color: "var(--emerald)" }} />}
         action={
           <button className="btn-primary" onClick={() => { setEditingId(null); setModalMode("create"); }} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <Plus className="w-4 h-4" /> Nuevo Proyecto
@@ -815,11 +447,16 @@ function ProyectosContent() {
         }
       />
 
+      <PlanLimitBanner
+        feature="projects"
+        onUpgrade={() => window.location.href = "/dashboard/settings?section=plan"}
+      />
+
       {banner && (
         <div style={{
           padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
           background: banner.type === "success" ? "rgba(6,214,160,0.15)" : "rgba(226,68,92,0.15)",
-          color: banner.type === "success" ? "#06d6a0" : "#e2445c",
+          color: banner.type === "success" ? "var(--emerald)" : "var(--red)",
           border: `1px solid ${banner.type === "success" ? "rgba(6,214,160,0.4)" : "rgba(226,68,92,0.4)"}`,
           display: "flex", alignItems: "center", justifyContent: "space-between"
         }}>
@@ -831,7 +468,7 @@ function ProyectosContent() {
       {fetchError && (
         <div style={{
           padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-          background: "rgba(251,191,36,0.12)", color: "#fbbf24",
+          background: "rgba(251,191,36,0.12)", color: "var(--amber)",
           border: "1px solid rgba(251,191,36,0.35)",
           display: "flex", alignItems: "center", gap: "10px"
         }}>
@@ -858,8 +495,8 @@ function ProyectosContent() {
           border: "1px solid rgba(6,214,160,0.3)",
           borderRadius: "6px",
         }}>
-          <CheckCircle className="w-4 h-4" style={{ color: "#06d6a0", flexShrink: 0 }} />
-          <span style={{ fontSize: "12px", color: "#06d6a0", fontWeight: 600 }}>
+          <CheckCircle className="w-4 h-4" style={{ color: "var(--emerald)", flexShrink: 0 }} />
+          <span style={{ fontSize: "12px", color: "var(--emerald)", fontWeight: 600 }}>
             ✅ Meta Ads conectado
           </span>
         </div>
@@ -877,7 +514,7 @@ function ProyectosContent() {
           {/* Animated gradient accent line */}
           <div style={{
             position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-            background: "linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #6366f1)",
+            background: "linear-gradient(90deg, var(--purple), var(--purple), var(--red), var(--purple))",
             backgroundSize: "200% 100%",
             animation: "shimmer 3s linear infinite",
           }} />
@@ -887,7 +524,7 @@ function ProyectosContent() {
             background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
             boxShadow: "0 0 20px rgba(168,85,247,0.15)",
           }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2L2 7l10 5 10-5-10-5z" />
               <path d="M2 17l10 5 10-5" />
               <path d="M2 12l10 5 10-5" />
@@ -907,7 +544,7 @@ function ProyectosContent() {
             style={{
               display: "inline-flex", alignItems: "center", gap: "8px",
               padding: "10px 20px",
-              background: "linear-gradient(135deg, #6366f1, #a855f7)",
+              background: "linear-gradient(135deg, var(--purple), var(--purple))",
               color: "#fff",
               fontSize: "12px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" as const,
               borderRadius: "8px", cursor: "pointer", textDecoration: "none",
@@ -946,66 +583,44 @@ function ProyectosContent() {
       ) : null}
 
 
-      {/* List */}
-      <div className="glass-panel" style={{ overflow: "visible" }}>
-        <div className="section-header">
-          <span className="section-title">Todos los Proyectos</span>
-          <span className="badge badge-emerald">{projects.length}</span>
+      {/* Projects Grid */}
+      <div>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-muted)" }}>Proyectos Activos</span>
+            <span className="badge badge-emerald">{projects.filter(p => p.status === "EN VUELO" || p.status === "Activo").length}</span>
+            <span className="badge badge-muted" style={{ marginLeft: 4 }}>{projects.length} total</span>
+          </div>
         </div>
 
         {loading ? (
-          <div style={{ padding: "24px", display: "flex", flexDirection: "column", gap: "12px" }}>
-            {[1, 2, 3].map(i => <Skeleton key={i} style={{ height: "64px", width: "100%", borderRadius: "8px" }} />)}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
+            {[1, 2, 3, 4].map(i => <Skeleton key={i} style={{ height: "160px", width: "100%", borderRadius: "16px" }} />)}
           </div>
         ) : projects.length === 0 ? (
-          <EmptyState
-            icon={<Rocket className="w-12 h-12" />}
-            title="Ningún proyecto en radar"
-            description="Aún no tienes misiones activas. Crea tu primer proyecto para empezar a gestionar campañas."
-            actionLabel="NUEVA MISIÓN"
-            actionIcon={<Plus className="w-4 h-4" />}
-            onAction={() => { setEditingId(null); setModalMode("create"); }}
-          />
-        ) : projects.map(p => (
-          <div key={p.id} className="data-row" style={{ position: "relative" }}>
-            <div className="flex items-center gap-3" style={{ flex: 1, minWidth: 0, cursor: "pointer" }}
-              onClick={() => router.push(`/dashboard/proyectos/${p.id}`)}>
-              <div className="status-indicator" style={{
-                background: p.status === "EN VUELO" ? "var(--emerald)" : p.status === "EN ÓRBITA" ? "var(--amber)" : p.status === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.65)",
-                boxShadow: p.status === "EN VUELO" ? "0 0 8px var(--emerald)" : "none",
-              }} />
-              <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>{p.alias || "Sin nombre"}</p>
-                <p style={{ fontSize: "11px", color: "#64748b", marginTop: "1px" }}>
-                  {p.vertical}{p.channels.length ? ` · ${p.channels.map(c => c.platformName).join(", ")}` : ""}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }}>
-              {p.channels.slice(0, 3).map(c => {
-                const pl = PLATFORMS.find(x => x.id === c.platformId);
-                return <span key={c.platformId} style={{ fontSize: "10px", padding: "3px 8px", border: `1px solid ${pl?.color || "var(--border)"}`, color: pl?.color || "#94a3b8", fontWeight: 600, letterSpacing: "0.05em" }}>{c.platformName}</span>;
-              })}
-              {p.channels.length > 3 && <span style={{ fontSize: "9px", color: "rgba(148,163,184,0.65)" }}>+{p.channels.length - 3}</span>}
-              <span className={`badge badge-${STATUS_COLORS[p.status]}`}>{p.status}</span>
-              <button onClick={(e) => {
-                e.stopPropagation();
-                if (menuOpen === p.id) { setMenuOpen(null); return; }
-                const rect = e.currentTarget.getBoundingClientRect();
-                const menuHeight = 220;
-                let topPos = rect.bottom + 4;
-                if (topPos + menuHeight > window.innerHeight) {
-                  topPos = Math.max(8, rect.top - menuHeight - 4);
-                }
-                setMenuPos({ top: topPos, right: window.innerWidth - rect.right });
-                setMenuOpen(p.id);
-              }}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.65)", padding: "4px" }}>
-                <MoreHorizontal className="w-4 h-4" />
-              </button>
-            </div>
+          <div className="glass-panel" style={{ padding: "40px 24px" }}>
+            <EmptyState
+              icon={<Orbi state="idle" scale={0.65} />}
+              title="Ningún proyecto en radar"
+              description="Aún no tienes misiones activas. Crea tu primer proyecto para empezar a gestionar campañas."
+              actionLabel="NUEVA MISIÓN"
+              actionIcon={<Plus className="w-4 h-4" />}
+              onAction={() => { setEditingId(null); setModalMode("create"); }}
+            />
           </div>
-        ))}
+        ) : (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
+            {projects.map(p => (
+              <ProjectCard
+                key={p.id}
+                project={p}
+                menuOpen={menuOpen}
+                setMenuOpen={setMenuOpen}
+                setMenuPos={setMenuPos}
+              />
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Context Menu Portal */}
@@ -1034,15 +649,15 @@ function ProyectosContent() {
         >
           <div onClick={e => e.stopPropagation()} style={{ background: "rgba(5,8,18,0.98)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <AlertTriangle style={{ width: 20, height: 20, color: "#e2445c" }} />
+              <AlertTriangle style={{ width: 20, height: 20, color: "var(--red)" }} />
               <h3 style={{ fontSize: 14, fontWeight: 700, color: "white" }}>Eliminar Proyecto</h3>
             </div>
-            <p style={{ fontSize: 12, color: "#94a3b8", marginBottom: 20, lineHeight: 1.6 }}>
+            <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
               ¿Estás seguro de que deseas eliminar <strong style={{ color: "white" }}>{projects.find(p => p.id === deleteConfirm)?.alias || "este proyecto"}</strong>? Esta acción no se puede deshacer. Se eliminarán todos los canales, configuraciones y datos asociados.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(148,163,184,0.22)", color: "#94a3b8", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
-              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "#e2445c", background: "rgba(226,68,92,0.08)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
+              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(148,163,184,0.22)", color: "var(--text-secondary)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
+              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "var(--red)", background: "rgba(226,68,92,0.08)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
             </div>
           </div>
         </div>,
@@ -1078,621 +693,6 @@ function mergeUnique(cur: string[] | undefined, add: string[]): string[] {
 
 
 
-function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, activeIntegrations, projects, onClose, onSave }: {
-  mode: "create" | "edit" | "view";
-  initial: Omit<Project, "id" | "createdAt">;
-  adAccountsByPlatform: Record<string, { id: string; name: string; portfolio?: string }[]>;
-  metaPages: MetaPage[];
-  activeIntegrations: {id: string, provider: string}[];
-  projects: Project[];
-  onClose: () => void;
-  onSave: (d: Omit<Project, "id" | "createdAt">) => void;
-}) {
-  const [form, setForm] = useState({ ...initial, channels: [...(initial.channels || []).map(c => ({ ...c, adAccounts: [...c.adAccounts] }))] });
-  const [errors, setErrors] = useState<string[]>([]);
-  const [mounted, setMounted] = useState(false);
-  const ro = mode === "view";
-
-  useEffect(() => { setMounted(true); }, []);
-
-  // Integraciones ANALÍTICAS reales del workspace (provider → botmaker | cari_ai).
-  // No incluye custom_crm/hubspot: no son compatibles con Análisis de Resultados.
-  const analyticsIntegrations = activeIntegrations.filter((i) => normalizeIntegrationProvider(i.provider) !== null);
-
-  // Plataforma analítica seleccionada → canales de bot que ofrece el formulario.
-  // Sin plataforma elegida se muestran los comunes (WhatsApp + Web Chat).
-  const isGooglePlatform = form.crmType === "google" && !(form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds.length));
-  // "No aplica": el usuario eligió explícitamente NO asociar plataforma de bot.
-  const isNoBot = form.crmType === "no_aplica";
-  const selectedBotProvider = (() => {
-    if (isNoBot) return null;
-    if (isGooglePlatform) return "google";
-    const selId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
-    const intg = analyticsIntegrations.find((i) => i.id === selId);
-    return intg ? normalizeIntegrationProvider(intg.provider) : null;
-  })();
-  const botChannels = selectedBotProvider
-    ? BOT_PLATFORM_CHANNELS[selectedBotProvider] ?? ["whatsapp", "webchat"]
-    : (["whatsapp", "webchat"] as BotChannel[]);
-  const showWhatsapp = botChannels.includes("whatsapp");
-  const showWebchat = botChannels.includes("webchat");
-  // Instagram/Facebook del bot: manuales y SOLO para Botmaker (Cari no los reporta).
-  const showInstagram = botChannels.includes("instagram");
-  const showFacebook = botChannels.includes("facebook");
-
-  // Autollenado de canales del bot desde Botmaker: cuando la plataforma es
-  // Botmaker, traemos sus canales REALES (números de WhatsApp, webchats, IG, FB)
-  // para elegirlos con un clic en vez de teclearlos. Cari no expone listado de
-  // canales, así que ahí se mantiene la captura manual.
-  type ChanOpt = { label: string; value: string };
-  const [botChannelsAvail, setBotChannelsAvail] = useState<{ whatsapp: ChanOpt[]; webchat: ChanOpt[]; instagram: ChanOpt[]; facebook: ChanOpt[] } | null>(null);
-  const [loadingChannels, setLoadingChannels] = useState(false);
-  useEffect(() => {
-    if (mode === "view" || selectedBotProvider !== "botmaker") { setBotChannelsAvail(null); return; }
-    let cancelled = false;
-    setLoadingChannels(true);
-    fetch("/api/integrations/botmaker/channels")
-      .then((r) => r.json())
-      .then((j) => { if (!cancelled && j?.success) setBotChannelsAvail(j.data.channels); })
-      .catch(() => { /* best-effort */ })
-      .finally(() => { if (!cancelled) setLoadingChannels(false); });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedBotProvider, mode]);
-
-  const totalAvail = botChannelsAvail
-    ? botChannelsAvail.whatsapp.length + botChannelsAvail.webchat.length + botChannelsAvail.instagram.length + botChannelsAvail.facebook.length
-    : 0;
-  // El botón "Autollenar" ya no se usa porque ahora los canales se eligen en 
-  // listas desplegables (CustomMultiSelectPictures) directamente.
-
-  // Sugerir/autoseleccionar cuando hay EXACTAMENTE una integración analítica y
-  // el proyecto nuevo aún no tiene ninguna asociada. Con varias, selección manual.
-  useEffect(() => {
-    if (mode === "view") return;
-    if (analyticsIntegrations.length === 1 && !form.crmIntegrationId && !(form.crmIntegrationIds && form.crmIntegrationIds.length)) {
-      const only = analyticsIntegrations[0];
-      setForm((prev) => ({ ...prev, crmIntegrationId: only.id, crmIntegrationIds: [only.id], crmType: only.provider }));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeIntegrations.length]);
-
-  function set(k: string, v: string) {
-    setForm(prev => ({ ...prev, [k]: v }));
-    setErrors(prev => prev.filter(e => e !== k));
-  }
-
-  /* ─── Channel toggle ─── */
-  function toggleChannel(platformId: string) {
-    if (ro) return;
-    setForm(prev => {
-      const exists = prev.channels.find(c => c.platformId === platformId);
-      if (exists) {
-        return { ...prev, channels: prev.channels.filter(c => c.platformId !== platformId) };
-      }
-      const pl = PLATFORMS.find(p => p.id === platformId)!;
-      return {
-        ...prev,
-        channels: [...prev.channels, {
-          platformId, platformName: pl.name,
-          adAccounts: [], budget: "", period: "Mensual", goal: "", cpr: "",
-        }],
-      };
-    });
-  }
-
-  /* ─── Channel config update ─── */
-  function setChannel(platformId: string, key: keyof ChannelConfig, val: string | string[]) {
-    setForm(prev => ({
-      ...prev,
-      channels: prev.channels.map(c => c.platformId === platformId ? { ...c, [key]: val } : c),
-    }));
-  }
-
-  function handleSubmit() {
-    const missing: string[] = [];
-    if (!form.alias) missing.push("alias");
-    if (form.channels.length === 0) missing.push("channels");
-    if (missing.length) { setErrors(missing); return; }
-    onSave(form);
-  }
-
-  if (!mounted) return null;
-
-  const title = mode === "create" ? "Nuevo Proyecto" : mode === "edit" ? "Editar Proyecto" : "Detalle";
-  const accent = mode === "create" ? "var(--emerald)" : mode === "edit" ? "var(--amber)" : "var(--cyan)";
-  
-  const fanpageOptions = metaPages.map(p => ({
-    value: p.name,
-    label: p.name,
-    picture: p.picture,
-    portfolio: p.portfolio
-  }));
-  
-  const instagramOptions = metaPages
-    .filter(p => p.instagram)
-    .map(p => ({
-      value: `@${p.instagram!.username}`,
-      label: `@${p.instagram!.username}`,
-      picture: p.instagram!.picture,
-      portfolio: p.portfolio
-    }));
-
-  const uniqueVerticals = Array.from(new Set([...VERTICALS, ...projects.map(p => p.vertical).filter(Boolean)]));
-  const verticalOptions = uniqueVerticals.map(v => ({ value: v, label: v }));
-  
-  const uniqueClients = Array.from(new Set(projects.map(p => p.client).filter(Boolean)));
-  const clientOptions = uniqueClients.map(c => ({ value: c, label: c }));
-
-  // ── Revelado progresivo ──
-  // En modo "create" las secciones aparecen conforme se llenan los datos: el
-  // formulario empieza minimal (solo Identidad) y va revelando lo siguiente.
-  // En edit/view se muestran siempre (ya hay datos que enseñar) o si la sección
-  // ya tiene contenido. Esto simplifica el alta sin esconder datos existentes.
-  const progressive = mode === "create";
-  const filled = (...vals: unknown[]) => vals.some((v) => (Array.isArray(v) ? v.length > 0 : Boolean(v)));
-  const aliasFilled = Boolean(form.alias && form.alias.trim());
-  const botSelectionId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
-  // El usuario tomó una decisión sobre la plataforma del bot (incluye "No aplica").
-  const botChoiceMade = Boolean(botSelectionId) || isGooglePlatform || isNoBot;
-  // El flujo arranca al nombrar el proyecto; lo siguiente se revela tras elegir
-  // plataforma del bot. `aliasFilled` evita que el auto-seleccionar de plataforma
-  // (cuando hay 1 sola integración) revele secciones antes de tiempo.
-  const flowStarted = aliasFilled && botChoiceMade;
-
-  // Captura MANUAL de canales (TagsInput) en vez de multi-select: Cari nunca lista
-  // canales, y Botmaker cuando su API no devolvió ninguno (para no bloquear el alta).
-  const manualBotChannels =
-    selectedBotProvider === "cari_ai" ||
-    (selectedBotProvider === "botmaker" && !loadingChannels && totalAvail === 0);
-  const hasBotChannelUI = !isNoBot && (showWhatsapp || showWebchat || showInstagram || showFacebook);
-  const anyBotChannelSelected = filled(form.whatsapp, form.webchat, form.instagram, form.fanpage);
-  // Revelado SECUENCIAL: cada sección se habilita al completar la anterior, no todas
-  // de golpe. El paso de canales del bot se "resuelve" al elegir/teclear ≥1 canal
-  // (o si no hay UI de canales — p. ej. "No aplica"). El fallback manual asegura que
-  // siempre se pueda completar aunque la API de Botmaker no traiga canales.
-  const botStepDone = flowStarted && (!hasBotChannelUI || anyBotChannelSelected);
-  const reveal = {
-    identityRest: !progressive || aliasFilled,
-    botPlatform: !progressive || aliasFilled,
-    botChannels: (!progressive || flowStarted) && hasBotChannelUI,
-    redes: !progressive || botStepDone || filled(form.fanpage, form.instagram, form.website),
-    adChannels: !progressive || botStepDone || form.channels.length > 0,
-    audiencia: !progressive || form.channels.length > 0 || filled(form.persona, form.geo, form.dateStart, form.dateEnd),
-  };
-
-  return createPortal(
-    <div onClick={onClose} style={{
-      position: "fixed", inset: 0, zIndex: 9999,
-      display: "flex", alignItems: "flex-start", justifyContent: "center",
-      overflowY: "auto", padding: "3vh 16px",
-      background: "rgba(0,0,0,0.8)", backdropFilter: "blur(6px)",
-    }}>
-      <div onClick={e => e.stopPropagation()} className="page-enter" style={{
-        width: "640px", maxWidth: "100%",
-        background: "var(--surface)", border: "1px solid var(--border-strong)",
-        flexShrink: 0, marginBottom: "3vh",
-      }}>
-        <div style={{ height: "2px", background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
-
-        {/* Header */}
-        <div style={{ padding: "16px 24px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "white", letterSpacing: "0.1em" }}>{title}</h2>
-          <button onClick={onClose} style={{ color: "#64748b", cursor: "pointer", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "#94a3b8"} onMouseLeave={e => e.currentTarget.style.color = "#64748b"}><X className="w-5 h-5" /></button>
-        </div>
-
-        <div style={{ padding: "20px 24px 24px" }}>
-
-          {/* ── Identidad ── */}
-          <Sec icon={<Users className="w-3 h-3" />} text="Identidad del Proyecto" />
-          <Row>
-            <Field l="Alias del proyecto" error={errors.includes("alias")} el={
-              <input type="text" value={form.alias} readOnly={ro} placeholder="Ej. Lanzamiento Q3"
-                style={{ ...inp, ...(errors.includes("alias") ? { borderColor: "var(--red)" } : {}) }}
-                onChange={e => set("alias", e.target.value)} />
-            } />
-            <Field l="Cliente" el={
-              <CustomCreatableSelect
-                value={form.client}
-                options={clientOptions}
-                onChange={(val: string) => set("client", val)}
-                placeholder="Nombre de la marca o seleccionar..."
-                ro={ro}
-              />
-            } />
-          </Row>
-          {reveal.botPlatform && (
-          <Row>
-            <Field l="Vertical" el={
-              <CustomCreatableSelect
-                value={form.vertical}
-                options={verticalOptions}
-                onChange={(val: string) => set("vertical", val)}
-                placeholder="Seleccionar o escribir..."
-                ro={ro}
-              />
-            } />
-            <Field l="Plataforma Analítica (Bot)" el={
-              (() => {
-                const selectedId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
-                const selectValue = isNoBot ? NO_BOT_PLATFORM : isGooglePlatform ? GOOGLE_PLATFORM : selectedId;
-                const hasChannel = (form.whatsapp?.length || 0) > 0 || (form.instagram?.length || 0) > 0 || (form.fanpage?.length || 0) > 0;
-                // "No aplica" es una elección válida → no advertir. Solo "Ninguna" (sin elegir) con un canal cargado dispara la alerta.
-                const showNeedsBotWarning = hasChannel && !selectValue;
-                return (
-                  <div>
-                    <select
-                      value={selectValue}
-                      onChange={e => {
-                        const sel = e.target.value;
-                        if (sel === GOOGLE_PLATFORM) {
-                          // Google no es una Integration: se marca por crmType y
-                          // su analítica vive en la pestaña "Análisis de Tráfico".
-                          setForm(prev => ({ ...prev, crmIntegrationId: null, crmIntegrationIds: [], crmType: "google", botFlowType: null }));
-                          return;
-                        }
-                        if (sel === NO_BOT_PLATFORM) {
-                          // No aplica: el proyecto no envía a ninguna plataforma de bot.
-                          setForm(prev => ({ ...prev, crmIntegrationId: null, crmIntegrationIds: [], crmType: "no_aplica", botFlowType: null }));
-                          return;
-                        }
-                        const intg = analyticsIntegrations.find(i => i.id === sel);
-                        setForm(prev => ({
-                          ...prev,
-                          crmIntegrationId: sel || null,
-                          crmIntegrationIds: sel ? [sel] : [],
-                          crmType: intg ? intg.provider : null,
-                        }));
-                      }}
-                      disabled={ro}
-                      style={{ ...inp, appearance: "auto" }}
-                    >
-                      <option value="">Ninguna</option>
-                      <option value={NO_BOT_PLATFORM}>No aplica (sin bot)</option>
-                      {analyticsIntegrations.map(i => {
-                        const norm = normalizeIntegrationProvider(i.provider) as string;
-                        return (
-                          <option key={i.id} value={i.id}>
-                            {PROVIDER_LABELS[norm] || (norm === "cari_ai" ? "Cari AI" : norm === "botmaker" ? "Botmaker" : i.provider)}
-                          </option>
-                        );
-                      })}
-                      <option value={GOOGLE_PLATFORM}>Google (Web Chat + Landing)</option>
-                    </select>
-                    {!ro && analyticsIntegrations.length === 0 && !isNoBot && (
-                      <p style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>
-                        Conecta Cari AI o Botmaker en Integraciones, o elige "No aplica" si este proyecto no usa bot.
-                      </p>
-                    )}
-                    {!ro && analyticsIntegrations.length > 1 && !selectedId && !isNoBot && (
-                      <p style={{ fontSize: 10, color: "#94a3b8", marginTop: 4 }}>
-                        Selecciona la plataforma del bot (Cari AI o Botmaker) para este proyecto.
-                      </p>
-                    )}
-                    {!ro && isNoBot && (
-                      <p style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>
-                        Sin Análisis de Resultados conversacional. El proyecto seguirá midiendo Ads y redes.
-                      </p>
-                    )}
-                    {!ro && showNeedsBotWarning && (
-                      <p style={{ fontSize: 10, color: "#f59e0b", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                        <AlertTriangle style={{ width: 11, height: 11 }} />
-                        El número configura el canal, pero necesitas asociar Cari AI o Botmaker para ver métricas.
-                      </p>
-                    )}
-                  </div>
-                );
-              })()
-            } />
-          </Row>
-          )}
-
-          {/* ── Canales del Bot ── (solo si hay plataforma de bot elegida) */}
-          {reveal.botChannels && (
-          <>
-          <Sec icon={<Globe className="w-3 h-3" />} text="Canales del Bot" />
-          {selectedBotProvider === "cari_ai" && (
-            <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", margin: "0 0 10px" }}>
-              Cari AI no expone un listado de canales en su API: ingresa el número de WhatsApp y/o el ID del web chat manualmente.
-            </p>
-          )}
-          {/* Tipo de flujo del bot (metodología BAIT): define el orden del Funnel 2
-              por bot en Análisis de Resultados. Solo aplica a Botmaker. */}
-          {selectedBotProvider === "botmaker" && (
-            <Row>
-              <Field l="Tipo de flujo (bot)" el={
-                <select
-                  value={form.botFlowType || ""}
-                  disabled={ro}
-                  style={{ ...inp, appearance: "auto" }}
-                  onChange={(e) => setForm(prev => ({ ...prev, botFlowType: e.target.value || null }))}
-                >
-                  <option value="">Auto (inferir del flujo)</option>
-                  <option value="prepago">Prepago (número → NIP → nombre)</option>
-                  <option value="pospago_alineado">Pospago alineado</option>
-                  <option value="pospago_simplificado">Pospago simplificado</option>
-                  <option value="google_bait">Google Bait Pospago</option>
-                </select>
-              } />
-            </Row>
-          )}
-          {/* Canales del bot: solo los que ofrece la Plataforma Analítica elegida.
-              WhatsApp + Web Chat para Cari/Botmaker; Instagram + Facebook del bot
-              solo para Botmaker. Para Botmaker se AUTOLLENAN desde su API (números,
-              webchats, IG, FB); Cari no expone listado → captura manual. */}
-          {selectedBotProvider === "botmaker" && (showWhatsapp || showWebchat || showInstagram || showFacebook) && totalAvail === 0 && !loadingChannels && (
-            <p style={{ fontSize: 10, color: "#f59e0b", margin: "2px 0 6px" }}>
-              No se detectaron canales en esta cuenta de Botmaker (revisa tu panel). Mientras tanto, ingrésalos manualmente abajo.
-            </p>
-          )}
-          {(showWhatsapp || showWebchat) && (
-            <Row>
-              {showWhatsapp && <Field l="WhatsApp" el={
-                manualBotChannels ? (
-                  <TagsInput
-                    values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
-                    onChange={(vals) => setForm(prev => ({ ...prev, whatsapp: vals }))}
-                    placeholder="+52 55 1234 5678 (Enter para agregar)"
-                    ro={ro}
-                  />
-                ) : (
-                  <CustomMultiSelectPictures
-                    values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
-                    options={botChannelsAvail?.whatsapp || []}
-                    onChange={(vals: string[]) => setForm(prev => ({ ...prev, whatsapp: vals }))}
-                    placeholder={loadingChannels ? "Cargando canales..." : "Seleccionar WhatsApp..."}
-                    ro={ro || loadingChannels}
-                  />
-                )
-              } />}
-              {showWebchat && <Field l="Web Chat (ID del widget)" el={
-                manualBotChannels ? (
-                  <TagsInput
-                    values={Array.isArray(form.webchat) ? form.webchat : form.webchat ? [form.webchat] : []}
-                    onChange={(vals) => setForm(prev => ({ ...prev, webchat: vals }))}
-                    placeholder="ID del web chat (Enter para agregar)"
-                    ro={ro}
-                  />
-                ) : (
-                  <CustomMultiSelectPictures
-                    values={Array.isArray(form.webchat) ? form.webchat : form.webchat ? [form.webchat] : []}
-                    options={botChannelsAvail?.webchat || []}
-                    onChange={(vals: string[]) => setForm(prev => ({ ...prev, webchat: vals }))}
-                    placeholder={loadingChannels ? "Cargando canales..." : "Seleccionar Web Chat..."}
-                    ro={ro || loadingChannels}
-                  />
-                )
-              } />}
-            </Row>
-          )}
-          {(showInstagram || showFacebook) && (
-            <Row>
-              {showInstagram && <Field l="Instagram del bot" el={
-                manualBotChannels ? (
-                  <TagsInput
-                    values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
-                    onChange={(vals) => setForm(prev => ({ ...prev, instagram: vals }))}
-                    placeholder="@usuario de Instagram (Enter para agregar)"
-                    ro={ro}
-                  />
-                ) : (
-                  <CustomMultiSelectPictures
-                    values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
-                    options={botChannelsAvail?.instagram || []}
-                    onChange={(vals: string[]) => setForm(prev => ({ ...prev, instagram: vals }))}
-                    placeholder={loadingChannels ? "Cargando canales..." : "Seleccionar Instagram..."}
-                    ro={ro || loadingChannels}
-                  />
-                )
-              } />}
-              {showFacebook && <Field l="Página de Facebook del bot" el={
-                manualBotChannels ? (
-                  <TagsInput
-                    values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
-                    onChange={(vals) => setForm(prev => ({ ...prev, fanpage: vals }))}
-                    placeholder="Página de Facebook (Enter para agregar)"
-                    ro={ro}
-                  />
-                ) : (
-                  <CustomMultiSelectPictures
-                    values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
-                    options={botChannelsAvail?.facebook || []}
-                    onChange={(vals: string[]) => setForm(prev => ({ ...prev, fanpage: vals }))}
-                    placeholder={loadingChannels ? "Cargando canales..." : "Seleccionar Página de Facebook..."}
-                    ro={ro || loadingChannels}
-                  />
-                )
-              } />}
-            </Row>
-          )}
-          </>
-          )}
-
-          {/* ── Redes Sociales (Meta) ── */}
-          {reveal.redes && (
-          <>
-          <Sec icon={<Globe className="w-3 h-3" />} text="Redes Sociales" />
-          <Row>
-            <Field l="Fanpages" el={
-              <CustomMultiSelectPictures
-                values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
-                options={fanpageOptions}
-                onChange={(vals: string[]) => setForm(prev => ({ ...prev, fanpage: vals }))}
-                placeholder="Seleccionar Fanpages..."
-                ro={ro}
-              />
-            } />
-            <Field l="Instagram" el={
-              <CustomMultiSelectPictures
-                values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
-                options={instagramOptions}
-                onChange={(vals: string[]) => setForm(prev => ({ ...prev, instagram: vals }))}
-                placeholder="Seleccionar Instagram..."
-                ro={ro}
-              />
-            } />
-          </Row>
-          <Row>
-            <Field l="Página Web" el={<input type="url" value={form.website} readOnly={ro} placeholder="https://sitio.com" style={inp} onChange={e => set("website", e.target.value)} />} />
-          </Row>
-          </>
-          )}
-
-          {/* ── Channel selector ── */}
-          {reveal.adChannels && (
-          <>
-          <Sec icon={<DollarSign className="w-3 h-3" />} text={`Canales Publicitarios${errors.includes("channels") ? " — Selecciona al menos 1" : ""}`} />
-
-          {/* Platform checkboxes */}
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "10px", marginBottom: "16px" }}>
-            {PLATFORMS.map(pl => {
-              const selected = form.channels.some(c => c.platformId === pl.id);
-              const disabled = !pl.connected && !selected;
-              return (
-                <button
-                  key={pl.id}
-                  onClick={() => !disabled && toggleChannel(pl.id)}
-                  style={{
-                    display: "flex", alignItems: "center", gap: "6px",
-                    padding: "6px 12px", fontSize: "11px", fontWeight: 600,
-                    border: `1px solid ${selected ? pl.color : disabled ? "rgba(148,163,184,0.16)" : "rgba(148,163,184,0.22)"}`,
-                    background: selected ? `${pl.color}12` : "transparent",
-                    color: selected ? pl.color : disabled ? "rgba(148,163,184,0.65)" : "rgba(148,163,184,0.55)",
-                    cursor: disabled ? "not-allowed" : "pointer",
-                    opacity: disabled ? 0.5 : 1,
-                    transition: "all 0.15s",
-                  }}
-                >
-                  {selected && <Check className="w-3 h-3" />}
-                  {pl.name}
-                  {!pl.connected && !selected && <span style={{ fontSize: "9px", opacity: 0.6 }}>(offline)</span>}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* ── Per-channel config cards ── */}
-          {form.channels.map(ch => {
-            const pl = PLATFORMS.find(p => p.id === ch.platformId) || { name: ch.platformId, color: "#00d4ff" };
-            const accounts = adAccountsByPlatform[ch.platformId] || [];
-
-            return (
-              <div key={ch.platformId} style={{
-                border: `1px solid ${pl.color}30`,
-                background: `${pl.color}05`,
-                marginBottom: "12px",
-                padding: "14px 16px",
-              }}>
-                {/* Channel header */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: pl.color }} />
-                    <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", color: pl.color }}>{pl.name}</span>
-                  </div>
-                  {!ro && (
-                    <button onClick={() => toggleChannel(ch.platformId)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.65)", fontSize: "10px" }}>
-                      <X className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                </div>
-
-                {/* Ad accounts multi-select dropdown */}
-                <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: "#64748b", marginBottom: "6px" }}>
-                  Cuentas Publicitarias
-                </label>
-                <div style={{ marginBottom: "12px" }}>
-                  <CustomMultiSelect 
-                    values={ch.adAccounts}
-                    options={accounts}
-                    onChange={(vals: string[]) => setChannel(ch.platformId, "adAccounts", vals)}
-                    placeholder="Seleccionar cuentas..."
-                    ro={ro}
-                  />
-                </div>
-
-                {/* Metrics row */}
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: "10px" }}>
-                  <div>
-                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>Budget</label>
-                    <input type="text" value={ch.budget} readOnly={ro} placeholder="$0.00"
-                      style={{ ...inp, fontSize: "11px", padding: "6px 8px" }}
-                      onChange={e => setChannel(ch.platformId, "budget", e.target.value)} />
-                  </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>Período</label>
-                    <select style={{ ...sel, fontSize: "11px", padding: "6px 8px" }} value={ch.period} disabled={ro}
-                      onChange={e => setChannel(ch.platformId, "period", e.target.value)}>
-                      {["Diario","Semanal","Mensual","Anual"].map(b => <option key={b}>{b}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>Meta</label>
-                    <select style={{ ...sel, fontSize: "11px", padding: "6px 8px" }} value={ch.goal} disabled={ro}
-                      onChange={e => setChannel(ch.platformId, "goal", e.target.value)}>
-                      <option value="">—</option>{GOALS.map(g => <option key={g}>{g}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: "4px" }}>{CPR_MAP[ch.goal] || "CPR"}</label>
-                    <input type="text" value={ch.cpr} readOnly={ro} placeholder="$0.00"
-                      style={{ ...inp, fontSize: "11px", padding: "6px 8px" }}
-                      onChange={e => setChannel(ch.platformId, "cpr", e.target.value)} />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-          </>
-          )}
-
-          {/* ── Audiencia ── */}
-          {reveal.audiencia && (
-          <>
-          <Sec icon={<Users className="w-3 h-3" />} text="Audiencia & Calendario" />
-          <Row>
-            <Field l="Buyer Persona" el={<input type="text" value={form.persona} readOnly={ro} placeholder="Mujeres 25-40, fitness" style={inp} onChange={e => set("persona", e.target.value)} />} />
-            <Field l="Geo-Targeting" el={<input type="text" value={form.geo} readOnly={ro} placeholder="País / Ciudad" style={inp} onChange={e => set("geo", e.target.value)} />} />
-          </Row>
-          <Row>
-            <Field l="Fecha Inicio" el={<input type="date" value={form.dateStart} readOnly={ro} style={{ ...inp, colorScheme: "dark" }} onChange={e => set("dateStart", e.target.value)} />} />
-            <Field l="Fecha Fin" el={<input type="date" value={form.dateEnd} readOnly={ro} style={{ ...inp, colorScheme: "dark" }} onChange={e => set("dateEnd", e.target.value)} />} />
-          </Row>
-          </>
-          )}
-
-          {/* Actions */}
-          {!ro ? (
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
-              <button onClick={onClose} style={{
-                fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase",
-                padding: "8px 20px", border: "1px solid rgba(148,163,184,0.12)", color: "#64748b",
-                background: "transparent", cursor: "pointer", transition: "all 0.15s", borderRadius: "4px",
-              }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.65)"; e.currentTarget.style.color = "#94a3b8"; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.12)"; e.currentTarget.style.color = "#64748b"; }}
-              >Cancelar</button>
-              <button onClick={handleSubmit} className="btn-primary" style={{
-                padding: "8px 24px", background: "rgba(6,214,160,0.08)",
-                borderColor: "rgba(6,214,160,0.35)", color: "var(--emerald)",
-              }}>{mode === "create" ? "Crear Proyecto" : "Guardar"}</button>
-            </div>
-          ) : (
-            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
-              <button onClick={onClose} className="btn-primary" style={{ padding: "8px 24px" }}>Cerrar</button>
-            </div>
-          )}
-        </div>
-      </div>
-    </div>,
-    document.body
-  );
-}
-
-/* ═══════════════════════════════════════
-   HELPERS
-   ═══════════════════════════════════════ */
-
-
 
 function MenuBtn({ icon, text, onClick, danger }: { icon: React.ReactNode; text: string; onClick: () => void; danger?: boolean }) {
   return (
@@ -1707,23 +707,3 @@ function MenuBtn({ icon, text, onClick, danger }: { icon: React.ReactNode; text:
   );
 }
 
-function Sec({ icon, text }: { icon: React.ReactNode; text: string }) {
-  return (
-    <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "12px", marginTop: "16px" }}>
-      <span style={{ color: "var(--cyan)", opacity: 0.4 }}>{icon}</span>
-      <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 600, letterSpacing: "0.2em", textTransform: "uppercase", color: "#64748b" }}>{text}</span>
-      <span style={{ flex: 1, height: "1px", background: "var(--border)" }} />
-    </div>
-  );
-}
-function Row({ children }: { children: React.ReactNode }) {
-  return <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px", marginBottom: "12px" }}>{children}</div>;
-}
-function Field({ l, el, error }: { l: string; el: React.ReactNode; error?: boolean }) {
-  return (
-    <div>
-      <label style={{ display: "block", fontSize: "10px", fontFamily: "var(--font-display)", fontWeight: 600, letterSpacing: "0.12em", textTransform: "uppercase", color: error ? "var(--red)" : "#64748b", marginBottom: "5px" }}>{l}{error ? " *" : ""}</label>
-      {el}
-    </div>
-  );
-}

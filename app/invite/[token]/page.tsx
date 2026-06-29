@@ -1,9 +1,10 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useSession, signIn } from "next-auth/react";
 import { Zap, Users, Loader2, CheckCircle } from "lucide-react";
+import { Orbi } from "@/components/ui/Orbi";
 
 export default function InvitePage() {
   const params = useParams();
@@ -186,9 +187,9 @@ export default function InvitePage() {
   // ── Loading ──
   if (pageLoading) {
     return (
-      <div style={page}>
-        <Loader2 style={{ width: 32, height: 32, color: "#00d4ff",
-          animation: "spin 1s linear infinite" }} />
+      <div style={{ ...page, flexDirection: "column", gap: "24px" }}>
+        <Orbi state="working" scale={0.8} />
+        <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO INVITACIÓN...</p>
       </div>
     );
   }
@@ -199,7 +200,7 @@ export default function InvitePage() {
       <div style={page}>
         <div style={card}>
           <Logo />
-          <p style={{ ...orbitron, fontSize: "11px", color: "#ff2d55",
+          <p style={{ ...orbitron, fontSize: "11px", color: "var(--red)",
             letterSpacing: "0.15em", marginBottom: "8px" }}>
             INVITACIÓN INVÁLIDA
           </p>
@@ -217,9 +218,9 @@ export default function InvitePage() {
       <div style={page}>
         <div style={{ ...card, textAlign: "center" as const }}>
           <CheckCircle style={{ width: 48, height: 48,
-            color: "#06d6a0", margin: "0 auto 16px" }} />
+            color: "var(--emerald)", margin: "0 auto 16px" }} />
           <p style={{ ...orbitron, fontSize: "12px",
-            color: "#06d6a0", letterSpacing: "0.15em" }}>
+            color: "var(--emerald)", letterSpacing: "0.15em" }}>
             ¡BIENVENIDO AL EQUIPO!
           </p>
           <p style={{ fontSize: "12px",
@@ -235,12 +236,10 @@ export default function InvitePage() {
   if (accepting) {
     return (
       <div style={page}>
-        <div style={{ ...card, textAlign: "center" as const }}>
-          <Loader2 style={{ width: 32, height: 32, color: "#00d4ff",
-            animation: "spin 1s linear infinite",
-            margin: "0 auto 16px" }} />
+        <div style={{ ...card, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "16px", textAlign: "center" as const }}>
+          <Orbi state="working" scale={0.8} />
           <p style={{ ...orbitron, fontSize: "11px",
-            color: "#00d4ff", letterSpacing: "0.15em" }}>
+            color: "var(--cyan)", letterSpacing: "0.15em" }}>
             PROCESANDO INVITACIÓN...
           </p>
         </div>
@@ -260,10 +259,10 @@ export default function InvitePage() {
           background: "rgba(0,212,255,0.04)",
           border: "1px solid rgba(0,212,255,0.1)" }}>
           <Users style={{ width: 20, height: 20,
-            color: "#00d4ff", flexShrink: 0 }} />
+            color: "var(--cyan)", flexShrink: 0 }} />
           <div>
             <p style={{ ...orbitron, fontSize: "11px",
-              color: "#00d4ff", letterSpacing: "0.1em" }}>
+              color: "var(--cyan)", letterSpacing: "0.1em" }}>
               {invite?.workspace?.name}
             </p>
             <p style={{ fontSize: "11px",
@@ -284,7 +283,7 @@ export default function InvitePage() {
 
         {/* Error recuperable */}
         {error && (
-          <p style={{ fontSize: "12px", color: "#ff2d55",
+          <p style={{ fontSize: "12px", color: "var(--red)",
             marginBottom: "16px", padding: "8px 12px",
             background: "rgba(255,45,85,0.05)",
             border: "1px solid rgba(255,45,85,0.15)" }}>
@@ -366,7 +365,7 @@ export default function InvitePage() {
                   style={inputStyle} />
                 {regError && (
                   <p style={{ fontSize: "11px",
-                    color: "#ff2d55", margin: 0 }}>
+                    color: "var(--red)", margin: 0 }}>
                     {regError}
                   </p>
                 )}
@@ -421,7 +420,7 @@ function Logo() {
         justifyContent: "center", background: "#000",
         border: "1px solid rgba(0,212,255,0.4)",
         boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
-        <Zap style={{ width: 20, height: 20, color: "#00d4ff" }} />
+        <Zap style={{ width: 20, height: 20, color: "var(--cyan)" }} />
       </div>
       <span style={{ fontFamily: "'Orbitron', sans-serif",
         fontSize: "18px", fontWeight: 700, color: "white",

@@ -31,7 +31,7 @@ export default function DashboardNotFound() {
           justifyContent: "center",
         }}
       >
-        <AlertTriangle style={{ width: 28, height: 28, color: "#e2445c" }} />
+        <AlertTriangle style={{ width: 28, height: 28, color: "var(--red)" }} />
       </div>
 
       <div>
@@ -40,14 +40,14 @@ export default function DashboardNotFound() {
             fontFamily: "'Orbitron', sans-serif",
             fontSize: 20,
             fontWeight: 700,
-            color: "#e2e8f0",
+            color: "var(--foreground)",
             letterSpacing: "0.08em",
             marginBottom: 8,
           }}
         >
           MÓDULO NO ENCONTRADO
         </h2>
-        <p style={{ fontSize: 13, color: "#64748b", maxWidth: 360 }}>
+        <p style={{ fontSize: 13, color: "var(--text-muted)", maxWidth: 360 }}>
           Esta sección no existe o fue movida. Verifica la URL o regresa al dashboard.
         </p>
       </div>
@@ -60,14 +60,14 @@ export default function DashboardNotFound() {
           gap: 8,
           padding: "10px 20px",
           borderRadius: 8,
-          background: "linear-gradient(135deg, #00b4d8, #0077b6)",
+          background: "linear-gradient(135deg, var(--cyan), #4f46e5)",
           border: "none",
           color: "#fff",
           fontSize: 13,
           fontWeight: 600,
           cursor: "pointer",
           fontFamily: "inherit",
-          boxShadow: "0 4px 12px rgba(0,180,216,0.2)",
+          boxShadow: "0 4px 16px rgba(0,212,255,0.35)",
           transition: "all 0.2s",
         }}
       >

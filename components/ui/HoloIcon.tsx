@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 import { LucideProps } from "lucide-react";
@@ -37,8 +37,8 @@ export function HoloIcon({ icon: Icon, variant = "cyan", isActive = false, class
   
   // Map variants to actual CSS hex codes for the drop-shadow
   const glowColors = {
-    cyan: "#00f0ff",
-    emerald: "#10b981",
+    cyan: "var(--cyan)",
+    emerald: "var(--emerald)",
     pink: "#f472b6",
     gold: "#fb923c"
   };

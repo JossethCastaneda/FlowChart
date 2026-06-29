@@ -15,24 +15,23 @@ interface ModalConfig {
 }
 
 let showModalFn: ((config: ModalConfig) => void) | null = null;
+let modalQueue: ModalConfig[] = [];
 
 /** Show a confirmation modal. Returns a promise that resolves when confirmed. */
 export function showConfirm(config: Omit<ModalConfig, "onConfirm"> & { onConfirm?: () => void }): Promise<boolean> {
   return new Promise((resolve) => {
+    const fullConfig = {
+      ...config,
+      onConfirm: () => {
+        config.onConfirm?.();
+        resolve(true);
+      },
+      onCancel: () => resolve(false),
+    };
     if (showModalFn) {
-      showModalFn({
-        ...config,
-        onConfirm: () => {
-          config.onConfirm?.();
-          resolve(true);
-        },
-        onCancel: () => resolve(false),
-      });
+      showModalFn(fullConfig);
     } else {
-      // Fallback to native
-      const result = window.confirm(config.message);
-      if (result) config.onConfirm?.();
-      resolve(result);
+      modalQueue.push(fullConfig);
     }
   });
 }
@@ -40,17 +39,18 @@ export function showConfirm(config: Omit<ModalConfig, "onConfirm"> & { onConfirm
 /** Show a prompt modal with input. */
 export function showPrompt(config: { title: string; message: string; placeholder?: string }): Promise<string | null> {
   return new Promise((resolve) => {
+    const fullConfig: ModalConfig = {
+      title: config.title,
+      message: config.message,
+      inputPlaceholder: config.placeholder,
+      confirmLabel: "Confirmar",
+      onConfirm: (val) => resolve(val || null),
+      onCancel: () => resolve(null),
+    };
     if (showModalFn) {
-      showModalFn({
-        title: config.title,
-        message: config.message,
-        inputPlaceholder: config.placeholder,
-        confirmLabel: "Confirmar",
-        onConfirm: (val) => resolve(val || null),
-        onCancel: () => resolve(null),
-      });
+      showModalFn(fullConfig);
     } else {
-      resolve(window.prompt(config.message));
+      modalQueue.push(fullConfig);
     }
   });
 }
@@ -65,6 +65,9 @@ export function ConfirmModalContainer() {
       setConfig(c);
       setInputValue("");
     };
+    if (modalQueue.length > 0) {
+      showModalFn(modalQueue.shift()!);
+    }
     return () => { showModalFn = null; };
   }, []);
 
@@ -101,12 +104,12 @@ export function ConfirmModalContainer() {
     <div className="modal-overlay" onClick={handleCancel}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-          {config.danger && <AlertTriangle size={20} style={{ color: "#ff2d55", flexShrink: 0 }} />}
-          <h3 style={{ fontSize: 16, fontWeight: 600, color: "#e2e8f0", margin: 0 }}>
+          {config.danger && <AlertTriangle size={20} style={{ color: "var(--red)", flexShrink: 0 }} />}
+          <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>
             {config.title}
           </h3>
         </div>
-        <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: config.inputPlaceholder ? 12 : 20, lineHeight: 1.5 }}>
+        <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: config.inputPlaceholder ? 12 : 20, lineHeight: 1.5 }}>
           {config.message}
         </p>
         {config.inputPlaceholder && (
@@ -120,7 +123,7 @@ export function ConfirmModalContainer() {
             style={{
               width: "100%", padding: "10px 14px", marginBottom: 20, boxSizing: "border-box",
               background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.15)",
-              color: "#e2e8f0", fontSize: 13, outline: "none", borderRadius: 6,
+              color: "var(--foreground)", fontSize: 13, outline: "none", borderRadius: 6,
             }}
           />
         )}
@@ -129,8 +132,8 @@ export function ConfirmModalContainer() {
             onClick={handleCancel}
             style={{
               padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 500,
-              background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)",
-              color: "#94a3b8", cursor: "pointer",
+              background: "rgba(255,255,255,0.06)", border: "1px solid var(--hairline)",
+              color: "var(--text-secondary)", cursor: "pointer",
             }}
           >
             {config.cancelLabel || "Cancelar"}
@@ -141,7 +144,7 @@ export function ConfirmModalContainer() {
               padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 600,
               background: config.danger ? "rgba(255,45,85,0.15)" : "rgba(0,212,255,0.12)",
               border: `1px solid ${config.danger ? "rgba(255,45,85,0.3)" : "rgba(0,212,255,0.25)"}`,
-              color: config.danger ? "#ff2d55" : "#00d4ff", cursor: "pointer",
+              color: config.danger ? "var(--red)" : "var(--cyan)", cursor: "pointer",
             }}
           >
             {config.confirmLabel || "Confirmar"}

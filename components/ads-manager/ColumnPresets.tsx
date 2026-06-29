@@ -17,27 +17,27 @@ interface Preset {
 const BUILT_IN_PRESETS: Preset[] = [
   {
     id: "default",
-    name: "📊 Estándar",
+    name: "?? Estándar",
     columns: ["name", "delivery", "budget", "objective", "roas", "reach", "impressions", "cpm", "frequency", "clicks", "ctr", "cpc", "results", "conversations", "cost_per_message", "cost_per_conversation", "cpa", "landing_page_views", "hook_rate", "spend", "quality_ranking"],
   },
   {
     id: "ecommerce",
-    name: "🛒 E-Commerce",
+    name: "?? E-Commerce",
     columns: ["name", "delivery", "budget", "roas", "results", "cpa", "spend", "impressions", "clicks", "ctr", "cpc", "landing_page_views", "quality_ranking"],
   },
   {
     id: "conversaciones",
-    name: "💬 Conversaciones",
+    name: "?? Conversaciones",
     columns: ["name", "delivery", "budget", "conversations", "cost_per_message", "cost_per_conversation", "results", "spend", "reach", "impressions", "frequency"],
   },
   {
     id: "engagement",
-    name: "📱 Engagement",
+    name: "?? Engagement",
     columns: ["name", "delivery", "budget", "reach", "impressions", "frequency", "clicks", "ctr", "cpc", "hook_rate", "quality_ranking", "spend"],
   },
   {
     id: "overview",
-    name: "👀 Vista Rápida",
+    name: "?? Vista Rápida",
     columns: ["name", "delivery", "budget", "results", "spend", "roas", "cpa"],
   },
 ];
@@ -75,7 +75,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
     if (!newName.trim()) return;
     const preset: Preset = {
       id: `custom-${Date.now()}`,
-      name: `⭐ ${newName.trim()}`,
+      name: `? ${newName.trim()}`,
       columns: [...currentColumns],
     };
     const updated = [...customPresets, preset];
@@ -100,7 +100,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
         style={{
           display: "flex", alignItems: "center", gap: "5px",
           padding: "6px 10px", fontSize: "11px", fontWeight: 600,
-          background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+          background: "var(--row-hover)", border: "1px solid var(--hairline)",
           borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
           transition: "all 0.15s",
         }}
@@ -118,7 +118,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
           padding: "6px", zIndex: 100, minWidth: "220px",
           boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7)",
         }}>
-          <div style={{ fontSize: "9px", color: "#64748b", padding: "6px 8px 3px", letterSpacing: "0.06em", fontWeight: 700 }}>
+          <div style={{ fontSize: "9px", color: "var(--text-muted)", padding: "6px 8px 3px", letterSpacing: "0.06em", fontWeight: 700 }}>
             PRESETS DE COLUMNAS
           </div>
 
@@ -136,14 +136,14 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
               >
                 {preset.name}
-                <span style={{ display: "block", fontSize: "8px", color: "rgba(148,163,184,0.65)", marginTop: "1px" }}>
+                <span style={{ display: "block", fontSize: "8px", color: "var(--text-muted)", marginTop: "1px" }}>
                   {preset.columns.length} columnas
                 </span>
               </button>
               {preset.id.startsWith("custom-") && (
                 <button
                   onClick={() => deletePreset(preset.id)}
-                  style={{ background: "none", border: "none", color: "rgba(148,163,184,0.65)", cursor: "pointer", padding: "4px" }}
+                  style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: "4px" }}
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -151,7 +151,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
             </div>
           ))}
 
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.1)", marginTop: "4px", paddingTop: "4px" }}>
+          <div style={{ borderTop: "1px solid var(--hairline)", marginTop: "4px", paddingTop: "4px" }}>
             {saving ? (
               <div style={{ display: "flex", gap: "4px", padding: "4px 6px" }}>
                 <input
@@ -163,14 +163,14 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                   autoFocus
                   style={{
                     flex: 1, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(148,163,184,0.18)",
-                    borderRadius: "4px", padding: "4px 8px", fontSize: "10px", color: "white", outline: "none",
+                    borderRadius: "4px", padding: "4px 8px", fontSize: "10px", color: "var(--foreground)", outline: "none",
                   }}
                 />
                 <button
                   onClick={savePreset}
                   style={{
                     background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.25)",
-                    borderRadius: "4px", color: "#34d399", cursor: "pointer", padding: "4px 6px",
+                    borderRadius: "4px", color: "var(--emerald)", cursor: "pointer", padding: "4px 6px",
                   }}
                 >
                   <Check className="w-3 h-3" />

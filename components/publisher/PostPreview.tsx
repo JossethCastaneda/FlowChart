@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React from "react";
 import {
   Heart,
@@ -51,7 +51,7 @@ const platformLabel = (format: PostFormat, platform: "facebook" | "instagram") =
 const platformColors = (platform: "facebook" | "instagram") => ({
   bg: platform === "facebook" ? "rgba(24,119,242,0.06)" : "rgba(225,48,108,0.06)",
   border: platform === "facebook" ? "rgba(24,119,242,0.15)" : "rgba(225,48,108,0.15)",
-  text: platform === "facebook" ? "#60a5fa" : "#f472b6",
+  text: platform === "facebook" ? "var(--cyan)" : "#f472b6",
   icon: platform === "facebook" ? "#1877f2" : "#E1306C",
 });
 
@@ -63,7 +63,7 @@ function PlatformLabelBar({ format, platform }: { format: PostFormat; platform: 
     <div
       style={{
         padding: "8px 14px",
-        borderBottom: "1px solid rgba(255,255,255,0.1)",
+        borderBottom: "1px solid var(--hairline)",
         display: "flex",
         alignItems: "center",
         gap: 6,
@@ -93,11 +93,11 @@ function MediaBox({
       <div
         style={{
           width: "100%",
-          background: "#0a0f1e",
+          background: "var(--background)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          color: "#334155",
+          color: "var(--text-secondary)",
           ...style,
         }}
       >
@@ -137,11 +137,11 @@ export function PostPreview({
 
   const cardBase: React.CSSProperties = {
     background: platform === "instagram" ? "#000" : "rgba(255,255,255,0.09)",
-    border: "1px solid rgba(255,255,255,0.08)",
+    border: "1px solid var(--hairline)",
     borderRadius: 12,
     overflow: "hidden",
     fontFamily: "Inter, -apple-system, Arial, sans-serif",
-    color: platform === "instagram" ? "#fff" : "#e2e8f0",
+    color: platform === "instagram" ? "#fff" : "var(--foreground)",
   };
 
   /* ─── FACEBOOK POST ──────────────────────────────── */
@@ -154,19 +154,19 @@ export function PostPreview({
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <img src={pageAvatar} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
             <div>
-              <div style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0" }}>{pageName}</div>
-              <div style={{ fontSize: 11, color: "#94a3b8" }}>Justo ahora · 🌎</div>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>{pageName}</div>
+              <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>Justo ahora · 🌎</div>
             </div>
           </div>
-          <MoreHorizontal style={{ width: 18, height: 18, color: "#64748b" }} />
+          <MoreHorizontal style={{ width: 18, height: 18, color: "var(--text-muted)" }} />
         </div>
         {/* Content */}
-        <div style={{ padding: "0 14px 12px", fontSize: 14, color: "#cbd5e1", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
+        <div style={{ padding: "0 14px 12px", fontSize: 14, color: "var(--foreground)", whiteSpace: "pre-wrap", lineHeight: 1.5 }}>
           {previewText}
         </div>
         {/* Media */}
         {firstMedia && (
-          <div style={{ width: "100%", height: 200, background: "#0f172a" }}>
+          <div style={{ width: "100%", height: 200, background: "var(--foreground)" }}>
             <MediaBox url={firstMedia} type={firstMediaType} style={{ height: "100%" }} />
           </div>
         )}
@@ -181,7 +181,7 @@ export function PostPreview({
               key={btn.label}
               style={{
                 flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                gap: 5, color: "#64748b", fontSize: 12, fontWeight: 500, padding: "6px 0",
+                gap: 5, color: "var(--text-muted)", fontSize: 12, fontWeight: 500, padding: "6px 0",
               }}
             >
               {btn.icon}<span>{btn.label}</span>
@@ -219,7 +219,7 @@ export function PostPreview({
         <MediaBox
           url={firstMedia}
           type={firstMediaType}
-          style={{ width: "100%", aspectRatio: "1", background: "#0a0f1e" }}
+          style={{ width: "100%", aspectRatio: "1", background: "var(--background)" }}
         />
         {/* Actions + Caption */}
         <div style={{ padding: "12px 14px" }}>
@@ -238,7 +238,7 @@ export function PostPreview({
           {/* First comment */}
           {firstComment && (
             <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ fontSize: 13, lineHeight: 1.5, color: "#cbd5e1" }}>
+              <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--foreground)" }}>
                 <span style={{ fontWeight: 600, marginRight: 6, color: "#fff" }}>@{username}</span>
                 {firstComment}
               </div>
@@ -262,7 +262,7 @@ export function PostPreview({
             width: "100%",
             aspectRatio: "9/16",
             maxHeight: 400,
-            background: "#0a0f1e",
+            background: "var(--background)",
             overflow: "hidden",
           }}
         >
@@ -285,7 +285,7 @@ export function PostPreview({
             <div
               style={{
                 width: "100%", height: "100%", display: "flex",
-                alignItems: "center", justifyContent: "center", color: "#334155",
+                alignItems: "center", justifyContent: "center", color: "var(--text-secondary)",
               }}
             >
               <ImageIcon style={{ width: 48, height: 48 }} />
@@ -390,7 +390,7 @@ export function PostPreview({
             width: "100%",
             aspectRatio: "9/16",
             maxHeight: 380,
-            background: "#0a0f1e",
+            background: "var(--background)",
             overflow: "hidden",
           }}
         >
@@ -413,7 +413,7 @@ export function PostPreview({
             <div
               style={{
                 width: "100%", height: "100%", display: "flex",
-                alignItems: "center", justifyContent: "center", color: "#334155",
+                alignItems: "center", justifyContent: "center", color: "var(--text-secondary)",
               }}
             >
               <ImageIcon style={{ width: 48, height: 48 }} />
@@ -510,7 +510,7 @@ export function PostPreview({
           <MoreHorizontal style={{ width: 18, height: 18 }} />
         </div>
         {/* Media with chevrons */}
-        <div style={{ position: "relative", width: "100%", aspectRatio: "1", background: "#0a0f1e" }}>
+        <div style={{ position: "relative", width: "100%", aspectRatio: "1", background: "var(--background)" }}>
           <MediaBox
             url={firstMedia}
             type={firstMediaType}
@@ -595,7 +595,7 @@ export function PostPreview({
                     width: i === 0 ? 6 : 5,
                     height: i === 0 ? 6 : 5,
                     borderRadius: "50%",
-                    background: i === 0 ? "#00d4ff" : "rgba(255,255,255,0.25)",
+                    background: i === 0 ? "var(--cyan)" : "rgba(255,255,255,0.25)",
                     transition: "all 0.2s",
                   }}
                 />
@@ -610,7 +610,7 @@ export function PostPreview({
           {/* First comment */}
           {firstComment && (
             <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ fontSize: 13, lineHeight: 1.5, color: "#cbd5e1" }}>
+              <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--foreground)" }}>
                 <span style={{ fontWeight: 600, marginRight: 6, color: "#fff" }}>@{username}</span>
                 {firstComment}
               </div>

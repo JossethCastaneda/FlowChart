@@ -45,7 +45,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
           style={{
             background: "none",
             border: "none",
-            color: "#94a3b8",
+            color: "var(--text-secondary)",
             cursor: "pointer",
             display: "flex",
             alignItems: "center",
@@ -58,7 +58,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
         >
           <X className="w-4 h-4" />
         </button>
-        <span style={{ fontSize: "11px", fontWeight: 600, color: "white", fontFamily: "'Orbitron', sans-serif" }}>
+        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--foreground)", fontFamily: "'Orbitron', sans-serif" }}>
           {selectedCount} Seleccionado{selectedCount > 1 ? "s" : ""}
         </span>
       </div>
@@ -133,7 +133,7 @@ function ActionButton({
         background: "rgba(255, 255, 255, 0.03)",
         border: "1px solid var(--border)",
         borderRadius: "999px",
-        color: loading ? "#64748b" : color || "#94a3b8",
+        color: loading ? "var(--text-muted)" : color || "var(--text-secondary)",
         fontSize: "10px",
         fontWeight: 600,
         textTransform: "uppercase",
@@ -152,7 +152,7 @@ function ActionButton({
         if (!loading) {
           e.currentTarget.style.background = "rgba(255, 255, 255, 0.03)";
           e.currentTarget.style.borderColor = "var(--border)";
-          e.currentTarget.style.color = color || "#94a3b8";
+          e.currentTarget.style.color = color || "var(--text-secondary)";
         }
       }}
     >

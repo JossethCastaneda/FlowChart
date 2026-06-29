@@ -40,17 +40,64 @@ export class ErrorBoundary extends Component<Props, State> {
       }
 
       return (
-        <div className={`flex flex-col items-center justify-center p-6 text-center bg-red-500/10 border border-red-500/20 rounded-xl ${this.props.className || ""}`}>
-          <AlertTriangle className="w-8 h-8 text-red-400 mb-3" />
-          <h3 className="text-sm font-semibold text-red-300 mb-1">Error al cargar componente</h3>
-          <p className="text-xs text-red-300/70 mb-4 max-w-xs">
-            {this.state.error?.message || "Ocurrió un error inesperado al renderizar esta sección."}
+        <div
+          className={this.props.className || ""}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "24px",
+            textAlign: "center",
+            background: "rgba(255,45,85,0.05)",
+            border: "1px solid rgba(255,45,85,0.2)",
+            borderRadius: "12px",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Top neon accent */}
+          <div style={{
+            position: "absolute", top: 0, left: 0, right: 0, height: "2px",
+            background: "linear-gradient(90deg, transparent, var(--red), transparent)",
+          }} />
+
+          <div style={{
+            width: "44px", height: "44px", borderRadius: "12px",
+            background: "rgba(255,45,85,0.1)",
+            border: "1px solid rgba(255,45,85,0.3)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            marginBottom: "12px",
+            boxShadow: "0 0 20px rgba(255,45,85,0.15)",
+          }}>
+            <AlertTriangle style={{ width: 20, height: 20, color: "var(--red)" }} />
+          </div>
+
+          <p style={{
+            fontFamily: "'Orbitron', sans-serif",
+            fontSize: "11px", fontWeight: 700,
+            letterSpacing: "0.15em", textTransform: "uppercase",
+            color: "var(--red)", marginBottom: "6px",
+          }}>
+            Error al renderizar
           </p>
+          <p style={{ fontSize: "11px", color: "var(--text-muted)", marginBottom: "14px", lineHeight: 1.5 }}>
+            {this.state.error?.message || "Ocurrió un error inesperado en esta sección."}
+          </p>
+
           <button
             onClick={this.handleRetry}
-            className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-red-200 bg-red-500/20 hover:bg-red-500/30 rounded-lg transition-colors"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: "6px",
+              padding: "7px 16px", borderRadius: "6px",
+              background: "rgba(255,45,85,0.1)",
+              border: "1px solid rgba(255,45,85,0.25)",
+              color: "var(--red)", fontSize: "11px", fontWeight: 600,
+              cursor: "pointer", fontFamily: "inherit",
+              transition: "all 0.2s",
+            }}
           >
-            <RefreshCcw className="w-3.5 h-3.5" />
+            <RefreshCcw style={{ width: 12, height: 12 }} />
             Reintentar
           </button>
         </div>

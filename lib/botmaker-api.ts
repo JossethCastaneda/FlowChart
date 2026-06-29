@@ -26,6 +26,7 @@
  */
 
 // ── Tipos de soporte ─────────────────────────────────────────────────────────
+import { logger } from "@/lib/logger";
 
 export interface BmConnection {
   /** URL base (default: https://api.botmaker.com/v2.0) */
@@ -71,26 +72,43 @@ export async function bmFetch(
     }
     url = `${base}${cleanPath}`;
   }
-  const res = await fetch(url, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      "access-token": conn.accessToken,
-      ...(init.headers ?? {}),
-    },
-  });
-  // Retry on rate limit (429) and transient gateway errors (502, 503, 504).
-  // Botmaker routinely throws 500 for end-of-pagination or bad inputs, do not retry 500s.
-  const retryable = res.status === 429 || (res.status >= 502 && res.status <= 504);
-  if (retryable && retries > 0) {
-    // Exponential backoff: 1s, 2s, 4s, 8s, 16s
-    const attempt = 6 - retries;
-    const delay = Math.min(1000 * Math.pow(2, attempt - 1), 16000);
-    await new Promise((r) => setTimeout(r, delay));
-    return bmFetch(conn, path, init, retries - 1);
+  
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+  
+  try {
+    const res = await fetch(url, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        "access-token": conn.accessToken,
+        ...(init.headers ?? {}),
+      },
+    });
+    clearTimeout(timeoutId);
+
+    // Retry on rate limit (429) and transient gateway errors (502, 503, 504).
+    // Botmaker routinely throws 500 for end-of-pagination or bad inputs, do not retry 500s.
+    const retryable = res.status === 429 || (res.status >= 502 && res.status <= 504);
+    if (retryable && retries > 0) {
+      // Exponential backoff: 1s, 2s, 4s, 8s, 16s
+      const attempt = 6 - retries;
+      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 16000);
+      console.warn(`[bmFetch] Got ${res.status} for ${url}, retrying in ${delay}ms... (Retries left: ${retries - 1})`);
+      await new Promise((r) => setTimeout(r, delay));
+      return bmFetch(conn, path, init, retries - 1);
+    }
+    return res;
+  } catch (err: any) {
+    clearTimeout(timeoutId);
+    if (err.name === 'AbortError') {
+      console.error(`[bmFetch] Request timed out after 15s for ${url}`);
+      return new Response(JSON.stringify({ error: "Request Timeout" }), { status: 599 }); // Custom status to avoid retry
+    }
+    throw err;
   }
-  return res;
 }
 
 /** Parsea una respuesta y la envuelve en BmResult<T>. */
@@ -171,12 +189,27 @@ export interface ListSessionsOptions {
 }
 
 /**
+ * Telemetría de completitud de la descarga (out-param opcional). Permite al
+ * llamador distinguir un fin-de-datos limpio de un truncado por error/cap, en vez
+ * de presentar un conteo parcial como total. Se rellena al terminar `listSessions`.
+ */
+export interface ListSessionsMeta {
+  complete: boolean;   // llegó a nextPage===null / página vacía SIN error ni cap
+  pages: number;       // páginas efectivamente recuperadas
+  reachedCap: boolean; // se detuvo por maxPages con más datos pendientes
+  truncated: boolean;  // se detuvo por un error no recuperable a media paginación
+  error?: string;      // último error si truncó
+}
+
+/**
  * GET /sessions — lista sesiones paginadas en una ventana de tiempo.
  * Sigue el campo `nextPage` hasta agotar páginas o alcanzar `maxPages`.
+ * Si se pasa `meta`, se rellena con la telemetría de completitud (ver arriba).
  */
 export async function listSessions(
   conn: BmConnection,
-  opts: ListSessionsOptions
+  opts: ListSessionsOptions,
+  meta?: ListSessionsMeta
 ): Promise<BmSession[]> {
   const {
     from,
@@ -187,11 +220,20 @@ export async function listSessions(
     maxPages = 6,
   } = opts;
 
+  // Clamp 'to' to prevent future date 400 errors from Botmaker API
+  let safeTo = to;
+  try {
+    if (new Date(to).getTime() > Date.now()) {
+      safeTo = new Date(Date.now() - 5000).toISOString();
+    }
+  } catch (e) {}
+
   const qs = new URLSearchParams({
     from,
-    to,
+    to: safeTo,
     "include-messages": String(includeMessages),
     "include-events": String(includeEvents),
+    "long-term-search": "true",
   });
   if (channelId) qs.set("channelId", channelId);
 
@@ -201,23 +243,49 @@ export async function listSessions(
   const all: BmSession[] = [];
   let next: string | null = `/sessions?${qsStr}`;
   let pages = 0;
+  let truncated = false;
+  let lastError: string | undefined;
 
   while (next && pages < maxPages) {
-    const path = next;
-    
+    const path = next; // DO NOT replace %3A on nextPage! We must call the EXACT URL!
+
     if (pages > 0) {
-      console.log(`[listSessions DEBUG] Fetching Page ${pages + 1} with path: ${path}`);
+      logger.debug(`[listSessions] Fetching Page ${pages + 1}`, { path });
     }
-    
-    const res = await bmFetch(conn, path);
+
+    let res = await bmFetch(conn, path);
     if (!res.ok) {
-      const errText = await res.text();
-      console.warn(`[listSessions] Page ${pages + 1} returned ${res.status} for ${from} → ${to}, stopping pagination. Response: ${errText.substring(0, 200)}`);
+      // Un error a media paginación NO es fin-de-datos: reintenta una vez tras un
+      // respiro antes de rendirse, y si vuelve a fallar marca TRUNCADO (no rompas
+      // en silencio presentando un conteo parcial como total).
+      await new Promise((r) => setTimeout(r, 600));
+      res = await bmFetch(conn, path);
+    }
+    if (!res.ok) {
+      lastError = `HTTP ${res.status}`;
+      await res.text().catch(() => {});
+      truncated = true;
+      logger.warn(`[listSessions] Page ${pages + 1} returned ${res.status} for ${from} → ${to}, TRUNCATED.`);
       break;
     }
     const data: BmSessionsPage = await res.json().catch(() => ({}));
     const items = Array.isArray(data.items) ? data.items : [];
     all.push(...items);
+    
+    // Prevent infinite loop if API returns the exact same nextPage or if page is empty
+    if (items.length === 0) {
+      break;
+    }
+    
+    const getPath = (u: string) => {
+      try { return new URL(u, "http://localhost").pathname + new URL(u, "http://localhost").search; }
+      catch { return u; }
+    };
+    if (data.nextPage && getPath(data.nextPage) === getPath(next)) {
+      logger.warn(`[listSessions] Infinite loop detected!`, { nextPage: next });
+      break;
+    }
+    
     next = data.nextPage || null;
     pages++;
 
@@ -227,8 +295,17 @@ export async function listSessions(
     }
   }
 
+  const reachedCap = !!next && pages >= maxPages;
+  if (meta) {
+    meta.pages = pages;
+    meta.reachedCap = reachedCap;
+    meta.truncated = truncated;
+    meta.complete = !truncated && !reachedCap;
+    meta.error = lastError;
+  }
+
   if (pages > 1 || all.length > 0) {
-    console.log(`[listSessions] ${from.slice(0,10)} → ${to.slice(0,10)}: ${pages} pages, ${all.length} sessions`);
+    logger.info(`[listSessions] Pagination done`, { from: from.slice(0, 10), to: to.slice(0, 10), pages, total: all.length, complete: !truncated && !reachedCap });
   }
 
   return all;

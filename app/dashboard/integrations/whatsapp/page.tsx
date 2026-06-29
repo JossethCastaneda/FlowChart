@@ -46,13 +46,13 @@ const TRANSLATIONS = {
     wabaInfo: "WABA: {wabaId} · {connectedCount} línea{s} enlazada{s}",
     update: "Actualizar",
     newAccount: "Nueva cuenta de WhatsApp",
-    disconnect: "{t.disconnect}",
-    connectMeta: "{t.connectMeta}",
-    verifying: "{t.verifying}",
-    sdkLoading: "t.sdkLoading",
-    missingVars: "t.missingVars",
-    connectError: "t.connectError",
-    networkError: "t.networkError.",
+    disconnect: "Desconectar",
+    connectMeta: "Conectar con Meta",
+    verifying: "Verificando conexión...",
+    sdkLoading: "Cargando SDK de Facebook, espera un momento.",
+    missingVars: "Faltan variables NEXT_PUBLIC_META_APP_ID / NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID.",
+    connectError: "Error al conectar. Intenta de nuevo.",
+    networkError: "Error de red. Verifica tu conexión.",
     notConnectedTitle: "No conectado",
     notConnectedDesc: "Conecta tu cuenta de WhatsApp Business para enviar mensajes y plantillas.",
     wabaConnectedMsg: "Conectado a WABA",
@@ -67,7 +67,7 @@ const TRANSLATIONS = {
     templateNoteOk: "✅ Recomendado — funciona sin depender de ventana 24h",
     templateNoteWarn: "⚠️ Solo si el destinatario interactuó en las últimas 24h",
     cancel: "Cancelar",
-    sendTest: "{t.sendTest}",
+    sendTest: "Enviar prueba",
     sending: "Enviando...",
     sentSuccess: "Enviado ✓ ID: {id}",
     sendError: "Error al enviar",
@@ -86,12 +86,12 @@ const TRANSLATIONS = {
     websitePlaceholder: "https://tuempresa.com",
     sendImage: "Enviar Imagen",
     imageNote: "Tamaño recomendado de imagen: 640x640 píxeles",
-    imageUrl: "Url de imagen",
+    imageUrl: "URL de imagen",
     imageDesc: "Agrega una descripción. *Opcional",
-    save: "{saving ? t.saving : t.save}",
+    save: "Guardar",
     saving: "Guardando...",
-    infoTitle: "WhatsApp line info",
-    disconnectLine: "{t.disconnectLine}",
+    infoTitle: "Información de línea",
+    disconnectLine: "Desvincular línea",
     close: "Cerrar",
     alias: "Alias",
     aliasPlaceholder: "Alias...",
@@ -220,20 +220,20 @@ interface WabaStatus {
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 function qualityColor(q: string, lang: 'es' | 'en') {
-  if (q === "GREEN" || q === "HIGH")    return { color: "#10b981", dot: "#10b981", label: lang === "es" ? "Alta" : "High" };
-  if (q === "YELLOW" || q === "MEDIUM") return { color: "#f59e0b", dot: "#f59e0b", label: lang === "es" ? "Media" : "Medium" };
-  if (q === "RED" || q === "LOW")       return { color: "#ef4444", dot: "#ef4444", label: lang === "es" ? "Baja" : "Low" };
-  return { color: "var(--text-secondary)", dot: "#64748b", label: "N/A" };
+  if (q === "GREEN" || q === "HIGH")    return { color: "var(--emerald)", dot: "var(--emerald)", label: lang === "es" ? "Alta" : "High" };
+  if (q === "YELLOW" || q === "MEDIUM") return { color: "var(--amber)", dot: "var(--amber)", label: lang === "es" ? "Media" : "Medium" };
+  if (q === "RED" || q === "LOW")       return { color: "var(--red)", dot: "var(--red)", label: lang === "es" ? "Baja" : "Low" };
+  return { color: "var(--text-secondary)", dot: "var(--text-muted)", label: "N/A" };
 }
 
 function statusInfo(s: string, lang: 'es' | 'en') {
   const norm = s?.toUpperCase() || "";
   if (norm === "APPROVED" || norm === "CONNECTED" || norm === "VERIFIED")
-    return { color: "#10b981", icon: <CheckCircle2 size={11} />, label: lang === "es" ? "Conectada" : "Connected" };
+    return { color: "var(--emerald)", icon: <CheckCircle2 size={11} />, label: lang === "es" ? "Conectada" : "Connected" };
   if (norm.includes("BANNED") || norm.includes("RESTRICTED"))
-    return { color: "#ef4444", icon: <XCircle size={11} />, label: norm };
+    return { color: "var(--red)", icon: <XCircle size={11} />, label: norm };
   if (norm === "PENDING")
-    return { color: "#f59e0b", icon: <AlertCircle size={11} />, label: lang === "es" ? "Pendiente" : "Pending" };
+    return { color: "var(--amber)", icon: <AlertCircle size={11} />, label: lang === "es" ? "Pendiente" : "Pending" };
   return { color: "var(--text-secondary)", icon: <XCircle size={11} />, label: s || "Desconocido" };
 }
 
@@ -252,7 +252,7 @@ function CopyButton({ text }: { text: string }) {
       title="Copiar"
       style={{
         background: "none", border: "none", cursor: "pointer",
-        color: copied ? "#10b981" : "#475569", padding: "2px 4px",
+        color: copied ? "var(--emerald)" : "var(--text-secondary)", padding: "2px 4px",
         display: "inline-flex", alignItems: "center",
         transition: "color 0.2s",
       }}
@@ -312,7 +312,7 @@ function PhoneAvatar({ name, linked, profilePic }: { name: string; linked: boole
       width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
       background: linked ? "linear-gradient(135deg,#075E54,#128C7E)" : "rgba(100,116,139,0.15)",
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 12, fontWeight: 700, color: linked ? "#fff" : "#64748b",
+      fontSize: 12, fontWeight: 700, color: linked ? "#fff" : "var(--text-muted)",
       border: linked ? "2px solid rgba(37,211,102,0.3)" : "2px solid rgba(255,255,255,0.06)",
     }}>
       {initials}
@@ -376,12 +376,12 @@ function TestChatModal({ line, onClose }: { line: WaLine; onClose: () => void })
               </div>
               {t.useTemplate} <code style={{ fontSize: 10, color: "var(--text-secondary)" }}>hello_world</code>
             </label>
-            <p style={{ fontSize: 10, color: useTemplate ? "#10b981" : "#f59e0b", margin: 0 }}>
+            <p style={{ fontSize: 10, color: useTemplate ? "var(--emerald)" : "var(--amber)", margin: 0 }}>
               {useTemplate ? t.templateNoteOk : t.templateNoteWarn}
             </p>
           </div>
           {result && (
-            <div style={{ padding: "10px 14px", borderRadius: 8, background: result.ok ? "rgba(16,185,129,0.06)" : "rgba(239,68,68,0.06)", border: `1px solid ${result.ok ? "rgba(16,185,129,0.2)" : "rgba(239,68,68,0.2)"}`, color: result.ok ? "#10b981" : "#f87171", fontSize: 12 }}>
+            <div style={{ padding: "10px 14px", borderRadius: 8, background: result.ok ? "rgba(16,185,129,0.06)" : "rgba(239,68,68,0.06)", border: `1px solid ${result.ok ? "rgba(16,185,129,0.2)" : "rgba(239,68,68,0.2)"}`, color: result.ok ? "var(--emerald)" : "var(--red)", fontSize: 12 }}>
               {result.msg}
             </div>
           )}
@@ -547,7 +547,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
   const [unlinking, setUnlinking] = useState(false);
 
   const handleUnlink = async () => {
-    if (!confirm("¿{t.disconnect} esta línea de Sodare? Dejará de recibir mensajes.")) return;
+    if (!confirm(`¿Desvincular esta línea de Sodare? Dejará de recibir mensajes.`)) return;
     setUnlinking(true);
     await onUnlink();
     setUnlinking(false);
@@ -577,7 +577,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
           <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", margin: "0 0 12px", letterSpacing: "0.05em" }}>WABA info</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
             <InfoRow
-              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,129,251,0.12)", border: "1px solid rgba(0,129,251,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Phone size={14} style={{ color: "#60a5fa" }} /></div>}
+              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,129,251,0.12)", border: "1px solid rgba(0,129,251,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Phone size={14} style={{ color: "var(--cyan)" }} /></div>}
               label="WABA"
               value={wabaId || line.wabaId || "—"}
             />
@@ -608,7 +608,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
           {/* Quality reason note */}
           {(line.qualityRating === "YELLOW" || line.qualityRating === "MEDIUM" || line.qualityRating === "RED" || line.qualityRating === "LOW") && (
             <div style={{ padding: "10px 12px", borderRadius: 8, background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)", display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 16 }}>
-              <Info size={12} style={{ color: "#f59e0b", flexShrink: 0, marginTop: 1 }} />
+              <Info size={12} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
               <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>
                 Reason: See our guidelines on how best to send messages to your customers.
               </p>
@@ -620,7 +620,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
             <button
               onClick={handleUnlink}
               disabled={unlinking}
-              style={{ width: "100%", padding: "10px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "transparent", border: "none", color: "#ef4444", cursor: unlinking ? "wait" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              style={{ width: "100%", padding: "10px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "transparent", border: "none", color: "var(--red)", cursor: unlinking ? "wait" : "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
               {unlinking ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Trash2 size={13} />}
               {t.disconnectLine}
@@ -730,10 +730,10 @@ export default function WhatsAppIntegrationPage() {
 
   useEffect(() => { if (wabaStatus.connected) fetchLines(); else setLines([]); }, [wabaStatus.connected, fetchLines]);
 
-  // ── Connect ──────────────────────────────────────────────────────────────────
+  // ── Connect via Embedded Signup ─────────────────────────────────────────────
   const handleConnect = useCallback(() => {
-    if (!sdkReady || !window.FB) { setConnectError("t.sdkLoading"); return; }
-    if (!APP_ID || !CONFIG_ID) { setConnectError("t.missingVars"); return; }
+    if (!sdkReady || !window.FB) { setConnectError(t.sdkLoading); return; }
+    if (!APP_ID || !CONFIG_ID) { setConnectError(t.missingVars); return; }
     setConnectError(null); setConnecting(true);
     const setup: Record<string, unknown> = {};
     if (wsInfo.name) setup.business = { name: wsInfo.name };
@@ -745,9 +745,9 @@ export default function WhatsAppIntegrationPage() {
       try {
         const res = await fetch("/api/connect/whatsapp", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code, ...(wabaId && { wabaId }), ...(phoneNumberId && { phoneNumberId }) }) });
         const data = await res.json();
-        if (!res.ok) setConnectError(data.error || "t.connectError");
+        if (!res.ok) setConnectError(data.error || t.connectError);
         else { await fetchStatus(); fetchLines(); }
-      } catch { setConnectError("t.networkError."); }
+      } catch { setConnectError(t.networkError); }
       setConnecting(false);
     };
     const onMessage = (event: MessageEvent) => {
@@ -772,13 +772,26 @@ export default function WhatsAppIntegrationPage() {
       if (pmData.wabaId || pmData.phoneNumberId) { window.removeEventListener("message", onMessage); doPost(code, pmData.wabaId, pmData.phoneNumberId); }
       else setTimeout(() => { window.removeEventListener("message", onMessage); doPost(code, pmData.wabaId, pmData.phoneNumberId); }, 3000);
     }, { config_id: CONFIG_ID, response_type: "code", override_default_response_type: true, extras: { setup, featureType: "whatsapp_business_app_onboarding", sessionInfoVersion: "3", version: "v4", features: [{ name: "app_only_install" }] } });
-  }, [sdkReady, fetchStatus, fetchLines, wsInfo]);
+  }, [sdkReady, fetchStatus, fetchLines, wsInfo, t]);
+
+
 
   // ── Disconnect WABA ──────────────────────────────────────────────────────────
   const handleDisconnect = async () => {
-    if (!confirm("¿{t.disconnect} WhatsApp Business? Los mensajes dejarán de procesarse.")) return;
+    if (!confirm(`¿${t.disconnect} WhatsApp Business? Las notificaciones y mensajes dejarán de enviarse.`)) return;
     setDisconnecting(true);
-    try { await fetch("/api/connect/whatsapp", { method: "DELETE" }); setWabaStatus({ connected: false }); setLines([]); } catch { /* silent */ }
+    try {
+      const res = await fetch("/api/connect/whatsapp", { method: "DELETE" });
+      if (res.ok) {
+        setWabaStatus({ connected: false });
+        setLines([]);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setConnectError(data.error || "Error al desconectar WhatsApp Business.");
+      }
+    } catch {
+      setConnectError(t.networkError);
+    }
     setDisconnecting(false);
   };
 
@@ -812,7 +825,7 @@ export default function WhatsAppIntegrationPage() {
         @keyframes pulse-dot { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
         .wa-row:hover { background: rgba(37,211,102,0.03) !important; }
         .wa-row-unlinked:hover { background: rgba(255,255,255,0.025) !important; }
-        .wa-icon-btn:hover { color: #94a3b8 !important; }
+        .wa-icon-btn:hover { color: var(--text-secondary) !important; }
         .wa-connect-btn:hover:not(:disabled) { background: linear-gradient(135deg,#25D366,#128C7E) !important; transform: translateY(-1px); box-shadow: 0 8px 24px rgba(37,211,102,0.25) !important; }
         .wa-action-btn:hover { background: rgba(255,255,255,0.08) !important; }
         .wa-table-wrap { overflow-x: auto; }
@@ -847,7 +860,7 @@ export default function WhatsAppIntegrationPage() {
                 <button onClick={handleConnect} disabled={connecting || !sdkReady} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer" }}>
                   <Plus size={13} /> {t.newAccount}
                 </button>
-                <button onClick={handleDisconnect} disabled={disconnecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171", cursor: "pointer" }}>
+                <button onClick={handleDisconnect} disabled={disconnecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--red)", cursor: "pointer" }}>
                   {disconnecting ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <XCircle size={13} />}
                   {t.disconnect}
                 </button>
@@ -856,7 +869,7 @@ export default function WhatsAppIntegrationPage() {
             {!wabaStatus.connected && !loadingStatus && (
               <button onClick={handleConnect} disabled={connecting || !sdkReady} className="wa-connect-btn" style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700, background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.6 : 1, transition: "all 0.25s", fontFamily: "inherit" }}>
                 {connecting ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <WaIcon size={16} />}
-                {connecting ? "Conectando..." : "{t.connectMeta}"}
+                {connecting ? "Conectando..." : t.connectMeta}
               </button>
             )}
           </div>
@@ -864,9 +877,9 @@ export default function WhatsAppIntegrationPage() {
 
         {/* ── Error ───────────────────────────────────────────────────────── */}
         {connectError && (
-          <div style={{ padding: "12px 16px", borderRadius: 10, marginBottom: 16, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", color: "#f87171", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ padding: "12px 16px", borderRadius: 10, marginBottom: 16, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--red)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
             <AlertCircle size={14} style={{ flexShrink: 0 }} /> {connectError}
-            <button onClick={() => setConnectError(null)} style={{ marginLeft: "auto", background: "none", border: "none", color: "#f87171", cursor: "pointer" }}><X size={12} /></button>
+            <button onClick={() => setConnectError(null)} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--red)", cursor: "pointer" }}><X size={12} /></button>
           </div>
         )}
 
@@ -880,33 +893,79 @@ export default function WhatsAppIntegrationPage() {
         {/* ── Not connected ────────────────────────────────────────────────── */}
         {!loadingStatus && !wabaStatus.connected && (
           <div style={{ borderRadius: 16, overflow: "hidden", border: "1px solid var(--border)", background: "var(--surface)" }}>
-            <div style={{ padding: "48px 40px", background: "var(--surface-hover)", borderBottom: "1px solid var(--border)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 16 }}>
-              <div style={{ width: 72, height: 72, borderRadius: 20, background: "linear-gradient(135deg,#075E54,#128C7E)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(37,211,102,0.3)" }}>
-                <WaIcon size={36} />
+
+            {/* Hero */}
+            <div style={{ padding: "40px 40px 28px", background: "var(--surface-hover)", borderBottom: "1px solid var(--border)", display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 14 }}>
+              <div style={{ width: 68, height: 68, borderRadius: 20, background: "linear-gradient(135deg,#075E54,#128C7E)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 40px rgba(37,211,102,0.28)" }}>
+                <WaIcon size={34} />
               </div>
               <div>
-                <h2 style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>Conecta tu WhatsApp Business</h2>
-                <p style={{ fontSize: 14, color: "var(--text-secondary)", margin: 0, maxWidth: 480 }}>Usa el Embedded Signup de Meta para conectar tu WABA en segundos. Tus credenciales se cifran con AES-256-GCM.</p>
+                <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)", margin: "0 0 6px" }}>Conecta tu WhatsApp Business</h2>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, maxWidth: 440 }}>Usaremos el inicio de sesión de Meta. El proceso toma menos de un minuto.</p>
               </div>
-              <button onClick={handleConnect} disabled={connecting || !sdkReady} className="wa-connect-btn"
-                style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 32px", borderRadius: 12, fontSize: 14, fontWeight: 700, background: "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.4)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.6 : 1, transition: "all 0.25s", fontFamily: "inherit" }}>
-                {connecting ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <WaIcon size={18} />}
-                {connecting ? "Abriendo Meta..." : "{t.connectMeta}"}
-              </button>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))", gap: 0 }}>
+
+            {/* Guide */}
+            <div style={{ padding: "24px 32px 28px" }}>
+
+              {/* Tip callout */}
+              <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.18)", marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 10 }}>
+                <AlertCircle size={14} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.65 }}>
+                  Meta muestra campos como <em>Catálogo, Página, Instagram, Píxel y Cuenta publicitaria</em> pero <strong style={{ color: "var(--foreground)" }}>todos son opcionales</strong>.
+                  Solo selecciona tu <strong style={{ color: "#25D366" }}>Cuenta de WhatsApp Business</strong> y presiona <em>Siguiente</em> en el resto.
+                </p>
+              </div>
+
+              {/* Steps */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 24 }}>
+                {[
+                  { step: "1", text: "Acepta las condiciones → Continuar" },
+                  { step: "2", text: "Selecciona tu Cuenta de WhatsApp Business", highlight: true },
+                  { step: "3", text: "Catálogo, Página, Instagram, Píxel → dejar vacíos → Siguiente" },
+                  { step: "4", text: "Completa el registro del número si se solicita" },
+                ].map(({ step, text, highlight }) => (
+                  <div key={step} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                    <div style={{ width: 26, height: 26, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, background: highlight ? "rgba(37,211,102,0.15)" : "rgba(255,255,255,0.05)", border: `1px solid ${highlight ? "rgba(37,211,102,0.4)" : "rgba(255,255,255,0.08)"}`, color: highlight ? "#25D366" : "var(--text-muted)" }}>
+                      {step}
+                    </div>
+                    <p style={{ fontSize: 12, color: highlight ? "var(--foreground)" : "var(--text-secondary)", margin: 0, fontWeight: highlight ? 600 : 400 }}>{text}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Button */}
+              <button
+                onClick={handleConnect}
+                disabled={connecting || !sdkReady}
+                className="wa-connect-btn"
+                style={{ width: "100%", padding: "13px", borderRadius: 11, fontSize: 14, fontWeight: 700, background: connecting ? "rgba(37,211,102,0.25)" : "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.4)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 10, fontFamily: "inherit", transition: "all 0.25s" }}
+              >
+                {connecting
+                  ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> Abriendo Meta...</>
+                  : <><WaIcon size={18} /> {t.connectMeta}</>
+                }
+              </button>
+              {!sdkReady && !connecting && (
+                <p style={{ textAlign: "center", fontSize: 11, color: "var(--text-muted)", marginTop: 8 }}>Cargando SDK de Facebook...</p>
+              )}
+            </div>
+
+            {/* Features footer */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", borderTop: "1px solid var(--border)" }}>
               {[
-                { icon: <Wifi size={16} style={{ color: "#25D366" }} />, title: "Cloud API", desc: "Envío y recepción via API oficial de Meta" },
-                { icon: <ShieldCheck size={16} style={{ color: "#60a5fa" }} />, title: "Seguro", desc: "Tokens cifrados en reposo. Webhooks HMAC-SHA256" },
-                { icon: <MessageSquare size={16} style={{ color: "#a78bfa" }} />, title: "Inbox 2.0", desc: "Conversaciones integradas al panel" },
-                { icon: <Zap size={16} style={{ color: "#f59e0b" }} />, title: "Plantillas", desc: "Mensajes proactivos con templates Meta" },
+                { icon: <Wifi size={14} style={{ color: "#25D366" }} />, title: "Cloud API", desc: "API oficial de Meta" },
+                { icon: <ShieldCheck size={14} style={{ color: "var(--cyan)" }} />, title: "Seguro", desc: "Tokens cifrados AES-256" },
+                { icon: <MessageSquare size={14} style={{ color: "var(--purple)" }} />, title: "Notificaciones", desc: "Alertas de tareas en WA" },
+                { icon: <Zap size={14} style={{ color: "var(--amber)" }} />, title: "Plantillas", desc: "Mensajes proactivos" },
               ].map((f, i) => (
-                <div key={i} style={{ padding: "20px 24px", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none", borderTop: "1px solid var(--border)" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>{f.icon}<span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{f.title}</span></div>
+                <div key={i} style={{ padding: "16px 20px", borderRight: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 4 }}>{f.icon}<span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{f.title}</span></div>
                   <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>{f.desc}</p>
                 </div>
               ))}
             </div>
+
           </div>
         )}
 
@@ -918,9 +977,9 @@ export default function WhatsAppIntegrationPage() {
             <div className="wa-table-wrap">
               <table className="wa-table" style={{ borderCollapse: "collapse" }}>
                 <thead>
-                  <tr style={{ background: "#1e3a8a" }}>
+                  <tr style={{ background: "var(--cyan)" }}>
                     {["Perfil", "Teléfono", "Estado", "Calidad", "Type", "Test WhatsApp", "Alias", "+Info"].map((h) => (
-                      <th key={h} style={{ padding: "11px 14px", fontSize: 11, fontWeight: 700, color: "#93c5fd", letterSpacing: "0.04em", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid rgba(59,130,246,0.3)" }}>
+                      <th key={h} style={{ padding: "11px 14px", fontSize: 11, fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.04em", textAlign: "left", whiteSpace: "nowrap", borderBottom: "1px solid rgba(59,130,246,0.3)" }}>
                         {h}
                       </th>
                     ))}
@@ -932,9 +991,9 @@ export default function WhatsAppIntegrationPage() {
                   )}
                   {linesError && (
                     <tr><td colSpan={8} style={{ padding: "16px 20px" }}>
-                      <div style={{ color: "#f87171", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ color: "var(--red)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
                         <AlertCircle size={13} /> {linesError}
-                        <button onClick={fetchLines} style={{ marginLeft: "auto", background: "none", border: "none", color: "#f87171", cursor: "pointer", fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
+                        <button onClick={fetchLines} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--red)", cursor: "pointer", fontSize: 11, display: "flex", alignItems: "center", gap: 4 }}>
                           <RefreshCw size={11} /> Reintentar
                         </button>
                       </div>
@@ -942,7 +1001,7 @@ export default function WhatsAppIntegrationPage() {
                   )}
                   {!loadingLines && !linesError && lines.length === 0 && (
                     <tr><td colSpan={8} style={{ padding: "48px 24px", textAlign: "center", color: "var(--text-secondary)", fontSize: 13 }}>
-                      <WifiOff size={22} style={{ color: "#334155", display: "block", margin: "0 auto 12px" }} />
+                      <WifiOff size={22} style={{ color: "var(--text-secondary)", display: "block", margin: "0 auto 12px" }} />
                       <p style={{ margin: "0 0 4px", fontWeight: 600 }}>No hay números en esta WABA</p>
                       <p style={{ margin: 0, fontSize: 11 }}>Agrega un número en Meta Business Manager y reconecta.</p>
                     </td></tr>
@@ -992,7 +1051,7 @@ export default function WhatsAppIntegrationPage() {
 
                         {/* Type */}
                         <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
-                          <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 5, background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.15)", color: "#60a5fa" }}>
+                          <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 5, background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.15)", color: "var(--cyan)" }}>
                             Cloud
                           </span>
                         </td>
@@ -1005,7 +1064,7 @@ export default function WhatsAppIntegrationPage() {
                               <WaIcon size={12} /> Chat
                             </button>
                           ) : (
-                            <span style={{ fontSize: 10, color: "#334155" }}>—</span>
+                            <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>—</span>
                           )}
                         </td>
 
@@ -1017,12 +1076,12 @@ export default function WhatsAppIntegrationPage() {
                                 onKeyDown={(e) => { if (e.key === "Enter") handleAliasSave(line.id); if (e.key === "Escape") setEditingAlias(null); }}
                                 placeholder={t.aliasPlaceholder}
                                 style={{ flex: 1, padding: "4px 8px", borderRadius: 5, fontSize: 11, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(0,212,255,0.3)", color: "var(--foreground)", outline: "none", fontFamily: "inherit", minWidth: 0 }} />
-                              <button onClick={() => handleAliasSave(line.id)} style={{ background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 5, color: "#00d4ff", cursor: "pointer", padding: "4px 6px", display: "flex", alignItems: "center" }}><Check size={11} /></button>
+                              <button onClick={() => handleAliasSave(line.id)} style={{ background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 5, color: "var(--cyan)", cursor: "pointer", padding: "4px 6px", display: "flex", alignItems: "center" }}><Check size={11} /></button>
                             </div>
                           ) : (
                             <button onClick={() => { setEditingAlias(line.id); setAliasInput(line.alias || line.verifiedName || ""); }}
                               style={{ background: "none", border: "none", cursor: "pointer", textAlign: "left", padding: "2px 0", fontFamily: "inherit" }} title="Editar alias">
-                              <span style={{ fontSize: 12, color: line.alias ? "#e2e8f0" : "#475569" }}>
+                              <span style={{ fontSize: 12, color: line.alias ? "var(--foreground)" : "var(--text-secondary)" }}>
                                 {line.alias || line.verifiedName || t.noAlias}
                               </span>
                             </button>

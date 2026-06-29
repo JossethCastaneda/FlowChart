@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 
@@ -72,7 +72,7 @@ export default function ResetPasswordPage() {
     background: "rgba(15, 23, 42, 0.8)",
     border: "1px solid rgba(100, 116, 139, 0.3)",
     borderRadius: "8px",
-    color: "#e2e8f0",
+    color: "var(--foreground)",
     fontSize: "14px",
     outline: "none",
     marginBottom: "12px",
@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
   const btnStyle: React.CSSProperties = {
     width: "100%",
     padding: "14px",
-    background: "linear-gradient(135deg, #00f0ff, #0080ff)",
+    background: "linear-gradient(135deg, var(--c-brand), #0080ff)",
     border: "none",
     borderRadius: "8px",
     color: "#030508",
@@ -97,10 +97,10 @@ export default function ResetPasswordPage() {
     return (
       <div style={containerStyle}>
         <div style={cardStyle}>
-          <h1 style={{ color: "#00f0ff", fontSize: "20px", marginBottom: "16px", textAlign: "center" }}>
+          <h1 style={{ color: "var(--c-brand)", fontSize: "20px", marginBottom: "16px", textAlign: "center" }}>
             ✅ Contraseña actualizada
           </h1>
-          <p style={{ color: "#94a3b8", textAlign: "center", fontSize: "14px" }}>
+          <p style={{ color: "var(--text-secondary)", textAlign: "center", fontSize: "14px" }}>
             Redirigiendo al login...
           </p>
         </div>
@@ -112,7 +112,7 @@ export default function ResetPasswordPage() {
     <div style={containerStyle}>
       <div style={cardStyle}>
         <h1 style={{
-          color: "#00f0ff",
+          color: "var(--c-brand)",
           fontSize: "20px",
           fontWeight: 700,
           marginBottom: "8px",
@@ -122,7 +122,7 @@ export default function ResetPasswordPage() {
           ⚡ SODARE
         </h1>
         <p style={{
-          color: "#94a3b8",
+          color: "var(--text-secondary)",
           fontSize: "14px",
           textAlign: "center",
           marginBottom: "32px",
@@ -150,7 +150,7 @@ export default function ResetPasswordPage() {
           />
 
           {error && (
-            <p style={{ color: "#ef4444", fontSize: "12px", margin: "8px 0" }}>
+            <p style={{ color: "var(--red)", fontSize: "12px", margin: "8px 0" }}>
               {error}
             </p>
           )}

@@ -80,7 +80,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)",
+        background: "var(--overlay-dark)", backdropFilter: "blur(4px)",
         display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
       }}
     >
@@ -113,15 +113,15 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
               <TrendingUp className="w-4 h-4 text-cyan-400" />
             </div>
             <div>
-              <div style={{ fontSize: 15, fontWeight: 700, color: "white" }}>Editar Campaña</div>
-              <div style={{ fontSize: 11, color: "#94a3b8" }}>ID: {campaign.id}</div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>Editar Campaña</div>
+              <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>ID: {campaign.id}</div>
             </div>
           </div>
           <button
             onClick={onClose}
             style={{
               background: "none", border: "none", cursor: "pointer",
-              color: "#94a3b8", padding: 4, borderRadius: 6,
+              color: "var(--text-secondary)", padding: 4, borderRadius: 6,
               display: "flex", alignItems: "center", justifyContent: "center",
             }}
           >
@@ -161,10 +161,10 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                       : "var(--border)",
                     color: status === s
                       ? s === "ACTIVE" ? "var(--emerald)" : "var(--amber)"
-                      : "#94a3b8",
+                      : "var(--text-secondary)",
                   }}
                 >
-                  {s === "ACTIVE" ? "● Activa" : "◌ Pausada"}
+                  {s === "ACTIVE" ? "? Activa" : "? Pausada"}
                 </button>
               ))}
             </div>
@@ -182,7 +182,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                       ...toggleStyle,
                       background: budgetType === t ? "rgba(0,129,251,0.15)" : "rgba(255,255,255,0.09)",
                       borderColor: budgetType === t ? "var(--cyan)" : "var(--border)",
-                      color: budgetType === t ? "var(--cyan)" : "#94a3b8",
+                      color: budgetType === t ? "var(--cyan)" : "var(--text-secondary)",
                     }}
                   >
                     {t === "daily" ? "Diario" : "Total"}
@@ -190,7 +190,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                 ))}
               </div>
               <div style={{ position: "relative" }}>
-                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "#94a3b8", fontSize: 13 }}>$</span>
+                <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--text-secondary)", fontSize: 13 }}>$</span>
                 <input
                   type="number"
                   value={budget}
@@ -223,9 +223,9 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
 
           {/* Objective (read-only) */}
           <FormGroup label="Objetivo">
-            <div style={{ ...inputStyle, color: "#64748b", display: "flex", alignItems: "center" }}>
+            <div style={{ ...inputStyle, color: "var(--text-muted)", display: "flex", alignItems: "center" }}>
               {campaign.objective || "—"}
-              <span style={{ marginLeft: "auto", fontSize: 10, color: "#64748b", fontStyle: "italic" }}>
+              <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>
                 No editable
               </span>
             </div>
@@ -244,7 +244,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
         <div style={{ padding: "14px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
           <button onClick={onClose} style={cancelBtnStyle}>Cancelar</button>
           <button onClick={handleSave} disabled={loading || saved} style={saveBtnStyle(saved)}>
-            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? "✓ Guardado" : <><Save className="w-4 h-4" /> Guardar</>}
+            {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? "? Guardado" : <><Save className="w-4 h-4" /> Guardar</>}
           </button>
         </div>
       </div>
@@ -252,7 +252,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
   );
 }
 
-// ─── Shared sub-components & styles ──────────────────────────────────────────
+// --- Shared sub-components & styles ------------------------------------------
 
 function FormGroup({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -271,7 +271,7 @@ export const inputStyle: React.CSSProperties = {
   border: "1px solid var(--border)",
   borderRadius: 8,
   padding: "9px 12px",
-  color: "white",
+  color: "var(--foreground)",
   fontSize: 13,
   outline: "none",
   boxSizing: "border-box",
@@ -281,7 +281,7 @@ export const selectStyle: React.CSSProperties = {
   ...inputStyle as any,
   cursor: "pointer",
   appearance: "none",
-  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='#94a3b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
+  backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='var(--text-secondary)' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")`,
   backgroundRepeat: "no-repeat",
   backgroundPosition: "right 10px center",
   backgroundSize: 16,

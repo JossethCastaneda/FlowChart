@@ -1,4 +1,4 @@
-import * as XLSX from "xlsx";
+import ExcelJS from "exceljs";
 import { NextRequest } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
@@ -34,27 +34,39 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError("El cruce con sábana aplica solo a proyectos Botmaker", "PROVIDER_NOT_SUPPORTED", 400);
   }
 
-  // 1) Parsear la sábana subida (CSV o XLSX; SheetJS auto-detecta).
+  // 1) Parsear la sábana subida (CSV o XLSX; ExcelJS auto-detecta).
   let rows: Record<string, unknown>[] = [];
   try {
     const form = await req.formData();
     const file = form.get("file");
     if (!(file instanceof File)) return apiError("Falta el archivo de la sábana", "NO_FILE", 400);
-    const buf = Buffer.from(await file.arrayBuffer());
-    const wb = XLSX.read(buf, { type: "buffer" });
-    const sheet = wb.Sheets[wb.SheetNames[0]];
-    rows = XLSX.utils.sheet_to_json(sheet, { defval: "" }) as Record<string, unknown>[];
+    const arrayBuf = await file.arrayBuffer();
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.load(arrayBuf as ArrayBuffer);
+    const sheet = workbook.worksheets[0];
+    if (!sheet) throw new Error("No worksheet found");
+    // Build rows from ExcelJS sheet — first row is headers
+    const headerRow = sheet.getRow(1).values as (string | undefined)[];
+    const headers = headerRow.slice(1).map((h) => String(h ?? "").trim()); // slice(1): ExcelJS uses 1-indexed arrays
+    for (let r = 2; r <= sheet.rowCount; r++) {
+      const rowValues = sheet.getRow(r).values as unknown[];
+      const obj: Record<string, unknown> = {};
+      headers.forEach((h, i) => { obj[h] = rowValues[i + 1] ?? ""; });
+      rows.push(obj);
+    }
   } catch (error) {
     logger.error("sales-reconciliation: parse failed", { workspaceId: ctx.workspaceId, error });
     return apiError("No se pudo leer la sábana (usa CSV o XLSX con encabezados)", "PARSE_ERROR", 400);
   }
   if (!rows.length) return apiError("La sábana está vacía o sin encabezados", "EMPTY_SHEET", 400);
 
-  const headers = Object.keys(rows[0]);
-  const phoneCol = pickColumn(headers, PHONE_HEADERS);
-  if (!phoneCol) return apiError(`No se detectó columna de teléfono. Encabezados: ${headers.join(", ")}`, "NO_PHONE_COLUMN", 400);
-  const botCol = pickColumn(headers, BOT_HEADERS);
-  const capCol = pickColumn(headers, CAPTURISTA_HEADERS);
+
+  const rowHeaders = Object.keys(rows[0]);
+  const phoneCol = pickColumn(rowHeaders, PHONE_HEADERS);
+  if (!phoneCol) return apiError(`No se detectó columna de teléfono. Encabezados: ${rowHeaders.join(", ")}`, "NO_PHONE_COLUMN", 400);
+  const botCol = pickColumn(rowHeaders, BOT_HEADERS);
+  const capCol = pickColumn(rowHeaders, CAPTURISTA_HEADERS);
+
 
   const sheetPhones = new Set<string>();
   const metaByPhone = new Map<string, { bot?: string; capturista?: string }>();

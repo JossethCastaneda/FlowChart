@@ -28,6 +28,10 @@ export async function GET(
 
   const baseUrl = getAppBaseUrl(request.nextUrl.origin);
   const integrationsUrl = `${baseUrl}/dashboard/integrations`;
+  // Helper: pick redirect URL based on popup mode (set after state decode)
+  // eslint-disable-next-line prefer-const
+  let getSuccessUrl: (p: string) => string;
+  let getErrorUrl: (e: string) => string;
 
   // User cancelled
   if (error) {
@@ -49,10 +53,11 @@ export async function GET(
     return NextResponse.redirect(`${integrationsUrl}?connect_error=server_error`);
   }
 
-  // 2. Validate HMAC state
+  // State vars populated after HMAC validation
   let provider = "";
   let userId = "";
   let workspaceId = "";
+  let isPopup = false;
   try {
     const parsed = JSON.parse(Buffer.from(stateParam, "base64url").toString());
     const { payload, sig } = parsed;
@@ -76,6 +81,7 @@ export async function GET(
     provider = decoded.provider;
     userId = decoded.userId;
     workspaceId = decoded.workspaceId || "";
+    isPopup = !!decoded.popup;
 
     if (userId !== jwt.sub) {
       logger.warn(`[OAUTH CALLBACK] ❌ User mismatch — state: ${userId}, jwt: ${jwt.sub}`);
@@ -104,30 +110,52 @@ export async function GET(
 
   try {
     // 4. Exchange code for tokens
-    const body = new URLSearchParams({
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: redirectUri,
-      client_id: clientId,
-      client_secret: clientSecret,
-    });
+    // TikTok uses JSON body with different param names; others use form-encoded
+    const authCodeParam = config.authCodeParam ?? "code";
+    const clientIdParam = config.clientIdParam ?? "client_id";
 
-    const tokenRes = await fetch(config.tokenUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: body.toString(),
-    });
+    let tokenRes: Response;
+    if (config.tokenBodyFormat === "json") {
+      // TikTok Marketing API token exchange format
+      const jsonBody: Record<string, string> = {
+        [authCodeParam]: code!,
+        [clientIdParam]: clientId,
+        secret: clientSecret,
+      };
+      tokenRes = await fetch(config.tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(jsonBody),
+      });
+    } else {
+      // Standard OAuth2 form-encoded
+      const body = new URLSearchParams({
+        grant_type: "authorization_code",
+        [authCodeParam]: code!,
+        redirect_uri: redirectUri,
+        [clientIdParam]: clientId,
+        client_secret: clientSecret,
+      });
+      tokenRes = await fetch(config.tokenUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString(),
+      });
+    }
 
     const tokenData = await tokenRes.json();
 
-    if (!tokenRes.ok || !tokenData.access_token) {
+    // TikTok wraps the response in a `data` object; standard OAuth returns top-level
+    const tokenPayload = tokenData?.data ?? tokenData;
+
+    if (!tokenRes.ok || !tokenPayload.access_token) {
       logger.error(`[OAUTH CALLBACK] Token exchange failed for ${provider}:`, tokenData);
       return NextResponse.redirect(`${integrationsUrl}?connect_error=token_exchange_failed`);
     }
 
-    const accessToken: string = tokenData.access_token;
-    const refreshToken: string | undefined = tokenData.refresh_token;
-    const expiresIn: number | undefined = tokenData.expires_in;
+    const accessToken: string = tokenPayload.access_token;
+    const refreshToken: string | undefined = tokenPayload.refresh_token;
+    const expiresIn: number | undefined = tokenPayload.expires_in;
 
     const expiresAt = expiresIn
       ? new Date(Date.now() + expiresIn * 1000).toISOString()
@@ -163,10 +191,16 @@ export async function GET(
     });
 
     logger.info(`[OAUTH CALLBACK] ✅ ${config.label} connected for workspace ${workspaceId}`);
-    return NextResponse.redirect(`${integrationsUrl}?connected=${provider}`);
+    const successUrl = isPopup
+      ? `${baseUrl}/connect/done?module=${provider}`
+      : `${integrationsUrl}?connected=${provider}`;
+    return NextResponse.redirect(successUrl);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "unknown";
     logger.error(`[OAUTH CALLBACK] Error for ${provider}:`, message);
-    return NextResponse.redirect(`${integrationsUrl}?connect_error=server_error`);
+    const errorUrl = isPopup
+      ? `${baseUrl}/connect/done?module=${provider}&error=server_error`
+      : `${integrationsUrl}?connect_error=server_error`;
+    return NextResponse.redirect(errorUrl);
   }
 }

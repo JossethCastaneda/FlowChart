@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -16,7 +16,7 @@ import { useLanguage } from "@/components/layout/LanguageContext";
 
 /* ═══ TYPES ═══ */
 interface Member { id: string; name: string; email: string | null; image: string | null; role: string; activityStatus?: string }
-const STATUS_DOT: Record<string, string> = { disponible: "#00c875", ocupado: "#fdab3d", ausente: "#e2445c", offline: "#64748b" };
+const STATUS_DOT: Record<string, string> = { disponible: "var(--emerald)", ocupado: "var(--amber)", ausente: "var(--red)", offline: "var(--text-muted)" };
 interface Comment { id: string; userId: string; userName: string; userImage: string | null; content: string; createdAt: string }
 interface Activity { id: string; userName: string; action: string; field: string | null; oldValue: string | null; newValue: string | null; createdAt: string }
 interface Attachment { name: string; url: string; type: string; size: number; uploadedAt: string }
@@ -44,7 +44,7 @@ const PRIO_CFG: Record<string, { label: string; bg: string; c: string }> = {
   P3: { label: "Baja", bg: "rgba(148,163,184,0.1)", c: "var(--text-secondary)" },
 };
 const GROUPS = [
-  { key: "Backlog", label: "Backlog", color: "#c4c4c4" },
+  { key: "Backlog", label: "Backlog", color: "var(--text-secondary)" },
   { key: "WIP", label: "En Progreso", color: "var(--amber)" },
   { key: "Review", label: "En Review", color: "var(--red)" },
   { key: "Done", label: "Completado", color: "var(--emerald)" },

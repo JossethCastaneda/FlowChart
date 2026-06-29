@@ -1,7 +1,6 @@
 import { randomUUID } from "crypto";
 import { start } from "workflow/api";
 import { publishPostWorkflow } from "@/workflows/publish-post";
-import { cancelPublishJob } from "@/lib/qstash";
 
 const WORKFLOW_SCHEDULE_PREFIX = "wf_";
 const MIN_META_SCHEDULE_MINUTES = 11;
@@ -18,8 +17,8 @@ export function isWorkflowScheduleToken(token: string | null | undefined): boole
 export async function cancelLegacyQstashSchedule(
   scheduleId: string | null | undefined
 ): Promise<void> {
-  if (!scheduleId || isWorkflowScheduleToken(scheduleId)) return;
-  await cancelPublishJob(scheduleId);
+  // Legacy qstash schedules are no longer supported.
+  return;
 }
 
 export function validatePublisherScheduledAt(scheduledAt: Date): string | null {

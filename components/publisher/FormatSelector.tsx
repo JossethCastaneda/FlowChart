@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 import React from "react";
 import { FileText, Video, Camera, Images } from "lucide-react";
 
@@ -41,8 +41,8 @@ export function FormatSelector({ value, onChange }: Props) {
                   : "rgba(255,255,255,0.06)",
                 border: isActive
                   ? "1px solid rgba(0,212,255,0.4)"
-                  : "1px solid rgba(255,255,255,0.08)",
-                color: isActive ? "#00d4ff" : "#94a3b8",
+                  : "1px solid var(--hairline)",
+                color: isActive ? "var(--cyan)" : "var(--text-secondary)",
                 fontSize: 13,
                 fontWeight: isActive ? 600 : 500,
                 cursor: "pointer",
@@ -68,7 +68,7 @@ export function FormatSelector({ value, onChange }: Props) {
                 padding: "2px 8px",
                 borderRadius: 10,
                 background: "rgba(0,212,255,0.1)",
-                color: "#00d4ff",
+                color: "var(--cyan)",
                 border: "1px solid rgba(0,212,255,0.2)",
                 fontWeight: 500,
                 fontFamily: "Inter, sans-serif",

@@ -214,9 +214,9 @@ export async function GET(request: NextRequest) {
 
     // Accumulators
     let totalReach = 0, totalEngagement = 0, totalFollowers = 0, totalImpressions = 0;
-    let allReachValues: { value: number }[] = [];
-    let allEngagementValues: { value: number }[] = [];
-    let allImpressionValues: { value: number }[] = [];
+    const allReachValues: { value: number }[] = [];
+    const allEngagementValues: { value: number }[] = [];
+    const allImpressionValues: { value: number }[] = [];
     const pageSummaries: any[] = [];
 
     // 2. For each page, fetch FB + IG insights (BUG 4: chunked, 5 at a time)

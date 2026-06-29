@@ -7,7 +7,8 @@ import {
   BarChart2, Activity, Zap, CreditCard, CheckCircle, Clock, Edit3, Save, X,
   Users, Palette, Settings, ChevronDown, ChevronUp, AlertTriangle,
   Layers, Monitor, Smartphone, Globe, PieChart as PieIcon,
-  HeartPulse, RefreshCw, MousePointer, Shield
+  HeartPulse, RefreshCw, MousePointer, Shield,
+  Tag, Building, MapPin, Link
 } from "lucide-react";
 import { normalizeIntegrationProvider } from "@/lib/analytics/project-scope";
 import {
@@ -18,7 +19,7 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import { CreativeCard, CreativeLightbox } from "@/components/shared/CreativePreview";
 import { useInsightsStore } from "@/stores/insightsStore";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
-import { AdvancedAnalyticsDashboard } from "@/components/analytics-v2/AdvancedAnalyticsDashboard";
+import BotAnalyticsDashboard from "@/components/botmaker/analytics/dashboard/BotAnalyticsDashboard";
 import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 
 /* ═══ TYPES ═══ */
@@ -105,25 +106,57 @@ function getBudgetBreakdown(budget: number, period: string) {
 }
 
 /* ═══ SHARED UI ═══ */
-const panelStyle: React.CSSProperties = { background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 };
-const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 600, color: "rgba(148,163,184,0.65)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 };
-const headingStyle: React.CSSProperties = { fontSize: 12, fontWeight: 700, color: "#e2e8f0", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 };
-const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.75)", marginBottom: 10 };
-const tooltipStyle = { backgroundColor: "rgba(10,15,30,0.95)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 8, fontSize: 12, color: "white" };
-const CHART_COLORS = ["#00d4ff", "#00c875", "#fdab3d", "#e2445c", "#7b61ff", "#579bfc", "#ff007f", "#25F4EE"];
+const panelStyle: React.CSSProperties = {
+  background: "rgba(255,255,255,0.025)",
+  border: "1px solid rgba(255,255,255,0.07)",
+  borderRadius: 12,
+  padding: 18,
+  backdropFilter: "blur(8px)",
+};
+const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
+const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.03em", marginBottom: 4 };
+const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.65)", marginBottom: 12, lineHeight: 1.5 };
+const tooltipStyle = { backgroundColor: "rgba(6,8,20,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, fontSize: 12, color: "white", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" };
+const CHART_COLORS = ["var(--cyan)", "var(--emerald)", "var(--amber)", "var(--red)", "var(--purple)", "#579bfc", "#ff007f", "#25F4EE"];
 
 function KpiBox({ title, value, sub, icon, color, progress }: any) {
   const c = color.startsWith("#") ? color : `var(--${color})`;
+  const progressPct = progress !== undefined ? Math.min(Math.max(progress, 0), 100) : undefined;
+  const isOverBudget = progress !== undefined && progress > 100;
+  const progressColor = isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c;
   return (
-    <div style={{ ...panelStyle, position: "relative", overflow: "hidden", paddingBottom: progress !== undefined ? 24 : 20 }}>
-      <div style={{ position: "absolute", top: 0, right: 0, width: 100, height: 100, background: `radial-gradient(circle, ${c}15 0%, transparent 70%)`, transform: "translate(30%, -30%)" }} />
-      <div style={{ display: "flex", alignItems: "center", gap: 6, color: "rgba(148,163,184,0.6)", marginBottom: 8 }}>
-        <div style={{ padding: 4, background: "rgba(0,0,0,0.3)", borderRadius: 4, color: c }}>{icon}</div>
-        <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>{title}</span>
+    <div style={{
+      ...panelStyle,
+      position: "relative", overflow: "hidden",
+      paddingBottom: progress !== undefined ? 20 : 18,
+      borderTop: `2px solid ${c}44`,
+      transition: "transform 0.2s, box-shadow 0.2s",
+    }}
+    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 24px rgba(0,0,0,0.25), 0 0 0 1px ${c}22`; }}
+    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
+    >
+      {/* Background glow */}
+      <div style={{ position: "absolute", top: 0, right: 0, width: 120, height: 120, background: `radial-gradient(circle, ${c}12 0%, transparent 70%)`, transform: "translate(30%, -30%)", pointerEvents: "none" }} />
+      {/* Icon + Label */}
+      <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
+        <div style={{ padding: "5px", background: `${c}18`, border: `1px solid ${c}30`, borderRadius: 7, color: c, display: "flex" }}>{icon}</div>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)" }}>{title}</span>
       </div>
-      <div style={{ fontSize: 20, fontWeight: 700, color: "white", marginBottom: 2, fontFamily: "'Orbitron',sans-serif" }}>{value}</div>
-      <div style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{sub}</div>
-      {progress !== undefined && <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 4, background: "rgba(148,163,184,0.1)" }}><div style={{ height: "100%", width: `${Math.min(progress, 100)}%`, background: c, transition: "width 1s" }} /></div>}
+      {/* Value */}
+      <div style={{ fontSize: 22, fontWeight: 700, color: "white", marginBottom: 3, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 10, color: "rgba(148,163,184,0.6)", marginBottom: progress !== undefined ? 10 : 0 }}>{sub}</div>
+      {/* Progress bar */}
+      {progress !== undefined && (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+            <span style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", fontWeight: 600, letterSpacing: "0.08em" }}>PROGRESO</span>
+            <span style={{ fontSize: 9, fontWeight: 700, color: isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c }}>{progress.toFixed(0)}%</span>
+          </div>
+          <div style={{ position: "relative", bottom: 0, left: 0, right: 0, height: 3, background: "rgba(148,163,184,0.08)", borderRadius: 2 }}>
+            <div style={{ height: "100%", width: `${Math.min(progress, 100)}%`, background: `linear-gradient(90deg, ${progressColor}, ${progressColor}cc)`, borderRadius: 2, transition: "width 1s ease" }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -139,23 +172,29 @@ function LoadingOverlay() {
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
   return (
     <button onClick={onClick} style={{
-      display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", fontSize: 10, fontWeight: 600,
-      background: active ? "rgba(0,212,255,0.08)" : "transparent",
-      border: `1px solid ${active ? "rgba(0,212,255,0.2)" : "transparent"}`,
-      color: active ? "#00d4ff" : "rgba(148,163,184,0.75)",
-      borderRadius: 4, cursor: "pointer", transition: "all 0.2s", letterSpacing: "0.03em",
-    }}>{icon}{label}</button>
+      display: "flex", alignItems: "center", gap: 5,
+      padding: "6px 13px", fontSize: 11, fontWeight: 600,
+      background: active ? "rgba(0,212,255,0.1)" : "transparent",
+      border: `1px solid ${active ? "rgba(0,212,255,0.25)" : "rgba(255,255,255,0.05)"}`,
+      color: active ? "var(--cyan)" : "rgba(148,163,184,0.65)",
+      borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
+      letterSpacing: "0.02em", whiteSpace: "nowrap",
+      boxShadow: active ? "0 0 16px rgba(0,212,255,0.12)" : "none",
+    }}
+    onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.85)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.12)"; } }}
+    onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.color = "rgba(148,163,184,0.65)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.05)"; } }}
+    >{icon}{label}</button>
   );
 }
 
 function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
-    <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.03)", borderRadius: 6, padding: 3 }}>
+    <div style={{ display: "flex", gap: 4, background: "var(--row-hover)", borderRadius: 6, padding: 3 }}>
       {[{ k: "day", l: "Día" }, { k: "week", l: "Semana" }, { k: "month", l: "Mes" }].map(t => (
         <button key={t.k} onClick={() => onChange(t.k)} style={{
           padding: "4px 12px", fontSize: 10, fontWeight: 600, borderRadius: 4, border: "none", cursor: "pointer",
           background: value === t.k ? "rgba(0,212,255,0.12)" : "transparent",
-          color: value === t.k ? "#00d4ff" : "rgba(148,163,184,0.7)",
+          color: value === t.k ? "var(--cyan)" : "rgba(148,163,184,0.7)",
         }}>{t.l}</button>
       ))}
     </div>
@@ -201,6 +240,7 @@ export default function ProjectDashboardPage() {
   const [editForm, setEditForm] = useState<Partial<Project>>({});
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [activeIntegrations, setActiveIntegrations] = useState<{id: string, provider: string}[]>([]);
+  const [heatMetricState, setHeatMetricState] = useState<"results" | "impressions" | "spend">("results");
 
   // Load project from API
   useEffect(() => {
@@ -455,41 +495,115 @@ export default function ProjectDashboardPage() {
   const trackStatus = goalNum > 0 ? (goalCompletion >= (daysElapsed / daysInMonth) * 100 ? "on-track" : goalCompletion >= (daysElapsed / daysInMonth) * 70 ? "at-risk" : "off-track") : "unknown";
 
   // Chart data
-  const timeSeriesData = (insights?.timeSeries || []).map((d: any) => {
-    const s = parseFloat(d.spend || "0"); const ra = findResultAction(d.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0;
-    const imp = parseInt(d.impressions || "0", 10); const cl = parseInt(d.clicks || "0", 10);
-    const parts = d.date_start?.split('-') || []; const dateLabel = parts.length >= 3 ? `${parts[2]}/${parts[1]}` : d.date_start || "";
-    return { date: dateLabel, fullDate: d.date_start || "", spend: +s.toFixed(2), results: r, cpr: r > 0 ? +(s / r).toFixed(2) : 0, ctr: imp > 0 ? +((cl / imp) * 100).toFixed(2) : 0, cpc: cl > 0 ? +(s / cl).toFixed(2) : 0, impressions: imp, clicks: cl };
-  }).sort((a: any, b: any) => a.fullDate.localeCompare(b.fullDate));
+  const timeSeriesData = (() => {
+    const grouped: Record<string, any> = {};
+    (insights?.timeSeries || []).forEach((d: any) => {
+      const fd = d.date_start || "";
+      if (!grouped[fd]) {
+        grouped[fd] = { fullDate: fd, spend: 0, results: 0, impressions: 0, clicks: 0 };
+      }
+      const s = parseFloat(d.spend || "0");
+      const ra = findResultAction(d.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0;
+      const imp = parseInt(d.impressions || "0", 10); const cl = parseInt(d.clicks || "0", 10);
+      
+      grouped[fd].spend += s;
+      grouped[fd].results += r;
+      grouped[fd].impressions += imp;
+      grouped[fd].clicks += cl;
+    });
+
+    return Object.values(grouped).map((g: any) => {
+      const parts = g.fullDate.split('-');
+      const dateLabel = parts.length >= 3 ? `${parts[2]}/${parts[1]}` : g.fullDate;
+      return {
+        date: dateLabel, fullDate: g.fullDate, spend: +g.spend.toFixed(2), results: g.results,
+        cpr: g.results > 0 ? +(g.spend / g.results).toFixed(2) : 0,
+        ctr: g.impressions > 0 ? +((g.clicks / g.impressions) * 100).toFixed(2) : 0,
+        cpc: g.clicks > 0 ? +(g.spend / g.clicks).toFixed(2) : 0,
+        impressions: g.impressions, clicks: g.clicks
+      };
+    }).sort((a: any, b: any) => a.fullDate.localeCompare(b.fullDate));
+  })();
 
   // Spend table with aggregation
   const getSpendTable = () => {
-    if (timeGranularity === "day") return timeSeriesData;
     const grouped: Record<string, any> = {};
     timeSeriesData.forEach((d: any) => {
       let key: string;
       const parts = d.date.split("/");
       if (timeGranularity === "month") key = parts[1] || d.date;
-      else { const dayNum = parseInt(parts[1] || "1", 10); key = `S${Math.ceil(dayNum / 7)}`; }
-      if (!grouped[key]) grouped[key] = { date: key, spend: 0, results: 0, impressions: 0, clicks: 0 };
-      grouped[key].spend += d.spend; grouped[key].results += d.results; grouped[key].impressions += d.impressions; grouped[key].clicks += d.clicks;
+      else if (timeGranularity === "week") {
+        const dayNum = parseInt(parts[0] || "1", 10);
+        key = `S${Math.ceil(dayNum / 7)}`;
+      } else {
+        key = d.fullDate;
+      }
+      
+      if (!grouped[key]) grouped[key] = { date: timeGranularity === "day" ? d.date : key, fullDate: d.fullDate, spend: 0, results: 0, impressions: 0, clicks: 0 };
+      grouped[key].spend += d.spend;
+      grouped[key].results += d.results;
+      grouped[key].impressions += d.impressions;
+      grouped[key].clicks += d.clicks;
     });
-    return Object.values(grouped).map((g: any) => ({ ...g, spend: +g.spend.toFixed(2), cpr: g.results > 0 ? +(g.spend / g.results).toFixed(2) : 0, ctr: g.impressions > 0 ? +((g.clicks / g.impressions) * 100).toFixed(2) : 0 }));
+    return Object.values(grouped).map((g: any) => ({ ...g, spend: +g.spend.toFixed(2), cpr: g.results > 0 ? +(g.spend / g.results).toFixed(2) : 0, ctr: g.impressions > 0 ? +((g.clicks / g.impressions) * 100).toFixed(2) : 0, cpc: g.clicks > 0 ? +(g.spend / g.clicks).toFixed(2) : 0 })).sort((a: any, b: any) => (a.fullDate || "").localeCompare(b.fullDate || ""));
   };
 
 
   return (
     <div className="space-y-4 page-enter">
       {/* ── HEADER ── */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 4 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button onClick={() => router.push("/dashboard/proyectos")} style={{ width: 28, height: 28, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(10,15,30,0.5)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, color: "rgba(148,163,184,0.7)", cursor: "pointer" }}><ArrowLeft style={{ width: 14, height: 14 }} /></button>
+      <div style={{
+        display: "flex", alignItems: "flex-start", justifyContent: "space-between",
+        flexWrap: "wrap", gap: 12,
+        background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+        borderRadius: 14, padding: "14px 18px",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <button
+            onClick={() => router.push("/dashboard/proyectos")}
+            style={{
+              width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
+              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)",
+              borderRadius: 8, color: "rgba(148,163,184,0.8)", cursor: "pointer",
+              transition: "all 0.15s", flexShrink: 0,
+            }}
+            onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.09)"; (e.currentTarget as HTMLButtonElement).style.color = "white"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(148,163,184,0.8)"; }}
+          >
+            <ArrowLeft style={{ width: 15, height: 15 }} />
+          </button>
           <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2 }}>
-              <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 20, fontWeight: 700, color: "white", letterSpacing: "0.05em" }}>{project.alias}</h1>
-              <span className={`badge badge-${STATUS_COLORS[project.status]}`}>{project.status}</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              {/* Live pulse for active projects */}
+              {(project.status === "EN VUELO" || project.status === "Activo") && (
+                <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 10px rgba(6,214,160,0.8)", animation: "status-pulse 2s infinite", display: "inline-block", flexShrink: 0 }} />
+              )}
+              <h1 style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 21, fontWeight: 700, color: "white", letterSpacing: "0.04em", lineHeight: 1 }}>{project.alias}</h1>
+              <span className={`badge badge-${STATUS_COLORS[project.status] || "muted"}`}>{project.status}</span>
             </div>
-            <p style={{ fontSize: 11, color: "rgba(148,163,184,0.6)" }}>{project.vertical}{project.client && ` · ${project.client}`}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+              {project.client && <span style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", fontWeight: 500 }}>{project.client}</span>}
+              {project.client && project.vertical && <span style={{ fontSize: 10, color: "rgba(148,163,184,0.3)" }}>·</span>}
+              {project.vertical && <span style={{ fontSize: 11, color: "rgba(148,163,184,0.55)", fontWeight: 500 }}>{project.vertical}</span>}
+              {project.channels.length > 0 && (
+                <>
+                  <span style={{ fontSize: 10, color: "rgba(148,163,184,0.3)" }}>·</span>
+                  {project.channels.slice(0, 3).map(c => {
+                    const pl = PLATFORMS.find(x => x.id === c.platformId);
+                    return (
+                      <span key={c.platformId} style={{
+                        fontSize: 10, padding: "2px 7px", borderRadius: 4, fontWeight: 700,
+                        border: `1px solid ${pl?.color ? pl.color + "50" : "rgba(148,163,184,0.2)"}`,
+                        color: pl?.color || "rgba(148,163,184,0.6)",
+                        background: pl?.color ? pl.color + "14" : "transparent",
+                      }}>
+                        {c.platformName}
+                      </span>
+                    );
+                  })}
+                </>
+              )}
+            </div>
           </div>
         </div>
         <DateRangePicker datePreset={datePreset} dateStart={dateStart} dateEnd={dateEnd} showDatePicker={showDatePicker} setShowDatePicker={setShowDatePicker}
@@ -510,29 +624,49 @@ export default function ProjectDashboardPage() {
       )}
 
       {/* ── TABS + PLATFORM SELECTOR ── */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 6, borderBottom: "1px solid rgba(255,255,255,0.04)", paddingBottom: 8 }}>
-        <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-          <TabButton active={activeTab === "resumen"} label="Resumen" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resumen")} />
-          <TabButton active={activeTab === "gasto"} label="Gasto & Presupuesto" icon={<DollarSign style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("gasto")} />
-          <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
-          <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
-          <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
-          <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
-          {(!!project.crmIntegrationIds?.length || !!project.crmIntegrationId || !!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
-            <TabButton active={activeTab === "resultados"} label="Análisis de Resultados" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
-          )}
-          {!!project.website && (
-            <TabButton active={activeTab === "trafico"} label="Análisis de tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
-          )}
-          <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
+        {/* Tabs scrollable container */}
+        <div style={{ overflowX: "auto", flexShrink: 1, minWidth: 0, paddingBottom: 2 }}>
+          <div style={{ display: "flex", gap: 6, padding: "4px", background: "rgba(255,255,255,0.03)", borderRadius: 24, border: "1px solid rgba(255,255,255,0.06)", width: "max-content" }}>
+            <TabButton active={activeTab === "resumen"} label="Resumen" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resumen")} />
+            <TabButton active={activeTab === "gasto"} label="Gasto" icon={<DollarSign style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("gasto")} />
+            <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
+            <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
+            <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
+            <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
+            {(!!project.crmIntegrationIds?.length || !!project.crmIntegrationId || !!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
+              <TabButton active={activeTab === "resultados"} label="Resultados Bot" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
+            )}
+            {!!project.website && (
+              <TabButton active={activeTab === "trafico"} label="Tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
+            )}
+            <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+        {/* Platform + Account selectors */}
+        <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
           {project.channels.map(c => {
             const pl = PLATFORMS.find(p => p.id === c.platformId) || PLATFORMS[0];
-            return <button key={c.platformId} onClick={() => { setActivePlatform(c.platformId); setBreakdownData({}); }} style={{ padding: "5px 12px", fontSize: 11, fontWeight: 600, background: activePlatform === c.platformId ? `${pl.color}15` : "transparent", border: `1px solid ${activePlatform === c.platformId ? pl.color : "transparent"}`, color: activePlatform === c.platformId ? pl.color : "rgba(148,163,184,0.75)", borderRadius: 4, cursor: "pointer" }}>{pl.name}</button>;
+            const isActive = activePlatform === c.platformId;
+            return (
+              <button key={c.platformId} onClick={() => { setActivePlatform(c.platformId); setBreakdownData({}); }} style={{
+                padding: "6px 14px", fontSize: 11, fontWeight: 700,
+                background: isActive ? `${pl.color}20` : "rgba(255,255,255,0.04)",
+                border: `1px solid ${isActive ? pl.color + "60" : "rgba(255,255,255,0.08)"}`,
+                color: isActive ? pl.color : "rgba(148,163,184,0.6)",
+                borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
+                boxShadow: isActive ? `0 0 16px ${pl.color}25` : "none",
+              }}>
+                {pl.name}
+              </button>
+            );
           })}
           {ch?.adAccounts && ch.adAccounts.length > 1 && (
-            <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{ background: "rgba(10,15,30,0.6)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "5px 24px 5px 8px", borderRadius: 4, cursor: "pointer", appearance: "none" }}>
+            <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{
+background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+              color: "var(--foreground)", fontSize: 11, padding: "6px 24px 6px 12px",
+              borderRadius: 20, cursor: "pointer", appearance: "none", fontWeight: 600,
+            }}>
               <option value="all">Todas ({ch.adAccounts.length})</option>
               {ch.adAccounts.map(a => <option key={a} value={a}>{accountNames[a] || a}</option>)}
             </select>
@@ -548,19 +682,51 @@ export default function ProjectDashboardPage() {
             {/* Proyeccion al Cierre */}
             <div style={panelStyle}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <div><h3 style={headingStyle}>Proyección al Cierre</h3><p style={subStyle}>Día {daysElapsed} de {daysInMonth} del mes{goalNum > 0 ? ` · Meta: ${fmtNum(goalNum)} resultados (${fmtMXN0(bk.monthly)} ÷ ${fmtMXN(cprTarget)})` : ""}</p></div>
-                <div style={{ padding: "4px 12px", borderRadius: 4, fontSize: 10, fontWeight: 700, background: trackStatus === "on-track" ? "rgba(0,200,117,0.1)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.1)" : "rgba(226,68,92,0.1)", color: trackStatus === "on-track" ? "#00c875" : trackStatus === "at-risk" ? "#fdab3d" : "#e2445c", border: `1px solid ${trackStatus === "on-track" ? "rgba(0,200,117,0.2)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.2)" : "rgba(226,68,92,0.2)"}` }}>
-                  {trackStatus === "on-track" ? "EN TRACK" : trackStatus === "at-risk" ? "EN RIESGO" : trackStatus === "off-track" ? "FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
+                <div>
+                  <h3 style={headingStyle}>Proyección al Cierre</h3>
+                  <p style={subStyle}>Día {daysElapsed} de {daysInMonth} del mes{goalNum > 0 ? ` · Meta: ${fmtNum(goalNum)} resultados (${fmtMXN0(bk.monthly)} ÷ ${fmtMXN(cprTarget)})` : ""}</p>
+                </div>
+                <div style={{
+                  padding: "5px 14px", borderRadius: 20, fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
+                  background: trackStatus === "on-track" ? "rgba(0,200,117,0.12)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.12)" : "rgba(226,68,92,0.12)",
+                  color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)",
+                  border: `1px solid ${trackStatus === "on-track" ? "rgba(0,200,117,0.25)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.25)" : "rgba(226,68,92,0.25)"}`,
+                  boxShadow: trackStatus === "on-track" ? "0 0 12px rgba(0,200,117,0.15)" : trackStatus === "at-risk" ? "0 0 12px rgba(253,171,61,0.15)" : "0 0 12px rgba(226,68,92,0.15)",
+                }}>
+                  {trackStatus === "on-track" ? "✓ EN TRACK" : trackStatus === "at-risk" ? "⚠ EN RIESGO" : trackStatus === "off-track" ? "✕ FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
                 </div>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-                <div><p style={labelStyle}>Resultados proyectados</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtNum(projectedResults)}</p>{goalNum > 0 && <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtNum(goalNum)} objetivo</p>}</div>
-                <div><p style={labelStyle}>Gasto proyectado</p><p style={{ fontSize: 18, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(projectedSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtMXN0(bk.monthly)} mensual</p></div>
-                <div><p style={labelStyle}>Meta diaria ideal</p><p style={{ fontSize: 18, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día</p></div>
-                <div><p style={labelStyle}>Ritmo diario necesario</p><p style={{ fontSize: 18, fontWeight: 700, color: dailyNeeded > 0 ? "#fdab3d" : "white", fontFamily: "'Orbitron',sans-serif" }}>{dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>resultados/día restantes</p></div>
-                <div><p style={labelStyle}>Cumplimiento</p><p style={{ fontSize: 18, fontWeight: 700, color: goalCompletion >= 100 ? "#00c875" : "white", fontFamily: "'Orbitron',sans-serif" }}>{goalNum > 0 ? pct(goalCompletion) : "—"}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{daysRemaining} días restantes</p></div>
+              {/* Sub-KPI mini-cards */}
+              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                {[
+                  { label: "Res. proyectados", value: fmtNum(projectedResults), sub: goalNum > 0 ? `de ${fmtNum(goalNum)} objetivo` : "sin meta", color: "var(--emerald)", accentColor: "rgba(0,200,117,0.35)" },
+                  { label: "Gasto proyectado", value: fmtMXN0(projectedSpend), sub: `de ${fmtMXN0(bk.monthly)} mensual`, color: "var(--amber)", accentColor: "rgba(253,171,61,0.35)" },
+                  { label: "Meta diaria ideal", value: goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—", sub: "resultados/día", color: "var(--cyan)", accentColor: "rgba(0,212,255,0.35)" },
+                  { label: "Ritmo necesario", value: dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—", sub: "res/día restantes", color: dailyNeeded > 0 ? "var(--amber)" : "var(--text-muted)", accentColor: dailyNeeded > 0 ? "rgba(253,171,61,0.35)" : "rgba(255,255,255,0.1)" },
+                  { label: "Cumplimiento", value: goalNum > 0 ? pct(goalCompletion) : "—", sub: `${daysRemaining} días restantes`, color: goalCompletion >= 100 ? "var(--emerald)" : "white", accentColor: goalCompletion >= 100 ? "rgba(0,200,117,0.35)" : "rgba(255,255,255,0.1)" },
+                ].map((item, i) => (
+                  <div key={i} style={{
+                    background: "rgba(255,255,255,0.025)", borderRadius: 10,
+                    border: "1px solid rgba(255,255,255,0.07)", padding: "12px 14px",
+                    borderTop: `2px solid ${item.accentColor}`, position: "relative", overflow: "hidden",
+                  }}>
+                    <p style={{ ...labelStyle, marginBottom: 6 }}>{item.label}</p>
+                    <p style={{ fontSize: 18, fontWeight: 700, color: item.color, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{item.value}</p>
+                    <p style={{ fontSize: 9, color: "rgba(148,163,184,0.6)", marginTop: 4 }}>{item.sub}</p>
+                  </div>
+                ))}
               </div>
-              {goalNum > 0 && <div style={{ marginTop: 16, height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}><div style={{ height: "100%", width: `${Math.min(goalCompletion, 100)}%`, background: trackStatus === "on-track" ? "#00c875" : trackStatus === "at-risk" ? "#fdab3d" : "#e2445c", borderRadius: 3, transition: "width 0.5s" }} /></div>}
+              {goalNum > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+                    <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em" }}>PROGRESO DEL MES</span>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)" }}>{pct(Math.min(goalCompletion, 100))}</span>
+                  </div>
+                  <div style={{ height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${Math.min(goalCompletion, 100)}%`, background: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)", borderRadius: 3, transition: "width 0.5s", boxShadow: `0 0 8px ${trackStatus === "on-track" ? "rgba(0,200,117,0.5)" : "rgba(253,171,61,0.5)"}` }} />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Charts Row */}
@@ -568,16 +734,16 @@ export default function ProjectDashboardPage() {
               {isLoading && <LoadingOverlay />}
               <div style={panelStyle}><h3 style={headingStyle}>Inversión vs Resultados</h3><p style={subStyle}>Gasto diario y volumen de conversiones</p>
                 <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#fdab3d" stopOpacity={0.3} /><stop offset="95%" stopColor="#fdab3d" stopOpacity={0} /></linearGradient></defs>
+                  <defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--amber)" stopOpacity={0.3} /><stop offset="95%" stopColor="var(--amber)" stopOpacity={0} /></linearGradient></defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="left" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="#fdab3d" strokeWidth={2} fillOpacity={1} fill="url(#gs)" /><Bar yAxisId="right" dataKey="results" name="Resultados" fill="#00c875" radius={[3, 3, 0, 0]} barSize={6} />
+                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="var(--amber)" strokeWidth={2} fillOpacity={1} fill="url(#gs)" /><Bar yAxisId="right" dataKey="results" name="Resultados" fill="var(--emerald)" radius={[3, 3, 0, 0]} barSize={6} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
               <div style={panelStyle}><h3 style={headingStyle}>CTR vs CPC</h3><p style={subStyle}>Calidad de tráfico y costo por clic</p>
                 <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="#7b61ff" stopOpacity={0.3} /><stop offset="95%" stopColor="#7b61ff" stopOpacity={0} /></linearGradient></defs>
+                  <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--purple)" stopOpacity={0.3} /><stop offset="95%" stopColor="var(--purple)" stopOpacity={0} /></linearGradient></defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="l" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} /><YAxis yAxisId="r" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="#7b61ff" strokeWidth={2} fillOpacity={1} fill="url(#gc)" /><Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="#fdab3d" strokeWidth={2} dot={{ r: 3, fill: "rgba(10,15,30,1)" }} />
+                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="var(--purple)" strokeWidth={2} fillOpacity={1} fill="url(#gc)" /><Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="var(--amber)" strokeWidth={2} dot={{ r: 3, fill: "rgba(10,15,30,1)" }} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
             </div>
@@ -585,29 +751,81 @@ export default function ProjectDashboardPage() {
 
           {/* Right: Accounts Panel */}
           <div className="space-y-3">
+            {/* Cuentas Vinculadas */}
             <div style={panelStyle}>
-              <h3 style={headingStyle}>Cuentas Vinculadas</h3>
-              <p style={subStyle}>{ch?.adAccounts?.length || 0} cuentas seleccionadas</p>
-              {ch?.adAccounts?.map(acc => (
-                <div key={acc} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 4, marginBottom: 6 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#00c875" }} />
-                  <div style={{ flex: 1 }}><p style={{ fontSize: 12, color: "#e2e8f0", fontWeight: 500 }}>{accountNames[acc] || acc}</p><p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)" }}>{acc}</p></div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Link style={{ width: 14, height: 14, color: "var(--cyan)" }} />
                 </div>
-              ))}
+                <div>
+                  <h3 style={headingStyle}>Cuentas Vinculadas</h3>
+                  <p style={subStyle}>{ch?.adAccounts?.length || 0} cuenta{(ch?.adAccounts?.length || 0) !== 1 ? "s" : ""} conectada{(ch?.adAccounts?.length || 0) !== 1 ? "s" : ""}</p>
+                </div>
+              </div>
+              {ch?.adAccounts?.length ? ch.adAccounts.map(acc => (
+                <div key={acc} style={{
+                  display: "flex", alignItems: "center", gap: 10,
+                  padding: "10px 12px", marginBottom: 6, borderRadius: 10,
+                  background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)",
+                  transition: "background 0.15s", cursor: "default",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.025)")}
+                >
+                  <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #1877F2, #0A4FBD)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                    <span style={{ fontSize: 12, fontWeight: 900, color: "white", fontFamily: "serif" }}>f</span>
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontSize: 12, color: "var(--foreground)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{accountNames[acc] || "Ad Account"}</p>
+                    <p style={{ fontSize: 9, color: "var(--text-muted)", fontFamily: "monospace" }}>{acc}</p>
+                  </div>
+                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 6px rgba(0,200,117,0.6)", flexShrink: 0 }} />
+                </div>
+              )) : (
+                <div style={{ padding: "16px", textAlign: "center", color: "var(--text-muted)", fontSize: 12 }}>
+                  <p style={{ marginBottom: 4 }}>Sin cuentas vinculadas</p>
+                  <p style={{ fontSize: 10 }}>Ve a Configuración para conectar</p>
+                </div>
+              )}
             </div>
+
+            {/* Presupuesto Diario */}
             <div style={panelStyle}>
-              <h3 style={headingStyle}>Presupuesto Diario</h3>
-              <p style={subStyle}>{bk.label}: {fmtMXN0(budgetNum)}</p>
-              <div className="space-y-3">
-                <div><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 16, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
-                <div><p style={labelStyle}>Semanal ideal</p><p style={{ fontSize: 14, fontWeight: 600, color: "#e2e8f0" }}>{fmtMXN(bk.weekly)}</p></div>
-                <div style={{ marginTop: 12, padding: "10px 12px", background: spendPace > 10 ? "rgba(226,68,92,0.08)" : spendPace < -10 ? "rgba(253,171,61,0.08)" : "rgba(0,200,117,0.08)", borderRadius: 4, border: `1px solid ${spendPace > 10 ? "rgba(226,68,92,0.15)" : spendPace < -10 ? "rgba(253,171,61,0.15)" : "rgba(0,200,117,0.15)"}` }}>
-                  <p style={{ fontSize: 10, color: "rgba(148,163,184,0.75)", marginBottom: 4 }}>Ritmo de gasto</p>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: spendPace > 10 ? "#e2445c" : spendPace < -10 ? "#fdab3d" : "#00c875" }}>
-                    {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo"}
-                  </p>
-                  <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", marginTop: 2 }}>Ideal hoy: {fmtMXN(idealSpendToday)} | Real: {fmtMXN(totalSpend)}</p>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <DollarSign style={{ width: 14, height: 14, color: "var(--amber)" }} />
                 </div>
+                <div>
+                  <h3 style={headingStyle}>Presupuesto</h3>
+                  <p style={subStyle}>{bk.label}: {fmtMXN0(budgetNum)}</p>
+                </div>
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
+                <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.05)", border: "1px solid rgba(0,212,255,0.12)", borderRadius: 10 }}>
+                  <p style={{ ...labelStyle, marginBottom: 4 }}>Diario ideal</p>
+                  <p style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p>
+                </div>
+                <div style={{ padding: "10px 12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10 }}>
+                  <p style={{ ...labelStyle, marginBottom: 4 }}>Semanal ideal</p>
+                  <p style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.weekly)}</p>
+                </div>
+              </div>
+              {/* Ritmo de gasto */}
+              <div style={{
+                padding: "12px 14px", borderRadius: 10,
+                background: spendPace > 10 ? "rgba(226,68,92,0.08)" : spendPace < -10 ? "rgba(253,171,61,0.08)" : "rgba(0,200,117,0.08)",
+                border: `1px solid ${spendPace > 10 ? "rgba(226,68,92,0.2)" : spendPace < -10 ? "rgba(253,171,61,0.2)" : "rgba(0,200,117,0.2)"}`,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <TrendingUp style={{ width: 12, height: 12, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }} />
+                  <p style={{ fontSize: 9, color: "rgba(148,163,184,0.75)", fontWeight: 700, letterSpacing: "0.1em" }}>RITMO DE GASTO</p>
+                </div>
+                <p style={{ fontSize: 14, fontWeight: 700, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }}>
+                  {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo ✓"}
+                </p>
+                <p style={{ fontSize: 10, color: "rgba(148,163,184,0.6)", marginTop: 4 }}>
+                  Ideal hoy: <strong style={{ color: "rgba(148,163,184,0.9)" }}>{fmtMXN(idealSpendToday)}</strong> · Real: <strong style={{ color: "rgba(148,163,184,0.9)" }}>{fmtMXN(totalSpend)}</strong>
+                </p>
               </div>
             </div>
           </div>
@@ -623,23 +841,93 @@ export default function ProjectDashboardPage() {
 
           // Build date × hour matrix from hourly_daily breakdown
           // Each row is a specific date (not aggregated by day-of-week)
-          const dateMap: Record<string, Record<number, { impressions: number; spend: number; clicks: number }>> = {};
+          const dateMap: Record<string, Record<number, { impressions: number; spend: number; clicks: number; results: number }>> = {};
+
+          // Debug: log first few rows to understand the data shape
+          if (hourlyData.length > 0) {
+            console.debug("[Heatmap] Sample row keys:", Object.keys(hourlyData[0]));
+            console.debug("[Heatmap] Sample row:", hourlyData[0]);
+            console.debug("[Heatmap] Total rows:", hourlyData.length);
+          }
+
+          // Helper: subtract one day from a YYYY-MM-DD string
+          const prevDate = (dateStr: string) => {
+            const dt = new Date(dateStr + "T12:00:00");
+            dt.setDate(dt.getDate() - 1);
+            return dt.toISOString().slice(0, 10);
+          };
 
           hourlyData.forEach((row: any) => {
-            const hour = parseInt(row.hourly_stats_aggregated_by_audience_time_zone || "0", 10);
+            // Use the normalized 'hour' field from the API route
+            // Fall back to the raw field names in case of older cached data
+            const hourRaw =
+              row.hour ??
+              row.hourly_stats_aggregated_by_audience_time_zone ??
+              row.hourly_stats_aggregated_by_advertiser_time_zone;
+            if (hourRaw === null || hourRaw === undefined) return;
+            const hour = parseInt(String(hourRaw), 10);
+            if (isNaN(hour) || hour < 0 || hour > 23) return;
+
+            // Detect "day overflow": Meta sometimes reports hours 0-5 under
+            // the NEXT calendar date when the account timezone is behind UTC
+            // (e.g., UTC-6 account: hour 18 UTC = hour 00 of account's tomorrow).
+            // Heuristic: if ALL the data for a date are hours 0-5 AND there's a
+            // previous date, assign those rows to the previous date instead.
+            // We process this in a second pass below, so for now just use date_start.
             const dateStr = row.date_start;
             if (!dateStr) return;
             if (!dateMap[dateStr]) {
               dateMap[dateStr] = {};
-              for (let h = 0; h < 24; h++) dateMap[dateStr][h] = { impressions: 0, spend: 0, clicks: 0 };
+              for (let h = 0; h < 24; h++) dateMap[dateStr][h] = { impressions: 0, spend: 0, clicks: 0, results: 0 };
             }
             dateMap[dateStr][hour].impressions += row.impressions || 0;
             dateMap[dateStr][hour].spend += row.spend || 0;
             dateMap[dateStr][hour].clicks += row.clicks || 0;
+            
+            const ra = findResultAction(row.actions, ch?.goal);
+            dateMap[dateStr][hour].results += ra ? parseInt(ra.value, 10) : 0;
           });
 
-          // Sort dates chronologically
-          const sortedDates = Object.keys(dateMap).sort();
+          // ── Timezone-stitch pass ──────────────────────────────────────────
+          // Meta reports hourly data using audience_time_zone. For Mexican accounts
+          // (UTC-6), this means hours 18-23 local time get logged as hours 0-5 of
+          // the NEXT calendar day in UTC. We detect and fix this:
+          // If a date's data ONLY exists in hours 0-5 (no activity in hours 6-23)
+          // AND the previous date exists, we remap hours 0-5 → 18-23 of previous day.
+          const allDates = Object.keys(dateMap).sort();
+          const datesToRemove = new Set<string>();
+
+          allDates.forEach((dateStr) => {
+            const hours = dateMap[dateStr];
+            const prev = prevDate(dateStr);
+            if (!dateMap[prev]) return; // no previous date to stitch into
+
+            // Count data in early (0-5) vs late (6-23) hours
+            const earlyActivity = [0, 1, 2, 3, 4, 5].filter(
+              h => hours[h].spend > 0 || hours[h].results > 0 || hours[h].impressions > 0
+            );
+            const lateActivity = Array.from({ length: 18 }, (_, i) => i + 6).filter(
+              h => hours[h].spend > 0 || hours[h].results > 0 || hours[h].impressions > 0
+            );
+
+            // Only stitch if this date has NO late activity (6-23) but DOES have early activity (0-5)
+            // AND the early hours are in the range 0-5 (typical UTC-6 overflow)
+            if (lateActivity.length === 0 && earlyActivity.length > 0) {
+              console.debug(`[Heatmap] Stitching TZ overflow: ${dateStr} hours [${earlyActivity.join(',')}] → prev date ${prev} as hours [${earlyActivity.map(h => h + 18).join(',')}]`);
+              earlyActivity.forEach(h => {
+                const targetH = h + 18;
+                dateMap[prev][targetH].impressions += hours[h].impressions;
+                dateMap[prev][targetH].spend       += hours[h].spend;
+                dateMap[prev][targetH].clicks      += hours[h].clicks;
+                dateMap[prev][targetH].results     += hours[h].results;
+              });
+              // Mark this date for removal from display (all its data moved)
+              datesToRemove.add(dateStr);
+            }
+          });
+
+          // Sort dates chronologically, excluding stitched-away dates
+          const sortedDates = Object.keys(dateMap).sort().filter(d => !datesToRemove.has(d));
 
           // Format date label: "Lun 02/06"
           const formatDateLabel = (dateStr: string) => {
@@ -651,37 +939,96 @@ export default function ProjectDashboardPage() {
           };
 
           // Find max for color scaling
-          let maxImpressions = 0;
+              // Metric selector state (scoped inside this IIFE so it's a local var rendered inline)
+          // We use a dataset attribute trick since we can't use useState inside IIFE
+          // Instead, wire up a simple toggle via a controlled span + onClick trick with data-attr
+          const heatMetrics = [
+            { key: "results" as const, label: goalLabel(ch?.goal) || "Resultados" },
+            { key: "impressions" as const, label: "Impresiones" },
+            { key: "spend" as const, label: "Gasto" },
+          ];
+
+          // Determine which metric key is selected (stored in a sibling div via id)
+          // We can't use useState here, so we use a JavaScript module-level approach:
+          // Render buttons that swap via inline onclick + DOM class toggling.
+          // To keep it simple and React-idiomatic, we will just render all 3 variants
+          // using a React.useState-style approach by using the parent component's state.
+          // Since this is inside an IIFE, we read from a ref set above the IIFE.
+          const [heatMetric, setHeatMetric] = [
+            heatMetricState ?? "results",
+            (v: "results" | "impressions" | "spend") => setHeatMetricState(v),
+          ] as const;
+
+          const getVal = (cell: { impressions: number; spend: number; clicks: number; results: number }) => {
+            if (heatMetric === "impressions") return cell.impressions;
+            if (heatMetric === "spend") return cell.spend;
+            return cell.results;
+          };
+
+          const fmtVal = (cell: { impressions: number; spend: number; clicks: number; results: number }) => {
+            const v = getVal(cell);
+            if (heatMetric === "spend") return v > 0 ? fmtMXN(v) : "";
+            return v > 0 ? (v > 999 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v))) : "";
+          };
+
+          let maxVal = 0;
           sortedDates.forEach(date => {
             for (let h = 0; h < 24; h++) {
-              if (dateMap[date][h].impressions > maxImpressions) maxImpressions = dateMap[date][h].impressions;
+              const v = getVal(dateMap[date][h]);
+              if (v > maxVal) maxVal = v;
             }
           });
 
-          const getColor = (val: number) => {
-            if (maxImpressions === 0 || val === 0) return "rgba(255,255,255,0.02)";
-            const intensity = val / maxImpressions;
-            if (intensity > 0.75) return "rgba(0,200,117,0.6)";
-            if (intensity > 0.5) return "rgba(0,200,117,0.35)";
-            if (intensity > 0.25) return "rgba(0,212,255,0.25)";
-            if (intensity > 0.1) return "rgba(0,212,255,0.12)";
-            return "rgba(255,255,255,0.04)";
+          const getColor2 = (val: number) => {
+            if (maxVal === 0 || val === 0) return "rgba(255,255,255,0.05)";
+            const intensity = val / maxVal;
+            if (intensity > 0.75) return heatMetric === "spend" ? "rgba(251,191,36,0.7)" : "rgba(0,200,117,0.6)";
+            if (intensity > 0.5)  return heatMetric === "spend" ? "rgba(251,191,36,0.45)" : "rgba(0,200,117,0.35)";
+            if (intensity > 0.25) return heatMetric === "spend" ? "rgba(251,191,36,0.25)" : "rgba(0,212,255,0.25)";
+            if (intensity > 0.1)  return heatMetric === "spend" ? "rgba(251,191,36,0.12)" : "rgba(0,212,255,0.12)";
+            return "rgba(255,255,255,0.1)";
           };
+
+          // Today's date string for highlighting
+          const todayStr = new Date().toISOString().slice(0, 10);
 
           return (
             <div style={{ ...panelStyle, marginTop: 12 }}>
-              <h3 style={headingStyle}>Distribución por Hora y Día</h3>
-              <p style={subStyle}>Impresiones por fecha y hora · Hover para ver gasto y clics</p>
-              <div style={{ overflowX: "auto", maxHeight: 500, overflowY: "auto" }}>
-                <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 700 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
+                <div>
+                  <h3 style={headingStyle}>Distribución por Hora y Día</h3>
+                  <p style={subStyle}>Hover para ver detalle · Horas en zona horaria de la audiencia</p>
+                </div>
+                {/* Metric switcher */}
+                <div style={{ display: "flex", gap: 3, background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "3px" }}>
+                  {heatMetrics.map(m => (
+                    <button
+                      key={m.key}
+                      onClick={() => setHeatMetric(m.key)}
+                      style={{
+                        padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
+                        borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
+                        background: heatMetric === m.key ? "var(--cyan)" : "transparent",
+                        color: heatMetric === m.key ? "#000" : "rgba(148,163,184,0.7)",
+                        letterSpacing: "0.04em",
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div style={{ overflowX: "auto", maxHeight: 520, overflowY: "auto" }}>
+                <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 740 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
                     <tr>
-                      <th style={{ padding: "4px 8px", fontSize: 9, color: "rgba(148,163,184,0.75)", textAlign: "left", fontWeight: 600, width: 70, background: "rgba(5,8,18,0.95)" }}></th>
+                      <th style={{ padding: "5px 10px", fontSize: 9, color: "rgba(148,163,184,0.6)", textAlign: "left", fontWeight: 700, width: 76, background: "rgba(8,12,24,0.97)", letterSpacing: "0.06em" }}>FECHA</th>
                       {HOURS.map(h => (
-                        <th key={h} style={{ padding: "4px 2px", fontSize: 8, color: "rgba(148,163,184,0.7)", textAlign: "center", fontWeight: 500, minWidth: 26, background: "rgba(5,8,18,0.95)" }}>
+                        <th key={h} style={{ padding: "5px 2px", fontSize: 9, color: "rgba(148,163,184,0.6)", textAlign: "center", fontWeight: 600, minWidth: 28, background: "rgba(8,12,24,0.97)" }}>
                           {h.toString().padStart(2, "0")}
                         </th>
                       ))}
+                      <th style={{ padding: "5px 8px", fontSize: 9, color: "rgba(0,212,255,0.6)", textAlign: "right", fontWeight: 700, minWidth: 52, background: "rgba(8,12,24,0.97)", letterSpacing: "0.06em" }}>TOTAL</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -689,56 +1036,82 @@ export default function ProjectDashboardPage() {
                       const dateLabel = formatDateLabel(dateStr);
                       const dt = new Date(dateStr + "T12:00:00");
                       const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
+                      const isToday = dateStr === todayStr;
+                      // Row total
+                      const rowTotal = HOURS.reduce((sum, h) => sum + getVal(dateMap[dateStr][h]), 0);
                       return (
-                        <tr key={dateStr}>
+                        <tr key={dateStr} style={{ background: isToday ? "rgba(0,212,255,0.04)" : "transparent" }}>
                           <td style={{
-                            padding: "4px 8px", fontSize: 9,
-                            color: isWeekend ? "rgba(0,212,255,0.5)" : "rgba(148,163,184,0.6)",
-                            fontWeight: 600, whiteSpace: "nowrap",
-                            background: isWeekend ? "rgba(0,212,255,0.03)" : "transparent",
+                            padding: "3px 10px", fontSize: 10,
+                            color: isToday ? "var(--cyan)" : isWeekend ? "rgba(0,212,255,0.45)" : "rgba(148,163,184,0.7)",
+                            fontWeight: isToday ? 800 : 600, whiteSpace: "nowrap",
+                            borderRight: isToday ? "2px solid rgba(0,212,255,0.35)" : "1px solid rgba(255,255,255,0.03)",
                           }}>
-                            {dateLabel}
+                            {isToday ? "● " : ""}{dateLabel}
                           </td>
                           {HOURS.map(h => {
                             const cell = dateMap[dateStr][h];
+                            const val = getVal(cell);
                             return (
                               <td
                                 key={h}
-                                title={`${dateLabel} ${h.toString().padStart(2, "0")}:00\nImpresiones: ${fmtNum(cell.impressions)}\nGasto: ${fmtMXN(cell.spend)}\nClics: ${fmtNum(cell.clicks)}`}
-                                style={{ padding: 0, textAlign: "center" }}
+                                title={`${dateLabel} ${h.toString().padStart(2, "0")}:00\nResultados: ${fmtNum(cell.results)}\nGasto: ${fmtMXN(cell.spend)}\nImpresiones: ${fmtNum(cell.impressions)}`}
+                                style={{ padding: "1px", textAlign: "center" }}
                               >
                                 <div style={{
-                                  width: "100%", height: 22,
-                                  background: getColor(cell.impressions),
-                                  borderRadius: 2,
-                                  margin: 1,
+                                  width: "100%", height: 26,
+                                  background: getColor2(val),
+                                  borderRadius: 3,
                                   display: "flex", alignItems: "center", justifyContent: "center",
-                                  fontSize: 7, color: cell.impressions > 0 ? "rgba(255,255,255,0.6)" : "transparent",
-                                  fontWeight: 600,
+                                  fontSize: 9, color: val > 0 ? "rgba(255,255,255,0.9)" : "transparent",
+                                  fontWeight: 700,
                                   cursor: "default",
-                                  transition: "background 0.15s, transform 0.1s",
+                                  transition: "transform 0.1s",
                                 }}
-                                onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.3)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; }}
-                                onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; }}
+                                onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.4)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.5)"; }}
+                                onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; e.currentTarget.style.boxShadow = "none"; }}
                                 >
-                                  {cell.impressions > 0 ? (cell.impressions > 999 ? `${(cell.impressions / 1000).toFixed(0)}k` : cell.impressions) : ""}
+                                  {fmtVal(cell)}
                                 </div>
                               </td>
                             );
                           })}
+                          {/* Row total */}
+                          <td style={{ padding: "3px 8px", textAlign: "right" }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: rowTotal > 0 ? "rgba(0,212,255,0.8)" : "rgba(148,163,184,0.3)" }}>
+                              {rowTotal > 0 ? (heatMetric === "spend" ? fmtMXN(rowTotal) : fmtNum(Math.round(rowTotal))) : "—"}
+                            </span>
+                          </td>
                         </tr>
                       );
                     })}
                   </tbody>
+                  {/* Column totals footer */}
+                  <tfoot style={{ position: "sticky", bottom: 0 }}>
+                    <tr style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "rgba(8,12,24,0.97)" }}>
+                      <td style={{ padding: "5px 10px", fontSize: 9, color: "rgba(0,212,255,0.6)", fontWeight: 700, letterSpacing: "0.08em" }}>TOTAL</td>
+                      {HOURS.map(h => {
+                        const colTotal = sortedDates.reduce((sum, dateStr) => sum + getVal(dateMap[dateStr][h]), 0);
+                        return (
+                          <td key={h} style={{ padding: "3px 1px", textAlign: "center" }}>
+                            <span style={{ fontSize: 8, fontWeight: 700, color: colTotal > 0 ? "rgba(0,212,255,0.7)" : "rgba(148,163,184,0.2)" }}>
+                              {colTotal > 0 ? (colTotal > 999 ? `${(colTotal / 1000).toFixed(1)}k` : Math.round(colTotal)) : ""}
+                            </span>
+                          </td>
+                        );
+                      })}
+                      <td />
+                    </tr>
+                  </tfoot>
                 </table>
               </div>
               {/* Legend */}
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 8, justifyContent: "flex-end" }}>
-                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>Menos</span>
-                {["rgba(255,255,255,0.04)", "rgba(0,212,255,0.12)", "rgba(0,212,255,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
-                  <div key={i} style={{ width: 14, height: 10, borderRadius: 2, background: c }} />
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end" }}>
+                <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Menor actividad</span>
+                {["rgba(255,255,255,0.05)", "rgba(255,255,255,0.1)", "rgba(0,212,255,0.12)", "rgba(0,212,255,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
+                  <div key={i} style={{ width: 16, height: 12, borderRadius: 3, background: c }} />
                 ))}
-                <span style={{ fontSize: 8, color: "rgba(148,163,184,0.65)" }}>Más</span>
+                <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Mayor actividad</span>
               </div>
             </div>
           );
@@ -752,10 +1125,56 @@ export default function ProjectDashboardPage() {
         <div className="space-y-3">
           {/* Budget Summary Cards */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            <div style={panelStyle}><p style={labelStyle}>Presupuesto {bk.label}</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(budgetNum)}</p></div>
-            <div style={panelStyle}><p style={labelStyle}>Diario ideal</p><p style={{ fontSize: 20, fontWeight: 700, color: "#00d4ff", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p></div>
-            <div style={panelStyle}><p style={labelStyle}>Gastado hoy</p><p style={{ fontSize: 20, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "#e2445c" : "#00c875", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(totalSpend)}</p><p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>de {fmtMXN0(idealSpendToday)} ideal</p></div>
-            <div style={panelStyle}><p style={labelStyle}>Restante</p><p style={{ fontSize: 20, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p></div>
+            {/* Presupuesto mensual */}
+            <div style={{ ...panelStyle, borderTop: "2px solid rgba(251,191,36,0.5)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(251,191,36,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <DollarSign style={{ width: 12, height: 12, color: "var(--amber)" }} />
+                </div>
+                <p style={labelStyle}>Presupuesto {bk.label}</p>
+              </div>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--amber)", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN0(budgetNum)}</p>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)} · Semanal: {fmtMXN(bk.weekly)}</p>
+            </div>
+            {/* Diario ideal */}
+            <div style={{ ...panelStyle, borderTop: "2px solid rgba(0,212,255,0.5)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(0,212,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Target style={{ width: 12, height: 12, color: "var(--cyan)" }} />
+                </div>
+                <p style={labelStyle}>Diario ideal</p>
+              </div>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN(bk.daily)}</p>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>Ritmo objetivo por día</p>
+            </div>
+            {/* Gastado hoy */}
+            <div style={{ ...panelStyle, borderTop: `2px solid ${totalSpend > idealSpendToday * 1.1 ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: totalSpend > idealSpendToday * 1.1 ? "rgba(226,68,92,0.1)" : "rgba(0,200,117,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Activity style={{ width: 12, height: 12, color: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)" }} />
+                </div>
+                <p style={labelStyle}>Gastado hoy</p>
+              </div>
+              <p style={{ fontSize: 22, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN0(totalSpend)}</p>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>de {fmtMXN0(idealSpendToday)} ideal</p>
+              {/* mini progress bar */}
+              {idealSpendToday > 0 && (
+                <div style={{ marginTop: 8, height: 3, background: "rgba(255,255,255,0.07)", borderRadius: 2, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${Math.min((totalSpend / idealSpendToday) * 100, 100)}%`, background: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", borderRadius: 2 }} />
+                </div>
+              )}
+            </div>
+            {/* Restante */}
+            <div style={{ ...panelStyle, borderTop: "2px solid rgba(123,97,255,0.5)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(123,97,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <TrendingDown style={{ width: 12, height: 12, color: "var(--purple)" }} />
+                </div>
+                <p style={labelStyle}>Restante</p>
+              </div>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p>
+              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>{budgetNum > 0 ? `${pct(Math.min((totalSpend / budgetNum) * 100, 100))} utilizado` : "Sin presupuesto configurado"}</p>
+            </div>
           </div>
 
           {/* Spend Table — Spreadsheet Style (dates as columns) */}
@@ -789,21 +1208,21 @@ export default function ProjectDashboardPage() {
                 const projCPL = projectedResults > 0 ? projectedSpend / projectedResults : 0;
                 const desvioCPL = cprTarget > 0 ? ((totCPL / cprTarget) - 1) * 100 : 0;
 
-                const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "#e2e8f0", borderBottom: "1px solid rgba(255,255,255,0.03)", whiteSpace: "nowrap" };
+                const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "var(--foreground)", borderBottom: "1px solid rgba(255,255,255,0.03)", whiteSpace: "nowrap" };
                 const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 700, fontSize: 10, background: "var(--cyan)", borderBottom: "none" };
                 const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 600, fontSize: 9, background: "rgba(0,120,255,0.5)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
-                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 500, color: "rgba(148,163,184,0.7)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "rgba(5,8,18,0.98)", zIndex: 2 };
-                const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "rgba(255,255,255,0.02)", position: "sticky" as const, left: 0, zIndex: 2 };
+                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 600, color: "rgba(255,255,255,0.9)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "rgba(15,23,42,0.95)", borderRight: "1px solid rgba(255,255,255,0.1)", zIndex: 2 };
+                const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "rgba(30,41,59,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", position: "sticky" as const, left: 0, zIndex: 2 };
 
                 const metricRows = [
-                  { label: "Presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "#e2e8f0" },
-                  { label: "Importe Gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "#fdab3d" },
-                  { label: "%Gastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "#e2e8f0" },
-                  { label: goalLabel(ch?.goal), total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "#00c875" },
-                  { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map(() => "—"), color: "#7b61ff" },
-                  { label: CPR_MAP[ch?.goal || ""] || "CPR", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "#00d4ff" },
-                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Proyección`, total: fmtMXN(projCPL), values: cols.map(() => "—"), color: "rgba(148,163,184,0.75)" },
-                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(0)}%`; }), color: "rgba(148,163,184,0.75)" },
+                  { label: "Presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "var(--foreground)" },
+                  { label: "Importe Gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "var(--amber)" },
+                  { label: "%Gastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "var(--foreground)" },
+                  { label: goalLabel(ch?.goal), total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "var(--emerald)" },
+                  { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map((c: any) => goalBreakdown.daily > 0 ? pct((c.results / goalBreakdown.daily) * 100) : "—"), color: "#c084fc" },
+                  { label: CPR_MAP[ch?.goal || ""] || "CPR", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "var(--cyan)" },
+                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Objetivo`, total: cprTarget > 0 ? fmtMXN(cprTarget) : "—", values: cols.map(() => cprTarget > 0 ? fmtMXN(cprTarget) : "—"), color: "rgba(255,255,255,0.85)" },
+                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(1)}%`; }), color: "rgba(255,255,255,0.85)" },
                 ];
 
                 return (
@@ -811,13 +1230,13 @@ export default function ProjectDashboardPage() {
                     {/* Day names header */}
                     <thead>
                       <tr>
-                        <th style={{ ...totalCellStyle, background: "rgba(5,8,18,0.98)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 9, color: "rgba(148,163,184,0.65)" }}>AL DÍA</th>
-                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 9, color: "rgba(148,163,184,0.65)" }}>FECHA</th>
+                        <th style={{ ...totalCellStyle, background: "rgba(30,41,59,0.95)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 10, color: "rgba(255,255,255,0.9)" }}>AL DÍA</th>
+                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 10, color: "rgba(255,255,255,0.9)" }}>FECHA</th>
                         {cols.map((c: any, i: number) => <th key={i} style={headerCellStyle}>{c.dayName}</th>)}
                       </tr>
                       {/* Date numbers row */}
                       <tr>
-                        <th style={{ ...totalCellStyle, background: "rgba(5,8,18,0.98)", borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
+                        <th style={{ ...totalCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
                         <th style={{ ...labelCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
                         {cols.map((c: any, i: number) => <th key={i} style={subHeaderStyle}>{c.date}</th>)}
                       </tr>
@@ -825,7 +1244,7 @@ export default function ProjectDashboardPage() {
                     <tbody>
                       {/* Campaign name row */}
                       <tr>
-                        <td colSpan={2 + cols.length} style={{ padding: "8px 12px", fontWeight: 700, fontSize: 11, color: "#00d4ff", background: "rgba(0,212,255,0.04)", borderBottom: "1px solid rgba(0,212,255,0.1)", letterSpacing: "0.05em" }}>
+                        <td colSpan={2 + cols.length} style={{ padding: "8px 12px", fontWeight: 700, fontSize: 11, color: "var(--cyan)", background: "rgba(0,212,255,0.04)", borderBottom: "1px solid rgba(0,212,255,0.1)", letterSpacing: "0.05em" }}>
                           {project.alias?.toUpperCase() || "PROYECTO"}
                         </td>
                       </tr>
@@ -834,7 +1253,7 @@ export default function ProjectDashboardPage() {
                           <td style={{ ...totalCellStyle, color: row.color, textAlign: "right", paddingRight: 12, minWidth: 100 }}>{row.total}</td>
                           <td style={labelCellStyle}>{row.label}</td>
                           {row.values.map((v: string, ci: number) => (
-                            <td key={ci} style={{ ...cellStyle, color: row.color === "#e2e8f0" ? "rgba(148,163,184,0.6)" : row.color, fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400 }}>{v}</td>
+                            <td key={ci} style={{ ...cellStyle, color: row.color === "var(--foreground)" ? "rgba(148,163,184,0.6)" : row.color, fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400 }}>{v}</td>
                           ))}
                         </tr>
                       ))}
@@ -853,7 +1272,7 @@ export default function ProjectDashboardPage() {
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
                 <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: any, n: any) => [fmtMXN(v as number), n]} /><Legend wrapperStyle={{ fontSize: 10 }} />
-                <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="#fdab3d" strokeWidth={2} dot={false} />
+                <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="var(--amber)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="idealAccum" name="Presupuesto ideal" stroke="rgba(148,163,184,0.65)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
               </ComposedChart></ResponsiveContainer> : <NoData />}
             </div>
@@ -869,15 +1288,38 @@ export default function ProjectDashboardPage() {
           {/* Loading state when no breakdowns loaded yet */}
           {Object.keys(breakdownData).length === 0 && <LoadingOverlay />}
 
-          {/* Section header */}
-          <div style={{ ...panelStyle, padding: "14px 18px", background: "linear-gradient(135deg, rgba(0,129,251,0.06), rgba(0,212,255,0.04))" }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 4 }}>
-              <Users style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#00d4ff" }} />
-              ¿A quién estás llegando?
-            </h3>
-            <p style={{ fontSize: 11, color: "rgba(148,163,184,0.6)", lineHeight: 1.5 }}>
-              Demografía, ubicación geográfica, plataformas y horarios de tu audiencia. Datos basados en la inversión del periodo seleccionado.
-            </p>
+          {/* Section header — enriched banner */}
+          <div style={{
+            ...panelStyle,
+            padding: "18px 22px",
+            background: "linear-gradient(135deg, rgba(0,129,251,0.1) 0%, rgba(0,212,255,0.06) 50%, rgba(123,97,255,0.06) 100%)",
+            borderLeft: "3px solid var(--cyan)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(0,212,255,0.15)", border: "1px solid rgba(0,212,255,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Users style={{ width: 20, height: 20, color: "var(--cyan)" }} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 3 }}>
+                  ¿A quién estás llegando?
+                </h3>
+                <p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.5 }}>
+                  Demografía, ubicación geográfica, plataformas y dispositivos — basado en inversión del periodo.
+                </p>
+              </div>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                {[
+                  { label: "Edad/Género", color: "var(--cyan)" },
+                  { label: "Región", color: "var(--amber)" },
+                  { label: "Dispositivo", color: "var(--purple)" },
+                  { label: "Plataforma", color: "var(--emerald)" },
+                ].map((chip, i) => (
+                  <div key={i} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 9, fontWeight: 700, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: chip.color, letterSpacing: "0.06em" }}>
+                    {chip.label}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
@@ -890,7 +1332,17 @@ export default function ProjectDashboardPage() {
                 {(() => {
                   // 3-state: undefined = loading, [] = empty, [...] = data
                   const raw = breakdownData["age_gender"];
-                  if (raw === undefined) return <NoData msg="Cargando..." />;
+                  if (raw === undefined) return (
+                    <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 8, padding: "8px 0" }}>
+                      {[70, 90, 55, 80, 65, 45].map((w, i) => (
+                        <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                          <div style={{ width: 36, height: 14, borderRadius: 4, background: "rgba(255,255,255,0.06)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
+                          <div style={{ height: 24, borderRadius: 4, background: "rgba(0,212,255,0.08)", flex: 1, maxWidth: `${w}%`, animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
+                        </div>
+                      ))}
+                      <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 11, marginTop: 8 }}>Cargando datos de audiencia...</p>
+                    </div>
+                  );
                   const buckets: Record<string, { age: string; Hombres: number; Mujeres: number; Otro: number }> = {};
                   for (const r of raw) {
                     const age = r.age || "?";
@@ -908,8 +1360,8 @@ export default function ProjectDashboardPage() {
                         <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v))]} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
-                        <Bar dataKey="Mujeres" stackId="a" fill="#00d4ff" />
-                        <Bar dataKey="Hombres" stackId="a" fill="#00c875" radius={[3, 3, 0, 0]} barSize={6} />
+                        <Bar dataKey="Mujeres" stackId="a" fill="var(--cyan)" />
+                        <Bar dataKey="Hombres" stackId="a" fill="var(--emerald)" radius={[3, 3, 0, 0]} barSize={6} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -937,7 +1389,7 @@ export default function ProjectDashboardPage() {
                         <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <YAxis type="category" dataKey="region" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} width={90} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
-                        <Bar dataKey="spend" fill="#fdab3d" radius={[0, 4, 4, 0]} barSize={14} />
+                        <Bar dataKey="spend" fill="var(--amber)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -965,7 +1417,7 @@ export default function ProjectDashboardPage() {
                         <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <YAxis type="category" dataKey="country" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} width={40} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
-                        <Bar dataKey="spend" fill="#00d4ff" radius={[0, 4, 4, 0]} barSize={14} />
+                        <Bar dataKey="spend" fill="var(--cyan)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -981,12 +1433,18 @@ export default function ProjectDashboardPage() {
                 {(() => {
                   const raw = breakdownData["platform"];
                   if (raw === undefined) return <NoData msg="Cargando..." />;
-                  const d = raw.map((r: any) => ({
-                    name: (r.publisher_platform || "otro").charAt(0).toUpperCase() + (r.publisher_platform || "otro").slice(1),
-                    spend: Number(r.spend) || 0,
-                    impressions: Number(r.impressions) || 0,
-                    clicks: Number(r.clicks) || 0,
-                  }));
+                  
+                  const aggregated = raw.reduce((acc: any, r: any) => {
+                    const rawName = (r.publisher_platform || "otro").toLowerCase();
+                    const name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+                    if (!acc[name]) acc[name] = { name, spend: 0, impressions: 0, clicks: 0 };
+                    acc[name].spend += Number(r.spend) || 0;
+                    acc[name].impressions += Number(r.impressions) || 0;
+                    acc[name].clicks += Number(r.clicks) || 0;
+                    return acc;
+                  }, {});
+                  
+                  const d = Object.values(aggregated);
                   if (!d.length) return <NoData msg="Sin datos de plataforma" />;
                   return (
                     <ResponsiveContainer width="100%" height="100%">
@@ -1121,8 +1579,8 @@ export default function ProjectDashboardPage() {
                         <YAxis yAxisId="left" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                         <YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.65)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "Inversión" ? fmtMXN(Number(v)) : fmtNum(Number(v)), name]} />
-                        <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="#00d4ff" radius={[3, 3, 0, 0]} barSize={10} />
-                        <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impresiones" stroke="#fdab3d" strokeWidth={2} dot={false} />
+                        <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={10} />
+                        <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impresiones" stroke="var(--amber)" strokeWidth={2} dot={false} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </ComposedChart>
                     </ResponsiveContainer>
@@ -1178,7 +1636,7 @@ export default function ProjectDashboardPage() {
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 {/* Best */}
                 <div style={panelStyle}>
-                  <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#00c875" }} />Top 3 Mejores Anuncios</h3>
+                  <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--emerald)" }} />Top 3 Mejores Anuncios</h3>
                   <p style={subStyle}>Menor costo por resultado — clic para ver preview</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 10 }}>
                     {best.length > 0 ? best.map((ad) => (
@@ -1188,7 +1646,7 @@ export default function ProjectDashboardPage() {
                 </div>
                 {/* Worst */}
                 <div style={panelStyle}>
-                  <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#e2445c" }} />Top 3 Peores Anuncios</h3>
+                  <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--red)" }} />Top 3 Peores Anuncios</h3>
                   <p style={subStyle}>Mayor gasto sin resultados o CPR más alto</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginTop: 10 }}>
                     {worstByEfficiency.length > 0 ? worstByEfficiency.map((ad) => (
@@ -1230,10 +1688,10 @@ export default function ProjectDashboardPage() {
                           onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
                           onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                           onClick={() => { const ra2 = findResultAction(ad.actions, ch?.goal); setPreviewAd({ ...ad, results, cprVal, ctrVal }); }}>
-                          <td style={{ padding: "8px 6px", color: "rgba(148,163,184,0.65)", fontSize: 10 }}>{i + 1}</td>
+                          <td style={{ padding: "8px 6px", color: "var(--text-muted)", fontSize: 10 }}>{i + 1}</td>
                           <td style={{ padding: "8px 6px", maxWidth: 250 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                              <div style={{ width: 40, height: 40, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "rgba(0,0,0,0.3)", position: "relative" }}>
+                              <div style={{ width: 40, height: 40, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "var(--surface-hover)", position: "relative" }}>
                                 {ad.thumbnailUrl
                                   ? <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                   : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "rgba(148,163,184,0.15)" }} /></div>
@@ -1241,18 +1699,18 @@ export default function ProjectDashboardPage() {
                                 {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(162,93,220,0.8)", color: "white", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
                                 {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(253,171,61,0.8)", color: "white", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>⟡</span>}
                               </div>
-                              <span style={{ color: "#e2e8f0", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
+                              <span style={{ color: "var(--foreground)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
                             </div>
                           </td>
                           <td style={{ padding: "8px 6px" }}>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-                              <span style={{ width: 5, height: 5, borderRadius: "50%", background: ad.status === "ACTIVE" ? "#00c875" : ad.status === "PAUSED" ? "#fdab3d" : "rgba(148,163,184,0.65)" }} />
+                              <span style={{ width: 5, height: 5, borderRadius: "50%", background: ad.status === "ACTIVE" ? "var(--emerald)" : ad.status === "PAUSED" ? "var(--amber)" : "rgba(148,163,184,0.65)" }} />
                               <span style={{ fontSize: 9, color: "rgba(148,163,184,0.75)" }}>{ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status}</span>
                             </span>
                           </td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "#fdab3d", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "#00c875", fontWeight: 700 }}>{results}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "#e2445c" : cprTarget > 0 && cprVal > cprTarget ? "#e2445c" : "#00d4ff", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--amber)", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--emerald)", fontWeight: 700 }}>{results}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.7)" }}>{ctrVal.toFixed(2)}%</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)" }}>{fmtNum(ad.impressions || 0)}</td>
                         </tr>
@@ -1316,13 +1774,13 @@ export default function ProjectDashboardPage() {
                           <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.025)" }}>
                             <span style={{ width: 22, height: 22, borderRadius: 4, background: `${CHART_COLORS[i]}20`, color: CHART_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
                             <div style={{ flex: 1, minWidth: 0 }}>
-                              <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>
+                              <p style={{ fontSize: 12, color: "var(--foreground)", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>
                                 {d.text.length > 80 ? d.text.slice(0, 80) + "..." : d.text}
                               </p>
                               <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
-                                <span style={{ fontSize: 10, color: "#fdab3d" }}>{fmtMXN(d.spend)}</span>
-                                <span style={{ fontSize: 10, color: "#00c875" }}>{Math.round(d.results)} result.</span>
-                                <span style={{ fontSize: 10, color: "#00d4ff" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
+                                <span style={{ fontSize: 10, color: "var(--amber)" }}>{fmtMXN(d.spend)}</span>
+                                <span style={{ fontSize: 10, color: "var(--emerald)" }}>{Math.round(d.results)} result.</span>
+                                <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
                                 <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{d.count} anuncios</span>
                               </div>
                             </div>
@@ -1356,7 +1814,7 @@ export default function ProjectDashboardPage() {
                   });
                   const d = Object.values(formatMap).filter(f => f.spend > 0);
                   if (!d.length) return <NoData msg="Sin datos de formato" />;
-                  const formatColors = ["#00d4ff", "#a25ddc", "#fdab3d", "#00c875"];
+                  const formatColors = ["var(--cyan)", "#a25ddc", "var(--amber)", "var(--emerald)"];
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -1393,11 +1851,11 @@ export default function ProjectDashboardPage() {
                     <div key={fmt} style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px 12px" }}>
                       <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
                       <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
-                        <span style={{ color: "#fdab3d" }}>{fmtMXN(s.spend)}</span>
-                        <span style={{ color: "#00c875" }}>{Math.round(s.results)} res.</span>
-                        <span style={{ color: "#00d4ff" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
+                        <span style={{ color: "var(--amber)" }}>{fmtMXN(s.spend)}</span>
+                        <span style={{ color: "var(--emerald)" }}>{Math.round(s.results)} res.</span>
+                        <span style={{ color: "var(--cyan)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
                       </div>
-                      <p style={{ fontSize: 9, color: "rgba(148,163,184,0.65)", marginTop: 4 }}>{s.count} anuncios</p>
+                      <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{s.count} anuncios</p>
                     </div>
                   ));
                 })()}
@@ -1428,7 +1886,7 @@ export default function ProjectDashboardPage() {
                         <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
                         <YAxis type="category" dataKey="name" stroke="rgba(148,163,184,0.7)" fontSize={8} tickLine={false} axisLine={false} width={140} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "Inversión"]} />
-                        <Bar dataKey="ctr" fill="#00c875" radius={[0, 4, 4, 0]} barSize={12} />
+                        <Bar dataKey="ctr" fill="var(--emerald)" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -1439,17 +1897,76 @@ export default function ProjectDashboardPage() {
           </div>
 
           {/* Combinación Ganadora */}
-          <div style={panelStyle}>
-            <h3 style={headingStyle}><Zap style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "#fdab3d" }} />Combinación Ganadora</h3>
-            <p style={subStyle}>Campaña y conjunto con mejor rendimiento</p>
+          <div style={{
+            ...panelStyle,
+            background: "linear-gradient(135deg, rgba(253,171,61,0.06) 0%, rgba(0,0,0,0) 60%)",
+            borderTop: "2px solid rgba(253,171,61,0.3)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(253,171,61,0.15)", border: "1px solid rgba(253,171,61,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
+              </div>
+              <div>
+                <h3 style={headingStyle}>Combinación Ganadora</h3>
+                <p style={subStyle}>Campaña y conjunto de anuncios con mejor rendimiento del periodo</p>
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(() => {
                 const top = (insights?.campaigns || []).map((c: any) => { const s = parseFloat(c.spend || "0"); const ra = findResultAction(c.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: c.campaign_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
-                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Campaña Ganadora</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.65)", fontSize: 12 }}>Sin datos</div>;
+                return top ? (
+                  <div style={{
+                    background: "linear-gradient(135deg, rgba(253,171,61,0.08), rgba(0,0,0,0.15))",
+                    border: "1px solid rgba(253,171,61,0.2)", borderRadius: 12, padding: 18,
+                    position: "relative", overflow: "hidden",
+                  }}>
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(253,171,61,0.08)" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(253,171,61,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🏆</div>
+                      <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
+                    </div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
+                      </div>
+                      <div style={{ padding: "4px 10px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
+                      </div>
+                      <div style={{ padding: "4px 10px", background: "rgba(253,171,61,0.1)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Inversión: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: 12 }}>Sin datos de campaña</div>;
               })()}
               {(() => {
                 const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
-                return top ? <div style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: 16 }}><p style={labelStyle}>Adset Ganador</p><p style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>{top.name}</p><div style={{ display: "flex", gap: 16, fontSize: 12 }}><span><span style={{ color: "rgba(148,163,184,0.75)" }}>Resultados: </span><span style={{ color: "#00c875", fontWeight: 600 }}>{top.results}</span></span><span><span style={{ color: "rgba(148,163,184,0.75)" }}>CPA: </span><span style={{ color: "#00d4ff", fontWeight: 600 }}>{fmtMXN(top.cpa)}</span></span></div></div> : <div style={{ padding: 16, color: "rgba(148,163,184,0.65)", fontSize: 12 }}>Sin datos</div>;
+                return top ? (
+                  <div style={{
+                    background: "linear-gradient(135deg, rgba(123,97,255,0.08), rgba(0,0,0,0.15))",
+                    border: "1px solid rgba(123,97,255,0.2)", borderRadius: 12, padding: 18,
+                    position: "relative", overflow: "hidden",
+                  }}>
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(123,97,255,0.08)" }} />
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(123,97,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🥇</div>
+                      <p style={{ fontSize: 9, color: "var(--purple)", fontWeight: 800, letterSpacing: "0.12em" }}>ADSET GANADOR</p>
+                    </div>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
+                      </div>
+                      <div style={{ padding: "4px 10px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
+                      </div>
+                      <div style={{ padding: "4px 10px", background: "rgba(123,97,255,0.1)", border: "1px solid rgba(123,97,255,0.2)", borderRadius: 20, fontSize: 10 }}>
+                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Inversión: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: 12 }}>Sin datos de adset</div>;
               })()}
             </div>
           </div>
@@ -1501,7 +2018,7 @@ export default function ProjectDashboardPage() {
 
             const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
             const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
-            const healthColor = healthScore >= 80 ? "#00c875" : healthScore >= 60 ? "#fdab3d" : "#e2445c";
+            const healthColor = healthScore >= 80 ? "var(--emerald)" : healthScore >= 60 ? "var(--amber)" : "var(--red)";
 
             // SVG gauge params
             const radius = 80; const circumference = 2 * Math.PI * radius;
@@ -1509,137 +2026,176 @@ export default function ProjectDashboardPage() {
 
             // Indicators
             const indicators = [
-              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "#00c875" : cprScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "#00c875" : freqScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "#00c875" : ctrScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "#00c875" : convScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "#00c875" : paceScore >= 40 ? "#fdab3d" : "#e2445c" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "#00c875" : trendScore >= 40 ? "#fdab3d" : "#e2445c" },
+              { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--emerald)" : cprScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--emerald)" : freqScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
             ];
 
-            // Recommendations
+            // Recommendations (Cross-diagnostic logic)
             const recs: { severity: string; text: string }[] = [];
-            if (freqScore < 60) recs.push({ severity: "warning", text: `Frecuencia elevada (${frequency.toFixed(1)}). Amplía audiencias o rota creativos para evitar fatiga publicitaria.` });
-            if (ctrScore < 50) recs.push({ severity: "critical", text: `CTR bajo (${pct(ctr)}). Renueva creativos con nuevos ángulos. Prueba formatos de video o carrusel.` });
-            if (cprScore < 50 && cprTarget > 0) recs.push({ severity: "critical", text: `CPR por encima de meta (${fmtMXN(cpr)} vs ${fmtMXN(cprTarget)}). Pausa adsets de bajo rendimiento y redistribuye presupuesto.` });
-            if (convScore < 50) recs.push({ severity: "warning", text: `Tasa de conversión baja (${pct(conversionRate)}). Revisa landing page, formulario o experiencia post-clic.` });
-            if (paceScore < 50) recs.push({ severity: "warning", text: `Ritmo de gasto desviado (${pct(spendPaceRatio * 100)} del ideal). Ajusta presupuesto diario o estrategia de puja.` });
-            if (trendScore < 50) recs.push({ severity: "critical", text: "CPR en tendencia alcista. Considera optimizar por conversiones, no por tráfico." });
-            if (frequency > 3 && ctrScore < 60) recs.push({ severity: "warning", text: "Fatiga creativa detectada: alta frecuencia + CTR en descenso. Rota creativos cada 5-7 días." });
+            
+            if (cprScore >= 80) {
+              recs.push({ severity: "success", text: `Costo por Resultado excelente (${fmtMXN(cpr)}). El embudo está sano y convirtiendo eficientemente. Sugerencia: Escalar presupuesto un 15-20%.` });
+            } else if (cprScore < 50 && cprTarget > 0) {
+              recs.push({ severity: "critical", text: `Costo por Resultado en riesgo (${fmtMXN(cpr)} vs meta ${fmtMXN(cprTarget)}). Costos de adquisición elevados.` });
+            }
+
+            if (ctrScore >= 60 && convScore < 50) {
+              recs.push({ severity: "warning", text: `Fuga en Bottom-Funnel: Alto CTR (${pct(ctr)}) pero baja conversión (${pct(conversionRate)}). El anuncio atrae pero la landing page no convence o el lead es de baja intención.` });
+            } else if (ctrScore < 50 && convScore >= 60) {
+              recs.push({ severity: "warning", text: `Fuga en Mid-Funnel: Baja atracción (${pct(ctr)}) pero buena conversión (${pct(conversionRate)}). Mejora los creativos y hooks, tu landing page funciona bien.` });
+            } else if (ctrScore < 50 && convScore < 50) {
+              recs.push({ severity: "critical", text: `Fuga General: Los creativos no atraen (${pct(ctr)}) y la oferta no convierte (${pct(conversionRate)}). Revisión total de campaña requerida.` });
+            }
+
+            if (freqScore < 50 && ctrScore < 50) {
+              recs.push({ severity: "warning", text: `Fatiga Creativa: Frecuencia alta (${frequency.toFixed(1)}) y CTR cayendo. La audiencia ya se cansó de los anuncios actuales. Rota creativos inmediatamente.` });
+            }
+
+            if (paceScore < 40) {
+               if (spendPaceRatio < 1) {
+                  recs.push({ severity: "warning", text: `Sub-inversión: El gasto está por debajo del ritmo ideal. Revisa si las pujas son muy bajas o la audiencia muy pequeña.` });
+               } else {
+                  recs.push({ severity: "warning", text: `Sobre-inversión: El gasto está muy acelerado. Ajusta límites diarios para no quedarte sin presupuesto antes de fin de mes.` });
+               }
+            }
+
             if (recs.length === 0) recs.push({ severity: "success", text: "Todas las métricas están dentro de rangos saludables. Mantén la estrategia actual y monitorea diariamente." });
 
+            const funnelSteps = [
+              { ...indicators[1], step: "1. Atracción", desc: "¿A cuántos llegamos sin saturar?" },
+              { ...indicators[2], step: "2. Interacción", desc: "¿El creativo llama la atención?" },
+              { ...indicators[3], step: "3. Conversión", desc: "¿La oferta o página convence?" },
+              { ...indicators[4], step: "4. Gasto", desc: "¿Estamos gastando al ritmo ideal?" },
+            ];
+
             return (
-              <div className="space-y-3">
-                {/* Top row: Gauge + Indicators */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
-                  {/* Health Score Gauge */}
-                  <div style={{ ...panelStyle, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 280 }}>
-                    <h3 style={{ ...headingStyle, marginBottom: 16 }}>Health Score</h3>
-                    <div style={{ position: "relative", width: 200, height: 200 }}>
-                      <svg width="200" height="200" viewBox="0 0 200 200" style={{ transform: "rotate(-90deg)" }}>
-                        <circle cx="100" cy="100" r={radius} fill="none" stroke="rgba(255,255,255,0.04)" strokeWidth="12" />
-                        <circle cx="100" cy="100" r={radius} fill="none" stroke={healthColor} strokeWidth="12" strokeLinecap="round"
-                          strokeDasharray={circumference} strokeDashoffset={dashOffset}
-                          style={{ transition: "stroke-dashoffset 1s ease-out, stroke 0.5s" }} />
-                        <circle cx="100" cy="100" r={radius} fill="none" stroke={`${healthColor}30`} strokeWidth="20" strokeLinecap="round"
-                          strokeDasharray={circumference} strokeDashoffset={dashOffset}
-                          style={{ transition: "stroke-dashoffset 1s ease-out", filter: "blur(8px)" }} />
-                      </svg>
-                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                        <span style={{ fontSize: 42, fontWeight: 800, color: healthColor, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{healthScore}</span>
-                        <span style={{ fontSize: 10, color: healthColor, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.15em", marginTop: 4 }}>{healthLabel}</span>
+              <div className="space-y-4">
+                {/* Top row: Pulse Check (Resumen Ejecutivo) */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* Health Score Gauge (Pulse) */}
+                  <div style={{ ...panelStyle, display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, minHeight: 140 }}>
+                    <div>
+                      <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Pulse Check</h3>
+                      <p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)" }}>Estado general de la campaña</p>
+                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
+                         <div style={{ width: 12, height: 12, borderRadius: "50%", background: healthColor, boxShadow: `0 0 10px ${healthColor}` }} />
+                         <span style={{ fontSize: 16, fontWeight: 700, color: "white", textTransform: "uppercase" }}>{healthLabel}</span>
                       </div>
                     </div>
-                    <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", marginTop: 12, textAlign: "center" }}>Ponderación: CPR 25% · Frecuencia 20% · CTR 15% · Conv 15% · Gasto 15% · Tendencia 10%</p>
+                    
+                    <div style={{ position: "relative", width: 100, height: 100 }}>
+                      <svg width="100" height="100" viewBox="0 0 200 200" style={{ transform: "rotate(-90deg)" }}>
+                        <circle cx="100" cy="100" r={radius} fill="none" stroke="var(--surface-hover)" strokeWidth="16" />
+                        <circle cx="100" cy="100" r={radius} fill="none" stroke={healthColor} strokeWidth="16" strokeLinecap="round"
+                          strokeDasharray={circumference} strokeDashoffset={dashOffset}
+                          style={{ transition: "stroke-dashoffset 1s ease-out, stroke 0.5s" }} />
+                      </svg>
+                      <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        <span style={{ fontSize: 24, fontWeight: 800, color: healthColor, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{healthScore}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  {/* 6 Indicator Cards */}
-                  <div className="lg:col-span-2" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 10 }}>
-                    {indicators.map((ind, i) => (
-                      <div key={i} style={{ ...panelStyle, padding: 14, position: "relative", overflow: "hidden" }}>
-                        <div style={{ position: "absolute", top: 0, right: 0, width: 60, height: 60, background: `radial-gradient(circle, ${ind.color}15 0%, transparent 70%)`, transform: "translate(20%, -20%)" }} />
-                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8, color: ind.color }}>{ind.icon}<span style={{ fontSize: 10, fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>{ind.name}</span></div>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 4 }}>
-                          <span style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{ind.value}</span>
-                          <span style={{ fontSize: 20, fontWeight: 800, color: ind.color, fontFamily: "'Orbitron',sans-serif" }}>{ind.score}</span>
+                  {/* Eficiencia CPR (Métrica Estrella) */}
+                  <div className="lg:col-span-2" style={{ ...panelStyle, position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 30px", background: `linear-gradient(135deg, rgba(15,23,42,1) 0%, ${indicators[0].color}15 100%)`, border: `1px solid ${indicators[0].color}30` }}>
+                    <div style={{ zIndex: 2 }}>
+                       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, color: indicators[0].color }}>
+                         <div style={{ padding: 6, background: `${indicators[0].color}20`, borderRadius: 8 }}>{indicators[0].icon}</div>
+                         <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Eficiencia General (Costo por Resultado)</span>
+                       </div>
+                       <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
+                          <span style={{ fontSize: 42, fontWeight: 800, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{indicators[0].value}</span>
+                          <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>{indicators[0].bench}</span>
+                       </div>
+                    </div>
+                    <div style={{ zIndex: 2, textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                       <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Score de Eficiencia</span>
+                       <span style={{ fontSize: 32, fontWeight: 800, color: indicators[0].color, fontFamily: "'Orbitron',sans-serif" }}>{indicators[0].score}</span>
+                       <div style={{ width: 100, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, marginTop: 8, overflow: "hidden" }}>
+                          <div style={{ height: "100%", width: `${indicators[0].score}%`, background: indicators[0].color, borderRadius: 2 }} />
+                       </div>
+                    </div>
+                    <div style={{ position: "absolute", top: -50, right: -50, width: 200, height: 200, background: `radial-gradient(circle, ${indicators[0].color}20 0%, transparent 70%)` }} />
+                  </div>
+                </div>
+
+                {/* Fila 2: Análisis del Embudo (Funnel Health) */}
+                <div style={panelStyle}>
+                  <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
+                    <h3 style={headingStyle}>Análisis del Embudo de Conversión</h3>
+                    <p style={subStyle}>Diagnóstico del viaje del usuario: Atracción, Interacción, Conversión y Gasto.</p>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 0 }}>
+                    {funnelSteps.map((step, i) => (
+                      <div key={i} style={{ padding: 20, position: "relative", borderRight: i < funnelSteps.length - 1 ? "1px dashed rgba(255,255,255,0.1)" : "none" }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(148,163,184,0.8)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{step.step}</span>
+                          <div style={{ color: step.color, padding: 4, background: `${step.color}15`, borderRadius: 6 }}>
+                            {step.icon}
+                          </div>
                         </div>
-                        <p style={{ fontSize: 9, color: "rgba(148,163,184,0.7)", marginBottom: 6 }}>{ind.bench}</p>
-                        <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
-                          <div style={{ height: "100%", width: `${ind.score}%`, background: ind.color, borderRadius: 2, transition: "width 0.8s ease-out" }} />
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "white", marginBottom: 4 }}>{step.name}</p>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif", marginBottom: 8 }}>
+                          {step.value}
                         </div>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.6)" }}>{step.bench}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: step.color, fontFamily: "'Orbitron',sans-serif" }}>{step.score}</span>
+                        </div>
+                        <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
+                          <div style={{ height: "100%", width: `${step.score}%`, background: step.color, borderRadius: 2 }} />
+                        </div>
+                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.5)", lineHeight: 1.4 }}>{step.desc}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                {/* CPR Trend Chart */}
-                <div style={panelStyle}>
-                  <h3 style={headingStyle}>Tendencia de CPR vs Meta</h3>
-                  <p style={subStyle}>Evolución del costo por resultado a lo largo del periodo</p>
-                  <div style={{ width: "100%", height: 280 }}>
-                    {tsd.length > 0 ? (
-                      <ResponsiveContainer>
-                        <ComposedChart data={tsd} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                          <defs>
-                            <linearGradient id="gcpr" x1="0" y1="0" x2="0" y2="1">
-                              <stop offset="5%" stopColor="#00d4ff" stopOpacity={0.3} />
-                              <stop offset="95%" stopColor="#00d4ff" stopOpacity={0} />
-                            </linearGradient>
-                          </defs>
-                          <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                          <XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} />
-                          <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
-                          <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
-                          <Area type="monotone" dataKey="cpr" name="CPR" stroke="#00d4ff" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
-                          {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="#e2445c" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "#e2445c", fontSize: 10 }} />}
-                        </ComposedChart>
-                      </ResponsiveContainer>
-                    ) : <NoData />}
-                  </div>
-                </div>
-
-                {/* Diagnostic + Recommendations */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                  <div style={panelStyle}>
-                    <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Diagnóstico</h3>
-                    <p style={subStyle}>Evaluación automática basada en benchmarks de industria</p>
-                    <div className="space-y-3">
-                      {recs.map((r, i) => (
-                        <div key={i} style={{ display: "flex", gap: 10, padding: "10px 12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 6 }}>
-                          <div style={{ flexShrink: 0, marginTop: 2 }}>
-                            {r.severity === "critical" ? <AlertTriangle style={{ width: 14, height: 14, color: "#e2445c" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 14, height: 14, color: "#fdab3d" }} /> : <CheckCircle style={{ width: 14, height: 14, color: "#00c875" }} />}
-                          </div>
-                          <p style={{ fontSize: 12, color: "#e2e8f0", lineHeight: 1.5 }}>{r.text}</p>
-                        </div>
-                      ))}
+                {/* Fila 3: Tendencia vs Diagnóstico Cruzado */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                  {/* CPR Trend Chart */}
+                  <div className="lg:col-span-2" style={panelStyle}>
+                    <h3 style={headingStyle}>Tendencia de CPR vs Meta</h3>
+                    <p style={subStyle}>Evolución del costo por resultado a lo largo del periodo</p>
+                    <div style={{ width: "100%", height: 280 }}>
+                      {tsd.length > 0 ? (
+                        <ResponsiveContainer>
+                          <ComposedChart data={tsd} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
+                            <defs>
+                              <linearGradient id="gcpr" x1="0" y1="0" x2="0" y2="1">
+                                <stop offset="5%" stopColor="var(--cyan)" stopOpacity={0.3} />
+                                <stop offset="95%" stopColor="var(--cyan)" stopOpacity={0} />
+                              </linearGradient>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
+                            <XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} />
+                            <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
+                            <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
+                            <Area type="monotone" dataKey="cpr" name="CPR" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
+                            {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="var(--red)" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "var(--red)", fontSize: 10 }} />}
+                          </ComposedChart>
+                        </ResponsiveContainer>
+                      ) : <NoData />}
                     </div>
                   </div>
 
-                  <div style={panelStyle}>
-                    <h3 style={headingStyle}>Configuración Recomendada</h3>
-                    <p style={subStyle}>Sugerencias para las próximas campañas</p>
-                    <div className="space-y-3">
-                      {/* Budget recommendation */}
-                      <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "#00d4ff", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Presupuesto Diario Óptimo</p>
-                        <p style={{ fontSize: 16, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif" }}>{fmtMXN(bk.daily)}</p>
-                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>Basado en {fmtMXN0(bk.monthly)} {bk.label.toLowerCase()}</p>
-                      </div>
-                      {/* Optimization target */}
-                      <div style={{ padding: "10px 12px", background: "rgba(0,200,117,0.04)", border: "1px solid rgba(0,200,117,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "#00c875", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Objetivo de Optimización</p>
-                        <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{convScore < 50 ? "Optimizar por conversiones (no tráfico). Usa CBO con bid cap." : ctrScore < 50 ? "Mejorar engagement. Prueba Advantage+ Creative." : "Mantener optimización actual. Escalar presupuesto gradualmente (+20% cada 3 días)."}</p>
-                      </div>
-                      {/* Audience suggestion */}
-                      <div style={{ padding: "10px 12px", background: "rgba(123,97,255,0.04)", border: "1px solid rgba(123,97,255,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "#7b61ff", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Audiencia</p>
-                        <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{freqScore < 50 ? "Frecuencia alta. Amplía audiencia: agrega intereses, prueba Lookalike 3-5%, o usa Advantage+ Audience." : "Audiencia saludable. Considera escalar con Broad targeting."}</p>
-                      </div>
-                      {/* Creative suggestion */}
-                      <div style={{ padding: "10px 12px", background: "rgba(253,171,61,0.04)", border: "1px solid rgba(253,171,61,0.1)", borderRadius: 6 }}>
-                        <p style={{ fontSize: 10, color: "#fdab3d", fontWeight: 600, textTransform: "uppercase", marginBottom: 4 }}>Creativos</p>
-                        <p style={{ fontSize: 13, color: "white", lineHeight: 1.5 }}>{ctrScore < 50 || freqScore < 50 ? "Urgente: Rota creativos. Prueba UGC, testimoniales, o ángulos de dolor/beneficio diferentes." : "Creativos funcionando bien. Itera sobre los ganadores con variaciones A/B."}</p>
-                      </div>
+                  {/* Diagnostic + Recommendations */}
+                  <div style={{ ...panelStyle, display: "flex", flexDirection: "column" }}>
+                    <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Plan de Acción Inmediato</h3>
+                    <p style={subStyle}>Diagnóstico cruzado y sugerencias</p>
+                    <div className="space-y-3 flex-1 overflow-y-auto pr-2">
+                      {recs.map((r, i) => (
+                        <div key={i} style={{ display: "flex", gap: 10, padding: "12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 8 }}>
+                          <div style={{ flexShrink: 0, marginTop: 2 }}>
+                            {r.severity === "critical" ? <AlertTriangle style={{ width: 16, height: 16, color: "var(--red)" }} /> : r.severity === "warning" ? <AlertTriangle style={{ width: 16, height: 16, color: "var(--amber)" }} /> : <CheckCircle style={{ width: 16, height: 16, color: "var(--emerald)" }} />}
+                          </div>
+                          <p style={{ fontSize: 12, color: "var(--foreground)", lineHeight: 1.5 }}>{r.text}</p>
+                        </div>
+                      ))}
                     </div>
                   </div>
                 </div>
@@ -1681,10 +2237,12 @@ export default function ProjectDashboardPage() {
       )}
 
 
-      {/* ═══ TAB: ANÁLISIS DE RESULTADOS (Botmaker / Cari AI) ═══ */}
+      {/* ═══ TAB: ANÁLISIS DE RESULTADOS (Métricas del Bot, acotado al proyecto) ═══ */}
       {activeTab === "resultados" && (
         <ErrorBoundary name="Tab Análisis de Resultados">
-          <AdvancedAnalyticsDashboard projectId={project.id} clientId={project.client} />
+          <div style={{ height: "calc(100vh - 180px)", margin: "8px 0 0", borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <BotAnalyticsDashboard projectId={project.id} embedded />
+          </div>
         </ErrorBoundary>
       )}
 
@@ -1700,35 +2258,104 @@ export default function ProjectDashboardPage() {
         <ErrorBoundary name="Tab Configuracion">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
           <div style={panelStyle}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <h3 style={headingStyle}>Información General</h3>
-              {!isEditing ? <button onClick={() => setIsEditing(true)} style={{ background: "none", border: "none", color: "rgba(148,163,184,0.6)", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}><Edit3 style={{ width: 14, height: 14 }} /> Editar</button>
-                : <div style={{ display: "flex", gap: 8 }}><button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ background: "none", border: "none", color: "#e2445c", cursor: "pointer" }}><X style={{ width: 14, height: 14 }} /></button><button onClick={saveChanges} style={{ background: "none", border: "none", color: "#00c875", cursor: "pointer", display: "flex", alignItems: "center", gap: 4, fontSize: 11 }}><Save style={{ width: 14, height: 14 }} /> Guardar</button></div>}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Settings style={{ width: 14, height: 14, color: "var(--cyan)" }} />
+                </div>
+                <h3 style={headingStyle}>Información General</h3>
+              </div>
+              {!isEditing ? (
+                <button onClick={() => setIsEditing(true)} style={{
+                  display: "flex", alignItems: "center", gap: 6, padding: "6px 14px",
+                  background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)",
+                  color: "var(--cyan)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600,
+                  transition: "all 0.15s",
+                }}>
+                  <Edit3 style={{ width: 12, height: 12 }} /> Editar
+                </button>
+              ) : (
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "rgba(226,68,92,0.08)", border: "1px solid rgba(226,68,92,0.2)", color: "var(--red)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
+                    <X style={{ width: 12, height: 12 }} /> Cancelar
+                  </button>
+                  <button onClick={saveChanges} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 14px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", color: "var(--emerald)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
+                    <Save style={{ width: 12, height: 12 }} /> Guardar
+                  </button>
+                </div>
+              )}
             </div>
-            <div className="space-y-4">
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
               {([
-                { label: "Alias", key: "alias" }, { label: "Cliente", key: "client" },
-                { label: "Vertical", key: "vertical" }, { label: "Website", key: "website" },
-                { label: "Buyer Persona", key: "persona" }, { label: "Geo Target", key: "geo" },
+                { label: "Alias", key: "alias", icon: <Tag style={{ width: 12, height: 12 }} /> },
+                { label: "Cliente", key: "client", icon: <Building style={{ width: 12, height: 12 }} /> },
+                { label: "Vertical", key: "vertical", icon: <Layers style={{ width: 12, height: 12 }} /> },
+                { label: "Website", key: "website", icon: <Globe style={{ width: 12, height: 12 }} /> },
+                { label: "Buyer Persona", key: "persona", icon: <Users style={{ width: 12, height: 12 }} /> },
+                { label: "Geo Target", key: "geo", icon: <MapPin style={{ width: 12, height: 12 }} /> },
               ] as const).map(f => (
-                <div key={f.key}>
-                  <p style={labelStyle}>{f.label}</p>
-                  {isEditing ? <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, outline: "none" }} />
-                    : <p style={{ fontSize: 13, color: "#e2e8f0" }}>{(project as any)[f.key] || "—"}</p>}
+                <div key={f.key} style={{
+                  display: "flex", alignItems: isEditing ? "flex-start" : "center", gap: 12,
+                  padding: "10px 12px", borderRadius: 8, transition: "background 0.15s",
+                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                }}
+                onMouseEnter={e => !isEditing && (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+                >
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)" }}>
+                    {f.icon}
+                  </div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ ...labelStyle, marginBottom: 2 }}>{f.label}</p>
+                    {isEditing ? (
+                      <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 6, outline: "none" }} />
+                    ) : (
+                      <p style={{ fontSize: 13, color: (project as any)[f.key] ? "var(--foreground)" : "rgba(148,163,184,0.3)", fontStyle: (project as any)[f.key] ? "normal" : "italic" }}>
+                        {(project as any)[f.key] || "Sin configurar"}
+                      </p>
+                    )}
+                  </div>
                 </div>
               ))}
-              <div>
-                <p style={labelStyle}>Estado</p>
-                {isEditing ? <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}>
-                  <option value="Activo">Activo</option><option value="Pausado">Pausado</option><option value="Draft">Draft</option><option value="Completado">Completado</option></select>
-                  : <span className={`badge badge-${STATUS_COLORS[project.status]}`}>{project.status}</span>}
+              {/* Estado */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)" }}>
+                  <Activity style={{ width: 12, height: 12 }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ ...labelStyle, marginBottom: 2 }}>Estado</p>
+                  {isEditing ? (
+                    <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 6, cursor: "pointer" }}>
+                      <option value="Activo">Activo</option><option value="Pausado">Pausado</option><option value="Draft">Draft</option><option value="Completado">Completado</option>
+                    </select>
+                  ) : (
+                    <span className={`badge badge-${STATUS_COLORS[project.status]}`}>{project.status}</span>
+                  )}
+                </div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div><p style={labelStyle}>Fecha Inicio</p>{isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "#e2e8f0" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString() : "—"}</p>}</div>
-                <div><p style={labelStyle}>Fecha Fin</p>{isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "#e2e8f0", fontSize: 11, padding: "6px", borderRadius: 4 }} /> : <p style={{ fontSize: 12, color: "#e2e8f0" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString() : "—"}</p>}</div>
+              {/* Fechas */}
+              <div className="grid grid-cols-2 gap-3" style={{ padding: "10px 0" }}>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)", marginLeft: 12 }}>
+                    <Calendar style={{ width: 12, height: 12 }} />
+                  </div>
+                  <div>
+                    <p style={labelStyle}>Fecha Inicio</p>
+                    {isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateStart ? "var(--foreground)" : "rgba(148,163,184,0.3)", fontStyle: project.dateStart ? "normal" : "italic" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)" }}>
+                    <Calendar style={{ width: 12, height: 12 }} />
+                  </div>
+                  <div>
+                    <p style={labelStyle}>Fecha Fin</p>
+                    {isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateEnd ? "var(--foreground)" : "rgba(148,163,184,0.3)", fontStyle: project.dateEnd ? "normal" : "italic" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                  </div>
+                </div>
               </div>
               <div>
-                <p style={labelStyle}>CRMs conectados (análisis de resultados)</p>
+                <p style={labelStyle}>Plataforma del bot (Análisis de Resultados)</p>
                 {(() => {
                   const CRM_PROVIDERS = ["botmaker", "cari", "custom_crm", "hubspot"];
                   // Solo botmaker/cari/cari_ai alimentan Análisis de Resultados; el resto
@@ -1738,53 +2365,41 @@ export default function ProjectDashboardPage() {
                     return normalizeIntegrationProvider(p) ? base : `${base} — no compatible con Análisis de Resultados`;
                   };
                   const crmOptions = activeIntegrations.filter(i => CRM_PROVIDERS.includes(i.provider));
-                  // Selección efectiva: arreglo nuevo, con fallback al campo legacy.
-                  const selected: string[] = (editForm.crmIntegrationIds && editForm.crmIntegrationIds.length > 0)
-                    ? editForm.crmIntegrationIds
-                    : editForm.crmIntegrationId ? [editForm.crmIntegrationId] : [];
+                  // Una sola plataforma de bot por proyecto: el análisis ahora se acota a
+                  // los canales de Botmaker del proyecto, así que la multi-selección dejó
+                  // de tener sentido. Se conserva crmIntegrationIds (1 elemento) por compat.
+                  const selectedId = (editForm.crmIntegrationIds && editForm.crmIntegrationIds[0])
+                    || editForm.crmIntegrationId || "";
                   if (isEditing) {
                     return (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                        {crmOptions.length === 0 && <p style={{ fontSize: 11, color: "#64748b" }}>Conecta un CRM en Integraciones primero.</p>}
-                        {crmOptions.map(i => {
-                          const checked = selected.includes(i.id);
-                          return (
-                            <label key={i.id} style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12, color: "#e2e8f0", cursor: "pointer", padding: "6px 10px", borderRadius: 4, background: checked ? "rgba(0,212,255,0.06)" : "rgba(0,0,0,0.2)", border: `1px solid ${checked ? "rgba(0,212,255,0.3)" : "rgba(255,255,255,0.06)"}` }}>
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={e => {
-                                  const next = e.target.checked ? [...selected, i.id] : selected.filter(x => x !== i.id);
-                                  const first = activeIntegrations.find(a => a.id === next[0]);
-                                  setEditForm(prev => ({
-                                    ...prev,
-                                    crmIntegrationIds: next,
-                                    // legacy en sync: primer CRM seleccionado
-                                    crmIntegrationId: next[0] || null,
-                                    crmType: first ? first.provider : null,
-                                  }));
-                                }}
-                                style={{ accentColor: "#00d4ff" }}
-                              />
-                              {crmLabel(i.provider)}
-                            </label>
-                          );
-                        })}
-                        {selected.length > 1 && <p style={{ fontSize: 10, color: "#64748b" }}>El análisis de resultados se mostrará segmentado por cada herramienta.</p>}
-                      </div>
+                      <>
+                        <select
+                          value={selectedId}
+                          onChange={e => {
+                            const sel = e.target.value;
+                            const intg = activeIntegrations.find(a => a.id === sel);
+                            setEditForm(prev => ({
+                              ...prev,
+                              crmIntegrationId: sel || null,
+                              crmIntegrationIds: sel ? [sel] : [],
+                              crmType: intg ? intg.provider : null,
+                            }));
+                          }}
+                          style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer", appearance: "auto" }}
+                        >
+                          <option value="">Ninguna</option>
+                          {crmOptions.map(i => <option key={i.id} value={i.id}>{crmLabel(i.provider)}</option>)}
+                        </select>
+                        {crmOptions.length === 0 && <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>Conecta Botmaker o Cari AI en Integraciones primero.</p>}
+                      </>
                     );
                   }
-                  const current: string[] = (project.crmIntegrationIds && project.crmIntegrationIds.length > 0)
-                    ? project.crmIntegrationIds
-                    : project.crmIntegrationId ? [project.crmIntegrationId] : [];
+                  const currentId = (project.crmIntegrationIds && project.crmIntegrationIds[0])
+                    || project.crmIntegrationId || "";
+                  const cur = currentId ? activeIntegrations.find(a => a.id === currentId) : null;
                   return (
-                    <p style={{ fontSize: 13, color: current.length ? "#00d4ff" : "#e2e8f0" }}>
-                      {current.length
-                        ? current.map(id => {
-                            const i = activeIntegrations.find(a => a.id === id);
-                            return i ? crmLabel(i.provider) : "Conectado";
-                          }).join(" · ")
-                        : "—"}
+                    <p style={{ fontSize: 13, color: currentId ? "var(--cyan)" : "var(--foreground)" }}>
+                      {currentId ? (cur ? crmLabel(cur.provider) : "Conectado") : "—"}
                     </p>
                   );
                 })()}
@@ -1807,17 +2422,17 @@ export default function ProjectDashboardPage() {
                   </div>
                   {isEditing ? (
                     <div className="grid grid-cols-2 gap-3">
-                      <div><p style={labelStyle}>Presupuesto</p><input value={editForm.channels?.[i]?.budget || c.budget} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], budget: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
-                      <div><p style={labelStyle}>Período</p><select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select></div>
-                      <div><p style={labelStyle}>Objetivo</p><input value={editForm.channels?.[i]?.goal || c.goal} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], goal: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
-                      <div><p style={labelStyle}>CPR Meta</p><input value={editForm.channels?.[i]?.cpr || c.cpr} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], cpr: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
+                      <div><p style={labelStyle}>Presupuesto</p><input value={editForm.channels?.[i]?.budget || c.budget} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], budget: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
+                      <div><p style={labelStyle}>Período</p><select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select></div>
+                      <div><p style={labelStyle}>Objetivo</p><input value={editForm.channels?.[i]?.goal || c.goal} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], goal: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
+                      <div><p style={labelStyle}>CPR Meta</p><input value={editForm.channels?.[i]?.cpr || c.cpr} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], cpr: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Presupuesto:</span> <span style={{ color: "white", fontWeight: 600 }}>{c.budget || "—"}</span></div>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Período:</span> <span style={{ color: "white" }}>{c.period || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Objetivo:</span> <span style={{ color: "#00c875", fontWeight: 600 }}>{c.goal || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>CPR Meta:</span> <span style={{ color: "#00d4ff", fontWeight: 600 }}>{c.cpr || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{c.goal || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{c.cpr || "—"}</span></div>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Diario ideal:</span> <span style={{ color: "white" }}>{fmtMXN(bk2.daily)}</span></div>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Cuentas:</span> <span style={{ color: "white" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>

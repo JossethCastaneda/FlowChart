@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { CheckCircle, XCircle, Info, X } from "lucide-react";
 
-export type ToastType = "success" | "error" | "info";
+export type ToastType = "success" | "error" | "info" | "warning";
 
 interface Toast {
   id: string;
@@ -12,16 +12,24 @@ interface Toast {
 }
 
 let addToastFn: ((type: ToastType, message: string) => void) | null = null;
+let toastQueue: Array<{type: ToastType, message: string}> = [];
 
 /** Call this from anywhere to show a toast */
 export function showToast(type: ToastType, message: string) {
-  if (addToastFn) addToastFn(type, message);
+  if (addToastFn) {
+    addToastFn(type, message);
+  } else {
+    toastQueue.push({ type, message });
+  }
 }
 
+import { AlertTriangle } from "lucide-react";
+
 const icons = {
-  success: <CheckCircle size={16} style={{ color: "#06d6a0", flexShrink: 0 }} />,
-  error: <XCircle size={16} style={{ color: "#ff2d55", flexShrink: 0 }} />,
-  info: <Info size={16} style={{ color: "#00d4ff", flexShrink: 0 }} />,
+  success: <CheckCircle size={16} style={{ color: "var(--emerald)", flexShrink: 0 }} />,
+  error: <XCircle size={16} style={{ color: "var(--red)", flexShrink: 0 }} />,
+  info: <Info size={16} style={{ color: "var(--cyan)", flexShrink: 0 }} />,
+  warning: <AlertTriangle size={16} style={{ color: "var(--amber)", flexShrink: 0 }} />,
 };
 
 export function ToastContainer() {
@@ -37,6 +45,11 @@ export function ToastContainer() {
 
   useEffect(() => {
     addToastFn = addToast;
+    // Drain queue
+    if (toastQueue.length > 0) {
+      toastQueue.forEach(t => addToast(t.type, t.message));
+      toastQueue = [];
+    }
     return () => { addToastFn = null; };
   }, [addToast]);
 
@@ -53,7 +66,7 @@ export function ToastContainer() {
           <span style={{ flex: 1 }}>{t.message}</span>
           <button
             onClick={() => dismiss(t.id)}
-            style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer", padding: 2 }}
+            style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 2 }}
           >
             <X size={14} />
           </button>

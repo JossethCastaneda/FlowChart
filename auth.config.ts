@@ -286,6 +286,25 @@ const productionCookies: NextAuthOptions["cookies"] =
             domain: ".sodare.xyz",
           },
         },
+        callbackUrl: {
+          name: "__Secure-next-auth.callback-url",
+          options: {
+            sameSite: "lax" as const,
+            path: "/",
+            secure: true,
+            domain: ".sodare.xyz",
+          },
+        },
+        csrfToken: {
+          name: "__Secure-next-auth.csrf-token",
+          options: {
+            httpOnly: true,
+            sameSite: "lax" as const,
+            path: "/",
+            secure: true,
+            domain: ".sodare.xyz",
+          },
+        },
       }
     : undefined;
 

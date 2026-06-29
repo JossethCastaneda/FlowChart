@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
 import { Loader2, CheckCircle2, Circle, X, Phone, RefreshCw, Send, ExternalLink, Trash2 } from "lucide-react";
@@ -436,7 +436,7 @@ export function WhatsAppConnectCard() {
         background: "rgba(148,163,184,0.04)",
         display: "flex", alignItems: "center", justifyContent: "center"
       }}>
-        <Loader2 style={{ width: 20, height: 20, color: "#64748b", animation: "int-spin 1s linear infinite" }} />
+        <Loader2 style={{ width: 20, height: 20, color: "var(--text-muted)", animation: "int-spin 1s linear infinite" }} />
       </div>
     );
   }
@@ -457,10 +457,10 @@ export function WhatsAppConnectCard() {
         }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px #10b981" }} />
-              <span style={{ fontSize: "13px", fontWeight: 600, color: "#e2e8f0" }}>Cuenta Conectada</span>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 8px var(--emerald)" }} />
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>Cuenta Conectada</span>
             </div>
-            <span style={{ fontSize: "11px", color: "#64748b" }}>WABA ID: {wsInfo.wabaId || "Cargando..."}</span>
+            <span style={{ fontSize: "11px", color: "var(--text-muted)" }}>WABA ID: {wsInfo.wabaId || "Cargando..."}</span>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button
@@ -470,7 +470,7 @@ export function WhatsAppConnectCard() {
                 background: "rgba(255, 255, 255, 0.05)",
                 border: "1px solid rgba(255, 255, 255, 0.08)",
                 borderRadius: "6px",
-                color: "#e2e8f0",
+                color: "var(--foreground)",
                 fontSize: "10px",
                 fontWeight: 600,
                 padding: "6px 12px",
@@ -491,7 +491,7 @@ export function WhatsAppConnectCard() {
                 background: "rgba(239, 68, 68, 0.08)",
                 border: "1px solid rgba(239, 68, 68, 0.2)",
                 borderRadius: "6px",
-                color: "#f87171",
+                color: "var(--red)",
                 fontSize: "10px",
                 fontWeight: 600,
                 padding: "6px 12px",
@@ -511,11 +511,11 @@ export function WhatsAppConnectCard() {
         {/* Panel de líneas de WhatsApp */}
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-            <h4 style={{ fontSize: "11px", fontWeight: 700, color: "#64748b", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
+            <h4 style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", margin: 0 }}>
               Líneas Disponibles en Meta ({lines.length})
             </h4>
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              {loadingLines && <Loader2 size={12} style={{ animation: "int-spin 1s linear infinite", color: "#64748b" }} />}
+              {loadingLines && <Loader2 size={12} style={{ animation: "int-spin 1s linear infinite", color: "var(--text-muted)" }} />}
               <button
                 onClick={fetchLines}
                 disabled={loadingLines}
@@ -523,7 +523,7 @@ export function WhatsAppConnectCard() {
                   background: "none",
                   border: "none",
                   cursor: "pointer",
-                  color: "#64748b",
+                  color: "var(--text-muted)",
                   padding: 2,
                   display: "flex",
                   alignItems: "center",
@@ -541,7 +541,7 @@ export function WhatsAppConnectCard() {
               background: "rgba(239, 68, 68, 0.05)",
               border: "1px solid rgba(239, 68, 68, 0.15)",
               borderRadius: "8px",
-              color: "#f87171",
+              color: "var(--red)",
               fontSize: "11px",
             }}>
               {linesError}
@@ -555,7 +555,7 @@ export function WhatsAppConnectCard() {
               background: "rgba(255,255,255,0.01)",
               border: "1px dashed rgba(255,255,255,0.06)",
               borderRadius: "8px",
-              color: "#64748b",
+              color: "var(--text-muted)",
               fontSize: "11px",
             }}>
               No se encontraron números de teléfono activos en esta WABA. Verifica tu configuración en Meta.
@@ -593,11 +593,11 @@ export function WhatsAppConnectCard() {
                         alignItems: "center",
                         justifyContent: "center",
                       }}>
-                        <Phone size={13} style={{ color: line.isLinked ? "#25D366" : "#64748b" }} />
+                        <Phone size={13} style={{ color: line.isLinked ? "#25D366" : "var(--text-muted)" }} />
                       </div>
                       <div>
                         <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-                          <span style={{ fontSize: "12px", fontWeight: 600, color: "#e2e8f0" }}>
+                          <span style={{ fontSize: "12px", fontWeight: 600, color: "var(--foreground)" }}>
                             {line.verifiedName || "Línea sin nombre"}
                           </span>
                           <span style={{
@@ -606,7 +606,7 @@ export function WhatsAppConnectCard() {
                             borderRadius: "4px",
                             fontWeight: 600,
                             background: isStatusApproved ? "rgba(16, 185, 129, 0.08)" : "rgba(245, 158, 11, 0.08)",
-                            color: isStatusApproved ? "#10b981" : "#f59e0b",
+                            color: isStatusApproved ? "var(--emerald)" : "var(--amber)",
                             border: `1px solid ${isStatusApproved ? "rgba(16, 185, 129, 0.15)" : "rgba(245, 158, 11, 0.15)"}`,
                           }}>
                             {line.status}
@@ -617,14 +617,14 @@ export function WhatsAppConnectCard() {
                             borderRadius: "4px",
                             fontWeight: 600,
                             background: isQualityGreen ? "rgba(16, 185, 129, 0.08)" : isQualityYellow ? "rgba(245, 158, 11, 0.08)" : "rgba(239, 68, 68, 0.08)",
-                            color: isQualityGreen ? "#10b981" : isQualityYellow ? "#f59e0b" : "#f87171",
+                            color: isQualityGreen ? "var(--emerald)" : isQualityYellow ? "var(--amber)" : "var(--red)",
                             border: `1px solid ${isQualityGreen ? "rgba(16, 185, 129, 0.15)" : isQualityYellow ? "rgba(245, 158, 11, 0.15)" : "rgba(239, 68, 68, 0.15)"}`,
                           }}>
                             {line.qualityRating}
                           </span>
                         </div>
-                        <div style={{ fontSize: "11px", color: "#64748b", marginTop: 1 }}>
-                          {line.displayPhoneNumber} <span style={{ color: "#334155" }}>·</span> ID: {line.id}
+                        <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: 1 }}>
+                          {line.displayPhoneNumber} <span style={{ color: "var(--text-secondary)" }}>·</span> ID: {line.id}
                         </div>
                       </div>
                     </div>
@@ -642,7 +642,7 @@ export function WhatsAppConnectCard() {
                               background: "rgba(0, 212, 255, 0.08)",
                               border: "1px solid rgba(0, 212, 255, 0.2)",
                               borderRadius: "6px",
-                              color: "#00d4ff",
+                              color: "var(--cyan)",
                               fontSize: "10px",
                               fontWeight: 600,
                               padding: "5px 10px",
@@ -661,7 +661,7 @@ export function WhatsAppConnectCard() {
                             style={{
                               background: "none",
                               border: "none",
-                              color: "#64748b",
+                              color: "var(--text-muted)",
                               cursor: "pointer",
                               padding: 4,
                               display: "flex",
@@ -679,7 +679,7 @@ export function WhatsAppConnectCard() {
                             background: "rgba(245, 158, 11, 0.08)",
                             border: "1px solid rgba(245, 158, 11, 0.2)",
                             borderRadius: "6px",
-                            color: "#f59e0b",
+                            color: "var(--amber)",
                             fontSize: "10px",
                             fontWeight: 600,
                             padding: "5px 12px",
@@ -719,7 +719,7 @@ export function WhatsAppConnectCard() {
                       paddingTop: 8,
                       borderTop: "1px solid rgba(255, 255, 255, 0.04)",
                     }}>
-                      <span style={{ fontSize: "10px", color: "#64748b" }}>Proyecto:</span>
+                      <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>Proyecto:</span>
                       <select
                         value={line.projectId || ""}
                         onChange={(e) => handleLinkLine(line.id, e.target.value || null)}
@@ -727,7 +727,7 @@ export function WhatsAppConnectCard() {
                           background: "rgba(15, 23, 42, 0.5)",
                           border: "1px solid rgba(255, 255, 255, 0.06)",
                           borderRadius: "4px",
-                          color: "#e2e8f0",
+                          color: "var(--foreground)",
                           fontSize: "10px",
                           padding: "3px 8px",
                           outline: "none",
@@ -742,7 +742,7 @@ export function WhatsAppConnectCard() {
                           </option>
                         ))}
                       </select>
-                      <span style={{ fontSize: "9px", color: "#475569" }}>
+                      <span style={{ fontSize: "9px", color: "var(--text-secondary)" }}>
                         Enlaza este número para enviar y recibir mensajes en Inbox 2.0.
                       </span>
                     </div>
@@ -765,24 +765,24 @@ export function WhatsAppConnectCard() {
             gap: 12,
           }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-              <span style={{ fontSize: "12px", fontWeight: 700, color: "#00d4ff", display: "flex", alignItems: "center", gap: 5 }}>
+              <span style={{ fontSize: "12px", fontWeight: 700, color: "var(--cyan)", display: "flex", alignItems: "center", gap: 5 }}>
                 <Send size={12} />
                 Llamada de Prueba obligatoria
               </span>
               <button
                 onClick={() => setTestingLineId(null)}
-                style={{ background: "none", border: "none", cursor: "pointer", color: "#64748b", fontSize: "10px" }}
+                style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", fontSize: "10px" }}
               >
                 Cancelar
               </button>
             </div>
-            <p style={{ fontSize: "10px", color: "#64748b", margin: 0 }}>
+            <p style={{ fontSize: "10px", color: "var(--text-muted)", margin: 0 }}>
               Meta requiere que se realice al menos una llamada a la API saliente para aprobar el permiso de mensajería.
             </p>
 
             <form onSubmit={handleSendTestCall} style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                <label style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600 }}>Número Destinatario (con código de país, sin "+"):</label>
+                <label style={{ fontSize: "10px", color: "var(--text-secondary)", fontWeight: 600 }}>Número Destinatario (con código de país, sin "+"):</label>
                 <input
                   type="text"
                   required
@@ -795,7 +795,7 @@ export function WhatsAppConnectCard() {
                     fontSize: "11px",
                     background: "rgba(255, 255, 255, 0.04)",
                     border: "1px solid rgba(255, 255, 255, 0.08)",
-                    color: "#e2e8f0",
+                    color: "var(--foreground)",
                     outline: "none",
                     fontFamily: "inherit",
                   }}
@@ -810,11 +810,11 @@ export function WhatsAppConnectCard() {
                   onChange={(e) => setUseTemplate(e.target.checked)}
                   style={{ cursor: "pointer" }}
                 />
-                <label htmlFor="useTemplateCheck" style={{ fontSize: "10px", color: "#e2e8f0", cursor: "pointer" }}>
+                <label htmlFor="useTemplateCheck" style={{ fontSize: "10px", color: "var(--foreground)", cursor: "pointer" }}>
                   Usar plantilla default oficial de Meta (<code>hello_world</code>)
                 </label>
               </div>
-              <span style={{ fontSize: "9px", color: "#475569", display: "block", marginTop: -6 }}>
+              <span style={{ fontSize: "9px", color: "var(--text-secondary)", display: "block", marginTop: -6 }}>
                 {useTemplate 
                   ? "✅ Recomendado: Se salta la ventana de 24h y funciona siempre."
                   : "⚠️ Solo funciona si el destinatario interactuó en las últimas 24h."
@@ -827,7 +827,7 @@ export function WhatsAppConnectCard() {
                   background: testResult.success ? "rgba(16, 185, 129, 0.05)" : "rgba(239, 68, 68, 0.05)",
                   border: `1px solid ${testResult.success ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)"}`,
                   borderRadius: "6px",
-                  color: testResult.success ? "#10b981" : "#f87171",
+                  color: testResult.success ? "var(--emerald)" : "var(--red)",
                   fontSize: "10px",
                 }}>
                   {testResult.message}
@@ -841,7 +841,7 @@ export function WhatsAppConnectCard() {
                   background: "rgba(0, 212, 255, 0.12)",
                   border: "1px solid rgba(0, 212, 255, 0.25)",
                   borderRadius: "6px",
-                  color: "#00d4ff",
+                  color: "var(--cyan)",
                   fontSize: "11px",
                   fontWeight: 600,
                   padding: "7px 12px",
@@ -877,7 +877,7 @@ export function WhatsAppConnectCard() {
         {/* Icon */}
         <div style={{
           width: 28, height: 28, borderRadius: 6, flexShrink: 0,
-          background: status.connected ? "rgba(37,211,102,0.12)" : "rgba(255,255,255,0.04)",
+          background: status.connected ? "rgba(37,211,102,0.12)" : "var(--surface-hover)",
           display: "flex", alignItems: "center", justifyContent: "center",
         }}>
           <WaIcon />
@@ -886,11 +886,11 @@ export function WhatsAppConnectCard() {
         {/* Label + summary */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-            <span style={{ fontSize: 12, fontWeight: 500, color: status.connected ? "#e2e8f0" : "#475569" }}>
+            <span style={{ fontSize: 12, fontWeight: 500, color: status.connected ? "var(--foreground)" : "var(--text-secondary)" }}>
               WhatsApp Business
             </span>
           </div>
-          <div style={{ fontSize: 10, color: "#475569", marginTop: 1, display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ fontSize: 10, color: "var(--text-secondary)", marginTop: 1, display: "flex", alignItems: "center", gap: 4 }}>
             {status.connected ? (
               <>
                 <Phone style={{ width: 9, height: 9 }} />
@@ -906,7 +906,7 @@ export function WhatsAppConnectCard() {
         <div style={{ flexShrink: 0 }}>
           {status.connected
             ? <CheckCircle2 style={{ width: 14, height: 14, color: "#25D366" }} />
-            : <Circle style={{ width: 14, height: 14, color: "#1e293b" }} />
+            : <Circle style={{ width: 14, height: 14, color: "var(--surface)" }} />
           }
         </div>
 
@@ -916,9 +916,9 @@ export function WhatsAppConnectCard() {
           disabled={connecting || !sdkReady}
           style={{
             padding: "5px 12px", borderRadius: 6, flexShrink: 0,
-            background: status.connected ? "rgba(255,255,255,0.04)" : "rgba(37,211,102,0.8)",
-            border: status.connected ? "1px solid rgba(255,255,255,0.08)" : "none",
-            color: status.connected ? "#475569" : "#fff",
+            background: status.connected ? "var(--surface-hover)" : "rgba(37,211,102,0.8)",
+            border: status.connected ? "1px solid var(--hairline)" : "none",
+            color: status.connected ? "var(--text-secondary)" : "#fff",
             fontSize: 10, fontWeight: 600,
             cursor: connecting || !sdkReady ? "wait" : "pointer",
             display: "flex", alignItems: "center", gap: 5,
@@ -944,7 +944,7 @@ export function WhatsAppConnectCard() {
               padding: "5px 10px", borderRadius: 6, flexShrink: 0,
               background: "rgba(239,68,68,0.06)",
               border: "1px solid rgba(239,68,68,0.18)",
-              color: "#f87171", fontSize: 10, fontWeight: 600,
+              color: "var(--red)", fontSize: 10, fontWeight: 600,
               cursor: disconnecting ? "wait" : "pointer",
               display: "flex", alignItems: "center", gap: 5,
               fontFamily: "inherit", transition: "all 0.15s",
@@ -963,7 +963,7 @@ export function WhatsAppConnectCard() {
       {error && (
         <div style={{
           padding: "8px 14px 10px 54px",
-          fontSize: 10, color: "#f87171",
+          fontSize: 10, color: "var(--red)",
           borderTop: "1px solid rgba(239,68,68,0.1)",
           background: "rgba(239,68,68,0.03)",
         }}>

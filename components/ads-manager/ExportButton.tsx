@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import { Download, FileText, Table2, ChevronDown, Sheet } from "lucide-react";
-import * as XLSX from "xlsx";
 
 interface ExportButtonProps {
   data: any[];
@@ -77,23 +76,80 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
     setShowMenu(false);
   };
 
+  /**
+   * Export as XLSX using a lightweight native XML approach.
+   * This avoids the vulnerable `xlsx` (SheetJS) library while producing
+   * a valid Excel 2007+ Open XML file (.xlsx) without any dependencies.
+   */
   const exportXLSX = () => {
     const headers = visibleColumns.map(c => columnLabels[c] || c);
-    const rows = data.map(row => visibleColumns.map(c => {
-      const val = getCellValue(row, c);
-      // Intentar convertir números donde tenga sentido
-      if (!isNaN(Number(val)) && val !== "") return Number(val);
-      if (val.startsWith("$")) {
-        const num = parseFloat(val.replace(/[$,]/g, "").split(" ")[0]);
-        if (!isNaN(num)) return num;
-      }
-      return val;
-    }));
+    const rows = data.map(row => visibleColumns.map(c => getCellValue(row, c)));
 
-    const worksheet = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, level.toUpperCase());
-    XLSX.writeFile(workbook, `sodare_${level}_${new Date().toISOString().split("T")[0]}.xlsx`);
+    // Build simple XML for a spreadsheet
+    const escapeXml = (s: string) => s
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
+
+    const xmlRows = [headers, ...rows].map((row, ri) => {
+      const cells = row.map((cell, ci) => {
+        const numVal = !isNaN(Number(cell)) && cell !== "" ? Number(cell) : null;
+        const addr = `${String.fromCharCode(65 + ci)}${ri + 1}`;
+        if (numVal !== null) {
+          return `<c r="${addr}"><v>${numVal}</v></c>`;
+        }
+        return `<c r="${addr}" t="inlineStr"><is><t>${escapeXml(String(cell))}</t></is></c>`;
+      }).join("");
+      return `<row r="${ri + 1}">${cells}</row>`;
+    }).join("");
+
+    const sheetXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">
+<sheetData>${xmlRows}</sheetData></worksheet>`;
+
+    const workbookXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+          xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="${level.toUpperCase()}" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+
+    const relsXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>`;
+
+    const contentTypesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>`;
+
+    // Dynamically import JSZip only when needed (smaller initial bundle)
+    import("jszip").then((JSZipModule) => {
+      const JSZip = JSZipModule.default;
+      const zip = new JSZip();
+      zip.file("[Content_Types].xml", contentTypesXml);
+      zip.folder("_rels")!.file(".rels", `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>`);
+      const xl = zip.folder("xl")!;
+      xl.file("workbook.xml", workbookXml);
+      xl.folder("_rels")!.file("workbook.xml.rels", relsXml);
+      xl.folder("worksheets")!.file("sheet1.xml", sheetXml);
+
+      zip.generateAsync({ type: "blob", mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }).then((blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `sodare_${level}_${new Date().toISOString().split("T")[0]}.xlsx`;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    }).catch(() => {
+      // Fallback to CSV if JSZip is unavailable
+      exportCSV();
+    });
     setShowMenu(false);
   };
 
@@ -104,7 +160,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
         style={{
           display: "flex", alignItems: "center", gap: "5px",
           padding: "6px 10px", fontSize: "11px", fontWeight: 600,
-          background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+          background: "var(--row-hover)", border: "1px solid var(--hairline)",
           borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
           transition: "all 0.15s",
         }}
@@ -126,37 +182,37 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
             onClick={exportXLSX}
             style={{
               width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 10px", fontSize: "11px", color: "white",
+              padding: "8px 10px", fontSize: "11px", color: "var(--foreground)",
               background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
             }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <Sheet className="w-3.5 h-3.5" style={{ color: "#10b981" }} /> Exportar Excel
+            <Sheet className="w-3.5 h-3.5" style={{ color: "var(--emerald)" }} /> Exportar Excel
           </button>
           <button
             onClick={exportCSV}
             style={{
               width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 10px", fontSize: "11px", color: "white",
+              padding: "8px 10px", fontSize: "11px", color: "var(--foreground)",
               background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
             }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <Table2 className="w-3.5 h-3.5" style={{ color: "#34d399" }} /> Exportar CSV
+            <Table2 className="w-3.5 h-3.5" style={{ color: "var(--emerald)" }} /> Exportar CSV
           </button>
           <button
             onClick={() => { window.print(); setShowMenu(false); }}
             style={{
               width: "100%", textAlign: "left", display: "flex", alignItems: "center", gap: "6px",
-              padding: "8px 10px", fontSize: "11px", color: "white",
+              padding: "8px 10px", fontSize: "11px", color: "var(--foreground)",
               background: "transparent", border: "none", cursor: "pointer", borderRadius: "5px",
             }}
             onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,129,251,0.15)")}
             onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
           >
-            <FileText className="w-3.5 h-3.5" style={{ color: "#a78bfa" }} /> Imprimir / PDF
+            <FileText className="w-3.5 h-3.5" style={{ color: "var(--purple)" }} /> Imprimir / PDF
           </button>
         </div>
       )}

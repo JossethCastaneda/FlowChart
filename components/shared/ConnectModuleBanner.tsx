@@ -10,13 +10,13 @@ import { Plug, Check, Loader2, ExternalLink } from "lucide-react";
 const MODULE_CONFIG: Record<string, { label: string; color: string; description: string; permissions: string[] }> = {
   social: {
     label: "Social Channels",
-    color: "#06d6a0",
+    color: "var(--emerald)",
     description: "Publicar y gestionar contenido en Facebook e Instagram",
     permissions: ["instagram_content_publish", "pages_manage_posts", "instagram_manage_comments"],
   },
   ads: {
     label: "Meta Ads Manager",
-    color: "#7b61ff",
+    color: "var(--purple)",
     description: "Gestionar campañas publicitarias y presupuestos",
     permissions: ["ads_management", "ads_read", "leads_retrieval"],
   },
@@ -28,7 +28,7 @@ const MODULE_CONFIG: Record<string, { label: string; color: string; description:
   },
   community: {
     label: "Community Management",
-    color: "#a855f7",
+    color: "var(--purple)",
     description: "Inbox, mensajes, menciones y monitoreo social",
     permissions: ["pages_messaging", "instagram_manage_messages", "instagram_manage_comments"],
   },
@@ -81,11 +81,11 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
     return (
       <div style={{
         display: "flex", alignItems: "center", gap: 8, padding: "10px 16px",
-        borderRadius: 8, background: "rgba(255,255,255,0.03)",
+        borderRadius: 8, background: "var(--row-hover)",
         border: "1px solid rgba(255,255,255,0.06)",
       }}>
-        <Loader2 style={{ width: 14, height: 14, color: "#64748b", animation: "spin 1s linear infinite" }} />
-        <span style={{ fontSize: 12, color: "#64748b" }}>Verificando conexión...</span>
+        <Loader2 style={{ width: 14, height: 14, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
+        <span style={{ fontSize: 12, color: "var(--text-muted)" }}>Verificando conexión...</span>
       </div>
     );
   }
@@ -110,8 +110,8 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
           onClick={() => window.location.href = `/api/connect/${module}`}
           style={{
             marginLeft: "auto", padding: "4px 10px", borderRadius: 6,
-            background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)",
-            color: "#94a3b8", fontSize: 11, cursor: "pointer",
+            background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)",
+            color: "var(--text-secondary)", fontSize: 11, cursor: "pointer",
           }}
         >
           Reconectar
@@ -128,7 +128,7 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
     }}>
       <Plug style={{ width: 18, height: 18, color: config.color, flexShrink: 0 }} />
       <div style={{ flex: 1 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: "white", marginBottom: 2 }}>
+        <div style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 2 }}>
           Conectar {config.label}
         </div>
         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.75)" }}>
@@ -138,7 +138,7 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
           {config.permissions.map(p => (
             <span key={p} style={{
               fontSize: 9, padding: "2px 6px", borderRadius: 4,
-              background: "rgba(255,255,255,0.1)", color: "#94a3b8",
+              background: "rgba(255,255,255,0.1)", color: "var(--text-secondary)",
               fontFamily: "monospace",
             }}>
               {p}
@@ -150,7 +150,7 @@ export function ConnectModuleBanner({ module, onConnected }: ConnectModuleBanner
         onClick={() => window.location.href = `/api/connect/${module}`}
         style={{
           padding: "10px 18px", borderRadius: 8,
-          background: config.color, color: "#0a0a1a",
+          background: config.color, color: "var(--background)",
           fontWeight: 600, fontSize: 13, border: "none", cursor: "pointer",
           display: "flex", alignItems: "center", gap: 6,
           transition: "opacity 0.2s",

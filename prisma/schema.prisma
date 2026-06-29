@@ -16,18 +16,18 @@ datasource db {
 // NEXTAUTH MODELS
 // ------------------------------------------------------
 model Account {
-  id                 String  @id @default(cuid())
-  userId             String
-  type               String
-  provider           String
-  providerAccountId  String
-  refresh_token      String?  @db.Text
-  access_token       String?  @db.Text
-  expires_at         Int?
-  token_type         String?
-  scope              String?
-  id_token           String?  @db.Text
-  session_state      String?
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -43,15 +43,16 @@ model Session {
 }
 
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String?   @unique
-  emailVerified DateTime?
-  image         String?
-  password      String?   // null para usuarios OAuth (Facebook/Google)
-  accounts      Account[]
-  sessions      Session[]
-  
+  id             String    @id @default(cuid())
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  password       String?   // null para usuarios OAuth (Facebook/Google)
+  whatsappPhone  String?   // número personal para notificaciones WA (ej. "5215512345678")
+  accounts       Account[]
+  sessions       Session[]
+
   // Relations
   workspaces    WorkspaceMember[]
   projects      ProjectMember[]
@@ -84,24 +85,24 @@ model Workspace {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members      WorkspaceMember[]
-  projects     Project[]
-  invites      WorkspaceInvite[]
-  tasks        Task[]
-  briefs       Brief[]
-  posts        ScheduledPost[]
-  integrations Integration[]
-  conversations InboxConversation[]
-  streamBoards    StreamBoard[]
-  trackedKeywords TrackedKeyword[]
-  settings        WorkspaceSettings?
-  waPhoneSources  WaPhoneSource[]
-  metaAnalyticsCache MetaAnalyticsCache[]
-  mediaAssets     MediaAsset[]
-  drafts          DraftPost[]
-  transmissions   Transmission[]
-  auditLogs       AuditLog[]
-  objectives      Objective[]
+  members             WorkspaceMember[]
+  projects            Project[]
+  invites             WorkspaceInvite[]
+  tasks               Task[]
+  briefs              Brief[]
+  posts               ScheduledPost[]
+  integrations        Integration[]
+  conversations       InboxConversation[]
+  streamBoards        StreamBoard[]
+  trackedKeywords     TrackedKeyword[]
+  settings            WorkspaceSettings?
+  waPhoneSources      WaPhoneSource[]
+  metaAnalyticsCache  MetaAnalyticsCache[]
+  mediaAssets         MediaAsset[]
+  drafts              DraftPost[]
+  transmissions       Transmission[]
+  auditLogs           AuditLog[]
+  objectives          Objective[]
 }
 
 // ------------------------------------------------------
@@ -122,20 +123,23 @@ model WorkspaceSettings {
   // Branding por workspace: { logoUrl?, accentColor?, displayName? }
   // Validado con BrandingSchema (lib/workflow-config.ts) al escribir.
   branding          Json     @default("{}")
+  // Config extendida para modulos adicionales (ej. mmm, forecasting)
+  extConfig         Json     @default("{}")
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
 
+
 model WorkspaceMember {
-  id              String   @id @default(cuid())
-  workspaceId     String
-  userId          String
-  role            String   @default("MEMBER") // OWNER, ADMIN, MEMBER
-  activityStatus  String   @default("disponible") // disponible | ocupado | ausente | offline
-  lastActiveAt    DateTime @default(now())
-  permissions     Json?    // Module-level granular permissions (overrides area defaults)
+  id             String   @id @default(cuid())
+  workspaceId    String
+  userId         String
+  role           String   @default("MEMBER") // OWNER, ADMIN, MEMBER
+  activityStatus String   @default("disponible") // disponible | ocupado | ausente | offline
+  lastActiveAt   DateTime @default(now())
+  permissions    Json? // Module-level granular permissions (overrides area defaults)
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -145,18 +149,18 @@ model WorkspaceMember {
 }
 
 model WorkspaceInvite {
-  id           String    @id @default(cuid())
-  workspaceId  String
-  email        String
-  token        String    @unique
-  role         String    @default("MEMBER")
-  expires      DateTime
-  acceptedAt   DateTime?
-  createdAt    DateTime  @default(now())
-  invitedById  String?
+  id          String    @id @default(cuid())
+  workspaceId String
+  email       String
+  token       String    @unique
+  role        String    @default("MEMBER")
+  expires     DateTime
+  acceptedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  invitedById String?
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  invitedBy   User?     @relation("SentInvites", fields: [invitedById], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  invitedBy User?     @relation("SentInvites", fields: [invitedById], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([workspaceId, email]) // for pending invite lookups per workspace
@@ -184,29 +188,29 @@ model Project {
   dateStart   String?
   dateEnd     String?
   workspaceId String
-  publicToken String? @unique // Enlace mágico para acceso de clientes (solo lectura)
+  publicToken String?  @unique // Enlace mágico para acceso de clientes (solo lectura)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  members       ProjectMember[]
-  channels      Channel[]
-  briefs        Brief[]
-  alerts        ProjectAlert[]
-  metaSources   MetaSource[]
-  waPhoneSources WaPhoneSource[]
-  drafts         DraftPost[]
-  alertsEnabled Boolean  @default(true)
-  alertEmails   String[]
-  crmIntegrationId String? // Legacy: single analytics integration (kept for back-compat)
-  crmType          String? // custom_crm, botmaker, etc.
+  workspace         Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members           ProjectMember[]
+  channels          Channel[]
+  briefs            Brief[]
+  alerts            ProjectAlert[]
+  metaSources       MetaSource[]
+  waPhoneSources    WaPhoneSource[]
+  drafts            DraftPost[]
+  alertsEnabled     Boolean         @default(true)
+  alertEmails       String[]
+  crmIntegrationId  String? // Legacy: single analytics integration (kept for back-compat)
+  crmType           String? // custom_crm, botmaker, etc.
   /// Tipo de flujo del bot (metodología BAIT) para el Funnel 2 por bot:
   /// prepago | pospago_alineado | pospago_simplificado | google_bait. Vacío = auto.
-  botFlowType      String?
+  botFlowType       String?
   /// CRMs conectados al proyecto (ids de Integration). Un proyecto puede enviar
   /// tráfico a varias herramientas (ej. botmaker + cari) y el análisis de
   /// resultados se segmenta por cada una de forma independiente.
-  crmIntegrationIds String[] @default([])
+  crmIntegrationIds String[]        @default([])
 }
 
 // Cache de resolución para webhooks de Meta: externalId (pageId / igAccountId /
@@ -215,8 +219,8 @@ model Project {
 // Se puebla automáticamente la primera vez que un evento se resuelve por scan.
 model MetaSource {
   id         String   @id @default(cuid())
-  externalId String   // pageId | igAccountId | adAccountId (normalizado)
-  kind       String   // "page" | "instagram" | "ad_account"
+  externalId String // pageId | igAccountId | adAccountId (normalizado)
+  kind       String // "page" | "instagram" | "ad_account"
   projectId  String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -233,9 +237,9 @@ model MetaSource {
 // resolver el workspace de cada evento entrante en O(1).
 model WaPhoneSource {
   id            String   @id @default(cuid())
-  phoneNumberId String   @unique  // WhatsApp Phone Number ID de Meta
+  phoneNumberId String   @unique // WhatsApp Phone Number ID de Meta
   workspaceId   String
-  projectId     String?  // proyecto asociado (opcional, si el número es por proyecto)
+  projectId     String? // proyecto asociado (opcional, si el número es por proyecto)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -246,31 +250,31 @@ model WaPhoneSource {
 }
 
 model ProjectMember {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   projectId String
   userId    String
-  role      String   @default("MEMBER")
+  role      String @default("MEMBER")
 
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, userId])
 }
 
 model Capturista {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id     String @id @default(cuid())
+  userId String @unique
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Channel {
-  id        String   @id @default(cuid())
+  id        String @id @default(cuid())
   projectId String
   name      String
-  type      String   // FACEBOOK, INSTAGRAM, WHATSAPP, etc.
+  type      String // FACEBOOK, INSTAGRAM, WHATSAPP, etc.
   config    Json?
-  
-  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
 // ------------------------------------------------------
@@ -280,33 +284,33 @@ model Channel {
 model Objective {
   id          String   @id @default(cuid())
   workspaceId String
-  areaId      String?  // Reference to an area in WorkspaceSettings if applicable, or just a string name
+  areaId      String? // Reference to an area in WorkspaceSettings if applicable, or just a string name
   title       String
   description String?  @db.Text
-  quarter     String   // e.g., "2026-Q3"
+  quarter     String // e.g., "2026-Q3"
   status      String   @default("active") // active, completed, archived
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  keyResults  KeyResult[]
+  workspace  Workspace   @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  keyResults KeyResult[]
 
   @@index([workspaceId])
   @@index([workspaceId, areaId])
 }
 
 model KeyResult {
-  id          String   @id @default(cuid())
-  objectiveId String
-  title       String
-  targetValue Float
-  currentValue Float   @default(0)
-  unit        String?  // e.g. "%", "$", "leads"
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  objectiveId  String
+  title        String
+  targetValue  Float
+  currentValue Float    @default(0)
+  unit         String? // e.g. "%", "$", "leads"
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  objective   Objective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
-  tasks       Task[]
+  objective Objective @relation(fields: [objectiveId], references: [id], onDelete: Cascade)
+  tasks     Task[]
 
   @@index([objectiveId])
 }
@@ -316,36 +320,36 @@ model KeyResult {
 // ------------------------------------------------------
 
 model Task {
-  id          String   @id @default(cuid())
-  title       String
-  description String?  @db.Text
-  assignee    String?  // legacy name field
-  assigneeId  String?  // robust userId
-  priority    String   @default("P2")  // P0, P1, P2, P3
-  status      String   @default("Backlog") // Backlog, WIP, Review, Done
-  dueDate     DateTime?
-  tags        String[]
-  order       Int      @default(0)
-  attachments Json     @default("[]") // [{name, url, type, size, uploadedAt}]
-  projectId   String?
-  parentId    String?
-  createdBy   String?  // userId who created the task
+  id           String    @id @default(cuid())
+  title        String
+  description  String?   @db.Text
+  assignee     String? // legacy name field
+  assigneeId   String? // robust userId
+  priority     String    @default("P2") // P0, P1, P2, P3
+  status       String    @default("Backlog") // Backlog, WIP, Review, Done
+  dueDate      DateTime?
+  tags         String[]
+  order        Int       @default(0)
+  attachments  Json      @default("[]") // [{name, url, type, size, uploadedAt}]
+  projectId    String?
+  parentId     String?
+  createdBy    String? // userId who created the task
   // ── Cross-area request (Capa 3): a task with targetAreaId is a "solicitud" ──
   targetAreaId String? // area the request is routed to (id from WorkspaceSettings.areas)
   requestType  String? // request type label/id within the target area
   requesterId  String? // userId who raised the request
-  workspaceId String
-  keyResultId String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  closedAt    DateTime? // stamped when status → Done (for auto-SLA)
+  workspaceId  String
+  keyResultId  String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  closedAt     DateTime? // stamped when status → Done (for auto-SLA)
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  keyResult   KeyResult? @relation(fields: [keyResultId], references: [id], onDelete: SetNull)
-  parent      Task?     @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
-  children    Task[]    @relation("SubTasks")
-  comments    TaskComment[]
-  activities  TaskActivity[]
+  workspace  Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  keyResult  KeyResult?     @relation(fields: [keyResultId], references: [id], onDelete: SetNull)
+  parent     Task?          @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
+  children   Task[]         @relation("SubTasks")
+  comments   TaskComment[]
+  activities TaskActivity[]
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -356,12 +360,12 @@ model TaskComment {
   id        String   @id @default(cuid())
   taskId    String
   userId    String
-  userName  String   // denormalized for display
-  userImage String?  // denormalized avatar
+  userName  String // denormalized for display
+  userImage String? // denormalized avatar
   content   String   @db.Text
   createdAt DateTime @default(now())
 
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
 }
@@ -371,16 +375,17 @@ model TaskActivity {
   taskId    String
   userId    String
   userName  String
-  action    String   // "created", "status_changed", "assigned", "priority_changed", "commented", "attachment_added"
-  field     String?  // which field changed
+  action    String // "created", "status_changed", "assigned", "priority_changed", "commented", "attachment_added"
+  field     String? // which field changed
   oldValue  String?
   newValue  String?
   createdAt DateTime @default(now())
 
-  task      Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  task Task @relation(fields: [taskId], references: [id], onDelete: Cascade)
 
   @@index([taskId])
 }
+
 // ------------------------------------------------------
 
 model Brief {
@@ -393,8 +398,8 @@ model Brief {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -418,68 +423,68 @@ model MediaAsset {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user        User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId])
 }
 
 model DraftPost {
-  id             String   @id @default(cuid())
-  workspaceId    String
-  projectId      String?
-  authorId       String?
-  
-  // Shared base content
-  baseContent    String   @db.Text
-  baseMediaUrls  String[] // Array of MediaAsset URLs or raw URLs
-  
-  // Per-channel overrides (JSON) - e.g. { "instagram": { content: "...", media: [...] } }
-  channelOverrides Json   @default("{}")
-  
-  status         String   @default("draft") // draft, scheduled, publishing, completed, failed
-  scheduledAt    DateTime?
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id          String  @id @default(cuid())
+  workspaceId String
+  projectId   String?
+  authorId    String?
 
-  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  project        Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  author         User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  
-  transmissions  Transmission[]
+  // Shared base content
+  baseContent   String   @db.Text
+  baseMediaUrls String[] // Array of MediaAsset URLs or raw URLs
+
+  // Per-channel overrides (JSON) - e.g. { "instagram": { content: "...", media: [...] } }
+  channelOverrides Json @default("{}")
+
+  status      String    @default("draft") // draft, scheduled, publishing, completed, failed
+  scheduledAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  author    User?     @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  transmissions Transmission[]
 
   @@index([workspaceId, status])
   @@index([scheduledAt])
 }
 
 model Transmission {
-  id             String   @id @default(cuid())
-  draftId        String
-  workspaceId    String
-  
-  channel        String   // "facebook_page", "instagram_ig", "linkedin", "tiktok"
-  accountId      String   // the external page/account ID
-  accountName    String?  // human readable
-  
-  status         String   @default("pending") // pending, active, completed, failed, cancelled
-  scheduledAt    DateTime?
-  publishedAt    DateTime?
-  
+  id          String @id @default(cuid())
+  draftId     String
+  workspaceId String
+
+  channel     String // "facebook_page", "instagram_ig", "linkedin", "tiktok"
+  accountId   String // the external page/account ID
+  accountName String? // human readable
+
+  status      String    @default("pending") // pending, active, completed, failed, cancelled
+  scheduledAt DateTime?
+  publishedAt DateTime?
+
   // The exact payload that will be sent to the channel
   finalContent   String   @db.Text
   finalMediaUrls String[]
-  
-  externalPostId String?  // ID returned by the platform
-  externalUrl    String?  // public URL of the post
-  errorMessage   String?  @db.Text
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 
-  draft          DraftPost @relation(fields: [draftId], references: [id], onDelete: Cascade)
-  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  jobs           PublishJob[]
+  externalPostId String? // ID returned by the platform
+  externalUrl    String? // public URL of the post
+  errorMessage   String? @db.Text
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  draft     DraftPost    @relation(fields: [draftId], references: [id], onDelete: Cascade)
+  workspace Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  jobs      PublishJob[]
 
   @@index([draftId])
   @@index([workspaceId, status])
@@ -487,22 +492,22 @@ model Transmission {
 }
 
 model PublishJob {
-  id             String   @id @default(cuid())
+  id             String @id @default(cuid())
   transmissionId String
-  
-  step           String   // e.g. "upload_media", "create_container", "publish", "verify"
-  status         String   @default("pending") // pending, running, success, failed, retry
-  attempts       Int      @default(0)
-  maxAttempts    Int      @default(3)
-  nextAttemptAt  DateTime?
-  
-  payload        Json?    // Context for this specific step
-  result         Json?    // API response or error details
-  
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 
-  transmission   Transmission @relation(fields: [transmissionId], references: [id], onDelete: Cascade)
+  step          String // e.g. "upload_media", "create_container", "publish", "verify"
+  status        String    @default("pending") // pending, running, success, failed, retry
+  attempts      Int       @default(0)
+  maxAttempts   Int       @default(3)
+  nextAttemptAt DateTime?
+
+  payload Json? // Context for this specific step
+  result  Json? // API response or error details
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  transmission Transmission @relation(fields: [transmissionId], references: [id], onDelete: Cascade)
 
   @@index([transmissionId])
   @@index([status, nextAttemptAt])
@@ -513,19 +518,19 @@ model PublishJob {
 // ------------------------------------------------------
 
 model AuditLog {
-  id             String   @id @default(cuid())
-  workspaceId    String
-  userId         String?
-  action         String   // e.g., "connect_integration", "delete_draft", "update_settings"
-  resourceType   String   // e.g., "Integration", "DraftPost", "WorkspaceSettings"
-  resourceId     String?
-  details        Json?    // DO NOT store tokens here.
-  ipAddress      String?
-  userAgent      String?
-  createdAt      DateTime @default(now())
+  id           String   @id @default(cuid())
+  workspaceId  String
+  userId       String?
+  action       String // e.g., "connect_integration", "delete_draft", "update_settings"
+  resourceType String // e.g., "Integration", "DraftPost", "WorkspaceSettings"
+  resourceId   String?
+  details      Json? // DO NOT store tokens here.
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime @default(now())
 
-  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  user           User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user      User?     @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([workspaceId, action])
   @@index([workspaceId, createdAt])
@@ -536,30 +541,30 @@ model AuditLog {
 // ------------------------------------------------------
 
 model ScheduledPost {
-  id           String   @id @default(cuid())
-  workspaceId  String
-  projectId    String?
-  userId       String?  // who created this post
-  channels     String[] // ["facebook", "instagram", "tiktok", "linkedin"]
-  content      String   @db.Text
+  id                String    @id @default(cuid())
+  workspaceId       String
+  projectId         String?
+  userId            String? // who created this post
+  channels          String[] // ["facebook", "instagram", "tiktok", "linkedin"]
+  content           String    @db.Text
   contentByPlatform Json? // { "facebook": "...", "instagram": "..." }
-  firstComment String?  @db.Text // Auto-posted as first comment on IG after publish
-  mediaUrls    String[] // multiple media files
-  mediaUrl     String?  // legacy single media (kept for compat)
-  type         String   @default("post") // post, reel, story, carousel
-  hashtags     String[]
-  scheduledAt  DateTime?
-  publishedAt  DateTime?
-  status       String   @default("Draft") // Draft, Scheduled, Published, Failed
-  error        String?  @db.Text // error message if publish failed
-  externalIds  Json?    // { facebook: "post_id", instagram: "media_id" }
-  qStashMessageId String? // ID del mensaje programado en QStash
-  pageName     String?  // Facebook page name used
-  pageId       String?  // Facebook page ID used
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  firstComment      String?   @db.Text // Auto-posted as first comment on IG after publish
+  mediaUrls         String[] // multiple media files
+  mediaUrl          String? // legacy single media (kept for compat)
+  type              String    @default("post") // post, reel, story, carousel
+  hashtags          String[]
+  scheduledAt       DateTime?
+  publishedAt       DateTime?
+  status            String    @default("Draft") // Draft, Scheduled, Published, Failed
+  error             String?   @db.Text // error message if publish failed
+  externalIds       Json? // { facebook: "post_id", instagram: "media_id" }
+  qStashMessageId   String? // ID del mensaje programado en QStash
+  pageName          String? // Facebook page name used
+  pageId            String? // Facebook page ID used
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
-  workspace    Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@index([workspaceId])
   @@index([workspaceId, status])
@@ -567,26 +572,25 @@ model ScheduledPost {
   @@index([qStashMessageId]) // for O(1) QStash job cancellation lookups
 }
 
-
 // ------------------------------------------------------
 // INTEGRATIONS
 // ------------------------------------------------------
 
 model Integration {
-  id            String    @id @default(cuid())
-  workspaceId   String
-  provider      String    // "meta_ads", "meta_community", "google", etc.
+  id          String    @id @default(cuid())
+  workspaceId String
+  provider    String // "meta_ads", "meta_community", "google", etc.
   /// "workspace" → workspace-level integration (OWNER/ADMIN shared, e.g. meta_ads, google)
   /// userId     → user-level integration (each member connects their own account independently)
-  userId        String?   @default("workspace")
-  name          String?   // User-defined name for the integration
-  credentials   Json      // Encrypted with AES-256 (encryptToken/decryptToken)
-  config        Json?     @default("{}") // Analytics settings (syncFrequency, paused, backfill, etc)
-  connected     Boolean   @default(false)
-  connectedAt   DateTime?
-  connectedBy   String?   // userId of who first connected this integration
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+  userId      String?   @default("workspace")
+  name        String? // User-defined name for the integration
+  credentials Json // Encrypted with AES-256 (encryptToken/decryptToken)
+  config      Json?     @default("{}") // Analytics settings (syncFrequency, paused, backfill, etc)
+  connected   Boolean   @default(false)
+  connectedAt DateTime?
+  connectedBy String? // userId of who first connected this integration
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   connectedUser User?     @relation("UserIntegrations", fields: [connectedBy], references: [id], onDelete: SetNull)
@@ -606,14 +610,14 @@ model Integration {
 model Notification {
   id        String   @id @default(cuid())
   userId    String
-  type      String   // task_assigned, sla_warning, sla_expired, status_changed, mention
+  type      String // task_assigned, sla_warning, sla_expired, status_changed, mention
   title     String
   message   String
   link      String?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([userId, read])
@@ -624,16 +628,16 @@ model Notification {
 // ------------------------------------------------------
 
 model ProjectAlert {
-  id          String   @id @default(cuid())
-  projectId   String
-  type        String   // health_score, cpr_spike, frequency_high, budget_pace, ctr_drop
-  severity    String   // critical, warning, info
-  title       String
-  message     String   @db.Text
-  emailSent   Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  projectId String
+  type      String // health_score, cpr_spike, frequency_high, budget_pace, ctr_drop
+  severity  String // critical, warning, info
+  title     String
+  message   String   @db.Text
+  emailSent Boolean  @default(false)
+  createdAt DateTime @default(now())
 
-  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@index([projectId])
   @@index([createdAt])
@@ -644,26 +648,26 @@ model ProjectAlert {
 // ------------------------------------------------------
 
 model InboxConversation {
-  id            String   @id @default(cuid())
+  id            String    @id @default(cuid())
   workspaceId   String
-  platform      String   // "facebook_messenger", "instagram_dm", "instagram_comment"
-  externalId    String   // Conversation ID from Meta
-  pageId        String?  // Facebook Page ID or IG user ID
-  igId          String?  // Legacy Instagram user ID (kept for backwards compat)
+  platform      String // "facebook_messenger", "instagram_dm", "instagram_comment"
+  externalId    String // Conversation ID from Meta
+  pageId        String? // Facebook Page ID or IG user ID
+  igId          String? // Legacy Instagram user ID (kept for backwards compat)
   contactName   String?
   contactAvatar String?
   lastMessage   String?
   lastMessageAt DateTime?
-  unread        Boolean  @default(true)
-  assignedTo    String?  // userId
-  status        String   @default("open") // "open", "closed", "assigned"
+  unread        Boolean   @default(true)
+  assignedTo    String? // userId
+  status        String    @default("open") // "open", "closed", "assigned"
   tags          String[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
-  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  messages      InboxMessage[]
-  notes         InboxNote[]
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  messages  InboxMessage[]
+  notes     InboxNote[]
 
   @@unique([workspaceId, externalId])
   @@index([workspaceId])
@@ -671,17 +675,17 @@ model InboxConversation {
 }
 
 model InboxMessage {
-  id              String   @id @default(cuid())
-  conversationId  String
-  externalId      String?
-  content         String   @db.Text
-  sender          String   // "user" | "page"
-  senderName      String?
-  senderAvatar    String?
-  attachments     Json?
-  createdAt       DateTime @default(now())
+  id             String   @id @default(cuid())
+  conversationId String
+  externalId     String?
+  content        String   @db.Text
+  sender         String // "user" | "page"
+  senderName     String?
+  senderAvatar   String?
+  attachments    Json?
+  createdAt      DateTime @default(now())
 
-  conversation    InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
 }
@@ -691,20 +695,20 @@ model SavedReply {
   workspaceId String
   title       String
   content     String   @db.Text
-  shortcut    String?  // e.g., "/gracias"
+  shortcut    String? // e.g., "/gracias"
   createdAt   DateTime @default(now())
 
   @@index([workspaceId])
 }
 
 model InboxNote {
-  id             String            @id @default(cuid())
+  id             String   @id @default(cuid())
   conversationId String
   userId         String
-  content        String            @db.Text
-  createdAt      DateTime          @default(now())
+  content        String   @db.Text
+  createdAt      DateTime @default(now())
 
-  conversation   InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversation InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
 }
@@ -713,7 +717,7 @@ model DmAutomationRule {
   id          String   @id @default(cuid())
   workspaceId String
   name        String
-  trigger     String   // keyword that activates the rule
+  trigger     String // keyword that activates the rule
   response    String   @db.Text // auto-reply message
   platforms   String[] // ["messenger", "instagram_dm"]
   active      Boolean  @default(true)
@@ -725,13 +729,14 @@ model DmAutomationRule {
 }
 
 model TrackedKeyword {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   workspaceId String
   query       String
-  type        String   // "keyword" | "hashtag" | "competitor"
-  active      Boolean  @default(true)
-  createdAt   DateTime @default(now())
+  type        String // "keyword" | "hashtag" | "competitor"
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@unique([workspaceId, query])
   @@index([workspaceId])
 }
@@ -743,29 +748,29 @@ model TrackedKeyword {
 model ListeningQuery {
   id          String   @id @default(cuid())
   workspaceId String
-  query       String   // keyword or hashtag
-  type        String   // "keyword", "hashtag", "competitor"
+  query       String // keyword or hashtag
+  type        String // "keyword", "hashtag", "competitor"
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
 
-  mentions    ListeningMention[]
+  mentions ListeningMention[]
 
   @@index([workspaceId])
 }
 
 model ListeningMention {
-  id          String   @id @default(cuid())
-  queryId     String
-  platform    String
-  content     String   @db.Text
-  author      String?
+  id           String   @id @default(cuid())
+  queryId      String
+  platform     String
+  content      String   @db.Text
+  author       String?
   authorAvatar String?
-  sentiment   String?  // "positive", "negative", "neutral"
-  url         String?
-  publishedAt DateTime
-  createdAt   DateTime @default(now())
+  sentiment    String? // "positive", "negative", "neutral"
+  url          String?
+  publishedAt  DateTime
+  createdAt    DateTime @default(now())
 
-  query       ListeningQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  query ListeningQuery @relation(fields: [queryId], references: [id], onDelete: Cascade)
 
   @@index([queryId])
   @@index([publishedAt])
@@ -782,8 +787,8 @@ model StreamBoard {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  columns     StreamColumn[]
+  workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  columns   StreamColumn[]
 
   @@index([workspaceId])
 }
@@ -791,13 +796,13 @@ model StreamBoard {
 model StreamColumn {
   id        String   @id @default(cuid())
   boardId   String
-  type      String   // "home_feed", "mentions", "keyword", "hashtag", "scheduled", "published"
-  platform  String   // "facebook", "instagram", "tiktok", "linkedin", "x"
-  query     String?  // keyword or hashtag for tracking
+  type      String // "home_feed", "mentions", "keyword", "hashtag", "scheduled", "published"
+  platform  String // "facebook", "instagram", "tiktok", "linkedin", "x"
+  query     String? // keyword or hashtag for tracking
   position  Int      @default(0)
   createdAt DateTime @default(now())
 
-  board     StreamBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  board StreamBoard @relation(fields: [boardId], references: [id], onDelete: Cascade)
 
   @@index([boardId])
 }
@@ -810,11 +815,11 @@ model StreamColumn {
 // and the data deleted asynchronously.
 
 model DataDeletionRequest {
-  id               String   @id @default(cuid())
-  confirmationCode String   @unique @default(cuid())
-  metaUserId       String   // Facebook user_id from signed_request
-  status           String   @default("pending") // pending | processing | completed | failed
-  requestedAt      DateTime @default(now())
+  id               String    @id @default(cuid())
+  confirmationCode String    @unique @default(cuid())
+  metaUserId       String // Facebook user_id from signed_request
+  status           String    @default("pending") // pending | processing | completed | failed
+  requestedAt      DateTime  @default(now())
   completedAt      DateTime?
 
   @@index([metaUserId])
@@ -826,10 +831,10 @@ model DataDeletionRequest {
 // ------------------------------------------------------
 model MetaAdsCache {
   id          String   @id @default(cuid())
-  adAccountId String   // ID de la cuenta publicitaria
-  level       String   // "campaigns", "adsets", "ads"
-  dateRange   String   // Clave del rango de fechas (ej. "last_7d", "maximum", "2026-06-01_2026-06-12")
-  data        Json     // El payload JSON completo y ya procesado
+  adAccountId String // ID de la cuenta publicitaria
+  level       String // "campaigns", "adsets", "ads"
+  dateRange   String // Clave del rango de fechas (ej. "last_7d", "maximum", "2026-06-01_2026-06-12")
+  data        Json // El payload JSON completo y ya procesado
   updatedAt   DateTime @updatedAt
 
   @@unique([adAccountId, level, dateRange])
@@ -841,13 +846,13 @@ model MetaAdsCache {
 // ------------------------------------------------------
 model MetaAnalyticsCache {
   id          String   @id @default(cuid())
-  workspaceId String   
-  endpoint    String   // "organic", "audience", "posts", "best-time", "stories", "reels", "growth"
-  paramsKey   String   // hash o clave de los parámetros de consulta (ej. "days=30&pageIds=...&platform=...")
-  data        Json     // El payload JSON completo y ya procesado
+  workspaceId String
+  endpoint    String // "organic", "audience", "posts", "best-time", "stories", "reels", "growth"
+  paramsKey   String // hash o clave de los parámetros de consulta (ej. "days=30&pageIds=...&platform=...")
+  data        Json // El payload JSON completo y ya procesado
   updatedAt   DateTime @updatedAt
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, endpoint, paramsKey])
   @@index([workspaceId])
@@ -858,95 +863,95 @@ model MetaAnalyticsCache {
 // ------------------------------------------------------
 
 model SyncJob {
-  id                  String   @id @default(cuid())
-  workspaceId         String
-  projectId           String?
-  clientId            String?
-  channelConfigId     String?
-  integrationId       String
-  provider            String
-  reportType          String
-  status              String   // pending, running, completed, failed
-  startDate           DateTime
-  endDate             DateTime
-  recordsInserted     Int      @default(0)
-  errorMessage        String?
-  startedAt           DateTime @default(now())
-  finishedAt          DateTime?
+  id              String    @id @default(cuid())
+  workspaceId     String
+  projectId       String?
+  clientId        String?
+  channelConfigId String?
+  integrationId   String
+  provider        String
+  reportType      String
+  status          String // pending, running, completed, failed
+  startDate       DateTime
+  endDate         DateTime
+  recordsInserted Int       @default(0)
+  errorMessage    String?
+  startedAt       DateTime  @default(now())
+  finishedAt      DateTime?
 
   @@index([workspaceId, provider])
   @@index([workspaceId, projectId])
 }
 
 model RawProviderEvent {
-  id                  String   @id @default(cuid())
-  workspaceId         String
-  projectId           String?
-  clientId            String?
-  channelConfigId     String?
-  provider            String
-  externalId          String
-  payload             Json
-  createdAt           DateTime @default(now())
+  id              String   @id @default(cuid())
+  workspaceId     String
+  projectId       String?
+  clientId        String?
+  channelConfigId String?
+  provider        String
+  externalId      String
+  payload         Json
+  createdAt       DateTime @default(now())
 
   @@index([workspaceId, provider])
   @@index([workspaceId, projectId])
 }
 
 model NormalizedConversation {
-  id                      String   @id @default(cuid())
-  workspaceId             String
-  projectId               String?
-  clientId                String?
-  channelConfigId         String?
-  provider                String
-  providerConversationId  String   @unique
-  channel                 String
-  botId                   String?
-  customerId              String?
-  customerIdentifierHash  String?
-  
-  conversationStartedAt   DateTime
-  conversationEndedAt     DateTime?
-  firstBotResponseAt      DateTime?
-  firstAgentResponseAt    DateTime?
-  closedAt                DateTime?
+  id                     String  @id @default(cuid())
+  workspaceId            String
+  projectId              String?
+  clientId               String?
+  channelConfigId        String?
+  provider               String
+  providerConversationId String  @unique
+  channel                String
+  botId                  String?
+  customerId             String?
+  customerIdentifierHash String?
 
-  status                  String   // active, closed, transferred, abandoned
-  outcome                 String?  // resolved, transferred, abandoned, error
-  resolvedBy              String?  // bot, agent, mixed
-  
-  wasBotOnly              Boolean  @default(false)
-  wasHandoff              Boolean  @default(false)
-  queueId                 String?
-  agentId                 String?
-  
-  botName                 String?
-  agentName               String?
-  queueName               String?
-  skillName               String?
+  conversationStartedAt DateTime
+  conversationEndedAt   DateTime?
+  firstBotResponseAt    DateTime?
+  firstAgentResponseAt  DateTime?
+  closedAt              DateTime?
 
-  totalUserMessages       Int      @default(0)
-  totalBotMessages        Int      @default(0)
-  totalAgentMessages      Int      @default(0)
-  totalFallbacks          Int      @default(0)
+  status     String // active, closed, transferred, abandoned
+  outcome    String? // resolved, transferred, abandoned, error
+  resolvedBy String? // bot, agent, mixed
 
-  csatScore               Float?
-  npsScore                Float?
-  campaignId              String?
-  serviceId               String?
-  tags                    String[] @default([])
+  wasBotOnly Boolean @default(false)
+  wasHandoff Boolean @default(false)
+  queueId    String?
+  agentId    String?
+
+  botName   String?
+  agentName String?
+  queueName String?
+  skillName String?
+
+  totalUserMessages  Int @default(0)
+  totalBotMessages   Int @default(0)
+  totalAgentMessages Int @default(0)
+  totalFallbacks     Int @default(0)
+
+  csatScore  Float?
+  npsScore   Float?
+  campaignId String?
+  serviceId  String?
+  tags       String[] @default([])
 
   // Clasificación auditable: qué regla determinó el outcome y si requiere revisión humana
-  appliedRuleId           String?
-  requiresReview          Boolean  @default(false)
+  appliedRuleId  String?
+  requiresReview Boolean @default(false)
 
-  durationSeconds         Int?
-  waitingTimeSeconds      Int?
+  durationSeconds          Int?
+  waitingTimeSeconds       Int?
   firstResponseTimeSeconds Int?
-  handleTimeSeconds       Int?
+  handleTimeSeconds        Int?
 
-  syncedAt                DateTime @default(now())
+  syncedAt DateTime @default(now())
 
   @@index([workspaceId, conversationStartedAt])
   @@index([workspaceId, provider, providerConversationId])
@@ -956,27 +961,27 @@ model NormalizedConversation {
 }
 
 model NormalizedMessage {
-  id                      String   @id @default(cuid())
-  workspaceId             String
-  projectId               String?
-  clientId                String?
-  channelConfigId         String?
-  provider                String
-  providerMessageId       String   @unique
-  conversationId          String
-  senderType              String   // user, bot, agent, system
-  messageType             String   // text, image, template
-  messageTextHash         String?
-  intent                  String?
-  topic                   String?
-  confidence              Float?
-  isFallback              Boolean  @default(false)
-  isError                 Boolean  @default(false)
-  isTemplate              Boolean  @default(false)
-  templateName            String?
-  campaignId              String?
-  status                  String?  // sent, delivered, read, replied, failed
-  sentAt                  DateTime
+  id                String   @id @default(cuid())
+  workspaceId       String
+  projectId         String?
+  clientId          String?
+  channelConfigId   String?
+  provider          String
+  providerMessageId String   @unique
+  conversationId    String
+  senderType        String // user, bot, agent, system
+  messageType       String // text, image, template
+  messageTextHash   String?
+  intent            String?
+  topic             String?
+  confidence        Float?
+  isFallback        Boolean  @default(false)
+  isError           Boolean  @default(false)
+  isTemplate        Boolean  @default(false)
+  templateName      String?
+  campaignId        String?
+  status            String? // sent, delivered, read, replied, failed
+  sentAt            DateTime
 
   @@index([workspaceId, conversationId])
   @@index([workspaceId, projectId])
@@ -992,11 +997,11 @@ model AnalyticsOutcomeRule {
   description       String?
   priority          Int      @default(100) // menor = mayor prioridad; se evalúan en orden ascendente
   enabled           Boolean  @default(true)
-  conditions        Json     // [{ field, operator, value }]  (AND lógico)
+  conditions        Json // [{ field, operator, value }]  (AND lógico)
   outcome           String
   resolvedBy        String
-  actions           Json?    // { requiresReview?: bool, tag?: string }
-  appliesToProvider String?  // null = todos los proveedores
+  actions           Json? // { requiresReview?: bool, tag?: string }
+  appliesToProvider String? // null = todos los proveedores
   createdBy         String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
@@ -1028,17 +1033,17 @@ model AnalyticsKpiTarget {
 
 // Bitácora de auditoría (exportaciones, acceso a datos sensibles, cambios de config)
 model AnalyticsAuditLog {
-  id           String   @id @default(cuid())
-  workspaceId  String
-  projectId    String?
-  clientId     String?
+  id              String   @id @default(cuid())
+  workspaceId     String
+  projectId       String?
+  clientId        String?
   channelConfigId String?
-  userId       String?
-  action       String   // export, view_sensitive, rule_create, rule_delete, sync_manual, integration_update
-  resourceType String?
-  resourceId   String?
-  metadata     Json?
-  createdAt    DateTime @default(now())
+  userId          String?
+  action          String // export, view_sensitive, rule_create, rule_delete, sync_manual, integration_update
+  resourceType    String?
+  resourceId      String?
+  metadata        Json?
+  createdAt       DateTime @default(now())
 
   @@index([workspaceId, createdAt])
   @@index([workspaceId, projectId])
@@ -1046,21 +1051,21 @@ model AnalyticsAuditLog {
 
 // Agregados diarios precalculados (spec §33)
 model AnalyticsDailyMetric {
-  id           String   @id @default(cuid())
-  workspaceId  String
-  projectId    String?
-  clientId     String?
+  id              String   @id @default(cuid())
+  workspaceId     String
+  projectId       String?
+  clientId        String?
   channelConfigId String?
-  date         DateTime
-  provider     String
-  botId        String?
-  channel      String?
-  metricKey    String
-  metricValue  Float
-  numerator    Float?
-  denominator  Float?
-  dimensions   Json?
-  calculatedAt DateTime @default(now())
+  date            DateTime
+  provider        String
+  botId           String?
+  channel         String?
+  metricKey       String
+  metricValue     Float
+  numerator       Float?
+  denominator     Float?
+  dimensions      Json?
+  calculatedAt    DateTime @default(now())
 
   // Ojo: Si vamos a soportar métricas diarias por proyecto, el UNIQUE index
   // original colisionaría si hay dos proyectos distintos. Por ahora lo
@@ -1077,18 +1082,18 @@ model AnalyticsDailyMetric {
 
 // Issues de calidad de datos detectados sobre el dataset normalizado (spec §27)
 model DataQualityIssue {
-  id             String   @id @default(cuid())
-  workspaceId    String
-  projectId      String?
-  clientId       String?
+  id              String   @id @default(cuid())
+  workspaceId     String
+  projectId       String?
+  clientId        String?
   channelConfigId String?
-  provider       String?
-  conversationId String?
-  issueType      String   // missing_start_date, missing_external_id, negative_duration, frt_gt_duration, unclassified_outcome, ...
-  severity       String   @default("warning") // info | warning | critical
-  details        String?
-  resolved       Boolean  @default(false)
-  detectedAt     DateTime @default(now())
+  provider        String?
+  conversationId  String?
+  issueType       String // missing_start_date, missing_external_id, negative_duration, frt_gt_duration, unclassified_outcome, ...
+  severity        String   @default("warning") // info | warning | critical
+  details         String?
+  resolved        Boolean  @default(false)
+  detectedAt      DateTime @default(now())
 
   @@index([workspaceId, issueType])
   @@index([workspaceId, projectId])
@@ -1099,47 +1104,47 @@ model DataQualityIssue {
 // ------------------------------------------------------
 
 model AnalyticsFunnel {
-  id              String   @id @default(cuid())
-  workspaceId     String
-  projectId       String?
-  name            String
-  description     String?
-  provider        String?
-  channel         String?
-  botId           String?
-  steps           AnalyticsFunnelStep[]
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id          String                @id @default(cuid())
+  workspaceId String
+  projectId   String?
+  name        String
+  description String?
+  provider    String?
+  channel     String?
+  botId       String?
+  steps       AnalyticsFunnelStep[]
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
 
   @@index([workspaceId])
   @@index([workspaceId, projectId])
 }
 
 model AnalyticsFunnelStep {
-  id              String   @id @default(cuid())
-  funnelId        String
-  name            String
-  orderIndex      Int
-  conditionType   String   // intent | event | message_text | tag | status
-  conditionValue  String
-  funnel          AnalyticsFunnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
+  id             String          @id @default(cuid())
+  funnelId       String
+  name           String
+  orderIndex     Int
+  conditionType  String // intent | event | message_text | tag | status
+  conditionValue String
+  funnel         AnalyticsFunnel @relation(fields: [funnelId], references: [id], onDelete: Cascade)
 
-  @@index([funnelId])
   @@unique([funnelId, orderIndex])
+  @@index([funnelId])
 }
 
 model AnalyticsAlert {
-  id              String   @id @default(cuid())
-  workspaceId     String
-  projectId       String?
-  type            String   // csat_low | fallback_high | frt_high | sync_failed | data_quality_critical
-  severity        String   // warning | critical
-  title           String
-  message         String
-  metricValue     Float?
-  thresholdValue  Float?
-  resolved        Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  id             String   @id @default(cuid())
+  workspaceId    String
+  projectId      String?
+  type           String // csat_low | fallback_high | frt_high | sync_failed | data_quality_critical
+  severity       String // warning | critical
+  title          String
+  message        String
+  metricValue    Float?
+  thresholdValue Float?
+  resolved       Boolean  @default(false)
+  createdAt      DateTime @default(now())
 
   @@index([workspaceId, type])
   @@index([workspaceId, projectId])
@@ -1153,11 +1158,11 @@ model IntegrationAssetCache {
   id            String   @id @default(cuid())
   integrationId String
   workspaceId   String
-  provider      String   // "meta", "google", "botmaker"
-  assetType     String   // "ad_account", "bot", "page", "ig_account"
-  externalId    String   // ID de la cuenta en la plataforma origen
+  provider      String // "meta", "google", "botmaker"
+  assetType     String // "ad_account", "bot", "page", "ig_account"
+  externalId    String // ID de la cuenta en la plataforma origen
   name          String
-  metadata      Json     // Estructura variable (roles, spend, tokens)
+  metadata      Json // Estructura variable (roles, spend, tokens)
   syncedAt      DateTime @default(now())
 
   @@unique([integrationId, assetType, externalId])
@@ -1178,3 +1183,196 @@ model AnalyticsSavedView {
 
   @@index([workspaceId, projectId])
 }
+
+// ------------------------------------------------------
+// PORTABILIDAD / CAMBIO DE COMPAÑÍA (Bot Analytics)
+// ------------------------------------------------------
+
+/// Representa una solicitud comercial de cambio de compañía / portabilidad.
+model BotmakerLeadRequest {
+  id          String  @id @default(cuid())
+  requestId   String  @unique @default(cuid())
+  sessionId   String
+  customerId  String?
+  botId       String?
+  channelId   String?
+  platform    String?
+  workspaceId String
+
+  /// whatsapp | messenger | comment | webchat | unknown
+  sourceKind  String @default("unknown")
+  /// prepago | pospago | unknown
+  productType String @default("unknown")
+
+  /// started | collecting_data | ocr_pending | ocr_success | ocr_failed |
+  /// data_confirmed | sent_to_intelix | intelix_accepted | intelix_rejected |
+  /// zapier_sent | zapier_failed | ads_attributed | abandoned | stuck
+  leadStatus String @default("started")
+
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+  abandonedAt    DateTime?
+  lastStepAt     DateTime?
+  lastStepName   String?
+  lastIntentName String?
+  lastFlowState  String?
+
+  errorSource  String?
+  errorCode    String?
+  errorMessage String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  fieldSnapshots     BotmakerLeadFieldSnapshot[]
+  ocrExtractions     BotmakerOcrExtraction[]
+  intelixSubmissions IntelixSubmission[]
+  zapierEvents       ZapierConversionEvent[]
+
+  @@index([workspaceId, leadStatus])
+  @@index([workspaceId, sessionId])
+  @@index([workspaceId, customerId])
+  @@index([workspaceId, botId])
+  @@index([workspaceId, channelId])
+  @@index([workspaceId, productType])
+  @@index([workspaceId, createdAt])
+}
+
+/// Guarda campos capturados y sus alias para cada solicitud.
+model BotmakerLeadFieldSnapshot {
+  id            String  @id @default(cuid())
+  leadRequestId String
+  sessionId     String?
+  customerId    String?
+
+  /// Nombre canónico del campo:
+  /// name | last_name | full_name | phone_to_change | nip | nip_expiration_date
+  /// birth_date | birth_state | email | ocr_image_url | ga_cid | ig_post_id
+  /// from_name | zapier_status | zapier_response | flow_state | raw_nip_detected
+  canonicalField     String
+  sourceVariableName String?
+  rawValue           String?   @db.Text
+  maskedValue        String?
+  normalizedValue    String?
+  isPresent          Boolean   @default(false)
+  isValid            Boolean   @default(false)
+  validationError    String?
+  capturedAt         DateTime?
+  messageId          String?
+  rawPayload         Json?
+
+  leadRequest BotmakerLeadRequest @relation(fields: [leadRequestId], references: [id], onDelete: Cascade)
+
+  @@index([leadRequestId])
+  @@index([leadRequestId, canonicalField])
+  @@index([sessionId])
+}
+
+/// Guarda trazabilidad de extracciones OCR.
+model BotmakerOcrExtraction {
+  id            String  @id @default(cuid())
+  leadRequestId String
+  sessionId     String?
+  customerId    String?
+
+  ocrImageUrl                String? @db.Text
+  detectedRawText            String? @db.Text
+  detectedNipRaw             String?
+  extractedNip               String?
+  extractedNipExpirationDate String?
+
+  /// pending | success | partial | failed
+  extractionStatus String    @default("pending")
+  extractionError  String?
+  codeActionName   String?
+  executedAt       DateTime?
+  rawPayload       Json?
+
+  leadRequest BotmakerLeadRequest @relation(fields: [leadRequestId], references: [id], onDelete: Cascade)
+
+  @@index([leadRequestId])
+  @@index([sessionId])
+  @@index([extractionStatus])
+}
+
+/// Guarda cada intento de envío a Intelix (CRM de portabilidad).
+model IntelixSubmission {
+  id            String  @id @default(cuid())
+  leadRequestId String
+  sessionId     String?
+  customerId    String?
+
+  /// prepago | pospago | unknown
+  productType     String    @default("unknown")
+  submittedAt     DateTime?
+  requestPayload  Json?
+  responsePayload Json?
+
+  /// accepted | rejected | error | timeout | unknown
+  status                 String  @default("unknown")
+  crmAcceptanceCondition String?
+  intelixFolio           String?
+  intelixErrorCode       String?
+  intelixErrorMessage    String?
+  latencyMs              Int?
+  retryCount             Int     @default(0)
+
+  createdAt DateTime @default(now())
+
+  leadRequest BotmakerLeadRequest @relation(fields: [leadRequestId], references: [id], onDelete: Cascade)
+
+  @@index([leadRequestId])
+  @@index([sessionId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+/// Guarda trazabilidad de eventos Zapier y atribución Ads.
+model ZapierConversionEvent {
+  id            String  @id @default(cuid())
+  leadRequestId String
+  sessionId     String?
+  customerId    String?
+
+  /// meta_ads | google_ads | zapier | unknown
+  platformTarget String  @default("unknown")
+  zapierStatus   String?
+  zapierResponse String? @db.Text
+
+  gaCid    String?
+  gclid    String?
+  fbclid   String?
+  fbc      String?
+  fbp      String?
+  igPostId String?
+  fromName String?
+
+  sentAt     DateTime?
+  responseAt DateTime?
+
+  /// sent | success | failed | pending | unknown
+  status       String  @default("unknown")
+  errorMessage String?
+  rawPayload   Json?
+  rawResponse  Json?
+
+  createdAt DateTime @default(now())
+
+  leadRequest BotmakerLeadRequest @relation(fields: [leadRequestId], references: [id], onDelete: Cascade)
+
+  @@index([leadRequestId])
+  @@index([sessionId])
+  @@index([status])
+  @@index([igPostId])
+  @@index([gaCid])
+}
+
+// ------------------------------------------------------
+// BOT ANALYTICS (PHASE 2 - COMMERCIAL & OPERATIONAL)
+//
+// Live ingestion runs through app/api/botmaker/webhook -> BotmakerLeadRequest
+// (+ IntelixSubmission / ZapierConversionEvent / BotmakerLeadFieldSnapshot /
+// BotmakerOcrExtraction), read by app/api/botmaker/analytics/portability/*.
+// The earlier PortabilityRequest/BotAnalyticsEvent/BotmakerVariableAlias models
+// were a superseded v1 path (no reader, no caller) and were removed.
+// ------------------------------------------------------

@@ -60,8 +60,8 @@ export function PermissionGuard({
     if (fallback !== undefined) return <>{fallback}</>;
     return (
       <div style={{ padding: 40, textAlign: "center" }}>
-        <h2 style={{ fontSize: 20, color: "#e2e8f0", marginBottom: 10 }}>Acceso denegado</h2>
-        <p style={{ color: "#94a3b8", fontSize: 14 }}>No tienes permisos para acceder a este módulo.</p>
+        <h2 style={{ fontSize: 20, color: "var(--foreground)", marginBottom: 10 }}>Acceso denegado</h2>
+        <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>No tienes permisos para acceder a este módulo.</p>
       </div>
     );
   }

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import React, { useState } from "react";
 import { Monitor, Smartphone } from "lucide-react";
 
@@ -66,8 +66,8 @@ function FallbackImage({ url, alt, style }: { url?: string; alt: string; style?:
           gap: 8,
         }}
       >
-        <Monitor style={{ width: 32, height: 32, color: "rgba(148,163,184,0.65)" }} />
-        <span style={{ fontSize: 11, color: "#64748b" }}>Vista previa no disponible</span>
+        <Monitor style={{ width: 32, height: 32, color: "var(--text-muted)" }} />
+        <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Vista previa no disponible</span>
       </div>
     );
   }
@@ -177,7 +177,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
 
       {/* Engagement bar */}
       <div style={{ padding: "8px 16px", borderTop: "1px solid #e4e6eb", display: "flex", gap: 4 }}>
-        {["👍 Me gusta", "💬 Comentar", "↗ Compartir"].map((action) => (
+        {["?? Me gusta", "?? Comentar", "? Compartir"].map((action) => (
           <button
             key={action}
             style={{
@@ -251,9 +251,9 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
         }}
       >
         <div style={{ display: "flex", gap: 14 }}>
-          <span style={{ fontSize: 20 }}>🤍</span>
-          <span style={{ fontSize: 20 }}>💬</span>
-          <span style={{ fontSize: 20 }}>↗</span>
+          <span style={{ fontSize: 20 }}>??</span>
+          <span style={{ fontSize: 20 }}>??</span>
+          <span style={{ fontSize: 20 }}>?</span>
         </div>
         <button
           style={{
@@ -390,7 +390,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
             cursor: "pointer",
           }}
         >
-          {ctaLabel} ↗
+          {ctaLabel} ?
         </button>
       </div>
     </div>

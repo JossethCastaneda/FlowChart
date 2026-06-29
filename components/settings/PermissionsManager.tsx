@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Shield, Check, Loader2, Zap, Calendar, MessageCircle, Megaphone, BarChart3, Target, ChevronDown, ChevronRight, CheckSquare, Square } from "lucide-react";
@@ -86,23 +86,23 @@ export function PermissionsManager() {
 
   if (loading) return (
     <div style={{ display: "flex", justifyContent: "center", padding: 30 }}>
-      <Loader2 style={{ width: 22, height: 22, color: "#64748b", animation: "spin 1s linear infinite" }} />
+      <Loader2 style={{ width: 22, height: 22, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} />
     </div>
   );
 
   if (areas.length === 0) return (
     <div style={{ textAlign: "center", padding: 32 }}>
-      <Shield style={{ width: 32, height: 32, color: "#64748b", margin: "0 auto 12px" }} />
-      <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: 4 }}>No hay áreas configuradas todavía.</p>
-      <p style={{ fontSize: 11, color: "#64748b" }}>Ve a <strong>Áreas y flujos</strong> para crear áreas primero.</p>
+      <Shield style={{ width: 32, height: 32, color: "var(--text-muted)", margin: "0 auto 12px" }} />
+      <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 4 }}>No hay áreas configuradas todavía.</p>
+      <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Ve a <strong>Áreas y flujos</strong> para crear áreas primero.</p>
     </div>
   );
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      <p style={{ fontSize: 12, color: "#64748b", margin: 0 }}>
+      <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
         Controla a qué <strong>módulos</strong> pueden acceder los <strong>miembros</strong> de cada área.{" "}
-        <span style={{ color: "#475569" }}>Líderes, Owners y Admins siempre tienen acceso total a sus áreas.</span>
+        <span style={{ color: "var(--text-secondary)" }}>Líderes, Owners y Admins siempre tienen acceso total a sus áreas.</span>
       </p>
 
       {/* Permissions table per area */}
@@ -130,12 +130,12 @@ export function PermissionsManager() {
               }}>
               {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />}
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: area.color, flexShrink: 0 }} />
-              <span style={{ fontSize: 13, fontWeight: 700, color: "#e2e8f0", textTransform: "uppercase", letterSpacing: "0.05em", flex: 1 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.05em", flex: 1 }}>
                 {area.name}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                {isDefault && <span style={{ fontSize: 10, color: "#475569", fontStyle: "italic", border: "1px solid rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: 4 }}>Defaults</span>}
-                <span style={{ fontSize: 10, color: "#64748b" }}>
+                {isDefault && <span style={{ fontSize: 10, color: "var(--text-secondary)", fontStyle: "italic", border: "1px solid rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: 4 }}>Defaults</span>}
+                <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
                   {area.memberIds.length} miembros · {area.leadIds.length} líderes
                 </span>
               </div>
@@ -157,10 +157,10 @@ export function PermissionsManager() {
                   {/* Header & Batch Actions */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
                     <div>
-                      <div style={{ fontSize: 13, fontWeight: 700, color: "#00d4ff", letterSpacing: "0.02em" }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.02em" }}>
                         👤 Permisos de Integrantes
                       </div>
-                      <div style={{ fontSize: 11, color: "#94a3b8", marginTop: 4 }}>
+                      <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>
                         Aplica a todos los miembros asignados a esta área. Los líderes tienen acceso total por defecto.
                       </div>
                     </div>
@@ -192,10 +192,10 @@ export function PermissionsManager() {
                         }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <div style={{ width: 28, height: 28, borderRadius: 6, background: checked ? "rgba(0, 212, 255, 0.1)" : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                              <Icon className="w-4 h-4" style={{ color: checked ? "#00d4ff" : "#64748b" }} />
+                              <Icon className="w-4 h-4" style={{ color: checked ? "var(--cyan)" : "var(--text-muted)" }} />
                             </div>
                             <div>
-                              <div style={{ fontSize: 12, color: checked ? "#e2e8f0" : "#94a3b8", fontWeight: checked ? 500 : 400 }}>
+                              <div style={{ fontSize: 12, color: checked ? "var(--foreground)" : "var(--text-secondary)", fontWeight: checked ? 500 : 400 }}>
                                 {p.label}
                               </div>
                             </div>
@@ -206,7 +206,7 @@ export function PermissionsManager() {
                             aria-checked={checked}
                             style={{
                               width: 36, height: 20, borderRadius: 10, border: "none",
-                              background: checked ? "#00d4ff" : "rgba(255,255,255,0.1)",
+                              background: checked ? "var(--cyan)" : "rgba(255,255,255,0.1)",
                               cursor: "pointer", position: "relative", flexShrink: 0,
                               transition: "background 0.2s",
                             }}
@@ -232,7 +232,7 @@ export function PermissionsManager() {
       {/* Save */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, justifyContent: "flex-end" }}>
         {savedAt && !dirty && (
-          <span style={{ fontSize: 11, color: "#06d6a0", display: "inline-flex", alignItems: "center", gap: 4 }}>
+          <span style={{ fontSize: 11, color: "var(--emerald)", display: "inline-flex", alignItems: "center", gap: 4 }}>
             <Check style={{ width: 13, height: 13 }} /> Guardado
           </span>
         )}

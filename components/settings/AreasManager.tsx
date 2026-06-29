@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import { Plus, Trash2, X, Star, Check, Loader2, ChevronDown, ChevronRight } from "lucide-react";
@@ -6,9 +6,9 @@ import { SUGGESTED_AREAS, DEFAULT_MEMBER_PERMS, DEFAULT_EXTERNAL_PERMS, DEFAULT_
 
 interface Member { id: string; name: string; activityStatus?: string }
 
-const STATUS_COLORS: Record<string, string> = { disponible: "#00c875", ocupado: "#fdab3d", ausente: "#e2445c", offline: "#64748b" };
+const STATUS_COLORS: Record<string, string> = { disponible: "var(--emerald)", ocupado: "var(--amber)", ausente: "var(--red)", offline: "var(--text-muted)" };
 
-const COLORS = ["#0081FB", "#f472b6", "#06d6a0", "#7b61ff", "#fb923c", "#00d4ff", "#e2445c", "#fdab3d"];
+const COLORS = ["#0081FB", "#f472b6", "var(--emerald)", "var(--purple)", "#fb923c", "var(--cyan)", "var(--red)", "var(--amber)"];
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 /* ── Permission defaults ── */
@@ -123,11 +123,11 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
 
   const nameOf = (id: string) => members.find((m) => m.id === id)?.name || "—";
 
-  if (loading) return <div style={{ display: "flex", justifyContent: "center", padding: 30 }}><Loader2 style={{ width: 22, height: 22, color: "#64748b", animation: "spin 1s linear infinite" }} /></div>;
+  if (loading) return <div style={{ display: "flex", justifyContent: "center", padding: 30 }}><Loader2 style={{ width: 22, height: 22, color: "var(--text-muted)", animation: "spin 1s linear infinite" }} /></div>;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <p style={{ fontSize: 12, color: "#64748b" }}>
+      <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
         Define las áreas de tu equipo (Paid Media, Diseño, Comunicación…), sus líderes, miembros y el SLA de entrega.
         Otras secciones (solicitudes, ETA de tareas) usan esta configuración.
       </p>
@@ -147,7 +147,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
 
       {areas.length === 0 && (
         <div style={{ textAlign: "center", padding: 28, border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 8 }}>
-          <p style={{ fontSize: 13, color: "#94a3b8", marginBottom: 12 }}>Aún no hay áreas configuradas.</p>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>Aún no hay áreas configuradas.</p>
           {canEdit && (
             <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
               <button onClick={seed} className="btn-primary">Crear áreas sugeridas</button>
@@ -196,7 +196,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                         className="w-[52px] bg-black/20 border border-white/10 rounded text-slate-200 text-xs px-1.5 py-0.5 outline-none" /> h
                     </label>
                   )}
-                  {canEdit && <button onClick={(e) => { e.stopPropagation(); removeArea(area.id); }} className="bg-transparent border-none cursor-pointer text-red-500/60 hover:text-red-500 ml-auto sm:ml-2" title="Eliminar área"><Trash2 className="w-4 h-4" /></button>}
+                  {canEdit && <button onClick={(e) => { e.stopPropagation(); removeArea(area.id); }} className="bg-transparent border-none cursor-pointer hover:opacity-100 opacity-60 ml-auto sm:ml-2" title="Eliminar área"><Trash2 className="w-4 h-4" /></button>}
                 </div>
               </div>
 
@@ -206,14 +206,14 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                   {/* Name edit */}
                   <div style={{ paddingTop: 10 }}>
                     <input value={area.name} onChange={(e) => patchArea(area.id, { name: e.target.value })} disabled={!canEdit} aria-label="Nombre del área"
-                      style={{ width: "100%", background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, outline: "none", color: "#e2e8f0", fontSize: 14, fontWeight: 600, padding: "8px 10px" }} />
+                      style={{ width: "100%", background: "rgba(0,0,0,0.2)", border: "1px solid var(--hairline)", borderRadius: 6, outline: "none", color: "var(--foreground)", fontSize: 14, fontWeight: 600, padding: "8px 10px" }} />
                   </div>
 
                   {/* Members + leads */}
                   <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: 8 }}>Miembros y líderes (★)</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 8 }}>Miembros y líderes (★)</div>
                     {members.length === 0 ? (
-                      <p style={{ fontSize: 11, color: "#64748b" }}>Invita miembros al workspace para asignarlos.</p>
+                      <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Invita miembros al workspace para asignarlos.</p>
                     ) : (
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                         {members.map((m) => {
@@ -221,17 +221,17 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                           const isL = area.leadIds.includes(m.id);
                           return (
                             <div key={m.id} style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 14, fontSize: 12,
-                              background: inArea ? `${area.color}18` : "rgba(255,255,255,0.03)",
+                              background: inArea ? `${area.color}18` : "var(--row-hover)",
                               border: `1px solid ${inArea ? `${area.color}45` : "rgba(255,255,255,0.08)"}`,
-                              color: inArea ? "#e2e8f0" : "#94a3b8" }}>
+                              color: inArea ? "var(--foreground)" : "var(--text-secondary)" }}>
                               <button onClick={() => canEdit && toggleMember(area.id, m.id)} disabled={!canEdit} style={{ background: "none", border: "none", cursor: canEdit ? "pointer" : "default", color: "inherit", fontFamily: "inherit", fontSize: 12, padding: 0, display: "flex", alignItems: "center", gap: 4 }}>
-                                <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[m.activityStatus || "offline"] || "#64748b", flexShrink: 0 }} title={m.activityStatus || "offline"} />
+                                <span style={{ width: 7, height: 7, borderRadius: "50%", background: STATUS_COLORS[m.activityStatus || "offline"] || "var(--text-muted)", flexShrink: 0 }} title={m.activityStatus || "offline"} />
                                 {m.name}
                               </button>
                               {inArea && (
                                 <button onClick={() => canEdit && toggleLead(area.id, m.id)} disabled={!canEdit} title={isL ? "Quitar como líder" : "Marcar como líder"}
                                   style={{ background: "none", border: "none", cursor: canEdit ? "pointer" : "default", padding: 0, display: "flex" }}>
-                                  <Star style={{ width: 12, height: 12, color: isL ? "#fbbf24" : "rgba(148,163,184,0.4)", fill: isL ? "#fbbf24" : "none" }} />
+                                  <Star style={{ width: 12, height: 12, color: isL ? "var(--amber)" : "rgba(148,163,184,0.4)", fill: isL ? "var(--amber)" : "none" }} />
                                 </button>
                               )}
                             </div>
@@ -239,12 +239,12 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                         })}
                       </div>
                     )}
-                    {area.leadIds.length > 0 && <p style={{ fontSize: 10, color: "#64748b", marginTop: 6 }}>Líderes: {area.leadIds.map(nameOf).join(", ")}</p>}
+                    {area.leadIds.length > 0 && <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 6 }}>Líderes: {area.leadIds.map(nameOf).join(", ")}</p>}
                   </div>
 
                   {/* Request types */}
                   <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#64748b", marginBottom: 8 }}>Tipos de solicitud</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 8 }}>Tipos de solicitud</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {area.requestTypes.map((t) => (
                         <div key={t.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 p-2 sm:p-0 bg-white/5 sm:bg-transparent rounded-md border border-white/5 sm:border-none">
@@ -255,10 +255,10 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                             <input type="number" min={1} value={t.slaHours} onChange={(e) => patchType(area.id, t.id, { slaHours: Number(e.target.value) || 1 })} disabled={!canEdit}
                               className="w-[52px] bg-black/20 border border-white/10 rounded text-slate-200 text-xs px-1.5 py-1 outline-none" /> h
                           </label>
-                          {canEdit && <button onClick={() => removeType(area.id, t.id)} className="bg-transparent border-none cursor-pointer text-slate-500 hover:text-red-500 shrink-0"><X className="w-4 h-4" /></button>}
+                          {canEdit && <button onClick={() => removeType(area.id, t.id)} className="bg-transparent border-none cursor-pointer text-slate-500 hover:opacity-100 shrink-0"><X className="w-4 h-4" /></button>}
                         </div>
                       ))}
-                      {canEdit && <button onClick={() => addType(area.id)} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "#00d4ff", background: "none", border: "none", cursor: "pointer", padding: 0 }}><Plus style={{ width: 12, height: 12 }} /> Tipo de solicitud</button>}
+                      {canEdit && <button onClick={() => addType(area.id)} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--cyan)", background: "none", border: "none", cursor: "pointer", padding: 0 }}><Plus style={{ width: 12, height: 12 }} /> Tipo de solicitud</button>}
                     </div>
                   </div>
 
@@ -274,7 +274,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
         <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <button onClick={addArea} style={ghostBtn}><Plus style={{ width: 13, height: 13 }} /> Agregar área</button>
           <div style={{ flex: 1 }} />
-          {savedAt && !dirty && <span style={{ fontSize: 11, color: "#06d6a0", display: "inline-flex", alignItems: "center", gap: 4 }}><Check style={{ width: 13, height: 13 }} /> Guardado</span>}
+          {savedAt && !dirty && <span style={{ fontSize: 11, color: "var(--emerald)", display: "inline-flex", alignItems: "center", gap: 4 }}><Check style={{ width: 13, height: 13 }} /> Guardado</span>}
           <button onClick={save} disabled={!dirty || saving} className="btn-primary" style={{ opacity: !dirty || saving ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 6 }}>
             {saving ? <Loader2 style={{ width: 13, height: 13, animation: "spin 1s linear infinite" }} /> : null}
             Guardar cambios
@@ -288,6 +288,6 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
 
 const ghostBtn: React.CSSProperties = {
   display: "inline-flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8,
-  background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)",
-  color: "#e2e8f0", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
+  background: "var(--surface-hover)", border: "1px solid var(--hairline)",
+  color: "var(--foreground)", fontSize: 13, fontWeight: 500, cursor: "pointer", fontFamily: "inherit",
 };

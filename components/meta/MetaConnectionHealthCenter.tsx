@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
@@ -57,7 +57,7 @@ const MODULES: Array<{
     title: "Publisher Facebook",
     description: "Posts, media y page tokens para publicar.",
     icon: Zap,
-    color: "#ffbe0b",
+    color: "var(--amber)",
     nextStep: "Conectar Facebook",
   },
   {
@@ -81,7 +81,7 @@ const MODULES: Array<{
     title: "Analytics",
     description: "Insights orgánicos, paid y reportes de cliente.",
     icon: BarChart3,
-    color: "#7b61ff",
+    color: "var(--purple)",
     nextStep: "Conectar Analytics",
   },
   {
@@ -89,7 +89,7 @@ const MODULES: Array<{
     title: "Community",
     description: "Inbox, comentarios, mensajes y webhooks.",
     icon: Inbox,
-    color: "#a855f7",
+    color: "var(--purple)",
     nextStep: "Conectar Community",
   },
   {
@@ -97,7 +97,7 @@ const MODULES: Array<{
     title: "Social",
     description: "Lectura de perfiles, páginas y contenido social.",
     icon: ShieldCheck,
-    color: "#06d6a0",
+    color: "var(--emerald)",
     nextStep: "Conectar Social",
   },
 ];
@@ -162,8 +162,8 @@ export function MetaConnectionHealthCenter() {
           gap: 12,
           justifyContent: "space-between",
           padding: "14px 18px",
-          borderBottom: "1px solid rgba(255,255,255,0.08)",
-          background: "rgba(255,255,255,0.03)",
+          borderBottom: "1px solid var(--hairline)",
+          background: "var(--row-hover)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 10, minWidth: 0 }}>
@@ -177,25 +177,25 @@ export function MetaConnectionHealthCenter() {
               justifyContent: "center",
               background: "rgba(0,129,251,0.12)",
               border: "1px solid rgba(0,129,251,0.24)",
-              color: "#60a5fa",
+              color: "var(--cyan)",
               flexShrink: 0,
             }}
           >
             <PlugZap style={{ width: 17, height: 17 }} />
           </div>
           <div style={{ minWidth: 0 }}>
-            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "#f8fafc" }}>
+            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>
               Centro de salud Meta
             </h2>
-            <p style={{ margin: "2px 0 0", fontSize: 12, color: "#94a3b8" }}>
+            <p style={{ margin: "2px 0 0", fontSize: 12, color: "var(--text-secondary)" }}>
               Permisos, activos y estado operativo por modulo antes de publicar, responder o tocar Ads.
             </p>
           </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-          <div style={{ fontSize: 12, color: "#94a3b8" }}>
-            <strong style={{ color: "#e2e8f0" }}>{summary.connected}</strong>/{summary.total} sanos
+          <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>
+            <strong style={{ color: "var(--foreground)" }}>{summary.connected}</strong>/{summary.total} sanos
           </div>
           <button
             onClick={loadStatus}
@@ -251,7 +251,7 @@ export function MetaConnectionHealthCenter() {
 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                    <h3 style={{ margin: 0, fontSize: 13, color: "#f8fafc", fontWeight: 700 }}>
+                    <h3 style={{ margin: 0, fontSize: 13, color: "var(--foreground)", fontWeight: 700 }}>
                       {module.title}
                     </h3>
                     <span
@@ -259,7 +259,7 @@ export function MetaConnectionHealthCenter() {
                         display: "inline-flex",
                         alignItems: "center",
                         gap: 5,
-                        color: connected ? "#22c55e" : "#fbbf24",
+                        color: connected ? "var(--emerald)" : "var(--amber)",
                         fontSize: 11,
                         fontWeight: 700,
                         whiteSpace: "nowrap",
@@ -270,7 +270,7 @@ export function MetaConnectionHealthCenter() {
                     </span>
                   </div>
 
-                  <p style={{ margin: "5px 0 10px", fontSize: 12, lineHeight: 1.45, color: "#94a3b8" }}>
+                  <p style={{ margin: "5px 0 10px", fontSize: 12, lineHeight: 1.45, color: "var(--text-secondary)" }}>
                     {module.description}
                   </p>
 
@@ -282,7 +282,7 @@ export function MetaConnectionHealthCenter() {
                     {assets.instagram > 0 && <span className="badge badge-muted">{assets.instagram} IG</span>}
                   </div>
 
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "#64748b", fontSize: 11 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-muted)", fontSize: 11 }}>
                     <Clock3 style={{ width: 12, height: 12 }} />
                     {connected ? `Desde ${formatDate(mod?.connectedAt)}` : "Sin conexion activa"}
                   </div>
@@ -313,7 +313,7 @@ export function MetaConnectionHealthCenter() {
       </div>
 
       {!loading && summary.attention > 0 && (
-        <div style={{ padding: "12px 18px", borderTop: "1px solid rgba(255,255,255,0.08)", color: "#fbbf24", fontSize: 12 }}>
+        <div style={{ padding: "12px 18px", borderTop: "1px solid var(--hairline)", color: "var(--amber)", fontSize: 12 }}>
           Hay {summary.attention} modulo{summary.attention === 1 ? "" : "s"} que pueden bloquear flujos. Conecta solo lo necesario para el trabajo de este cliente.
         </div>
       )}

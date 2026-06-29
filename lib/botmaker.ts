@@ -152,9 +152,17 @@ export async function listSessions(
   maxPages = 6,
   baseUrl: string = BASE
 ): Promise<BmSession[]> {
+  // Clamp toISO to prevent future date 400 errors from Botmaker API
+  let safeTo = toISO;
+  try {
+    if (new Date(toISO).getTime() > Date.now()) {
+      safeTo = new Date(Date.now() - 5000).toISOString();
+    }
+  } catch (e) {}
+
   const all: BmSession[] = [];
   let next: string | null =
-    `/sessions?from=${encodeURIComponent(fromISO)}&to=${encodeURIComponent(toISO)}&include-messages=true&include-events=true`;
+    `/sessions?from=${encodeURIComponent(fromISO)}&to=${encodeURIComponent(safeTo)}&include-messages=true&include-events=true`;
   let pages = 0;
   while (next && pages < maxPages) {
     // Always route through botmakerFetch for consistent retry/headers.
@@ -503,9 +511,13 @@ function saleConfirmationAt(s: BmSession): number | null {
   return null;
 }
 
-/** ¿La sesión es una venta? (el bot dijo "felicidades"). */
+/** ¿La sesión es una venta? (el bot dijo "felicidades" o la tipificación indica venta). */
 export function isSaleSession(s: BmSession): boolean {
-  return saleConfirmationAt(s) != null;
+  if (saleConfirmationAt(s) != null) return true;
+  const closeEv = (s.events || []).find((e) => (e.name || "").toLowerCase() === "conversation-close");
+  const typ = closeEv?.info?.typification?.toLowerCase() || "";
+  if (typ.includes("venta") && !typ.includes("prospecto")) return true;
+  return false;
 }
 
 /** Normaliza un teléfono a sus últimos 10 dígitos (para cruce con sábana de ventas). */

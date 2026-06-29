@@ -77,7 +77,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
       }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700, color: "white" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "13px", fontWeight: 700, color: "var(--foreground)" }}>
             <Zap className="w-4 h-4" style={{ color: "var(--cyan)" }} />
             Administrar reglas automáticas
             {rules.length > 0 && (
@@ -87,10 +87,10 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
             )}
           </div>
           <div style={{ display: "flex", gap: "4px" }}>
-            <button onClick={fetchRules} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
+            <button onClick={fetchRules} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
               <RefreshCw className="w-4 h-4" />
             </button>
-            <button onClick={onClose} style={{ background: "none", border: "none", color: "#64748b", cursor: "pointer" }}>
+            <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer" }}>
               <X className="w-4 h-4" />
             </button>
           </div>
@@ -103,14 +103,14 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
               <Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--cyan)" }} />
             </div>
           ) : error ? (
-            <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "20px", fontSize: "11px", color: "#ef4444" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "6px", padding: "20px", fontSize: "11px", color: "var(--red)" }}>
               <AlertCircle className="w-4 h-4" /> {error}
             </div>
           ) : rules.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 20px" }}>
               <Zap className="w-8 h-8" style={{ color: "rgba(148,163,184,0.22)", margin: "0 auto 12px" }} />
-              <div style={{ fontSize: "12px", color: "#64748b" }}>No hay reglas automáticas</div>
-              <div style={{ fontSize: "10px", color: "rgba(148,163,184,0.65)", marginTop: "4px" }}>Crea una regla desde el menú "Más"</div>
+              <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>No hay reglas automáticas</div>
+              <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>Crea una regla desde el menú "Más"</div>
             </div>
           ) : (
             rules.map((rule) => {
@@ -124,16 +124,16 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
                   opacity: actionLoading === rule.id ? 0.5 : 1,
                 }}>
                   {/* Toggle */}
-                  <button onClick={() => toggleRuleStatus(rule)} style={{ background: "none", border: "none", cursor: "pointer", color: isEnabled ? "#34d399" : "rgba(148,163,184,0.65)", flexShrink: 0 }}>
+                  <button onClick={() => toggleRuleStatus(rule)} style={{ background: "none", border: "none", cursor: "pointer", color: isEnabled ? "var(--emerald)" : "rgba(148,163,184,0.65)", flexShrink: 0 }}>
                     {isEnabled ? <ToggleRight className="w-5 h-5" /> : <ToggleLeft className="w-5 h-5" />}
                   </button>
 
                   {/* Info */}
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: "12px", color: "white", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    <div style={{ fontSize: "12px", color: "var(--foreground)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {rule.name}
                     </div>
-                    <div style={{ fontSize: "9px", color: "#64748b", marginTop: "2px" }}>
+                    <div style={{ fontSize: "9px", color: "var(--text-muted)", marginTop: "2px" }}>
                       {entityLabel} · {execType.replace(/_/g, " ").toLowerCase()} · {isEnabled ? "Activa" : "Pausada"}
                     </div>
                   </div>
@@ -152,7 +152,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
 
         {/* Footer */}
         <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
             Cerrar
           </button>
         </div>

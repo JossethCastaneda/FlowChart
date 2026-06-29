@@ -75,11 +75,13 @@ export async function GET(
   }
 
   // 5. Build HMAC-signed state
+  const isPopup = request.nextUrl.searchParams.get("popup") === "1";
   const payload = JSON.stringify({
     provider,
     userId: jwt.sub,
     workspaceId,
     nonce: crypto.randomUUID(),
+    popup: isPopup,
   });
   const sig = createHmac("sha256", AUTH_SECRET)
     .update(payload)
@@ -91,13 +93,21 @@ export async function GET(
   const redirectUri = `${baseUrl}/api/oauth/${provider}/callback`;
 
   const authUrl = new URL(config.authUrl);
-  authUrl.searchParams.set("client_id", clientId);
+  // TikTok auth URL uses numeric App ID (appIdEnv), not the Client Key (clientIdEnv)
+  const clientIdParam = config.clientIdParam ?? "client_id";
+  const appIdEnvKey = config.appIdEnv as keyof typeof env | undefined;
+  const authParamValue = (appIdEnvKey ? env[appIdEnvKey] as string : clientId) || clientId;
+  authUrl.searchParams.set(clientIdParam, authParamValue);
   authUrl.searchParams.set("redirect_uri", redirectUri);
   authUrl.searchParams.set("state", encodedState);
-  authUrl.searchParams.set("response_type", "code");
+  // TikTok doesn't use response_type=code
+  if (!config.skipResponseType) {
+    authUrl.searchParams.set("response_type", "code");
+  }
 
   if (config.scopes.length > 0) {
-    authUrl.searchParams.set("scope", config.scopes.join(" "));
+    const sep = config.scopeSeparator ?? " ";
+    authUrl.searchParams.set("scope", config.scopes.join(sep));
   }
 
   // Extra params (e.g. access_type=offline for Google)

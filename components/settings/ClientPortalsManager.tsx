@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useState, useEffect } from "react";
 import { Copy, Link as LinkIcon, RefreshCw, Loader2, Globe, ArrowUpRight } from "lucide-react";
@@ -64,7 +64,7 @@ export function ClientPortalsManager({ workspaceId }: { workspaceId: string }) {
     <div className="glass-panel p-4 md:p-6">
       <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4">
         <span className="section-title flex items-center gap-2">
-          <Globe className="w-5 h-5 text-[#00d4ff]" /> Portal de Clientes
+          <Globe className="w-5 h-5 text-[var(--cyan)]" /> Portal de Clientes
         </span>
       </div>
       <p className="text-[13px] text-slate-400 mb-6 max-w-2xl">
@@ -109,7 +109,7 @@ export function ClientPortalsManager({ workspaceId }: { workspaceId: string }) {
                     {loadingAction === project.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 text-slate-400" />}
                   </button>
                   <button onClick={() => handleAction(project.id, "revoke")} disabled={loadingAction === project.id} className="btn-secondary !px-3 shrink-0" title="Revocar acceso">
-                    <span className="text-red-400/80 text-[11px] font-medium">Revocar</span>
+                    <span className="text-[11px] font-medium" style={{ color: "var(--red)" }}>Revocar</span>
                   </button>
                 </>
               ) : (

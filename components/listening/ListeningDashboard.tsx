@@ -9,8 +9,8 @@ import { useLanguage } from "@/components/layout/LanguageContext";
 
 /* ── Sentiment helpers ─────────────────────────────────── */
 const sentimentConfig = {
-  positive: { color: "#00c875", icon: ThumbsUp, labelEs: "Positivo", labelEn: "Positive" },
-  negative: { color: "#e2445c", icon: ThumbsDown, labelEs: "Negativo", labelEn: "Negative" },
+  positive: { color: "var(--emerald)", icon: ThumbsUp, labelEs: "Positivo", labelEn: "Positive" },
+  negative: { color: "var(--red)", icon: ThumbsDown, labelEs: "Negativo", labelEn: "Negative" },
   neutral: { color: "var(--text-secondary)", icon: Minus, labelEs: "Neutral", labelEn: "Neutral" },
 };
 
@@ -449,13 +449,13 @@ export function ListeningDashboard() {
                 {t.sentimentDistribution}
               </h3>
               <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 32 }}>
-                <div style={{ width: `${(sentimentCounts.positive / mentions.length) * 100}%`, background: "#00c875", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "white", fontWeight: 700 }}>
+                <div style={{ width: `${(sentimentCounts.positive / mentions.length) * 100}%`, background: "var(--emerald)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--foreground)", fontWeight: 700 }}>
                   {Math.round((sentimentCounts.positive / mentions.length) * 100)}%
                 </div>
-                <div style={{ width: `${(sentimentCounts.neutral / mentions.length) * 100}%`, background: "var(--text-secondary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "white", fontWeight: 700 }}>
+                <div style={{ width: `${(sentimentCounts.neutral / mentions.length) * 100}%`, background: "var(--text-secondary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--foreground)", fontWeight: 700 }}>
                   {Math.round((sentimentCounts.neutral / mentions.length) * 100)}%
                 </div>
-                <div style={{ width: `${(sentimentCounts.negative / mentions.length) * 100}%`, background: "#e2445c", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "white", fontWeight: 700 }}>
+                <div style={{ width: `${(sentimentCounts.negative / mentions.length) * 100}%`, background: "var(--red)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--foreground)", fontWeight: 700 }}>
                   {Math.round((sentimentCounts.negative / mentions.length) * 100)}%
                 </div>
               </div>
@@ -653,7 +653,7 @@ function MentionCard({ mention }: { mention: any }) {
   const { lang } = useLanguage();
   const config = sentimentConfig[mention.sentiment as keyof typeof sentimentConfig] || sentimentConfig.neutral;
   const SentIcon = config.icon;
-  const platformColor = platformColors[mention.platform] || "#64748b";
+  const platformColor = platformColors[mention.platform] || "var(--text-muted)";
   const label = lang === "es" ? config.labelEs : config.labelEn;
 
   return (

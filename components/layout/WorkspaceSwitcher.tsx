@@ -3,14 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { ChevronDown, Plus, Check } from "lucide-react";
 import { HoloIcon } from "@/components/ui/HoloIcon";
-
-interface Workspace {
-  id: string;
-  name: string;
-  slug: string;
-  role: string;
-  memberCount: number;
-}
+import type { Workspace } from "@/types/workspace";
 
 export function WorkspaceSwitcher() {
   const [workspaces, setWorkspaces] = useState<Workspace[]>([]);
@@ -87,18 +80,18 @@ export function WorkspaceSwitcher() {
           background: "rgba(0,212,255,0.04)",
           border: "1px solid rgba(0,212,255,0.1)",
           cursor: switching ? "wait" : "pointer",
-          color: "white",
+          color: "var(--foreground)",
           opacity: switching ? 0.6 : 1,
           transition: "all 0.2s ease",
         }}
       >
         <div style={{
           width: 28, height: 28,
-          background: "linear-gradient(135deg, #00d4ff, #0088cc)",
+          background: "linear-gradient(135deg, var(--cyan), var(--cyan))",
           display: "flex", alignItems: "center",
           justifyContent: "center", flexShrink: 0,
           fontFamily: "'Orbitron', sans-serif",
-          fontSize: "10px", fontWeight: 700, color: "white",
+          fontSize: "10px", fontWeight: 700, color: "var(--foreground)",
         }}>
           {active.name.substring(0, 2).toUpperCase()}
         </div>
@@ -106,7 +99,7 @@ export function WorkspaceSwitcher() {
           <p style={{
             fontFamily: "'Orbitron', sans-serif",
             fontSize: "10px", fontWeight: 600,
-            color: "white", letterSpacing: "0.1em",
+            color: "var(--foreground)", letterSpacing: "0.1em",
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
@@ -115,7 +108,7 @@ export function WorkspaceSwitcher() {
           </p>
           <p style={{
             fontSize: "9px",
-            color: "#64748b",
+            color: "var(--text-muted)",
             marginTop: "1px",
           }}>
             {active.role} · {active.memberCount} miembro
@@ -137,7 +130,7 @@ export function WorkspaceSwitcher() {
           left: "12px",
           right: "12px",
           zIndex: 200,
-          background: "rgba(5,8,18,0.98)",
+          background: "var(--panel-bg)",
           border: "1px solid rgba(0,212,255,0.15)",
           backdropFilter: "blur(20px)",
           marginTop: "4px",
@@ -159,7 +152,7 @@ export function WorkspaceSwitcher() {
                   ? "rgba(0,212,255,0.06)" : "none",
                 border: "none",
                 cursor: "pointer",
-                color: "white",
+                color: "var(--foreground)",
                 borderBottom: "1px solid rgba(0,212,255,0.05)",
                 textAlign: "left",
                 transition: "background 0.15s",
@@ -175,7 +168,7 @@ export function WorkspaceSwitcher() {
               <div style={{
                 width: 24, height: 24,
                 background: ws.id === active.id
-                  ? "linear-gradient(135deg, #00d4ff, #0088cc)"
+                  ? "linear-gradient(135deg, var(--cyan), var(--cyan))"
                   : "rgba(0,212,255,0.15)",
                 display: "flex", alignItems: "center",
                 justifyContent: "center",
@@ -187,7 +180,7 @@ export function WorkspaceSwitcher() {
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <p style={{
-                  fontSize: "12px", color: "white",
+                  fontSize: "12px", color: "var(--foreground)",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -196,7 +189,7 @@ export function WorkspaceSwitcher() {
                 </p>
                 <p style={{
                   fontSize: "10px",
-                  color: "#64748b",
+                  color: "var(--text-muted)",
                 }}>
                   {ws.role}
                 </p>
@@ -224,7 +217,7 @@ export function WorkspaceSwitcher() {
               background: "none",
               border: "none",
               cursor: "pointer",
-              color: "#94a3b8",
+              color: "var(--text-secondary)",
               textAlign: "left",
               transition: "background 0.15s",
             }}

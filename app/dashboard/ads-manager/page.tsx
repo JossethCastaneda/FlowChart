@@ -23,7 +23,7 @@ import { EditAdModal } from "@/components/ads-manager/EditAdModal";
 import { FilterPanel, type FilterItem } from "@/components/ads-manager/FilterPanel";
 import { CampaignDrawer } from "@/components/ads-manager/CampaignDrawer";
 import { AlertsCenter } from "@/components/ads-manager/AlertsCenter";
-import { StarWarsToastContainer, useToast } from "@/components/ads-manager/StarWarsToast";
+import { showToast } from "@/components/ui/Toast";
 import { useAlerts } from "@/hooks/useAlerts";
 import { ExportButton } from "@/components/ads-manager/ExportButton";
 import { ColumnPresets } from "@/components/ads-manager/ColumnPresets";
@@ -102,7 +102,7 @@ const ALL_COLUMNS = [
 export default function AdsManagerPage() {
   return (
     <PermissionGuard permKey="canAccessAds">
-      <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "#64748b" }}>Cargando Ads Manager...</div>}>
+      <Suspense fallback={<div style={{ padding: 40, textAlign: "center", color: "var(--text-muted)" }}>Cargando Ads Manager...</div>}>
         <AdsManagerContent />
       </Suspense>
     </PermissionGuard>
@@ -235,7 +235,7 @@ function AdsManagerContent() {
   const [drawerItem, setDrawerItem] = useState<any | null>(null);
 
   // Toast state
-  const { toasts, addToast, dismissToast } = useToast();
+  const addToast = showToast;
 
   // Auto-sync timer (30 min)
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
@@ -912,47 +912,66 @@ function AdsManagerContent() {
   };
 
   const handleExportExcel = () => {
-    import("xlsx").then((XLSX) => {
-      const headers = visibleColumns;
-      const rows = filteredData.map((item: any) => {
-        const row: Record<string, any> = {};
-        const ins = item.insights || {};
-        headers.forEach((col) => {
-          if (col === "name") row["Nombre"] = item.name;
-          else if (col === "spend") row["Gasto"] = parseFloat(ins.spend || "0");
-          else if (col === "impressions") row["Impresiones"] = parseInt(ins.impressions || "0");
-          else if (col === "clicks") row["Clics"] = parseInt(ins.clicks || "0");
-          else if (col === "ctr") row["CTR %"] = parseFloat(ins.ctr || "0");
-          else if (col === "roas") row["ROAS"] = calcROAS(ins);
-          else row[col] = ins[col] || "";
-        });
-        return row;
+    const headers = visibleColumns;
+    const rows = filteredData.map((item: any) => {
+      const ins = item.insights || {};
+      const row: Record<string, any> = {};
+      headers.forEach((col) => {
+        if (col === "name") row["Nombre"] = item.name;
+        else if (col === "spend") row["Gasto"] = parseFloat(ins.spend || "0");
+        else if (col === "impressions") row["Impresiones"] = parseInt(ins.impressions || "0");
+        else if (col === "clicks") row["Clics"] = parseInt(ins.clicks || "0");
+        else if (col === "ctr") row["CTR %"] = parseFloat(ins.ctr || "0");
+        else if (col === "roas") row["ROAS"] = calcROAS(ins);
+        else row[col] = ins[col] || "";
       });
-      const ws = XLSX.utils.json_to_sheet(rows);
-      ws["!freeze"] = { xSplit: 0, ySplit: 1 };
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, activeLevel);
-      XLSX.writeFile(wb, `sodare_${activeLevel}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-      addToast("success", "📊 Excel exportado correctamente");
+      return row;
     });
+    // Export as CSV (avoids xlsx CVE while maintaining functionality)
+    const csvHeaders = Object.keys(rows[0] || {});
+    const csvRows = rows.map(r => csvHeaders.map(h => {
+      const v = String(r[h] ?? "");
+      return v.includes(",") || v.includes('"') ? `"${v.replace(/"/g, '""')}"` : v;
+    }).join(","));
+    const csv = [csvHeaders.join(","), ...csvRows].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `sodare_${activeLevel}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast("success", "📊 Exportado correctamente");
   };
 
   const handleDownloadTemplate = () => {
-    import("xlsx").then((XLSX) => {
-      const templateData = [
-        { "Nombre campaña": "", "Objetivo": "OUTCOME_SALES", "Presupuesto diario ($)": "", "Estado": "PAUSED" },
-      ];
-      const instructions = [
-        { Campo: "Objetivo", "Valores válidos": "OUTCOME_AWARENESS, OUTCOME_TRAFFIC, OUTCOME_ENGAGEMENT, OUTCOME_LEADS, OUTCOME_APP_PROMOTION, OUTCOME_SALES" },
-        { Campo: "Estado", "Valores válidos": "ACTIVE, PAUSED" },
-      ];
-      const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(templateData), "Plantilla");
-      XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(instructions), "Instrucciones");
-      XLSX.writeFile(wb, "sodare_plantilla_importacion.xlsx");
-      addToast("info", "📥 Plantilla descargada");
-    });
+    const templateHeaders = ["Nombre campaña", "Objetivo", "Presupuesto diario ($)", "Estado"];
+    const exampleRow = ["", "OUTCOME_SALES", "", "PAUSED"];
+    const instructionHeaders = ["Campo", "Valores válidos"];
+    const instructionRows = [
+      ["Objetivo", "OUTCOME_AWARENESS, OUTCOME_TRAFFIC, OUTCOME_ENGAGEMENT, OUTCOME_LEADS, OUTCOME_APP_PROMOTION, OUTCOME_SALES"],
+      ["Estado", "ACTIVE, PAUSED"],
+    ];
+    // Export as CSV
+    const csv = [
+      templateHeaders.join(","),
+      exampleRow.join(","),
+      "",
+      "--- INSTRUCCIONES ---",
+      instructionHeaders.join(","),
+      ...instructionRows.map(r => r.join(",")),
+    ].join("\n");
+    const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "sodare_plantilla_importacion.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+    addToast("info", "📥 Plantilla descargada");
   };
+
+
 
   // Get current dataset based on tab
   const getCurrentData = () => {
@@ -1035,7 +1054,7 @@ function AdsManagerContent() {
       <PageHeader
         title="Ads Manager"
         description={platform === "meta" ? "Monitorea y optimiza tus campañas de Meta." : "Monitorea y optimiza tus campañas de Google Ads."}
-        icon={<Megaphone className="w-6 h-6" style={{ color: platform === "meta" ? "#0081FB" : "#60a5fa" }} />}
+        icon={<Megaphone className="w-6 h-6" style={{ color: platform === "meta" ? "#0081FB" : "var(--cyan)" }} />}
       />
       {/* Segmented Control for Platforms */}
       <div style={{
@@ -1057,7 +1076,7 @@ function AdsManagerContent() {
             fontSize: 11,
             fontWeight: 600,
             borderRadius: "6px",
-            color: platform === "meta" ? "#0081FB" : "#94a3b8",
+            color: platform === "meta" ? "#0081FB" : "var(--text-secondary)",
             background: platform === "meta" ? "rgba(0, 129, 251, 0.08)" : "transparent",
             border: `1px solid ${platform === "meta" ? "rgba(0, 129, 251, 0.2)" : "transparent"}`,
             cursor: "pointer",
@@ -1077,7 +1096,7 @@ function AdsManagerContent() {
             fontSize: 11,
             fontWeight: 600,
             borderRadius: "6px",
-            color: platform === "google" ? "#60a5fa" : "#94a3b8",
+            color: platform === "google" ? "var(--cyan)" : "var(--text-secondary)",
             background: platform === "google" ? "rgba(66, 133, 244, 0.08)" : "transparent",
             border: `1px solid ${platform === "google" ? "rgba(66, 133, 244, 0.2)" : "transparent"}`,
             cursor: "pointer",
@@ -1098,7 +1117,7 @@ function AdsManagerContent() {
         {renderHeader()}
         <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
           <Radar className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.65)" }} />
-          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "#64748b", textTransform: "uppercase", marginBottom: "8px" }}>
+          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
             Conexión Google Ads requerida
           </p>
           <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.65)", marginBottom: "20px" }}>
@@ -1115,7 +1134,7 @@ function AdsManagerContent() {
             </button>
             <button
               onClick={() => window.location.href = "/dashboard/integrations"}
-              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "#475569", fontFamily: "inherit" }}
+              style={{ background: "none", border: "none", cursor: "pointer", fontSize: 11, color: "var(--text-secondary)", fontFamily: "inherit" }}
             >
               Configurar Customer ID en Integraciones →
             </button>
@@ -1140,8 +1159,8 @@ function AdsManagerContent() {
             border: "1px solid rgba(6,214,160,0.3)",
             borderRadius: "6px",
           }}>
-            <CheckCircle className="w-4 h-4" style={{ color: "#06d6a0", flexShrink: 0 }} />
-            <span style={{ fontSize: "12px", color: "#06d6a0", fontWeight: 600 }}>
+            <CheckCircle className="w-4 h-4" style={{ color: "var(--emerald)", flexShrink: 0 }} />
+            <span style={{ fontSize: "12px", color: "var(--emerald)", fontWeight: 600 }}>
               ✅ Meta Ads conectado — sincronizando cuentas publicitarias...
             </span>
           </div>
@@ -1159,7 +1178,7 @@ function AdsManagerContent() {
             {/* Animated gradient accent line */}
             <div style={{
               position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-              background: "linear-gradient(90deg, #6366f1, #a855f7, #ec4899, #6366f1)",
+              background: "linear-gradient(90deg, var(--purple), var(--purple), var(--red), var(--purple))",
               backgroundSize: "200% 100%",
               animation: "shimmer 3s linear infinite",
             }} />
@@ -1169,7 +1188,7 @@ function AdsManagerContent() {
               background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
               boxShadow: "0 0 20px rgba(168,85,247,0.15)",
             }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a855f7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L2 7l10 5 10-5-10-5z" />
                 <path d="M2 17l10 5 10-5" />
                 <path d="M2 12l10 5 10-5" />
@@ -1188,7 +1207,7 @@ function AdsManagerContent() {
               style={{
                 display: "inline-flex", alignItems: "center", gap: "8px",
                 padding: "10px 20px",
-                background: "linear-gradient(135deg, #6366f1, #a855f7)",
+                background: "linear-gradient(135deg, var(--purple), var(--purple))",
                 color: "#fff",
                 fontSize: "12px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" as const,
                 borderRadius: "8px", cursor: "pointer", textDecoration: "none",
@@ -1227,7 +1246,7 @@ function AdsManagerContent() {
 
         <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
           <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.65)" }} />
-          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "#64748b", textTransform: "uppercase", marginBottom: "8px" }}>
+          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
             Conexión Meta Ads requerida
           </p>
           <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.65)", marginBottom: "20px" }}>
@@ -1273,13 +1292,13 @@ function AdsManagerContent() {
             display: "flex", alignItems: "center", gap: 8,
             padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
             background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
-            color: "#e2e8f0"
+            color: "var(--foreground)"
           }}>
             <GoogleIcon />
             <span>Cuenta Google Ads: {googleCustomerId || "Conectada"}</span>
           </div>
         ) : loadingAccounts ? (
-          <div style={{ fontSize: "11px", color: "#64748b" }}>Cargando cuentas...</div>
+          <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>Cargando cuentas...</div>
         ) : (
           <>
             <AccountSelector
@@ -1316,7 +1335,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateCampaign(true)}
             title="Crear una campaña nueva (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(0,129,251,0.12)", border: "1px solid rgba(0,129,251,0.35)", color: "#4aa3ff", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(0,129,251,0.12)", border: "1px solid rgba(0,129,251,0.35)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear campaña
           </button>
@@ -1327,7 +1346,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateAdSet(true)}
             title="Crear un conjunto de anuncios (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(123,97,255,0.12)", border: "1px solid rgba(123,97,255,0.35)", color: "#a78bfa", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(123,97,255,0.12)", border: "1px solid rgba(123,97,255,0.35)", color: "var(--purple)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear conjunto
           </button>
@@ -1387,7 +1406,7 @@ function AdsManagerContent() {
               title={autoSync ? "Auto-sync cada 30 min (activo)" : "Auto-sync desactivado"}
               style={{
                 width: "7px", height: "7px", borderRadius: "50%",
-                background: autoSync ? "#34d399" : "rgba(148,163,184,0.65)",
+                background: autoSync ? "var(--emerald)" : "rgba(148,163,184,0.65)",
                 border: "none", cursor: "pointer",
                 boxShadow: autoSync ? "0 0 6px rgba(52,211,153,0.4)" : "none",
               }}
@@ -1430,7 +1449,7 @@ function AdsManagerContent() {
                     borderRadius: 6,
                     border: "none",
                     background: active ? "rgba(0,129,251,0.18)" : "transparent",
-                    color: active ? "#60a5fa" : "#94a3b8",
+                    color: active ? "var(--cyan)" : "var(--text-secondary)",
                     fontSize: 12,
                     fontWeight: 700,
                     cursor: "pointer",
@@ -1441,7 +1460,7 @@ function AdsManagerContent() {
               );
             })}
           </div>
-          <div style={{ fontSize: 11, color: "#64748b" }}>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
             Revisa riesgos antes de aplicar cambios en Meta.
           </div>
         </div>
@@ -1481,14 +1500,14 @@ function AdsManagerContent() {
                 padding: "5px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "4px",
                 background: active ? "rgba(0,129,251,0.15)" : "transparent",
                 border: `1px solid ${active ? "var(--cyan)" : "transparent"}`,
-                color: active ? "var(--cyan)" : "#94a3b8",
+                color: active ? "var(--cyan)" : "var(--text-secondary)",
                 cursor: "pointer", transition: "all 0.15s",
                 display: "flex", alignItems: "center", gap: "5px",
               }}
             >
               {label}
               {count > 0 && (
-                <span style={{ fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "8px", background: active ? "rgba(0,212,255,0.2)" : "rgba(148,163,184,0.18)", color: active ? "var(--cyan)" : "#64748b" }}>
+                <span style={{ fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "8px", background: active ? "rgba(0,212,255,0.2)" : "rgba(148,163,184,0.18)", color: active ? "var(--cyan)" : "var(--text-muted)" }}>
                   {count}
                 </span>
               )}
@@ -1733,7 +1752,6 @@ function AdsManagerContent() {
       )}
 
       {/* ── TOAST CONTAINER ── */}
-      <StarWarsToastContainer toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
 }

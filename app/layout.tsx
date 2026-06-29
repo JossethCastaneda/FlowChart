@@ -13,6 +13,8 @@ import { PermissionsProvider } from "@/components/layout/PermissionsContext";
 import { getBaseUrl } from "@/lib/get-base-url";
 import { LanguageProvider } from "@/components/layout/LanguageContext";
 import { SodareBrandDefs } from "@/components/ui/SodareBrandDefs";
+import { PopupCloseHandler } from "@/components/layout/PopupCloseHandler";
+import { PaywallInterceptor } from "@/components/layout/PaywallInterceptor";
 
 // Solo inyectar los tags si el ID tiene el formato real (GTM-XXXX / G-XXXX);
 // así un placeholder en Vercel no genera scripts rotos en producción.
@@ -34,8 +36,67 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://sodare.xyz"),
-  title: "Sodare — Inteligencia Multicanal",
-  description: "Plataforma avanzada de CRM, Analytics, Ads Manager y operaciones para agencias de marketing digital.",
+  title: {
+    default: "Sodare — Plataforma de Marketing Multicanal para Agencias | LATAM",
+    template: "%s | Sodare",
+  },
+  description:
+    "Gestiona campañas de Meta Ads, TikTok Ads y Google Ads, inbox de WhatsApp y reportes de ROI en una sola plataforma. Diseñada para agencias y anunciantes en México y LATAM. Empieza gratis.",
+  keywords: [
+    "plataforma marketing digital",
+    "gestión campañas publicitarias",
+    "ads manager multicanal",
+    "inbox unificado WhatsApp",
+    "reportes ROI agencia",
+    "herramienta marketing LATAM",
+    "Meta Ads TikTok Google Ads",
+    "software agencias marketing México",
+    "automatización marketing digital",
+    "dashboard anuncios",
+  ],
+  authors: [{ name: "Sodare", url: "https://sodare.xyz" }],
+  creator: "Sodare",
+  publisher: "Sodare",
+  alternates: {
+    canonical: "/",
+    languages: { "es-MX": "/", "es": "/" },
+  },
+  openGraph: {
+    type: "website",
+    locale: "es_MX",
+    url: "https://sodare.xyz",
+    siteName: "Sodare",
+    title: "Sodare — Tu Centro de Mando de Marketing Multicanal",
+    description:
+      "Unifica campañas de Meta, TikTok y Google Ads, inbox de WhatsApp y reportes de ROI. Diseñada para agencias en LATAM. Empieza gratis, sin tarjeta.",
+    images: [
+      {
+        url: "/sodare-logo-1024.jpg",
+        width: 1024,
+        height: 1024,
+        alt: "Sodare — Plataforma de Marketing Multicanal",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Sodare — Marketing Multicanal para Agencias | LATAM",
+    description:
+      "Gestiona Meta Ads, TikTok Ads, Google Ads, WhatsApp y reportes de ROI en una sola plataforma. Empieza gratis.",
+    images: ["/sodare-logo-1024.jpg"],
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-video-preview": -1,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
+  },
+  category: "technology",
 };
 
 
@@ -56,6 +117,8 @@ export default function RootLayout({
               </QueryProvider>
               <ToastContainer />
               <ConfirmModalContainer />
+              <PopupCloseHandler />
+              <PaywallInterceptor />
             </PermissionsProvider>
           </LanguageProvider>
         </AuthProvider>

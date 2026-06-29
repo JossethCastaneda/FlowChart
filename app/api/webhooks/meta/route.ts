@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest, NextResponse, after } from "next/server";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
@@ -91,9 +91,26 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    for (const entry of body.entry) {
-      const entryId = entry.id;
-      const time = entry.time;
+    // Process the heavy webhook payload in the background (prevent Meta timeouts)
+    after(async () => {
+      try {
+        await processWebhookEvents(body, object);
+      } catch (err) {
+        logger.error("[WEBHOOK] Background processing error:", err);
+      }
+    });
+
+    return NextResponse.json({ received: true });
+  } catch (err) {
+    logger.error("[WEBHOOK] Critical error:", err);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
+  }
+}
+
+async function processWebhookEvents(body: any, object: string) {
+  for (const entry of body.entry) {
+    const entryId = entry.id;
+    const time = entry.time;
 
       // ═══════════════════════════════════════════════════
       // PAGE EVENTS
@@ -574,13 +591,6 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Meta requires 200 response within 20 seconds
-    return NextResponse.json({ received: true });
-  } catch (error: any) {
-    logger.error("[WEBHOOK] Processing error:", error);
-    // Always return 200 to Meta to prevent retries on processing errors
-    return NextResponse.json({ received: true, error: error.message });
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════

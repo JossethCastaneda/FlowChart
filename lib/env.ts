@@ -73,18 +73,13 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().min(1).optional(),
   GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
 
-  // Seguridad
-  ENCRYPTION_KEY: z.string().length(64).or(z.string().length(32)),
+  // Seguridad — AES-256-GCM requiere 32 bytes = 64 hex chars (ver lib/encryption.ts,
+  // que rechaza cualquier longitud != 64). Una clave de 32 hex (AES-128) es inválida
+  // para createCipheriv("aes-256-gcm"), así que la validación exige exactamente 64.
+  ENCRYPTION_KEY: z.string().length(64),
   CRON_SECRET: z.string().optional(),
   PUBLISH_WORKER_SECRET: z.string().optional(),
 
-  // QStash (Upstash) — cola de publicación programada
-  QSTASH_TOKEN: z.string().optional(),
-  QSTASH_CURRENT_SIGNING_KEY: z.string().optional(),
-  QSTASH_NEXT_SIGNING_KEY: z.string().optional(),
-  // URL pública estable a la que QStash entrega el job (la de Production).
-  // Si falta, se deriva de NEXT_PUBLIC_APP_URL.
-  QSTASH_WORKER_BASE_URL: z.string().url().optional(),
 
   // Vercel Blob
   BLOB_READ_WRITE_TOKEN: z.string().min(1).optional(),
@@ -104,6 +99,14 @@ const envSchema = z.object({
   BOTMAKER_ACCESS_TOKEN: z.string().optional(),
   BOTMAKER_BASE_URL: z.string().url().optional(),
 
+  // TikTok Ads
+  // App ID  = numeric integer shown in "App details" (used in auth URL)
+  // Client Key = alphanumeric string (used in token exchange)
+  TIKTOK_ADS_APP_ID: z.string().min(1).optional(),
+  TIKTOK_ADS_CLIENT_ID: z.string().min(1).optional(),
+  TIKTOK_ADS_CLIENT_SECRET: z.string().min(1).optional(),
+  TIKTOK_WEBHOOK_SECRET: z.string().min(1).optional(),
+
   // Config extra
   APP_TIMEZONE: z.string().default("America/Mexico_City"),
 });
@@ -112,21 +115,27 @@ const envSchema = z.object({
  * Parsea y valida el entorno en base al esquema.
  * Falla rápido en el inicio del servidor si falta alguna variable crítica.
  */
-function parseEnv() {
+type Env = z.infer<typeof envSchema>;
+
+// El tipo de retorno se ANOTA explícitamente como Env: así el acceso `env.X` queda
+// type-checkeado en toda la app. (Antes la rama de build hacía `return cleaned as any`,
+// lo que ensanchaba el tipo inferido de `env` a `any` y anulaba la type-safety de env.)
+function parseEnv(): Env {
   // Strip empty strings → undefined so Zod .optional() works correctly.
   const cleaned = cleanEnv(process.env as Record<string, string | undefined>);
   const parsed = envSchema.safeParse(cleaned);
-  
+
   if (!parsed.success) {
     const isBuild = process.env.npm_lifecycle_event === "build" || process.env.NEXT_PHASE === "phase-production-build";
     if (isBuild) {
       console.warn("⚠️ Saltando validación estricta de entorno durante el build:", parsed.error.flatten().fieldErrors);
-      return cleaned as any;
+      // Cast localizado SOLO en el skip de build (las vars se validan en runtime).
+      return cleaned as Env;
     }
     console.error("❌ Faltan variables de entorno críticas o son inválidas:", parsed.error.flatten().fieldErrors);
     throw new Error("Invalid environment variables");
   }
-  
+
   return parsed.data;
 }
 

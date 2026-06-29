@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { Check, ChevronDown, Globe } from "lucide-react";
@@ -87,17 +87,17 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
           display: "flex", alignItems: "center", gap: 6,
           padding: "6px 12px", borderRadius: 8,
           background: "rgba(255,255,255,0.09)",
-          border: "1px solid rgba(255,255,255,0.08)",
-          color: "#e2e8f0", fontSize: 12, cursor: "pointer",
+          border: "1px solid var(--hairline)",
+          color: "var(--foreground)", fontSize: 12, cursor: "pointer",
           transition: "all 0.2s",
         }}
         onMouseEnter={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.15)"}
         onMouseLeave={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"}
       >
-        <Globe style={{ width: 12, height: 12, color: "#00d4ff" }} />
+        <Globe style={{ width: 12, height: 12, color: "var(--cyan)" }} />
         {label}
         <ChevronDown style={{
-          width: 12, height: 12, color: "#64748b",
+          width: 12, height: 12, color: "var(--text-muted)",
           transform: open ? "rotate(180deg)" : "none",
           transition: "transform 0.2s",
         }} />
@@ -108,7 +108,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
           position: "absolute", top: "calc(100% + 4px)", left: 0,
           minWidth: 280, borderRadius: 10, overflow: "hidden",
           background: "rgba(15,15,30,0.98)",
-          border: "1px solid rgba(255,255,255,0.1)",
+          border: "1px solid var(--hairline)",
           boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
           zIndex: 100,
         }}>
@@ -121,17 +121,17 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                 width: "100%", padding: "10px 14px",
                 borderBottom: "1px solid rgba(255,255,255,0.06)",
                 background: "none", border: "none", cursor: "pointer",
-                color: "#94a3b8", fontSize: 11,
+                color: "var(--text-secondary)", fontSize: 11,
               }}
             >
               <div style={{
                 width: 16, height: 16, borderRadius: 4,
-                border: `1px solid ${selectedIds.size === pages.length ? "#00d4ff" : "rgba(255,255,255,0.15)"}`,
+                border: `1px solid ${selectedIds.size === pages.length ? "var(--cyan)" : "rgba(255,255,255,0.15)"}`,
                 background: selectedIds.size === pages.length ? "rgba(0,212,255,0.15)" : "transparent",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 {selectedIds.size === pages.length && (
-                  <Check style={{ width: 10, height: 10, color: "#00d4ff" }} />
+                  <Check style={{ width: 10, height: 10, color: "var(--cyan)" }} />
                 )}
               </div>
               Seleccionar todas
@@ -153,7 +153,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                   transition: "background 0.15s",
                 }}
                 onMouseEnter={e => {
-                  if (!isSelected) e.currentTarget.style.background = "rgba(255,255,255,0.03)";
+                  if (!isSelected) e.currentTarget.style.background = "var(--row-hover)";
                 }}
                 onMouseLeave={e => {
                   e.currentTarget.style.background = isSelected ? "rgba(0,212,255,0.04)" : "transparent";
@@ -162,13 +162,13 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                 {/* Checkbox */}
                 <div style={{
                   width: 16, height: 16, borderRadius: 4, flexShrink: 0,
-                  border: `1px solid ${isSelected ? "#00d4ff" : "rgba(255,255,255,0.15)"}`,
+                  border: `1px solid ${isSelected ? "var(--cyan)" : "rgba(255,255,255,0.15)"}`,
                   background: isSelected ? "rgba(0,212,255,0.15)" : "transparent",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "all 0.2s",
                 }}>
                   {isSelected && (
-                    <Check style={{ width: 10, height: 10, color: "#00d4ff" }} />
+                    <Check style={{ width: 10, height: 10, color: "var(--cyan)" }} />
                   )}
                 </div>
 
@@ -187,7 +187,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                     width: 24, height: 24, borderRadius: "50%",
                     background: "rgba(0,212,255,0.1)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 10, fontWeight: 600, color: "#00d4ff",
+                    fontSize: 10, fontWeight: 600, color: "var(--cyan)",
                     flexShrink: 0,
                   }}>
                     {page.name.charAt(0)}
@@ -196,11 +196,11 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
 
                 {/* Page info */}
                 <div style={{ flex: 1, textAlign: "left" }}>
-                  <div style={{ fontSize: 12, fontWeight: 500, color: "white" }}>
+                  <div style={{ fontSize: 12, fontWeight: 500, color: "var(--foreground)" }}>
                     {page.name}
                   </div>
                   {page.instagramId && (
-                    <div style={{ fontSize: 10, color: "#64748b" }}>
+                    <div style={{ fontSize: 10, color: "var(--text-muted)" }}>
                       + Instagram vinculado
                     </div>
                   )}

@@ -4,6 +4,7 @@ import { withAuth } from "@/lib/api-handler";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { validateBody } from "@/lib/validate";
 import { resolveProjectCrmAssociation, persistableCrmType } from "@/lib/projects/crm";
+import { checkPlanLimit } from "@/lib/plan-limits";
 import {
   apiSuccess,
   apiUnauthorized,
@@ -102,6 +103,19 @@ export const POST = withAuth(async (req, ctx) => {
   if (!membership) {
     return apiForbidden("No tienes acceso a este workspace");
   }
+
+  // ── Plan limit enforcement ────────────────────────────────────────────────
+  const workspace = await prisma.workspace.findUnique({
+    where: { id: workspaceId },
+    select: { plan: true, _count: { select: { projects: true } } },
+  });
+  if (!workspace) return apiError("Workspace no encontrado", "NOT_FOUND", 404);
+
+  const planCheck = checkPlanLimit(workspace.plan, "projects", workspace._count.projects);
+  if (planCheck.exceeded) {
+    return apiError(planCheck.message, "PLAN_LIMIT", 402);
+  }
+  // ────────────────────────────────────────────────────────────────────────────
 
   const {
     alias, client, vertical, fanpage, instagram, whatsapp, webchat, website,

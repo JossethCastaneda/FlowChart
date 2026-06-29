@@ -7,7 +7,7 @@ import { validateBody } from "@/lib/validate";
 import { publishPostToMeta, type PublishMode } from "@/lib/publisher/publish-to-meta";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
-import { cancelLegacyQstashSchedule } from "@/lib/publisher/schedule";
+
 import { logger } from "@/lib/logger";
 
 export const maxDuration = 60;
@@ -34,8 +34,12 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError("Este post ya fue publicado", "VALIDATION_ERROR", 400);
   }
 
+  // Cada módulo usa SU PROPIA cuenta conectada. El Publisher prioriza su token
+  // dedicado (publisher_facebook / publisher_instagram) para respetar la cuenta
+  // recién conectada en esta sección; el genérico "meta" queda como último
+  // recurso para no romper conexiones antiguas que solo tengan el compartido.
   let accessToken = await getMetaAccessToken(req, "publisher_facebook");
-  if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher");
+  if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher_instagram");
   if (!accessToken) accessToken = await getMetaAccessToken(req, "social");
   if (!accessToken) accessToken = await getMetaAccessToken(req);
 
@@ -67,9 +71,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   const hasAnySuccess = Object.keys(externalIds).length > 0;
   const newStatus = hasAnySuccess ? "Published" : "Failed";
 
-  if (newStatus === "Published" && post.qStashMessageId) {
-    await cancelLegacyQstashSchedule(post.qStashMessageId);
-  }
+
 
   const updateData: Prisma.ScheduledPostUpdateInput = {
     externalIds,
