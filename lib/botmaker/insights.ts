@@ -12,10 +12,39 @@
  * cheap (single passes, O(messages+events)).
  */
 import type { BmSession } from "@/lib/botmaker-api";
+import {
+  classifyOutcome, buildOutcomeRows, type OutcomeKey, type OutcomeRow,
+} from "@/lib/botmaker/outcomes";
+import { computeCaptureFunnel, type CaptureFunnelStep } from "@/lib/botmaker/fields";
+import {
+  computeBotPerformance, resolveBotId,
+  type BotPerf, type CoverageInfo,
+} from "@/lib/botmaker/bot-perf";
+import type { FlowDiff } from "@/lib/botmaker/flow-map";
 
 // ── Public types (shared contract: route + widgets consume these) ────────────
 
 export type Granularity = "hour" | "day" | "week" | "month";
+
+/** Variación de un KPI vs la ventana previa de igual longitud. */
+export interface KpiDelta {
+  abs: number;            // diferencia absoluta (curr - prev)
+  pct: number;            // % de cambio vs prev (0 si prev=0)
+  dir: "up" | "down" | "flat";
+  good: boolean;          // true si el movimiento es deseable para ESTE KPI
+}
+
+export interface OpportunityItem {
+  leak: string;           // dónde se fuga
+  recoverable: number;    // conversaciones recuperables
+  extraSales: number;     // ventas potenciales si se recuperan
+  basis: string;          // cómo se estimó
+}
+
+export interface Opportunity {
+  items: OpportunityItem[];
+  totalExtraSales: number;
+}
 
 export interface ChannelLite {
   id: string;
@@ -46,6 +75,12 @@ export interface DashboardOptions {
    * single `channelId` is set (the dropdown selection wins).
    */
   channelIds?: string[] | null;
+  /**
+   * Excluir bots de prueba/QA del AGREGADO (KPIs/outcomes/embudo). Default true.
+   * El leaderboard sigue mostrándolos marcados como prueba. El toggle de la UI
+   * (`includeTest`) lo pone en false para que vuelvan a contar.
+   */
+  excludeTestBots?: boolean;
 }
 
 export interface Kpis {
@@ -159,6 +194,15 @@ export interface DashboardData {
   intentMiss: NamedCount[];          // top failing nodes (incorrect-of)
   variables: VariablesSummary;
   insights: InsightCard[];
+  // ── rediseño: profundidad por bot + outcomes canónicos + comparación ──
+  outcomes: OutcomeRow[];            // "¿qué pasó?" — suma 100% de las sesiones
+  captureFunnel: CaptureFunnelStep[];// número → NIP → nombre → venta (real)
+  botPerf: BotPerf[];                // libro mayor por bot (computeBotFlows)
+  coverage: CoverageInfo;            // atribución / bots sin nombre / prueba
+  opportunity: Opportunity;          // ventas recuperables cuantificadas
+  flowChanges: FlowDiff[];           // detección de cambios de diseño por bot
+  kpiDeltas?: Record<string, KpiDelta>; // ▲▼ vs ventana previa (lo llena el route)
+  kpisPrev?: Kpis;                   // KPIs de la ventana previa
 }
 
 // ── time helpers ─────────────────────────────────────────────────────────────
@@ -255,7 +299,6 @@ function selectedLabel(content: unknown): string | null {
   return typeof v === "string" && v.trim() ? v.trim() : null;
 }
 
-const SALE_TYP = /(venta|vendid|compr[oó]|exitos)/i;
 const SALE_PHRASE = /felicidad/i;
 const NEG_TYP = /(abandon|no_resp|no contesta|dejo_de|declina|no_le_interesa|insulto)/i;
 
@@ -288,6 +331,21 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     if (allowSet) return ch != null && allowSet.has(ch);
     return true;
   });
+
+  // ── desempeño por bot + cobertura + cambios de diseño (enciende flow-map) ──
+  // Se computa sobre TODAS las sesiones del scope (incluidas las de prueba); el
+  // leaderboard las muestra marcadas, pero el AGREGADO de abajo las excluye.
+  const splitAtMs = (filterFromMs + filterToMs) / 2;
+  const perf = computeBotPerformance(sessions, { botNames: opts.botNames, splitAtMs });
+  const excludeTest = opts.excludeTestBots !== false; // default true
+  const testSet = new Set(perf.testBotIds);
+  const prodSessions = excludeTest && testSet.size
+    ? sessions.filter((s) => !testSet.has(resolveBotId(s)))
+    : sessions;
+
+  // ── outcomes canónicos: una clasificación por sesión → distribución 100% ──
+  const outcomeCounts: Partial<Record<OutcomeKey, number>> = {};
+  const outcomeRaw: Partial<Record<OutcomeKey, Record<string, number>>> = {};
 
   // ── accumulators ──
   const contacts = new Set<string>();
@@ -339,7 +397,7 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     if (contact) b.users++;
   };
 
-  for (const s of sessions) {
+  for (const s of prodSessions) {
     const msgs = (s.messages || []).slice().sort((a, b) => (toMs(a.creationTime) || 0) - (toMs(b.creationTime) || 0));
     const events = s.events || [];
     const contact = s.chat?.chat?.contactId;
@@ -462,9 +520,15 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     // agent fallback: any agent message
     if (!hasAgent && msgs.some((m) => m.from === "agent")) hasAgent = true;
 
-    // sale detection
+    // sale + outcome canónico: UNA clasificación por sesión (suma 100% del total).
     saleByPhrase = msgs.some((m) => m.from !== "user" && SALE_PHRASE.test((m.content?.text || "").toString()));
-    const isSale = saleByPhrase || (sessionTyp != null && SALE_TYP.test(sessionTyp));
+    const outcomeKey = classifyOutcome({ saleByPhrase, typ: sessionTyp, hasAgent, hasFallback, hasClose });
+    outcomeCounts[outcomeKey] = (outcomeCounts[outcomeKey] || 0) + 1;
+    if (sessionTyp) {
+      const bucket = (outcomeRaw[outcomeKey] ||= {});
+      bucket[sessionTyp] = (bucket[sessionTyp] || 0) + 1;
+    }
+    const isSale = outcomeKey === "venta";
     if (isSale) sales++;
     if (sessionTyp) {
       typ[sessionTyp] = (typ[sessionTyp] || 0) + 1;
@@ -504,7 +568,7 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     }
   }
 
-  const total = sessions.length;
+  const total = prodSessions.length;
   const pctOf = (n: number) => (total ? Math.round((n / total) * 1000) / 10 : 0);
   const botOnly = Math.max(0, total - sessionsWithAgent);
 
@@ -649,7 +713,19 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     topUnrecognized,
   };
 
-  const insights = buildInsights(kpis, breakpoints, fallback, copies, errors, funnel, channels);
+  // ── outcomes canónicos / embudo de captura real / oportunidad (rediseño) ──
+  const outcomes = buildOutcomeRows(outcomeCounts, outcomeRaw, total);
+  const captureFunnel = computeCaptureFunnel(prodSessions);
+  const opportunity = computeOpportunity(captureFunnel, outcomes, total ? sales / total : 0);
+  const coverage = excludeTest ? perf.coverage : { ...perf.coverage, testSessionsExcluded: 0 };
+
+  const oppInsight = buildOpportunityInsight(opportunity);
+  const insights = [
+    ...buildBotHealthInsights(perf.bots),
+    ...(oppInsight ? [oppInsight] : []),
+    ...buildInsights(kpis, breakpoints, fallback, copies, errors, funnel, channels),
+    ...buildFlowChangeInsights(perf.flowChanges),
+  ];
 
   return {
     meta: { from: opts.from, to: opts.to, timezone: tz, generatedAt: new Date().toISOString(), channelId: opts.channelId ?? null },
@@ -671,6 +747,12 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     intentMiss,
     variables,
     insights,
+    outcomes,
+    captureFunnel,
+    botPerf: perf.bots,
+    coverage,
+    opportunity,
+    flowChanges: perf.flowChanges,
   };
 }
 
@@ -730,5 +812,126 @@ function buildInsights(
   if (worstChannel && worstChannel.fallbackRate >= 20) out.push({ severity: "info", title: `Canal donde el bot menos entiende: ${worstChannel.name}`, detail: `${worstChannel.fallbackRate}% de mensajes no entendidos en ${worstChannel.sessions} conversaciones. Ese canal necesita más cobertura de intenciones.` });
 
   if (!out.length) out.push({ severity: "ok", title: "Sin alertas críticas", detail: "No se detectaron puntos de quiebre relevantes en el periodo seleccionado. El bot de portabilidad opera con normalidad." });
+  return out;
+}
+
+// ── rediseño: helpers de oportunidad, salud por bot, cambios de flujo, deltas ──
+
+/**
+ * Cuantifica las conversaciones recuperables → ventas potenciales. Dos fuentes:
+ *  (a) fugas del embudo de captura, valoradas a la conversión de quienes SÍ
+ *      pasaron ese paso; (b) outcomes recuperables (abandono / error técnico),
+ *      valorados a la conversión base. Es una estimación direccional (techo).
+ */
+function computeOpportunity(capture: CaptureFunnelStep[], outcomes: OutcomeRow[], baseConv: number): Opportunity {
+  const items: OpportunityItem[] = [];
+  const venta = capture.find((s) => s.key === "venta");
+  const ventaCount = venta?.count ?? 0;
+
+  for (let i = 0; i < capture.length - 1; i++) {
+    const step = capture[i];
+    if (step.dropOff <= 0) continue;
+    const passConv = step.count ? ventaCount / step.count : 0;
+    const extra = Math.round(step.dropOff * passConv);
+    if (extra >= 1) {
+      items.push({
+        leak: `Se cae en "${step.label}"`,
+        recoverable: step.dropOff,
+        extraSales: extra,
+        basis: `${step.dropOff} no avanzaron · quienes pasaron convierten ${Math.round(passConv * 100)}%`,
+      });
+    }
+  }
+
+  for (const o of outcomes) {
+    if (o.category !== "recuperable") continue;
+    const extra = Math.round(o.count * baseConv);
+    if (extra >= 1) {
+      items.push({
+        leak: o.label,
+        recoverable: o.count,
+        extraSales: extra,
+        basis: `${o.count} recuperables · conversión base ${Math.round(baseConv * 100)}%`,
+      });
+    }
+  }
+
+  items.sort((a, b) => b.extraSales - a.extraSales);
+  const top = items.slice(0, 6);
+  return { items: top, totalExtraSales: top.reduce((s, i) => s + i.extraSales, 0) };
+}
+
+function buildOpportunityInsight(opp: Opportunity): InsightCard | null {
+  if (!opp.items.length || opp.totalExtraSales < 1) return null;
+  const top = opp.items[0];
+  return {
+    severity: "info",
+    title: `Oportunidad: hasta +${opp.totalExtraSales} cambios recuperables`,
+    detail: `El mayor potencial está en "${top.leak}" (${fmtN(top.recoverable)} conversaciones ≈ +${top.extraSales} cambios). ${top.basis}.`,
+  };
+}
+
+/** Alerta sobre bots de producción rotos (el agregado de workspace los ocultaba). */
+function buildBotHealthInsights(bots: BotPerf[]): InsightCard[] {
+  const prod = bots.filter((b) => !b.isTest && !b.isUnattributed && b.sufficient);
+  const broken = prod.filter((b) => b.health === "broken").sort((a, b) => b.sessions - a.sessions);
+  const out: InsightCard[] = [];
+  for (const b of broken.slice(0, 3)) {
+    const why = b.fallbackRate >= 50
+      ? `no entiende el ${b.fallbackRate}% de las conversaciones`
+      : `deriva el ${b.agentRate}% a un agente`;
+    out.push({
+      severity: "critical",
+      title: `"${b.botName}" está fallando`,
+      detail: `${why} en ${fmtN(b.sessions)} conversaciones (conversión ${b.conversionRate}%). El promedio del workspace lo ocultaba — revisa este bot.`,
+    });
+  }
+  return out;
+}
+
+/** Convierte los diffs de flow-map en tarjetas de "el bot cambió de diseño". */
+function buildFlowChangeInsights(diffs: FlowDiff[]): InsightCard[] {
+  const out: InsightCard[] = [];
+  for (const d of diffs) {
+    if (!d.changed) continue;
+    const parts: string[] = [];
+    if (d.startChanged) parts.push("cambió el inicio");
+    if (d.pathChanged) parts.push("cambió la ruta principal");
+    if (d.addedNodes.length) parts.push(`+${d.addedNodes.length} paso(s): ${d.addedNodes.slice(0, 3).join(", ")}`);
+    if (d.removedNodes.length) parts.push(`−${d.removedNodes.length} paso(s): ${d.removedNodes.slice(0, 3).join(", ")}`);
+    if (!parts.length) continue;
+    out.push({
+      severity: (d.startChanged || d.pathChanged) ? "warning" : "info",
+      title: `El flujo de "${d.botName}" cambió en el periodo`,
+      detail: `${parts.join(" · ")}. Verifica si fue una edición intencional del bot o un quiebre.`,
+    });
+  }
+  return out.slice(0, 4);
+}
+
+const fmtN = (n: number) => (n ?? 0).toLocaleString("es-MX");
+
+// KPIs donde SUBIR es bueno vs donde BAJAR es bueno (para colorear el delta).
+const GOOD_WHEN_UP = new Set(["sessions", "users", "messages", "userMessages", "botMessages", "conversionRate", "automationRate", "closeRate"]);
+const GOOD_WHEN_DOWN = new Set(["agentRate", "fallbackRate", "errorRate", "retryRate", "avgFirstResponseSec"]);
+
+/** Compara KPIs actuales vs ventana previa → delta con dirección "deseable". */
+export function diffKpis(curr: Kpis, prev: Kpis): Record<string, KpiDelta> {
+  const out: Record<string, KpiDelta> = {};
+  (Object.keys(curr) as (keyof Kpis)[]).forEach((k) => {
+    const c = curr[k];
+    const p = prev[k];
+    if (typeof c !== "number" || typeof p !== "number") return;
+    const abs = Math.round((c - p) * 10) / 10;
+    const pct = p ? Math.round(((c - p) / p) * 1000) / 10 : 0;
+    const dir: KpiDelta["dir"] = abs > 0 ? "up" : abs < 0 ? "down" : "flat";
+    let good = true;
+    if (dir !== "flat") {
+      if (GOOD_WHEN_DOWN.has(k as string)) good = dir === "down";
+      else if (GOOD_WHEN_UP.has(k as string)) good = dir === "up";
+      else good = dir === "up";
+    }
+    out[k as string] = { abs, pct, dir, good };
+  });
   return out;
 }
