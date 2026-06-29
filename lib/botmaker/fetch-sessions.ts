@@ -6,7 +6,7 @@
  */
 import prisma from "@/lib/prisma";
 import { createConnection, listSessions } from "@/lib/botmaker-api";
-import type { BmConnection, BmSession } from "@/lib/botmaker-api";
+import type { BmConnection, BmSession, ListSessionsMeta } from "@/lib/botmaker-api";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const CONCURRENCY = 3; // Reduced to prevent rate limits
@@ -16,6 +16,10 @@ export interface FetchSessionsResult {
   sessions: BmSession[];
   chunks: number;
   cachedChunks: number;
+  /** Chunks (días) que lanzaron por completo → 0 sesiones para ese día. */
+  failedChunks: number;
+  /** Chunks descargados de forma parcial (truncado por error o tope de páginas). */
+  incompleteChunks: number;
 }
 
 /**
@@ -65,6 +69,8 @@ export async function fetchWorkspaceSessions(
 
   const all: BmSession[] = [];
   let cachedChunks = 0;
+  let failedChunks = 0;
+  let incompleteChunks = 0;
 
   for (let i = 0; i < chunks.length; i += CONCURRENCY) {
     if (signal?.aborted) break;
@@ -77,18 +83,20 @@ export async function fetchWorkspaceSessions(
               where: { workspaceId, endpoint: CACHE_ENDPOINT, paramsKey: chunk.cacheKey },
               select: { data: true },
             });
-            if (rec?.data) return { chunk, sessions: rec.data as unknown as BmSession[], cached: true };
+            if (rec?.data) return { chunk, sessions: rec.data as unknown as BmSession[], cached: true, complete: true, failed: false };
           }
+          const meta: ListSessionsMeta = { complete: true, pages: 0, reachedCap: false, truncated: false };
           const sessions = await listSessions(bmConn, {
             from: chunk.from,
             to: chunk.to,
             includeMessages: true,
             includeEvents: true,
             maxPages: 100, // 100 pages * 200ms delay = 20s, well within 60s Vercel limit
-          });
-          return { chunk, sessions, cached: false };
+          }, meta);
+          return { chunk, sessions, cached: false, complete: meta.complete, failed: false };
         } catch {
-          return { chunk, sessions: [] as BmSession[], cached: false };
+          // El día ENTERO falló → no lo mezclamos como "0 sesiones reales".
+          return { chunk, sessions: [] as BmSession[], cached: false, complete: false, failed: true };
         }
       })
     );
@@ -96,8 +104,10 @@ export async function fetchWorkspaceSessions(
     for (const r of results) {
       if (r.sessions.length) all.push(...r.sessions);
       if (r.cached) cachedChunks++;
-      // Persist freshly-fetched past chunks for next time.
-      if (r.chunk.isPast && !r.cached && r.sessions.length) {
+      else if (r.failed) failedChunks++;
+      else if (!r.complete) incompleteChunks++;
+      // Persist SOLO chunks pasados COMPLETOS (no congelar parciales/truncados).
+      if (r.chunk.isPast && !r.cached && r.complete && r.sessions.length) {
         try {
           await prisma.metaAnalyticsCache.upsert({
             where: {
@@ -137,5 +147,5 @@ export async function fetchWorkspaceSessions(
     deduped.push(s);
   }
 
-  return { sessions: deduped, chunks: chunks.length, cachedChunks };
+  return { sessions: deduped, chunks: chunks.length, cachedChunks, failedChunks, incompleteChunks };
 }

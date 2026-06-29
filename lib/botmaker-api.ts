@@ -189,12 +189,27 @@ export interface ListSessionsOptions {
 }
 
 /**
+ * Telemetría de completitud de la descarga (out-param opcional). Permite al
+ * llamador distinguir un fin-de-datos limpio de un truncado por error/cap, en vez
+ * de presentar un conteo parcial como total. Se rellena al terminar `listSessions`.
+ */
+export interface ListSessionsMeta {
+  complete: boolean;   // llegó a nextPage===null / página vacía SIN error ni cap
+  pages: number;       // páginas efectivamente recuperadas
+  reachedCap: boolean; // se detuvo por maxPages con más datos pendientes
+  truncated: boolean;  // se detuvo por un error no recuperable a media paginación
+  error?: string;      // último error si truncó
+}
+
+/**
  * GET /sessions — lista sesiones paginadas en una ventana de tiempo.
  * Sigue el campo `nextPage` hasta agotar páginas o alcanzar `maxPages`.
+ * Si se pasa `meta`, se rellena con la telemetría de completitud (ver arriba).
  */
 export async function listSessions(
   conn: BmConnection,
-  opts: ListSessionsOptions
+  opts: ListSessionsOptions,
+  meta?: ListSessionsMeta
 ): Promise<BmSession[]> {
   const {
     from,
@@ -228,18 +243,29 @@ export async function listSessions(
   const all: BmSession[] = [];
   let next: string | null = `/sessions?${qsStr}`;
   let pages = 0;
+  let truncated = false;
+  let lastError: string | undefined;
 
   while (next && pages < maxPages) {
     const path = next; // DO NOT replace %3A on nextPage! We must call the EXACT URL!
-    
+
     if (pages > 0) {
       logger.debug(`[listSessions] Fetching Page ${pages + 1}`, { path });
     }
-    
-    const res = await bmFetch(conn, path);
+
+    let res = await bmFetch(conn, path);
     if (!res.ok) {
-      const errText = await res.text();
-      logger.warn(`[listSessions] Page ${pages + 1} returned ${res.status} for ${from} → ${to}, stopping pagination.`);
+      // Un error a media paginación NO es fin-de-datos: reintenta una vez tras un
+      // respiro antes de rendirse, y si vuelve a fallar marca TRUNCADO (no rompas
+      // en silencio presentando un conteo parcial como total).
+      await new Promise((r) => setTimeout(r, 600));
+      res = await bmFetch(conn, path);
+    }
+    if (!res.ok) {
+      lastError = `HTTP ${res.status}`;
+      await res.text().catch(() => {});
+      truncated = true;
+      logger.warn(`[listSessions] Page ${pages + 1} returned ${res.status} for ${from} → ${to}, TRUNCATED.`);
       break;
     }
     const data: BmSessionsPage = await res.json().catch(() => ({}));
@@ -269,8 +295,17 @@ export async function listSessions(
     }
   }
 
+  const reachedCap = !!next && pages >= maxPages;
+  if (meta) {
+    meta.pages = pages;
+    meta.reachedCap = reachedCap;
+    meta.truncated = truncated;
+    meta.complete = !truncated && !reachedCap;
+    meta.error = lastError;
+  }
+
   if (pages > 1 || all.length > 0) {
-    logger.info(`[listSessions] Pagination complete`, { from: from.slice(0,10), to: to.slice(0,10), pages, total: all.length });
+    logger.info(`[listSessions] Pagination done`, { from: from.slice(0, 10), to: to.slice(0, 10), pages, total: all.length, complete: !truncated && !reachedCap });
   }
 
   return all;

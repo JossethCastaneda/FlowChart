@@ -114,7 +114,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
 
     // Fetch ventana actual + previa (para deltas) + metadatos, en paralelo. La
     // previa cae enteramente en el pasado → chunks cacheados (coste marginal bajo).
-    const [{ sessions }, prevFetch, channelsRaw, meta] = await Promise.all([
+    const [fetched, prevFetch, channelsRaw, meta] = await Promise.all([
       fetchWorkspaceSessions(ctx.workspaceId, conn, from, to, forceRefresh, req.signal),
       span > 0
         ? fetchWorkspaceSessions(ctx.workspaceId, conn, prevFrom, prevTo, false, req.signal).catch(() => null)
@@ -122,6 +122,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
       listChannels(createConnection(conn.accessToken, conn.baseUrl)),
       loadMeta(ctx.workspaceId, conn),
     ]);
+    const sessions = fetched.sessions;
 
     // Set de canales del proyecto (vacío ⇒ sin auto-scope: fallback a todo el workspace).
     const projectChannelIds = project ? resolveProjectChannelIds(project, channelsRaw) : [];
@@ -164,10 +165,21 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
       }
     }
 
+    // Cobertura de descarga: para que la UI distinga un total real de uno parcial
+    // (días caídos / paginación truncada), en vez de presentar el parcial como exacto.
+    const download = {
+      chunks: fetched.chunks,
+      cached: fetched.cachedChunks,
+      failedChunks: fetched.failedChunks,
+      incompleteChunks: fetched.incompleteChunks,
+      complete: fetched.failedChunks === 0 && fetched.incompleteChunks === 0,
+    };
+
     return apiSuccess({
       ...data,
       channelOptions: scopedChannels.map((c) => ({ id: c.id, name: c.name, platform: c.platform })),
       channelScope: { projectId, autoScoped, resolved: projectChannelIds.length },
+      download,
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Error desconocido";

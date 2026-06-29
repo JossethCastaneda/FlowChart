@@ -24,6 +24,7 @@ type Period = "Hoy" | "7 días" | "30 días" | "custom";
 type ApiData = DashboardData & {
   channelOptions: { id: string; name: string; platform: string }[];
   channelScope?: { projectId: string | null; autoScoped: boolean; resolved: number };
+  download?: { chunks: number; cached: number; failedChunks: number; incompleteChunks: number; complete: boolean };
 };
 
 // Ventanas de descarga ancladas a días CDMX (America/Mexico_City). Botmaker
@@ -284,6 +285,16 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", marginBottom: 12, color: "var(--amber)", fontSize: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 10 }}>
             <AlertCircle style={{ width: 15, height: 15, flexShrink: 0 }} />
             No se detectaron canales de Botmaker para este proyecto; mostrando todo el workspace. Asocia los canales del bot en <b style={{ margin: "0 3px" }}>Configuración</b> para acotar automáticamente.
+          </div>
+        )}
+        {data?.download && !data.download.complete && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", marginBottom: 12, color: "var(--amber)", fontSize: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)", borderRadius: 10 }}>
+            <AlertCircle style={{ width: 15, height: 15, flexShrink: 0 }} />
+            <span>
+              <b>Descarga incompleta</b> — {data.download.failedChunks > 0 && `${data.download.failedChunks} día(s) no se pudieron descargar`}
+              {data.download.failedChunks > 0 && data.download.incompleteChunks > 0 && " · "}
+              {data.download.incompleteChunks > 0 && `${data.download.incompleteChunks} día(s) truncados`}. Los totales pueden estar <b>subestimados</b>; pulsa <b>Actualizar</b> para reintentar.
+            </span>
           </div>
         )}
         {ctx && (
