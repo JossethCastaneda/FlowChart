@@ -324,26 +324,42 @@ const FallbackWidget = ({ data }: WidgetCtx) => {
   );
 };
 
+const HEAT_LABEL_W = 32;
 const HeatmapWidget = ({ data }: WidgetCtx) => {
   const days = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
   const max = Math.max(1, ...data.heatmap.flat());
   if (max <= 1 && data.kpis.sessions === 0) return <Empty />;
+  // Hora pico (para dar contexto en vez de solo el grid).
+  let peak = { d: 0, h: 0, v: 0 };
+  data.heatmap.forEach((row, d) => row.forEach((v, h) => { if (v > peak.v) peak = { d, h, v }; }));
+  // Celdas de ALTURA FIJA pequeña (antes aspectRatio:1 las hacía cuadrados
+  // enormes al ancho completo). Compacto y legible; el ancho lo reparte flex.
   return (
-    <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 4, overflow: "auto" }}>
-      <div style={{ display: "flex", gap: 3, paddingLeft: 30 }}>
+    <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 4, justifyContent: "center", overflow: "hidden" }}>
+      <div style={{ display: "flex", gap: 2, paddingLeft: HEAT_LABEL_W }}>
         {Array.from({ length: 24 }).map((_, h) => (
-          <span key={h} style={{ flex: 1, fontSize: 7.5, color: muted, textAlign: "center" }}>{h % 3 === 0 ? h : ""}</span>
+          <span key={h} style={{ flex: 1, fontSize: 8.5, color: muted, textAlign: "center" }}>{h % 2 === 0 ? h : ""}</span>
         ))}
       </div>
       {data.heatmap.map((row, d) => (
-        <div key={d} style={{ display: "flex", gap: 3, alignItems: "center" }}>
-          <span style={{ width: 27, fontSize: 9.5, color: muted, flexShrink: 0 }}>{days[d]}</span>
+        <div key={d} style={{ display: "flex", gap: 2, alignItems: "center", height: 18, flexShrink: 0 }}>
+          <span style={{ width: HEAT_LABEL_W, fontSize: 10, color: muted, flexShrink: 0 }}>{days[d]}</span>
           {row.map((v, h) => {
             const t = v / max;
-            return <div key={h} title={`${days[d]} ${h}:00 — ${v} sesiones`} style={{ flex: 1, aspectRatio: "1", borderRadius: 2, minWidth: 0, background: v === 0 ? "rgba(255,255,255,0.04)" : `rgba(168,85,247,${0.15 + t * 0.85})` }} />;
+            return <div key={h} title={`${days[d]} ${h}:00 — ${v} sesiones`} style={{ flex: 1, height: "100%", borderRadius: 2, minWidth: 0, background: v === 0 ? "rgba(255,255,255,0.04)" : `rgba(168,85,247,${0.18 + t * 0.82})` }} />;
           })}
         </div>
       ))}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, paddingLeft: HEAT_LABEL_W, marginTop: 4, fontSize: 10, color: muted }}>
+        <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          menos
+          <span style={{ display: "flex", gap: 2 }}>
+            {[0.18, 0.4, 0.6, 0.8, 1].map((o, i) => <span key={i} style={{ width: 11, height: 11, borderRadius: 2, background: `rgba(168,85,247,${o})` }} />)}
+          </span>
+          más
+        </span>
+        <span style={{ marginLeft: "auto" }}>Pico: <b style={{ color: "rgba(255,255,255,0.8)" }}>{days[peak.d]} {peak.h}:00h</b> · {fmt(peak.v)} conv.</span>
+      </div>
     </div>
   );
 };
@@ -699,7 +715,7 @@ export const WIDGETS: Record<string, WidgetDef> = {
   buttons: { id: "buttons", title: "Botoneras · CTR de botones", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ButtonsWidget {...c} /> },
   channelDistribution: { id: "channelDistribution", title: "Distribución por Canal", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelDistributionWidget {...c} /> },
   channels: { id: "channels", title: "Detalle Canal / Bot", size: { w: 6, h: 4, minW: 3, minH: 3 }, render: (c) => <ChannelsWidget {...c} /> },
-  heatmap: { id: "heatmap", title: "Mapa de Calor por Demanda", size: { w: 12, h: 4, minW: 6, minH: 3 }, render: (c) => <HeatmapWidget {...c} /> },
+  heatmap: { id: "heatmap", title: "Mapa de Calor por Demanda", size: { w: 12, h: 3, minW: 6, minH: 2 }, render: (c) => <HeatmapWidget {...c} /> },
   typifications: { id: "typifications", title: "Motivos de cierre (crudo)", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <TypificationsWidget {...c} /> },
   copies: { id: "copies", title: "Copys con baja conversión", size: { w: 3, h: 4, minW: 3, minH: 3 }, render: (c) => <CopiesWidget {...c} /> },
   bots: { id: "bots", title: "Sub-bots más activos", size: { w: 3, h: 4, minW: 2, minH: 3 }, render: (c) => <BotsWidget {...c} /> },
@@ -735,10 +751,10 @@ export const DEFAULT_LAYOUT: LayoutCell[] = [
   { id: "buttons", x: 6, y: 29, w: 6, h: 5 },
   { id: "channelDistribution", x: 0, y: 34, w: 6, h: 4 },
   { id: "channels", x: 6, y: 34, w: 6, h: 4 },
-  { id: "heatmap", x: 0, y: 38, w: 12, h: 4 },
-  { id: "typifications", x: 0, y: 42, w: 3, h: 4 },
-  { id: "copies", x: 3, y: 42, w: 3, h: 4 },
-  { id: "bots", x: 6, y: 42, w: 3, h: 4 },
-  { id: "errors", x: 9, y: 42, w: 3, h: 4 },
-  { id: "flow", x: 0, y: 46, w: 6, h: 4 },
+  { id: "heatmap", x: 0, y: 38, w: 12, h: 3 },
+  { id: "typifications", x: 0, y: 41, w: 3, h: 4 },
+  { id: "copies", x: 3, y: 41, w: 3, h: 4 },
+  { id: "bots", x: 6, y: 41, w: 3, h: 4 },
+  { id: "errors", x: 9, y: 41, w: 3, h: 4 },
+  { id: "flow", x: 0, y: 45, w: 6, h: 4 },
 ];
