@@ -12,7 +12,7 @@
  */
 import type { BmSession } from "@/lib/botmaker-api";
 import { computeBotFlows, type BotFlow, type FlowDiff } from "@/lib/botmaker/flow-map";
-import { saleByPhrase, capturedFieldsPerSession } from "@/lib/botmaker/fields";
+import { saleByPhrase, capturedFieldsPerSession, userSentImage, sessionHasOcrNode } from "@/lib/botmaker/fields";
 import { classifyTypification } from "@/lib/botmaker/outcomes";
 
 export const UNATTRIBUTED = "__none__";
@@ -31,6 +31,12 @@ export interface BotPerf {
   fallbackRate: number;     // % sesiones que tocaron "Mensaje por defecto"
   agentRate: number;        // % sesiones que pasaron por un agente
   captureCompleteRate: number; // % sesiones donde el bot pidió hasta "nombre"
+  /** % de sesiones donde el usuario envió una imagen (captura del NIP por foto). */
+  ocrImageRate: number;
+  /** % de sesiones que atravesaron un nodo OCR (legibilidad/vigencia del NIP). */
+  ocrFlowRate: number;
+  /** El bot usa captura del NIP por imagen + OCR (imagen, nodo OCR o nombre OCR). */
+  usesOcrNip: boolean;
   health: BotHealth;
   sufficient: boolean;      // muestra suficiente para confiar (n >= 20)
   ends: BotFlow["ends"];    // distribución de estados terminales (flow-map)
@@ -151,6 +157,8 @@ interface Acc {
   agent: number;
   fallback: number;
   captureComplete: number;
+  image: number;
+  ocrNode: number;
 }
 
 /**
@@ -176,12 +184,14 @@ export function computeBotPerformance(sessions: BmSession[], opts: BotPerfOption
   for (const s of sessions) {
     const botId = resolveBotId(s);
     let a = accById.get(botId);
-    if (!a) { a = { sessions: [], sales: 0, agent: 0, fallback: 0, captureComplete: 0 }; accById.set(botId, a); }
+    if (!a) { a = { sessions: [], sales: 0, agent: 0, fallback: 0, captureComplete: 0, image: 0, ocrNode: 0 }; accById.set(botId, a); }
     a.sessions.push(s);
     const typ = sessionTypification(s);
     if (saleByPhrase(s) || classifyTypification(typ) === "venta") a.sales++;
     if (sessionEverAgent(s)) a.agent++;
     if (sessionEverFallback(s)) a.fallback++;
+    if (userSentImage(s)) a.image++;
+    if (sessionHasOcrNode(s)) a.ocrNode++;
   }
   // Captura completa (llegó a "nombre") por grupo.
   for (const [, a] of accById) {
@@ -204,6 +214,9 @@ export function computeBotPerformance(sessions: BmSession[], opts: BotPerfOption
     const n = a.sessions.length;
     const fallbackRate = pct(a.fallback, n);
     const agentRate = pct(a.agent, n);
+    const ocrImageRate = pct(a.image, n);
+    const ocrFlowRate = pct(a.ocrNode, n);
+    const usesOcrNip = !id.isUnattributed && (ocrImageRate >= 10 || a.ocrNode > 0 || /ocr|biometr/i.test(id.name));
     const flow = flowById.get(botId);
 
     if (!id.isUnattributed) attributed += n;
@@ -222,6 +235,9 @@ export function computeBotPerformance(sessions: BmSession[], opts: BotPerfOption
       fallbackRate,
       agentRate,
       captureCompleteRate: pct(a.captureComplete, n),
+      ocrImageRate,
+      ocrFlowRate,
+      usesOcrNip,
       health: health(fallbackRate, agentRate),
       sufficient: n >= sufficientN,
       ends: flow?.ends ?? [],

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { BmSession } from "@/lib/botmaker-api";
 import { classifyOutcome } from "@/lib/botmaker/outcomes";
-import { computeCaptureFunnel } from "@/lib/botmaker/fields";
+import { computeCaptureFunnel, userSentImage, sessionHasOcrNode } from "@/lib/botmaker/fields";
 import { computeBotPerformance, resolveBotId, isTestBot } from "@/lib/botmaker/bot-perf";
 
 // ── helpers ──────────────────────────────────────────────────────────────────
@@ -138,6 +138,71 @@ describe("computeBotPerformance — KPIs por bot + cobertura + exclusión de pru
 
   it("orden por sesiones desc", () => {
     expect(perf.bots[0].sessions).toBeGreaterThanOrEqual(perf.bots[1].sessions);
+  });
+});
+
+describe("captura del NIP por imagen + OCR", () => {
+  it("userSentImage detecta imagen/media del usuario", () => {
+    const withImg: BmSession = {
+      id: "i1", creationTime: 1, chat: { chat: { contactId: "c", channelId: "ch" } },
+      messages: [
+        { from: "bot", creationTime: 1, content: { text: "Envíame una foto de tu NIP" } },
+        { from: "user", creationTime: 2, content: { type: "image", media: { url: "https://x/y.jpg", type: "image/jpeg" } } },
+      ],
+      events: [],
+    };
+    const textOnly: BmSession = {
+      id: "t1", creationTime: 1, chat: { chat: { contactId: "c", channelId: "ch" } },
+      messages: [{ from: "user", creationTime: 2, content: { text: "1234" } }],
+      events: [],
+    };
+    expect(userSentImage(withImg)).toBe(true);
+    expect(userSentImage(textOnly)).toBe(false);
+  });
+
+  it("sessionHasOcrNode detecta nodos de legibilidad y vigencia", () => {
+    const legible: BmSession = {
+      id: "o1", creationTime: 1, chat: { chat: { contactId: "c", channelId: "ch" } },
+      messages: [], events: [{ name: "find-intent", creationTime: 1, info: { name: "fulfilled of ¿es Legible?" } }],
+    };
+    const vigencia: BmSession = {
+      id: "o2", creationTime: 1, chat: { chat: { contactId: "c", channelId: "ch" } },
+      messages: [], events: [{ name: "go-to", creationTime: 1, info: { name: "incorrect of Fecha Vigencia Nip" } }],
+    };
+    const none: BmSession = {
+      id: "o3", creationTime: 1, chat: { chat: { contactId: "c", channelId: "ch" } },
+      messages: [], events: [{ name: "go-to", creationTime: 1, info: { name: "fulfilled of NIP" } }],
+    };
+    expect(sessionHasOcrNode(legible)).toBe(true);
+    expect(sessionHasOcrNode(vigencia)).toBe(true);
+    expect(sessionHasOcrNode(none)).toBe(false);
+  });
+
+  it("computeBotPerformance marca usesOcrNip por imagen, nodo OCR o nombre", () => {
+    const mk = (botId: string, opts: { img?: boolean; ocr?: boolean }): BmSession => ({
+      id: `x${idc++}`, creationTime: 1, chat: { chat: { contactId: "c", channelId: "ch" } },
+      messages: opts.img
+        ? [{ from: "user", creationTime: 2, content: { type: "image", media: { url: "u", type: "image/png" } } }]
+        : [{ from: "user", creationTime: 2, content: { text: "hola" } }],
+      events: [
+        { name: "bot-change", creationTime: 1, info: { currentBotId: botId } },
+        ...(opts.ocr ? [{ name: "go-to", creationTime: 2, info: { name: "fulfilled of ¿es Legible?" } }] : []),
+      ],
+    });
+    const sessions: BmSession[] = [];
+    // OCR bot por NOMBRE (sin imagen ni nodo)
+    for (let i = 0; i < 12; i++) sessions.push(mk("BOCR", {}));
+    // bot de texto puro
+    for (let i = 0; i < 12; i++) sessions.push(mk("BTXT", {}));
+    // bot que recibe imágenes
+    for (let i = 0; i < 12; i++) sessions.push(mk("BIMG", { img: i < 6 }));
+
+    const perf = computeBotPerformance(sessions, { botNames: { BOCR: "Bait Pospago OCR", BTXT: "Prepago Sin Dudas", BIMG: "Bot con foto" } });
+    const by = Object.fromEntries(perf.bots.map((b) => [b.botId, b]));
+    expect(by["BOCR"].usesOcrNip).toBe(true);      // por nombre "OCR"
+    expect(by["BTXT"].usesOcrNip).toBe(false);     // texto puro
+    expect(by["BIMG"].ocrImageRate).toBe(50);      // 6/12
+    expect(by["BIMG"].usesOcrNip).toBe(true);      // por imagen >= 10%
   });
 });
 

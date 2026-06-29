@@ -51,6 +51,40 @@ export function saleByPhrase(s: BmSession): boolean {
   );
 }
 
+// ── Captura del NIP por IMAGEN + OCR ──────────────────────────────────────────
+// El flujo OCR pide una imagen (el form la guarda en `ocr_image_url`), luego el
+// OCR determina NIP + vigencia + legibilidad. El OCR en sí corre FUERA del
+// timeline de `/sessions` (setea variables de contacto, invisibles como eventos),
+// así que desde las sesiones se observan dos señales: (a) el usuario MANDÓ una
+// imagen, y (b) los NODOS DE RAMA que dependen del OCR ("¿es Legible?" =
+// legibilidad, "Fecha Vigencia Nip" = vigencia). El resultado exacto del OCR por
+// bot solo es 100% observable vía el webhook (BotmakerOcrExtraction).
+
+const IMG_MSG_TYPES = new Set(["image", "photo", "sticker", "document", "media", "file"]);
+
+/** ¿El usuario envió al menos una imagen/adjunto en la sesión? */
+export function userSentImage(s: BmSession): boolean {
+  return (s.messages || []).some((m) => {
+    if (m.from !== "user") return false;
+    const ct = (m.content?.type || "").toString().toLowerCase();
+    const media = m.content?.media as { url?: string; type?: string } | null | undefined;
+    return IMG_MSG_TYPES.has(ct) || !!(media && (media.url || (media.type || "").toLowerCase().includes("image")));
+  });
+}
+
+/** Nodo de rama que depende del OCR (legibilidad de la imagen / vigencia del NIP). */
+const OCR_NODE_RE = /legible|legib|vigencia\s*nip|fecha\s*vigencia|\bocr\b/i;
+
+/** ¿La sesión atravesó un nodo de validación del OCR (legibilidad/vigencia)? */
+export function sessionHasOcrNode(s: BmSession): boolean {
+  return (s.events || []).some((e) => {
+    const info = (e.info || {}) as Record<string, unknown>;
+    const nm = (typeof info.name === "string" ? info.name : "") ||
+      (typeof info.executingIntents === "string" ? info.executingIntents : "");
+    return OCR_NODE_RE.test(nm);
+  });
+}
+
 /** Conjunto de campos que el bot pidió por sesión (heurística de texto). */
 export function capturedFieldsPerSession(sessions: BmSession[]): Set<string>[] {
   return sessions.map((s) => {

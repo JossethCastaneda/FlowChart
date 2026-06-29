@@ -697,6 +697,46 @@ const CaptureFunnelWidget = ({ data }: WidgetCtx) => {
   );
 };
 
+// ── Captura del NIP por IMAGEN + OCR (¿qué bots lo usan?) ──
+const OcrNipWidget = ({ data }: WidgetCtx) => {
+  const bots = data.botPerf.filter((b) => !b.isTest && !b.isUnattributed && b.sessions >= 10);
+  if (!bots.length) return <Empty msg="Sin bots con muestra suficiente" />;
+  const sorted = [...bots].sort((a, b) => Number(b.usesOcrNip) - Number(a.usesOcrNip) || b.ocrImageRate - a.ocrImageRate);
+  const HEADERS = ["Bot", "Sesiones", "Imagen %", "Nodo OCR %", "NIP por imagen"];
+  return (
+    <Col gap={8}>
+      <div style={{ fontSize: 10.5, color: muted, flexShrink: 0, lineHeight: 1.5 }}>
+        El usuario manda foto del NIP → el form la guarda en <b style={{ color: "rgba(255,255,255,0.72)" }}>ocr_image_url</b> → el OCR valida NIP + vigencia + legibilidad.
+        El OCR corre fuera de <code>/sessions</code>, así que se observan la <b style={{ color: "rgba(255,255,255,0.72)" }}>imagen del usuario</b> y los nodos de rama <b style={{ color: "rgba(255,255,255,0.72)" }}>«¿es Legible?»</b> (legibilidad) y <b style={{ color: "rgba(255,255,255,0.72)" }}>«Fecha Vigencia Nip»</b> (vigencia).
+      </div>
+      <div style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+          <thead>
+            <tr>
+              {HEADERS.map((h, i) => (
+                <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "5px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.1)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "#070b14" }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {sorted.map((b) => (
+              <tr key={b.botId} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: b.usesOcrNip ? "rgba(16,185,129,0.05)" : "transparent" }}>
+                <td style={{ padding: "5px 8px", textAlign: "left", color: "rgba(255,255,255,0.88)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 240 }} title={b.botName}>
+                  {b.botName}{b.isUnnamed && <span style={{ fontSize: 9, fontFamily: "monospace", color: muted, marginLeft: 6 }}>{b.botId.slice(0, 6)}</span>}
+                </td>
+                <td style={cell}>{fmt(b.sessions)}</td>
+                <td style={{ ...cell, color: b.ocrImageRate >= 10 ? G : "rgba(255,255,255,0.7)" }}>{b.ocrImageRate}%</td>
+                <td style={{ ...cell, color: b.ocrFlowRate > 0 ? C : muted }}>{b.ocrFlowRate}%</td>
+                <td style={cell}>{b.usesOcrNip ? <span style={{ color: G, fontWeight: 700 }}>● Sí</span> : <span style={{ color: muted }}>texto</span>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Col>
+  );
+};
+
 // ── registry + default layout ───────────────────────────────────────────────────
 
 export const WIDGETS: Record<string, WidgetDef> = {
@@ -708,6 +748,7 @@ export const WIDGETS: Record<string, WidgetDef> = {
   insights: { id: "insights", title: "Dónde accionar · alertas y recomendaciones", size: { w: 12, h: 3, minW: 4, minH: 2 }, render: (c) => <InsightsWidget {...c} /> },
   outcomes: { id: "outcomes", title: "¿Qué pasó con las conversaciones?", size: { w: 6, h: 5, minW: 4, minH: 3 }, render: (c) => <OutcomesWidget {...c} /> },
   captureFunnel: { id: "captureFunnel", title: "Embudo de captura · número → NIP → nombre → venta", size: { w: 6, h: 5, minW: 4, minH: 4 }, render: (c) => <CaptureFunnelWidget {...c} /> },
+  ocrNip: { id: "ocrNip", title: "Captura del NIP por imagen (OCR) · por bot", size: { w: 12, h: 4, minW: 5, minH: 3 }, render: (c) => <OcrNipWidget {...c} /> },
   // Nivel 3 — diagnóstico de detalle
   timeseries: { id: "timeseries", title: "Evolución de conversaciones", size: { w: 12, h: 4, minW: 4, minH: 3 }, render: (c) => <TimeseriesWidget {...c} /> },
   botflow: { id: "botflow", title: "Recorrido de portabilidad · dónde se caen los usuarios", size: { w: 12, h: 6, minW: 6, minH: 4 }, render: (c) => <BotFlowWidget {...c} /> },
@@ -744,17 +785,18 @@ export const DEFAULT_LAYOUT: LayoutCell[] = [
   { id: "insights", x: 0, y: 11, w: 12, h: 3 },
   { id: "outcomes", x: 0, y: 14, w: 6, h: 5 },
   { id: "captureFunnel", x: 6, y: 14, w: 6, h: 5 },
+  { id: "ocrNip", x: 0, y: 19, w: 12, h: 4 },
   // Nivel 3 — diagnóstico de detalle
-  { id: "timeseries", x: 0, y: 19, w: 12, h: 4 },
-  { id: "botflow", x: 0, y: 23, w: 12, h: 6 },
-  { id: "fallback", x: 0, y: 29, w: 6, h: 5 },
-  { id: "buttons", x: 6, y: 29, w: 6, h: 5 },
-  { id: "channelDistribution", x: 0, y: 34, w: 6, h: 4 },
-  { id: "channels", x: 6, y: 34, w: 6, h: 4 },
-  { id: "heatmap", x: 0, y: 38, w: 12, h: 3 },
-  { id: "typifications", x: 0, y: 41, w: 3, h: 4 },
-  { id: "copies", x: 3, y: 41, w: 3, h: 4 },
-  { id: "bots", x: 6, y: 41, w: 3, h: 4 },
-  { id: "errors", x: 9, y: 41, w: 3, h: 4 },
-  { id: "flow", x: 0, y: 45, w: 6, h: 4 },
+  { id: "timeseries", x: 0, y: 23, w: 12, h: 4 },
+  { id: "botflow", x: 0, y: 27, w: 12, h: 6 },
+  { id: "fallback", x: 0, y: 33, w: 6, h: 5 },
+  { id: "buttons", x: 6, y: 33, w: 6, h: 5 },
+  { id: "channelDistribution", x: 0, y: 38, w: 6, h: 4 },
+  { id: "channels", x: 6, y: 38, w: 6, h: 4 },
+  { id: "heatmap", x: 0, y: 42, w: 12, h: 3 },
+  { id: "typifications", x: 0, y: 45, w: 3, h: 4 },
+  { id: "copies", x: 3, y: 45, w: 3, h: 4 },
+  { id: "bots", x: 6, y: 45, w: 3, h: 4 },
+  { id: "errors", x: 9, y: 45, w: 3, h: 4 },
+  { id: "flow", x: 0, y: 49, w: 6, h: 4 },
 ];
