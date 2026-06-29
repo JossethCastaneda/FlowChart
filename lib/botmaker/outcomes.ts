@@ -102,6 +102,9 @@ const RULES: { key: OutcomeKey; re: RegExp }[] = [
   // prospecto / seguimiento — ANTES que venta: "propecto_a_venta" es un prospecto
   // en camino a la venta, NO un cambio completado (no inflar la tasa de venta).
   { key: "prospecto",     re: /prospecto|propecto|oferta|saludo|agenda|seguimiento|interesad/ },
+  // FRACASO de venta — ANTES que venta: "no exitosa"/"fallida" contienen la
+  // subcadena "exitos", que la regla de venta capturaría como venta (falso +).
+  { key: "error_tecnico", re: /no exitos|sin exito|fallid|no se complet|no se concret|no concret|no procede|no se pudo/ },
   // venta / activación / felicitación.
   { key: "venta",         re: /\bventa|vendid|exitos|felicidad|activacion|compr[oa]\b|cambio complet|portabilidad exito/ },
   // derivación a humano.
@@ -138,11 +141,14 @@ export interface OutcomeFlags {
  * sesión cae en un bucket → la distribución de outcomes suma 100%.
  */
 export function classifyOutcome(f: OutcomeFlags): OutcomeKey {
-  if (f.saleByPhrase) return "venta";
+  // La tipificación de cierre (señal rica del operador) manda SOBRE la heurística
+  // de frase: evita que una "felicidad" suelta del bot reclasifique a venta un
+  // cierre tipificado como "ya_es_bait" o "no_le_interesa".
   if (f.typ) {
     const k = classifyTypification(f.typ);
-    if (k !== "otro") return k; // tipificación reconocida manda
+    if (k !== "otro") return k;
   }
+  if (f.saleByPhrase) return "venta";
   // Sin tipificación útil: caer en señales de evento.
   if (f.hasAgent) return "atencion";
   if (f.hasFallback) return "no_entendido";

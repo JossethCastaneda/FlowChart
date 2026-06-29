@@ -716,7 +716,7 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
   // ── outcomes canónicos / embudo de captura real / oportunidad (rediseño) ──
   const outcomes = buildOutcomeRows(outcomeCounts, outcomeRaw, total);
   const captureFunnel = computeCaptureFunnel(prodSessions);
-  const opportunity = computeOpportunity(captureFunnel, outcomes, total ? sales / total : 0);
+  const opportunity = computeOpportunity(captureFunnel);
   const coverage = excludeTest ? perf.coverage : { ...perf.coverage, testSessionsExcluded: 0 };
 
   const oppInsight = buildOpportunityInsight(opportunity);
@@ -818,12 +818,14 @@ function buildInsights(
 // ── rediseño: helpers de oportunidad, salud por bot, cambios de flujo, deltas ──
 
 /**
- * Cuantifica las conversaciones recuperables → ventas potenciales. Dos fuentes:
- *  (a) fugas del embudo de captura, valoradas a la conversión de quienes SÍ
- *      pasaron ese paso; (b) outcomes recuperables (abandono / error técnico),
- *      valorados a la conversión base. Es una estimación direccional (techo).
+ * Cuantifica las conversaciones recuperables → ventas potenciales, SOLO desde las
+ * fugas del embudo de captura. Son DISJUNTAS (en un funnel de prefijo cada sesión
+ * se cae en un único paso) y la última transición (nombre→venta) ya cubre la
+ * pérdida post-captura, así que no hay doble conteo. (Antes se sumaban además
+ * outcomes recuperables, que se solapan con estas fugas e inflaban el total.)
+ * Es una estimación direccional (techo), basada en la heurística de presencia.
  */
-function computeOpportunity(capture: CaptureFunnelStep[], outcomes: OutcomeRow[], baseConv: number): Opportunity {
+function computeOpportunity(capture: CaptureFunnelStep[]): Opportunity {
   const items: OpportunityItem[] = [];
   const venta = capture.find((s) => s.key === "venta");
   const ventaCount = venta?.count ?? 0;
@@ -839,19 +841,6 @@ function computeOpportunity(capture: CaptureFunnelStep[], outcomes: OutcomeRow[]
         recoverable: step.dropOff,
         extraSales: extra,
         basis: `${step.dropOff} no avanzaron · quienes pasaron convierten ${Math.round(passConv * 100)}%`,
-      });
-    }
-  }
-
-  for (const o of outcomes) {
-    if (o.category !== "recuperable") continue;
-    const extra = Math.round(o.count * baseConv);
-    if (extra >= 1) {
-      items.push({
-        leak: o.label,
-        recoverable: o.count,
-        extraSales: extra,
-        basis: `${o.count} recuperables · conversión base ${Math.round(baseConv * 100)}%`,
       });
     }
   }

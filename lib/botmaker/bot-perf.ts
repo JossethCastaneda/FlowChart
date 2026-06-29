@@ -126,9 +126,14 @@ function sessionEverFallback(s: BmSession): boolean {
   });
 }
 
-/** ¿Es un bot de prueba/QA? Se evalúa sobre el NOMBRE (no el id hex). */
+/**
+ * ¿Es un bot de prueba/QA? Se evalúa sobre el NOMBRE (no el id hex).
+ * OJO: NO incluir "biometric" — los bots biométricos son de PRODUCCIÓN (validan
+ * el NIP por imagen/biometría); excluirlos descartaría un flujo real (y contradice
+ * `usesOcrNip`, que usa /ocr|biometr/ como señal positiva de producción).
+ */
 export function isTestBot(name: string): boolean {
-  return /\bprueba\b|\btest\b|\bqa\b|\bdemo\b|biometric|menu de prueba|^prueba/i.test((name || "").trim());
+  return /\bprueba\b|\btest\b|\bqa\b|\bdemo\b|^prueba/i.test((name || "").trim());
 }
 
 /** Resuelve identidad legible: nombre de /intents → ID corto si no hay nombre. */

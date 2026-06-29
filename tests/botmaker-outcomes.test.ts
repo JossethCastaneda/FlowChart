@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { classifyTypification, bucketTypifications, OUTCOME_ORDER } from "@/lib/botmaker/outcomes";
+import { classifyTypification, classifyOutcome, bucketTypifications, OUTCOME_ORDER } from "@/lib/botmaker/outcomes";
 
 // Tipificaciones REALES observadas en la muestra de 3500 sesiones (docs/botmaker-bot-patterns-observed.md).
 describe("classifyTypification — tipificaciones reales", () => {
@@ -55,6 +55,27 @@ describe("classifyTypification — tipificaciones reales", () => {
     expect(classifyTypification("")).toBe("otro");
     expect(classifyTypification(null)).toBe("otro");
     expect(classifyTypification(undefined)).toBe("otro");
+  });
+
+  // C2 (auditoría): la subcadena "exitos" no debe convertir un fracaso en venta.
+  it("CRÍTICO: fracaso de venta NO se clasifica como venta", () => {
+    expect(classifyTypification("Portabilidad no exitosa")).toBe("error_tecnico");
+    expect(classifyTypification("Venta no exitosa")).toBe("error_tecnico");
+    expect(classifyTypification("activacion fallida")).toBe("error_tecnico");
+    // pero la venta legítima sigue siéndolo
+    expect(classifyTypification("Venta_exitosa")).toBe("venta");
+    expect(classifyTypification("Activación")).toBe("venta");
+  });
+});
+
+// C4 (auditoría): la tipificación concluyente manda sobre la heurística de frase.
+describe("classifyOutcome — precedencia tipificación vs 'felicidad'", () => {
+  it("tipificación negativa explícita gana a saleByPhrase", () => {
+    expect(classifyOutcome({ saleByPhrase: true, typ: "ya_es_bait", hasAgent: false, hasFallback: false, hasClose: true })).toBe("ya_cliente");
+    expect(classifyOutcome({ saleByPhrase: true, typ: "No_le_interesa", hasAgent: false, hasFallback: false, hasClose: true })).toBe("no_interesa");
+  });
+  it("sin tipificación, la frase 'felicidad' sí decide venta", () => {
+    expect(classifyOutcome({ saleByPhrase: true, typ: null, hasAgent: false, hasFallback: false, hasClose: false })).toBe("venta");
   });
 });
 

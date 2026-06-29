@@ -218,4 +218,9 @@ describe("resolveBotId / isTestBot", () => {
     expect(isTestBot("Bait Pospago OCR")).toBe(false);
     expect(isTestBot("Bot Prepago Parque Lira")).toBe(false);
   });
+  // C3 (auditoría): los bots biométricos son PRODUCCIÓN, no prueba.
+  it("NO excluye bots biométricos de producción", () => {
+    expect(isTestBot("Bot Bait Biometricos")).toBe(false);
+    expect(isTestBot("Prueba biometricos")).toBe(true); // sigue siendo prueba (por 'prueba')
+  });
 });
