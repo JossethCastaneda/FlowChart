@@ -49,6 +49,7 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN", "MEMBER"])(async (req, c
   try {
     const datasets = await prisma.ariaDataset.findMany({
       where: { workspaceId: ctx.workspaceId },
+      include: { project: { select: { name: true } } },
       orderBy: { createdAt: "desc" }
     });
     return NextResponse.json(datasets);
