@@ -11,7 +11,7 @@ export type ModuleKey =
   | "resumen" | "clientes" | "publicacion" | "inbox" | "anuncios"
   | "escucha" | "envivo" | "briefs" | "tareas" | "chatbots"
   | "integraciones" | "configuracion" | "mmm"
-  | "aprobaciones" | "reportes" | "biblioteca" | "datos" | "competidores" | "linkinbio" | "roles" | "api";
+  | "aprobaciones" | "reportes" | "biblioteca" | "datos" | "competidores" | "linkinbio" | "roles" | "api" | "aria";
 
 export type GroupKey =
   | "operacion" | "contenido" | "crecimiento" | "automatizacion" | "sistema";
@@ -72,6 +72,13 @@ export const MODULES: ModuleDef[] = [
     ] },
   { key: "escucha",     label: "Escucha",      code: "Radar",     route: "/dashboard/listening",    color: "var(--mod-escucha)",  icon: "radar",       tagline: "Escucha todo el espectro",       group: "crecimiento" },
   { key: "envivo",      label: "En vivo",      code: "Órbita",    route: "/dashboard/streams",     color: "var(--mod-envivo)",   icon: "columns-3",  tagline: "Tu feed, en tiempo real",        group: "crecimiento" },
+  { key: "aria",        label: "Aria IA",      code: "Oráculo",   route: "/dashboard/crecimiento", color: "#f43f5e",             icon: "brain-circuit", tagline: "Predice tu siguiente venta",    group: "crecimiento",
+    tabs: [
+      { label: "Insights",         route: "" },
+      { label: "Data Hub",         route: "/data-hub" },
+      { label: "Predictive Studio", route: "/studio" },
+      { label: "Scores",           route: "/scores" },
+    ] },
 
   // ── AUTOMATIZACIÓN — los bots (Métricas es pestaña, no ítem de menú) ──
   { key: "chatbots",    label: "Chatbots", code: "Piloto", route: "/dashboard/botmaker", color: "var(--mod-chatbots)", icon: "bot", tagline: "Tu copiloto automático", group: "automatizacion",

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
+import { getToken } from "next-auth/jwt";
 import prisma from "@/lib/prisma";
 import { encryptToken } from "@/lib/encryption";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
@@ -28,17 +29,30 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "AUTH_SECRET not configured" }, { status: 500 });
   }
 
-  // 1. Verify state HMAC
+  // ── SECURITY: requiere sesión activa. Igual que el callback de Meta, el flujo de
+  // conexión solo lo puede completar un usuario logueado (no basta con un state
+  // firmado que pudo filtrarse por referer/historial). ──
+  const jwt = await getToken({ req: request, secret: AUTH_SECRET });
+  if (!jwt?.sub) {
+    return NextResponse.redirect(new URL("/dashboard/integrations?error=not_authenticated", request.url));
+  }
+
+  // 1. Verify state HMAC (comparación en tiempo constante para no filtrar la firma)
   let payloadObj: { provider: string; userId: string; workspaceId: string; nonce: string; moduleIds: string[] };
   try {
     const decodedState = Buffer.from(state, "base64url").toString("utf8");
     const { payload, sig } = JSON.parse(decodedState);
+    if (!payload || !sig) {
+      throw new Error("Missing payload or sig in state");
+    }
     const expectedSig = createHmac("sha256", AUTH_SECRET).update(payload).digest("hex");
-    
-    if (sig !== expectedSig) {
+
+    const sigBuf = Buffer.from(String(sig), "hex");
+    const expBuf = Buffer.from(expectedSig, "hex");
+    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
       throw new Error("Invalid HMAC signature");
     }
-    
+
     payloadObj = JSON.parse(payload);
     if (payloadObj.provider !== "google") {
       throw new Error("Invalid provider in state");
@@ -49,6 +63,13 @@ export async function GET(request: NextRequest) {
   }
 
   const { workspaceId, userId, moduleIds } = payloadObj;
+
+  // ── SECURITY: el state debe pertenecer al usuario logueado. Evita que un state
+  // firmado de otro usuario (filtrado) se complete bajo la sesión del atacante. ──
+  if (userId !== jwt.sub) {
+    logger.warn(`[OAUTH GOOGLE] ❌ User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
+    return NextResponse.redirect(new URL("/dashboard/integrations?error=user_mismatch", request.url));
+  }
 
   // 2. Validate RBAC again
   const hasAccess = await verifyWorkspaceAccess(workspaceId, userId, ["OWNER", "ADMIN"]);

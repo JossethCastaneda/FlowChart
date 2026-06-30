@@ -103,6 +103,7 @@ model Workspace {
   transmissions       Transmission[]
   auditLogs           AuditLog[]
   objectives          Objective[]
+  ariaDatasets        AriaDataset[]
 }
 
 // ------------------------------------------------------
@@ -1376,3 +1377,85 @@ model ZapierConversionEvent {
 // The earlier PortabilityRequest/BotAnalyticsEvent/BotmakerVariableAlias models
 // were a superseded v1 path (no reader, no caller) and were removed.
 // ------------------------------------------------------
+
+// ------------------------------------------------------
+// ARIA PREDICTIVE AI (CRECIMIENTO)
+// ------------------------------------------------------
+
+model AriaDataset {
+  id          String   @id @default(cuid())
+  workspaceId String
+  name        String
+  source      String   // e.g. "csv", "google_sheets", "hubspot"
+  status      String   @default("uploaded") // uploaded, processing, ready, error
+  rowCount    Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  columns   AriaDatasetColumn[]
+  models    AriaModel[]
+
+  @@index([workspaceId])
+}
+
+model AriaDatasetColumn {
+  id           String  @id @default(cuid())
+  datasetId    String
+  name         String
+  dataType     String  // "string", "number", "boolean", "date"
+  nullCount    Int     @default(0)
+  isTarget     Boolean @default(false)
+  isFeature    Boolean @default(true)
+
+  dataset AriaDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  @@index([datasetId])
+}
+
+model AriaModel {
+  id          String   @id @default(cuid())
+  datasetId   String
+  name        String
+  algorithm   String   // e.g. "logistic_regression", "random_forest"
+  status      String   @default("training") // training, ready, failed
+  accuracy    Float?
+  precision   Float?
+  recall      Float?
+  auc         Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  dataset AriaDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  runs    AriaModelRun[]
+  predictions AriaPrediction[]
+
+  @@index([datasetId])
+}
+
+model AriaModelRun {
+  id        String   @id @default(cuid())
+  modelId   String
+  status    String   // running, success, failed
+  metrics   Json?    // detailed metrics/logs
+  createdAt DateTime @default(now())
+
+  model AriaModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+
+  @@index([modelId])
+}
+
+model AriaPrediction {
+  id          String   @id @default(cuid())
+  modelId     String
+  recordId    String   // identifier for the row/lead
+  score       Float    // 0 to 100
+  probability Float    // 0.0 to 1.0
+  priority    String   // "High", "Medium", "Low"
+  insights    Json?    // factors influencing the score
+  createdAt   DateTime @default(now())
+
+  model AriaModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+
+  @@index([modelId])
+}
