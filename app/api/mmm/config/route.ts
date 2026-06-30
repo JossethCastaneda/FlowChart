@@ -67,7 +67,7 @@ export const GET = withWorkspace(async (req, ctx) => {
 
 // PUT: guarda la config del cliente
 export const PUT = withWorkspace(async (req, ctx) => {
-  if (ctx.member.role !== "OWNER" && ctx.member.role !== "ADMIN") {
+  if (ctx.role !== "OWNER" && ctx.role !== "ADMIN") {
     return apiError("No tienes permisos para modificar el modelo de MMM. Requiere rol de OWNER o ADMIN.", "FORBIDDEN", 403);
   }
 

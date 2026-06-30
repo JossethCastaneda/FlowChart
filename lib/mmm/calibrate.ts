@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SODARE MMM — Auto-calibracion de parametros
  * Grid search sobre lambda x alpha x K para maximizar R^2 del modelo.
  * Corre en el browser (cliente) — sin backend.
@@ -7,7 +7,7 @@
 import type { ChannelConfig, WeeklyRow, CalibrationResult } from "./types";
 import { applyAdstock } from "./adstock";
 import { applySaturation } from "./saturation";
-import { olsRegression, rSquared, predict } from "./regression";
+import { ridgeRegression, rSquared, predict } from "./regression";
 
 interface GridOptions {
   lambdaSteps?: number;    // default 9
@@ -68,7 +68,7 @@ export function calibrateChannel(
         if (k <= 0) continue;
         const saturated = applySaturation(adstocked, alpha, k);
         const X = saturated.map(v => [v]);
-        const beta = olsRegression(X, y, 0.1, 500);
+        const beta = ridgeRegression(X, y, 0.1, 500, 0.5);
         const yHat = predict(beta, X);
         const r2 = rSquared(y, yHat);
         if (r2 > bestR2) {
@@ -85,7 +85,7 @@ export function calibrateChannel(
   const currentAdstocked = applyAdstock(spend, currentConfig.adstockDecay);
   const currentSat = applySaturation(currentAdstocked, currentConfig.saturationAlpha, currentConfig.saturationK);
   const currentX = currentSat.map(v => [v]);
-  const currentBeta = olsRegression(currentX, y, 0.1, 500);
+  const currentBeta = ridgeRegression(currentX, y, 0.1, 500, 0.5);
   const currentYHat = predict(currentBeta, currentX);
   const currentR2 = rSquared(y, currentYHat);
 
