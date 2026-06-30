@@ -113,6 +113,7 @@ const COMPARISONS = [
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
 
   useEffect(() => { setMounted(true); }, []);
   useEffect(() => {
@@ -193,20 +194,34 @@ export default function Home() {
 
         @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; } }
 
+        .apple-nav-links { display: flex; align-items: center; gap: 28px; }
+        .apple-burger { display: none; background: none; border: none; cursor: pointer; padding: 8px; color: #f5f5f7; }
+        .apple-mobile-menu { display: none; }
+
         @media (max-width: 768px) {
           .apple-features-grid { grid-template-columns: 1fr !important; }
           .apple-stats-grid { grid-template-columns: repeat(2, 1fr) !important; }
-          .apple-hero-h1-text { font-size: 40px !important; }
+          .apple-pain-grid { grid-template-columns: 1fr !important; max-width: 400px; margin-left: auto; margin-right: auto; }
+          .apple-steps-grid { grid-template-columns: 1fr !important; max-width: 400px; margin-left: auto; margin-right: auto; }
+          .apple-hero-h1-text { font-size: 36px !important; }
           .apple-hero-sub-text { font-size: 17px !important; }
-          .apple-section-h2 { font-size: 36px !important; }
-          .apple-compare-grid { grid-template-columns: 1fr 80px 100px !important; }
+          .apple-section-h2 { font-size: 32px !important; }
+          .apple-compare-grid { grid-template-columns: 1fr 60px 80px !important; font-size: 13px !important; }
+          .apple-nav-links { display: none; }
+          .apple-burger { display: block; }
+          .apple-mobile-menu { padding: 0 22px 16px; }
+          .apple-mobile-menu.open { display: flex; flex-direction: column; gap: 12px; }
+          .apple-mobile-menu a { font-size: 15px; color: rgba(245,245,247,0.65); text-decoration: none; padding: 8px 0; }
+          .apple-trust-bar { flex-direction: column !important; gap: 12px !important; text-align: center; }
+          .apple-footer-cols { flex-direction: column !important; gap: 24px !important; }
+          .apple-footer-bottom { flex-direction: column !important; text-align: center !important; }
         }
         @media (min-width: 769px) and (max-width: 1024px) {
           .apple-features-grid { grid-template-columns: repeat(2, 1fr) !important; }
         }
       `}</style>
 
-      {/* ═══ NAVBAR — Clean, Apple-style ═══ */}
+      {/* ═══ NAVBAR — Clean, Apple-style with mobile hamburger ═══ */}
       <header style={{
         position: "fixed", top: 0, left: 0, right: 0, zIndex: 100,
         background: `rgba(0,0,0,${navOpacity})`,
@@ -216,7 +231,7 @@ export default function Home() {
       }}>
         <div style={{ maxWidth: 980, margin: "0 auto", padding: "14px 22px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ textDecoration: "none" }}><SodareLogo size="sm" /></Link>
-          <nav style={{ display: "flex", alignItems: "center", gap: 28 }}>
+          <nav className="apple-nav-links">
             {[["#problema", "Problema"], ["#solucion", "Solución"], ["#comparar", "Comparar"]].map(([href, label]) => (
               <a key={href} href={href} className="apple-nav-link">{label}</a>
             ))}
@@ -229,6 +244,19 @@ export default function Home() {
               Acceder
             </Link>
           </nav>
+          <button className="apple-burger" onClick={() => setMobileMenu(!mobileMenu)} aria-label="Menú">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d={mobileMenu ? "M4 4L14 14M4 14L14 4" : "M2 5h14M2 9h14M2 13h14"} stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" /></svg>
+          </button>
+        </div>
+        <div className={`apple-mobile-menu ${mobileMenu ? "open" : ""}`}>
+          {[["#problema", "Problema"], ["#solucion", "Solución"], ["#comparar", "Comparar"]].map(([href, label]) => (
+            <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label}</a>
+          ))}
+          <Link href="/login" onClick={() => setMobileMenu(false)} style={{
+            padding: "10px 0", color: "var(--cyan)", fontWeight: 600, fontSize: 15, textDecoration: "none",
+          }}>
+            Acceder →
+          </Link>
         </div>
       </header>
 
@@ -248,7 +276,7 @@ export default function Home() {
         {/* Subtle hero glow — very Apple */}
         <div style={{
           position: "absolute", top: "15%", left: "50%", transform: "translateX(-50%)",
-          width: 800, height: 500,
+          width: "min(800px, 100vw)", height: 500,
           background: "radial-gradient(ellipse, rgba(0,212,255,0.08) 0%, rgba(79,70,229,0.04) 40%, transparent 70%)",
           filter: "blur(80px)", pointerEvents: "none",
         }} />
@@ -333,7 +361,7 @@ export default function Home() {
       {/* ═══ TRUST BAR ═══ */}
       <section style={{ position: "relative", zIndex: 1, padding: "0 24px 80px", maxWidth: 980, margin: "0 auto", width: "100%" }}>
         <Reveal>
-          <div style={{
+          <div className="apple-trust-bar" style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 40,
             padding: "20px 0",
             borderTop: "1px solid rgba(255,255,255,0.06)",
@@ -371,7 +399,7 @@ export default function Home() {
           </h2>
         </Reveal>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32, textAlign: "center" }}>
+        <div className="apple-pain-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32, textAlign: "center" }}>
           {[
             { stat: "10+", unit: "hrs/semana", desc: "perdidas cambiando entre plataformas", color: "var(--red)" },
             { stat: "$500+", unit: "USD/mes", desc: "en herramientas que no se integran", color: "var(--amber)" },
@@ -476,7 +504,7 @@ export default function Home() {
           </h2>
         </Reveal>
 
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32 }}>
+        <div className="apple-steps-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 32 }}>
           {[
             { step: "1", title: "Conecta tus canales", desc: "Vincula Meta, TikTok, Google y WhatsApp desde Integraciones. OAuth seguro, sin tokens manuales.", icon: <Globe style={{ width: 24, height: 24 }} />, color: "var(--cyan)" },
             { step: "2", title: "Centraliza en Resumen", desc: "Campañas, métricas y conversaciones fluyen a tu dashboard en tiempo real. Un solo login.", icon: <LineChart style={{ width: 24, height: 24 }} />, color: "var(--purple)" },
@@ -766,7 +794,7 @@ export default function Home() {
                 Plataforma de inteligencia multicanal para agencias y anunciantes en México y LATAM.
               </p>
             </div>
-            <div style={{ display: "flex", gap: 48, flexWrap: "wrap" }}>
+            <div className="apple-footer-cols" style={{ display: "flex", gap: 48, flexWrap: "wrap" }}>
               <FooterCol title="Legal" links={[
                 { label: "Términos de Servicio", href: "/condiciones-del-servicio" },
                 { label: "Política de Privacidad", href: "/aviso-de-privacidad" },
@@ -778,7 +806,7 @@ export default function Home() {
               ]} />
             </div>
           </div>
-          <div style={{
+          <div className="apple-footer-bottom" style={{
             marginTop: 32, paddingTop: 20,
             borderTop: "1px solid rgba(255,255,255,0.04)",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap",
