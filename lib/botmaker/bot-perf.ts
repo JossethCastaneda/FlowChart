@@ -13,7 +13,7 @@
 import type { BmSession } from "@/lib/botmaker-api";
 import { computeBotFlows, type BotFlow, type FlowDiff } from "@/lib/botmaker/flow-map";
 import { saleByPhrase, capturedFieldsPerSession, userSentImage, sessionHasOcrNode } from "@/lib/botmaker/fields";
-import { classifyTypification } from "@/lib/botmaker/outcomes";
+import { classifyOutcome } from "@/lib/botmaker/outcomes";
 
 export const UNATTRIBUTED = "__none__";
 
@@ -192,9 +192,15 @@ export function computeBotPerformance(sessions: BmSession[], opts: BotPerfOption
     if (!a) { a = { sessions: [], sales: 0, agent: 0, fallback: 0, captureComplete: 0, image: 0, ocrNode: 0 }; accById.set(botId, a); }
     a.sessions.push(s);
     const typ = sessionTypification(s);
-    if (saleByPhrase(s) || classifyTypification(typ) === "venta") a.sales++;
-    if (sessionEverAgent(s)) a.agent++;
-    if (sessionEverFallback(s)) a.fallback++;
+    const everAgent = sessionEverAgent(s);
+    const everFallback = sessionEverFallback(s);
+    // MISMA definición de venta que el agregado (classifyOutcome): la tipificación
+    // concluyente manda sobre la frase "felicidad" → evita inflar sales por frase
+    // cuando el cierre dice lo contrario (consistencia agregado ↔ por-bot).
+    const outcome = classifyOutcome({ saleByPhrase: saleByPhrase(s), typ, hasAgent: everAgent, hasFallback: everFallback, hasClose: typ != null });
+    if (outcome === "venta") a.sales++;
+    if (everAgent) a.agent++;
+    if (everFallback) a.fallback++;
     if (userSentImage(s)) a.image++;
     if (sessionHasOcrNode(s)) a.ocrNode++;
   }

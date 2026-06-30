@@ -110,7 +110,8 @@ const KpisWidget = ({ data }: WidgetCtx) => {
     <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
       <Kpi label="Conversaciones" value={fmt(k.sessions)} accent={P} icon={<Bot size={14} />} sub={`${fmt(k.users)} usuarios únicos`} trend={d?.sessions} />
       <Kpi label="Cambios completados" value={fmt(completed)} accent={G} icon={<Target size={14} />} sub="portabilidad exitosa" trend={d?.conversionRate} />
-      <Kpi label="Tasa de portabilidad" value={pctTxt(k.conversionRate)} accent={G} icon={<TrendingUp size={14} />} sub="de las conversaciones" trend={d?.conversionRate} />
+      <Kpi label="Tasa de portabilidad" value={pctTxt(k.conversionRate)} accent={G} icon={<TrendingUp size={14} />} sub="sobre el total (mezcla tráfico)" trend={d?.conversionRate} />
+      <Kpi label="Conversión de flujo" value={pctTxt(k.eligibleConversionRate)} accent={G} icon={<Target size={14} />} sub={`sobre ${fmt(k.eligibleSessions)} que entraron a captura`} trend={d?.eligibleConversionRate} />
       <Kpi label="Atención humana" value={pctTxt(k.agentRate)} accent={A} icon={<Users size={14} />} sub="escalan a un agente" trend={d?.agentRate} />
       <Kpi label="No entendidas" value={pctTxt(k.fallbackRate)} accent={R} icon={<AlertTriangle size={14} />} sub="el bot no comprende" trend={d?.fallbackRate} />
       <Kpi label="Reintentos de captura" value={pctTxt(k.retryRate)} accent={A} icon={<RefreshCw size={14} />} sub="error al pedir datos (NIP, número…)" trend={d?.retryRate} />
@@ -509,7 +510,10 @@ function DeltaChip({ d, unit = "%" }: { d?: KpiDelta; unit?: string }) {
   if (!d || d.dir === "flat") return null;
   const col = d.good ? G : R;
   const Icon = d.dir === "up" ? TrendingUp : TrendingDown;
-  const txt = Math.abs(d.pct) >= 0.1 ? `${d.pct > 0 ? "+" : ""}${d.pct}%` : `${d.abs > 0 ? "+" : ""}${d.abs}${unit}`;
+  // Tasas (isPoints): el delta va en PUNTOS porcentuales; el resto, % relativo.
+  const txt = d.isPoints
+    ? `${d.abs > 0 ? "+" : ""}${d.abs} pp`
+    : Math.abs(d.pct) >= 0.1 ? `${d.pct > 0 ? "+" : ""}${d.pct}%` : `${d.abs > 0 ? "+" : ""}${d.abs}${unit}`;
   return (
     <span title="vs periodo previo" style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 10.5, fontWeight: 800, color: col }}>
       <Icon size={11} /> {txt}
@@ -539,6 +543,7 @@ const CoverageWidget = ({ data }: WidgetCtx) => {
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
         <Tag color={P}><ShieldCheck size={11} /> {attrPct}% atribuidas a un bot</Tag>
+        <Tag color={data.kpis.typificationCoverage < 50 ? A : P}>{pctTxt(data.kpis.typificationCoverage)} con cierre tipificado</Tag>
         {c.unattributed > 0 && <Tag>{fmt(c.unattributed)} sin bot identificado</Tag>}
         {c.unnamedBots > 0 && <Tag color={A}>{c.unnamedBots} bots sin nombre</Tag>}
         {c.testBotsExcluded > 0 && <Tag>{c.testBotsExcluded} de prueba excluidos ({fmt(c.testSessionsExcluded)} conv)</Tag>}

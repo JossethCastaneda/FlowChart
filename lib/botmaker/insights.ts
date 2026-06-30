@@ -15,7 +15,7 @@ import type { BmSession } from "@/lib/botmaker-api";
 import {
   classifyOutcome, buildOutcomeRows, type OutcomeKey, type OutcomeRow,
 } from "@/lib/botmaker/outcomes";
-import { computeCaptureFunnel, type CaptureFunnelStep } from "@/lib/botmaker/fields";
+import { computeCaptureFunnel, capturedFieldsPerSession, type CaptureFunnelStep } from "@/lib/botmaker/fields";
 import {
   computeBotPerformance, resolveBotId,
   type BotPerf, type CoverageInfo,
@@ -32,6 +32,7 @@ export interface KpiDelta {
   pct: number;            // % de cambio vs prev (0 si prev=0)
   dir: "up" | "down" | "flat";
   good: boolean;          // true si el movimiento es deseable para ESTE KPI
+  isPoints?: boolean;     // el KPI ya es %, el delta va en PUNTOS porcentuales (abs), no % relativo
 }
 
 export interface OpportunityItem {
@@ -98,7 +99,10 @@ export interface Kpis {
   retryRate: number;        // % sessions with ≥1 "incorrect of <X>"
   avgFirstResponseSec: number;
   avgSessionDurationSec: number;
-  conversionRate: number;   // % sessions typified as a sale
+  conversionRate: number;   // % venta sobre el TOTAL (mezcla eficiencia + calidad de tráfico)
+  eligibleSessions: number; // sesiones que entraron a un flujo de captura (el bot pidió número/NIP)
+  eligibleConversionRate: number; // % venta SOBRE elegibles = eficiencia real del flujo (sin dilución)
+  typificationCoverage: number;   // % de sesiones con cierre tipificable (calidad del dato de outcomes)
 }
 
 export interface TimeBucket {
@@ -352,6 +356,8 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
   let userMessages = 0, botMessages = 0, agentMessages = 0;
   let sessionsWithAgent = 0, sessionsClosed = 0, sessionsFallback = 0, sessionsError = 0, sessionsRetry = 0;
   let sales = 0, resolved = 0, engaged = 0, multiTurn = 0;
+  let typifiedSessions = 0;
+  const saleSessions = new Set<BmSession>(); // sesiones-venta (por referencia) para conversión por elegibles
   let frtSum = 0, frtN = 0, durSum = 0, durN = 0;
 
   const heatmap: number[][] = Array.from({ length: 7 }, () => new Array(24).fill(0));
@@ -549,8 +555,9 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
       bucket[sessionTyp] = (bucket[sessionTyp] || 0) + 1;
     }
     const isSale = outcomeKey === "venta";
-    if (isSale) sales++;
+    if (isSale) { sales++; saleSessions.add(s); }
     if (sessionTyp) {
+      typifiedSessions++;
       typ[sessionTyp] = (typ[sessionTyp] || 0) + 1;
       if (!NEG_TYP.test(sessionTyp)) resolved++;
     }
@@ -592,6 +599,19 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
   const pctOf = (n: number) => (total ? Math.round((n / total) * 1000) / 10 : 0);
   const botOnly = Math.max(0, total - sessionsWithAgent);
 
+  // Conversión sobre ELEGIBLES (sesiones que entraron a captura: el bot pidió
+  // número o NIP) — separa la eficiencia del flujo de la calidad del tráfico, que
+  // el denominador TOTAL mezcla y subestima. (Hallazgo del re-análisis senior.)
+  const capturedSets = capturedFieldsPerSession(prodSessions);
+  let eligibleSessions = 0, eligibleSales = 0;
+  prodSessions.forEach((s, i) => {
+    if (capturedSets[i].has("numero") || capturedSets[i].has("nip")) {
+      eligibleSessions++;
+      if (saleSessions.has(s)) eligibleSales++;
+    }
+  });
+  const eligibleConversionRate = eligibleSessions ? Math.round((eligibleSales / eligibleSessions) * 1000) / 10 : 0;
+
   const kpis: Kpis = {
     sessions: total,
     users: contacts.size || total,
@@ -606,6 +626,9 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     avgFirstResponseSec: frtN ? Math.round(frtSum / frtN / 1000) : 0,
     avgSessionDurationSec: durN ? Math.round(durSum / durN / 1000) : 0,
     conversionRate: pctOf(sales),
+    eligibleSessions,
+    eligibleConversionRate,
+    typificationCoverage: pctOf(typifiedSessions),
   };
 
   const sortTs = (m: Map<string, TimeBucket>) => Array.from(m.values()).sort((a, b) => a.bucket.localeCompare(b.bucket));
@@ -921,8 +944,11 @@ function buildFlowChangeInsights(diffs: FlowDiff[]): InsightCard[] {
 const fmtN = (n: number) => (n ?? 0).toLocaleString("es-MX");
 
 // KPIs donde SUBIR es bueno vs donde BAJAR es bueno (para colorear el delta).
-const GOOD_WHEN_UP = new Set(["sessions", "users", "messages", "userMessages", "botMessages", "conversionRate", "automationRate", "closeRate"]);
+const GOOD_WHEN_UP = new Set(["sessions", "users", "messages", "userMessages", "botMessages", "conversionRate", "automationRate", "closeRate", "eligibleConversionRate", "typificationCoverage"]);
 const GOOD_WHEN_DOWN = new Set(["agentRate", "fallbackRate", "errorRate", "retryRate", "avgFirstResponseSec"]);
+// KPIs que YA son porcentajes → su delta debe ir en PUNTOS porcentuales (abs),
+// no en % relativo (un fallback 10%→12% es +2 pp, no "+20%").
+const RATE_KPIS = new Set(["conversionRate", "eligibleConversionRate", "typificationCoverage", "automationRate", "agentRate", "closeRate", "fallbackRate", "errorRate", "retryRate"]);
 
 /** Compara KPIs actuales vs ventana previa → delta con dirección "deseable". */
 export function diffKpis(curr: Kpis, prev: Kpis): Record<string, KpiDelta> {
@@ -940,7 +966,7 @@ export function diffKpis(curr: Kpis, prev: Kpis): Record<string, KpiDelta> {
       else if (GOOD_WHEN_UP.has(k as string)) good = dir === "up";
       else good = dir === "up";
     }
-    out[k as string] = { abs, pct, dir, good };
+    out[k as string] = { abs, pct, dir, good, isPoints: RATE_KPIS.has(k as string) };
   });
   return out;
 }
