@@ -90,8 +90,13 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   // Default anclado a días CDMX (no `now - 7d` crudo): evita que el primer/último
   // día de la serie queden cortados a media jornada (D4 de la auditoría).
   const def = cdmxRange(7);
-  const to = sp.get("to") || def.toISO;
-  const from = sp.get("from") || def.fromISO;
+  // D4 + D3 (auditoría): default anclado a CDMX y VALIDACIÓN de params — un
+  // from/to malformado (NaN) anularía el filtro temporal y vaciaría el tablero en
+  // silencio; ante un valor no parseable, caemos al default en vez de romper.
+  const toParam = sp.get("to");
+  const fromParam = sp.get("from");
+  const to = toParam && Number.isFinite(Date.parse(toParam)) ? toParam : def.toISO;
+  const from = fromParam && Number.isFinite(Date.parse(fromParam)) ? fromParam : def.fromISO;
   const channelId = sp.get("channelId") || null;
   const projectId = sp.get("projectId") || null;
   const timezone = sp.get("timezone") || process.env.APP_TIMEZONE || "America/Mexico_City";

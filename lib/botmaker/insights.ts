@@ -446,6 +446,7 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
     let prevFlowNode: string | null = null;
     let flowStep = 0;
     const seenFieldInSession: Record<string, boolean> = {};
+    const fieldLastStep: Record<string, number> = {}; // paso del flujo donde se vio cada campo por última vez (para inferir éxito por progresión)
 
     for (const e of evSorted) {
       const nm = eventName(e);
@@ -489,6 +490,7 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
         if (target) {
           const { kind, field } = classifyNode(target);
           if (kind) {
+            fieldLastStep[field] = flowStep;
             if (!seenFieldInSession[field]) {
               seenFieldInSession[field] = true;
               const a = ensureField(field);
@@ -511,9 +513,27 @@ export function computeDashboard(sessionsIn: BmSession[], opts: DashboardOptions
       }
     }
 
-    // finalize breakpoint per session
-    for (const f of Object.keys(sawIncorrect)) {
-      if (!fulfilledDone[f]) ensureField(f).failed++;
+    // finalize breakpoint per session.
+    // C1 (auditoría): los eventos `fulfilled of <campo>` casi nunca disparan, así
+    // que NO derivamos "failed" de su ausencia (inflaba el failRate a ~100%).
+    // Inferimos éxito por PROGRESIÓN: si tras el `incorrect` el flujo avanzó a un
+    // campo POSTERIOR, el campo se resolvió (okRetry inferido); solo el campo MÁS
+    // PROFUNDO sin fulfilled (donde el flujo se estancó) cuenta como failed.
+    const stuckCandidates = Object.keys(sawIncorrect).filter((f) => !fulfilledDone[f]);
+    if (stuckCandidates.length) {
+      const deepest = Math.max(...Object.values(fieldLastStep), 0);
+      for (const f of stuckCandidates) {
+        const a = ensureField(f);
+        if ((fieldLastStep[f] ?? 0) < deepest) {
+          // el flujo avanzó más allá de este campo → resuelto tras reintento (inferido)
+          a.okRetry++;
+          const before = incorrectBefore[f] || 0;
+          a.attemptsSum += before + 1; a.attemptsN++;
+          if (before + 1 > a.maxAttempts) a.maxAttempts = before + 1;
+        } else {
+          a.failed++; // el flujo se estancó aquí
+        }
+      }
     }
     for (const f of Object.keys(timeoutField)) ensureField(f).timeouts++;
 
