@@ -41,7 +41,12 @@ export async function fetchWorkspaceSessions(
   const toMs = Math.min(new Date(toISO).getTime(), Date.now() - 5000);
 
   const safeCacheThreshold = Date.now() - DAY_MS;
-  const chunks: { from: string; to: string; isPast: boolean; cacheKey: string }[] = [];
+  // Días "asentados" (>48h): sus sesiones ya cerraron/tipificaron, así que es
+  // seguro servirlos de caché. Los días pasados pero RECIENTES (24–48h) se
+  // revalidan (re-fetch) porque pueden tener sesiones que cerraron después de
+  // haberse cacheado (A4-TTL de la auditoría).
+  const settledThreshold = Date.now() - 2 * DAY_MS;
+  const chunks: { from: string; to: string; isPast: boolean; settled: boolean; cacheKey: string }[] = [];
   let cursor = fromMs;
   while (cursor < toMs) {
     const chunkEnd = Math.min(cursor + DAY_MS, toMs);
@@ -50,6 +55,7 @@ export async function fetchWorkspaceSessions(
         from: new Date(cursor).toISOString(),
         to: new Date(chunkEnd).toISOString(),
         isPast: chunkEnd <= safeCacheThreshold,
+        settled: chunkEnd <= settledThreshold,
         cacheKey: `${new Date(cursor).toISOString()}_${new Date(chunkEnd).toISOString()}`,
       });
     }
@@ -78,7 +84,7 @@ export async function fetchWorkspaceSessions(
     const results = await Promise.all(
       batch.map(async (chunk) => {
         try {
-          if (chunk.isPast && cachedKeys.has(chunk.cacheKey) && !forceRefresh) {
+          if (chunk.settled && cachedKeys.has(chunk.cacheKey) && !forceRefresh) {
             const rec = await prisma.metaAnalyticsCache.findFirst({
               where: { workspaceId, endpoint: CACHE_ENDPOINT, paramsKey: chunk.cacheKey },
               select: { data: true },
@@ -137,15 +143,19 @@ export async function fetchWorkspaceSessions(
     }
   }
 
-  // Deduplicate by session id (chunks overlap on late-updated sessions).
-  const seen = new Set<string>();
-  const deduped: BmSession[] = [];
+  // Dedup por id conservando la copia MÁS COMPLETA (más mensajes+eventos), no la
+  // primera: una sesión que abarca dos chunks aparece en ambos, y la copia del
+  // chunk viejo/cacheado tiene menos eventos y sin el outcome final (A6 auditoría).
+  const richness = (s: BmSession) => (s.messages?.length || 0) + (s.events?.length || 0);
+  const byId = new Map<string, BmSession>();
+  const noId: BmSession[] = [];
   for (const s of all) {
     const id = s.id || "";
-    if (id && seen.has(id)) continue;
-    if (id) seen.add(id);
-    deduped.push(s);
+    if (!id) { noId.push(s); continue; }
+    const cur = byId.get(id);
+    if (!cur || richness(s) > richness(cur)) byId.set(id, s);
   }
+  const deduped: BmSession[] = [...byId.values(), ...noId];
 
   return { sessions: deduped, chunks: chunks.length, cachedChunks, failedChunks, incompleteChunks };
 }

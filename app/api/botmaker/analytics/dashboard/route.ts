@@ -7,6 +7,7 @@ import { createConnection, listChannels, bmFetch } from "@/lib/botmaker-api";
 import { fetchWorkspaceSessions } from "@/lib/botmaker/fetch-sessions";
 import { computeDashboard, diffKpis } from "@/lib/botmaker/insights";
 import { resolveProjectChannelIds } from "@/lib/botmaker/project-channels";
+import { cdmxRange } from "@/lib/crm/timezone";
 import type { ChannelLite, VarDef } from "@/lib/botmaker/insights";
 
 /**
@@ -86,9 +87,11 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   if (!conn) return apiError("Botmaker no está configurado.", "NOT_CONFIGURED", 503);
 
   const sp = req.nextUrl.searchParams;
-  const now = Date.now();
-  const to = sp.get("to") || new Date(now).toISOString();
-  const from = sp.get("from") || new Date(now - 7 * 86400000).toISOString();
+  // Default anclado a días CDMX (no `now - 7d` crudo): evita que el primer/último
+  // día de la serie queden cortados a media jornada (D4 de la auditoría).
+  const def = cdmxRange(7);
+  const to = sp.get("to") || def.toISO;
+  const from = sp.get("from") || def.fromISO;
   const channelId = sp.get("channelId") || null;
   const projectId = sp.get("projectId") || null;
   const timezone = sp.get("timezone") || process.env.APP_TIMEZONE || "America/Mexico_City";
