@@ -616,7 +616,7 @@ function BotRow({ b }: { b: BotPerf }) {
       <td style={{ ...cell, color: rateColorHigh(b.fallbackRate) }}>{b.fallbackRate}%</td>
       <td style={{ ...cell, color: rateColorHigh(b.agentRate) }}>{b.agentRate}%</td>
       <td style={{ ...cell, color: muted }}>{b.captureCompleteRate}%</td>
-      <td style={cell}>{b.isUnattributed ? <span style={{ color: muted }}>—</span> : <HealthChip h={b.health} />}</td>
+      <td style={cell}>{b.isUnattributed ? <span style={{ color: muted }}>—</span> : !b.sufficient ? <span style={{ color: muted, fontSize: 10 }} title="muestra insuficiente (n<20)">n/d</span> : <HealthChip h={b.health} />}</td>
     </tr>
   );
 }
