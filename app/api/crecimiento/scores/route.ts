@@ -14,7 +14,17 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN", "MEMBER"])(async (req, c
       },
       include: {
         model: {
-          select: { name: true }
+          select: { 
+            name: true,
+            dataset: {
+              select: {
+                targetType: true,
+                clientName: true,
+                verticalName: true,
+                project: { select: { name: true } }
+              }
+            }
+          }
         }
       },
       orderBy: { score: "desc" },

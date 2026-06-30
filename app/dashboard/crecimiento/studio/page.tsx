@@ -62,10 +62,27 @@ export default function PredictiveStudio() {
                 value={selectedDataset}
                 onChange={e => setSelectedDataset(e.target.value)}
               >
-                <option value="">Selecciona un dataset...</option>
-                {datasets.map(d => (
-                  <option key={d.id} value={d.id}>{d.name} ({d.rowCount} filas)</option>
-                ))}
+                <option value="">Selecciona un dataset (Modelo)...</option>
+                <optgroup label="Modelos por Vertical">
+                  {datasets.filter(d => d.targetType === "VERTICAL").map(d => (
+                    <option key={d.id} value={d.id}>{d.verticalName} ({d.rowCount} filas)</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Modelos por Cliente">
+                  {datasets.filter(d => d.targetType === "CLIENT").map(d => (
+                    <option key={d.id} value={d.id}>{d.clientName} ({d.rowCount} filas)</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Modelos por Proyecto">
+                  {datasets.filter(d => d.targetType === "PROJECT").map(d => (
+                    <option key={d.id} value={d.id}>{d.project?.name || d.name} ({d.rowCount} filas)</option>
+                  ))}
+                </optgroup>
+                <optgroup label="Modelos Globales / CSV">
+                  {datasets.filter(d => !["VERTICAL", "CLIENT", "PROJECT"].includes(d.targetType)).map(d => (
+                    <option key={d.id} value={d.id}>{d.name} ({d.rowCount} filas)</option>
+                  ))}
+                </optgroup>
               </select>
             </div>
 
