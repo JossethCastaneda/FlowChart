@@ -45,6 +45,17 @@ export const GET = withWorkspace(async (req, ctx) => {
     return apiError("Parámetro 'client' requerido", "BAD_REQUEST", 400);
   }
 
+  // 1. Buscar en CenturionModel
+  const model = await prisma.centurionModel.findFirst({
+    where: { workspaceId: ctx.workspaceId, clientName: client },
+    orderBy: { updatedAt: "desc" },
+  });
+
+  if (model) {
+    return apiSuccess({ config: model.config });
+  }
+
+  // Fallback a WorkspaceSettings para legacy
   const settings = await prisma.workspaceSettings.findUnique({
     where: { workspaceId: ctx.workspaceId },
     select: { extConfig: true },
@@ -54,8 +65,12 @@ export const GET = withWorkspace(async (req, ctx) => {
   return apiSuccess({ config: store.byClient[client] ?? null });
 });
 
-// PUT: guarda la config del cliente (merge sobre los demás clientes).
+// PUT: guarda la config del cliente
 export const PUT = withWorkspace(async (req, ctx) => {
+  if (ctx.member.role !== "OWNER" && ctx.member.role !== "ADMIN") {
+    return apiError("No tienes permisos para modificar el modelo de MMM. Requiere rol de OWNER o ADMIN.", "FORBIDDEN", 403);
+  }
+
   let body: { client?: unknown; channels: unknown; rows: unknown; vertical?: unknown };
   try {
     body = await req.json();
@@ -80,22 +95,29 @@ export const PUT = withWorkspace(async (req, ctx) => {
     ...(typeof body.vertical === "string" ? { vertical: body.vertical } : {}),
   };
 
-  // Leer config actual para hacer merge (no borrar otros campos ni clientes).
-  const existing = await prisma.workspaceSettings.findUnique({
-    where: { workspaceId: ctx.workspaceId },
-    select: { extConfig: true },
+  const existingModel = await prisma.centurionModel.findFirst({
+    where: { workspaceId: ctx.workspaceId, clientName: client }
   });
 
-  const existingConfig = (existing?.extConfig ?? {}) as Record<string, unknown>;
-  const store = readStore(existingConfig);
-  store.byClient[client] = savedConfig;
-  const merged = { ...existingConfig, mmm: store as unknown };
-
-  await prisma.workspaceSettings.upsert({
-    where: { workspaceId: ctx.workspaceId },
-    create: { workspaceId: ctx.workspaceId, extConfig: merged as any },
-    update: { extConfig: merged as any },
-  });
+  if (existingModel) {
+    await prisma.centurionModel.update({
+      where: { id: existingModel.id },
+      data: {
+        config: savedConfig as any,
+        updatedAt: new Date()
+      }
+    });
+  } else {
+    await prisma.centurionModel.create({
+      data: {
+        workspaceId: ctx.workspaceId,
+        clientName: client,
+        verticalName: typeof body.vertical === "string" ? body.vertical : null,
+        engine: "FastMMM",
+        config: savedConfig as any
+      }
+    });
+  }
 
   return apiSuccess({ saved: true, savedAt: savedConfig.savedAt });
 });

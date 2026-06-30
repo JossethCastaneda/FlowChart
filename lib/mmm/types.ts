@@ -1,4 +1,4 @@
-﻿/* ════════════════════════════════════════════════════════════
+/* ════════════════════════════════════════════════════════════
    SODARE · MMM — Tipos compartidos (v2)
    ════════════════════════════════════════════════════════════ */
 
@@ -41,8 +41,10 @@ export interface MmmModel {
   coefficients: Record<string, number>;
   intercept: number;
   rSquared: number;
+  nrmse: number;
   contributions: Record<string, number>;
   channelRoas: Record<string, number>;
+  marginalRoas: Record<string, number>;
   totalModeled: number;
   totalActual: number;
   /** Revenue organico (intercepto x semanas activas) */

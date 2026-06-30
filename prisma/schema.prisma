@@ -104,6 +104,7 @@ model Workspace {
   auditLogs           AuditLog[]
   objectives          Objective[]
   ariaDatasets        AriaDataset[]
+  centurionModels     CenturionModel[]
 }
 
 // ------------------------------------------------------
@@ -1392,30 +1393,63 @@ model AriaDataset {
   targetType   String   @default("PROJECT") // "PROJECT", "CLIENT", "VERTICAL"
   name         String
   source       String   // e.g. "csv", "google_sheets", "hubspot", "auto"
-  status       String   @default("uploaded") // uploaded, processing, ready, error
+  status       String   @default("uploaded") // uploaded, processing, ready, awaiting_data, baseline, error
   rowCount     Int      @default(0)
+  // Ingesta robusta: fuente cruda en Vercel Blob + metadatos de parsing detectados.
+  rawFileUrl   String?
+  delimiter    String?  // delimitador detectado (",", ";", "\t")
+  encoding     String?  // "utf-8" | "windows-1252"
+  columnCount  Int?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
   columns   AriaDatasetColumn[]
+  rows      AriaDatasetRow[]
   models    AriaModel[]
 
   @@index([workspaceId])
   @@index([projectId])
   @@index([clientName])
   @@index([verticalName])
+  // Idempotencia del flujo auto: un único dataset CLIENT/VERTICAL/PROJECT por scope.
+  // (En Postgres los NULL son distintos, así que filas PROJECT con client/vertical
+  //  nulos no colisionan entre sí — la dedup aplica solo cuando el campo está seteado.)
+  @@unique([workspaceId, targetType, clientName], name: "aria_scope_client")
+  @@unique([workspaceId, targetType, verticalName], name: "aria_scope_vertical")
+  @@unique([workspaceId, targetType, projectId], name: "aria_scope_project")
+}
+
+// Substrato de entrenamiento: una fila persistida por registro del dataset.
+// `data` es el mapa columna→valor (string crudo); el motor lo transforma a features.
+model AriaDatasetRow {
+  id          String   @id @default(cuid())
+  datasetId   String
+  rowIndex    Int
+  data        Json
+  createdAt   DateTime @default(now())
+
+  dataset AriaDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+
+  @@unique([datasetId, rowIndex])
+  @@index([datasetId])
 }
 
 model AriaDatasetColumn {
-  id           String  @id @default(cuid())
-  datasetId    String
-  name         String
-  dataType     String  // "string", "number", "boolean", "date"
-  nullCount    Int     @default(0)
-  isTarget     Boolean @default(false)
-  isFeature    Boolean @default(true)
+  id            String  @id @default(cuid())
+  datasetId     String
+  name          String
+  dataType      String  // "string", "number", "boolean", "date"
+  nullCount     Int     @default(0)
+  isTarget      Boolean @default(false)
+  isFeature     Boolean @default(true)
+  // Perfilado determinista del Data Hub (poblado en la ingesta).
+  distinctCount Int?
+  minValue      Float?
+  maxValue      Float?
+  meanValue     Float?
+  sampleValues  Json?
 
   dataset AriaDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
@@ -1426,12 +1460,14 @@ model AriaModel {
   id          String   @id @default(cuid())
   datasetId   String
   name        String
-  algorithm   String   // e.g. "logistic_regression", "random_forest"
-  status      String   @default("training") // training, ready, failed
+  algorithm   String   // e.g. "logistic_regression", "scorecard_woe", "heuristic_baseline"
+  status      String   @default("training") // training, ready, baseline, failed
   accuracy    Float?
   precision   Float?
   recall      Float?
   auc         Float?
+  baseRate    Float?   // tasa base de conversión del set de entrenamiento
+  params      Json?    // artefacto entrenado: pesos, bias, encoders, normalización, umbrales
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1468,3 +1504,22 @@ model AriaPrediction {
 
   @@index([modelId])
 }
+
+// ------------------------------------------------------
+// CENTURION (Marketing Mix Modeling)
+// ------------------------------------------------------
+model CenturionModel {
+  id          String   @id @default(cuid())
+  workspaceId String
+  clientName  String
+  verticalName String?
+  engine      String   @default("FastMMM") // "FastMMM" o "BayesMMM"
+  config      Json     // Guarda canales, rows, coeficientes y NRMSE
+  metrics     Json?    // NRMSE, R2, wMAPE
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  @@index([workspaceId, clientName])
+}
+

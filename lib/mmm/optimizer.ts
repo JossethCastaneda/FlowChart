@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SODARE MMM — Engine + Optimizador (v2)
  * - Filtra semanas outlier antes de correr el modelo
  * - Calcula base vs. incremental revenue
@@ -8,7 +8,7 @@
 import type { ChannelConfig, WeeklyRow, MmmModel, SimResult, Allocation } from "./types";
 import { applyAdstock } from "./adstock";
 import { applySaturation, hillSaturation, marginalResponse } from "./saturation";
-import { olsRegression, rSquared, predict } from "./regression";
+import { ridgeRegression, rSquared, predict, nrmse } from "./regression";
 
 // ─── Engine ──────────────────────────────────────────────────────────────────
 
@@ -39,10 +39,11 @@ export function runMmm(rows: WeeklyRow[], channels: ChannelConfig[]): MmmModel {
   // 3. Matriz X
   const X: number[][] = modelRows.map((_, i) => enabledChannels.map(ch => saturatedMatrix[ch.id][i]));
 
-  // 4. OLS
-  const beta = olsRegression(X, y);
+  // 4. Ridge Regression (L2 penalty)
+  const beta = ridgeRegression(X, y, 0.01, 2000, 0.1);
   const yHat = predict(beta, X);
   const r2 = rSquared(y, yHat);
+  const nrmseVal = nrmse(y, yHat);
 
   // 5. Contribuciones
   const contributions: Record<string, number> = {};
@@ -52,16 +53,21 @@ export function runMmm(rows: WeeklyRow[], channels: ChannelConfig[]): MmmModel {
     contributions[ch.id] = saturatedMatrix[ch.id].reduce((s, v) => s + v * coeff, 0);
   }
 
-  // 6. ROAS por canal
+  // 6. ROAS por canal y ROAS Marginal
+  const coefficients: Record<string, number> = {};
+  enabledChannels.forEach((ch, i) => { coefficients[ch.id] = Math.max(0, beta[i + 1]); });
+
   const channelRoas: Record<string, number> = {};
+  const marginalRoas: Record<string, number> = {};
   for (const ch of enabledChannels) {
     const totalSpend = modelRows.reduce((s, r) => s + (r.spend[ch.id] ?? 0), 0);
     channelRoas[ch.id] = totalSpend > 0 ? contributions[ch.id] / totalSpend : 0;
+    
+    // Marginal ROAS = mResponse(avg_spend) * beta
+    const avgSpend = totalSpend / n;
+    const mRes = marginalResponse(applyAdstock([avgSpend], ch.adstockDecay)[0], ch.saturationAlpha, ch.saturationK);
+    marginalRoas[ch.id] = mRes * coefficients[ch.id];
   }
-
-  const coefficients: Record<string, number> = {};
-  enabledChannels.forEach((ch, i) => { coefficients[ch.id] = beta[i + 1]; });
-
   // 7. Base vs. Incremental
   const basePerWeek = Math.max(0, beta[0]);
   const baseRevenue = basePerWeek * n;
@@ -82,8 +88,10 @@ export function runMmm(rows: WeeklyRow[], channels: ChannelConfig[]): MmmModel {
     coefficients,
     intercept: beta[0],
     rSquared: Math.max(0, Math.min(1, r2)),
+    nrmse: nrmseVal,
     contributions,
     channelRoas,
+    marginalRoas,
     totalModeled: yHat.reduce((s, v) => s + v, 0),
     totalActual,
     baseRevenue,
@@ -102,12 +110,17 @@ function emptyModel(y: number[], channels: ChannelConfig[], weekCount: number): 
   channels.forEach(ch => { zero[ch.id] = 0; zeroArr[ch.id] = y.map(() => 0); });
   const totalActual = y.reduce((s, v) => s + v, 0);
   return {
-    coefficients: zero, intercept: 0, rSquared: 0,
-    contributions: zero, channelRoas: zero,
-    totalModeled: 0, totalActual,
-    baseRevenue: 0, incrementalRevenue: 0, incrementalShare: 0,
+    coefficients: zero, intercept: 0, rSquared: 0, nrmse: 1,
+    contributions: zero, channelRoas: zero, marginalRoas: zero,
+    totalModeled: 0,
+    totalActual,
+    baseRevenue: totalActual,
+    incrementalRevenue: 0,
+    incrementalShare: 0,
     modeledSeries: y.map(() => 0),
-    adstockedMatrix: zeroArr, saturatedMatrix: zeroArr, weekCount,
+    adstockedMatrix: {},
+    saturatedMatrix: {},
+    weekCount: weekCount,
   };
 }
 

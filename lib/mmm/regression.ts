@@ -1,8 +1,11 @@
-﻿/**
+/**
  * SODARE · MMM — Regresión OLS simplificada
  *
- * Ordinary Least Squares para estimar los coeficientes β del modelo:
+ * Ridge Regression (L2 penalty) para estimar los coeficientes β del modelo:
  *   y = β₀ + β₁X₁ + β₂X₂ + ... + βₙXₙ + ε
+ *
+ * Implementación con descenso de gradiente estocástico. Inspirado en Meta Robyn (FastMMM)
+ * para manejar multicolinealidad entre canales.
  *
  * Implementación con descenso de gradiente para N canales.
  * Suficientemente robusto para los datos que maneja una agencia (< 500 filas).
@@ -23,20 +26,22 @@ function normalizeColumn(col: number[]): { normalized: number[]; min: number; ma
 }
 
 /**
- * Regresión lineal múltiple OLS usando el método de mínimos cuadrados
- * con pseudoinversa (gradiente descendente estocástico simplificado).
+ * Regresión múltiple con regularización Ridge (L2 penalty)
+ * usando descenso de gradiente simplificado.
  *
  * @param X Matriz de features [n_samples × n_features]
  * @param y Vector de target [n_samples]
  * @param lr Tasa de aprendizaje (default 0.01)
- * @param epochs Iteraciones (default 1000)
+ * @param epochs Iteraciones (default 2000)
+ * @param lambda Penalización L2 (default 0.1)
  * @returns Array [β₀, β₁, β₂, ...] con intercepto primero
  */
-export function olsRegression(
+export function ridgeRegression(
   X: number[][],
   y: number[],
   lr = 0.01,
   epochs = 2000,
+  lambda = 0.1
 ): number[] {
   const n = X.length;
   const m = X[0]?.length ?? 0;
@@ -59,7 +64,9 @@ export function olsRegression(
     }
 
     for (let j = 0; j <= m; j++) {
-      beta[j] -= (lr / n) * gradients[j];
+      // Aplicar penalización Ridge solo a los coeficientes, no al intercepto
+      const penalty = j === 0 ? 0 : (2 * lambda * beta[j]) / n;
+      beta[j] -= (lr / n) * gradients[j] + lr * penalty;
     }
   }
 
@@ -87,6 +94,16 @@ export function predict(beta: number[], X: number[][]): number[] {
     for (let j = 0; j < row.length; j++) pred += beta[j + 1] * row[j];
     return pred;
   });
+}
+
+/**
+ * Calcula NRMSE (Normalized Root Mean Square Error).
+ */
+export function nrmse(y: number[], yHat: number[]): number {
+  if (y.length === 0) return 0;
+  const mse = y.reduce((s, v, i) => s + Math.pow(v - yHat[i], 2), 0) / y.length;
+  const range = Math.max(...y) - Math.min(...y);
+  return range > 0 ? Math.sqrt(mse) / range : 0;
 }
 
 export { normalizeColumn };

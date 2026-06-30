@@ -62,7 +62,7 @@ export const MODULES: ModuleDef[] = [
       { label: "Reglas",                  route: "/analisis-resultados/reglas" },
       { label: "Configuración",           route: "/analisis-resultados/configuracion" },
     ] },
-  { key: "mmm",         label: "Media Mix",    code: "Convergencia", route: "/dashboard/media-mix",   color: "#7c3aed",             icon: "pie-chart",   tagline: "El peso real de cada canal",      group: "crecimiento",
+  { key: "mmm",         label: "Centurion MMM",    code: "Convergencia", route: "/dashboard/centurion",   color: "#7c3aed",             icon: "pie-chart",   tagline: "Marketing Mix Modeling SaaS",      group: "crecimiento",
     tabs: [
       { label: "Resumen",     route: "" },
       { label: "Datos",       route: "/datos" },
