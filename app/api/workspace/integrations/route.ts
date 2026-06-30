@@ -178,19 +178,23 @@ export const POST = withWorkspace(async (req, ctx) => {
 });
 
 /**
- * DELETE /api/workspace/integrations
+ * DELETE /api/workspace/integrations?provider=<provider>
  * Disconnect an integration. Only OWNER or the connector can disconnect.
  *
- * Body: { provider }
+ * El `provider` llega como QUERY param desde la UI (fetch DELETE sin body); se
+ * acepta también en el body por compatibilidad.
  */
-const DisconnectSchema = z.object({
-  provider: z.string().min(1, "provider requerido"),
-});
-
 export const DELETE = withWorkspace(async (req, ctx) => {
-  const result = await validateBody(req, DisconnectSchema);
-  if (!result.ok) return result.response;
-  const { provider } = result.data;
+  // BUG arreglado: antes el provider se leía SOLO del body (validateBody), pero
+  // todos los callers lo mandan como ?provider=... → la validación fallaba y la
+  // desconexión (TikTok, Botmaker, Cari…) nunca se ejecutaba.
+  let provider = new URL(req.url).searchParams.get("provider") || "";
+  if (!provider) {
+    const body = (await req.json().catch(() => ({}))) as { provider?: unknown };
+    if (typeof body.provider === "string") provider = body.provider;
+  }
+  provider = provider.trim();
+  if (!provider) return apiError("provider requerido", "VALIDATION_ERROR", 400);
 
   const integration = await prisma.integration.findUnique({
     where: {
