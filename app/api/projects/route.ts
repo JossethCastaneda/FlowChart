@@ -12,6 +12,7 @@ import {
   apiError,
   apiServerError,
 } from "@/lib/api-response";
+import { triggerAutoAriaForProject } from "@/lib/crecimiento/aria-auto";
 
 export const dynamic = "force-dynamic";
 
@@ -172,6 +173,17 @@ export const POST = withAuth(async (req, ctx) => {
       include: { channels: true },
     });
   });
+
+  if (projectWithChannels) {
+    // Disparar Aria en segundo plano (non-blocking)
+    triggerAutoAriaForProject(
+      projectWithChannels.id, 
+      workspaceId, 
+      projectWithChannels.name,
+      projectWithChannels.client,
+      projectWithChannels.vertical
+    );
+  }
 
   return apiSuccess(projectWithChannels, 201);
 });

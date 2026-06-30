@@ -212,6 +212,7 @@ model Project {
   /// tráfico a varias herramientas (ej. botmaker + cari) y el análisis de
   /// resultados se segmenta por cada una de forma independiente.
   crmIntegrationIds String[]        @default([])
+  ariaDatasets      AriaDataset[]
 }
 
 // Cache de resolución para webhooks de Meta: externalId (pageId / igAccountId /
@@ -1383,20 +1384,28 @@ model ZapierConversionEvent {
 // ------------------------------------------------------
 
 model AriaDataset {
-  id          String   @id @default(cuid())
-  workspaceId String
-  name        String
-  source      String   // e.g. "csv", "google_sheets", "hubspot"
-  status      String   @default("uploaded") // uploaded, processing, ready, error
-  rowCount    Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           String   @id @default(cuid())
+  workspaceId  String
+  projectId    String?
+  clientName   String?
+  verticalName String?
+  targetType   String   @default("PROJECT") // "PROJECT", "CLIENT", "VERTICAL"
+  name         String
+  source       String   // e.g. "csv", "google_sheets", "hubspot", "auto"
+  status       String   @default("uploaded") // uploaded, processing, ready, error
+  rowCount     Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
   columns   AriaDatasetColumn[]
   models    AriaModel[]
 
   @@index([workspaceId])
+  @@index([projectId])
+  @@index([clientName])
+  @@index([verticalName])
 }
 
 model AriaDatasetColumn {
