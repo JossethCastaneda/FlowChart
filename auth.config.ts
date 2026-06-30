@@ -325,6 +325,146 @@ export const authOptions: NextAuthOptions = {
 
   callbacks: {
 
+    // ── signIn: Prevent duplicates by linking OAuth accounts to existing users ──
+    async signIn({ user, account, profile, ...rest }) {
+      // Only intercept OAuth providers (not credentials/facebook-sdk which handle their own linking)
+      if (!account || account.type === "credentials") return true;
+
+      try {
+        const { default: prisma } = await import("@/lib/prisma");
+
+        // 1. Check if this provider account is already linked
+        const existingAccount = await prisma.account.findUnique({
+          where: {
+            provider_providerAccountId: {
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+            },
+          },
+          include: { user: true },
+        });
+
+        if (existingAccount) {
+          // Already linked — override user.id to the DB user's CUID so jwt callback
+          // correctly resolves token.sub to our database user
+          user.id = existingAccount.user.id;
+          user.email = existingAccount.user.email;
+          user.name = existingAccount.user.name || user.name;
+          return true;
+        }
+
+        // 2. Try to find the currently logged-in user by decoding the JWT session cookie.
+        //    This handles the "Vincular" (linking) flow from Settings where the user
+        //    already has an active session and wants to add another OAuth provider.
+        let sessionUser = null;
+        try {
+          const { cookies: reqCookies } = await import("next/headers");
+          const { decode } = await import("next-auth/jwt");
+          const cookieStore = await reqCookies();
+          const sessionToken =
+            cookieStore.get("__Secure-next-auth.session-token")?.value ||
+            cookieStore.get("next-auth.session-token")?.value;
+
+          if (sessionToken && AUTH_SECRET) {
+            const decoded = await decode({
+              token: sessionToken,
+              secret: AUTH_SECRET,
+            });
+            if (decoded?.sub) {
+              sessionUser = await prisma.user.findUnique({
+                where: { id: decoded.sub },
+              });
+              if (sessionUser) {
+                console.log(`[AUTH signIn] Active session detected for user: ${sessionUser.id} (${sessionUser.email})`);
+              }
+            }
+          }
+        } catch (cookieErr) {
+          // Cookie decoding may fail in edge runtime or during SSG — that's OK, we fall back
+          console.debug("[AUTH signIn] Could not decode session cookie:", cookieErr);
+        }
+
+        // 3. If we have an active session, link the new OAuth account to the session user
+        if (sessionUser) {
+          await prisma.account.create({
+            data: {
+              userId: sessionUser.id,
+              type: account.type || "oauth",
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              expires_at: account.expires_at,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+            },
+          });
+
+          // Override user.id so the jwt callback uses the session user
+          user.id = sessionUser.id;
+          user.email = sessionUser.email;
+          user.name = sessionUser.name || user.name;
+
+          console.log(`[AUTH signIn] Linked ${account.provider} to session user: ${sessionUser.id} (${sessionUser.email})`);
+          return true;
+        }
+
+        // 4. No active session — check if a user with this email already exists (fresh login)
+        const incomingEmail = (user.email || (profile?.email as string | undefined))?.toLowerCase();
+        let existingUser = null;
+
+        if (incomingEmail) {
+          existingUser = await prisma.user.findFirst({
+            where: { email: { equals: incomingEmail, mode: "insensitive" } },
+          });
+        }
+
+        // 5. If no email match, try matching by name for Facebook users without email
+        if (!existingUser && !incomingEmail && user.name && account.provider === "facebook") {
+          const byName = await prisma.user.findMany({
+            where: { name: user.name },
+          });
+          if (byName.length === 1) {
+            existingUser = byName[0];
+            console.log(`[AUTH signIn] Facebook user without email matched by name: ${user.name} → ${existingUser.id}`);
+          }
+        }
+
+        if (existingUser) {
+          // Link the OAuth account to the existing user
+          await prisma.account.create({
+            data: {
+              userId: existingUser.id,
+              type: account.type || "oauth",
+              provider: account.provider,
+              providerAccountId: account.providerAccountId,
+              access_token: account.access_token,
+              refresh_token: account.refresh_token,
+              expires_at: account.expires_at,
+              token_type: account.token_type,
+              scope: account.scope,
+              id_token: account.id_token,
+            },
+          });
+
+          // Override user.id so the jwt callback uses the existing user
+          user.id = existingUser.id;
+          user.email = existingUser.email;
+          user.name = existingUser.name || user.name;
+
+          console.log(`[AUTH signIn] Linked ${account.provider} account to existing user: ${existingUser.id} (${existingUser.email})`);
+          return true;
+        }
+
+        // 6. No existing user found — let NextAuth create a new one
+        return true;
+      } catch (err) {
+        console.error("[AUTH signIn] Error during account linking:", err);
+        return true; // Don't block login on errors
+      }
+    },
+
     async jwt({ token, account, user, trigger }) {
       if (user) {
         // Detect account linking: if token already has a sub (from existing session)

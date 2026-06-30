@@ -3,8 +3,8 @@ import fs from 'fs';
 
 // Read URL manually
 const envContent = fs.readFileSync('.env.local', 'utf8');
-const dbUrlLine = envContent.split('\n').find(l => l.startsWith('STORAGE_POSTGRES_PRISMA_URL='));
-const dbUrl = dbUrlLine ? dbUrlLine.split('=')[1].replace(/"/g, '').trim() : '';
+const dbUrlLine = envContent.split('\n').find(l => l.startsWith('DATABASE_URL='));
+const dbUrl = dbUrlLine ? dbUrlLine.split('=')[1].replace(/["']/g, '').trim() : '';
 
 console.log('Connecting to DB...');
 const pool = new Pool({ connectionString: dbUrl, ssl: { rejectUnauthorized: false } });
