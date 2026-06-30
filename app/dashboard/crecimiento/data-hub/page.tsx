@@ -27,8 +27,8 @@ export default function DataHub() {
         method: "POST",
         body: formData,
       });
-      const data = await res.json();
-      setResult(data);
+      const json = await res.json();
+      setResult(json?.success ? json.data : { error: json?.error ?? "Error al procesar el archivo" });
     } catch (error) {
       console.error(error);
     } finally {
@@ -77,13 +77,17 @@ export default function DataHub() {
 
         <div>
           <div className="flex items-center gap-4 mb-4">
-            <Orbi state={result ? "thinking" : "idle"} />
+            <Orbi state={result?.rowCount != null ? "thinking" : "idle"} />
             <p className="text-sm text-muted-foreground font-medium">
-              {result ? "¡Dataset analizado! Puedes ir al Predictive Studio a entrenar el modelo." : "Sube un archivo CSV con al menos una columna de resultado (ej. 'Convertido')."}
+              {result?.error
+                ? result.error
+                : result?.rowCount != null
+                  ? "¡Dataset analizado! Puedes ir al Predictive Studio a entrenar el modelo."
+                  : "Sube un archivo CSV con al menos una columna de resultado (ej. 'Convertido')."}
             </p>
           </div>
-          
-          {result && (
+
+          {result?.rowCount != null && (
             <div className="mt-6 bg-card border rounded-xl p-6">
               <h3 className="font-semibold text-green-500 flex items-center gap-2 mb-4">
                 <CheckCircle className="w-5 h-5" />
@@ -92,6 +96,10 @@ export default function DataHub() {
               <ul className="space-y-2 text-sm">
                 <li><strong>Filas:</strong> {result.rowCount}</li>
                 <li><strong>Columnas detectadas:</strong> {result.columns?.length}</li>
+                {result.targetColumn && (
+                  <li><strong>Columna objetivo detectada:</strong> {result.targetColumn}</li>
+                )}
+                <li className="text-muted-foreground"><strong>Encoding:</strong> {result.encoding} · <strong>Delimitador:</strong> {result.delimiter === "\t" ? "tab" : result.delimiter}</li>
               </ul>
             </div>
           )}

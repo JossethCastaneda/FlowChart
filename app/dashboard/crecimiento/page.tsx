@@ -17,7 +17,7 @@ export default function CrecimientoInsights() {
     fetch("/api/crecimiento/summary")
       .then(res => res.json())
       .then(data => {
-        if (!data.error) setStats(data);
+        if (data?.success && data.data) setStats(data.data);
       })
       .catch(console.error);
   }, []);
