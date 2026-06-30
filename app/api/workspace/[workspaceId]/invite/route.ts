@@ -12,7 +12,7 @@ import { z } from "zod";
 export const dynamic = "force-dynamic";
 
 const CreateInviteSchema = z.object({
-  email: z.string().email("Email inválido"),
+  email: z.string().email("Email inválido").transform((e) => e.toLowerCase().trim()),
   role: z.enum(["ADMIN", "MEMBER"]).default("MEMBER"),
 });
 

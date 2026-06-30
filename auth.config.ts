@@ -203,7 +203,9 @@ providers.push(
 
         // 3. Si no existe cuenta, buscar por email (sin loguear el email — PII)
         if (!dbUser && fbUser.email) {
-          dbUser = await prisma.user.findUnique({ where: { email: fbUser.email } }) ?? null;
+          dbUser = await prisma.user.findFirst({
+            where: { email: { equals: fbUser.email, mode: "insensitive" } },
+          }) ?? null;
         }
 
         // 4. Crear usuario si no existe
@@ -211,7 +213,7 @@ providers.push(
           dbUser = await prisma.user.create({
             data: {
               name: fbUser.name ?? null,
-              email: fbUser.email ?? null,
+              email: fbUser.email?.toLowerCase() ?? null,
               image: fbUser.picture?.data?.url ?? null,
             },
           });
@@ -377,8 +379,8 @@ export const authOptions: NextAuthOptions = {
 
             // 3. If not found by id, try by email
             if (!dbUser && user.email) {
-              const byEmail = await prisma.user.findUnique({
-                where: { email: user.email },
+              const byEmail = await prisma.user.findFirst({
+                where: { email: { equals: user.email, mode: "insensitive" } },
               });
               if (byEmail) dbUser = byEmail;
             }
@@ -388,7 +390,7 @@ export const authOptions: NextAuthOptions = {
               dbUser = await prisma.user.create({
                 data: {
                   name: user.name,
-                  email: user.email,
+                  email: user.email?.toLowerCase(),
                   image: user.image,
                 }
               });
