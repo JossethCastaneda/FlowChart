@@ -210,27 +210,9 @@ export default function Home() {
           }
         }
 
-        /* Funnel Effect (Collabora style) */
+        /* Funnel Effect Container */
         .col-funnel-container {
           position: absolute; top: 0; left: 0; right: 0; height: 100vh; overflow: hidden; pointer-events: none; z-index: 0;
-        }
-        .col-funnel-line {
-          position: absolute; top: -10%; width: 1px; height: 120%; background: rgba(255,255,255,0.05); transform-origin: top center;
-        }
-        .col-funnel-left { left: 15%; transform: rotate(-25deg); }
-        .col-funnel-right { right: 15%; transform: rotate(25deg); }
-        
-        .col-funnel-beam {
-          position: absolute; left: -1px; width: 3px; height: 30%;
-          background: linear-gradient(180deg, transparent, rgba(255,255,255,0.9), transparent);
-          box-shadow: 0 0 15px 3px rgba(0, 212, 255, 0.8);
-          animation: funnel-beam-fall 2.5s infinite linear;
-        }
-        @keyframes funnel-beam-fall {
-          0% { top: -30%; opacity: 0; }
-          15% { opacity: 1; }
-          85% { opacity: 1; }
-          100% { top: 120%; opacity: 0; }
         }
 
 
@@ -374,14 +356,35 @@ export default function Home() {
         textAlign: "center",
         overflow: "hidden",
       }}>
-        {/* Funnel Background Effect (Destello Blanco/Cyan) */}
+        {/* Funnel Background Effect (Curved SVG with moving gradient) */}
         <div className="col-funnel-container">
-          <div className="col-funnel-line col-funnel-left">
-            <div className="col-funnel-beam" style={{ animationDelay: "0s" }} />
-          </div>
-          <div className="col-funnel-line col-funnel-right">
-            <div className="col-funnel-beam" style={{ animationDelay: "1.2s" }} />
-          </div>
+          <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0 }}>
+            <defs>
+              <linearGradient id="beam-left" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="transparent" />
+                <stop offset="50%" stopColor="rgba(255,255,255,0.8)" />
+                <stop offset="100%" stopColor="transparent" />
+                <animate attributeName="y1" values="-1; 2" dur="3s" repeatCount="indefinite" />
+                <animate attributeName="y2" values="0; 3" dur="3s" repeatCount="indefinite" />
+              </linearGradient>
+              <linearGradient id="beam-right" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="transparent" />
+                <stop offset="50%" stopColor="rgba(255,255,255,0.8)" />
+                <stop offset="100%" stopColor="transparent" />
+                <animate attributeName="y1" values="-2.5; 0.5" dur="3s" repeatCount="indefinite" />
+                <animate attributeName="y2" values="-1.5; 1.5" dur="3s" repeatCount="indefinite" />
+              </linearGradient>
+            </defs>
+            {/* Left Faint Curve */}
+            <path d="M 5,0 Q 20,50 35,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
+            {/* Left Beam */}
+            <path d="M 5,0 Q 20,50 35,100" fill="none" stroke="url(#beam-left)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+            
+            {/* Right Faint Curve */}
+            <path d="M 95,0 Q 80,50 65,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
+            {/* Right Beam */}
+            <path d="M 95,0 Q 80,50 65,100" fill="none" stroke="url(#beam-right)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+          </svg>
           <div style={{ position: "absolute", bottom: "-20%", left: "50%", transform: "translateX(-50%)", width: "80%", height: "40%", background: "radial-gradient(ellipse at top, rgba(0, 212, 255, 0.2) 0%, transparent 70%)", pointerEvents: "none" }} />
         </div>
 
