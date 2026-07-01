@@ -78,6 +78,67 @@ const STRINGS = {
 const ACCENT = "var(--cyan)";
 const ORB = "Orbitron, sans-serif";
 
+const Zigzag = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 200 200" className={className}>
+    <defs>
+      <linearGradient id="zigGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#00d4ff" />
+        <stop offset="100%" stopColor="#0a5cff" />
+      </linearGradient>
+      <filter id="shadowZig" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="10" dy="15" stdDeviation="15" floodColor="#00d4ff" floodOpacity="0.5"/>
+      </filter>
+    </defs>
+    <path d="M 30,120 L 70,80 L 110,120 L 150,80" fill="none" stroke="url(#zigGrad)" strokeWidth="40" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadowZig)"/>
+  </svg>
+);
+
+const Coil = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 300 400" className={className}>
+    <defs>
+      <linearGradient id="coilGrad" x1="0" y1="1" x2="1" y2="0">
+        <stop offset="0%" stopColor="#8a2be2" />
+        <stop offset="50%" stopColor="#00d4ff" />
+        <stop offset="100%" stopColor="#ff007f" />
+      </linearGradient>
+      <filter id="shadowCoil" x="-20%" y="-20%" width="140%" height="140%">
+        <feDropShadow dx="15" dy="25" stdDeviation="20" floodColor="#8a2be2" floodOpacity="0.5"/>
+      </filter>
+    </defs>
+    <path d="M 50,50 C 350,-50 450,150 150,150 C -50,150 -50,350 200,350" fill="none" stroke="url(#coilGrad)" strokeWidth="50" strokeLinecap="round" strokeLinejoin="round" filter="url(#shadowCoil)"/>
+  </svg>
+);
+
+const Squiggle = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 200 100" className={className}>
+    <defs>
+      <linearGradient id="sqGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stopColor="#00d4ff" stopOpacity="0.9" />
+        <stop offset="100%" stopColor="#ffffff" stopOpacity="0.8" />
+      </linearGradient>
+      <filter id="shadowSq">
+        <feDropShadow dx="5" dy="10" stdDeviation="10" floodColor="#00d4ff" floodOpacity="0.6"/>
+      </filter>
+    </defs>
+    <path d="M 20,50 Q 50,10 80,50 T 140,50 T 200,50" fill="none" stroke="url(#sqGrad)" strokeWidth="25" strokeLinecap="round" filter="url(#shadowSq)"/>
+  </svg>
+);
+
+const Ring = ({ className }: { className?: string }) => (
+  <svg viewBox="0 0 200 200" className={className}>
+    <defs>
+      <linearGradient id="ringGrad" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stopColor="#0a5cff" />
+        <stop offset="100%" stopColor="#00d4ff" />
+      </linearGradient>
+      <filter id="shadowRing">
+        <feDropShadow dx="-10" dy="20" stdDeviation="15" floodColor="#0a5cff" floodOpacity="0.6"/>
+      </filter>
+    </defs>
+    <circle cx="100" cy="100" r="60" fill="none" stroke="url(#ringGrad)" strokeWidth="40" strokeLinecap="round" filter="url(#shadowRing)"/>
+  </svg>
+);
+
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [providers, setProviders] = useState<AuthProviders | null>(null);
@@ -293,9 +354,10 @@ export default function LoginPage() {
         @keyframes float2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-40px, 30px) scale(1.1); } }
         @keyframes float3 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20px, 40px) scale(0.9); } }
         
-        .blob-1 { position: absolute; top: 0%; right: 10%; width: 600px; height: 600px; opacity: 0.9; animation: float1 15s ease-in-out infinite; z-index: 0; pointer-events: none; mix-blend-mode: screen; filter: drop-shadow(0 0 60px rgba(255,0,127,0.4)); object-fit: contain; }
-        .blob-2 { position: absolute; bottom: 0%; left: 5%; width: 500px; height: 500px; opacity: 0.9; animation: float2 18s ease-in-out infinite; z-index: 0; pointer-events: none; mix-blend-mode: screen; filter: drop-shadow(0 0 60px rgba(0,212,255,0.4)); object-fit: contain; }
-        .blob-3 { position: absolute; top: 15%; left: -5%; width: 450px; height: 450px; opacity: 0.9; animation: float3 20s ease-in-out infinite; z-index: 0; pointer-events: none; mix-blend-mode: screen; filter: drop-shadow(0 0 60px rgba(138,43,226,0.4)); object-fit: contain; }
+        .blob-1 { position: absolute; top: 15%; left: 10%; width: 300px; height: 300px; opacity: 0.9; animation: float1 15s ease-in-out infinite; z-index: 0; pointer-events: none; }
+        .blob-2 { position: absolute; top: -5%; right: 5%; width: 500px; height: 600px; opacity: 0.8; animation: float2 18s ease-in-out infinite; z-index: 0; pointer-events: none; }
+        .blob-3 { position: absolute; bottom: 5%; left: 5%; width: 400px; height: 400px; opacity: 0.9; animation: float3 20s ease-in-out infinite; z-index: 0; pointer-events: none; }
+        .blob-4 { position: absolute; bottom: 10%; right: 15%; width: 250px; height: 150px; opacity: 0.9; animation: float1 12s ease-in-out infinite reverse; z-index: 0; pointer-events: none; }
 
         .login-card {
           width: 100%; max-width: 440px; padding: 48px 40px; 
@@ -316,9 +378,10 @@ export default function LoginPage() {
       `}</style>
 
       {/* 3D Floating Shapes */}
-      <img src="/shape-spring.png" alt="3D Spring" className="blob-1" />
-      <img src="/shape-ring.png" alt="3D Ring" className="blob-2" />
-      <img src="/shape-zigzag.png" alt="3D Zigzag" className="blob-3" />
+      <Zigzag className="blob-1" />
+      <Coil className="blob-2" />
+      <Ring className="blob-3" />
+      <Squiggle className="blob-4" />
 
       {/* Language toggle (Top Right of screen) */}
       <div style={{ position: "absolute", top: 24, right: 24, zIndex: 30, display: "flex", gap: 4, padding: 4, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 100, backdropFilter: "blur(12px)" }}>
