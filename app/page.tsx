@@ -25,11 +25,12 @@ import {
   LineChart,
   Star,
   ChevronRight,
+  MapPin
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════
    SODARE · Landing Page — Collabora-Inspired Theme
-   Dark obsidian background, crimson glows, glassmorphism,
+   Dark obsidian background, cyan glows, glassmorphism,
    metallic typography, and smooth scrolling.
    ═══════════════════════════════════════════════════════ */
 
@@ -87,8 +88,39 @@ function Reveal({ children, delay = 0, className = "", style = {} }: { children:
   );
 }
 
+// ── Flip Text Effect (Typewriter / Slot Machine) ────────
+function FlipText({ text, delayOffset = 0 }: { text: string, delayOffset?: number }) {
+  const characters = text.split("");
+  return (
+    <span style={{ display: "inline-block", perspective: "1000px" }}>
+      {characters.map((char, index) => (
+        <motion.span
+          key={index}
+          initial={{ rotateX: -90, opacity: 0, y: 20 }}
+          animate={{ rotateX: 0, opacity: 1, y: 0 }}
+          transition={{
+            delay: delayOffset + index * 0.03, // Faster character reveal
+            duration: 0.6,
+            type: "spring",
+            stiffness: 150,
+            damping: 12
+          }}
+          style={{ 
+            display: "inline-block", 
+            transformOrigin: "bottom center",
+            whiteSpace: char === " " ? "pre" : "normal"
+          }}
+        >
+          {char}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
+
 // ── Constants ──────────────────────────────────────────
-const ACCENT_COLOR = "#ca3552"; // Crimson Red/Pink from Collabora
+const ACCENT_COLOR = "#00d4ff"; // Sodare Cyan
+const GRADIENT_START = "#0284c7"; // Darker blue for gradient
 
 const FEATURES = [
   { icon: <Target style={{ width: 24, height: 24 }} />, title: "Anuncios", codename: "Impulso", desc: "Meta, TikTok y Google Ads en una sola pantalla. Pausa, optimiza y escala campañas sin salir de Sodare." },
@@ -98,16 +130,6 @@ const FEATURES = [
   { icon: <Bot style={{ width: 24, height: 24 }} />, title: "Chatbots", codename: "Piloto", desc: "Tu copiloto automático. Construye flujos conversacionales que atienden, califican y asignan leads 24/7." },
   { icon: <Globe style={{ width: 24, height: 24 }} />, title: "Publicación", codename: "Lanzadera", desc: "Programa y despega. Calendario visual para publicar en todas tus redes desde un solo lugar." },
 ];
-
-const COMPARISONS = [
-  { feature: "Anuncios multicanal (Meta, TikTok, Google)", sodare: true, others: "Solo redes sociales" },
-  { feature: "Inbox unificado (WhatsApp + DMs)", sodare: true, others: "Extra o no disponible" },
-  { feature: "Briefs IA para contenido y parrillas", sodare: true, others: "No incluido" },
-  { feature: "Resumen y reportes de ROI automáticos", sodare: true, others: "Manual o básico" },
-  { feature: "Precio en moneda local (MXN)", sodare: true, others: "Solo USD" },
-  { feature: "Soporte en español", sodare: true, others: "Limitado" },
-];
-
 
 export default function Home() {
   const [scrollY, setScrollY] = useState(0);
@@ -125,8 +147,6 @@ export default function Home() {
   const c2 = useCounter(12500, 1800, 0, "+");
   const c3 = useCounter(320, 1800, 0, "+");
   const c4 = useCounter(85, 1800, 0, "%");
-
-  const navOpacity = Math.min(scrollY / 200, 0.90);
 
   // JSON-LD
   const jsonLd = {
@@ -178,15 +198,15 @@ export default function Home() {
           text-decoration: none; transition: all 0.3s; cursor: pointer; border: none;
         }
         .col-pill-primary { 
-          background: linear-gradient(180deg, #641a29 0%, #ca3552 100%); 
+          background: linear-gradient(180deg, ${GRADIENT_START} 0%, ${ACCENT_COLOR} 100%); 
           color: #fff; 
           border: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 10px 40px rgba(202, 53, 82, 0.4); 
+          box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4); 
         }
         .col-pill-primary:hover { 
-          background: linear-gradient(180deg, #7a2032 0%, #d84562 100%);
+          background: linear-gradient(180deg, #0284c7 0%, #38bdf8 100%);
           transform: translateY(-2px); 
-          box-shadow: 0 15px 50px rgba(202, 53, 82, 0.6); 
+          box-shadow: 0 15px 50px rgba(0, 212, 255, 0.6); 
         }
         .col-pill-secondary { 
           background: #fff; color: #000; border: none; font-weight: 600;
@@ -203,7 +223,7 @@ export default function Home() {
           transition: all 0.4s cubic-bezier(0.25,1,0.5,1); 
           position: relative;
         }
-        .col-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); border-color: rgba(202, 53, 82, 0.4); }
+        .col-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); border-color: rgba(0, 212, 255, 0.4); }
 
         .col-nav-link { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.25s; }
         .col-nav-link:hover { color: #fff; }
@@ -224,7 +244,7 @@ export default function Home() {
         .mockup-chart-bar {
           flex: 1; border-radius: 4px 4px 0 0; background: rgba(255,255,255,0.1); transition: all 0.5s;
         }
-        .mockup-chart-bar.active { background: linear-gradient(180deg, #ca3552, rgba(202, 53, 82, 0.1)); box-shadow: 0 0 20px rgba(202, 53, 82, 0.5); }
+        .mockup-chart-bar.active { background: linear-gradient(180deg, ${ACCENT_COLOR}, rgba(0, 212, 255, 0.1)); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
 
         @media (max-width: 768px) {
           .col-features-grid { grid-template-columns: 1fr !important; }
@@ -261,9 +281,7 @@ export default function Home() {
       }}>
         <div style={{ padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: ACCENT_COLOR, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 700, color: "#fff", fontSize: 18 }}>
-              S
-            </div>
+            <SodareLogo size="sm" animated={false} />
             <span style={{ fontSize: 20, fontWeight: 700, color: "#fff", letterSpacing: "-0.04em" }}>Sodare</span>
           </Link>
           <nav className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 40 }}>
@@ -310,18 +328,26 @@ export default function Home() {
         position: "relative", zIndex: 1,
         minHeight: "100vh",
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-start",
-        padding: "180px 24px 0",
+        padding: "160px 24px 0",
         textAlign: "center",
         overflow: "hidden",
       }}>
-        {/* Glow Arcs (Collabora Style) */}
-        <div style={{ position: "absolute", top: "20%", left: "-20%", width: "40%", height: "80%", background: `radial-gradient(ellipse at right, rgba(202,53,82,0.15) 0%, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: "20%", right: "-20%", width: "40%", height: "80%", background: `radial-gradient(ellipse at left, rgba(202,53,82,0.15) 0%, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-20%", left: "50%", transform: "translateX(-50%)", width: "80%", height: "40%", background: `radial-gradient(ellipse at top, rgba(202,53,82,0.2) 0%, transparent 70%)`, pointerEvents: "none" }} />
+        {/* Glow Arcs (Sodare Cyan Style) */}
+        <div style={{ position: "absolute", top: "20%", left: "-20%", width: "40%", height: "80%", background: `radial-gradient(ellipse at right, rgba(0, 212, 255, 0.15) 0%, transparent 70%)`, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", top: "20%", right: "-20%", width: "40%", height: "80%", background: `radial-gradient(ellipse at left, rgba(0, 212, 255, 0.15) 0%, transparent 70%)`, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", bottom: "-20%", left: "50%", transform: "translateX(-50%)", width: "80%", height: "40%", background: `radial-gradient(ellipse at top, rgba(0, 212, 255, 0.2) 0%, transparent 70%)`, pointerEvents: "none" }} />
 
-        {/* Badge (Collabora text bracket style) */}
+        {/* Orbi Perfectly Centered */}
         <motion.div 
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: "easeOut" }}
+          initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: "easeOut", type: "spring", bounce: 0.5 }}
+          style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: 24, zIndex: 10 }}
+        >
+          <Orbi size={64} style={{ filter: "drop-shadow(0px 0px 20px rgba(0, 212, 255, 0.6))" }} />
+        </motion.div>
+
+        {/* Badge */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
           style={{
             display: "flex", alignItems: "center", gap: 12,
             padding: "8px 24px", borderRadius: 980, 
@@ -334,9 +360,8 @@ export default function Home() {
           <span style={{ opacity: 0.4 }}>{"}"}</span>
         </motion.div>
 
-        {/* Headline */}
-        <motion.h1 
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+        {/* Headline (Slot Machine Flip Animation) */}
+        <h1 
           className="col-hero-h1 col-title" style={{
             fontWeight: 700,
             fontSize: "clamp(48px, 7vw, 84px)",
@@ -345,12 +370,14 @@ export default function Home() {
             maxWidth: 900,
           }}
         >
-          Deja de adivinar.<br/>Empieza a escalar.
-        </motion.h1>
+          <FlipText text="Deja de adivinar." delayOffset={0.4} />
+          <br/>
+          <FlipText text="Empieza a escalar." delayOffset={0.9} />
+        </h1>
 
         {/* Subtitle */}
         <motion.p 
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1.5, ease: "easeOut" }}
           style={{
             fontSize: "clamp(16px, 2vw, 20px)",
             fontWeight: 400,
@@ -364,9 +391,9 @@ export default function Home() {
           tu inbox de WhatsApp y tus reportes de ROI en una plataforma diseñada para equipos de alto rendimiento.
         </motion.p>
 
-        {/* CTAs (Input field + Pill like Collabora) */}
+        {/* CTAs */}
         <motion.div 
-          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1.7, ease: "easeOut" }}
           style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "center", position: "relative", zIndex: 10, marginBottom: 80 }}
         >
           <Link href="/login" className="col-pill col-pill-primary" aria-label="Contacto / Registro">
@@ -380,9 +407,9 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* MOCKUP DASHBOARD (Collabora style) */}
+        {/* MOCKUP DASHBOARD (Cyan style) */}
         <motion.div 
-          initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 0.5, ease: "easeOut" }}
+          initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 1.9, ease: "easeOut" }}
           style={{ 
             width: "100%", maxWidth: 1100, height: 600, 
             background: "#0a0a0a",
@@ -391,14 +418,14 @@ export default function Home() {
             borderRadius: "24px 24px 0 0",
             position: "relative",
             overflow: "hidden",
-            boxShadow: "0 -20px 100px rgba(202, 53, 82, 0.15)",
+            boxShadow: "0 -20px 100px rgba(0, 212, 255, 0.15)",
             display: "flex",
           }}
         >
           {/* Sidebar */}
           <div style={{ width: 240, borderRight: "1px solid rgba(255,255,255,0.05)", padding: 24, display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 48 }}>
-              <div style={{ width: 24, height: 24, background: "linear-gradient(180deg, #641a29, #ca3552)", borderRadius: 6 }} />
+              <div style={{ width: 24, height: 24, background: `linear-gradient(180deg, ${GRADIENT_START}, ${ACCENT_COLOR})`, borderRadius: 6 }} />
               <div style={{ fontSize: 18, fontWeight: 600, color: "#fff" }}>Sodare</div>
             </div>
             <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Navegación</div>
@@ -419,9 +446,12 @@ export default function Home() {
             ))}
           </div>
           {/* Main Area */}
-          <div style={{ flex: 1, padding: 32, display: "flex", flexDirection: "column", gap: 24, background: "radial-gradient(circle at bottom right, rgba(202,53,82,0.1), transparent 50%)" }}>
+          <div style={{ flex: 1, padding: 32, display: "flex", flexDirection: "column", gap: 24, background: "radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.1), transparent 50%)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <h3 style={{ fontSize: 24, fontWeight: 600, color: "#fff" }}>Resumen de Campañas 👋</h3>
+               <h3 style={{ fontSize: 24, fontWeight: 600, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
+                 Resumen de Campañas 
+                 <Activity size={24} color={ACCENT_COLOR} />
+               </h3>
                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
                  <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}><Users size={16} color="#fff"/></div>
                  <div style={{ padding: "8px 16px", borderRadius: 999, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", fontSize: 14 }}>Exportar</div>
@@ -436,9 +466,9 @@ export default function Home() {
               ].map((c, i) => (
                 <div key={i} style={{ 
                   flex: 1, padding: 24, borderRadius: 16, 
-                  background: c.glow ? "linear-gradient(145deg, rgba(202,53,82,0.1), rgba(255,255,255,0.02))" : "rgba(255,255,255,0.02)",
-                  border: c.glow ? `1px solid rgba(202,53,82,0.3)` : "1px solid rgba(255,255,255,0.05)",
-                  boxShadow: c.glow ? "0 10px 30px rgba(202,53,82,0.1)" : "none"
+                  background: c.glow ? "linear-gradient(145deg, rgba(0, 212, 255, 0.1), rgba(255,255,255,0.02))" : "rgba(255,255,255,0.02)",
+                  border: c.glow ? `1px solid rgba(0, 212, 255, 0.3)` : "1px solid rgba(255,255,255,0.05)",
+                  boxShadow: c.glow ? "0 10px 30px rgba(0, 212, 255, 0.1)" : "none"
                 }}>
                   <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.glow ? ACCENT_COLOR : "rgba(255,255,255,0.2)" }} />
@@ -496,7 +526,7 @@ export default function Home() {
       <section id="problema" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(202, 53, 82, 0.1)", border: `1px solid rgba(202, 53, 82, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(0, 212, 255, 0.1)", border: `1px solid rgba(0, 212, 255, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
               El Problema
              </div>
           </div>
@@ -545,7 +575,7 @@ export default function Home() {
         <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 2 }}>
           <Reveal>
             <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-               <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(202, 53, 82, 0.1)", border: `1px solid rgba(202, 53, 82, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+               <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(0, 212, 255, 0.1)", border: `1px solid rgba(0, 212, 255, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
                 La Solución
                </div>
             </div>
@@ -568,9 +598,9 @@ export default function Home() {
                   <div>
                     <div style={{
                       width: 56, height: 56, borderRadius: 16,
-                      background: "linear-gradient(135deg, rgba(202,53,82,0.2), rgba(202,53,82,0.05))",
-                      border: "1px solid rgba(202,53,82,0.2)",
-                      boxShadow: "0 10px 20px rgba(202,53,82,0.1)",
+                      background: "linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.05))",
+                      border: "1px solid rgba(0, 212, 255, 0.2)",
+                      boxShadow: "0 10px 20px rgba(0, 212, 255, 0.1)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       marginBottom: 24, color: "#fff",
                     }}>
@@ -603,7 +633,7 @@ export default function Home() {
       <section style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(202, 53, 82, 0.1)", border: `1px solid rgba(202, 53, 82, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(0, 212, 255, 0.1)", border: `1px solid rgba(0, 212, 255, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
               Cómo Funciona
              </div>
           </div>
@@ -737,7 +767,9 @@ export default function Home() {
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
           }}>
             <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>© {new Date().getFullYear()} Sodare. Todos los derechos reservados.</span>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>Hecho en México 🇲🇽</span>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
+              Hecho en México <MapPin size={14} />
+            </span>
           </div>
         </div>
       </footer>
