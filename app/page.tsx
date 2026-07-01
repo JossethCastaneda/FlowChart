@@ -364,8 +364,8 @@ export default function Home() {
                 <stop offset="0%" stopColor="transparent" />
                 <stop offset="50%" stopColor="rgba(255,255,255,0.8)" />
                 <stop offset="100%" stopColor="transparent" />
-                <animate attributeName="y1" values="-1; 2" dur="3s" repeatCount="indefinite" />
-                <animate attributeName="y2" values="0; 3" dur="3s" repeatCount="indefinite" />
+              <animate attributeName="y1" values="-1; 2" dur="8s" repeatCount="indefinite" />
+              <animate attributeName="y2" values="0; 3" dur="8s" repeatCount="indefinite" />
               </linearGradient>
             </defs>
             {/* Left Faint Curve */}
