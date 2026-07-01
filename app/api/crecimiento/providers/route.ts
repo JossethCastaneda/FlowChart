@@ -10,11 +10,9 @@
 import { withWorkspaceRole } from "@/lib/api-handler";
 import { apiSuccess, apiServerError } from "@/lib/api-response";
 import prisma from "@/lib/prisma";
-import { AI_CATALOG, getProvider, resolveSelection } from "@/lib/ai";
+import { AI_CATALOG, getProvider, getActiveProvider, resolveSelection } from "@/lib/ai";
 
 export const dynamic = "force-dynamic";
-
-const DEFAULT_SELECTION = "gpt-4.1-mini";
 
 export const GET = withWorkspaceRole(["OWNER", "ADMIN", "MEMBER"])(async (_req, ctx) => {
   try {
@@ -23,15 +21,31 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN", "MEMBER"])(async (_req, 
       select: { extConfig: true },
     });
     const extConfig = (settings?.extConfig as Record<string, unknown>) || {};
-    const selected =
-      typeof extConfig.ariaGenerativeModel === "string"
+    const stored =
+      typeof extConfig.ariaGenerativeModel === "string" && extConfig.ariaGenerativeModel.length > 0
         ? extConfig.ariaGenerativeModel
-        : DEFAULT_SELECTION;
+        : null;
 
-    const resolved = resolveSelection(selected);
-    // Proveedor/modelo efectivo (lo que realmente respondería, considerando keys).
-    const activeProviderId =
-      resolved && getProvider(resolved.provider).isConfigured() ? resolved.provider : null;
+    // IA efectiva. Si hay una selección explícita válida y con key, esa manda;
+    // si no, el default del sistema (getActiveProvider = Gemini si tiene key).
+    let activeProviderId: string | null = null;
+    let activeModel: string | null = null;
+    let explicit = false;
+    if (stored) {
+      const resolved = resolveSelection(stored);
+      if (resolved && getProvider(resolved.provider).isConfigured()) {
+        activeProviderId = resolved.provider;
+        activeModel = resolved.model;
+        explicit = true;
+      }
+    }
+    if (!activeProviderId) {
+      const active = getActiveProvider();
+      if (active.isConfigured()) {
+        activeProviderId = active.id;
+        activeModel = active.defaultModel;
+      }
+    }
 
     const providers = AI_CATALOG.map((c) => ({
       ...c,
@@ -40,9 +54,11 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN", "MEMBER"])(async (_req, 
 
     return apiSuccess({
       providers,
-      selectedModel: selected,
+      selectedModel: stored,
+      explicit,
       activeProviderId,
-      activeModel: activeProviderId && resolved ? resolved.model : null,
+      activeModel,
+      canManage: ctx.role === "OWNER" || ctx.role === "ADMIN",
     });
   } catch (error) {
     return apiServerError(error, "/api/crecimiento/providers GET");

@@ -1,6 +1,10 @@
 import { withWorkspaceRole } from "@/lib/api-handler";
-import { apiSuccess, apiError } from "@/lib/api-response";
+import { apiSuccess } from "@/lib/api-response";
+import { validateBody } from "@/lib/validate";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
+
+const ModelSchema = z.object({ model: z.string().min(1).max(64) });
 
 // Obtener el modelo IA configurado en el workspace
 export const GET = withWorkspaceRole(["OWNER", "ADMIN", "MEMBER"])(async (req, ctx) => {
@@ -18,12 +22,9 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN", "MEMBER"])(async (req, c
 
 // Actualizar el modelo IA del workspace
 export const PUT = withWorkspaceRole(["OWNER", "ADMIN"])(async (req, ctx) => {
-  const body = await req.json();
-  const { model } = body;
-
-  if (!model || typeof model !== "string") {
-    return apiError("model es requerido y debe ser string", "BAD_REQUEST", 400);
-  }
+  const parsed = await validateBody(req, ModelSchema);
+  if (!parsed.ok) return parsed.response;
+  const { model } = parsed.data;
 
   // Obtener settings actuales para mezclar el extConfig
   let settings = await prisma.workspaceSettings.findUnique({

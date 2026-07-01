@@ -100,11 +100,16 @@ const UI_MODEL_MAPPING: Record<string, { provider: ProviderId; model: string }> 
  * Devuelve null si no se reconoce.
  */
 export function resolveSelection(selected: string): { provider: ProviderId; model: string } | null {
-  const mapping = UI_MODEL_MAPPING[selected];
-  if (mapping) return mapping;
+  // 1. ID de modelo real del catálogo (lo que guarda el selector de Crecimiento).
+  //    Va PRIMERO para que "gpt-4.1" resuelva a gpt-4.1 real y no colisione con el
+  //    alias de Botmaker "gpt-4.1" (→ gpt-4o). La única colisión posible es esa.
   for (const id of Object.keys(MODELS) as ProviderId[]) {
     if (MODELS[id].available.includes(selected)) return { provider: id, model: selected };
   }
+  // 2. Alias de la UI de Botmaker (p.ej. "gpt-5", "gpt-4.1-mini", "gemini-3.5-flash").
+  const mapping = UI_MODEL_MAPPING[selected];
+  if (mapping) return mapping;
+  // 3. ID de proveedor → su modelo por defecto.
   if (isProviderId(selected)) return { provider: selected, model: PROVIDERS[selected].defaultModel };
   return null;
 }
@@ -123,11 +128,15 @@ export async function getWorkspaceAiProvider(
       select: { extConfig: true },
     });
     const extConfig = (settings?.extConfig as Record<string, unknown>) || {};
-    const selected =
-      typeof extConfig.ariaGenerativeModel === "string" ? extConfig.ariaGenerativeModel : "gpt-4.1-mini";
-    const resolved = resolveSelection(selected);
-    if (resolved && PROVIDERS[resolved.provider].isConfigured()) {
-      return { provider: PROVIDERS[resolved.provider], model: resolved.model };
+    const stored = extConfig.ariaGenerativeModel;
+    // Solo respetamos una selección REAL guardada. Si no hay ninguna, no se
+    // sintetiza un default fantasma: se cae al proveedor activo por defecto
+    // (env / preferencia = Gemini), coherente con getActiveProvider().
+    if (typeof stored === "string" && stored.length > 0) {
+      const resolved = resolveSelection(stored);
+      if (resolved && PROVIDERS[resolved.provider].isConfigured()) {
+        return { provider: PROVIDERS[resolved.provider], model: resolved.model };
+      }
     }
   } catch (err) {
     console.error("Error reading Workspace AI settings:", err);
