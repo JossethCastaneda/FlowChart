@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 /**
  * SODARE · Login "Puente de Mando"
@@ -239,15 +239,16 @@ export default function LoginPage() {
 
   // ── estilos ──
   const input: React.CSSProperties = {
-    width: "100%", padding: "12px 14px", marginBottom: 12, background: "rgba(0,212,255,0.03)",
-    border: "1px solid rgba(0,212,255,0.15)", color: "var(--foreground)", fontSize: 13, outline: "none",
-    boxSizing: "border-box", borderRadius: 5, transition: "border-color .15s,box-shadow .15s",
+    width: "100%", padding: "12px 14px", marginBottom: 12, background: "rgba(255,255,255,0.02)",
+    border: "1px solid rgba(255,255,255,0.08)", color: "#fff", fontSize: 13, outline: "none",
+    boxSizing: "border-box", borderRadius: 8, transition: "border-color .15s,box-shadow .15s",
   };
   const cta: React.CSSProperties = {
     width: "100%", marginTop: 6, padding: 15, border: "none", cursor: "pointer",
-    background: `linear-gradient(135deg,${ACCENT},#0080ff)`, color: "var(--background)", fontWeight: 700,
-    letterSpacing: "0.02em", borderRadius: 6, display: "flex", alignItems: "center",
+    background: `linear-gradient(180deg, ${ACCENT}, #0284c7)`, color: "#fff", fontWeight: 700,
+    letterSpacing: "0.02em", borderRadius: 8, display: "flex", alignItems: "center",
     justifyContent: "center", gap: 10, minHeight: 50, fontSize: 14,
+    boxShadow: "0 10px 40px rgba(0, 212, 255, 0.4)", transition: "all 0.3s"
   };
   const tab = (active: boolean): React.CSSProperties => ({
     flex: 1, padding: 9, fontFamily: ORB, fontSize: 10, fontWeight: 700, letterSpacing: "0.1em",
@@ -266,7 +267,7 @@ export default function LoginPage() {
     e.currentTarget.style.boxShadow = "0 0 0 3px rgba(0,212,255,0.12)";
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.currentTarget.style.borderColor = "rgba(0,212,255,0.15)";
+    e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
     e.currentTarget.style.boxShadow = "none";
   };
 
@@ -291,23 +292,63 @@ export default function LoginPage() {
   const leftBg = "radial-gradient(ellipse 600px 500px at 22% 14%,rgba(0,120,220,0.2) 0%,transparent 60%),radial-gradient(ellipse 540px 540px at 80% 100%,rgba(110,0,190,0.15) 0%,transparent 62%),linear-gradient(135deg,var(--background),var(--background))";
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh", display: "flex", flexWrap: "wrap", background: "var(--background)", fontFamily: "var(--font-inter),system-ui,sans-serif", overflow: "hidden" }}>
+    <div style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#060606", fontFamily: "var(--font-inter),system-ui,sans-serif", overflow: "hidden" }}>
       <style>{`
         @keyframes f-headglow{0%,100%{text-shadow:0 0 30px rgba(0,212,255,.22)}50%{text-shadow:0 0 46px rgba(0,212,255,.42)}}
         @keyframes f-pulse{0%,100%{opacity:1}50%{opacity:.35}}
-        @keyframes f-bubble{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-        @keyframes f-seam{0%{opacity:.25;transform:translateY(-30%)}50%{opacity:.8}100%{opacity:.25;transform:translateY(30%)}}
         @keyframes f-spin{to{transform:rotate(360deg)}}
-        .login-left{width:50%;padding:52px}
-        .login-right{width:50%;padding:56px 64px;border-left:1px solid rgba(0,212,255,.1)}
+        @keyframes shine { to { background-position: 200% center; } }
+        
+        .text-shimmer {
+          background: linear-gradient(to right, #ffffff 20%, #00d4ff 40%, #00d4ff 60%, #ffffff 80%);
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          color: transparent;
+          animation: shine 4s linear infinite;
+        }
+
+        .login-card {
+          width: 100%; maxWidth: 420px; padding: 40px; 
+          background: rgba(10,10,12,0.6); 
+          border: 1px solid rgba(255,255,255,0.08); 
+          border-radius: 24px; 
+          box-shadow: 0 20px 80px rgba(0,212,255,0.05), inset 0 1px 0 rgba(255,255,255,0.05);
+          backdrop-filter: blur(20px);
+          position: relative;
+          z-index: 10;
+        }
+
+        .col-funnel-container {
+          position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0;
+        }
         @media (max-width:820px){
-          .login-left{width:100%;padding:32px 24px}
-          .login-right{width:100%;padding:32px 24px 44px;border-left:none;border-top:1px solid rgba(0,212,255,.1)}
-          .login-hero{display:none}
-          .login-headline{font-size:26px !important}
+          .login-card { padding: 32px 24px; border-radius: 16px; border-left:none; border-right:none; border-bottom: none; }
+          .login-headline { font-size: 24px !important; }
         }
         @media (prefers-reduced-motion:reduce){*{animation:none !important}}
       `}</style>
+
+      {/* Background Funnel Effect (Collabora style) */}
+      <div className="col-funnel-container">
+        <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0 }}>
+          <defs>
+            <linearGradient id="beam-synced" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="transparent" />
+              <stop offset="50%" stopColor="rgba(255,255,255,0.8)" />
+              <stop offset="100%" stopColor="transparent" />
+              <animate attributeName="y1" values="-1; 2" dur="3s" repeatCount="indefinite" />
+              <animate attributeName="y2" values="0; 3" dur="3s" repeatCount="indefinite" />
+            </linearGradient>
+          </defs>
+          <path d="M -10,0 Q 30,40 35,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
+          <path d="M -10,0 Q 30,40 35,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+          <path d="M 110,0 Q 70,40 65,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
+          <path d="M 110,0 Q 70,40 65,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+        </svg>
+        <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "140vw", height: "400px", background: "radial-gradient(ellipse 70% 30% at 50% 50%, rgba(0,212,255,0.08) 0%, transparent 60%)", borderRadius: "50%", zIndex: -1 }} />
+      </div>
 
       {/* Language toggle */}
       <div style={{ position: "absolute", top: 18, right: 22, zIndex: 20, display: "flex", gap: 2, padding: 3, background: "rgba(8,14,26,0.7)", border: "1px solid rgba(0,212,255,0.18)", borderRadius: 100 }}>
@@ -315,116 +356,89 @@ export default function LoginPage() {
         <button onClick={() => setLang("en")} style={langBtn(lang === "en")}>EN</button>
       </div>
 
-      {/* LEFT · brand + proof */}
-      <div className="login-left" style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 26, background: leftBg }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(0,212,255,0.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,212,255,0.03) 1px,transparent 1px)", backgroundSize: "48px 48px", pointerEvents: "none", maskImage: "radial-gradient(ellipse 90% 80% at 45% 42%,#000 30%,transparent 95%)" }} />
-        <div style={{ position: "relative" }}><SodareLogo size="lg" /></div>
-
-        <div style={{ position: "relative" }}>
-          <div className="login-hero" style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 24 }}>
-            <Orbi scale={0.82} />
-            <div style={{ position: "relative", marginTop: 30, marginLeft: -18, maxWidth: 270, padding: "16px 18px", background: "rgba(8,18,34,0.92)", border: "1px solid rgba(0,212,255,0.28)", borderRadius: "14px 14px 14px 4px", boxShadow: "0 0 28px rgba(0,212,255,0.14)", animation: "f-bubble 4s ease-in-out infinite" }}>
-              <div style={{ fontSize: 9, fontFamily: "monospace", letterSpacing: "0.24em", color: "var(--cyan)", marginBottom: 7 }}>ORBI <span style={{ color: "var(--text-secondary)" }}>{lang === "es" ? "// tu copiloto" : "// your copilot"}</span></div>
-              <div style={{ fontSize: 13.5, lineHeight: 1.55, color: "var(--foreground)" }}>{t.bubblePre}<b style={{ color: "#fff" }}>Meta, Google, WhatsApp &amp; TikTok</b>{t.bubblePost}</div>
-            </div>
-          </div>
-          <div style={{ display: "inline-block", fontSize: 11, fontWeight: 700, color: ACCENT, background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", padding: "6px 12px", borderRadius: 100, marginBottom: 16 }}>{t.hook}</div>
-          <div className="login-headline" style={{ fontFamily: ORB, fontSize: 36, fontWeight: 700, lineHeight: 1.16, color: "var(--foreground)", animation: "f-headglow 4.5s ease-in-out infinite" }}>{t.h1}<br />{t.h2}</div>
-          <div style={{ fontSize: 15, color: "var(--text-secondary)", lineHeight: 1.6, marginTop: 16, maxWidth: 420 }}>{t.sub}</div>
+      {/* Centered Header */}
+      <div style={{ position: "relative", zIndex: 10, textAlign: "center", marginBottom: 32, display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <a href="/" style={{ display: "inline-flex", marginBottom: 24 }}><SodareLogo size="lg" /></a>
+        <div style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: 12 }}>
+          <Orbi size={48} style={{ filter: "drop-shadow(0px 0px 15px rgba(0, 212, 255, 0.5))" }} />
         </div>
-
-        <div style={{ position: "relative" }}>
-          <div style={{ fontSize: 9, fontFamily: "monospace", letterSpacing: "0.3em", color: "var(--text-secondary)", marginBottom: 12 }}>{t.metricsLabel}</div>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            {[["+34%", t.roas], ["2,400", t.convs], ["118", t.campaigns]].map(([v, l]) => (
-              <div key={l} style={{ flex: 1, minWidth: 120, padding: "15px 18px", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.12)", borderRadius: 8 }}>
-                <div style={{ fontFamily: ORB, fontSize: 28, fontWeight: 700, color: "#fff" }}>{v}</div>
-                <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>{l}</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <h1 className="text-shimmer login-headline" style={{ fontFamily: ORB, fontSize: "clamp(24px, 3.5vw, 32px)", fontWeight: 700, lineHeight: 1.2, margin: 0, padding: "0 20px" }}>
+          {t.h1}
+        </h1>
       </div>
 
-      {/* RIGHT · acceso */}
-      <div className="login-right" style={{ position: "relative", display: "flex", flexDirection: "column", justifyContent: "center", background: "rgba(4,7,14,0.6)" }}>
-        <span style={{ position: "absolute", left: -1, top: 0, width: 2, height: "50%", background: "linear-gradient(180deg,transparent,rgba(0,212,255,0.7),transparent)", animation: "f-seam 6s ease-in-out infinite" }} />
-        <div style={{ width: "100%", maxWidth: 392, margin: "0 auto", padding: "38px 34px", background: "rgba(8,14,26,0.55)", border: `1px solid ${ACCENT}33`, borderRadius: 16, boxShadow: `0 0 56px ${ACCENT}1f,inset 0 1px 0 rgba(255,255,255,0.04)` }}>
-
-          {success ? (
-            <div style={{ textAlign: "center", padding: "24px 0" }}>
-              <div style={{ width: 64, height: 64, margin: "0 auto 18px", borderRadius: "50%", background: "rgba(6,214,160,0.12)", border: "1.5px solid rgba(6,214,160,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--emerald)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-              </div>
-              <div style={{ fontFamily: ORB, fontSize: 18, fontWeight: 700, color: "#fff" }}>{t.successTitle}</div>
-              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 8 }}>{t.successSub}</div>
+      {/* Login Box */}
+      <div className="login-card">
+        {success ? (
+          <div style={{ textAlign: "center", padding: "24px 0" }}>
+            <div style={{ width: 64, height: 64, margin: "0 auto 18px", borderRadius: "50%", background: "rgba(6,214,160,0.12)", border: "1.5px solid rgba(6,214,160,0.5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--emerald)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
             </div>
-          ) : showReturning ? (
-            <>
-              <div style={{ textAlign: "center", marginBottom: 6 }}>
-                <div style={{ width: 60, height: 60, margin: "0 auto 12px", borderRadius: "50%", background: "linear-gradient(135deg,var(--background),var(--background))", border: "1.5px solid rgba(0,212,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: ORB, fontSize: 22, fontWeight: 700, color: ACCENT, boxShadow: "0 0 22px rgba(0,212,255,0.18)" }}>{(savedName || savedEmail || "U").trim().charAt(0).toUpperCase()}</div>
-                <div style={{ fontFamily: ORB, fontSize: 17, fontWeight: 700, color: "#fff" }}>{t.returningHi(savedName || "")}</div>
-                <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 5, marginBottom: 22 }}>{savedEmail}</div>
-              </div>
-              <div style={{ position: "relative", marginBottom: 8 }}>
-                <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder={t.pwReturning} onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, padding: "12px 44px 12px 14px" }} />
-                {EyeBtn}
-              </div>
-              {ErrorRow}
-              <div style={{ textAlign: "right", marginBottom: 8 }}><a href="/forgot-password" style={{ fontSize: 12, color: "rgba(0,212,255,0.7)", textDecoration: "none" }}>{t.forgot}</a></div>
-              <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1 }}>
-                {isLoading ? <span style={{ width: 16, height: 16, border: "2px solid rgba(3,18,26,0.35)", borderTopColor: "var(--background)", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : t.ctaLogin}
-              </button>
-              <div style={{ textAlign: "center", marginTop: 16 }}>
-                <a href="#" onClick={(e) => { e.preventDefault(); setUseOther(true); setPassword(""); setCredError(""); }} style={{ fontSize: 12, color: "var(--text-secondary)", textDecoration: "none", cursor: "pointer" }}>{t.useOther}</a>
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ fontFamily: ORB, fontSize: 22, fontWeight: 700, letterSpacing: "0.06em", color: "#fff", textAlign: "center" }}>{t.title}</div>
-              <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 8, marginBottom: 24, textAlign: "center" }}>{t.subtitle}</div>
-
-              <div style={{ display: "flex", gap: 10 }}>
-                <button onClick={handleFacebookLogin} disabled={isLoading || !providerStatusLoaded || !hasFacebookProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(0,212,255,0.16)", cursor: "pointer", background: "rgba(10,15,28,0.6)", color: "var(--foreground)", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 6 }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" /></svg>Facebook
-                </button>
-                <button onClick={handleGoogleLogin} disabled={isLoading || !providerStatusLoaded || !hasGoogleProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(0,212,255,0.16)", cursor: "pointer", background: "rgba(10,15,28,0.6)", color: "var(--foreground)", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 6 }}>
-                  <svg width="15" height="15" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>Google
-                </button>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "20px 0" }}>
-                <span style={{ flex: 1, height: 1, background: "rgba(0,212,255,0.12)" }} /><span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{t.orEmail}</span><span style={{ flex: 1, height: 1, background: "rgba(0,212,255,0.12)" }} />
-              </div>
-
-              <div style={{ display: "flex", gap: 8, marginBottom: 18 }}>
-                <button onClick={() => { setIsRegister(false); setCredError(""); }} style={tab(!isRegister)}>{t.tabLogin}</button>
-                <button onClick={() => { setIsRegister(true); setCredError(""); }} style={tab(isRegister)}>{t.tabReg}</button>
-              </div>
-
-              {isRegister && <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t.name} onFocus={onFocus} onBlur={onBlur} style={input} />}
-              <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setCredError(""); }} placeholder="tu@empresa.com" onFocus={onFocus} onBlur={onBlur} style={input} />
-              <div style={{ position: "relative", marginBottom: 8 }}>
-                <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder="••••••••" onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, padding: "12px 44px 12px 14px" }} />
-                {EyeBtn}
-              </div>
-              {isRegister && <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t.confirmPw} onFocus={onFocus} onBlur={onBlur} style={input} />}
-              {ErrorRow}
-              {!isRegister && <div style={{ textAlign: "right", marginBottom: 6 }}><a href="/forgot-password" style={{ fontSize: 12, color: "rgba(0,212,255,0.7)", textDecoration: "none" }}>{t.forgot}</a></div>}
-
-              <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1 }}>
-                {isLoading ? <span style={{ width: 16, height: 16, border: "2px solid rgba(3,18,26,0.35)", borderTopColor: "var(--background)", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : (isRegister ? t.ctaReg : t.ctaLogin)}
-              </button>
-            </>
-          )}
-
-          {!success && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 22 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 8px rgba(6,214,160,0.6)", animation: "f-pulse 2.4s infinite" }} />
-              <span style={{ fontSize: 11, color: "var(--emerald)" }}>{t.secure}</span>
+            <div style={{ fontFamily: ORB, fontSize: 18, fontWeight: 700, color: "#fff" }}>{t.successTitle}</div>
+            <div style={{ fontSize: 13, color: "var(--text-secondary)", marginTop: 8 }}>{t.successSub}</div>
+          </div>
+        ) : showReturning ? (
+          <>
+            <div style={{ textAlign: "center", marginBottom: 6 }}>
+              <div style={{ width: 60, height: 60, margin: "0 auto 12px", borderRadius: "50%", background: "linear-gradient(135deg, #111, #060606)", border: "1.5px solid rgba(0,212,255,0.4)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: ORB, fontSize: 22, fontWeight: 700, color: ACCENT, boxShadow: "0 0 22px rgba(0,212,255,0.18)" }}>{(savedName || savedEmail || "U").trim().charAt(0).toUpperCase()}</div>
+              <div style={{ fontFamily: ORB, fontSize: 17, fontWeight: 700, color: "#fff" }}>{t.returningHi(savedName || "")}</div>
+              <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 5, marginBottom: 22 }}>{savedEmail}</div>
             </div>
-          )}
-        </div>
+            <div style={{ position: "relative", marginBottom: 8 }}>
+              <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder={t.pwReturning} onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, padding: "12px 44px 12px 14px" }} />
+              {EyeBtn}
+            </div>
+            {ErrorRow}
+            <div style={{ textAlign: "right", marginBottom: 8 }}><a href="/forgot-password" style={{ fontSize: 12, color: "rgba(0,212,255,0.7)", textDecoration: "none" }}>{t.forgot}</a></div>
+            <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1 }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
+              {isLoading ? <span style={{ width: 16, height: 16, border: "2px solid rgba(3,18,26,0.35)", borderTopColor: "var(--background)", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : t.ctaLogin}
+            </button>
+            <div style={{ textAlign: "center", marginTop: 16 }}>
+              <a href="#" onClick={(e) => { e.preventDefault(); setUseOther(true); setPassword(""); setCredError(""); }} style={{ fontSize: 12, color: "var(--text-secondary)", textDecoration: "none", cursor: "pointer" }}>{t.useOther}</a>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ display: "flex", gap: 10 }}>
+              <button onClick={handleFacebookLogin} disabled={isLoading || !providerStatusLoaded || !hasFacebookProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(255,255,255,0.08)", cursor: "pointer", background: "rgba(255,255,255,0.02)", color: "#fff", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 8, transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"} onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="#1877F2"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" /></svg>Facebook
+              </button>
+              <button onClick={handleGoogleLogin} disabled={isLoading || !providerStatusLoaded || !hasGoogleProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(255,255,255,0.08)", cursor: "pointer", background: "rgba(255,255,255,0.02)", color: "#fff", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 8, transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.06)"} onMouseLeave={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}>
+                <svg width="15" height="15" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>Google
+              </button>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "24px 0" }}>
+              <span style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} /><span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{t.orEmail}</span><span style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+            </div>
+
+            <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+              <button onClick={() => { setIsRegister(false); setCredError(""); }} style={tab(!isRegister)}>{t.tabLogin}</button>
+              <button onClick={() => { setIsRegister(true); setCredError(""); }} style={tab(isRegister)}>{t.tabReg}</button>
+            </div>
+
+            {isRegister && <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t.name} onFocus={onFocus} onBlur={onBlur} style={input} />}
+            <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setCredError(""); }} placeholder="tu@empresa.com" onFocus={onFocus} onBlur={onBlur} style={input} />
+            <div style={{ position: "relative", marginBottom: 8 }}>
+              <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder="••••••••" onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, padding: "12px 44px 12px 14px" }} />
+              {EyeBtn}
+            </div>
+            {isRegister && <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t.confirmPw} onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginTop: 12 }} />}
+            {ErrorRow}
+            {!isRegister && <div style={{ textAlign: "right", marginBottom: 6, marginTop: 4 }}><a href="/forgot-password" style={{ fontSize: 12, color: "rgba(0,212,255,0.7)", textDecoration: "none", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e) => e.currentTarget.style.color = "rgba(0,212,255,0.7)"}>{t.forgot}</a></div>}
+
+            <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1 }} onMouseEnter={(e) => e.currentTarget.style.transform = "translateY(-2px)"} onMouseLeave={(e) => e.currentTarget.style.transform = "translateY(0)"}>
+              {isLoading ? <span style={{ width: 16, height: 16, border: "2px solid rgba(3,18,26,0.35)", borderTopColor: "var(--background)", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : (isRegister ? t.ctaReg : t.ctaLogin)}
+            </button>
+          </>
+        )}
+
+        {!success && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 32 }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 8px rgba(6,214,160,0.6)", animation: "f-pulse 2.4s infinite" }} />
+            <span style={{ fontSize: 11, color: "var(--emerald)" }}>{t.secure}</span>
+          </div>
+        )}
       </div>
     </div>
   );
