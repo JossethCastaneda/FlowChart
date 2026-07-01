@@ -212,7 +212,7 @@ export default function Home() {
 
         /* Funnel Effect Container */
         .col-funnel-container {
-          position: absolute; top: 0; left: 0; right: 0; height: 100vh; overflow: hidden; pointer-events: none; z-index: 0;
+          position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 0;
         }
 
 
@@ -360,32 +360,24 @@ export default function Home() {
         <div className="col-funnel-container">
           <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0 }}>
             <defs>
-              <linearGradient id="beam-left" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="beam-synced" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0%" stopColor="transparent" />
                 <stop offset="50%" stopColor="rgba(255,255,255,0.8)" />
                 <stop offset="100%" stopColor="transparent" />
                 <animate attributeName="y1" values="-1; 2" dur="3s" repeatCount="indefinite" />
                 <animate attributeName="y2" values="0; 3" dur="3s" repeatCount="indefinite" />
               </linearGradient>
-              <linearGradient id="beam-right" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="transparent" />
-                <stop offset="50%" stopColor="rgba(255,255,255,0.8)" />
-                <stop offset="100%" stopColor="transparent" />
-                <animate attributeName="y1" values="-2.5; 0.5" dur="3s" repeatCount="indefinite" />
-                <animate attributeName="y2" values="-1.5; 1.5" dur="3s" repeatCount="indefinite" />
-              </linearGradient>
             </defs>
             {/* Left Faint Curve */}
-            <path d="M -10,0 Q 40,50 35,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
+            <path d="M -10,0 Q 30,40 21.5,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
             {/* Left Beam */}
-            <path d="M -10,0 Q 40,50 35,100" fill="none" stroke="url(#beam-left)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+            <path d="M -10,0 Q 30,40 21.5,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
             
             {/* Right Faint Curve */}
-            <path d="M 110,0 Q 60,50 65,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
+            <path d="M 110,0 Q 70,40 78.5,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
             {/* Right Beam */}
-            <path d="M 110,0 Q 60,50 65,100" fill="none" stroke="url(#beam-right)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+            <path d="M 110,0 Q 70,40 78.5,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
           </svg>
-          <div style={{ position: "absolute", bottom: "-20%", left: "50%", transform: "translateX(-50%)", width: "80%", height: "40%", background: "radial-gradient(ellipse at top, rgba(0, 212, 255, 0.2) 0%, transparent 70%)", pointerEvents: "none" }} />
         </div>
 
         {/* Orbi Perfectly Centered */}
@@ -458,9 +450,20 @@ export default function Home() {
           </div>
         </motion.div>
 
-        {/* MOCKUP DASHBOARD (Cyan style) */}
-        <motion.div 
-          initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 1.9, ease: "easeOut" }}
+        {/* Dashboard Wrapper for Horizon Glow */}
+        <div style={{ position: "relative", width: "100%", maxWidth: 1100, display: "flex", justifyContent: "center", marginTop: 40, zIndex: 2 }}>
+          {/* Glowing Horizon behind dashboard */}
+          <div style={{
+            position: "absolute", top: "15%", left: "50%", transform: "translate(-50%, -50%)",
+            width: "140vw", height: "400px",
+            background: "radial-gradient(ellipse 70% 30% at 50% 50%, rgba(0,212,255,0.12) 0%, transparent 60%)",
+            borderRadius: "50%",
+            zIndex: -1, pointerEvents: "none"
+          }} />
+          
+          {/* MOCKUP DASHBOARD (Cyan style) */}
+          <motion.div 
+            initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 1.9, ease: "easeOut" }}
           style={{ 
             width: "100%", maxWidth: 1100, height: 600, 
             background: "#0a0a0a",
@@ -545,6 +548,7 @@ export default function Home() {
 
           <div style={{ position: "absolute", bottom: 0, left: 0, width: "100%", height: "40%", background: "linear-gradient(to top, #060606, transparent)", pointerEvents: "none" }} />
         </motion.div>
+        </div>
       </section>
 
       {/* ═══ TRUST BAR ═══ */}
