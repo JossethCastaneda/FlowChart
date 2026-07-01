@@ -281,7 +281,7 @@ export default function Home() {
       }}>
         <div style={{ padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
-            <SodareLogo size="sm" animated={false} />
+            <SodareLogo size="sm" animated={false} showText={false} />
             <span style={{ fontSize: 20, fontWeight: 700, color: "#fff", letterSpacing: "-0.04em" }}>Sodare</span>
           </Link>
           <nav className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 40 }}>
@@ -362,12 +362,13 @@ export default function Home() {
 
         {/* Headline (Slot Machine Flip Animation) */}
         <h1 
-          className="col-hero-h1 col-title" style={{
+          className="col-hero-h1" style={{
             fontWeight: 700,
             fontSize: "clamp(48px, 7vw, 84px)",
             lineHeight: 1.05,
             marginBottom: 24,
             maxWidth: 900,
+            color: "#fff",
           }}
         >
           <FlipText text="Deja de adivinar." delayOffset={0.4} />
