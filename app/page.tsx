@@ -376,14 +376,14 @@ export default function Home() {
               </linearGradient>
             </defs>
             {/* Left Faint Curve */}
-            <path d="M 5,0 Q 20,50 35,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
+            <path d="M -10,0 Q 40,50 35,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
             {/* Left Beam */}
-            <path d="M 5,0 Q 20,50 35,100" fill="none" stroke="url(#beam-left)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+            <path d="M -10,0 Q 40,50 35,100" fill="none" stroke="url(#beam-left)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
             
             {/* Right Faint Curve */}
-            <path d="M 95,0 Q 80,50 65,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
+            <path d="M 110,0 Q 60,50 65,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
             {/* Right Beam */}
-            <path d="M 95,0 Q 80,50 65,100" fill="none" stroke="url(#beam-right)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+            <path d="M 110,0 Q 60,50 65,100" fill="none" stroke="url(#beam-right)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
           </svg>
           <div style={{ position: "absolute", bottom: "-20%", left: "50%", transform: "translateX(-50%)", width: "80%", height: "40%", background: "radial-gradient(ellipse at top, rgba(0, 212, 255, 0.2) 0%, transparent 70%)", pointerEvents: "none" }} />
         </div>
