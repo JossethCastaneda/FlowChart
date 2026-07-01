@@ -290,6 +290,7 @@ export default function LoginPage() {
       <style>{`
         @keyframes f-spin{to{transform:rotate(360deg)}}
         @keyframes f-breathe{0%,100%{opacity:0.4; transform:scale(1)}50%{opacity:0.6; transform:scale(1.05)}}
+        @keyframes f-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
         @keyframes shine { to { background-position: 200% center; } }
         
         .text-shimmer {
@@ -316,27 +317,12 @@ export default function LoginPage() {
       <div className="login-left">
         <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none" }} />
         
-        {/* Animated Funnel Effect */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none", zIndex: 0, opacity: 0.8 }}>
-          <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ position: "absolute", top: 0, left: 0 }}>
-            <defs>
-              <linearGradient id="beam-synced" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="transparent" />
-                <stop offset="50%" stopColor="rgba(255,255,255,0.8)" />
-                <stop offset="100%" stopColor="transparent" />
-                <animate attributeName="y1" values="-1; 2" dur="3s" repeatCount="indefinite" />
-                <animate attributeName="y2" values="0; 3" dur="3s" repeatCount="indefinite" />
-              </linearGradient>
-            </defs>
-            {/* Left curve */}
-            <path d="M -10,0 Q 40,40 45,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
-            <path d="M -10,0 Q 40,40 45,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
-            {/* Right curve */}
-            <path d="M 110,0 Q 60,40 55,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
-            <path d="M 110,0 Q 60,40 55,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
-          </svg>
-          {/* Subtle center glow */}
-          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "120%", height: "120%", background: "radial-gradient(ellipse 70% 30% at 50% 50%, rgba(0,212,255,0.06) 0%, transparent 60%)", borderRadius: "50%", pointerEvents: "none" }} />
+        {/* Orbi Background Center */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, pointerEvents: "none", zIndex: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ position: "absolute", width: "140vw", height: "400px", background: "radial-gradient(ellipse 70% 30% at 50% 50%, rgba(0,212,255,0.08) 0%, transparent 60%)", borderRadius: "50%", zIndex: -1, animation: "f-breathe 8s ease-in-out infinite" }} />
+          <div style={{ animation: "f-float 6s ease-in-out infinite" }}>
+            <Orbi size={180} style={{ filter: "drop-shadow(0px 0px 30px rgba(0, 212, 255, 0.4))" }} />
+          </div>
         </div>
 
         <div style={{ position: "relative", zIndex: 10 }}>
