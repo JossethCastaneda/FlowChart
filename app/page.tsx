@@ -88,30 +88,27 @@ function Reveal({ children, delay = 0, className = "", style = {} }: { children:
   );
 }
 
-// ── Flip Text Effect (Typewriter / Slot Machine) ────────
-function FlipText({ text, delayOffset = 0 }: { text: string, delayOffset?: number }) {
-  const characters = text.split("");
+// ── Animated Text Reveal ──────────────────────────────────────
+function AnimatedText({ text, delayOffset = 0 }: { text: string, delayOffset?: number }) {
+  const words = text.split(" ");
   return (
-    <span style={{ display: "inline-block", perspective: "1000px" }}>
-      {characters.map((char, index) => (
+    <span style={{ display: "inline-flex", flexWrap: "wrap", justifyContent: "center" }}>
+      {words.map((word, index) => (
         <motion.span
           key={index}
-          initial={{ rotateX: -90, opacity: 0, y: 20 }}
-          animate={{ rotateX: 0, opacity: 1, y: 0 }}
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{
-            delay: delayOffset + index * 0.03, // Faster character reveal
-            duration: 0.6,
-            type: "spring",
-            stiffness: 150,
-            damping: 12
+            delay: delayOffset + index * 0.15,
+            duration: 0.8,
+            ease: [0.25, 1, 0.5, 1]
           }}
           style={{ 
             display: "inline-block", 
-            transformOrigin: "bottom center",
-            whiteSpace: char === " " ? "pre" : "normal"
+            marginRight: "0.25em"
           }}
         >
-          {char}
+          {word}
         </motion.span>
       ))}
     </span>
@@ -190,6 +187,27 @@ export default function Home() {
           -webkit-text-fill-color: transparent;
           background-clip: text;
           letter-spacing: -0.04em;
+        }
+
+        .text-shimmer {
+          background: linear-gradient(
+            to right,
+            #ffffff 20%,
+            #00d4ff 40%,
+            #00d4ff 60%,
+            #ffffff 80%
+          );
+          background-size: 200% auto;
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+          background-clip: text;
+          color: transparent; /* Fallback */
+          animation: shine 4s linear infinite;
+        }
+        @keyframes shine {
+          to {
+            background-position: 200% center;
+          }
         }
 
         .col-pill { 
@@ -360,20 +378,19 @@ export default function Home() {
           <span style={{ opacity: 0.4 }}>{"}"}</span>
         </motion.div>
 
-        {/* Headline (Slot Machine Flip Animation) */}
+        {/* Headline (Animated Text with Shimmer) */}
         <h1 
-          className="col-hero-h1" style={{
+          className="col-hero-h1 text-shimmer" style={{
             fontWeight: 700,
             fontSize: "clamp(48px, 7vw, 84px)",
             lineHeight: 1.05,
             marginBottom: 24,
             maxWidth: 900,
-            color: "#fff",
           }}
         >
-          <FlipText text="Deja de adivinar." delayOffset={0.4} />
+          <AnimatedText text="Deja de adivinar." delayOffset={0.4} />
           <br/>
-          <FlipText text="Empieza a escalar." delayOffset={0.9} />
+          <AnimatedText text="Empieza a escalar." delayOffset={0.9} />
         </h1>
 
         {/* Subtitle */}
