@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { after } from "next/server";
 import { z } from "zod";
 import { withAuth } from "@/lib/api-handler";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
@@ -175,13 +176,18 @@ export const POST = withAuth(async (req, ctx) => {
   });
 
   if (projectWithChannels) {
-    // Disparar Aria en segundo plano (non-blocking)
-    triggerAutoAriaForProject(
-      projectWithChannels.id, 
-      workspaceId, 
-      projectWithChannels.name,
-      projectWithChannels.client,
-      projectWithChannels.vertical
+    // Registra los scopes de Aria (proyecto/cliente/vertical) tras responder.
+    // `after()` mantiene viva la función serverless hasta terminar el trabajo
+    // (mecanismo soportado por Vercel; reemplaza el fire-and-forget anterior).
+    const created = projectWithChannels;
+    after(() =>
+      triggerAutoAriaForProject(
+        created.id,
+        workspaceId,
+        created.name,
+        created.client,
+        created.vertical,
+      ),
     );
   }
 

@@ -12,7 +12,7 @@ export default function ScoresPage() {
     fetch("/api/crecimiento/scores")
       .then(res => res.json())
       .then(data => {
-        setPredictions(data);
+        setPredictions(Array.isArray(data?.data) ? data.data : []);
         setLoading(false);
       })
       .catch(e => {

@@ -60,6 +60,7 @@ proxy.ts.bak
 
 # Scratch/test scripts — one-off diagnostic files
 scratch/
+scratch.mts
 index.mjs
 check-prod-state.cjs
 check-posts.ts
@@ -83,4 +84,16 @@ truncate-db.mjs
 botmaker-data.json
 _analyze_bots.mjs
 check-db.mjs
-ts-prune-results.txt
+ts-prune-results.txt
+docx_output*.html
+
+# Migration scripts (contain DB credentials)
+scripts/migrate-db.mts
+scripts/check-id.ts
+scripts/list-users.ts
+scripts/list-members.ts
+scripts/grant-access.ts
+scripts/grant-access2.ts
+scripts/audit-*.ts
+scripts/fix-*.ts
+scripts/cleanup-*.ts

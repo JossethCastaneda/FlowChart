@@ -14,23 +14,37 @@ export const GET = withWorkspace(async (req, ctx) => {
   if (!resolution.ok) return apiForbidden("Proyecto no válido o acceso denegado");
   const scope = resolution.scope;
 
-  const where: any = { workspaceId: ctx.workspaceId };
-  if (scope?.projectId) {
-    where.OR = [
-      { projectId: null },
-      { projectId: scope.projectId }
-    ];
-  } else {
-    where.projectId = null;
-  }
+  // Fetch overrides for both period and null period, and project and null project.
+  const periodParam = sp.get("period") || null;
   
-  const overrides = await prisma.analyticsKpiTarget.findMany({ where, orderBy: { projectId: 'asc' } });
+  const overrides = await prisma.analyticsKpiTarget.findMany({ 
+    where: {
+      workspaceId: ctx.workspaceId,
+      OR: [
+        { projectId: null },
+        ...(scope?.projectId ? [{ projectId: scope.projectId }] : [])
+      ],
+      AND: [
+        {
+          OR: [
+            { period: null },
+            ...(periodParam ? [{ period: periodParam }] : [])
+          ]
+        }
+      ]
+    }
+  });
   
-  // Prioritize project override over workspace override
+  // Prioritize project over workspace, and specific period over null period
   const byKey = new Map();
   for (const o of overrides) {
-    if (!byKey.has(o.kpiKey) || o.projectId) {
-      byKey.set(o.kpiKey, o);
+    let score = 0;
+    if (o.projectId) score += 2;
+    if (o.period) score += 1;
+
+    const existing = byKey.get(o.kpiKey);
+    if (!existing || score >= existing.score) {
+      byKey.set(o.kpiKey, { ...o, score });
     }
   }
 
@@ -58,6 +72,7 @@ export const GET = withWorkspace(async (req, ctx) => {
 const TargetSchema = z.object({
   kpiKey: z.string().min(1),
   projectId: z.string().optional(),
+  period: z.string().nullable().optional(),
   targetValue: z.number().nullable().optional(),
   warningThreshold: z.number().nullable().optional(),
   criticalThreshold: z.number().nullable().optional(),
@@ -72,10 +87,10 @@ export const POST = withWorkspace(async (req, ctx) => {
   }
   const result = await validateBody(req, TargetSchema);
   if (!result.ok) return result.response;
-  const { kpiKey, projectId, targetValue, warningThreshold, criticalThreshold, direction, enabled } = result.data;
+  const { kpiKey, projectId, period, targetValue, warningThreshold, criticalThreshold, direction, enabled } = result.data;
 
   const existing = await prisma.analyticsKpiTarget.findFirst({
-    where: { workspaceId: ctx.workspaceId, kpiKey, projectId: projectId || null }
+    where: { workspaceId: ctx.workspaceId, kpiKey, projectId: projectId || null, period: period || null }
   });
 
   let target;
@@ -87,7 +102,7 @@ export const POST = withWorkspace(async (req, ctx) => {
   } else {
     target = await prisma.analyticsKpiTarget.create({
       data: {
-        workspaceId: ctx.workspaceId, projectId: projectId || null, kpiKey,
+        workspaceId: ctx.workspaceId, projectId: projectId || null, kpiKey, period: period || null,
         targetValue: targetValue ?? null, warningThreshold: warningThreshold ?? null,
         criticalThreshold: criticalThreshold ?? null,
         direction: direction || "higher_is_better", enabled: enabled ?? true,
@@ -97,3 +112,4 @@ export const POST = withWorkspace(async (req, ctx) => {
 
   return apiSuccess(target);
 });
+ 

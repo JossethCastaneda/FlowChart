@@ -1,65 +1,35 @@
-import { NextResponse } from "next/server";
+/**
+ * POST /api/crecimiento/train — entrena un modelo real sobre las filas del dataset.
+ *
+ * Delega TODO al motor determinista (runTrainingPipeline): perfila, divide
+ * train/test, entrena regresión logística + scorecard WOE, evalúa, elige el mejor
+ * por AUC, predice y persiste métricas y scores reales. Reemplaza la simulación
+ * (Math.random / AUC hardcodeado) anterior.
+ */
+
 import { withWorkspaceRole } from "@/lib/api-handler";
+import { apiSuccess, apiError, apiServerError } from "@/lib/api-response";
+import { validateBody } from "@/lib/validate";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
+import { runTrainingPipeline } from "@/lib/crecimiento/engine/pipeline";
+
+export const dynamic = "force-dynamic";
+
+const BodySchema = z.object({ datasetId: z.string().min(1) });
 
 export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (req, ctx) => {
+  const parsed = await validateBody(req, BodySchema);
+  if (!parsed.ok) return parsed.response;
   try {
-    const { datasetId } = await req.json();
-    if (!datasetId) return NextResponse.json({ error: "Missing datasetId" }, { status: 400 });
-
-    const dataset = await prisma.ariaDataset.findUnique({
-      where: { id: datasetId, workspaceId: ctx.workspaceId }
+    const dataset = await prisma.ariaDataset.findFirst({
+      where: { id: parsed.data.datasetId, workspaceId: ctx.workspaceId },
+      select: { id: true },
     });
-
-    if (!dataset) return NextResponse.json({ error: "Dataset not found" }, { status: 404 });
-
-    const model = await prisma.ariaModel.create({
-      data: {
-        datasetId: dataset.id,
-        name: `AutoML Model - ${dataset.name}`,
-        algorithm: "Random Forest",
-        status: "ready",
-        accuracy: 0.87,
-        precision: 0.85,
-        recall: 0.89,
-        auc: 0.92
-      }
-    });
-
-    await prisma.ariaModelRun.create({
-      data: {
-        modelId: model.id,
-        status: "success",
-        metrics: {
-          trainingTime: "4.2s",
-          topFeatures: ["company_size", "website_visits", "email_opens"]
-        }
-      }
-    });
-
-    const predictionsData = Array.from({ length: Math.min(50, dataset.rowCount) }).map((_, i) => {
-      const prob = Math.random();
-      const score = Math.round(prob * 100);
-      const priority = score > 80 ? "High" : score > 50 ? "Medium" : "Low";
-      return {
-        modelId: model.id,
-        recordId: `LEAD-${1000 + i}`,
-        score: score,
-        probability: prob,
-        priority: priority,
-        insights: { reason: "Alta interacción reciente" }
-      };
-    });
-
-    await prisma.ariaPrediction.createMany({
-      data: predictionsData
-    });
-
-    return NextResponse.json({
-      model,
-      message: "Training complete"
-    });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    if (!dataset) return apiError("Dataset no encontrado", "NOT_FOUND", 404);
+    const result = await runTrainingPipeline(dataset.id);
+    return apiSuccess(result);
+  } catch (error) {
+    return apiServerError(error, "/api/crecimiento/train POST");
   }
 });

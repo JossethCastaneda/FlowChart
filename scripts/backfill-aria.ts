@@ -1,5 +1,5 @@
-import prisma from "./lib/prisma";
-import { triggerAutoAriaForProject } from "./lib/crecimiento/aria-auto";
+import prisma from "../lib/prisma";
+import { triggerAutoAriaForProject } from "../lib/crecimiento/aria-auto";
 
 async function backfill() {
   const projects = await prisma.project.findMany({

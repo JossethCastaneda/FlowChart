@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter_Tight } from "next/font/google";
 import "./globals.css";
 import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
@@ -23,7 +23,7 @@ const rawGa4Id = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 const GTM_ID = rawGtmId?.startsWith("GTM-") ? rawGtmId : undefined;
 const GA4_ID = rawGa4Id?.startsWith("G-") ? rawGa4Id : undefined;
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+const inter = Inter_Tight({ subsets: ["latin"], variable: "--font-inter" });
 
 export const viewport: Viewport = {
   themeColor: "#050812",
