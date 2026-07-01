@@ -293,9 +293,9 @@ export default function LoginPage() {
         @keyframes float2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-40px, 30px) scale(1.1); } }
         @keyframes float3 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20px, 40px) scale(0.9); } }
         
-        .blob-1 { position: absolute; top: 10%; right: 20%; width: 500px; height: 500px; background: radial-gradient(circle, #ff007f 0%, transparent 70%); filter: blur(80px); opacity: 0.6; animation: float1 15s ease-in-out infinite; z-index: 0; pointer-events: none; }
-        .blob-2 { position: absolute; bottom: -10%; left: 10%; width: 600px; height: 600px; background: radial-gradient(circle, #00d4ff 0%, transparent 70%); filter: blur(80px); opacity: 0.5; animation: float2 18s ease-in-out infinite; z-index: 0; pointer-events: none; }
-        .blob-3 { position: absolute; top: 30%; left: -5%; width: 400px; height: 400px; background: radial-gradient(circle, #8a2be2 0%, transparent 70%); filter: blur(80px); opacity: 0.5; animation: float3 20s ease-in-out infinite; z-index: 0; pointer-events: none; }
+        .blob-1 { position: absolute; top: 0%; right: 10%; width: 600px; height: 600px; opacity: 0.9; animation: float1 15s ease-in-out infinite; z-index: 0; pointer-events: none; mix-blend-mode: screen; filter: drop-shadow(0 0 60px rgba(255,0,127,0.4)); object-fit: contain; }
+        .blob-2 { position: absolute; bottom: 0%; left: 5%; width: 500px; height: 500px; opacity: 0.9; animation: float2 18s ease-in-out infinite; z-index: 0; pointer-events: none; mix-blend-mode: screen; filter: drop-shadow(0 0 60px rgba(0,212,255,0.4)); object-fit: contain; }
+        .blob-3 { position: absolute; top: 15%; left: -5%; width: 450px; height: 450px; opacity: 0.9; animation: float3 20s ease-in-out infinite; z-index: 0; pointer-events: none; mix-blend-mode: screen; filter: drop-shadow(0 0 60px rgba(138,43,226,0.4)); object-fit: contain; }
 
         .login-card {
           width: 100%; max-width: 440px; padding: 48px 40px; 
@@ -315,10 +315,10 @@ export default function LoginPage() {
         @media (prefers-reduced-motion:reduce){*{animation:none !important}}
       `}</style>
 
-      {/* Abstract Floating Blobs */}
-      <div className="blob-1" />
-      <div className="blob-2" />
-      <div className="blob-3" />
+      {/* 3D Floating Shapes */}
+      <img src="/shape-spring.png" alt="3D Spring" className="blob-1" />
+      <img src="/shape-ring.png" alt="3D Ring" className="blob-2" />
+      <img src="/shape-zigzag.png" alt="3D Zigzag" className="blob-3" />
 
       {/* Language toggle (Top Right of screen) */}
       <div style={{ position: "absolute", top: 24, right: 24, zIndex: 30, display: "flex", gap: 4, padding: 4, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 100, backdropFilter: "blur(12px)" }}>
