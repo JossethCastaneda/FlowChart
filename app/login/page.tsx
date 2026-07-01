@@ -303,7 +303,7 @@ export default function LoginPage() {
         }
 
         .login-card {
-          width: 100%; maxWidth: 420px; padding: 40px; 
+          width: 100%; max-width: 420px; padding: 40px; 
           background: rgba(10,12,18,0.7); 
           border: 1px solid rgba(0, 212, 255, 0.12); 
           border-radius: 20px; 
