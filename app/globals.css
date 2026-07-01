@@ -313,6 +313,17 @@ input:focus, select:focus, textarea:focus { outline: none; border-color: var(--c
 input::placeholder, textarea::placeholder { color: var(--text-muted); }
 select option { background: var(--bg-raised); color: var(--foreground); }
 select option:disabled { color: var(--text-muted); }
+/* ── Autofill override — prevents Chrome/Edge from applying white/blue bg ── */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--bg-raised) inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+  caret-color: var(--foreground);
+  border-color: var(--border) !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
 
 /* TABLES */
 .table-header-cell { font-size: 10px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--text-secondary); padding: 10px 16px; border-bottom: 1px solid var(--border); }

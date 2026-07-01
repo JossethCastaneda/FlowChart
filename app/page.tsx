@@ -385,7 +385,7 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: "easeOut", type: "spring", bounce: 0.5 }}
           style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: 24, zIndex: 10 }}
         >
-          <Orbi size={64} style={{ filter: "drop-shadow(0px 0px 20px rgba(0, 212, 255, 0.6))" }} />
+          <Orbi scale={0.9} style={{ filter: "drop-shadow(0px 0px 20px rgba(0, 212, 255, 0.6))" }} />
         </motion.div>
 
         {/* Badge */}
