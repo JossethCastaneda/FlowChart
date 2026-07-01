@@ -23,6 +23,7 @@ const MAX_ROWS = 50_000;
 const ROW_BATCH = 1000;
 
 const ScopeSchema = z.object({
+  datasetId: z.string().optional(),
   projectId: z.string().optional(),
   clientName: z.string().trim().min(1).optional(),
   verticalName: z.string().trim().min(1).optional(),
@@ -93,23 +94,52 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (req, ctx) => {
 
     const targetType = scope.targetType ?? "PROJECT";
 
-    const dataset = await prisma.ariaDataset.create({
-      data: {
-        workspaceId: ctx.workspaceId,
-        name: file.name || "Dataset CSV",
-        source: "csv",
-        status: "ready",
-        rowCount: parsed.rows.length,
-        columnCount: parsed.headers.length,
-        delimiter: parsed.delimiter,
-        encoding: parsed.encoding,
-        rawFileUrl,
-        targetType,
-        projectId,
-        clientName: scope.clientName ?? null,
-        verticalName: scope.verticalName ?? null,
-      },
-    });
+    let dataset;
+    if (scope.datasetId) {
+      // Modificar dataset existente (generado por auto-aria o previamente subido)
+      dataset = await prisma.ariaDataset.findFirst({
+        where: { id: scope.datasetId, workspaceId: ctx.workspaceId }
+      });
+      if (!dataset) {
+        return apiError("El dataset especificado no existe o no tienes acceso", "NOT_FOUND", 404);
+      }
+      // Limpiar columnas y rows viejos
+      await prisma.ariaDatasetColumn.deleteMany({ where: { datasetId: dataset.id } });
+      await prisma.ariaDatasetRow.deleteMany({ where: { datasetId: dataset.id } });
+      
+      dataset = await prisma.ariaDataset.update({
+        where: { id: dataset.id },
+        data: {
+          name: file.name || dataset.name,
+          source: "csv",
+          status: "ready",
+          rowCount: parsed.rows.length,
+          columnCount: parsed.headers.length,
+          delimiter: parsed.delimiter,
+          encoding: parsed.encoding,
+          rawFileUrl,
+        }
+      });
+    } else {
+      // Crear dataset nuevo si no se provee datasetId
+      dataset = await prisma.ariaDataset.create({
+        data: {
+          workspaceId: ctx.workspaceId,
+          name: file.name || "Dataset CSV",
+          source: "csv",
+          status: "ready",
+          rowCount: parsed.rows.length,
+          columnCount: parsed.headers.length,
+          delimiter: parsed.delimiter,
+          encoding: parsed.encoding,
+          rawFileUrl,
+          targetType,
+          projectId,
+          clientName: scope.clientName ?? null,
+          verticalName: scope.verticalName ?? null,
+        },
+      });
+    }
 
     await prisma.ariaDatasetColumn.createMany({
       data: profiles.map((p) => ({

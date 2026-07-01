@@ -23,7 +23,7 @@ import BotAnalyticsDashboard from "@/components/botmaker/analytics/dashboard/Bot
 import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 
 /* ═══ TYPES ═══ */
-interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; }
+interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; monthlyOverrides?: Record<string, { budget?: string; cpr?: string; goal?: string }>; }
 interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN ÓRBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; crmIntegrationIds?: string[]; }
 
 
@@ -214,6 +214,7 @@ function mapDbChannelsToConfig(dbChannels: any[]): ChannelConfig[] {
       period: cfg.period || "Mensual",
       goal: cfg.goal || "",
       cpr: cfg.cpr || "",
+      monthlyOverrides: cfg.monthlyOverrides || {},
     };
   });
 }
@@ -223,7 +224,7 @@ export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config"|"resultados"|"trafico">("resumen");
+  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config"|"resultados"|"trafico"|"historial">("resumen");
   const [activePlatform, setActivePlatform] = useState("");
   const [insights, setInsights] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -241,6 +242,7 @@ export default function ProjectDashboardPage() {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [activeIntegrations, setActiveIntegrations] = useState<{id: string, provider: string}[]>([]);
   const [heatMetricState, setHeatMetricState] = useState<"results" | "impressions" | "spend">("results");
+  const [editingMonth, setEditingMonth] = useState<string>("global"); // "global" or "YYYY-MM"
 
   // Load project from API
   useEffect(() => {
@@ -436,6 +438,7 @@ export default function ProjectDashboardPage() {
           period: c.period,
           goal: c.goal,
           cpr: c.cpr,
+          monthlyOverrides: c.monthlyOverrides,
         },
       }));
       const res = await fetch(`/api/projects/${project.id}`, {
@@ -457,8 +460,32 @@ export default function ProjectDashboardPage() {
   if (!project) return <div style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.75)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: 200 }}><div style={{ width: 40, height: 40, border: "3px solid rgba(148,163,184,0.1)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>Cargando proyecto...</span></div>;
 
   const ch = project.channels.find(c => c.platformId === activePlatform);
-  const budgetNum = ch ? parseBudget(ch.budget) : 0;
-  const cprTarget = ch ? parseBudget(ch.cpr || "0") : 0;
+  
+  // Resolve budget/cpr for current viewed month if possible
+  let resolvedBudget = ch?.budget || "0";
+  let resolvedCpr = ch?.cpr || "0";
+  let resolvedGoal = ch?.goal || "";
+  
+  // Si estamos filtrando por un mes específico, buscar el override
+  let viewedMonth = "";
+  if (datePreset === "this_month") {
+    const now = new Date();
+    viewedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  } else if (datePreset === "last_month") {
+    const now = new Date();
+    now.setMonth(now.getMonth() - 1);
+    viewedMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+  }
+  
+  if (ch?.monthlyOverrides && viewedMonth && ch.monthlyOverrides[viewedMonth]) {
+    const override = ch.monthlyOverrides[viewedMonth];
+    if (override.budget) resolvedBudget = override.budget;
+    if (override.cpr) resolvedCpr = override.cpr;
+    if (override.goal) resolvedGoal = override.goal;
+  }
+
+  const budgetNum = ch ? parseBudget(resolvedBudget) : 0;
+  const cprTarget = ch ? parseBudget(resolvedCpr) : 0;
   const bk = getBudgetBreakdown(budgetNum, ch?.period || "Mensual");
   // Meta de resultados = presupuesto mensual / CPR meta
   const goalMonthly = cprTarget > 0 ? Math.floor(bk.monthly / cprTarget) : 0;
@@ -640,6 +667,7 @@ export default function ProjectDashboardPage() {
             {!!project.website && (
               <TabButton active={activeTab === "trafico"} label="Tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
             )}
+            <TabButton active={activeTab === "historial"} label="Historial" icon={<TrendingUp style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("historial")} />
             <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
           </div>
         </div>
@@ -673,6 +701,118 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
           )}
         </div>
       </div>
+
+      {/* ═══ TAB: HISTORIAL ═══ */}
+      {activeTab === "historial" && (
+        <ErrorBoundary name="Tab Historial">
+          <div style={panelStyle}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <div>
+                <h3 style={headingStyle}>Historial de Rendimiento</h3>
+                <p style={subStyle}>Comparativa de resultados reales vs. metas mensuales para el rango de fechas seleccionado.</p>
+              </div>
+            </div>
+            
+            {/* Disclaimer si el rango no es grande */}
+            {datePreset !== "this_year" && datePreset !== "all_time" && (
+              <div style={{ padding: "10px 14px", background: "rgba(0,212,255,0.05)", border: "1px solid rgba(0,212,255,0.15)", borderRadius: 6, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+                <Activity style={{ width: 16, height: 16, color: "var(--cyan)" }} />
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Para ver un historial completo, cambia el filtro de fechas a <strong>"Este Año"</strong>.</span>
+              </div>
+            )}
+
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse", fontSize: 12 }}>
+                <thead>
+                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Mes</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Real</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Meta</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>CPA Real</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>CPA Meta</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Resultados</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Resultados Meta</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Estatus (CPA)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(() => {
+                    // Group data by YYYY-MM
+                    const monthly: Record<string, { spend: number, results: number }> = {};
+                    (insights?.timeSeries || []).forEach((d: any) => {
+                      const dateStr = d.date_start; // "2026-07-28"
+                      if (!dateStr) return;
+                      const monthKey = dateStr.substring(0, 7); // "2026-07"
+                      if (!monthly[monthKey]) monthly[monthKey] = { spend: 0, results: 0 };
+                      
+                      const s = parseFloat(d.spend || "0");
+                      const ra = findResultAction(d.actions, ch?.goal); 
+                      const r = ra ? parseInt(ra.value, 10) : 0;
+                      
+                      monthly[monthKey].spend += s;
+                      monthly[monthKey].results += r;
+                    });
+                    
+                    const sortedKeys = Object.keys(monthly).sort((a, b) => b.localeCompare(a));
+                    
+                    if (sortedKeys.length === 0) {
+                      return <tr><td colSpan={8} style={{ padding: "20px", textAlign: "center", color: "var(--text-muted)" }}>No hay datos para el rango seleccionado.</td></tr>;
+                    }
+                    
+                    return sortedKeys.map(monthKey => {
+                      const data = monthly[monthKey];
+                      const globalBudget = ch ? parseBudget(ch.budget) : 0;
+                      const globalCpr = ch ? parseBudget(ch.cpr || "0") : 0;
+                      
+                      let mBudget = globalBudget;
+                      let mCpr = globalCpr;
+                      
+                      if (ch?.monthlyOverrides?.[monthKey]) {
+                        if (ch.monthlyOverrides[monthKey].budget) mBudget = parseBudget(ch.monthlyOverrides[monthKey].budget!);
+                        if (ch.monthlyOverrides[monthKey].cpr) mCpr = parseBudget(ch.monthlyOverrides[monthKey].cpr!);
+                      }
+                      
+                      const mBreakdown = getBudgetBreakdown(mBudget, ch?.period || "Mensual");
+                      const mBudgetMonthly = mBreakdown.monthly;
+                      const mGoal = mCpr > 0 ? Math.floor(mBudgetMonthly / mCpr) : 0;
+                      
+                      const actualCpa = data.results > 0 ? data.spend / data.results : 0;
+                      
+                      // Status logic: 
+                      // if actualCpa <= mCpr * 1.05 -> on-track (green)
+                      // if actualCpa <= mCpr * 1.20 -> at-risk (yellow)
+                      // else -> off-track (red)
+                      let statusEl;
+                      if (mCpr <= 0) {
+                        statusEl = <span style={{ color: "var(--text-muted)" }}>Sin meta</span>;
+                      } else if (actualCpa <= mCpr * 1.05) {
+                        statusEl = <span style={{ color: "var(--emerald)", fontWeight: 600 }}>🟢 Superado</span>;
+                      } else if (actualCpa <= mCpr * 1.20) {
+                        statusEl = <span style={{ color: "var(--amber)", fontWeight: 600 }}>🟡 Riesgo</span>;
+                      } else {
+                        statusEl = <span style={{ color: "var(--red)", fontWeight: 600 }}>🔴 Desviado</span>;
+                      }
+
+                      return (
+                        <tr key={monthKey} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
+                          <td style={{ padding: "12px 14px", color: "white", fontWeight: 600 }}>{monthKey}</td>
+                          <td style={{ padding: "12px 14px", color: data.spend > mBudgetMonthly ? "var(--red)" : "white" }}>{fmtMXN0(data.spend)}</td>
+                          <td style={{ padding: "12px 14px", color: "var(--text-muted)" }}>{fmtMXN0(mBudgetMonthly)}</td>
+                          <td style={{ padding: "12px 14px", color: actualCpa > mCpr * 1.1 ? "var(--red)" : "white" }}>{fmtMXN(actualCpa)}</td>
+                          <td style={{ padding: "12px 14px", color: "var(--text-muted)" }}>{fmtMXN(mCpr)}</td>
+                          <td style={{ padding: "12px 14px", color: data.results >= mGoal ? "var(--emerald)" : "white" }}>{fmtNum(data.results)}</td>
+                          <td style={{ padding: "12px 14px", color: "var(--text-muted)" }}>{fmtNum(mGoal)}</td>
+                          <td style={{ padding: "12px 14px" }}>{statusEl}</td>
+                        </tr>
+                      );
+                    });
+                  })()}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </ErrorBoundary>
+      )}
 
       {/* ═══ TAB: RESUMEN ═══ */}
       {activeTab === "resumen" && (
@@ -2409,30 +2549,114 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
 
           {/* Channel Config */}
           <div style={panelStyle}>
-            <h3 style={headingStyle}>Configuración de Canales</h3>
-            <p style={subStyle}>{project.channels.length} canales configurados</p>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div>
+                <h3 style={headingStyle}>Configuración de Canales</h3>
+                <p style={subStyle}>{project.channels.length} canales configurados</p>
+              </div>
+              <select 
+                value={editingMonth} 
+                onChange={e => setEditingMonth(e.target.value)}
+                style={{ background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--cyan)", fontSize: 11, padding: "4px 8px", borderRadius: 4, cursor: "pointer", outline: "none" }}
+              >
+                <option value="global">Meta Global (Por Defecto)</option>
+                <option value="2026-05">Mayo 2026</option>
+                <option value="2026-06">Junio 2026</option>
+                <option value="2026-07">Julio 2026</option>
+                <option value="2026-08">Agosto 2026</option>
+                <option value="2026-09">Septiembre 2026</option>
+                <option value="2026-10">Octubre 2026</option>
+                <option value="2026-11">Noviembre 2026</option>
+                <option value="2026-12">Diciembre 2026</option>
+              </select>
+            </div>
             {project.channels.map((c, i) => {
               const pl = PLATFORMS.find(p => p.id === c.platformId) || PLATFORMS[0];
-              const bk2 = getBudgetBreakdown(parseBudget(c.budget), c.period);
+              const isGlobal = editingMonth === "global";
+              const currentBudget = isGlobal ? c.budget : (c.monthlyOverrides?.[editingMonth]?.budget || c.budget);
+              const currentCpr = isGlobal ? c.cpr : (c.monthlyOverrides?.[editingMonth]?.cpr || c.cpr);
+              const currentGoal = isGlobal ? c.goal : (c.monthlyOverrides?.[editingMonth]?.goal || c.goal);
+              const isOverridden = !isGlobal && c.monthlyOverrides?.[editingMonth] !== undefined;
+
+              const editCurrentBudget = isGlobal ? (editForm.channels?.[i]?.budget || c.budget) : (editForm.channels?.[i]?.monthlyOverrides?.[editingMonth]?.budget ?? (editForm.channels?.[i]?.budget || c.budget));
+              const editCurrentCpr = isGlobal ? (editForm.channels?.[i]?.cpr || c.cpr) : (editForm.channels?.[i]?.monthlyOverrides?.[editingMonth]?.cpr ?? (editForm.channels?.[i]?.cpr || c.cpr));
+              const editCurrentGoal = isGlobal ? (editForm.channels?.[i]?.goal || c.goal) : (editForm.channels?.[i]?.monthlyOverrides?.[editingMonth]?.goal ?? (editForm.channels?.[i]?.goal || c.goal));
+
+              const bk2 = getBudgetBreakdown(parseBudget(currentBudget), c.period);
               return (
                 <div key={i} style={{ padding: 16, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, marginBottom: 8, borderLeft: `3px solid ${pl.color}` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: pl.color }} />
-                    <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{pl.name}</span>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ width: 8, height: 8, borderRadius: "50%", background: pl.color }} />
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{pl.name}</span>
+                    </div>
+                    {!isGlobal && isOverridden && !isEditing && (
+                      <span style={{ fontSize: 10, background: "rgba(0,212,255,0.1)", color: "var(--cyan)", padding: "2px 6px", borderRadius: 4 }}>Meta Mensual Activa</span>
+                    )}
                   </div>
                   {isEditing ? (
                     <div className="grid grid-cols-2 gap-3">
-                      <div><p style={labelStyle}>Presupuesto</p><input value={editForm.channels?.[i]?.budget || c.budget} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], budget: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
-                      <div><p style={labelStyle}>Período</p><select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer" }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select></div>
-                      <div><p style={labelStyle}>Objetivo</p><input value={editForm.channels?.[i]?.goal || c.goal} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], goal: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
-                      <div><p style={labelStyle}>CPR Meta</p><input value={editForm.channels?.[i]?.cpr || c.cpr} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], cpr: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} /></div>
+                      <div>
+                        <p style={labelStyle}>Presupuesto {isGlobal ? "" : `(${editingMonth})`}</p>
+                        <input value={editCurrentBudget} onChange={e => {
+                          const ch2 = [...(editForm.channels || project.channels)];
+                          if (isGlobal) ch2[i] = { ...ch2[i], budget: e.target.value };
+                          else {
+                            const overrides = { ...(ch2[i].monthlyOverrides || {}) };
+                            overrides[editingMonth] = { ...overrides[editingMonth], budget: e.target.value };
+                            ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
+                          }
+                          setEditForm({ ...editForm, channels: ch2 });
+                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(0,212,255,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
+                      </div>
+                      <div>
+                        <p style={labelStyle}>Período {isGlobal ? "" : "(Global)"}</p>
+                        <select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} disabled={!isGlobal} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: isGlobal ? "pointer" : "not-allowed", opacity: isGlobal ? 1 : 0.6 }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select>
+                      </div>
+                      <div>
+                        <p style={labelStyle}>Objetivo</p>
+                        <input value={editCurrentGoal} onChange={e => {
+                          const ch2 = [...(editForm.channels || project.channels)];
+                          if (isGlobal) ch2[i] = { ...ch2[i], goal: e.target.value };
+                          else {
+                            const overrides = { ...(ch2[i].monthlyOverrides || {}) };
+                            overrides[editingMonth] = { ...overrides[editingMonth], goal: e.target.value };
+                            ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
+                          }
+                          setEditForm({ ...editForm, channels: ch2 });
+                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
+                      </div>
+                      <div>
+                        <p style={labelStyle}>CPR Meta</p>
+                        <input value={editCurrentCpr} onChange={e => {
+                          const ch2 = [...(editForm.channels || project.channels)];
+                          if (isGlobal) ch2[i] = { ...ch2[i], cpr: e.target.value };
+                          else {
+                            const overrides = { ...(ch2[i].monthlyOverrides || {}) };
+                            overrides[editingMonth] = { ...overrides[editingMonth], cpr: e.target.value };
+                            ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
+                          }
+                          setEditForm({ ...editForm, channels: ch2 });
+                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
+                      </div>
+                      {!isGlobal && (
+                        <div className="col-span-2 flex justify-end">
+                          <button onClick={() => {
+                            const ch2 = [...(editForm.channels || project.channels)];
+                            const overrides = { ...(ch2[i].monthlyOverrides || {}) };
+                            delete overrides[editingMonth];
+                            ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
+                            setEditForm({ ...editForm, channels: ch2 });
+                          }} style={{ fontSize: 10, color: "var(--red)", background: "transparent", border: "none", cursor: "pointer", textDecoration: "underline" }}>Eliminar Meta Mensual</button>
+                        </div>
+                      )}
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Presupuesto:</span> <span style={{ color: "white", fontWeight: 600 }}>{c.budget || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Presupuesto:</span> <span style={{ color: "white", fontWeight: 600 }}>{currentBudget || "—"}</span></div>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Período:</span> <span style={{ color: "white" }}>{c.period || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{c.goal || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{c.cpr || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "—"}</span></div>
+                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "—"}</span></div>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Diario ideal:</span> <span style={{ color: "white" }}>{fmtMXN(bk2.daily)}</span></div>
                       <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Cuentas:</span> <span style={{ color: "white" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>

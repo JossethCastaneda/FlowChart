@@ -3,7 +3,7 @@
  * determinista y recomienda acciones. No computa ni inventa cifras.
  */
 
-import { getActiveProvider, AriaInsightsJsonSchema, AriaInsightsZod } from "@/lib/ai";
+import { getWorkspaceAiProvider, AriaInsightsJsonSchema, AriaInsightsZod } from "@/lib/ai";
 import type { AriaInsights } from "@/lib/ai";
 import { buildAriaContext } from "./context";
 
@@ -18,8 +18,9 @@ export async function generateAriaInsights(
   signal?: AbortSignal,
 ): Promise<AriaInsights> {
   const context = await buildAriaContext(workspaceId);
-  const provider = getActiveProvider();
+  const { provider, model } = await getWorkspaceAiProvider(workspaceId);
   const result = await provider.completeStructured<AriaInsights>({
+    model,
     system: SYSTEM,
     messages: [
       {
