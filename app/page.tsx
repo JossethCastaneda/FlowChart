@@ -210,6 +210,30 @@ export default function Home() {
           }
         }
 
+        /* Funnel Effect (Collabora style) */
+        .col-funnel-container {
+          position: absolute; top: 0; left: 0; right: 0; height: 100vh; overflow: hidden; pointer-events: none; z-index: 0;
+        }
+        .col-funnel-line {
+          position: absolute; top: -10%; width: 1px; height: 120%; background: rgba(255,255,255,0.05); transform-origin: top center;
+        }
+        .col-funnel-left { left: 15%; transform: rotate(-25deg); }
+        .col-funnel-right { right: 15%; transform: rotate(25deg); }
+        
+        .col-funnel-beam {
+          position: absolute; left: -1px; width: 3px; height: 30%;
+          background: linear-gradient(180deg, transparent, rgba(255,255,255,0.9), transparent);
+          box-shadow: 0 0 15px 3px rgba(0, 212, 255, 0.8);
+          animation: funnel-beam-fall 2.5s infinite linear;
+        }
+        @keyframes funnel-beam-fall {
+          0% { top: -30%; opacity: 0; }
+          15% { opacity: 1; }
+          85% { opacity: 1; }
+          100% { top: 120%; opacity: 0; }
+        }
+
+
         .col-pill { 
           display: inline-flex; align-items: center; justify-content: center; gap: 8px; 
           padding: 16px 32px; border-radius: 12px; font-size: 16px; font-weight: 500; 
@@ -350,10 +374,16 @@ export default function Home() {
         textAlign: "center",
         overflow: "hidden",
       }}>
-        {/* Glow Arcs (Sodare Cyan Style) */}
-        <div style={{ position: "absolute", top: "20%", left: "-20%", width: "40%", height: "80%", background: `radial-gradient(ellipse at right, rgba(0, 212, 255, 0.15) 0%, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", top: "20%", right: "-20%", width: "40%", height: "80%", background: `radial-gradient(ellipse at left, rgba(0, 212, 255, 0.15) 0%, transparent 70%)`, pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: "-20%", left: "50%", transform: "translateX(-50%)", width: "80%", height: "40%", background: `radial-gradient(ellipse at top, rgba(0, 212, 255, 0.2) 0%, transparent 70%)`, pointerEvents: "none" }} />
+        {/* Funnel Background Effect (Destello Blanco/Cyan) */}
+        <div className="col-funnel-container">
+          <div className="col-funnel-line col-funnel-left">
+            <div className="col-funnel-beam" style={{ animationDelay: "0s" }} />
+          </div>
+          <div className="col-funnel-line col-funnel-right">
+            <div className="col-funnel-beam" style={{ animationDelay: "1.2s" }} />
+          </div>
+          <div style={{ position: "absolute", bottom: "-20%", left: "50%", transform: "translateX(-50%)", width: "80%", height: "40%", background: "radial-gradient(ellipse at top, rgba(0, 212, 255, 0.2) 0%, transparent 70%)", pointerEvents: "none" }} />
+        </div>
 
         {/* Orbi Perfectly Centered */}
         <motion.div 
