@@ -1,9 +1,10 @@
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
 @theme {
   --font-sans: 'Inter', var(--font-inter), system-ui, sans-serif;
   --font-display: 'Orbitron', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
   /* ═══════════════════════════════════════════════════════
      SODARE BRAND COLORS — Override Tailwind Default Palette
@@ -67,16 +68,16 @@
 
 @layer base {
   :root {
-    --background:     #04070e;
-    --bg-raised:      #080d18;
-    --surface:        rgba(10, 15, 28, 0.72);
-    --surface-hover:  rgba(16, 24, 46, 0.85);
+    --background:     #05080F;          /* 1A Comando — base */
+    --bg-raised:      #0C1424;          /* tarjeta / card solid */
+    --surface:        #0C1424;          /* superficies sólidas — blur solo en overlays */
+    --surface-hover:  #111C30;
     --foreground:     #dde6f0;
     --text-secondary: #94a3b8;
     --text-muted:     #6c7c93;
-    --border:         rgba(0, 212, 255, 0.14);
-    --border-strong:  rgba(0, 212, 255, 0.30);
-    --border-neutral: rgba(148,163,184,0.14);
+    --border:         rgba(255, 255, 255, 0.07);   /* neutral — no cyan */
+    --border-strong:  rgba(255, 255, 255, 0.14);
+    --border-neutral: rgba(148,163,184,0.10);
     --hairline:       rgba(255, 255, 255, 0.06);
     --c-brand:    #00d4ff;
     --c-success:  #06d6a0;
@@ -230,11 +231,13 @@
 .user-avatar::after { content: ""; position: absolute; inset: -2px; border: 1px solid rgba(255,45,85,0.35); }
 
 /* CARDS */
-.glass-panel { background: var(--surface); backdrop-filter: blur(20px) saturate(1.4); border: 1px solid var(--border); position: relative; overflow: hidden; transition: all 0.3s ease; border-radius: 16px; }
-.glass-panel::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border-strong), transparent); }
-.glass-panel:hover { border-color: var(--border-strong); box-shadow: 0 0 30px rgba(0,212,255,0.07); }
+/* glass-panel: fondo sólido — el blur se reserva solo para overlays/sidebar/modal */
+.glass-panel { background: var(--surface); border: 1px solid var(--border); position: relative; overflow: hidden; transition: border-color 0.25s ease, box-shadow 0.25s ease; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+.glass-panel::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border-strong), transparent); pointer-events: none; }
+.glass-panel:hover { border-color: var(--border-strong); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
 
-.kpi-card { background: var(--surface); backdrop-filter: blur(20px); border: 1px solid var(--border); padding: 20px 24px; position: relative; overflow: hidden; transition: all 0.3s ease; border-radius: 16px; }
+/* kpi-card: sólido — glow solo en hover */
+.kpi-card { background: var(--surface); border: 1px solid var(--border); padding: 20px 24px; position: relative; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; border-radius: 16px; box-shadow: 0 2px 12px rgba(0,0,0,0.35); }
 .kpi-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
 .kpi-card.cyan::before    { background: linear-gradient(90deg, var(--cyan), transparent); }
 .kpi-card.red::before     { background: linear-gradient(90deg, var(--red), transparent); }
@@ -242,7 +245,7 @@
 .kpi-card.emerald::before { background: linear-gradient(90deg, var(--emerald), transparent); }
 .kpi-card.purple::before  { background: linear-gradient(90deg, var(--purple), transparent); }
 .kpi-card::after { content: ""; position: absolute; top: 0; left: 0; width: 120px; height: 100%; background: linear-gradient(135deg, var(--cyan-dim), transparent); pointer-events: none; }
-.kpi-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.3); }
+.kpi-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.45), 0 0 0 1px var(--border-strong); }
 .kpi-value { font-family: 'Orbitron', sans-serif; font-weight: 700; font-size: 28px; line-height: 1; color: var(--foreground); }
 .kpi-label { font-size: 10px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; color: var(--text-secondary); margin-top: 6px; }
 .kpi-delta { font-size: 11px; font-weight: 600; margin-top: 4px; }
@@ -259,7 +262,7 @@
 .data-row-value { font-size: 12px; color: var(--text-secondary); }
 
 /* BADGES */
-.badge { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 10px; border: 1px solid; border-radius: 2px; }
+.badge { font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; padding: 3px 10px; border: 1px solid; border-radius: 6px; }
 .badge-cyan    { color: var(--cyan);    border-color: rgba(0,212,255,0.35);   background: var(--cyan-dim); }
 .badge-red     { color: var(--red);     border-color: rgba(255,45,85,0.35);   background: var(--red-dim); }
 .badge-amber   { color: var(--amber);   border-color: rgba(255,190,11,0.35);  background: rgba(255,190,11,0.1); }
@@ -268,8 +271,8 @@
 .badge-muted   { color: var(--text-secondary); border-color: var(--hairline); background: var(--surface-hover); }
 
 /* BUTTONS */
-.btn-primary { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; padding: 8px 20px; border: 1px solid var(--border-strong); color: var(--cyan); background: var(--cyan-dim); transition: all 0.25s ease; cursor: pointer; border-radius: 2px; }
-.btn-primary:hover { background: rgba(0,212,255,0.15); border-color: var(--border-strong); box-shadow: 0 0 20px var(--cyan-dim); }
+.btn-primary { font-size: 10px; font-weight: 700; letter-spacing: 0.18em; text-transform: uppercase; padding: 8px 20px; border: 1px solid var(--border-strong); color: var(--cyan); background: var(--cyan-dim); transition: all 0.25s ease; cursor: pointer; border-radius: 6px; }
+.btn-primary:hover { background: rgba(0,212,255,0.18); border-color: rgba(0,212,255,0.5); box-shadow: 0 0 20px rgba(0,212,255,0.15); }
 .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
 
 /* HOVER UTILITIES — theme-aware */
@@ -289,10 +292,10 @@
 .status-indicator.online { background: var(--emerald); box-shadow: 0 0 8px rgba(6,214,160,0.6); animation: status-pulse 2s infinite; }
 @keyframes status-pulse { 0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(6,214,160,0.6); } 50% { opacity: 0.7; box-shadow: 0 0 4px rgba(6,214,160,0.3); } }
 
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--border); }
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 3px; transition: background 0.2s; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.2); }
 
 .page-content { padding: 14px 18px 14px; }
 @media (max-width: 768px)  { .page-content { padding: 10px 12px 10px; } }
@@ -438,10 +441,10 @@ input:-webkit-autofill:active {
 }
 .btn-ghost:hover { border-color: var(--border-strong); background: rgba(255,255,255,0.05); }
 
-/* ALIAS: glass-card = glass-panel */
-.glass-card { background: var(--surface); backdrop-filter: blur(20px) saturate(1.4); border: 1px solid var(--border); position: relative; overflow: hidden; transition: all 0.3s ease; border-radius: 16px; }
-.glass-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border-strong), transparent); }
-.glass-card:hover { border-color: var(--border-strong); box-shadow: 0 0 30px rgba(0,212,255,0.07); }
+/* ALIAS: glass-card = glass-panel (sólido, sin blur en contenido) */
+.glass-card { background: var(--surface); border: 1px solid var(--border); position: relative; overflow: hidden; transition: border-color 0.25s ease, box-shadow 0.25s ease; border-radius: 16px; box-shadow: 0 4px 24px rgba(0,0,0,0.4); }
+.glass-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border-strong), transparent); pointer-events: none; }
+.glass-card:hover { border-color: var(--border-strong); box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
 
 /* BRAND ICON CONTAINERS */
 .icon-box-cyan    { width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; background: rgba(0,212,255,0.08); border: 1px solid var(--border); border-radius: 10px; color: var(--cyan); }
@@ -542,27 +545,27 @@ input:-webkit-autofill:active {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── GLASS PANEL v2 ── more refined surface */
+/* ── GLASS PANEL v2 ── superficie sólida (blur solo en overlays per Brand Guide) */
 .glass-panel-v2 {
-  background: rgba(255,255,255,0.026);
-  backdrop-filter: blur(16px) saturate(1.5);
-  border: 1px solid rgba(255,255,255,0.075);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 14px;
   position: relative;
   overflow: hidden;
   transition: border-color 0.25s, box-shadow 0.25s;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.35);
 }
 .glass-panel-v2::before {
   content: "";
   position: absolute;
   top: 0; left: 0; right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.10) 50%, transparent 100%);
   pointer-events: none;
 }
 .glass-panel-v2:hover {
-  border-color: rgba(255,255,255,0.12);
-  box-shadow: 0 0 32px rgba(0,212,255,0.06), 0 8px 40px rgba(0,0,0,0.2);
+  border-color: var(--border-strong);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
 }
 
 /* ── TAB PILL CONTAINER ── */
@@ -578,19 +581,21 @@ input:-webkit-autofill:active {
 }
 .tab-pill-nav::-webkit-scrollbar { display: none; }
 
-/* ── METRIC CARDS ── improved KPI card look */
+/* ── METRIC CARDS ── superficies sólidas (Brand Guide 1A) */
 .metric-card {
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.07);
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 14px;
   padding: 18px;
   position: relative;
   overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35);
 }
 .metric-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
+  border-color: var(--border-strong);
 }
 .metric-card-value {
   font-family: 'Orbitron', sans-serif;
@@ -717,3 +722,57 @@ input:-webkit-autofill:active {
   50%       { opacity: 0.4; }
 }
 .skeleton-pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SODARE IDENTITY — JETBRAINS MONO + ICON CONTAINERS (Brand Guide 1A)
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Monospace — cifras en tablas, IDs, fechas, porcentajes de datos */
+.t-mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
+}
+.t-id {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+.t-data {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+/* Lucide icon containers — trazo 1.75, 20px, border-radius 10px (Brand Guide §03) */
+.icon-container {
+  width: 40px; height: 40px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.icon-container-sm {
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+/* Active/accent icon container */
+.icon-container-active {
+  background: rgba(0,212,255,0.07);
+  border-color: rgba(0,212,255,0.22);
+  color: var(--cyan);
+}
+
+/* ── SIDEBAR: solo aquí el blur está permitido ── */
+/* El blur del sidebar se mantiene (layout overlay) */
+.sidebar { backdrop-filter: blur(40px) saturate(1.5); }
+
+/* ── MODAL / PANEL (overlay): blur permitido ── */
+/* .modal-overlay y .panel-bg ya tienen backdrop-filter, se conservan */
