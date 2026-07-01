@@ -11,6 +11,7 @@ import type { LLMProvider, ProviderId } from "./types";
 import { openaiProvider } from "./providers/openai";
 import { geminiProvider } from "./providers/gemini";
 import { anthropicProvider } from "./providers/anthropic";
+import prisma from "@/lib/prisma";
 
 export interface ProviderCatalog {
   default: string;
@@ -65,4 +66,73 @@ export function getActiveProvider(): LLMProvider {
 
 export function hasAnyProvider(): boolean {
   return (Object.keys(PROVIDERS) as ProviderId[]).some((id) => PROVIDERS[id].isConfigured());
+}
+
+/**
+ * Mapeo de los modelos seleccionables en la UI de Botmaker hacia los modelos reales
+ * de Vercel AI SDK.
+ */
+const UI_MODEL_MAPPING: Record<string, { provider: ProviderId; model: string }> = {
+  "gpt-4.1-mini": { provider: "openai", model: "gpt-4o-mini" },
+  "gpt-5.5": { provider: "openai", model: "gpt-4o" },
+  "gpt-5.4": { provider: "openai", model: "gpt-4o" },
+  "gpt-5.4-mini": { provider: "openai", model: "gpt-4o-mini" },
+  "gpt-5.4-nano": { provider: "openai", model: "gpt-4o-mini" },
+  "gpt-5.2": { provider: "openai", model: "gpt-4o" },
+  "gpt-5.1": { provider: "openai", model: "gpt-4o" },
+  "gpt-4.1-nano": { provider: "openai", model: "gpt-4o-mini" },
+  "gpt-4.1": { provider: "openai", model: "gpt-4o" },
+  "gpt-4o-mini": { provider: "openai", model: "gpt-4o-mini" },
+  "gpt-5-mini": { provider: "openai", model: "gpt-4o-mini" },
+  "gpt-5-nano": { provider: "openai", model: "gpt-4o-mini" },
+  "gpt-5": { provider: "openai", model: "gpt-4o" },
+  "gemini-3.5-flash": { provider: "gemini", model: "gemini-1.5-flash" },
+  "gemini-3.1-pro": { provider: "gemini", model: "gemini-1.5-pro" },
+};
+
+/**
+ * Resuelve un valor de selección guardado (extConfig.ariaGenerativeModel) a un
+ * proveedor + modelo real. Soporta tres formas, en orden:
+ *  1. Alias de la UI de Botmaker (UI_MODEL_MAPPING) — p.ej. "gpt-5".
+ *  2. ID de modelo real del catálogo (MODELS) — p.ej. "claude-sonnet-4-6"
+ *     (lo que escribe el catálogo de IA de Crecimiento).
+ *  3. ID de proveedor — "openai" | "gemini" | "anthropic" → su modelo por defecto.
+ * Devuelve null si no se reconoce.
+ */
+export function resolveSelection(selected: string): { provider: ProviderId; model: string } | null {
+  const mapping = UI_MODEL_MAPPING[selected];
+  if (mapping) return mapping;
+  for (const id of Object.keys(MODELS) as ProviderId[]) {
+    if (MODELS[id].available.includes(selected)) return { provider: id, model: selected };
+  }
+  if (isProviderId(selected)) return { provider: selected, model: PROVIDERS[selected].defaultModel };
+  return null;
+}
+
+/**
+ * Obtiene el proveedor y el modelo real configurado en el Workspace.
+ * Si el workspace no tiene uno configurado o el proveedor elegido no tiene API key,
+ * cae al proveedor activo por defecto (env / preferencia).
+ */
+export async function getWorkspaceAiProvider(
+  workspaceId: string,
+): Promise<{ provider: LLMProvider; model: string }> {
+  try {
+    const settings = await prisma.workspaceSettings.findUnique({
+      where: { workspaceId },
+      select: { extConfig: true },
+    });
+    const extConfig = (settings?.extConfig as Record<string, unknown>) || {};
+    const selected =
+      typeof extConfig.ariaGenerativeModel === "string" ? extConfig.ariaGenerativeModel : "gpt-4.1-mini";
+    const resolved = resolveSelection(selected);
+    if (resolved && PROVIDERS[resolved.provider].isConfigured()) {
+      return { provider: PROVIDERS[resolved.provider], model: resolved.model };
+    }
+  } catch (err) {
+    console.error("Error reading Workspace AI settings:", err);
+  }
+
+  const active = getActiveProvider();
+  return { provider: active, model: active.defaultModel };
 }

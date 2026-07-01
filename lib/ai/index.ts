@@ -7,6 +7,7 @@
 
 export * from "./types";
 export * from "./registry";
+export * from "./catalog";
 export { normalizeUpstreamError } from "./errors";
 export {
   AriaInsightsZod,

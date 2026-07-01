@@ -11,7 +11,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import { rateLimit, getClientIP } from "@/lib/ratelimit";
 import { z } from "zod";
-import { getActiveProvider, hasAnyProvider, normalizeUpstreamError } from "@/lib/ai";
+import { getWorkspaceAiProvider, hasAnyProvider, normalizeUpstreamError } from "@/lib/ai";
 import type { LLMMessage } from "@/lib/ai";
 import { buildAriaContext } from "@/lib/crecimiento/llm/context";
 
@@ -46,8 +46,9 @@ export const POST = withWorkspace(async (req, ctx) => {
   try {
     const context = await buildAriaContext(ctx.workspaceId);
     const messages: LLMMessage[] = [...(parsed.data.history ?? []), { role: "user", content: parsed.data.message }];
-    const provider = getActiveProvider();
+    const { provider, model } = await getWorkspaceAiProvider(ctx.workspaceId);
     const result = await provider.complete({
+      model,
       system: `${SYSTEM}\n\nContexto real (no inventar nada fuera de esto):\n${context}`,
       messages,
       maxTokens: 1024,
