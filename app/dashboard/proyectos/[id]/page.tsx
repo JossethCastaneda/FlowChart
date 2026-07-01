@@ -21,6 +21,8 @@ import { useInsightsStore } from "@/stores/insightsStore";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import BotAnalyticsDashboard from "@/components/botmaker/analytics/dashboard/BotAnalyticsDashboard";
 import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
+import { ChartTheme } from "@/components/ui/charts/ChartTheme";
+import { CustomTooltip } from "@/components/ui/charts/CustomTooltip";
 
 /* ═══ TYPES ═══ */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; monthlyOverrides?: Record<string, { budget?: string; cpr?: string; goal?: string }>; }
@@ -578,8 +580,10 @@ export default function ProjectDashboardPage() {
 
   return (
     <div className="space-y-4 page-enter">
+      <svg style={{ width: 0, height: 0, position: "absolute" }}><ChartTheme /></svg>
       {/* ── HEADER ── */}
       <div style={{
+        position: "relative", zIndex: 999,
         display: "flex", alignItems: "flex-start", justifyContent: "space-between",
         flexWrap: "wrap", gap: 12,
         background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
@@ -874,16 +878,14 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               {isLoading && <LoadingOverlay />}
               <div style={panelStyle}><h3 style={headingStyle}>Inversión vs Resultados</h3><p style={subStyle}>Gasto diario y volumen de conversiones</p>
                 <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <defs><linearGradient id="gs" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--amber)" stopOpacity={0.3} /><stop offset="95%" stopColor="var(--amber)" stopOpacity={0} /></linearGradient></defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="left" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} />
-                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="var(--amber)" strokeWidth={2} fillOpacity={1} fill="url(#gs)" /><Bar yAxisId="right" dataKey="results" name="Resultados" fill="var(--emerald)" radius={[3, 3, 0, 0]} barSize={6} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)', stroke: 'rgba(255,255,255,0.05)' }} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="#8B5CF6" strokeWidth={3} fillOpacity={1} fill="url(#colorPurpleArea)" filter="url(#glow)" /><Bar yAxisId="right" dataKey="results" name="Resultados" fill="url(#colorEmeraldArea)" stroke="#10b981" strokeWidth={1} radius={[4, 4, 0, 0]} barSize={8} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
               <div style={panelStyle}><h3 style={headingStyle}>CTR vs CPC</h3><p style={subStyle}>Calidad de tráfico y costo por clic</p>
                 <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <defs><linearGradient id="gc" x1="0" y1="0" x2="0" y2="1"><stop offset="5%" stopColor="var(--purple)" stopOpacity={0.3} /><stop offset="95%" stopColor="var(--purple)" stopOpacity={0} /></linearGradient></defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="l" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} /><YAxis yAxisId="r" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                  <Tooltip contentStyle={tooltipStyle} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="var(--purple)" strokeWidth={2} fillOpacity={1} fill="url(#gc)" /><Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="var(--amber)" strokeWidth={2} dot={{ r: 3, fill: "rgba(10,15,30,1)" }} />
+                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)', stroke: 'rgba(255,255,255,0.05)' }} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorCyanArea)" filter="url(#glow)" /><Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: "#0F172A", stroke: "#f59e0b", strokeWidth: 2 }} activeDot={{ r: 6, fill: "#f59e0b", stroke: "#fff" }} />
                 </ComposedChart></ResponsiveContainer> : <NoData />}</div>
               </div>
             </div>

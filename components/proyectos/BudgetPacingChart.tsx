@@ -4,6 +4,8 @@ import React, { useMemo } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import { fmt$, fmtPct } from "@/lib/ads-metrics";
 import { TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
+import { ChartTheme } from "@/components/ui/charts/ChartTheme";
+import { CustomTooltip } from "@/components/ui/charts/CustomTooltip";
 
 interface BudgetPacingChartProps {
   /** Daily spend data from Meta insights [{ date_start: "2024-01-15", spend: "450.00" }] */
@@ -154,12 +156,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
       <div style={{ height: 200 }}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={chartData.points} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-            <defs>
-              <linearGradient id="realGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="var(--cyan)" stopOpacity={0.2} />
-                <stop offset="100%" stopColor="var(--cyan)" stopOpacity={0} />
-              </linearGradient>
-            </defs>
+            <ChartTheme />
             <XAxis
               dataKey="label"
               tick={{ fontSize: 9, fill: "var(--text-muted)" }}
@@ -174,14 +171,8 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
               tickFormatter={(v) => `$${(v / 1000).toFixed(0)}k`}
             />
             <Tooltip
-              contentStyle={{
-                background: "var(--panel-bg)",
-                border: "1px solid var(--border-strong)",
-                borderRadius: "6px",
-                fontSize: "11px",
-              }}
-              labelStyle={{ color: "var(--text-secondary)" }}
-              formatter={(value: any, name: any) => [fmt$(Number(value || 0)), name === "ideal" ? "Ideal" : name === "real" ? "Real" : "Proyección"]}
+              content={<CustomTooltip formatter={(value: any, name: any) => [fmt$(Number(value || 0)), name === "ideal" ? "Ideal" : name === "real" ? "Real" : "Proyección"]} />}
+              cursor={{ fill: 'rgba(255,255,255,0.02)', stroke: 'rgba(255,255,255,0.05)' }}
             />
             {/* Budget line */}
             <ReferenceLine
@@ -203,16 +194,17 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
             <Area
               type="monotone"
               dataKey="real"
-              stroke="var(--cyan)"
-              fill="url(#realGradient)"
-              strokeWidth={2}
+              stroke="#8B5CF6"
+              fill="url(#colorPurpleArea)"
+              strokeWidth={3}
+              filter="url(#glow)"
               connectNulls={false}
             />
             {/* Projected */}
             <Area
               type="monotone"
               dataKey="projected"
-              stroke="var(--cyan)"
+              stroke="#8B5CF6"
               strokeDasharray="6 3"
               fill="none"
               strokeWidth={1.5}
@@ -227,8 +219,8 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
       <div style={{ display: "flex", gap: "16px", marginTop: "8px", justifyContent: "center" }}>
         {[
           { label: "Ritmo ideal", color: "var(--text-muted)", dashed: true },
-          { label: "Gasto real", color: "var(--cyan)", dashed: false },
-          { label: "Proyección", color: "var(--cyan)", dashed: true },
+          { label: "Gasto real", color: "#8B5CF6", dashed: false },
+          { label: "Proyección", color: "#8B5CF6", dashed: true },
         ].map(item => (
           <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <div style={{
