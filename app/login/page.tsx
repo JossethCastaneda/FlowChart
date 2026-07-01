@@ -286,147 +286,119 @@ export default function LoginPage() {
   ) : null;
 
   return (
-    <div style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#060606", fontFamily: "var(--font-inter),system-ui,sans-serif", overflow: "hidden", padding: "24px" }}>
+    <div style={{ position: "relative", minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0a0618", fontFamily: "var(--font-inter),system-ui,sans-serif", overflow: "hidden", padding: "24px" }}>
       <style>{`
         @keyframes f-spin{to{transform:rotate(360deg)}}
-        @keyframes f-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
-        @keyframes f-float-slow{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-20px) rotate(2deg)}}
-        @keyframes shine { to { background-position: 200% center; } }
+        @keyframes float1 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(30px, -40px) scale(1.1); } }
+        @keyframes float2 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(-40px, 30px) scale(1.1); } }
+        @keyframes float3 { 0%, 100% { transform: translate(0, 0) scale(1); } 50% { transform: translate(20px, 40px) scale(0.9); } }
         
-        .text-shimmer {
-          background: linear-gradient(to right, #ffffff 20%, #00d4ff 40%, #00d4ff 60%, #ffffff 80%);
-          background-size: 200% auto;
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
-          color: transparent;
-          animation: shine 4s linear infinite;
-        }
+        .blob-1 { position: absolute; top: 10%; right: 20%; width: 500px; height: 500px; background: radial-gradient(circle, #ff007f 0%, transparent 70%); filter: blur(80px); opacity: 0.6; animation: float1 15s ease-in-out infinite; z-index: 0; pointer-events: none; }
+        .blob-2 { position: absolute; bottom: -10%; left: 10%; width: 600px; height: 600px; background: radial-gradient(circle, #00d4ff 0%, transparent 70%); filter: blur(80px); opacity: 0.5; animation: float2 18s ease-in-out infinite; z-index: 0; pointer-events: none; }
+        .blob-3 { position: absolute; top: 30%; left: -5%; width: 400px; height: 400px; background: radial-gradient(circle, #8a2be2 0%, transparent 70%); filter: blur(80px); opacity: 0.5; animation: float3 20s ease-in-out infinite; z-index: 0; pointer-events: none; }
 
-        .outer-glass {
-          width: 100%; max-width: 1100px; min-height: 700px;
-          background: rgba(0, 212, 255, 0.02);
-          border: 1px solid rgba(0, 212, 255, 0.08);
-          border-radius: 32px;
-          backdrop-filter: blur(12px);
-          position: relative;
-          overflow: hidden;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05);
-        }
-
-        .inner-glass {
-          width: 100%; max-width: 400px; padding: 40px; 
-          background: rgba(10, 12, 18, 0.6); 
-          border: 1px solid rgba(0, 212, 255, 0.15); 
+        .login-card {
+          width: 100%; max-width: 440px; padding: 48px 40px; 
+          background: rgba(255, 255, 255, 0.02); 
+          border: 1px solid rgba(255, 255, 255, 0.15); 
           border-radius: 24px; 
-          box-shadow: 0 20px 60px rgba(0,0,0,0.8), inset 0 1px 0 rgba(255,255,255,0.05), inset 0 0 40px rgba(0,212,255,0.05);
-          backdrop-filter: blur(32px);
+          box-shadow: 0 30px 80px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
+          backdrop-filter: blur(24px);
+          -webkit-backdrop-filter: blur(24px);
           position: relative;
-          z-index: 20;
-          display: flex;
-          flex-direction: column;
+          z-index: 10;
         }
         
-        @media (max-width:768px){
-          .outer-glass { border-radius: 20px; min-height: 600px; padding: 24px; border:none; background:transparent; box-shadow:none; backdrop-filter:none; display:block; }
-          .inner-glass { max-width: 100%; padding: 32px 24px; margin: 0 auto; }
+        @media (max-width:480px){
+          .login-card { padding: 32px 24px; border-radius: 16px; background: rgba(10,10,12,0.8); border: 1px solid rgba(255,255,255,0.05); }
         }
         @media (prefers-reduced-motion:reduce){*{animation:none !important}}
       `}</style>
 
-      {/* Global Background Layer */}
-      <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px)", backgroundSize: "40px 40px", pointerEvents: "none", zIndex: 0 }} />
-      <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", width: "100%", height: "100%", background: "radial-gradient(circle, rgba(0,212,255,0.05) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
+      {/* Abstract Floating Blobs */}
+      <div className="blob-1" />
+      <div className="blob-2" />
+      <div className="blob-3" />
 
       {/* Language toggle (Top Right of screen) */}
-      <div style={{ position: "absolute", top: 24, right: 24, zIndex: 30, display: "flex", gap: 4, padding: 4, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 100 }}>
+      <div style={{ position: "absolute", top: 24, right: 24, zIndex: 30, display: "flex", gap: 4, padding: 4, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 100, backdropFilter: "blur(12px)" }}>
         <button onClick={() => setLang("es")} style={langBtn(lang === "es")}>ES</button>
         <button onClick={() => setLang("en")} style={langBtn(lang === "en")}>EN</button>
       </div>
 
-      {/* The Nested Glass Billboard */}
-      <div className="outer-glass">
-        
-        {/* The Inner Glass Login Card */}
-        <div className="inner-glass">
-          {/* Form Header */}
-          <div style={{ textAlign: "center", marginBottom: 32 }}>
-            <div style={{ animation: "f-float 6s ease-in-out infinite", marginBottom: 16 }}>
-              <Orbi size={64} style={{ filter: "drop-shadow(0px 0px 15px rgba(0, 212, 255, 0.4))" }} />
-            </div>
-            <a href="/" style={{ display: "inline-flex", marginBottom: 20 }}><SodareLogo size="lg" /></a>
-            <h1 className="text-shimmer" style={{ fontFamily: ORB, fontSize: "28px", fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>
-              {t.title}
-            </h1>
-          </div>
-
-          {success ? (
-            <div style={{ textAlign: "center", padding: "24px 0" }}>
-              <div style={{ width: 64, height: 64, margin: "0 auto 24px", borderRadius: "50%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
-              </div>
-              <div style={{ fontSize: 22, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>{t.successTitle}</div>
-              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginTop: 8 }}>{t.successSub}</div>
-            </div>
-          ) : showReturning ? (
-            <>
-              <div style={{ textAlign: "center", marginBottom: 32 }}>
-                <div style={{ width: 64, height: 64, margin: "0 auto 16px", borderRadius: "50%", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 600, color: "#fff" }}>{(savedName || savedEmail || "U").trim().charAt(0).toUpperCase()}</div>
-                <div style={{ fontSize: 20, fontWeight: 600, color: "#fff", letterSpacing: "-0.01em" }}>{t.returningHi(savedName || "")}</div>
-                <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>{savedEmail}</div>
-              </div>
-              <div style={{ position: "relative", marginBottom: 16 }}>
-                <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder={t.pwReturning} onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, paddingRight: 44 }} />
-                {EyeBtn}
-              </div>
-              {ErrorRow}
-              <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1 }} onMouseEnter={(e) => e.currentTarget.style.background = "#f0f0f0"} onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}>
-                {isLoading ? <span style={{ width: 18, height: 18, border: "2px solid rgba(0,0,0,0.2)", borderTopColor: "#000", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : t.ctaLogin}
-              </button>
-              <div style={{ textAlign: "center", marginTop: 24 }}>
-                <a href="#" onClick={(e) => { e.preventDefault(); setUseOther(true); setPassword(""); setCredError(""); }} style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", textDecoration: "none" }}>{t.useOther}</a>
-              </div>
-            </>
-          ) : (
-            <>
-              <div style={{ display: "flex", gap: 12, marginBottom: 32 }}>
-                <button onClick={handleFacebookLogin} disabled={isLoading || !providerStatusLoaded || !hasFacebookProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(255,255,255,0.15)", cursor: "pointer", background: "transparent", color: "#fff", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 8, transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" /></svg>
-                </button>
-                <button onClick={handleGoogleLogin} disabled={isLoading || !providerStatusLoaded || !hasGoogleProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(255,255,255,0.15)", cursor: "pointer", background: "transparent", color: "#fff", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 8, transition: "background 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.background = "rgba(255,255,255,0.05)"} onMouseLeave={(e) => e.currentTarget.style.background = "transparent"}>
-                  <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
-                </button>
-              </div>
-
-              <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 32 }}>
-                <span style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} /><span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{t.orEmail}</span><span style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
-              </div>
-
-              <div style={{ display: "flex", gap: 4, marginBottom: 24, padding: 4, background: "rgba(255,255,255,0.03)", borderRadius: 8 }}>
-                <button onClick={() => { setIsRegister(false); setCredError(""); }} style={tab(!isRegister)}>{t.tabLogin}</button>
-                <button onClick={() => { setIsRegister(true); setCredError(""); }} style={tab(isRegister)}>{t.tabReg}</button>
-              </div>
-
-              {isRegister && <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t.name} onFocus={onFocus} onBlur={onBlur} style={input} />}
-              <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setCredError(""); }} placeholder="tu@empresa.com" onFocus={onFocus} onBlur={onBlur} style={input} />
-              <div style={{ position: "relative", marginBottom: isRegister ? 16 : 8 }}>
-                <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder="••••••••" onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, paddingRight: 44 }} />
-                {EyeBtn}
-              </div>
-              {isRegister && <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t.confirmPw} onFocus={onFocus} onBlur={onBlur} style={input} />}
-              
-              {ErrorRow}
-              {!isRegister && <div style={{ textAlign: "right", marginBottom: 24 }}><a href="/forgot-password" style={{ fontSize: 13, color: "var(--cyan)", textDecoration: "none", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e) => e.currentTarget.style.color = "var(--cyan)"}>{t.forgot}</a></div>}
-
-              <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1, marginTop: isRegister ? 24 : 0 }} onMouseEnter={(e) => e.currentTarget.style.background = "#f0f0f0"} onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}>
-                {isLoading ? <span style={{ width: 18, height: 18, border: "2px solid rgba(0,0,0,0.2)", borderTopColor: "#000", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : (isRegister ? t.ctaReg : t.ctaLogin)}
-              </button>
-            </>
-          )}
+      {/* The Glass Login Card */}
+      <div className="login-card">
+        {/* Form Header */}
+        <div style={{ textAlign: "center", marginBottom: 32 }}>
+          <a href="/" style={{ display: "inline-flex", marginBottom: 20 }}><SodareLogo size="lg" /></a>
+          <h1 style={{ fontFamily: "var(--font-inter),system-ui,sans-serif", fontSize: "24px", fontWeight: 700, margin: 0, color: "#fff", letterSpacing: "-0.02em" }}>
+            {t.title}
+          </h1>
         </div>
+
+        {success ? (
+          <div style={{ textAlign: "center", padding: "24px 0" }}>
+            <div style={{ width: 64, height: 64, margin: "0 auto 24px", borderRadius: "50%", background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6L9 17l-5-5" /></svg>
+            </div>
+            <div style={{ fontSize: 22, fontWeight: 600, color: "#fff", letterSpacing: "-0.02em" }}>{t.successTitle}</div>
+            <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", marginTop: 8 }}>{t.successSub}</div>
+          </div>
+        ) : showReturning ? (
+          <>
+            <div style={{ textAlign: "center", marginBottom: 32 }}>
+              <div style={{ width: 64, height: 64, margin: "0 auto 16px", borderRadius: "50%", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 600, color: "#fff" }}>{(savedName || savedEmail || "U").trim().charAt(0).toUpperCase()}</div>
+              <div style={{ fontSize: 20, fontWeight: 600, color: "#fff", letterSpacing: "-0.01em" }}>{t.returningHi(savedName || "")}</div>
+              <div style={{ fontSize: 14, color: "rgba(255,255,255,0.6)", marginTop: 4 }}>{savedEmail}</div>
+            </div>
+            <div style={{ position: "relative", marginBottom: 16 }}>
+              <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder={t.pwReturning} onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, paddingRight: 44, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }} />
+              {EyeBtn}
+            </div>
+            {ErrorRow}
+            <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1, background: "#fff", color: "#000" }} onMouseEnter={(e) => e.currentTarget.style.background = "#e0e0e0"} onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}>
+              {isLoading ? <span style={{ width: 18, height: 18, border: "2px solid rgba(0,0,0,0.2)", borderTopColor: "#000", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : t.ctaLogin}
+            </button>
+            <div style={{ textAlign: "center", marginTop: 24 }}>
+              <a href="#" onClick={(e) => { e.preventDefault(); setUseOther(true); setPassword(""); setCredError(""); }} style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>{t.useOther}</a>
+            </div>
+          </>
+        ) : (
+          <>
+            <div style={{ display: "flex", gap: 12, marginBottom: 32 }}>
+              <button onClick={handleFacebookLogin} disabled={isLoading || !providerStatusLoaded || !hasFacebookProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(255,255,255,0.2)", cursor: "pointer", background: "rgba(255,255,255,0.03)", color: "#fff", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 12, transition: "all 0.2s" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; }}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="#1877F2"><path d="M22.675 0h-21.35c-.732 0-1.325.593-1.325 1.325v21.351c0 .731.593 1.324 1.325 1.324h11.495v-9.294h-3.128v-3.622h3.128v-2.671c0-3.1 1.893-4.788 4.659-4.788 1.325 0 2.463.099 2.795.143v3.24l-1.918.001c-1.504 0-1.795.715-1.795 1.763v2.313h3.587l-.467 3.622h-3.12v9.293h6.116c.73 0 1.323-.593 1.323-1.325v-21.35c0-.732-.593-1.325-1.325-1.325z" /></svg>
+              </button>
+              <button onClick={handleGoogleLogin} disabled={isLoading || !providerStatusLoaded || !hasGoogleProvider} style={{ flex: 1, padding: 12, border: "1px solid rgba(255,255,255,0.2)", cursor: "pointer", background: "rgba(255,255,255,0.03)", color: "#fff", fontSize: 13, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 8, borderRadius: 12, transition: "all 0.2s" }} onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.1)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.3)"; }} onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)"; }}>
+                <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" /><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853" /><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93z" fill="#FBBC05" /><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" /></svg>
+              </button>
+            </div>
+
+            <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 32 }}>
+              <span style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} /><span style={{ fontSize: 12, color: "rgba(255,255,255,0.5)" }}>{t.orEmail}</span><span style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.1)" }} />
+            </div>
+
+            <div style={{ display: "flex", gap: 4, marginBottom: 24, padding: 4, background: "rgba(255,255,255,0.05)", borderRadius: 12 }}>
+              <button onClick={() => { setIsRegister(false); setCredError(""); }} style={tab(!isRegister)}>{t.tabLogin}</button>
+              <button onClick={() => { setIsRegister(true); setCredError(""); }} style={tab(isRegister)}>{t.tabReg}</button>
+            </div>
+
+            {isRegister && <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder={t.name} onFocus={onFocus} onBlur={onBlur} style={{ ...input, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }} />}
+            <input type="email" value={email} onChange={(e) => { setEmail(e.target.value); setCredError(""); }} placeholder="tu@empresa.com" onFocus={onFocus} onBlur={onBlur} style={{ ...input, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }} />
+            <div style={{ position: "relative", marginBottom: isRegister ? 16 : 8 }}>
+              <input type={showPw ? "text" : "password"} value={password} onChange={(e) => { setPassword(e.target.value); setCredError(""); }} placeholder="••••••••" onFocus={onFocus} onBlur={onBlur} style={{ ...input, marginBottom: 0, paddingRight: 44, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }} />
+              {EyeBtn}
+            </div>
+            {isRegister && <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder={t.confirmPw} onFocus={onFocus} onBlur={onBlur} style={{ ...input, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)" }} />}
+            
+            {ErrorRow}
+            {!isRegister && <div style={{ textAlign: "right", marginBottom: 28 }}><a href="/forgot-password" style={{ fontSize: 13, color: "#00d4ff", textDecoration: "none", transition: "color 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.color = "#fff"} onMouseLeave={(e) => e.currentTarget.style.color = "#00d4ff"}>{t.forgot}</a></div>}
+
+            <button onClick={submit} disabled={isLoading} style={{ ...cta, opacity: isLoading ? 0.7 : 1, marginTop: isRegister ? 24 : 0, background: "#fff", color: "#000" }} onMouseEnter={(e) => e.currentTarget.style.background = "#e0e0e0"} onMouseLeave={(e) => e.currentTarget.style.background = "#fff"}>
+              {isLoading ? <span style={{ width: 18, height: 18, border: "2px solid rgba(0,0,0,0.2)", borderTopColor: "#000", borderRadius: "50%", animation: "f-spin .7s linear infinite", display: "inline-block" }} /> : (isRegister ? t.ctaReg : t.ctaLogin)}
+            </button>
+          </>
+        )}
       </div>
     </div>
   );
