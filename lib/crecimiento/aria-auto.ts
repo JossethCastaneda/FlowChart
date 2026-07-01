@@ -2,130 +2,81 @@ import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
 /**
- * Dispara la automatización del modelo predictivo Aria para un nuevo proyecto,
- * y opcionalmente para su Cliente y Vertical asociados.
+ * Registra los scopes predictivos de Aria al crear un proyecto: PROYECTO y,
+ * opcionalmente, su CLIENTE y VERTICAL. NO fabrica datos ni métricas (se acabó el
+ * Math.random): crea un dataset vacío en estado `awaiting_data`, listo para recibir
+ * datos reales vía el Data Hub. Cuando se suba un CSV scopeado, el motor determinista
+ * (runTrainingPipeline) entrena el modelo real. Es idempotente: reejecutar (o el
+ * backfill) no duplica scopes gracias a los @@unique de AriaDataset.
  */
 export async function triggerAutoAriaForProject(
   projectId: string,
   workspaceId: string,
   projectName: string,
   clientName?: string | null,
-  verticalName?: string | null
-) {
+  verticalName?: string | null,
+): Promise<void> {
   try {
-    // 1. Crear modelo para el Proyecto
-    await generateAriaModel(workspaceId, "PROJECT", projectName, { projectId });
-
-    // 2. Si el proyecto tiene un cliente, crear o verificar su modelo
+    await ensureProjectScope(workspaceId, projectId, projectName);
     if (clientName && clientName.trim() !== "") {
-      const existingClient = await prisma.ariaDataset.findFirst({
-        where: { workspaceId, targetType: "CLIENT", clientName }
-      });
-      if (!existingClient) {
-        await generateAriaModel(workspaceId, "CLIENT", clientName, { clientName });
-      }
+      await ensureClientScope(workspaceId, clientName.trim());
     }
-
-    // 3. Si el proyecto tiene una vertical, crear o verificar su modelo
     if (verticalName && verticalName.trim() !== "") {
-      const existingVertical = await prisma.ariaDataset.findFirst({
-        where: { workspaceId, targetType: "VERTICAL", verticalName }
-      });
-      if (!existingVertical) {
-        await generateAriaModel(workspaceId, "VERTICAL", verticalName, { verticalName });
-      }
+      await ensureVerticalScope(workspaceId, verticalName.trim());
     }
-
-    logger.info(`[ARIA AUTO] Successfully generated automated models for Project ${projectId}`);
+    logger.info("[ARIA AUTO] Scopes registrados", { projectId, workspaceId });
   } catch (error) {
-    logger.error(`[ARIA AUTO] Error triggering Aria for Project ${projectId}`, { error });
+    logger.error("[ARIA AUTO] Error registrando scopes de Aria", {
+      projectId,
+      error: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
-async function generateAriaModel(
-  workspaceId: string,
-  targetType: "PROJECT" | "CLIENT" | "VERTICAL",
-  name: string,
-  relations: { projectId?: string; clientName?: string; verticalName?: string }
-) {
-  // 1. Crear Dataset
-  const dataset = await prisma.ariaDataset.create({
-    data: {
+async function ensureProjectScope(workspaceId: string, projectId: string, name: string): Promise<void> {
+  await prisma.ariaDataset.upsert({
+    where: { aria_scope_project: { workspaceId, targetType: "PROJECT", projectId } },
+    update: {},
+    create: {
       workspaceId,
-      name: `Auto: ${name} (${targetType})`,
+      projectId,
+      targetType: "PROJECT",
+      name: `Proyecto: ${name}`,
       source: "auto",
-      rowCount: targetType === "PROJECT" ? 50 : targetType === "CLIENT" ? 150 : 300,
-      status: "ready",
-      targetType,
-      ...relations,
+      status: "awaiting_data",
+      rowCount: 0,
     },
   });
+}
 
-  // 2. Crear Columnas Base
-  const baseColumns = [
-    "fuente",
-    "campaña",
-    "dispositivo",
-    "visitas_web",
-    "tiempo_sitio",
-    "conversion",
-  ];
-
-  await prisma.ariaDatasetColumn.createMany({
-    data: baseColumns.map((colName) => ({
-      datasetId: dataset.id,
-      name: colName,
-      dataType: colName === "conversion" ? "boolean" : "string",
-      isTarget: colName === "conversion",
-      isFeature: colName !== "conversion",
-    })),
-  });
-
-  // 3. Crear el Modelo y la Corrida
-  // Simulamos un mejor modelo (AUC mayor) entre más datos (Vertical > Cliente > Proyecto)
-  const aucScore = targetType === "VERTICAL" ? 0.94 : targetType === "CLIENT" ? 0.91 : 0.89;
-  
-  const model = await prisma.ariaModel.create({
-    data: {
-      datasetId: dataset.id,
-      name: `Modelo Predictivo Inicial - ${name}`,
-      algorithm: "Random Forest (Auto)",
-      status: "ready",
-      accuracy: aucScore - 0.05,
-      precision: aucScore - 0.08,
-      recall: aucScore - 0.02,
-      auc: aucScore,
+async function ensureClientScope(workspaceId: string, clientName: string): Promise<void> {
+  await prisma.ariaDataset.upsert({
+    where: { aria_scope_client: { workspaceId, targetType: "CLIENT", clientName } },
+    update: {},
+    create: {
+      workspaceId,
+      clientName,
+      targetType: "CLIENT",
+      name: `Cliente: ${clientName}`,
+      source: "auto",
+      status: "awaiting_data",
+      rowCount: 0,
     },
   });
+}
 
-  await prisma.ariaModelRun.create({
-    data: {
-      modelId: model.id,
-      status: "success",
-      metrics: {
-        trainingTime: targetType === "VERTICAL" ? "12.4s" : targetType === "CLIENT" ? "6.2s" : "2.5s",
-        topFeatures: ["visitas_web", "tiempo_sitio", "fuente"],
-      },
+async function ensureVerticalScope(workspaceId: string, verticalName: string): Promise<void> {
+  await prisma.ariaDataset.upsert({
+    where: { aria_scope_vertical: { workspaceId, targetType: "VERTICAL", verticalName } },
+    update: {},
+    create: {
+      workspaceId,
+      verticalName,
+      targetType: "VERTICAL",
+      name: `Vertical: ${verticalName}`,
+      source: "auto",
+      status: "awaiting_data",
+      rowCount: 0,
     },
-  });
-
-  // 4. Generar Predicciones Simuladas
-  const predictionsData = Array.from({ length: Math.min(dataset.rowCount, 100) }).map((_, i) => {
-    const prob = Math.random();
-    const score = Math.round(prob * 100);
-    const priority = score > 75 ? "High" : score > 40 ? "Medium" : "Low";
-    
-    return {
-      modelId: model.id,
-      recordId: `LEAD-${name.substring(0, 3).toUpperCase()}-${1000 + i}`,
-      score,
-      probability: prob,
-      priority,
-      insights: { reason: priority === "High" ? "Comportamiento activo reciente" : "Poco engagement" },
-    };
-  });
-
-  await prisma.ariaPrediction.createMany({
-    data: predictionsData,
   });
 }

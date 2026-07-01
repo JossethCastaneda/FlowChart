@@ -1021,6 +1021,7 @@ model AnalyticsKpiTarget {
   clientId          String?
   channelConfigId   String?
   kpiKey            String
+  period            String?  // e.g. "2026-07". null = global/default target
   targetValue       Float?
   warningThreshold  Float?
   criticalThreshold Float?
@@ -1029,9 +1030,11 @@ model AnalyticsKpiTarget {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 
-  @@unique([workspaceId, kpiKey, projectId])
+  // Modificado: Se incluye 'period' (que puede ser null para metas globales)
+  @@unique([workspaceId, kpiKey, projectId, period])
   @@index([workspaceId])
   @@index([workspaceId, projectId])
+  @@index([period])
 }
 
 // Bitácora de auditoría (exportaciones, acceso a datos sensibles, cambios de config)

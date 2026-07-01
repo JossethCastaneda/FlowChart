@@ -14,7 +14,7 @@ export default function PredictiveStudio() {
     // Fetch available datasets
     fetch("/api/crecimiento/datasets")
       .then(res => res.json())
-      .then(data => setDatasets(data))
+      .then(data => setDatasets(Array.isArray(data?.data) ? data.data : []))
       .catch(console.error);
   }, []);
 
@@ -30,7 +30,7 @@ export default function PredictiveStudio() {
         body: JSON.stringify({ datasetId: selectedDataset })
       });
       const data = await res.json();
-      setResult(data);
+      setResult(data?.success ? data.data : { status: "error", note: data?.error ?? "Error al entrenar" });
     } catch (error) {
       console.error(error);
     } finally {
@@ -115,26 +115,40 @@ export default function PredictiveStudio() {
           <div className="flex items-center gap-4 mb-4">
             <Orbi state={training ? "thinking" : result ? "idle" : "idle"} />
             <p className="text-sm text-muted-foreground font-medium">
-              {training ? "Entrenando modelo... Estoy probando Random Forest y Logistic Regression." : result ? "¡Entrenamiento completado! Revisa las métricas." : "Selecciona un dataset para comenzar el entrenamiento predictivo."}
+              {training ? "Entrenando modelo... Probando Regresión Logística y Scorecard WOE." : result ? (result.note ?? "Entrenamiento completado.") : "Selecciona un dataset para comenzar el entrenamiento predictivo."}
             </p>
           </div>
-          
-          {result && (
+
+          {result && result.status === "ready" && result.metrics && (
             <div className="mt-6 bg-card border rounded-xl p-6">
               <h3 className="font-semibold text-green-500 flex items-center gap-2 mb-4">
                 <CheckCircle className="w-5 h-5" />
-                Resultados del Modelo ({result.model.algorithm})
+                Modelo entrenado ({result.algorithm})
               </h3>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-3 gap-4">
                 <div className="p-4 border rounded-lg bg-background text-center">
-                  <div className="text-2xl font-bold text-blue-500">{(result.model.accuracy * 100).toFixed(1)}%</div>
+                  <div className="text-2xl font-bold text-purple-500">{(result.metrics.auc * 100).toFixed(1)}%</div>
+                  <div className="text-xs text-muted-foreground">AUC</div>
+                </div>
+                <div className="p-4 border rounded-lg bg-background text-center">
+                  <div className="text-2xl font-bold text-blue-500">{(result.metrics.accuracy * 100).toFixed(1)}%</div>
                   <div className="text-xs text-muted-foreground">Accuracy</div>
                 </div>
                 <div className="p-4 border rounded-lg bg-background text-center">
-                  <div className="text-2xl font-bold text-purple-500">{(result.model.auc * 100).toFixed(1)}%</div>
-                  <div className="text-xs text-muted-foreground">AUC</div>
+                  <div className="text-2xl font-bold text-emerald-500">{result.metrics.liftAtDecile.toFixed(1)}x</div>
+                  <div className="text-xs text-muted-foreground">Lift@decil</div>
                 </div>
               </div>
+            </div>
+          )}
+
+          {result && result.status !== "ready" && (
+            <div className="mt-6 bg-card border rounded-xl p-6">
+              <h3 className="font-semibold text-amber-500 flex items-center gap-2 mb-2">
+                <CheckCircle className="w-5 h-5" />
+                {result.status === "baseline" ? "Baseline heurístico (no entrenado)" : result.status === "awaiting_data" ? "Sin datos suficientes" : "No se pudo entrenar"}
+              </h3>
+              <p className="text-sm text-muted-foreground">{result.note}</p>
             </div>
           )}
         </div>

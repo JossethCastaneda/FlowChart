@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import {
@@ -34,8 +34,10 @@ import {
   ArrowRight,
   Sparkles,
   LayoutGrid,
+  Cpu,
 } from "lucide-react";
 import NextLink from "next/link";
+import { GenerativeModelModal } from "@/components/botmaker/GenerativeModelModal";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // TYPES
@@ -1045,6 +1047,22 @@ function ConnectedModule({
   const [preloaded, setPreloaded] = useState<PreloadedData>({ channels: [], agents: [] });
   const [preloadStatus, setPreloadStatus] = useState<"loading" | "done" | "error">("loading");
 
+  // Generative Model Modal state
+  const [isAiModalOpen, setIsAiModalOpen] = useState(false);
+  const [selectedAiModel, setSelectedAiModel] = useState("gpt-4.1-mini");
+
+  // Fetch AI config
+  useEffect(() => {
+    fetch("/api/workspace/ai-model")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.data?.model) {
+          setSelectedAiModel(res.data.model);
+        }
+      })
+      .catch((e) => console.error("Failed to load AI model", e));
+  }, []);
+
   const activeCat = CATEGORIES.find(c => c.id === selectedCat)!;
   const activeEp = activeCat?.endpoints.find(e => e.id === selectedEp)!;
 
@@ -1166,7 +1184,6 @@ function ConnectedModule({
             )}
           </div>
 
-          {/* Métricas de bots → analytics dashboard (Bot Analytics + Portabilidad) */}
           <NextLink
             href="/dashboard/botmaker/analytics"
             style={{
@@ -1182,6 +1199,23 @@ function ConnectedModule({
             Métricas de bots
             <ArrowRight style={{ width: 12, height: 12, marginLeft: "auto" }} />
           </NextLink>
+
+          {/* Selector de Modelo Generativo */}
+          <button
+            onClick={() => setIsAiModalOpen(true)}
+            style={{
+              width: "100%", display: "flex", alignItems: "center", gap: 7,
+              padding: "8px 10px", marginBottom: 12,
+              background: "rgba(59,130,246,0.1)",
+              border: "1px solid rgba(59,130,246,0.3)", borderRadius: 7,
+              color: "rgba(147,197,253,0.95)", fontSize: 11, fontWeight: 600,
+              cursor: "pointer", transition: "all 0.15s",
+            }}
+          >
+            <Cpu style={{ width: 12, height: 12 }} />
+            Modelo generativo
+            <ArrowRight style={{ width: 12, height: 12, marginLeft: "auto" }} />
+          </button>
 
           {/* Disconnect button */}
           <button
@@ -1338,6 +1372,25 @@ function ConnectedModule({
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
       `}</style>
+      
+      <GenerativeModelModal 
+        isOpen={isAiModalOpen} 
+        onClose={() => setIsAiModalOpen(false)} 
+        initialSelectedId={selectedAiModel}
+        onSave={async (modelId) => {
+          setSelectedAiModel(modelId);
+          setIsAiModalOpen(false);
+          try {
+            await fetch("/api/workspace/ai-model", {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ model: modelId }),
+            });
+          } catch (e) {
+            console.error("Error saving AI model", e);
+          }
+        }} 
+      />
     </div>
   );
 }
