@@ -350,32 +350,13 @@ export default function LoginPage() {
       {/* The Nested Glass Billboard */}
       <div className="outer-glass">
         
-        {/* Floating Background Orbi (Inside Outer Glass) */}
-        <div style={{ position: "absolute", top: "10%", left: "10%", opacity: 0.6, animation: "f-float-slow 8s ease-in-out infinite", zIndex: 1, pointerEvents: "none" }}>
-          <Orbi size={280} style={{ filter: "drop-shadow(0px 0px 40px rgba(0, 212, 255, 0.3)) blur(2px)" }} />
-        </div>
-
-        {/* Floating Funnels (Inside Outer Glass) */}
-        <div style={{ position: "absolute", top: "-10%", right: "-10%", width: "60%", height: "120%", opacity: 0.4, zIndex: 1, pointerEvents: "none" }}>
-          <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="beam-synced" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="transparent" />
-                <stop offset="50%" stopColor="rgba(255,255,255,0.8)" />
-                <stop offset="100%" stopColor="transparent" />
-                <animate attributeName="y1" values="-1; 2" dur="4s" repeatCount="indefinite" />
-                <animate attributeName="y2" values="0; 3" dur="4s" repeatCount="indefinite" />
-              </linearGradient>
-            </defs>
-            <path d="M 110,0 Q 40,50 30,110" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="0.5" />
-            <path d="M 110,0 Q 40,50 30,110" fill="none" stroke="url(#beam-synced)" strokeWidth="1" style={{ filter: "drop-shadow(0 0 8px rgba(0,212,255,0.8))" }} />
-          </svg>
-        </div>
-
         {/* The Inner Glass Login Card */}
         <div className="inner-glass">
           {/* Form Header */}
           <div style={{ textAlign: "center", marginBottom: 32 }}>
+            <div style={{ animation: "f-float 6s ease-in-out infinite", marginBottom: 16 }}>
+              <Orbi size={64} style={{ filter: "drop-shadow(0px 0px 15px rgba(0, 212, 255, 0.4))" }} />
+            </div>
             <a href="/" style={{ display: "inline-flex", marginBottom: 20 }}><SodareLogo size="lg" /></a>
             <h1 className="text-shimmer" style={{ fontFamily: ORB, fontSize: "28px", fontWeight: 700, margin: 0, letterSpacing: "-0.01em" }}>
               {t.title}
