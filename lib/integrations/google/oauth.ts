@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { decryptToken, encryptToken } from "@/lib/encryption";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 
@@ -44,7 +45,7 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
   const clientSecret = env.GOOGLE_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
-    console.error("[OAUTH GOOGLE] Missing client credentials to refresh token");
+    logger.error("[OAUTH GOOGLE] Missing client credentials to refresh token");
     return null;
   }
 
@@ -64,7 +65,7 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
 
     const data = await res.json();
     if (!res.ok) {
-      console.error("[OAUTH GOOGLE] Failed to refresh token:", data);
+      logger.error("[OAUTH GOOGLE] Failed to refresh token:", data);
       return null;
     }
 
@@ -86,7 +87,7 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
 
     return data.access_token; // Return unencrypted version for immediate use
   } catch (err) {
-    console.error("[OAUTH GOOGLE] Exception while refreshing token:", err);
+    logger.error("[OAUTH GOOGLE] Exception while refreshing token:", err);
     return null;
   }
 }
@@ -108,11 +109,11 @@ export async function revokeGoogleToken(creds: GoogleCredentials | null | undefi
       body: new URLSearchParams({ token }),
     });
     if (!res.ok) {
-      console.warn(`[OAUTH GOOGLE] Token revoke returned ${res.status} (continuing with local wipe)`);
+      logger.warn(`[OAUTH GOOGLE] Token revoke returned ${res.status} (continuing with local wipe)`);
     }
     return res.ok;
   } catch (err) {
-    console.warn("[OAUTH GOOGLE] Token revoke failed (continuing with local wipe):", err);
+    logger.warn("[OAUTH GOOGLE] Token revoke failed (continuing with local wipe):", err);
     return false;
   }
 }

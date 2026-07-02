@@ -89,8 +89,11 @@
     --amber:   var(--c-warning);
     --red:     var(--c-danger);
     --purple:  var(--c-info);
-    --cyan-dim: rgba(0, 212, 255, 0.12);
-    --red-dim:  rgba(255, 45, 85, 0.12);
+    --cyan-dim:    rgba(0, 212, 255, 0.12);
+    --red-dim:     rgba(255, 45, 85, 0.12);
+    --purple-dim:  rgba(123, 97, 255, 0.10);
+    --emerald-dim: rgba(6, 214, 160, 0.10);
+    --amber-dim:   rgba(255, 190, 11, 0.10);
     --mod-resumen:    #00d4ff;
     --mod-clientes:   #06d6a0;
     --mod-publicar:   #ffbe0b;
@@ -128,6 +131,9 @@
     --c-info:         #6d28d9;
     --cyan:           #0284c7;
     --cyan-dim:       rgba(2,132,199,0.12);
+    --purple-dim:     rgba(109,40,217,0.10);
+    --emerald-dim:    rgba(5,150,105,0.10);
+    --amber-dim:      rgba(217,119,6,0.10);
     --sidebar-border: rgba(0, 0, 0, 0.08);
     --sidebar-shadow: 0 8px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.02);
     --panel-bg:       rgba(255, 255, 255, 0.98);
@@ -151,6 +157,9 @@
     --c-brand:        #00b4d8;
     --cyan:           #00b4d8;
     --cyan-dim:       rgba(0,180,216,0.15);
+    --purple-dim:     rgba(123,97,255,0.12);
+    --emerald-dim:    rgba(6,214,160,0.10);
+    --amber-dim:      rgba(255,190,11,0.10);
     --sidebar-border: rgba(0, 180, 216, 0.14);
     --sidebar-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 60px rgba(0,180,216,0.05), 0 0 0 1px rgba(0,180,216,0.08);
     --panel-bg:       rgba(10, 17, 40, 0.97);
