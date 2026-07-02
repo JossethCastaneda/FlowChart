@@ -4,10 +4,21 @@
  * Reglas:
  * - Cada módulo pide SOLO lo que necesita (least privilege).
  * - Solo nombres de permisos VIGENTES de la Graph API. Los deprecados
- *   (manage_pages, publish_pages, read_page_mailboxes, publish_to_groups,
+ *   (manage_pages, publish_pages, publish_to_groups,
  *   pages_read_posts) no deben volver a aparecer en el código.
  * - `scopes` = lo que se solicita en el diálogo OAuth (complementa al config_id).
  * - `required` = mínimo para que el módulo FUNCIONE (validación de status).
+ *
+ * ══ App Separation (July 2026) ══
+ * - publisher_instagram → FACEBOOK_PUBLISHER_IG_CONFIG_ID
+ *   Scopes: instagram_manage_messages, instagram_manage_comments,
+ *           instagram_manage_engagement, instagram_manage_insights,
+ *           instagram_manage_contents, instagram_content_publish
+ *
+ * - community → FACEBOOK_COMMUNITY_CONFIG_ID
+ *   Scopes: pages_messaging + FB page scopes (no IG scopes — separate app)
+ *   Added: pages_manage_engagement, pages_read_user_content, read_insights,
+ *          read_page_mailboxes, publish_video
  */
 
 export const MODULE_SCOPE_MAP: Record<string, {
@@ -20,21 +31,52 @@ export const MODULE_SCOPE_MAP: Record<string, {
   riskLevel: "public" | "sensitive" | "critical";
 }> = {
   publisher_facebook: {
-    scopes: ["pages_show_list", "pages_read_engagement", "pages_manage_posts"],
-    permissions: ["pages_manage_engagement"],
+    scopes: [
+      "pages_show_list",
+      "pages_read_engagement",
+      "pages_manage_posts",
+      "publish_video",
+    ],
+    permissions: [
+      "pages_manage_engagement",
+      "pages_read_user_content",
+      "pages_manage_metadata",
+    ],
     required: ["pages_show_list", "pages_read_engagement", "pages_manage_posts"],
     label: "Publisher Facebook",
-    riskLevel: "critical", // Puede publicar
+    riskLevel: "critical",
   },
   publisher_instagram: {
-    scopes: ["pages_show_list", "instagram_basic", "instagram_content_publish"],
-    permissions: ["instagram_manage_insights"],
-    required: ["pages_show_list", "instagram_basic", "instagram_content_publish"],
+    scopes: [
+      "pages_show_list",
+      "instagram_basic",
+      "instagram_content_publish",
+      "instagram_manage_insights",
+      "instagram_manage_messages",
+      "instagram_manage_comments",
+      "instagram_manage_engagement",
+      "instagram_manage_contents",
+    ],
+    permissions: [
+      "instagram_branded_content_ads_brand",
+      "instagram_branded_content_brand",
+      "instagram_branded_content_creator",
+      "instagram_shopping_tag_products",
+    ],
+    required: [
+      "pages_show_list",
+      "instagram_basic",
+      "instagram_content_publish",
+    ],
     label: "Publisher Instagram",
     riskLevel: "critical",
   },
   social: {
-    scopes: ["pages_show_list", "pages_read_engagement", "pages_read_user_content"],
+    scopes: [
+      "pages_show_list",
+      "pages_read_engagement",
+      "pages_read_user_content",
+    ],
     permissions: [],
     required: ["pages_show_list", "pages_read_engagement"],
     label: "Social Channels (Read-only)",
@@ -48,26 +90,38 @@ export const MODULE_SCOPE_MAP: Record<string, {
     riskLevel: "critical",
   },
   analytics: {
-    scopes: ["pages_show_list", "pages_read_engagement", "instagram_basic", "read_insights"],
+    scopes: [
+      "pages_show_list",
+      "pages_read_engagement",
+      "instagram_basic",
+      "read_insights",
+    ],
     permissions: ["instagram_manage_insights"],
     required: ["read_insights", "pages_read_engagement"],
     label: "Analytics Engine",
     riskLevel: "sensitive",
   },
   community: {
+    // Facebook/Inbox app — NO IG scopes (separate Instagram app for IG)
     scopes: [
       "pages_show_list",
       "pages_messaging",
       "pages_manage_metadata",
       "pages_read_user_content",
-      "instagram_basic",
-      "instagram_manage_messages",
-      "instagram_manage_comments",
+      "pages_read_engagement",
+      "pages_manage_engagement",
+      "read_insights",
+      "publish_video",
     ],
-    permissions: [],
-    required: ["pages_messaging", "instagram_manage_messages", "instagram_manage_comments"],
+    permissions: [
+      "marketing_messages_messenger",
+      "pages_messaging_phone_number",
+      "pages_utility_messaging",
+      "page_events",
+    ],
+    required: ["pages_messaging", "pages_show_list"],
     label: "Community Management",
-    riskLevel: "critical", // Puede responder mensajes
+    riskLevel: "critical",
   },
 };
 
@@ -91,6 +145,8 @@ export const SCOPE_ALIASES: Record<string, string> = {
   instagram_content_publish: "instagram_business_content_publish",
   instagram_business_basic: "instagram_basic",
   instagram_basic: "instagram_business_basic",
+  instagram_business_manage_messages: "instagram_manage_messages",
+  instagram_manage_messages: "instagram_business_manage_messages",
 };
 
 /** ¿El scope requerido está cubierto por los otorgados (directo o vía alias)? */
