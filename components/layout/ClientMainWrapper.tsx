@@ -425,7 +425,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           flexDirection: "column",
           borderRadius: 20,
           background: "var(--surface)",
-          backdropFilter: "blur(40px) saturate(1.5)",
           border: "1px solid var(--sidebar-border)",
           boxShadow: "var(--sidebar-shadow)",
           // Slide in/out transition
@@ -468,7 +467,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     fontWeight: 600,
                     letterSpacing: "0.3em",
                     textTransform: "uppercase",
-                    color: group.key === "sistema" ? "var(--text-muted)" : "rgba(148,163,184,0.65)",
+                    color: group.key === "sistema" ? "var(--text-muted)" : "var(--text-muted)",
                     transition: "color 0.2s"
                   }} className="group-hover/nav:text-white">
                     {group.title}
@@ -492,6 +491,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     href={m.route}
                     title={`✦ ${m.code} — ${m.tagline}`}
                     className={`nav-item ${isActive ? "active" : ""}`}
+                    data-mod={m.key}
                     onClick={() => {
                       setSidebarOpen(false);
                       if (!pinned) setSidebarOpen(false);
@@ -527,7 +527,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         <header className="lg:hidden flex items-center justify-between px-5 py-4 z-10"
           style={{
             background: "var(--topbar-bg)",
-            backdropFilter: "blur(20px)",
             borderBottom: "1px solid var(--border)",
           }}
         >
@@ -553,7 +552,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         <div className="hidden lg:flex items-center justify-end px-6 py-2 gap-5" style={{
           borderBottom: "1px solid var(--border)",
           background: "var(--topbar-bg)",
-          backdropFilter: "blur(20px)",
           height: "56px",
           position: "relative",
           zIndex: 50,

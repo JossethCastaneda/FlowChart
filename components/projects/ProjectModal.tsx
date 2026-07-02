@@ -638,12 +638,12 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
           {reveal.botChannels && (
           <>
           <Sec icon={<Globe className="w-3 h-3" />} text="Canales del Bot" />
-          <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", margin: "0 0 10px" }}>
+          <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: "0 0 10px" }}>
             Los canales que elijas aquí definen el <b style={{ color: "var(--cyan)" }}>Análisis de Resultados</b> del proyecto:
             el dashboard se acota automáticamente a estos canales (FB, IG, WhatsApp).
           </p>
           {selectedBotProvider === "cari_ai" && (
-            <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", margin: "0 0 10px" }}>
+            <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: "0 0 10px" }}>
               Cari AI no expone un listado de canales en su API: ingresa el número de WhatsApp y/o el ID del web chat manualmente.
             </p>
           )}
@@ -809,7 +809,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                     padding: "6px 12px", fontSize: "11px", fontWeight: 600,
                     border: `1px solid ${selected ? pl.color : disabled ? "rgba(148,163,184,0.16)" : "rgba(148,163,184,0.22)"}`,
                     background: selected ? `${pl.color}12` : "transparent",
-                    color: selected ? pl.color : disabled ? "rgba(148,163,184,0.65)" : "rgba(148,163,184,0.55)",
+                    color: selected ? pl.color : disabled ? "rgba(148,163,184,0.65)" : "var(--text-muted)",
                     cursor: disabled ? "not-allowed" : "pointer",
                     opacity: disabled ? 0.5 : 1,
                     transition: "all 0.15s",

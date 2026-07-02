@@ -157,11 +157,11 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
 }
 
 function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
-  return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", gap: 12, padding: 20 }}><BarChart2 style={{ width: 32, height: 32, color: "rgba(148,163,184,0.1)" }} /><p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p></div>;
+  return <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "100%", height: "100%", gap: 12, padding: 20 }}><BarChart2 style={{ width: 32, height: 32, color: "rgba(255,255,255,0.04)" }} /><p style={{ fontSize: 11, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.05em", textAlign: "center" }}>{msg}</p></div>;
 }
 
 function LoadingOverlay() {
-  return <div style={{ position: "absolute", inset: 0, background: "rgba(10,15,30,0.6)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid rgba(148,163,184,0.65)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "white", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
+  return <div style={{ position: "absolute", inset: 0, background: "rgba(10,15,30,0.6)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid var(--border-strong)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
 }
 
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
@@ -184,7 +184,7 @@ function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) 
         <button key={t.k} onClick={() => onChange(t.k)} style={{
           padding: "4px 12px", fontSize: 10, fontWeight: 600, borderRadius: 4, border: "none", cursor: "pointer",
           background: value === t.k ? "rgba(0,212,255,0.12)" : "transparent",
-          color: value === t.k ? "var(--cyan)" : "rgba(148,163,184,0.7)",
+          color: value === t.k ? "var(--cyan)" : "var(--text-secondary)",
         }}>{t.l}</button>
       ))}
     </div>
@@ -447,7 +447,7 @@ export default function ProjectDashboardPage() {
     }
   };
 
-  if (!project) return <div style={{ padding: 40, textAlign: "center", color: "rgba(148,163,184,0.75)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: 200 }}><div style={{ width: 40, height: 40, border: "3px solid rgba(148,163,184,0.1)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>Cargando proyecto...</span></div>;
+  if (!project) return <div style={{ padding: 40, textAlign: "center", color: "var(--text-secondary)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 12, minHeight: 200 }}><div style={{ width: 40, height: 40, border: "3px solid rgba(255,255,255,0.04)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ fontSize: 11, letterSpacing: "0.05em", textTransform: "uppercase" }}>Cargando proyecto...</span></div>;
 
   const ch = project.channels.find(c => c.platformId === activePlatform);
   
@@ -583,11 +583,11 @@ export default function ProjectDashboardPage() {
             style={{
               width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
               background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)",
-              borderRadius: 8, color: "rgba(148,163,184,0.8)", cursor: "pointer",
+              borderRadius: 8, color: "var(--text-secondary)", cursor: "pointer",
               transition: "all 0.15s", flexShrink: 0,
             }}
             onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.09)"; (e.currentTarget as HTMLButtonElement).style.color = "white"; }}
-            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(148,163,184,0.8)"; }}
+            onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.05)"; (e.currentTarget as HTMLButtonElement).style.color = "var(--text-secondary)"; }}
           >
             <ArrowLeft style={{ width: 15, height: 15 }} />
           </button>
@@ -601,19 +601,19 @@ export default function ProjectDashboardPage() {
               <span className={`badge badge-${STATUS_COLORS[project.status] || "muted"}`}>{project.status}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-              {project.client && <span style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", fontWeight: 500 }}>{project.client}</span>}
-              {project.client && project.vertical && <span style={{ fontSize: 10, color: "rgba(148,163,184,0.3)" }}>·</span>}
-              {project.vertical && <span style={{ fontSize: 11, color: "rgba(148,163,184,0.55)", fontWeight: 500 }}>{project.vertical}</span>}
+              {project.client && <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>{project.client}</span>}
+              {project.client && project.vertical && <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>·</span>}
+              {project.vertical && <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{project.vertical}</span>}
               {project.channels.length > 0 && (
                 <>
-                  <span style={{ fontSize: 10, color: "rgba(148,163,184,0.3)" }}>·</span>
+                  <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>·</span>
                   {project.channels.slice(0, 3).map(c => {
                     const pl = PLATFORMS.find(x => x.id === c.platformId);
                     return (
                       <span key={c.platformId} style={{
                         fontSize: 10, padding: "2px 7px", borderRadius: 4, fontWeight: 700,
-                        border: `1px solid ${pl?.color ? pl.color + "50" : "rgba(148,163,184,0.2)"}`,
-                        color: pl?.color || "rgba(148,163,184,0.6)",
+                        border: `1px solid ${pl?.color ? pl.color + "50" : "var(--hairline)"}`,
+                        color: pl?.color || "var(--text-muted)",
                         background: pl?.color ? pl.color + "14" : "transparent",
                       }}>
                         {c.platformName}
@@ -673,7 +673,7 @@ export default function ProjectDashboardPage() {
                 padding: "6px 14px", fontSize: 11, fontWeight: 700,
                 background: isActive ? `${pl.color}20` : "rgba(255,255,255,0.04)",
                 border: `1px solid ${isActive ? pl.color + "60" : "rgba(255,255,255,0.08)"}`,
-                color: isActive ? pl.color : "rgba(148,163,184,0.6)",
+                color: isActive ? pl.color : "var(--text-muted)",
                 borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
                 boxShadow: isActive ? `0 0 16px ${pl.color}25` : "none",
               }}>
@@ -844,7 +844,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   }}>
                     <p style={{ ...labelStyle, marginBottom: 6 }}>{item.label}</p>
                     <p style={{ fontSize: 18, fontWeight: 700, color: item.color, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{item.value}</p>
-                    <p style={{ fontSize: 9, color: "rgba(148,163,184,0.6)", marginTop: 4 }}>{item.sub}</p>
+                    <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{item.sub}</p>
                   </div>
                 ))}
               </div>
@@ -928,7 +928,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             {/* Cuentas Vinculadas */}
             <div style={panelStyle}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div className="icon-container icon-container-sm icon-container-active">
                   <Link style={{ width: 14, height: 14, color: "var(--cyan)" }} />
                 </div>
                 <div>
@@ -966,7 +966,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             {/* Presupuesto Diario */}
             <div style={panelStyle}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div className="icon-container icon-container-sm" style={{ background: "rgba(255,190,11,0.1)", borderColor: "rgba(255,190,11,0.2)", color: "var(--amber)" }}>
                   <DollarSign style={{ width: 14, height: 14, color: "var(--amber)" }} />
                 </div>
                 <div>
@@ -992,13 +992,13 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
                   <TrendingUp style={{ width: 12, height: 12, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }} />
-                  <p style={{ fontSize: 9, color: "rgba(148,163,184,0.75)", fontWeight: 700, letterSpacing: "0.1em" }}>RITMO DE GASTO</p>
+                  <p style={{ fontSize: 9, color: "var(--text-secondary)", fontWeight: 700, letterSpacing: "0.1em" }}>RITMO DE GASTO</p>
                 </div>
                 <p style={{ fontSize: 14, fontWeight: 700, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }}>
                   {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo ✓"}
                 </p>
-                <p style={{ fontSize: 10, color: "rgba(148,163,184,0.6)", marginTop: 4 }}>
-                  Ideal hoy: <strong style={{ color: "rgba(148,163,184,0.9)" }}>{fmtMXN(idealSpendToday)}</strong> · Real: <strong style={{ color: "rgba(148,163,184,0.9)" }}>{fmtMXN(totalSpend)}</strong>
+                <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
+                  Ideal hoy: <strong style={{ color: "var(--text-secondary)" }}>{fmtMXN(idealSpendToday)}</strong> · Real: <strong style={{ color: "var(--text-secondary)" }}>{fmtMXN(totalSpend)}</strong>
                 </p>
               </div>
             </div>
@@ -1183,7 +1183,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                         padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
                         borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
                         background: heatMetric === m.key ? "var(--cyan)" : "transparent",
-                        color: heatMetric === m.key ? "#000" : "rgba(148,163,184,0.7)",
+                        color: heatMetric === m.key ? "#000" : "var(--text-secondary)",
                         letterSpacing: "0.04em",
                       }}
                     >
@@ -1196,9 +1196,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 740 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
                     <tr>
-                      <th style={{ padding: "5px 10px", fontSize: 9, color: "rgba(148,163,184,0.6)", textAlign: "left", fontWeight: 700, width: 76, background: "rgba(8,12,24,0.97)", letterSpacing: "0.06em" }}>FECHA</th>
+                      <th style={{ padding: "5px 10px", fontSize: 9, color: "var(--text-muted)", textAlign: "left", fontWeight: 700, width: 76, background: "rgba(8,12,24,0.97)", letterSpacing: "0.06em" }}>FECHA</th>
                       {HOURS.map(h => (
-                        <th key={h} style={{ padding: "5px 2px", fontSize: 9, color: "rgba(148,163,184,0.6)", textAlign: "center", fontWeight: 600, minWidth: 28, background: "rgba(8,12,24,0.97)" }}>
+                        <th key={h} style={{ padding: "5px 2px", fontSize: 9, color: "var(--text-muted)", textAlign: "center", fontWeight: 600, minWidth: 28, background: "rgba(8,12,24,0.97)" }}>
                           {h.toString().padStart(2, "0")}
                         </th>
                       ))}
@@ -1217,7 +1217,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                         <tr key={dateStr} style={{ background: isToday ? "rgba(0,212,255,0.04)" : "transparent" }}>
                           <td style={{
                             padding: "3px 10px", fontSize: 10,
-                            color: isToday ? "var(--cyan)" : isWeekend ? "rgba(0,212,255,0.45)" : "rgba(148,163,184,0.7)",
+                            color: isToday ? "var(--cyan)" : isWeekend ? "rgba(0,212,255,0.45)" : "var(--text-secondary)",
                             fontWeight: isToday ? 800 : 600, whiteSpace: "nowrap",
                             borderRight: isToday ? "2px solid rgba(0,212,255,0.35)" : "1px solid rgba(255,255,255,0.03)",
                           }}>
@@ -1252,7 +1252,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                           })}
                           {/* Row total */}
                           <td style={{ padding: "3px 8px", textAlign: "right" }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: rowTotal > 0 ? "rgba(0,212,255,0.8)" : "rgba(148,163,184,0.3)" }}>
+                            <span style={{ fontSize: 10, fontWeight: 700, color: rowTotal > 0 ? "rgba(0,212,255,0.8)" : "rgba(108,124,147,0.5)" }}>
                               {rowTotal > 0 ? (heatMetric === "spend" ? fmtMXN(rowTotal) : fmtNum(Math.round(rowTotal))) : "—"}
                             </span>
                           </td>
@@ -1268,7 +1268,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                         const colTotal = sortedDates.reduce((sum, dateStr) => sum + getVal(dateMap[dateStr][h]), 0);
                         return (
                           <td key={h} style={{ padding: "3px 1px", textAlign: "center" }}>
-                            <span style={{ fontSize: 8, fontWeight: 700, color: colTotal > 0 ? "rgba(0,212,255,0.7)" : "rgba(148,163,184,0.2)" }}>
+                            <span style={{ fontSize: 8, fontWeight: 700, color: colTotal > 0 ? "rgba(0,212,255,0.7)" : "var(--hairline)" }}>
                               {colTotal > 0 ? (colTotal > 999 ? `${(colTotal / 1000).toFixed(1)}k` : Math.round(colTotal)) : ""}
                             </span>
                           </td>
@@ -1308,7 +1308,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <p style={labelStyle}>Presupuesto {bk.label}</p>
               </div>
               <p style={{ fontSize: 22, fontWeight: 700, color: "var(--amber)", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN0(budgetNum)}</p>
-              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)} · Semanal: {fmtMXN(bk.weekly)}</p>
+              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)} · Semanal: {fmtMXN(bk.weekly)}</p>
             </div>
             {/* Diario ideal */}
             <div style={{ ...panelStyle, borderTop: "2px solid rgba(0,212,255,0.5)" }}>
@@ -1319,7 +1319,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <p style={labelStyle}>Diario ideal</p>
               </div>
               <p style={{ fontSize: 22, fontWeight: 700, color: "var(--cyan)", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN(bk.daily)}</p>
-              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>Ritmo objetivo por día</p>
+              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>Ritmo objetivo por día</p>
             </div>
             {/* Gastado hoy */}
             <div style={{ ...panelStyle, borderTop: `2px solid ${totalSpend > idealSpendToday * 1.1 ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
@@ -1330,7 +1330,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <p style={labelStyle}>Gastado hoy</p>
               </div>
               <p style={{ fontSize: 22, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN0(totalSpend)}</p>
-              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>de {fmtMXN0(idealSpendToday)} ideal</p>
+              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN0(idealSpendToday)} ideal</p>
               {/* mini progress bar */}
               {idealSpendToday > 0 && (
                 <div style={{ marginTop: 8, height: 3, background: "rgba(255,255,255,0.07)", borderRadius: 2, overflow: "hidden" }}>
@@ -1347,7 +1347,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <p style={labelStyle}>Restante</p>
               </div>
               <p style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p>
-              <p style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", marginTop: 4 }}>{budgetNum > 0 ? `${pct(Math.min((totalSpend / budgetNum) * 100, 100))} utilizado` : "Sin presupuesto configurado"}</p>
+              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{budgetNum > 0 ? `${pct(Math.min((totalSpend / budgetNum) * 100, 100))} utilizado` : "Sin presupuesto configurado"}</p>
             </div>
           </div>
 
@@ -1427,7 +1427,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                           <td style={{ ...totalCellStyle, color: row.color, textAlign: "right", paddingRight: 12, minWidth: 100 }}>{row.total}</td>
                           <td style={labelCellStyle}>{row.label}</td>
                           {row.values.map((v: string, ci: number) => (
-                            <td key={ci} style={{ ...cellStyle, color: row.color === "var(--foreground)" ? "rgba(148,163,184,0.6)" : row.color, fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400 }}>{v}</td>
+                            <td key={ci} style={{ ...cellStyle, color: row.color === "var(--foreground)" ? "var(--text-muted)" : row.color, fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400 }}>{v}</td>
                           ))}
                         </tr>
                       ))}
@@ -1443,8 +1443,8 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             <h3 style={headingStyle}>Curva de Gasto vs Presupuesto Ideal</h3>
             <div style={{ width: "100%", height: 280 }}>
               {timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData.map((d: any, i: number) => ({ ...d, idealAccum: bk.daily * (i + 1), spendAccum: timeSeriesData.slice(0, i + 1).reduce((a: number, b: any) => a + b.spend, 0) }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
-                <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} /><XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
+                <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                 <Tooltip contentStyle={tooltipStyle} formatter={(v: any, n: any) => [fmtMXN(v as number), n]} /><Legend wrapperStyle={{ fontSize: 10 }} />
                 <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="var(--amber)" strokeWidth={2} dot={false} />
                 <Line type="monotone" dataKey="idealAccum" name="Presupuesto ideal" stroke="rgba(148,163,184,0.65)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
@@ -1477,7 +1477,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 3 }}>
                   ¿A quién estás llegando?
                 </h3>
-                <p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.5 }}>
+                <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
                   Demografía, ubicación geográfica, plataformas y dispositivos — basado en inversión del periodo.
                 </p>
               </div>
@@ -1529,9 +1529,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={cd} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                        <XAxis dataKey="age" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                        <XAxis dataKey="age" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
+                        <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v))]} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                         <Bar dataKey="Mujeres" stackId="a" fill="var(--cyan)" />
@@ -1559,9 +1559,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
-                        <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                        <YAxis type="category" dataKey="region" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} width={90} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="region" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} width={90} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
                         <Bar dataKey="spend" fill="var(--amber)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
@@ -1587,9 +1587,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
-                        <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                        <YAxis type="category" dataKey="country" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} width={40} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="country" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} width={40} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
                         <Bar dataKey="spend" fill="var(--cyan)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
@@ -1712,9 +1712,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
-                        <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                        <YAxis type="category" dataKey="placement" stroke="rgba(148,163,184,0.7)" fontSize={8} tickLine={false} axisLine={false} width={120} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <YAxis type="category" dataKey="placement" stroke="var(--text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={120} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
                         <Bar dataKey="spend" fill="#a25ddc" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
@@ -1748,9 +1748,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <ComposedChart data={d} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                        <XAxis dataKey="hour" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval={1} />
-                        <YAxis yAxisId="left" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                        <XAxis dataKey="hour" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} interval={1} />
+                        <YAxis yAxisId="left" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                         <YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.65)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "Inversión" ? fmtMXN(Number(v)) : fmtNum(Number(v)), name]} />
                         <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={10} />
@@ -1780,7 +1780,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               <Palette style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#a25ddc" }} />
               Análisis de Creativos
             </h3>
-            <p style={{ fontSize: 11, color: "rgba(148,163,184,0.6)", lineHeight: 1.5 }}>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
               Identifica qué anuncios funcionan mejor y cuáles necesitan optimización. Ordenados por eficiencia (CPR).
             </p>
           </div>
@@ -1841,14 +1841,14 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                   <thead>
                     <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                      <th style={{ padding: "8px 6px", textAlign: "left", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>#</th>
-                      <th style={{ padding: "8px 6px", textAlign: "left", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Anuncio</th>
-                      <th style={{ padding: "8px 6px", textAlign: "left", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Estado</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Inversión</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Result.</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CPR</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CTR</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Impr.</th>
+                      <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>#</th>
+                      <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Anuncio</th>
+                      <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Estado</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Inversión</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Result.</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CPR</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CTR</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Impr.</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1879,14 +1879,14 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                           <td style={{ padding: "8px 6px" }}>
                             <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
                               <span style={{ width: 5, height: 5, borderRadius: "50%", background: ad.status === "ACTIVE" ? "var(--emerald)" : ad.status === "PAUSED" ? "var(--amber)" : "rgba(148,163,184,0.65)" }} />
-                              <span style={{ fontSize: 9, color: "rgba(148,163,184,0.75)" }}>{ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status}</span>
+                              <span style={{ fontSize: 9, color: "var(--text-secondary)" }}>{ad.status === "ACTIVE" ? "Activo" : ad.status === "PAUSED" ? "Pausado" : ad.status}</span>
                             </span>
                           </td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--amber)", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--emerald)", fontWeight: 700 }}>{results}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.7)" }}>{ctrVal.toFixed(2)}%</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: "rgba(148,163,184,0.75)" }}>{fmtNum(ad.impressions || 0)}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{ctrVal.toFixed(2)}%</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{fmtNum(ad.impressions || 0)}</td>
                         </tr>
                       );
                     })}
@@ -1955,7 +1955,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                                 <span style={{ fontSize: 10, color: "var(--amber)" }}>{fmtMXN(d.spend)}</span>
                                 <span style={{ fontSize: 10, color: "var(--emerald)" }}>{Math.round(d.results)} result.</span>
                                 <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
-                                <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>{d.count} anuncios</span>
+                                <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>{d.count} anuncios</span>
                               </div>
                             </div>
                           </div>
@@ -2023,7 +2023,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   });
                   return Object.entries(formatStats).map(([fmt, s]) => (
                     <div key={fmt} style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px 12px" }}>
-                      <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
+                      <p style={{ fontSize: 10, color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
                       <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
                         <span style={{ color: "var(--amber)" }}>{fmtMXN(s.spend)}</span>
                         <span style={{ color: "var(--emerald)" }}>{Math.round(s.results)} res.</span>
@@ -2056,9 +2056,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" horizontal={false} />
-                        <XAxis type="number" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
-                        <YAxis type="category" dataKey="name" stroke="rgba(148,163,184,0.7)" fontSize={8} tickLine={false} axisLine={false} width={140} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
+                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
+                        <YAxis type="category" dataKey="name" stroke="var(--text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={140} />
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "Inversión"]} />
                         <Bar dataKey="ctr" fill="var(--emerald)" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
@@ -2102,13 +2102,13 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     <p style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                       <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "rgba(148,163,184,0.7)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "rgba(253,171,61,0.1)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Inversión: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
@@ -2130,13 +2130,13 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     <p style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                       <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "rgba(148,163,184,0.7)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "rgba(123,97,255,0.1)", border: "1px solid rgba(123,97,255,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "rgba(148,163,184,0.7)" }}>Inversión: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
@@ -2254,7 +2254,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   <div style={{ ...panelStyle, display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, minHeight: 140 }}>
                     <div>
                       <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Pulse Check</h3>
-                      <p style={{ fontSize: 11, color: "rgba(148,163,184,0.7)" }}>Estado general de la campaña</p>
+                      <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>Estado general de la campaña</p>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
                          <div style={{ width: 12, height: 12, borderRadius: "50%", background: healthColor, boxShadow: `0 0 10px ${healthColor}` }} />
                          <span style={{ fontSize: 16, fontWeight: 700, color: "white", textTransform: "uppercase" }}>{healthLabel}</span>
@@ -2307,7 +2307,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     {funnelSteps.map((step, i) => (
                       <div key={i} style={{ padding: 20, position: "relative", borderRight: i < funnelSteps.length - 1 ? "1px dashed rgba(255,255,255,0.1)" : "none" }}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-                          <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(148,163,184,0.8)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{step.step}</span>
+                          <span style={{ fontSize: 10, fontWeight: 700, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em" }}>{step.step}</span>
                           <div style={{ color: step.color, padding: 4, background: `${step.color}15`, borderRadius: 6 }}>
                             {step.icon}
                           </div>
@@ -2317,13 +2317,13 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                           {step.value}
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-                          <span style={{ fontSize: 10, color: "rgba(148,163,184,0.6)" }}>{step.bench}</span>
+                          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{step.bench}</span>
                           <span style={{ fontSize: 13, fontWeight: 700, color: step.color, fontFamily: "'Orbitron',sans-serif" }}>{step.score}</span>
                         </div>
                         <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
                           <div style={{ height: "100%", width: `${step.score}%`, background: step.color, borderRadius: 2 }} />
                         </div>
-                        <p style={{ fontSize: 10, color: "rgba(148,163,184,0.5)", lineHeight: 1.4 }}>{step.desc}</p>
+                        <p style={{ fontSize: 10, color: "var(--text-muted)", lineHeight: 1.4 }}>{step.desc}</p>
                       </div>
                     ))}
                   </div>
@@ -2345,9 +2345,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                                 <stop offset="95%" stopColor="var(--cyan)" stopOpacity={0} />
                               </linearGradient>
                             </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} />
-                            <XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} />
-                            <YAxis stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
+                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                            <XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} />
+                            <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={(v: number) => `$${v}`} />
                             <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(v), ""]} />
                             <Area type="monotone" dataKey="cpr" name="CPR" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#gcpr)" />
                             {cprTarget > 0 && <ReferenceLine y={cprTarget} stroke="var(--red)" strokeDasharray="5 5" label={{ value: `Meta: ${fmtMXN(cprTarget)}`, position: "right", fill: "var(--red)", fontSize: 10 }} />}
@@ -2476,7 +2476,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 onMouseEnter={e => !isEditing && (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
                     {f.icon}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
@@ -2484,7 +2484,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     {isEditing ? (
                       <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 6, outline: "none" }} />
                     ) : (
-                      <p style={{ fontSize: 13, color: (project as any)[f.key] ? "var(--foreground)" : "rgba(148,163,184,0.3)", fontStyle: (project as any)[f.key] ? "normal" : "italic" }}>
+                      <p style={{ fontSize: 13, color: (project as any)[f.key] ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: (project as any)[f.key] ? "normal" : "italic" }}>
                         {(project as any)[f.key] || "Sin configurar"}
                       </p>
                     )}
@@ -2493,7 +2493,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               ))}
               {/* Estado */}
               <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)" }}>
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
                   <Activity style={{ width: 12, height: 12 }} />
                 </div>
                 <div style={{ flex: 1 }}>
@@ -2510,21 +2510,21 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               {/* Fechas */}
               <div className="grid grid-cols-2 gap-3" style={{ padding: "10px 0" }}>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)", marginLeft: 12 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)", marginLeft: 12 }}>
                     <Calendar style={{ width: 12, height: 12 }} />
                   </div>
                   <div>
                     <p style={labelStyle}>Fecha Inicio</p>
-                    {isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateStart ? "var(--foreground)" : "rgba(148,163,184,0.3)", fontStyle: project.dateStart ? "normal" : "italic" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                    {isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateStart ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: project.dateStart ? "normal" : "italic" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "rgba(148,163,184,0.5)" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
                     <Calendar style={{ width: 12, height: 12 }} />
                   </div>
                   <div>
                     <p style={labelStyle}>Fecha Fin</p>
-                    {isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateEnd ? "var(--foreground)" : "rgba(148,163,184,0.3)", fontStyle: project.dateEnd ? "normal" : "italic" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                    {isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "rgba(0,212,255,0.06)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateEnd ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: project.dateEnd ? "normal" : "italic" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
                   </div>
                 </div>
               </div>
@@ -2687,12 +2687,12 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Presupuesto:</span> <span style={{ color: "white", fontWeight: 600 }}>{currentBudget || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Período:</span> <span style={{ color: "white" }}>{c.period || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "—"}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Diario ideal:</span> <span style={{ color: "white" }}>{fmtMXN(bk2.daily)}</span></div>
-                      <div><span style={{ color: "rgba(148,163,184,0.75)" }}>Cuentas:</span> <span style={{ color: "white" }}>{c.adAccounts?.length || 0}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "white", fontWeight: 600 }}>{currentBudget || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Período:</span> <span style={{ color: "white" }}>{c.period || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Diario ideal:</span> <span style={{ color: "white" }}>{fmtMXN(bk2.daily)}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Cuentas:</span> <span style={{ color: "white" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>
                   )}
                 </div>
