@@ -103,14 +103,22 @@ export async function publishPostToMeta(params: {
     return { externalIds, errors, targetPage: null };
   }
 
-  // ── Página destino: por id, luego por nombre, luego la primera ──
-  let targetPage = pages[0];
+  // ── Página destino: por id, luego por nombre ──
+  let targetPage = null;
   if (post.pageId) {
-    const found = pages.find((p: any) => p.id === post.pageId);
-    if (found) targetPage = found;
+    targetPage = pages.find((p: any) => p.id === post.pageId) || null;
   } else if (post.pageName) {
-    const found = pages.find((p: any) => p.name === post.pageName);
-    if (found) targetPage = found;
+    targetPage = pages.find((p: any) => p.name === post.pageName) || null;
+  }
+
+  // Fallback to first page only if no page was explicitly selected in the post
+  if (!targetPage && !post.pageId && !post.pageName) {
+    targetPage = pages[0];
+  }
+
+  if (!targetPage) {
+    errors.push("La página seleccionada no está disponible en la cuenta de Facebook conectada.");
+    return { externalIds, errors, targetPage: null };
   }
 
   const pageToken = targetPage.access_token;

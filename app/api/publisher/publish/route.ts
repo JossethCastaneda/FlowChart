@@ -34,14 +34,13 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError("Este post ya fue publicado", "VALIDATION_ERROR", 400);
   }
 
-  // Cada módulo usa SU PROPIA cuenta conectada. El Publisher prioriza su token
-  // dedicado (publisher_facebook / publisher_instagram) para respetar la cuenta
-  // recién conectada en esta sección; el genérico "meta" queda como último
-  // recurso para no romper conexiones antiguas que solo tengan el compartido.
-  let accessToken = await getMetaAccessToken(req, "publisher_facebook");
-  if (!accessToken) accessToken = await getMetaAccessToken(req, "publisher_instagram");
-  if (!accessToken) accessToken = await getMetaAccessToken(req, "social");
-  if (!accessToken) accessToken = await getMetaAccessToken(req);
+  // Resuelve el token estrictamente según el canal del post (sin fallback cruzado para respetar accesos)
+  let accessToken = null;
+  if (post.channels.includes("facebook")) {
+    accessToken = await getMetaAccessToken(req, "publisher_facebook");
+  } else if (post.channels.includes("instagram")) {
+    accessToken = await getMetaAccessToken(req, "publisher_instagram");
+  }
 
   if (!accessToken) {
     return apiError(

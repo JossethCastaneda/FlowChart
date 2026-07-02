@@ -3,6 +3,8 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { openConnectPopup } from "@/lib/connect-popup";
+import { X } from "lucide-react";
+import { MetaIcon } from "@/components/ui/AppIcons";
 
 interface ConnectedProfile {
   id?: string;
@@ -74,6 +76,33 @@ export function ConnectedMetaBadge({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [providersKey]);
 
+  const handleDisconnect = useCallback(async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!confirm("¿Estás seguro de que deseas desvincular esta cuenta de Meta?")) return;
+    try {
+      setLoading(true);
+      const res = await fetch("/api/connect/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider: module }),
+      });
+      if (res.ok) {
+        setProfile(null);
+        await fetchIntegrations();
+        // Notify other tabs and components
+        window.postMessage({ type: "INTEGRATION_UPDATED" }, window.location.origin);
+      } else {
+        const errData = await res.json();
+        alert(errData.error || "Error al desvincular");
+      }
+    } catch (err) {
+      console.error(err);
+      alert("Error al conectar con el servidor");
+    } finally {
+      setLoading(false);
+    }
+  }, [module, fetchIntegrations]);
+
   useEffect(() => {
     fetchIntegrations();
     // Reaccionar a conexiones hechas desde el popup OAuth.
@@ -111,6 +140,7 @@ export function ConnectedMetaBadge({
           cursor: "pointer",
         }}
       >
+        <MetaIcon size={14} />
         {connectLabel}
       </button>
     );
@@ -122,26 +152,55 @@ export function ConnectedMetaBadge({
         display: "flex",
         alignItems: "center",
         gap: 8,
-        padding: "4px 12px 4px 4px",
+        padding: "4px 8px 4px 4px",
         borderRadius: 20,
         background: "rgba(255,255,255,0.05)",
         border: "1px solid rgba(255,255,255,0.1)",
       }}
       title="Perfil de Facebook conectado que otorga los permisos de esta sección"
     >
-      <div style={{ width: 24, height: 24, borderRadius: "50%", overflow: "hidden", position: "relative", background: "rgba(255,255,255,0.1)" }}>
-        {profile.picture ? (
-          <Image src={profile.picture} alt={profile.name || "Perfil"} fill style={{ objectFit: "cover" }} unoptimized />
-        ) : (
-          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#fff" }}>
-            {profile.name?.charAt(0) || "F"}
-          </div>
-        )}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ width: 24, height: 24, borderRadius: "50%", overflow: "hidden", position: "relative", background: "rgba(255,255,255,0.1)" }}>
+          {profile.picture ? (
+            <Image src={profile.picture} alt={profile.name || "Perfil"} fill style={{ objectFit: "cover" }} unoptimized />
+          ) : (
+            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#fff" }}>
+              {profile.name?.charAt(0) || "F"}
+            </div>
+          )}
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary)", maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {profile.name || "Usuario"}
+        </span>
+        <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", marginLeft: 4 }} />
       </div>
-      <span style={{ fontSize: 12, fontWeight: 500, color: "var(--text-secondary)", maxWidth: 120, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-        {profile.name || "Usuario"}
-      </span>
-      <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", marginLeft: 4 }} />
+
+      <button
+        onClick={handleDisconnect}
+        style={{
+          background: "none",
+          border: "none",
+          color: "var(--text-muted)",
+          cursor: "pointer",
+          padding: "2px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          borderRadius: "50%",
+          transition: "color 0.2s, background-color 0.2s",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = "var(--red)";
+          e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = "var(--text-muted)";
+          e.currentTarget.style.backgroundColor = "transparent";
+        }}
+        title="Desconectar cuenta"
+      >
+        <X className="w-3.5 h-3.5" />
+      </button>
     </div>
   );
 }

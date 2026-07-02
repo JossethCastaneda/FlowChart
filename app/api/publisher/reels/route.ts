@@ -26,8 +26,7 @@ const META_V = process.env.META_API_VERSION || "v25.0";
  */
 export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   // Try module-specific token, then fallback
-  let token = await getMetaAccessToken(req, "publisher_facebook");
-  if (!token) token = await getMetaAccessToken(req);
+  const token = await getMetaAccessToken(req, "publisher_facebook");
   if (!token) {
     return apiError("No hay token Meta. Ve a Integraciones y conecta tu cuenta.", "UNAUTHORIZED", 401);
   }

@@ -25,7 +25,6 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   // (independiente). El genérico "meta" es solo último recurso.
   let token = await getMetaAccessToken(req, "publisher_instagram");
   if (!token) token = await getMetaAccessToken(req, "publisher_facebook");
-  if (!token) token = await getMetaAccessToken(req);
   if (!token) {
     return apiError("No hay token Meta. Ve a Integraciones y conecta tu cuenta.", "UNAUTHORIZED", 401);
   }

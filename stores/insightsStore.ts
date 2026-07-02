@@ -149,7 +149,8 @@ export const useInsightsStore = create<InsightsState>((set, get) => ({
 
       let merged: any = { timeSeries: [], campaigns: [], adsets: [], ads: [] };
       if (valid.length === 0) {
-        merged._error = "No data";
+        const errResult = results.find((r: any) => r && r.error);
+        merged._error = errResult ? errResult.error : "No data";
       } else {
         valid.forEach((r: any) => {
           const payload = r.data && Array.isArray(r.data.timeSeries) ? r.data : r;

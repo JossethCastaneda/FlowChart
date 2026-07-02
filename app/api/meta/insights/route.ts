@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch, META_API_VERSION, handleMetaError } from "@/lib/server-auth";
 import { calculateDataQuality } from "@/lib/meta-errors";
 import { logger } from "@/lib/logger";
 
@@ -18,9 +18,13 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   let adAccountId = searchParams.get("adAccountId");
+  let tokenExpired = false;
+  let expiredErrorMsg = "";
+
   const dateStart = searchParams.get("dateStart");
   const dateEnd = searchParams.get("dateEnd");
   const preset = searchParams.get("preset");
+
   const attribution = searchParams.get("attribution") || "default";
 
   if (!adAccountId) {
@@ -106,10 +110,20 @@ export async function GET(req: NextRequest) {
       const res = await metaFetch(url, token);
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
+        const code = err?.error?.code || 0;
+        
         logger.error(
           `[INSIGHTS:${tag}] Meta API error:`,
           err?.error?.message || `HTTP ${res.status}`
         );
+
+        if (res.status === 401 || code === 190 || code === 102) {
+          tokenExpired = true;
+          expiredErrorMsg = err?.error?.message || `HTTP ${res.status}`;
+          // Fire-and-forget DB update to set connected: false
+          handleMetaError(req, "ads", err).catch(e => logger.error("handleMetaError failed", e));
+        }
+
         return [];
       }
       const json = await res.json();
@@ -157,6 +171,14 @@ export async function GET(req: NextRequest) {
       "ads"
     ),
   ]);
+
+  if (tokenExpired) {
+    return NextResponse.json({
+      status: "error",
+      error: "expired_token",
+      message: "El token de acceso de Meta Ads ha expirado o es inválido. Reconecte la integración."
+    }, { status: 401 });
+  }
 
   const unwrap = (r: PromiseSettledResult<any[]>) =>
     r.status === "fulfilled" ? r.value : [];

@@ -32,9 +32,10 @@ export async function GET(request: NextRequest) {
     const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; tokenExpiresSoon?: boolean; daysUntilExpiry?: number }> = {};
 
     for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community"]) {
-      // Look for module-specific integration first, then fall back to generic "meta"
+      // Para módulos del publisher, no hacemos fallback al genérico "meta"
+      const isPublisherMod = mod === "publisher_facebook" || mod === "publisher_instagram";
       const integration = integrations.find((i) => i.provider === `meta_${mod}`)
-        || integrations.find((i) => i.provider === "meta");
+        || (!isPublisherMod ? integrations.find((i) => i.provider === "meta") : undefined);
       const creds = integration?.credentials as any;
 
       // Detect token expiry

@@ -4,6 +4,7 @@ import { MoreHorizontal, ExternalLink, Calendar } from "lucide-react";
 import { PLATFORMS } from "@/lib/project-constants";
 import type { Project } from "@/types/project";
 import { useInsightsStore } from "@/stores/insightsStore";
+import { getPlatformIcon } from "@/components/ui/AppIcons";
 
 interface ProjectCardProps {
   project: Project;
@@ -120,19 +121,30 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
             <span style={{ fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>Sin plataformas</span>
           ) : p.channels.slice(0, 3).map((c, i) => {
             const pl = PLATFORMS.find(x => x.id === c.platformId);
+            const isMeta = c.platformId === "meta" || c.platformId === "facebook";
+            const isExpired = isMeta && cached?._error === "expired_token";
+            const IconComponent = getPlatformIcon(c.platformId);
+            
             return (
               <span key={`${c.platformId}-${i}`} style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
+                display: "inline-flex", alignItems: "center", gap: 6,
                 fontSize: 10, padding: "2px 8px", fontWeight: 600, letterSpacing: "0.03em",
-                borderRadius: 5, border: `1px solid ${pl?.color ? pl.color + "33" : "var(--hairline)"}`,
-                color: pl?.color || "var(--text-secondary)",
-                background: pl?.color ? pl.color + "0d" : "transparent",
-              }}>
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: pl?.color || "currentColor", flexShrink: 0 }} />
+                borderRadius: 5, 
+                border: `1px solid ${isExpired ? "rgba(245,158,11,0.3)" : (pl?.color ? pl.color + "33" : "var(--hairline)")}`,
+                color: isExpired ? "var(--amber)" : (pl?.color || "var(--text-secondary)"),
+                background: isExpired ? "rgba(245,158,11,0.06)" : (pl?.color ? pl.color + "0d" : "transparent"),
+              }} title={isExpired ? "El token de acceso ha expirado o ha sido invalidado por Facebook. Reconecta la cuenta en Integraciones." : undefined}>
+                {IconComponent ? (
+                  <IconComponent size={10} style={{ flexShrink: 0, color: isExpired ? "var(--amber)" : "currentColor" }} />
+                ) : (
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: isExpired ? "var(--amber)" : (pl?.color || "currentColor"), flexShrink: 0 }} />
+                )}
                 {c.platformName}
+                {isExpired && <span style={{ fontSize: 9, marginLeft: 2 }} role="img" aria-label="warning">⚠️</span>}
               </span>
             );
           })}
+
           {p.channels.length > 3 && (
             <span style={{ fontSize: 9, color: "var(--text-muted)", padding: "2px 6px", border: "1px solid var(--hairline)", borderRadius: 4 }}>
               +{p.channels.length - 3}

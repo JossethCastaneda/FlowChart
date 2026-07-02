@@ -14,9 +14,12 @@ export async function GET(request: Request) {
     }
 
     // Fallback cascade si no se pidió módulo o no tiene token específico
-    if (!accessToken) accessToken = await getMetaAccessToken(request as any, "publisher_facebook");
-    if (!accessToken) accessToken = await getMetaAccessToken(request as any, "social");
-    if (!accessToken) accessToken = await getMetaAccessToken(request as any);
+    const isPublisher = requestedModule === "publisher_facebook" || requestedModule === "publisher_instagram";
+    if (!accessToken && !isPublisher) {
+      if (!accessToken) accessToken = await getMetaAccessToken(request as any, "publisher_facebook");
+      if (!accessToken) accessToken = await getMetaAccessToken(request as any, "social");
+      if (!accessToken) accessToken = await getMetaAccessToken(request as any);
+    }
 
     if (!accessToken) {
       return NextResponse.json({ data: [], source: "no_session" });

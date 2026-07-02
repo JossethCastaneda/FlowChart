@@ -76,6 +76,12 @@ export async function getMetaAccessToken(
             logger.warn(`[SERVER-AUTH] Token expired for ${module}`, { expiresAt: expiresAt?.toISOString() });
           }
         }
+
+        // Si se pidió un módulo específico del publisher, NO permitimos fallback al genérico "meta"
+        // para respetar estrictamente los accesos de la cuenta vinculada en ese botón.
+        if (module === "publisher_facebook" || module === "publisher_instagram") {
+          return null;
+        }
       }
 
       // 2. Try generic "meta" Integration (shared token)
@@ -252,6 +258,47 @@ export async function metaGetAll(
 
   return { data: allData };
 }
+
+/**
+ * Automatically disconnects a Meta integration in the database if the token
+ * is invalidated by Facebook (401 or OAuthException code 190/102).
+ */
+export async function handleMetaError(
+  request: Request | NextRequest,
+  module: string,
+  errorResponse: any
+): Promise<void> {
+  const err = errorResponse?.error || errorResponse;
+  const code = err?.code || 0;
+  
+  if (code === 190 || code === 102) {
+    try {
+      const jwtToken = await getToken({ req: request as NextRequest, secret: AUTH_SECRET });
+      if (!jwtToken?.sub) return;
+      const userId = jwtToken.sub;
+      const workspaceId = await getActiveWorkspaceId(userId);
+      if (!workspaceId) return;
+
+      const provider = MODULE_PROVIDER_MAP[module] || `meta_${module}`;
+      
+      logger.warn(`[SERVER-AUTH] Token invalidated by Meta for module "${module}" (provider: "${provider}") in workspace ${workspaceId}. Marking integration as disconnected.`);
+      
+      await prisma.integration.update({
+        where: {
+          workspaceId_provider_userId: {
+            workspaceId,
+            provider,
+            userId: "workspace",
+          },
+        },
+        data: { connected: false },
+      });
+    } catch (e) {
+      logger.error("[SERVER-AUTH] Failed to mark integration as disconnected on token error", { e });
+    }
+  }
+}
+
 
 
 
