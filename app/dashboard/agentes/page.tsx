@@ -22,7 +22,7 @@ interface CatalogModel {
   inputPerM: number;
   outputPerM: number;
   power: number;
-  bestFor: string[];
+  performance: string;
 }
 interface CatalogProvider {
   id: string;
@@ -146,7 +146,7 @@ export default function AgentesPage() {
     <div className="p-4 sm:p-6 flex flex-col gap-6">
       <PageHeader
         title="Agentes"
-        description="El núcleo de IA de Sodare. Contrata un modelo y potencia todos los módulos: Copilot, Insights, GridIA y los agentes de cada área."
+        description="El núcleo de IA de Sodare. Contrata un modelo y la inteligencia entra en juego en todos y cada uno de los módulos de la plataforma."
       />
 
       {saveError && (
@@ -305,23 +305,14 @@ export default function AgentesPage() {
                           <PowerBar power={m.power} accent={accent} />
                         </div>
 
-                        {/* Módulos que potencia */}
-                        <div className="flex flex-wrap gap-1.5">
-                          {m.bestFor.map((b) => (
-                            <span
-                              key={b}
-                              style={{
-                                fontSize: 10,
-                                padding: "3px 8px",
-                                borderRadius: 6,
-                                border: "1px solid var(--hairline)",
-                                color: "var(--text-secondary)",
-                                whiteSpace: "nowrap",
-                              }}
-                            >
-                              {b}
-                            </span>
-                          ))}
+                        {/* Rendimiento en la plataforma */}
+                        <div>
+                          <p style={{ fontSize: 9, letterSpacing: "0.12em", textTransform: "uppercase", color: "var(--text-muted)", margin: "0 0 6px" }}>
+                            Rendimiento en la plataforma
+                          </p>
+                          <p style={{ fontSize: 12, lineHeight: 1.55, color: "var(--text-secondary)", margin: 0 }}>
+                            {m.performance}
+                          </p>
                         </div>
 
                         {/* CTA */}
@@ -357,27 +348,20 @@ export default function AgentesPage() {
           );
         })}
 
-      {/* Qué se activa al contratar */}
+      {/* Alcance de la contratación */}
       <section
         className="rounded-xl p-5"
         style={{ background: "var(--surface)", border: "1px solid var(--border-neutral)" }}
       >
-        <p className="t-label" style={{ marginBottom: 10 }}>
-          Al contratar un modelo se potencia
+        <p className="t-label" style={{ marginBottom: 8 }}>
+          Alcance
         </p>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-          {[
-            { n: "Aria Copilot", d: "Chat sobre tus modelos predictivos y leads." },
-            { n: "Aria Insights", d: "Explicación de métricas y siguientes acciones." },
-            { n: "GridIA", d: "Parrillas de contenido con análisis de brandbooks." },
-            { n: "Agentes de módulo", d: "Plan semanal: Crecimiento, Proyectos, Ops, Publisher e Inbox." },
-          ].map((f) => (
-            <div key={f.n} style={{ borderLeft: "2px solid var(--border)", paddingLeft: 12 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 2px" }}>{f.n}</p>
-              <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>{f.d}</p>
-            </div>
-          ))}
-        </div>
+        <p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--text-secondary)", margin: 0, maxWidth: 720 }}>
+          El modelo contratado se convierte en la inteligencia de todo el sistema: entra en juego en todos y
+          cada uno de los módulos y submódulos de Sodare — conversación, análisis, generación de contenido y
+          agentes automáticos — sin configuraciones adicionales. Cambiar de modelo aplica al instante en toda
+          la plataforma.
+        </p>
       </section>
     </div>
   );
