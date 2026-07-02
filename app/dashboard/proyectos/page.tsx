@@ -12,7 +12,7 @@ import { Orbi } from "@/components/ui/Orbi";
 import { KpiCard } from "@/components/ui/KpiCard";
 import {
   FolderKanban, Plus, X, Users, Globe, DollarSign, Target, Rocket,
-  Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown, AlertTriangle, CheckCircle
+  Trash2, Edit3, Eye, MoreHorizontal, Check, ChevronDown, AlertTriangle, CheckCircle, Search
 } from "lucide-react";
 import { PlanLimitBanner } from "@/components/settings/PlanUsageMeter";
 import type { Project, ChannelConfig } from "@/types/project";
@@ -225,6 +225,11 @@ function ProyectosContent() {
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [activeIntegrations, setActiveIntegrations] = useState<{id: string, provider: string}[]>([]);
 
+  // Búsqueda y filtros de la lista (multi-cliente: filtrar por cliente/estatus)
+  const [query, setQuery] = useState("");
+  const [clientFilter, setClientFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+
   // Meta Ads connection status
   const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
   const [justConnected, setJustConnected] = useState(false);
@@ -430,6 +435,22 @@ function ProyectosContent() {
 
   const editingProject = editingId ? projects.find(p => p.id === editingId) : null;
   const activeCount = projects.filter(p => p.status === "EN VUELO" || p.status === "Activo").length;
+
+  // Clientes distintos (para el filtro multi-cliente)
+  const clients = Array.from(new Set(projects.map(p => (p.client || "").trim()).filter(Boolean)))
+    .sort((a, b) => a.localeCompare(b, "es"));
+
+  const normalizedQuery = query.trim().toLowerCase();
+  const visibleProjects = projects.filter(p => {
+    if (clientFilter && (p.client || "").trim() !== clientFilter) return false;
+    if (statusFilter && p.status !== statusFilter) return false;
+    if (normalizedQuery) {
+      const haystack = `${p.alias || ""} ${p.client || ""} ${p.vertical || ""}`.toLowerCase();
+      if (!haystack.includes(normalizedQuery)) return false;
+    }
+    return true;
+  });
+  const isFiltering = Boolean(normalizedQuery || clientFilter || statusFilter);
   const totalBudget = projects.reduce((acc, p) => {
     return acc + p.channels.reduce((a, c) => a + (parseFloat(c.budget.replace(/[^0-9.]/g, "")) || 0), 0);
   }, 0);
@@ -584,16 +605,64 @@ function ProyectosContent() {
 
       {/* Projects Grid */}
       <div>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-muted)" }}>Proyectos Activos</span>
             <span className="badge badge-emerald">{projects.filter(p => p.status === "EN VUELO" || p.status === "Activo").length}</span>
-            <span className="badge badge-muted" style={{ marginLeft: 4 }}>{projects.length} total</span>
+            <span className="badge badge-muted" style={{ marginLeft: 4 }}>
+              {isFiltering ? `${visibleProjects.length} de ${projects.length}` : `${projects.length} total`}
+            </span>
           </div>
         </div>
 
+        {/* Búsqueda y filtros (multi-cliente) */}
+        {projects.length > 0 && (
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+            <div style={{ position: "relative", flex: "1 1 220px", minWidth: 180, maxWidth: 360 }}>
+              <Search className="w-3.5 h-3.5" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", color: "var(--text-muted)", pointerEvents: "none" }} />
+              <input
+                type="search"
+                className="f-input"
+                style={{ paddingLeft: 32 }}
+                placeholder="Buscar por proyecto, cliente o vertical…"
+                value={query}
+                onChange={e => setQuery(e.target.value)}
+                aria-label="Buscar proyectos"
+              />
+            </div>
+            <select
+              className="f-select"
+              style={{ flex: "0 1 180px", minWidth: 140, width: "auto" }}
+              value={clientFilter}
+              onChange={e => setClientFilter(e.target.value)}
+              aria-label="Filtrar por cliente"
+            >
+              <option value="">Todos los clientes</option>
+              {clients.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select
+              className="f-select"
+              style={{ flex: "0 1 160px", minWidth: 130, width: "auto" }}
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value)}
+              aria-label="Filtrar por estatus"
+            >
+              <option value="">Todos los estatus</option>
+              {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            {isFiltering && (
+              <button
+                onClick={() => { setQuery(""); setClientFilter(""); setStatusFilter(""); }}
+                style={{ display: "flex", alignItems: "center", gap: 4, background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: 12, padding: "4px 6px" }}
+              >
+                <X className="w-3.5 h-3.5" /> Limpiar
+              </button>
+            )}
+          </div>
+        )}
+
         {loading ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 16 }}>
             {[1, 2, 3, 4].map(i => <Skeleton key={i} style={{ height: "160px", width: "100%", borderRadius: "16px" }} />)}
           </div>
         ) : projects.length === 0 ? (
@@ -607,9 +676,21 @@ function ProyectosContent() {
               onAction={() => { setEditingId(null); setModalMode("create"); }}
             />
           </div>
+        ) : visibleProjects.length === 0 ? (
+          <div className="glass-panel" style={{ padding: "32px 24px", textAlign: "center" }}>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0 }}>
+              Ningún proyecto coincide con la búsqueda o los filtros.
+            </p>
+            <button
+              onClick={() => { setQuery(""); setClientFilter(""); setStatusFilter(""); }}
+              style={{ marginTop: 10, background: "none", border: "1px solid var(--border)", borderRadius: 8, cursor: "pointer", color: "var(--text-secondary)", fontSize: 12, padding: "6px 14px" }}
+            >
+              Limpiar filtros
+            </button>
+          </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16 }}>
-            {projects.map(p => (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(min(340px, 100%), 1fr))", gap: 16 }}>
+            {visibleProjects.map(p => (
               <ProjectCard
                 key={p.id}
                 project={p}
