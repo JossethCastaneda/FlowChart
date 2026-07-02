@@ -14,6 +14,7 @@ import { z } from "zod";
 import { getWorkspaceAiProvider, hasAnyProvider, normalizeUpstreamError } from "@/lib/ai";
 import type { LLMMessage } from "@/lib/ai";
 import { buildAriaContext } from "@/lib/crecimiento/llm/context";
+import { sanitizeChatHistory } from "@/lib/crecimiento/llm/history";
 
 export const dynamic = "force-dynamic";
 
@@ -45,7 +46,10 @@ export const POST = withWorkspace(async (req, ctx) => {
 
   try {
     const context = await buildAriaContext(ctx.workspaceId);
-    const messages: LLMMessage[] = [...(parsed.data.history ?? []), { role: "user", content: parsed.data.message }];
+    const messages: LLMMessage[] = [
+      ...sanitizeChatHistory(parsed.data.history),
+      { role: "user", content: parsed.data.message },
+    ];
     const { provider, model } = await getWorkspaceAiProvider(ctx.workspaceId);
     const result = await provider.complete({
       model,
