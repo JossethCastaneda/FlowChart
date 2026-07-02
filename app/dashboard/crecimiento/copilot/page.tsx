@@ -47,6 +47,7 @@ export default function AriaCopilotPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [modelChoice, setModelChoice] = useState<Record<string, string>>({});
   const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [orchestrating, setOrchestrating] = useState(false);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -138,6 +139,48 @@ export default function AriaCopilotPage() {
       setMessages((m) => [...m, { role: "assistant", content: "Error de conexión.", meta: "error" }]);
     } finally {
       setSending(false);
+    }
+  };
+
+  const runAgents = async () => {
+    if (sending || orchestrating) return;
+    setOrchestrating(true);
+    setMessages((m) => [...m, { role: "user", content: "⚡ Generar plan de acción con los agentes de módulo" }]);
+    try {
+      const res = await fetch("/api/agents/orchestrate", { method: "POST" });
+      const j = await res.json();
+      if (j?.success) {
+        const plan = j.data.plan as {
+          resumenEjecutivo: string;
+          accionesPrioritarias: { modulo: string; accion: string; impacto: string }[];
+          riesgos: string[];
+        };
+        const agentes = (j.data.agentes as { nombre: string; ok: boolean }[]) ?? [];
+        const okCount = agentes.filter((a) => a.ok).length;
+        const text =
+          `${plan.resumenEjecutivo}\n\n` +
+          `Acciones prioritarias:\n${plan.accionesPrioritarias
+            .map((a, i) => `${i + 1}. [${a.modulo}] ${a.accion} — ${a.impacto}`)
+            .join("\n")}` +
+          (plan.riesgos.length ? `\n\nRiesgos:\n${plan.riesgos.map((r) => `• ${r}`).join("\n")}` : "");
+        setMessages((m) => [
+          ...m,
+          {
+            role: "assistant",
+            content: text,
+            meta: `${okCount}/${agentes.length} agentes · ${j.data.provider} · ${j.data.model}`,
+          },
+        ]);
+      } else {
+        setMessages((m) => [
+          ...m,
+          { role: "assistant", content: j?.error ?? "No se pudo generar el plan.", meta: "error" },
+        ]);
+      }
+    } catch {
+      setMessages((m) => [...m, { role: "assistant", content: "Error de conexión.", meta: "error" }]);
+    } finally {
+      setOrchestrating(false);
     }
   };
 
@@ -328,9 +371,22 @@ export default function AriaCopilotPage() {
             </div>
           ))}
           {sending && <div className="text-sm text-muted-foreground">Aria está pensando…</div>}
+          {orchestrating && (
+            <div className="text-sm text-muted-foreground">
+              Los agentes de módulo están analizando tu workspace en paralelo…
+            </div>
+          )}
           <div ref={chatEndRef} />
         </div>
         <div className="p-3 border-t flex gap-2">
+          <button
+            onClick={runAgents}
+            disabled={sending || orchestrating}
+            title="Los agentes de cada módulo analizan tu workspace y el orquestador genera un plan priorizado"
+            className="shrink-0 border px-3 rounded-md disabled:opacity-50 flex items-center gap-1 text-sm font-medium hover:bg-muted transition"
+          >
+            <Sparkles className="w-4 h-4" /> Plan con agentes
+          </button>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
