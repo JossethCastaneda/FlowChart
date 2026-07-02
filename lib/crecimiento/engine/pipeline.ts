@@ -32,7 +32,10 @@ import type { Metrics, ModelArtifact } from "./types";
 
 const MIN_ROWS = 30;
 const MIN_PER_CLASS = 6;
-const ID_HINTS = ["id", "lead", "email", "correo", "telefono", "teléfono", "phone", "record"];
+const ID_HINTS = ["lead", "email", "correo", "telefono", "teléfono", "phone", "record"];
+// "id" como palabra aislada (id, lead_id, id_cliente) — NO como substring, porque
+// columnas como "ciudad" o "validado" contienen "id" y se elegirían por error.
+const ID_WORD_RE = /(^|[^a-záéíóú])id([^a-záéíóú]|$)/;
 
 export interface PipelineResult {
   status: "ready" | "baseline" | "awaiting_data";
@@ -60,7 +63,7 @@ function rowsToRecords(
 function pickIdColumn(headers: string[]): string | null {
   for (const h of headers) {
     const l = h.toLowerCase();
-    if (ID_HINTS.some((hint) => l === hint || l.includes(hint))) return h;
+    if (ID_WORD_RE.test(l) || ID_HINTS.some((hint) => l === hint || l.includes(hint))) return h;
   }
   return null;
 }
