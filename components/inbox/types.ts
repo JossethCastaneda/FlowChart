@@ -41,6 +41,8 @@ export interface Conversation {
     _postData?: PostData | null;
     pageId?: string;
     contactId?: string | null;
+    /** Which app/source provided this conversation */
+    channelSource?: "facebook_app" | "instagram_app" | "whatsapp" | "db";
 }
 
 export interface ConnectedPage {
@@ -51,6 +53,20 @@ export interface ConnectedPage {
     igId?: string;
 }
 
-export type Platform = "fb_messenger" | "ig_dm" | "ig_comment" | "fb_comment" | "instagram_comment" | "whatsapp";
+/**
+ * Platform union — canonical values used throughout the frontend.
+ * Note: "instagram_comment" is kept as an alias for API payloads from the
+ * conversations route; both map to the same tab/config in the UI.
+ */
+export type Platform =
+  | "fb_messenger"
+  | "ig_dm"
+  | "ig_comment"
+  | "instagram_comment" // API alias — maps to ig_comment in UI
+  | "instagram_dm"      // API alias — maps to ig_dm in UI
+  | "fb_comment"
+  | "whatsapp";
+
 export type ChannelFilter = "all" | "messenger" | "instagram" | "fb_comment" | "ig_comment" | "whatsapp";
 export type QueueFilter = "all" | "unassigned" | "mine" | "needs_reply" | "done";
+

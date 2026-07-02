@@ -30,7 +30,8 @@ export function getPlatformConfig(platform: Platform) {
     case "fb_messenger":
       return { label: "Messenger", color: "#0084ff", icon: MessageSquare, bgAlpha: "rgba(0,132,255,0.12)" };
     case "ig_dm":
-      return { label: "Instagram", color: "#E1306C", icon: MessageCircle, bgAlpha: "rgba(225,48,108,0.12)" };
+    case "instagram_dm":
+      return { label: "Instagram DM", color: "#E1306C", icon: MessageCircle, bgAlpha: "rgba(225,48,108,0.12)" };
     case "ig_comment":
     case "instagram_comment":
       return { label: "Comentario IG", color: "#F77737", icon: AtSign, bgAlpha: "rgba(247,119,55,0.12)" };
@@ -38,6 +39,9 @@ export function getPlatformConfig(platform: Platform) {
       return { label: "Comentario FB", color: "#1877F2", icon: MessageSquare, bgAlpha: "rgba(24,119,242,0.12)" };
     case "whatsapp":
       return { label: "WhatsApp", color: "#25D366", icon: MessageCircle, bgAlpha: "rgba(37,211,102,0.12)" };
+    default:
+      // Safe fallback for any future platform additions
+      return { label: "Mensaje", color: "var(--text-muted)", icon: MessageSquare, bgAlpha: "rgba(128,128,128,0.12)" };
     }
 }
 

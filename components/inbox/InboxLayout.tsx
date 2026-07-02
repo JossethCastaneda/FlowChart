@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
@@ -27,7 +27,8 @@ import { PageSelector, PostView, ChatView, ProfileSection, ContactProfile } from
 const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; platforms: Platform[] }[] = [
   { key: "all", label: "Todos los mensajes", color: "var(--cyan)", platforms: [] },
   { key: "messenger", label: "Messenger", color: "#0084ff", platforms: ["fb_messenger"] },
-  { key: "instagram", label: "Instagram", color: "#E1306C", platforms: ["ig_dm"] },
+  // instagram_dm is the raw API value; ig_dm is the normalized frontend value — both included
+  { key: "instagram", label: "Instagram", color: "#E1306C", platforms: ["ig_dm", "instagram_dm"] },
   { key: "fb_comment", label: "Comentarios de Facebook", color: "#1877F2", platforms: ["fb_comment"] },
   { key: "ig_comment", label: "Comentarios de Instagram", color: "#F77737", platforms: ["ig_comment", "instagram_comment"] },
   { key: "whatsapp", label: "WhatsApp", color: "#25D366", platforms: ["whatsapp"] },
@@ -139,9 +140,11 @@ export function InboxLayout() {
           const data = await res.json();
           if (data.conversations && data.conversations.length > 0) {
             const mapped: Conversation[] = data.conversations.map((c: any) => {
+              // Normalize all API platform strings to canonical frontend Platform values
               const platformMap: Record<string, Platform> = {
                 facebook_messenger: "fb_messenger",
-                instagram_dm: "ig_dm",
+                instagram_dm: "instagram_dm",  // kept as alias — handled by CHANNEL_TABS and utils
+                ig_dm: "ig_dm",
                 ig_comment: "ig_comment",
                 instagram_comment: "instagram_comment",
                 facebook_comment: "fb_comment",
@@ -774,6 +777,16 @@ export function InboxLayout() {
                           ? conv.lastMessage
                           : (conv.lastMessage.startsWith("Tú:") ? conv.lastMessage : `Tú: ${conv.lastMessage}`)
                         }
+                        {/* Platform badge */}
+                        <span style={{
+                          display: "inline-block", marginTop: 3,
+                          fontSize: 9, fontWeight: 600, letterSpacing: "0.05em",
+                          padding: "1px 5px", borderRadius: 3,
+                          background: `${pc.color}18`,
+                          color: pc.color,
+                        }}>
+                          {pc.label}
+                        </span>
                       </p>
                       {conv.closed && (
                         <span style={{
