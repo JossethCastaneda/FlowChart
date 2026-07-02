@@ -13,6 +13,7 @@ const TIKTOK_WEBHOOK_SECRET = process.env.TIKTOK_WEBHOOK_SECRET ?? "";
 
 function verifySignature(body: string, signature: string): boolean {
   if (!TIKTOK_WEBHOOK_SECRET) return true; // Skip verification if secret not set yet
+  if (!signature) return false; // fail-closed: con secret configurado, la firma es obligatoria
   const expected = createHmac("sha256", TIKTOK_WEBHOOK_SECRET)
     .update(body)
     .digest("hex");
@@ -24,8 +25,8 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text();
     const signature = req.headers.get("x-tiktok-signature") ?? "";
 
-    // Verify signature if present
-    if (signature && !verifySignature(rawBody, signature)) {
+    // Fail-closed: si hay secret configurado, toda petición debe traer firma válida
+    if (!verifySignature(rawBody, signature)) {
       logger.warn("[TIKTOK WEBHOOK] ❌ Invalid signature");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
