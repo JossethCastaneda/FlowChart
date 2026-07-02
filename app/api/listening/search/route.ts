@@ -3,7 +3,6 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import { logger } from "@/lib/logger";
-import { env } from "@/lib/env";
 
 const GEMINI_KEY = process.env.GEMINI_API_KEY;
 const GEMINI_MODEL = "gemini-2.0-flash";
@@ -443,6 +442,38 @@ IMPORTANTE: Responde SOLO con JSON válido, sin markdown.`;
     return { day, hour, count };
   });
 
+  // ── Top authors (Influencers) ─────────────────────────────────────────────
+  const authorMap: Record<string, {
+    name: string;
+    platform: string;
+    mentions: number;
+    interactions: number;
+    positive: number;
+    negative: number;
+    neutral: number;
+  }> = {};
+
+  for (const p of postsWithSentiment as any[]) {
+    if (!p.author) continue;
+    const key = `${p.platform}:${p.author}`;
+    if (!authorMap[key]) {
+      authorMap[key] = { name: p.author, platform: p.platform, mentions: 0, interactions: 0, positive: 0, negative: 0, neutral: 0 };
+    }
+    authorMap[key].mentions++;
+    authorMap[key].interactions += p.likes + p.comments + p.shares;
+    authorMap[key][p.sentiment as "positive" | "negative" | "neutral"]++;
+  }
+
+  const topAuthors = Object.values(authorMap)
+    .sort((a, b) => b.mentions - a.mentions)
+    .slice(0, 10)
+    .map(a => ({
+      ...a,
+      sentimentPositivePercent: a.mentions > 0 ? Math.round((a.positive / a.mentions) * 100) : 0,
+      sentimentNegativePercent: a.mentions > 0 ? Math.round((a.negative / a.mentions) * 100) : 0,
+      sentimentNeutralPercent: a.mentions > 0 ? Math.round((a.neutral / a.mentions) * 100) : 0,
+    }));
+
   // ── Metrics ───────────────────────────────────────────────────────────────
   const totalInteractions = postsWithSentiment.reduce((acc, p) => acc + p.likes + p.comments + p.shares, 0);
   const estimatedReach = postsWithSentiment.length * 250; // Conservative estimate
@@ -455,6 +486,7 @@ IMPORTANTE: Responde SOLO con JSON válido, sin markdown.`;
     positiveCount: (postsWithSentiment as any[]).filter(p => p.sentiment === "positive").length,
     negativeCount: (postsWithSentiment as any[]).filter(p => p.sentiment === "negative").length,
     neutralCount: (postsWithSentiment as any[]).filter(p => p.sentiment === "neutral").length,
+    uniqueAuthors: Object.keys(authorMap).length,
   };
 
   return NextResponse.json({
@@ -466,9 +498,11 @@ IMPORTANTE: Responde SOLO con JSON válido, sin markdown.`;
     topics,
     posts: postsWithSentiment.slice(0, 100), // Max 100 results
     heatmap,
+    authors: topAuthors,
     sources: {
       facebook: posts.filter(p => p.platform === "facebook").length,
       instagram: posts.filter(p => p.platform === "instagram").length,
     },
   });
 }
+

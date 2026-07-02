@@ -26,6 +26,7 @@ interface SearchResult {
     positiveCount: number;
     negativeCount: number;
     neutralCount: number;
+    uniqueAuthors: number;
   };
   timeseries: { date: string; count: number; positive: number; negative: number; neutral: number }[];
   sentiment: {
@@ -51,10 +52,19 @@ interface SearchResult {
     sentiment: "positive" | "negative" | "neutral";
   }[];
   heatmap: { day: number; hour: number; count: number }[];
+  authors: {
+    name: string;
+    platform: string;
+    mentions: number;
+    interactions: number;
+    sentimentPositivePercent: number;
+    sentimentNegativePercent: number;
+    sentimentNeutralPercent: number;
+  }[];
   sources: { facebook: number; instagram: number };
 }
 
-type SectionId = "metrics" | "sentiment" | "topics" | "results" | "heatmap";
+type SectionId = "metrics" | "sentiment" | "topics" | "results" | "heatmap" | "influencers";
 
 /* ─────────────────────────────────────────────────────────────
    Constants
@@ -326,6 +336,7 @@ export function ListeningDashboard() {
     { id: "topics", label: lang === "es" ? "Principales Temáticas" : "Main Topics", icon: Hash },
     { id: "results", label: lang === "es" ? "Resultados" : "Results", icon: MessageCircle },
     { id: "heatmap", label: lang === "es" ? "Actividad" : "Activity", icon: Clock },
+    { id: "influencers", label: lang === "es" ? "Autores" : "Authors", icon: Users },
   ];
 
   /* ── Custom tooltip for recharts ─────────────────────────── */
@@ -899,6 +910,129 @@ export function ListeningDashboard() {
                       ? "No hay datos de actividad para mostrar. Necesitas más menciones con fechas recientes."
                       : "No activity data to display. You need more mentions with recent dates."}
                   />
+                )}
+              </div>
+            )}
+
+            {/* ── SECTION: Influencers / Authors ────────────────── */}
+            {activeSection === "influencers" && (
+              <div style={{
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
+                borderRadius: 12,
+                padding: 24,
+              }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
+                  <Users size={18} color="var(--accent)" />
+                  <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)" }}>
+                    {lang === "es" ? "Autores Principales" : "Top Authors"}
+                  </h3>
+                  <span style={{
+                    marginLeft: "auto",
+                    fontSize: 12, color: "var(--text-secondary)",
+                    background: "var(--surface-2)",
+                    padding: "3px 10px",
+                    borderRadius: 99,
+                  }}>
+                    {result.metrics.uniqueAuthors} {lang === "es" ? "autores únicos" : "unique authors"}
+                  </span>
+                </div>
+
+                {result.authors.length === 0 ? (
+                  <EmptyState
+                    icon="👥"
+                    message={lang === "es"
+                      ? "No se encontraron autores para esta keyword."
+                      : "No authors found for this keyword."}
+                  />
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
+                    {/* Table header */}
+                    <div style={{
+                      display: "grid",
+                      gridTemplateColumns: "1fr 80px 100px 1fr 80px",
+                      gap: 12,
+                      padding: "8px 12px",
+                      borderBottom: "1px solid var(--border)",
+                      fontSize: 11,
+                      fontWeight: 700,
+                      color: "var(--text-secondary)",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.05em",
+                    }}>
+                      <span>{lang === "es" ? "Autor" : "Author"}</span>
+                      <span style={{ textAlign: "center" }}>Red</span>
+                      <span style={{ textAlign: "center" }}>{lang === "es" ? "Menciones" : "Mentions"}</span>
+                      <span style={{ textAlign: "center" }}>{lang === "es" ? "Sentimiento" : "Sentiment"}</span>
+                      <span style={{ textAlign: "center" }}>{lang === "es" ? "Alcance" : "Reach"}</span>
+                    </div>
+
+                    {result.authors.map((author, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "1fr 80px 100px 1fr 80px",
+                          gap: 12,
+                          padding: "14px 12px",
+                          borderBottom: "1px solid var(--border)",
+                          alignItems: "center",
+                        }}
+                      >
+                        {/* Author name */}
+                        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                          <div style={{
+                            width: 36, height: 36, borderRadius: "50%",
+                            background: `${PLATFORM_COLORS[author.platform]}20`,
+                            display: "flex", alignItems: "center", justifyContent: "center",
+                            fontSize: 16, flexShrink: 0,
+                          }}>
+                            {author.platform === "instagram" ? "📸" : "📘"}
+                          </div>
+                          <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
+                            {author.name}
+                          </span>
+                        </div>
+
+                        {/* Platform */}
+                        <span style={{
+                          fontSize: 11,
+                          padding: "3px 8px",
+                          borderRadius: 99,
+                          background: `${PLATFORM_COLORS[author.platform]}15`,
+                          color: PLATFORM_COLORS[author.platform],
+                          fontWeight: 600,
+                          textAlign: "center",
+                          textTransform: "capitalize",
+                        }}>
+                          {author.platform === "instagram" ? "IG" : "FB"}
+                        </span>
+
+                        {/* Mentions count */}
+                        <span style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", textAlign: "center" }}>
+                          {author.mentions}
+                        </span>
+
+                        {/* Sentiment bar */}
+                        <div style={{ display: "flex", height: 8, borderRadius: 99, overflow: "hidden", gap: 1 }}>
+                          {author.sentimentPositivePercent > 0 && (
+                            <div style={{ flex: author.sentimentPositivePercent, background: SENTIMENT_COLORS.positive, borderRadius: 99 }} />
+                          )}
+                          {author.sentimentNeutralPercent > 0 && (
+                            <div style={{ flex: author.sentimentNeutralPercent, background: SENTIMENT_COLORS.neutral }} />
+                          )}
+                          {author.sentimentNegativePercent > 0 && (
+                            <div style={{ flex: author.sentimentNegativePercent, background: SENTIMENT_COLORS.negative, borderRadius: 99 }} />
+                          )}
+                        </div>
+
+                        {/* Interactions */}
+                        <span style={{ fontSize: 13, color: "var(--text-secondary)", textAlign: "center" }}>
+                          {formatNum(author.interactions)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 )}
               </div>
             )}
