@@ -1,4 +1,5 @@
 import { encryptToken, decryptToken } from "@/lib/encryption";
+import { logger } from "@/lib/logger";
 
 export interface InstagramStatePayload {
   workspaceId: string;
@@ -22,13 +23,13 @@ export function parseInstagramState(stateToken: string): InstagramStatePayload |
     
     // Check if the state is too old (e.g., 15 minutes)
     if (Date.now() - payload.timestamp > 15 * 60 * 1000) {
-      console.warn("[INSTAGRAM STATE] State expired");
+      logger.warn("[INSTAGRAM STATE] State expired");
       return null;
     }
     
     return payload;
   } catch (err) {
-    console.error("[INSTAGRAM STATE] Invalid state token:", err);
+    logger.error("[INSTAGRAM STATE] Invalid state token:", err);
     return null;
   }
 }

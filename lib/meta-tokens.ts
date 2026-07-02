@@ -10,6 +10,7 @@
  */
 
 import { decryptToken, encryptToken } from "@/lib/encryption";
+import { logger } from "@/lib/logger";
 
 export interface PageTokenData {
   pageId: string;
@@ -53,7 +54,7 @@ export function parseIntegrationCredentials(credentials: any): UserTokenData | n
       module: credentials.module || "unknown",
     };
   } catch (err) {
-    console.error("[META-TOKENS] Failed to parse credentials:", err);
+    logger.error("[META-TOKENS] Failed to parse credentials:", err);
     return null;
   }
 }
