@@ -11,6 +11,7 @@ import type { LLMProvider, ProviderId } from "./types";
 import { openaiProvider } from "./providers/openai";
 import { geminiProvider } from "./providers/gemini";
 import { anthropicProvider } from "./providers/anthropic";
+import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 
 export interface ProviderCatalog {
@@ -139,7 +140,7 @@ export async function getWorkspaceAiProvider(
       }
     }
   } catch (err) {
-    console.error("Error reading Workspace AI settings:", err);
+    logger.error("Error reading Workspace AI settings:", err);
   }
 
   const active = getActiveProvider();
