@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { env } from "@/lib/env";
+import { verifyCronAuth } from "@/lib/cron-auth";
 import { parseIntegrationCredentials } from "@/lib/meta-tokens";
 import { encryptToken } from "@/lib/encryption";
 import { META_API_VERSION, metaFetch } from "@/lib/server-auth";
@@ -15,13 +16,9 @@ import { META_API_VERSION, metaFetch } from "@/lib/server-auth";
  * las páginas con el nuevo token.
  */
 export async function GET(req: NextRequest) {
-  // Simple Authorization via Cron Secret
-  const authHeader = req.headers.get("authorization");
-  if (
-    env.CRON_SECRET &&
-    authHeader !== `Bearer ${env.CRON_SECRET}` &&
-    req.headers.get("x-qstash-token") === null
-  ) {
+  // Fail-closed: Bearer CRON_SECRET obligatorio (el bypass x-qstash-token era
+  // legacy de QStash — ya migrado a Vercel Cron — y aceptaba cualquier valor).
+  if (!verifyCronAuth(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 

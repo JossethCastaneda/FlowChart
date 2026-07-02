@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { start } from "workflow/api";
 import { syncIntegrationAssetsWorkflow } from "@/workflows/sync-integration-assets";
+import { verifyCronAuth } from "@/lib/cron-auth";
 import { logger } from "@/lib/logger";
 
 /**
@@ -9,8 +10,7 @@ import { logger } from "@/lib/logger";
  * automáticamente los saldos, roles y bots de todas las cuentas conectadas.
  */
 export async function GET(req: NextRequest) {
-  const authHeader = req.headers.get("Authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!verifyCronAuth(req)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
