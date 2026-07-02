@@ -1,4 +1,4 @@
-import { withWorkspace } from "@/lib/api-handler";
+import { withWorkspaceRole } from "@/lib/api-handler";
 import { apiError, apiServerError } from "@/lib/api-response";
 import { env } from "@/lib/env";
 import { createInstagramState } from "@/lib/integrations/instagram/state";
@@ -9,8 +9,9 @@ import { NextRequest, NextResponse } from "next/server";
  * GET /api/integrations/instagram/connect
  * Initiates Instagram Direct Login OAuth flow.
  * Redirects to instagram.com/oauth/authorize with PKCE state.
+ * Solo OWNER/ADMIN pueden conectar integraciones (paridad con Google/Meta).
  */
-export const GET = withWorkspace(async (req: NextRequest, ctx) => {
+export const GET = withWorkspaceRole(["OWNER", "ADMIN"])(async (req: NextRequest, ctx) => {
   const appId = env.INSTAGRAM_APP_ID;
   const redirectUri = env.INSTAGRAM_REDIRECT_URI;
   const scopes = env.INSTAGRAM_SCOPES;

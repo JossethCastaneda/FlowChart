@@ -32,8 +32,13 @@ export async function getAdsCampaigns(workspaceId: string, since?: string, until
   // Remove dashes from customer ID (Google Ads format: 123-456-7890 → 1234567890)
   const cleanCustomerId = customerId.replace(/-/g, "");
 
+  // since/until vienen de query params: valida YYYY-MM-DD antes de interpolar en GAQL
+  const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
   let dateCondition = "segments.date DURING LAST_30_DAYS";
   if (since && until) {
+    if (!DATE_RE.test(since) || !DATE_RE.test(until)) {
+      throw new Error("Rango de fechas inválido (formato esperado: YYYY-MM-DD)");
+    }
     dateCondition = `segments.date BETWEEN '${since}' AND '${until}'`;
   }
 

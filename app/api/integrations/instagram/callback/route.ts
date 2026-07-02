@@ -3,6 +3,7 @@ import { env } from "@/lib/env";
 import { parseInstagramState } from "@/lib/integrations/instagram/state";
 import { encryptToken } from "@/lib/encryption";
 import { safeGetSession } from "@/lib/api-handler";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { logger } from "@/lib/logger";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
@@ -46,6 +47,17 @@ export async function GET(request: NextRequest) {
         stateUserId: state.userId,
       });
       return redirect("unauthorized");
+    }
+
+    // Re-verifica RBAC como los callbacks de Google/Meta: solo OWNER/ADMIN
+    // pueden completar la conexión (el rol pudo cambiar desde que inició el flujo).
+    const hasAccess = await verifyWorkspaceAccess(state.workspaceId, state.userId, ["OWNER", "ADMIN"]);
+    if (!hasAccess) {
+      logger.warn("Instagram callback: usuario sin rol OWNER/ADMIN", {
+        workspaceId: state.workspaceId,
+        userId: state.userId,
+      });
+      return redirect("insufficient_role");
     }
 
     const appId = env.INSTAGRAM_APP_ID;
