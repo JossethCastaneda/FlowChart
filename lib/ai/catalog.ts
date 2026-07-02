@@ -1,9 +1,17 @@
 /**
- * Catálogo presentable de IAs para el selector de Aria (Crecimiento).
+ * Catálogo de IAs de Sodare — NODO PRINCIPAL de la capa de inteligencia.
  *
  * Metadatos ESTÁTICOS (sin secretos): etiqueta, fabricante, puntos fuertes, modelos
- * y acento visual de cada proveedor. El endpoint `/api/crecimiento/providers` lo
- * combina con `isConfigured()` (server-side) para marcar cuáles tienen API key.
+ * con COSTOS por millón de tokens y qué módulos de Sodare potencia cada uno. El
+ * endpoint `/api/crecimiento/providers` lo combina con `isConfigured()` (server-side)
+ * para marcar cuáles tienen API key.
+ *
+ * Al contratar/seleccionar un modelo (PUT /api/workspace/ai-model →
+ * extConfig.ariaGenerativeModel), `getWorkspaceAiProvider` lo aplica a TODO el
+ * sistema: Aria Copilot (chat), Aria Insights, GridIA (parrillas multimodales) y
+ * cualquier módulo nuevo que use la capa `lib/ai`.
+ *
+ * Precios: USD por 1M de tokens (referenciales, tarifa pública del proveedor).
  */
 
 import type { ProviderId } from "./types";
@@ -12,6 +20,12 @@ export interface CatalogModel {
   id: string;
   label: string;
   note: string;
+  /** USD por 1 millón de tokens de entrada. */
+  inputPerM: number;
+  /** USD por 1 millón de tokens de salida. */
+  outputPerM: number;
+  /** Módulos de Sodare donde este modelo rinde mejor. */
+  bestFor: string[];
 }
 
 export interface CatalogProvider {
@@ -38,13 +52,35 @@ export const AI_CATALOG: CatalogProvider[] = [
       "Respuestas muy rápidas y de bajo costo",
       "Ventana de contexto enorme",
       "Ideal para resúmenes y alto volumen de leads",
-      "Multimodal (texto e imágenes)",
+      "Multimodal (texto e imágenes: analiza brandbooks en GridIA)",
     ],
     accent: "from-blue-500 to-cyan-400",
     recommendedModel: "gemini-2.5-flash",
     models: [
-      { id: "gemini-2.5-flash", label: "Gemini 2.5 Flash", note: "Rápido y económico (recomendado)" },
-      { id: "gemini-2.5-pro", label: "Gemini 2.5 Pro", note: "Más capacidad, algo más lento" },
+      {
+        id: "gemini-2.5-flash",
+        label: "Gemini 2.5 Flash",
+        note: "Rápido y económico (recomendado)",
+        inputPerM: 0.3,
+        outputPerM: 2.5,
+        bestFor: ["Aria Copilot", "Aria Insights", "GridIA"],
+      },
+      {
+        id: "gemini-2.5-pro",
+        label: "Gemini 2.5 Pro",
+        note: "Más capacidad, algo más lento",
+        inputPerM: 1.25,
+        outputPerM: 10,
+        bestFor: ["GridIA (parrillas complejas)", "Aria Insights profundos"],
+      },
+      {
+        id: "gemini-2.5-flash-lite",
+        label: "Gemini 2.5 Flash-Lite",
+        note: "El más barato para alto volumen",
+        inputPerM: 0.1,
+        outputPerM: 0.4,
+        bestFor: ["Aria Copilot (chat frecuente)", "Resúmenes masivos"],
+      },
     ],
     envVar: "GEMINI_API_KEY",
   },
@@ -62,9 +98,54 @@ export const AI_CATALOG: CatalogProvider[] = [
     accent: "from-emerald-500 to-teal-400",
     recommendedModel: "gpt-4.1",
     models: [
-      { id: "gpt-4.1", label: "GPT-4.1", note: "Equilibrado (recomendado)" },
-      { id: "gpt-4o", label: "GPT-4o", note: "Multimodal y rápido" },
-      { id: "o4-mini", label: "o4-mini", note: "Razonamiento, económico" },
+      {
+        id: "gpt-4.1",
+        label: "GPT-4.1",
+        note: "Equilibrado (recomendado)",
+        inputPerM: 2,
+        outputPerM: 8,
+        bestFor: ["Aria Copilot", "GridIA", "Aria Insights"],
+      },
+      {
+        id: "gpt-4.1-mini",
+        label: "GPT-4.1 mini",
+        note: "Calidad alta a bajo costo",
+        inputPerM: 0.4,
+        outputPerM: 1.6,
+        bestFor: ["Aria Copilot (chat frecuente)", "Aria Insights"],
+      },
+      {
+        id: "gpt-4.1-nano",
+        label: "GPT-4.1 nano",
+        note: "El más rápido y barato de OpenAI",
+        inputPerM: 0.1,
+        outputPerM: 0.4,
+        bestFor: ["Clasificación y resúmenes de alto volumen"],
+      },
+      {
+        id: "gpt-4o",
+        label: "GPT-4o",
+        note: "Multimodal y rápido",
+        inputPerM: 2.5,
+        outputPerM: 10,
+        bestFor: ["GridIA (análisis de brandbooks)", "Aria Copilot"],
+      },
+      {
+        id: "gpt-4o-mini",
+        label: "GPT-4o mini",
+        note: "Multimodal económico",
+        inputPerM: 0.15,
+        outputPerM: 0.6,
+        bestFor: ["GridIA ligero", "Chat de alto volumen"],
+      },
+      {
+        id: "o4-mini",
+        label: "o4-mini",
+        note: "Razonamiento, económico",
+        inputPerM: 1.1,
+        outputPerM: 4.4,
+        bestFor: ["Aria Insights (análisis con razonamiento)"],
+      },
     ],
     envVar: "OPENAI_API_KEY",
   },
@@ -82,9 +163,30 @@ export const AI_CATALOG: CatalogProvider[] = [
     accent: "from-orange-500 to-amber-400",
     recommendedModel: "claude-sonnet-4-6",
     models: [
-      { id: "claude-opus-4-8", label: "Claude Opus 4.8", note: "Máxima capacidad" },
-      { id: "claude-sonnet-4-6", label: "Claude Sonnet 4.6", note: "Balance costo/calidad (recomendado)" },
-      { id: "claude-haiku-4-5", label: "Claude Haiku 4.5", note: "Rápido y económico" },
+      {
+        id: "claude-opus-4-8",
+        label: "Claude Opus 4.8",
+        note: "Máxima capacidad",
+        inputPerM: 5,
+        outputPerM: 25,
+        bestFor: ["Aria Insights estratégicos", "GridIA premium"],
+      },
+      {
+        id: "claude-sonnet-4-6",
+        label: "Claude Sonnet 4.6",
+        note: "Balance costo/calidad (recomendado)",
+        inputPerM: 3,
+        outputPerM: 15,
+        bestFor: ["Aria Copilot", "Aria Insights", "GridIA"],
+      },
+      {
+        id: "claude-haiku-4-5",
+        label: "Claude Haiku 4.5",
+        note: "Rápido y económico",
+        inputPerM: 1,
+        outputPerM: 5,
+        bestFor: ["Aria Copilot (chat frecuente)", "Resúmenes"],
+      },
     ],
     envVar: "ANTHROPIC_API_KEY",
   },

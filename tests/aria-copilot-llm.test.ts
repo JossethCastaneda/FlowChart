@@ -32,6 +32,7 @@ beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
   vi.stubEnv("GEMINI_API_KEY", "test-key");
   vi.stubEnv("ANTHROPIC_API_KEY", "test-key");
+  vi.stubEnv("OPENAI_API_KEY", "test-key");
 });
 
 afterEach(() => {
@@ -96,6 +97,21 @@ describe("geminiProvider.complete (camino del copilot)", () => {
     });
   });
 
+  it("adjunta imágenes como inlineData en el último turno de usuario (GridIA multimodal)", async () => {
+    mockJsonResponse({ candidates: [{ content: { parts: [{ text: "ok" }] } }] });
+    await geminiProvider.complete({
+      ...CHAT,
+      attachments: [{ mimeType: "image/png", data: "QUJD" }],
+    });
+    const contents = lastRequestBody().contents;
+    const lastUser = contents[contents.length - 1];
+    expect(lastUser.role).toBe("user");
+    expect(lastUser.parts).toHaveLength(2);
+    expect(lastUser.parts[1]).toEqual({ inlineData: { mimeType: "image/png", data: "QUJD" } });
+    // Los turnos anteriores no se tocan.
+    expect(contents[0].parts).toHaveLength(1);
+  });
+
   it("mueve mensajes role=system del historial a systemInstruction (Gemini no acepta role system)", async () => {
     mockJsonResponse({ candidates: [{ content: { parts: [{ text: "ok" }] } }] });
     await geminiProvider.complete({
@@ -143,6 +159,41 @@ describe("anthropicProvider.complete (camino del copilot)", () => {
     await expect(anthropicProvider.complete(CHAT)).rejects.toMatchObject({
       provider: "anthropic",
       status: 502,
+    });
+  });
+
+  it("adjunta imágenes como bloques image antes del texto (GridIA multimodal)", async () => {
+    mockJsonResponse({ content: [{ type: "text", text: "ok" }] });
+    await anthropicProvider.complete({
+      ...CHAT,
+      attachments: [{ mimeType: "image/jpeg", data: "QUJD" }],
+    });
+    const msgs = lastRequestBody().messages;
+    const lastUser = msgs[msgs.length - 1];
+    expect(Array.isArray(lastUser.content)).toBe(true);
+    expect(lastUser.content[0]).toEqual({
+      type: "image",
+      source: { type: "base64", media_type: "image/jpeg", data: "QUJD" },
+    });
+    expect(lastUser.content[1]).toEqual({ type: "text", text: "¿Cuántos modelos tengo?" });
+  });
+});
+
+describe("openaiProvider.complete — multimodal", () => {
+  it("adjunta imágenes como image_url data-URL en el último mensaje de usuario", async () => {
+    mockJsonResponse({ choices: [{ message: { content: "ok" } }] });
+    const { openaiProvider } = await import("@/lib/ai/providers/openai");
+    await openaiProvider.complete({
+      ...CHAT,
+      attachments: [{ mimeType: "image/png", data: "QUJD" }],
+    });
+    const msgs = lastRequestBody().messages;
+    const lastUser = msgs[msgs.length - 1];
+    expect(Array.isArray(lastUser.content)).toBe(true);
+    expect(lastUser.content[0]).toEqual({ type: "text", text: "¿Cuántos modelos tengo?" });
+    expect(lastUser.content[1]).toEqual({
+      type: "image_url",
+      image_url: { url: "data:image/png;base64,QUJD" },
     });
   });
 });

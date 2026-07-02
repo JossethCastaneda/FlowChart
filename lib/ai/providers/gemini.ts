@@ -38,19 +38,30 @@ function endpoint(model: string, key: string): string {
   return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 }
 
+type GeminiPart = { text: string } | { inlineData: { mimeType: string; data: string } };
+
 function buildPayload(opts: CompleteOptions): {
   systemInstruction?: { parts: { text: string }[] };
-  contents: { role: string; parts: { text: string }[] }[];
+  contents: { role: string; parts: GeminiPart[] }[];
 } {
   const systemParts: string[] = [];
   if (opts.system) systemParts.push(opts.system);
-  const contents: { role: string; parts: { text: string }[] }[] = [];
+  const contents: { role: string; parts: GeminiPart[] }[] = [];
   for (const m of opts.messages) {
     if (m.role === "system") {
       systemParts.push(m.content);
       continue;
     }
     contents.push({ role: m.role === "assistant" ? "model" : "user", parts: [{ text: m.content }] });
+  }
+  // Adjuntos multimodales → inlineData en el último turno de usuario.
+  if (opts.attachments?.length) {
+    const lastUser = [...contents].reverse().find((c) => c.role === "user");
+    if (lastUser) {
+      for (const a of opts.attachments) {
+        lastUser.parts.push({ inlineData: { mimeType: a.mimeType, data: a.data } });
+      }
+    }
   }
   return {
     systemInstruction: systemParts.length > 0 ? { parts: [{ text: systemParts.join("\n\n") }] } : undefined,

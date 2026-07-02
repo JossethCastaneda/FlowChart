@@ -4,13 +4,15 @@ import { apiError } from "@/lib/api-response";
 import { rateLimit, getClientIP } from "@/lib/ratelimit";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
+import { getWorkspaceAiProvider, hasAnyProvider, normalizeUpstreamError } from "@/lib/ai";
 
 /**
  * POST /api/gridia
  *
- * Server-side proxy for Google Gemini API (GridIA feature).
- * The GEMINI_API_KEY NEVER leaves the server. The client only
- * sends form data; this route builds the prompt and calls Gemini.
+ * GridIA (parrillas de contenido) sobre la capa LLM multi-proveedor: usa la IA
+ * que el workspace contrató en el catálogo (Gemini/GPT/Claude) vía
+ * getWorkspaceAiProvider. Los brandbooks adjuntos viajan como attachments
+ * multimodales. Las API keys NUNCA llegan al cliente.
  *
  * Security:
  * - Requires authenticated session
@@ -40,41 +42,43 @@ const VIDEO_AI_TOOLS = [
   { name: "PixVerse 4.5", credits: 825 },
 ];
 
-export const GRID_SCHEMA = {
-  type: "OBJECT",
+// JSON Schema ESTÁNDAR (minúsculas): la capa lib/ai lo traduce al dialecto de
+// cada proveedor (Gemini responseSchema, OpenAI strict, Anthropic output_config).
+export const GRID_SCHEMA: Record<string, unknown> = {
+  type: "object",
   properties: {
     posts: {
-      type: "ARRAY",
+      type: "array",
       items: {
-        type: "OBJECT",
+        type: "object",
         properties: {
-          dia: { type: "INTEGER", description: "Day of the month for posting." },
-          ideaPrincipal: { type: "STRING" },
+          dia: { type: "integer", description: "Day of the month for posting." },
+          ideaPrincipal: { type: "string" },
           enfoquePublicacion: {
-            type: "STRING",
+            type: "string",
             description: "Inbound Marketing Stage (Attract, Convert, Close, Delight).",
           },
           copyIn: {
-            type: "STRING",
+            type: "string",
             description: "Short, impactful headline. Maximum 5 words. MUST NOT contain the brand name.",
           },
           copyOut: {
-            type: "STRING",
+            type: "string",
             description: "Main body text. Maximum 2 paragraphs. MUST NOT contain the brand name.",
           },
-          explicacionArte: { type: "STRING" },
-          formatoArte: { type: "STRING", enum: ["Imagen", "Video"] },
-          masterPromptMidjourney: { type: "STRING" },
+          explicacionArte: { type: "string" },
+          formatoArte: { type: "string", enum: ["Imagen", "Video"] },
+          masterPromptMidjourney: { type: "string" },
           videoDetails: {
-            type: "OBJECT",
+            type: "object",
             properties: {
-              numEscenas: { type: "INTEGER" },
-              videoAITool: { type: "STRING" },
-              promptsEscenasMidjourney: { type: "ARRAY", items: { type: "STRING" } },
-              promptsVideoAI: { type: "ARRAY", items: { type: "STRING" } },
+              numEscenas: { type: "integer" },
+              videoAITool: { type: "string" },
+              promptsEscenasMidjourney: { type: "array", items: { type: "string" } },
+              promptsVideoAI: { type: "array", items: { type: "string" } },
             },
           },
-          pasoAPaso: { type: "STRING" },
+          pasoAPaso: { type: "string" },
         },
         required: [
           "dia",
@@ -90,17 +94,50 @@ export const GRID_SCHEMA = {
       },
     },
     creditos: {
-      type: "OBJECT",
+      type: "object",
       properties: {
-        min: { type: "INTEGER" },
-        max: { type: "INTEGER" },
-        summary: { type: "STRING" },
+        min: { type: "integer" },
+        max: { type: "integer" },
+        summary: { type: "string" },
       },
       required: ["min", "max", "summary"],
     },
   },
   required: ["posts", "creditos"],
 };
+
+// Validación runtime de la respuesta del LLM (independiente del proveedor).
+// passthrough: los campos extra no rompen; la UI usa los tipados.
+const GridVideoDetailsZod = z
+  .object({
+    numEscenas: z.number().optional(),
+    videoAITool: z.string().optional(),
+    promptsEscenasMidjourney: z.array(z.string()).optional(),
+    promptsVideoAI: z.array(z.string()).optional(),
+  })
+  .passthrough();
+
+const GridResultZod = z
+  .object({
+    posts: z.array(
+      z
+        .object({
+          dia: z.number(),
+          ideaPrincipal: z.string(),
+          enfoquePublicacion: z.string(),
+          copyIn: z.string(),
+          copyOut: z.string(),
+          explicacionArte: z.string(),
+          formatoArte: z.string(),
+          masterPromptMidjourney: z.string(),
+          videoDetails: GridVideoDetailsZod.nullish(),
+          pasoAPaso: z.string(),
+        })
+        .passthrough(),
+    ),
+    creditos: z.object({ min: z.number(), max: z.number(), summary: z.string() }).passthrough(),
+  })
+  .passthrough();
 
 const BrandFileSchema = z.object({
   mimeType: z.string(),
@@ -195,64 +232,36 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError(`Datos inválidos: ${msg}`, "VALIDATION_ERROR", 422);
   }
 
-  // API key — stays server-side only
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    logger.error("[GridIA] GEMINI_API_KEY not configured");
+  if (!hasAnyProvider()) {
+    logger.error("[GridIA] Ningún proveedor LLM configurado");
     return apiError("IA no configurada en el servidor", "SERVER_CONFIG", 500);
   }
 
-  // 6. Build request to Gemini
-  const parts: Array<{ text: string } | { inlineData: { mimeType: string; data: string } }> = [
-    { text: buildGridPrompt(parsed.data) },
-  ];
-  for (const file of parsed.data.brandFiles) {
-    parts.push({ inlineData: { mimeType: file.mimeType, data: file.data } });
-  }
-
-  const geminiBody = {
-    contents: [{ parts }],
-    generationConfig: {
-      temperature: 0.7,
-      responseMimeType: "application/json",
-      responseSchema: GRID_SCHEMA,
-    },
-  };
-
-  let geminiRes: Response;
+  // La IA contratada en el catálogo del workspace genera la parrilla; los
+  // brandbooks van como adjuntos multimodales (Gemini/GPT/Claude los soportan).
   try {
-    geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(geminiBody),
-      }
-    );
+    const { provider, model } = await getWorkspaceAiProvider(ctx.workspaceId);
+    const result = await provider.completeStructured({
+      model,
+      messages: [{ role: "user", content: buildGridPrompt(parsed.data) }],
+      attachments: parsed.data.brandFiles.map((f) => ({ mimeType: f.mimeType, data: f.data })),
+      schemaName: "gridia_content_grid",
+      jsonSchema: GRID_SCHEMA,
+      parse: (raw) => GridResultZod.parse(raw),
+      maxTokens: 16000,
+    });
+    logger.info("[GridIA] Parrilla generada", {
+      workspaceId: ctx.workspaceId,
+      provider: result.provider,
+      model: result.model,
+      posts: result.data.posts.length,
+    });
+    return NextResponse.json(result.data);
   } catch (err) {
-    logger.error("[GridIA] Network error calling Gemini:", err);
-    return apiError("Error de conexión con el servicio de IA", "UPSTREAM_ERROR", 502);
-  }
-
-  if (!geminiRes.ok) {
-    const errData = await geminiRes.json().catch(() => ({}));
-    logger.error("[GridIA] Gemini API error:", errData?.error?.message || geminiRes.status);
-    return apiError("Error del servicio de IA. Intenta de nuevo.", "UPSTREAM_ERROR", 502);
-  }
-
-  const geminiData = await geminiRes.json();
-  const jsonText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text;
-
-  if (!jsonText) {
-    logger.error("[GridIA] Empty response from Gemini");
-    return apiError("Respuesta inválida del servicio de IA", "UPSTREAM_EMPTY", 502);
-  }
-
-  try {
-    const result = JSON.parse(jsonText);
-    return NextResponse.json(result);
-  } catch {
-    logger.error("[GridIA] Failed to parse Gemini JSON response");
-    return apiError("Respuesta de IA con formato inválido", "UPSTREAM_PARSE_ERROR", 502);
+    if (err instanceof z.ZodError) {
+      logger.error("[GridIA] Respuesta del LLM no cumple el schema", { issues: err.issues.slice(0, 5) });
+      return apiError("Respuesta de IA con formato inválido", "UPSTREAM_PARSE_ERROR", 502);
+    }
+    return normalizeUpstreamError(err);
   }
 });

@@ -21,10 +21,28 @@ interface OpenAIResponse {
   error?: { message?: string };
 }
 
-function buildMessages(opts: CompleteOptions): { role: string; content: string }[] {
-  const out: { role: string; content: string }[] = [];
+type OpenAIContentPart =
+  | { type: "text"; text: string }
+  | { type: "image_url"; image_url: { url: string } };
+
+function buildMessages(
+  opts: CompleteOptions,
+): { role: string; content: string | OpenAIContentPart[] }[] {
+  const out: { role: string; content: string | OpenAIContentPart[] }[] = [];
   if (opts.system) out.push({ role: "system", content: opts.system });
   for (const m of opts.messages) out.push({ role: m.role, content: m.content });
+  // Adjuntos multimodales → data-URLs en el último mensaje de usuario.
+  if (opts.attachments?.length) {
+    for (let i = out.length - 1; i >= 0; i--) {
+      if (out[i].role !== "user") continue;
+      const parts: OpenAIContentPart[] = [{ type: "text", text: out[i].content as string }];
+      for (const a of opts.attachments) {
+        parts.push({ type: "image_url", image_url: { url: `data:${a.mimeType};base64,${a.data}` } });
+      }
+      out[i] = { role: "user", content: parts };
+      break;
+    }
+  }
   return out;
 }
 
