@@ -7,7 +7,12 @@ interface CatalogModel {
   id: string;
   label: string;
   note: string;
+  inputPerM: number;
+  outputPerM: number;
+  performance: string;
 }
+
+const fmtUsd = (n: number) => `$${n < 1 ? n.toFixed(2) : n % 1 === 0 ? n : n.toFixed(2)}`;
 interface CatalogProvider {
   id: string;
   label: string;
@@ -42,6 +47,7 @@ export default function AriaCopilotPage() {
   const [saveError, setSaveError] = useState<string | null>(null);
   const [modelChoice, setModelChoice] = useState<Record<string, string>>({});
   const [messages, setMessages] = useState<ChatMsg[]>([]);
+  const [orchestrating, setOrchestrating] = useState(false);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement | null>(null);
@@ -136,6 +142,48 @@ export default function AriaCopilotPage() {
     }
   };
 
+  const runAgents = async () => {
+    if (sending || orchestrating) return;
+    setOrchestrating(true);
+    setMessages((m) => [...m, { role: "user", content: "⚡ Generar plan de acción con los agentes de módulo" }]);
+    try {
+      const res = await fetch("/api/agents/orchestrate", { method: "POST" });
+      const j = await res.json();
+      if (j?.success) {
+        const plan = j.data.plan as {
+          resumenEjecutivo: string;
+          accionesPrioritarias: { modulo: string; accion: string; impacto: string }[];
+          riesgos: string[];
+        };
+        const agentes = (j.data.agentes as { nombre: string; ok: boolean }[]) ?? [];
+        const okCount = agentes.filter((a) => a.ok).length;
+        const text =
+          `${plan.resumenEjecutivo}\n\n` +
+          `Acciones prioritarias:\n${plan.accionesPrioritarias
+            .map((a, i) => `${i + 1}. [${a.modulo}] ${a.accion} — ${a.impacto}`)
+            .join("\n")}` +
+          (plan.riesgos.length ? `\n\nRiesgos:\n${plan.riesgos.map((r) => `• ${r}`).join("\n")}` : "");
+        setMessages((m) => [
+          ...m,
+          {
+            role: "assistant",
+            content: text,
+            meta: `${okCount}/${agentes.length} agentes · ${j.data.provider} · ${j.data.model}`,
+          },
+        ]);
+      } else {
+        setMessages((m) => [
+          ...m,
+          { role: "assistant", content: j?.error ?? "No se pudo generar el plan.", meta: "error" },
+        ]);
+      }
+    } catch {
+      setMessages((m) => [...m, { role: "assistant", content: "Error de conexión.", meta: "error" }]);
+    } finally {
+      setOrchestrating(false);
+    }
+  };
+
   const activeLabel = data?.providers.find((p) => p.id === data.activeProviderId)?.label ?? null;
   const canManage = data?.canManage ?? false;
 
@@ -143,7 +191,7 @@ export default function AriaCopilotPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Aria Copilot"
-        description="Elige la IA que prefieras y conversa con Aria sobre tus modelos predictivos."
+        description="Conversa con Aria sobre tus modelos predictivos. La IA de tu workspace potencia todos los módulos de la plataforma."
       />
 
       {/* ── Catálogo deslizable de IAs ── */}
@@ -247,6 +295,21 @@ export default function AriaCopilotPage() {
                               </option>
                             ))}
                           </select>
+                          {(() => {
+                            const cm = p.models.find((m) => m.id === chosen);
+                            if (!cm) return null;
+                            return (
+                              <div className="mb-3 rounded-md bg-muted/50 border px-3 py-2 text-xs space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-muted-foreground">Costo por 1M tokens</span>
+                                  <span className="font-semibold">
+                                    {fmtUsd(cm.inputPerM)} in · {fmtUsd(cm.outputPerM)} out
+                                  </span>
+                                </div>
+                                <div className="text-muted-foreground">{cm.performance}</div>
+                              </div>
+                            );
+                          })()}
                           <button
                             onClick={() => selectProvider(p)}
                             disabled={savingModel !== null || inUse || !canManage}
@@ -304,9 +367,22 @@ export default function AriaCopilotPage() {
             </div>
           ))}
           {sending && <div className="text-sm text-muted-foreground">Aria está pensando…</div>}
+          {orchestrating && (
+            <div className="text-sm text-muted-foreground">
+              Los agentes de módulo están analizando tu workspace en paralelo…
+            </div>
+          )}
           <div ref={chatEndRef} />
         </div>
         <div className="p-3 border-t flex gap-2">
+          <button
+            onClick={runAgents}
+            disabled={sending || orchestrating}
+            title="Los agentes de cada módulo analizan tu workspace y el orquestador genera un plan priorizado"
+            className="shrink-0 border px-3 rounded-md disabled:opacity-50 flex items-center gap-1 text-sm font-medium hover:bg-muted transition"
+          >
+            <Sparkles className="w-4 h-4" /> Plan con agentes
+          </button>
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}

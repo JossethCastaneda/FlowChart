@@ -29,19 +29,36 @@ interface AnthropicResponse {
   error?: { message?: string };
 }
 
+type AnthropicBlock =
+  | { type: "text"; text: string }
+  | { type: "image"; source: { type: "base64"; media_type: string; data: string } };
+
 function buildPayload(opts: CompleteOptions): {
   system: string | undefined;
-  messages: { role: string; content: string }[];
+  messages: { role: string; content: string | AnthropicBlock[] }[];
 } {
   const systemParts: string[] = [];
   if (opts.system) systemParts.push(opts.system);
-  const messages: { role: string; content: string }[] = [];
+  const messages: { role: string; content: string | AnthropicBlock[] }[] = [];
   for (const m of opts.messages) {
     if (m.role === "system") {
       systemParts.push(m.content);
       continue;
     }
     messages.push({ role: m.role, content: m.content });
+  }
+  // Adjuntos multimodales → bloques image ANTES del texto en el último turno user.
+  if (opts.attachments?.length) {
+    for (let i = messages.length - 1; i >= 0; i--) {
+      if (messages[i].role !== "user") continue;
+      const blocks: AnthropicBlock[] = opts.attachments.map((a) => ({
+        type: "image" as const,
+        source: { type: "base64" as const, media_type: a.mimeType, data: a.data },
+      }));
+      blocks.push({ type: "text", text: messages[i].content as string });
+      messages[i] = { role: "user", content: blocks };
+      break;
+    }
   }
   return { system: systemParts.length > 0 ? systemParts.join("\n\n") : undefined, messages };
 }
