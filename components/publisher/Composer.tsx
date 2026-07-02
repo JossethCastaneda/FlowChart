@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
@@ -171,7 +171,7 @@ export function Composer() {
     const loadPages = async () => {
       setPagesLoading(true);
       try {
-        const res = await fetch("/api/meta/pages");
+        const res = await fetch("/api/meta/pages?module=publisher_facebook");
         const data = await res.json();
         const list: MetaPage[] = data.data || [];
         setPages(list);

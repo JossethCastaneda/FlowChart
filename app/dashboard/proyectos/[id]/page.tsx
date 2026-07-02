@@ -280,7 +280,7 @@ export default function ProjectDashboardPage() {
     fetch("/api/meta/adaccounts").then(r => r.json()).then(d => {
       if (d.data) { const n: Record<string, string> = {}; d.data.forEach((a: any) => { n[a.id] = a.name?.split(" — ")[0] || a.id; }); setAccountNames(n); }
     }).catch(() => {});
-    fetch("/api/meta/pages").then(r => r.json()).then(d => { if (d.data) setMetaPages(d.data); }).catch(() => {});
+    fetch("/api/meta/pages?module=social").then(r => r.json()).then(d => { if (d.data) setMetaPages(d.data); }).catch(() => {});
     fetch("/api/workspace/integrations").then(r => r.json()).then(d => { if (Array.isArray(d.data?.data)) setActiveIntegrations(d.data.data.filter((i: any) => i.connected)); }).catch(() => {});
   }, []);
 

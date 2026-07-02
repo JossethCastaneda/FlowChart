@@ -161,5 +161,15 @@ export async function runScheduledSync(): Promise<SyncOutcome[]> {
     }
   }
 
+  // Ejecutar rollup de métricas en Neon
+  try {
+    const startRange = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000); // 7 días atrás
+    const endRange = new Date(now.getTime() + 1 * 24 * 60 * 60 * 1000);  // 1 día adelante
+    await prisma.$executeRawUnsafe(`SELECT sodare_compute_daily_rollups($1, $2)`, startRange, endRange);
+    console.log("[cron-sync] Rollup de métricas diarias completado en Neon");
+  } catch (e) {
+    console.error("[cron-sync] Fallo ejecutando rollup de métricas en Neon:", e instanceof Error ? e.message : e);
+  }
+
   return outcomes;
 }

@@ -4,7 +4,19 @@ import { logger } from "@/lib/logger";
 
 export async function GET(request: Request) {
   try {
-    const accessToken = await getMetaAccessToken(request as any, "social");
+    const { searchParams } = new URL(request.url);
+    const requestedModule = searchParams.get("module");
+
+    let accessToken = null;
+
+    if (requestedModule) {
+      accessToken = await getMetaAccessToken(request as any, requestedModule);
+    }
+
+    // Fallback cascade si no se pidió módulo o no tiene token específico
+    if (!accessToken) accessToken = await getMetaAccessToken(request as any, "publisher_facebook");
+    if (!accessToken) accessToken = await getMetaAccessToken(request as any, "social");
+    if (!accessToken) accessToken = await getMetaAccessToken(request as any);
 
     if (!accessToken) {
       return NextResponse.json({ data: [], source: "no_session" });

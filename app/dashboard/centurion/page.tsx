@@ -730,7 +730,8 @@ export default function MediaMixPage() {
       // DB — fetch no lanza en 4xx/5xx: hay que verificar la respuesta para no
       // mostrar "Guardado" cuando el servidor rechazó (p.ej. 403 para MEMBER).
       try {
-        const res = await fetch("/api/mmm/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client: clientAtSave, vertical: verticalAtSave, channels, rows }) });
+        const metricsPayload = model ? { rSquared: model.rSquared, nrmse: model.nrmse, weekCount: model.weekCount } : undefined;
+        const res = await fetch("/api/mmm/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client: clientAtSave, vertical: verticalAtSave, channels, rows, metrics: metricsPayload }) });
         const json = await res.json().catch(() => null);
         if (res.ok && json?.success) {
           setSaveState("saved");
@@ -757,7 +758,8 @@ export default function MediaMixPage() {
     const data = await res.json();
     if (!res.ok || data?.success === false) throw new Error(data?.error ?? "Error al conectar con Meta Ads");
     const imported: WeeklyRow[] = data.data?.weeks ?? [];
-    if (!imported.length) throw new Error("No se encontraron semanas con gasto. Verifica que hay una cuenta Meta Ads conectada.");
+    const dataSource = data.data?.source ?? "api";
+    if (!imported.length) throw new Error(dataSource === "cache" ? "Cache vacío. Espera al próximo sync automático o reconecta Meta Ads." : "No se encontraron semanas con gasto. Verifica que hay una cuenta Meta Ads conectada.");
     // Merge: conservar outcome existente si la semana ya existe
     const existingByWeek = Object.fromEntries(rows.map(r => [r.week, r]));
     const merged = imported.map((r: WeeklyRow) => ({

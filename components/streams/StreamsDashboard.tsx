@@ -204,7 +204,7 @@ export function StreamsDashboard() {
       .catch(() => {})
       .finally(() => setLoadingBoards(false));
 
-    fetch("/api/meta/pages")
+    fetch("/api/meta/pages?module=streams")
       .then((r) => r.json())
       .then((d) => {
         if (d.data) setAvailablePages(d.data);

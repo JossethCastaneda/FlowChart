@@ -271,7 +271,7 @@ function ProyectosContent() {
 
   const fetchMetaPages = useCallback(async () => {
     try {
-      const res = await fetch("/api/meta/pages");
+      const res = await fetch("/api/meta/pages?module=social");
       if (res.ok) {
         const json = await res.json();
         if (json.data) setMetaPages(json.data);

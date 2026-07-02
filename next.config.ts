@@ -2,6 +2,9 @@ import { withWorkflow } from "workflow/next";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Configured for optimal Docker usage
+  output: "standalone",
+  
   // strict type checking is now enforced on build.
   images: {
     remotePatterns: [

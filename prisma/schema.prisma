@@ -63,6 +63,7 @@ model User {
   mediaAssets   MediaAsset[]
   drafts        DraftPost[]
   auditLogs     AuditLog[]
+  reports       Report[]
 }
 
 model VerificationToken {
@@ -105,6 +106,8 @@ model Workspace {
   objectives          Objective[]
   ariaDatasets        AriaDataset[]
   centurionModels     CenturionModel[]
+  mmmWeeklySpend      MmmWeeklySpend[]
+  reports             Report[]
 }
 
 // ------------------------------------------------------
@@ -214,6 +217,7 @@ model Project {
   /// resultados se segmenta por cada una de forma independiente.
   crmIntegrationIds String[]        @default([])
   ariaDatasets      AriaDataset[]
+  reports           Report[]
 }
 
 // Cache de resolución para webhooks de Meta: externalId (pageId / igAccountId /
@@ -1512,17 +1516,68 @@ model AriaPrediction {
 // CENTURION (Marketing Mix Modeling)
 // ------------------------------------------------------
 model CenturionModel {
-  id          String   @id @default(cuid())
-  workspaceId String
-  clientName  String
+  id           String   @id @default(cuid())
+  workspaceId  String
+  clientName   String
   verticalName String?
-  engine      String   @default("FastMMM") // "FastMMM" o "BayesMMM"
-  config      Json     // Guarda canales, rows, coeficientes y NRMSE
-  metrics     Json?    // NRMSE, R2, wMAPE
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  engine       String   @default("FastMMM") // "FastMMM" o "BayesMMM"
+  config       Json     // Guarda canales, rows, coeficientes y NRMSE
+  metrics      Json?    // NRMSE, R2, wMAPE
+  lastIngestAt DateTime? // Última ingesta automática exitosa
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
   
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   @@index([workspaceId, clientName])
 }
 
+// ------------------------------------------------------
+// MMM — Spend semanal pre-ingestado (auto-sync)
+// ------------------------------------------------------
+// Cada registro es el spend de UN canal en UNA semana ISO para UN cliente.
+// Poblado automáticamente por el cron /api/cron/mmm-ingest.
+// El endpoint /api/mmm/spend lee de aquí en vez de llamar a Graph API on-demand.
+model MmmWeeklySpend {
+  id          String   @id @default(cuid())
+  workspaceId String
+  clientName  String   // Project.client scope
+  week        String   // ISO week: "2026-W26"
+  channel     String   // "meta" | "google" | "tiktok" | etc.
+  spend       Float    // Spend en moneda de la cuenta
+  outcome     Float?   // Conversión auto-importada (purchases/leads value)
+  source      String   @default("auto") // "auto" | "manual"
+  syncedAt    DateTime @default(now())
+
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, clientName, week, channel])
+  @@index([workspaceId, clientName])
+}
+
+// ------------------------------------------------------
+// REPORTES (White-Label Reports)
+// ------------------------------------------------------
+model Report {
+  id          String   @id @default(cuid())
+  workspaceId String
+  projectId   String
+  title       String
+  slug        String   @unique  // URL pública: /reportes/{slug}
+  dateFrom    DateTime
+  dateTo      DateTime
+  data        Json     // Snapshot inmutable: KPIs, timeSeries, topCreatives, pacing
+  settings    Json?    // White-label: logo, colors, footer text
+  status      String   @default("active") // active, expired, archived
+  expiresAt   DateTime?
+  createdById String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  createdBy User?     @relation(fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([slug])
+}

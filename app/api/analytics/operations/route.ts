@@ -24,21 +24,21 @@ export const GET = withWorkspace(async (req, ctx) => {
   const dataset = await getAnalyticsDataset(ctx.workspaceId, filters, scopeRes.scope);
   const summary = operationsSummaryFromAccumulators(dataset.acc);
 
-  // Desglose por cola (live, ligero): solo campos de cola/espera.
-  const queueRows = await prisma.normalizedConversation.findMany({
+  // Desglose por cola (live, offloaded a Neon): cuenta y promedio directo en BD.
+  const queueGroups = await prisma.normalizedConversation.groupBy({
+    by: ["queueName"],
     where: { ...buildConversationWhere(ctx.workspaceId, filters, scopeRes.scope), queueName: { not: null } },
-    select: { queueName: true, waitingTimeSeconds: true },
+    _count: { queueName: true },
+    _avg: { waitingTimeSeconds: true },
   });
-  const byQueue = new Map<string, { count: number; waits: number[] }>();
-  for (const r of queueRows) {
-    if (!r.queueName) continue;
-    const q = byQueue.get(r.queueName) || { count: 0, waits: [] };
-    q.count += 1;
-    if (typeof r.waitingTimeSeconds === "number") q.waits.push(r.waitingTimeSeconds);
-    byQueue.set(r.queueName, q);
-  }
-  const topQueuesByWait = [...byQueue.entries()]
-    .map(([name, q]) => ({ name, count: q.count, avgWaitSeconds: avg(q.waits) }))
+
+  const topQueuesByWait = queueGroups
+    .filter((g) => g.queueName !== null)
+    .map((g) => ({
+      name: g.queueName as string,
+      count: g._count.queueName,
+      avgWaitSeconds: g._avg.waitingTimeSeconds || 0,
+    }))
     .sort((a, b) => b.avgWaitSeconds - a.avgWaitSeconds)
     .slice(0, 10);
 

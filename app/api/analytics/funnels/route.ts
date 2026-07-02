@@ -5,7 +5,6 @@ import { z } from "zod";
 import { validateBody } from "@/lib/validate";
 import { parseFilters, buildConversationWhere } from "@/lib/analytics/query";
 import { scopeFromRequest } from "@/lib/analytics/project-scope.server";
-import { aggregateFunnel } from "@/lib/analytics/kpis/aggregations";
 import { evaluateConfiguredFunnel, type FunnelStepDef } from "@/lib/analytics/funnels/evaluate";
 import { isWorkspaceAdmin } from "@/lib/analytics/rbac";
 import { writeAuditLog } from "@/lib/analytics/audit";
@@ -77,10 +76,23 @@ export const GET = withWorkspace(async (req, ctx) => {
   }
 
   // Fallback canónico.
-  const conversations = await prisma.normalizedConversation.findMany({ where });
+  const [total, engaged, noFallback, resolved] = await Promise.all([
+    prisma.normalizedConversation.count({ where }),
+    prisma.normalizedConversation.count({ where: { ...where, totalUserMessages: { gt: 0 } } }),
+    prisma.normalizedConversation.count({ where: { ...where, totalFallbacks: 0 } }),
+    prisma.normalizedConversation.count({ where: { ...where, outcome: "resolved" } }),
+  ]);
+
+  const steps = [
+    { name: "Iniciaron", count: total, conversionFromPrev: 100 },
+    { name: "Interactuaron", count: engaged, conversionFromPrev: total > 0 ? (engaged / total) * 100 : 0 },
+    { name: "Entendidos", count: noFallback, conversionFromPrev: engaged > 0 ? (noFallback / engaged) * 100 : 0 },
+    { name: "Resueltos", count: resolved, conversionFromPrev: noFallback > 0 ? (resolved / noFallback) * 100 : 0 },
+  ];
+
   return apiSuccess({
     mode: "canonical",
-    steps: aggregateFunnel(conversations),
+    steps,
     available: available.map((f) => ({ id: f.id, name: f.name, steps: f.steps.length })),
   });
 });

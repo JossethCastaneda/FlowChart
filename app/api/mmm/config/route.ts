@@ -49,11 +49,19 @@ const RowSchema = z
   })
   .passthrough();
 
+const MetricsSchema = z.object({
+  rSquared: z.number().min(0).max(1).optional(),
+  nrmse: z.number().min(0).optional(),
+  weekCount: z.number().int().min(0).optional(),
+  calibratedAt: z.string().max(40).optional(),
+}).optional();
+
 const PutConfigSchema = z.object({
   client: z.string().trim().min(1, "'client' es requerido").max(150),
   vertical: z.string().max(150).optional(),
   channels: z.array(ChannelSchema).max(40, "Máximo 40 canales"),
   rows: z.array(RowSchema).max(530, "Máximo 530 semanas (~10 años)"),
+  metrics: MetricsSchema,
 });
 
 interface MmmStore {
@@ -90,7 +98,11 @@ export const GET = withWorkspace(async (req, ctx) => {
   });
 
   if (model) {
-    return apiSuccess({ config: model.config });
+    return apiSuccess({
+      config: model.config,
+      metrics: model.metrics,
+      lastIngestAt: model.lastIngestAt?.toISOString() ?? null,
+    });
   }
 
   // Fallback a WorkspaceSettings para legacy
@@ -111,7 +123,7 @@ export const PUT = withWorkspace(async (req, ctx) => {
 
   const result = await validateBody(req, PutConfigSchema);
   if (!result.ok) return result.response;
-  const { client, vertical, channels, rows } = result.data;
+  const { client, vertical, channels, rows, metrics } = result.data;
 
   const savedConfig: MmmSavedConfig = {
     channels: channels as MmmSavedConfig["channels"],
@@ -122,6 +134,17 @@ export const PUT = withWorkspace(async (req, ctx) => {
     ...(vertical ? { vertical } : {}),
   };
 
+  // Build metrics JSON if provided by the client
+  const metricsJson = metrics
+    ? {
+        rSquared: metrics.rSquared,
+        nrmse: metrics.nrmse,
+        weekCount: metrics.weekCount,
+        calibratedAt: metrics.calibratedAt,
+        savedAt: new Date().toISOString(),
+      }
+    : undefined;
+
   const existingModel = await prisma.centurionModel.findFirst({
     where: { workspaceId: ctx.workspaceId, clientName: client }
   });
@@ -131,6 +154,7 @@ export const PUT = withWorkspace(async (req, ctx) => {
       where: { id: existingModel.id },
       data: {
         config: savedConfig as any,
+        ...(metricsJson ? { metrics: metricsJson as any } : {}),
         updatedAt: new Date()
       }
     });
@@ -141,7 +165,8 @@ export const PUT = withWorkspace(async (req, ctx) => {
         clientName: client,
         verticalName: vertical ?? null,
         engine: "FastMMM",
-        config: savedConfig as any
+        config: savedConfig as any,
+        ...(metricsJson ? { metrics: metricsJson as any } : {}),
       }
     });
   }

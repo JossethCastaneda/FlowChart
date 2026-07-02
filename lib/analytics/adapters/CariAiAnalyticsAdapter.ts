@@ -178,21 +178,39 @@ export class CariAiAnalyticsAdapter implements AnalyticsProviderAdapter {
       const chunkSize = 100;
       for (let i = 0; i < toUpsert.length; i += chunkSize) {
         const chunk = toUpsert.slice(i, i + chunkSize);
-        await Promise.all(
-          chunk.map(async (raw) => {
-            try {
-              const normalized = this.normalizeRawData(raw, "conversations") as NormalizedConversationInput;
-              await prisma.normalizedConversation.upsert({
-                where: { providerConversationId: normalized.providerConversationId },
-                create: { workspaceId, provider: "cari_ai", ...normalized },
-                update: { ...normalized },
-              });
-              recordsInserted++;
-            } catch {
-              recordsFailed++;
-            }
-          })
-        );
+        const normalizedItems: NormalizedConversationInput[] = [];
+        for (const raw of chunk) {
+          try {
+            normalizedItems.push(this.normalizeRawData(raw, "conversations") as NormalizedConversationInput);
+          } catch {
+            recordsFailed++;
+          }
+        }
+
+        const buildUpsert = (normalized: NormalizedConversationInput) => 
+          prisma.normalizedConversation.upsert({
+            where: { providerConversationId: normalized.providerConversationId },
+            create: { workspaceId, provider: "cari_ai", ...normalized },
+            update: { ...normalized },
+          });
+
+        try {
+          // Fast path: bulk upsert in a single transaction
+          await prisma.$transaction(normalizedItems.map(buildUpsert));
+          recordsInserted += normalizedItems.length;
+        } catch {
+          // Fallback path: sequential to isolate failures
+          await Promise.all(
+            normalizedItems.map(async (normalized) => {
+              try {
+                await buildUpsert(normalized);
+                recordsInserted++;
+              } catch {
+                recordsFailed++;
+              }
+            })
+          );
+        }
       }
 
       // 2. indicadoresAtencion → AnalyticsDailyMetric (claves PROVIDER-NATIVE cari_*).
@@ -251,22 +269,24 @@ export class CariAiAnalyticsAdapter implements AnalyticsProviderAdapter {
           seen.add(phrase);
           return true;
         });
-        for (let i = 0; i < toProcess.length; i += chunkSize) {
-          const chunk = toProcess.slice(i, i + chunkSize);
-          await Promise.all(
-            chunk.map(async (f) => {
-              const phrase = String(f.frase_sin_respuesta || "").trim().slice(0, 100);
-              const existing = await prisma.dataQualityIssue.findFirst({
-                where: { workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", details: phrase, resolved: false },
-                select: { id: true },
-              });
-              if (!existing) {
-                await prisma.dataQualityIssue.create({
-                  data: { workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", severity: "warning", details: phrase },
-                });
-              }
-            })
-          );
+        
+        if (toProcess.length > 0) {
+          const phrases = toProcess.map(f => String(f.frase_sin_respuesta || "").trim().slice(0, 100));
+          const existingIssues = await prisma.dataQualityIssue.findMany({
+            where: { workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", details: { in: phrases }, resolved: false },
+            select: { details: true }
+          });
+          const existingSet = new Set(existingIssues.map(e => e.details));
+          
+          const newPhrases = phrases.filter(p => !existingSet.has(p));
+          if (newPhrases.length > 0) {
+            await prisma.dataQualityIssue.createMany({
+              data: newPhrases.map(phrase => ({
+                workspaceId, provider: "cari_ai", issueType: "unanswered_phrase", severity: "warning", details: phrase
+              })),
+              skipDuplicates: true
+            });
+          }
         }
       }
 

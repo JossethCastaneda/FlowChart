@@ -83,6 +83,7 @@ export const MODULES: ModuleDef[] = [
       { label: "Predictive Studio", route: "/studio" },
       { label: "Scores",           route: "/scores" },
     ] },
+  { key: "reportes",    label: "Reportes",     code: "Bitácora",  route: "/dashboard/reportes",    color: "#f43f5e",             icon: "file-text",   tagline: "Informes white-label para el cliente", group: "crecimiento" },
 
   // ── AUTOMATIZACIÓN — los bots (Métricas es pestaña, no ítem de menú) ──
   { key: "chatbots",    label: "Chatbots", code: "Piloto", route: "/dashboard/botmaker", color: "var(--mod-chatbots)", icon: "bot", tagline: "Tu copiloto automático", group: "automatizacion",
@@ -138,7 +139,6 @@ export interface FutureModuleDef extends ModuleDef {
 export const FUTURE_MODULES: FutureModuleDef[] = [
   // ── Fase 1 · cerrar la brecha de agencia ──
   { key: "aprobaciones", label: "Aprobaciones", code: "Visto bueno", route: "/dashboard/aprobaciones", color: "#10b981", icon: "check-check",  tagline: "Revisión y firma antes de publicar", group: "contenido",   status: "planned", phase: 1 },
-  { key: "reportes",     label: "Reportes",     code: "Bitácora",    route: "/dashboard/reportes",     color: "#f43f5e", icon: "file-text",    tagline: "Informes white-label para el cliente", group: "crecimiento", status: "planned", phase: 1 },
   { key: "biblioteca",   label: "Biblioteca",   code: "Bóveda",      route: "/dashboard/publisher/biblioteca", color: "#f59e0b", icon: "folder-open", tagline: "Activos de marca centralizados", group: "contenido", status: "planned", phase: 1, tabOf: "publicacion" },
 
   // ── Fase 2 · inteligencia & alcance ──

@@ -1,20 +1,25 @@
 /**
  * GET /api/mmm/spend?weeks=12&client=<nombre>
  *
- * Importa gasto semanal real desde las integraciones conectadas al workspace:
- * - Meta Ads (Graph API): agrega spend por semana ISO
- * - Google Ads, TikTok: stubs (no implementados aun, devuelven connected: false)
+ * Importa gasto semanal real desde las fuentes de datos disponibles:
+ *
+ * 1. **MmmWeeklySpend** (tabla pre-ingestada por cron mmm-ingest) — primera opción
+ * 2. **MetaAdsCache** (sincronizado por sync-ads diario) — fallback
+ * 3. **Graph API on-demand** — último recurso si no hay cache
+ *
+ * También integra Google Ads (si conectado) y auto-importa outcomes
+ * desde las conversiones de Meta (actions → offsite_conversion.fb_pixel_purchase).
  *
  * Scope por cliente: si se pasa `client`, las cuentas publicitarias se resuelven
  * desde los proyectos de ese cliente (Channel.config.adAccounts del canal Meta).
- * Sin `client`, se agregan las cuentas de todos los proyectos del workspace.
  *
  * Response:
  * {
  *   weeks: WeeklyRow[],
  *   connected: { meta: boolean, google: boolean, tiktok: boolean }
  *   totalImported: number,
- *   accounts: number
+ *   accounts: number,
+ *   source: "cache" | "api"
  * }
  */
 
@@ -23,40 +28,17 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { decryptToken } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
+import {
+  isoWeek,
+  weekLabel,
+  metaAdAccountsFromChannels,
+  extractMetaSpendFromCache,
+  extractGoogleSpend,
+} from "@/lib/mmm/ingest";
 
 interface MetaInsightEdge {
   date_start: string;
   spend: string;
-}
-
-/** Semana ISO 8601 real (maneja los bordes de año: la W01 puede caer en dic). */
-function isoWeek(dateStr: string): string {
-  const d = new Date(dateStr + "T12:00:00Z");
-  // Jueves de la misma semana determina el año ISO
-  d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-  const weekNum = Math.ceil(((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
-  return `${d.getUTCFullYear()}-W${String(weekNum).padStart(2, "0")}`;
-}
-
-function weekLabel(week: string): string {
-  const [year, wPart] = week.split("-W");
-  return `Sem ${wPart} '${year.slice(2)}`;
-}
-
-/** Extrae los ad accounts Meta configurados en los canales de los proyectos. */
-function metaAdAccountsFromChannels(
-  channels: { config: unknown }[]
-): string[] {
-  const ids = new Set<string>();
-  for (const ch of channels) {
-    const cfg = ch.config as { platformId?: string; adAccounts?: unknown } | null;
-    if (!cfg || cfg.platformId !== "meta" || !Array.isArray(cfg.adAccounts)) continue;
-    for (const acc of cfg.adAccounts) {
-      if (typeof acc === "string" && acc.trim()) ids.add(acc.trim().replace(/^act_/, ""));
-    }
-  }
-  return Array.from(ids);
 }
 
 export const GET = withWorkspace(async (req, ctx) => {
@@ -64,7 +46,7 @@ export const GET = withWorkspace(async (req, ctx) => {
   const capped = Math.min(Math.max(weeks, 1), 52);
   const client = req.nextUrl.searchParams.get("client")?.trim() || null;
 
-  // ── Token Meta: integración del módulo Ads (fallback al genérico "meta") ──
+  // ── Check connections ──
   const metaIntegration =
     (await prisma.integration.findFirst({
       where: { workspaceId: ctx.workspaceId, provider: "meta_ads", connected: true },
@@ -73,20 +55,126 @@ export const GET = withWorkspace(async (req, ctx) => {
       where: { workspaceId: ctx.workspaceId, provider: "meta", connected: true },
     }));
 
+  const googleIntegration = await prisma.integration.findFirst({
+    where: { workspaceId: ctx.workspaceId, provider: "google", connected: true },
+  });
+
   const connected = {
     meta: !!metaIntegration,
-    google: false,
+    google: !!googleIntegration,
     tiktok: false,
   };
 
-  if (!metaIntegration) {
+  if (!metaIntegration && !googleIntegration) {
     return apiSuccess({
       weeks: [],
       connected,
       totalImported: 0,
       accounts: 0,
-      message: "No hay cuentas Meta Ads conectadas en este workspace.",
+      source: "none",
+      message: "No hay cuentas publicitarias conectadas en este workspace.",
     });
+  }
+
+  // ── Resolve ad accounts ──
+  const projects = await prisma.project.findMany({
+    where: { workspaceId: ctx.workspaceId, ...(client ? { client } : {}) },
+    select: { channels: { select: { config: true } } },
+  });
+  const accountIds = metaAdAccountsFromChannels(projects.flatMap((p) => p.channels));
+
+  // ── Strategy 1: Read from MmmWeeklySpend (pre-ingested by cron) ──
+  if (client) {
+    const cachedSpend = await prisma.mmmWeeklySpend.findMany({
+      where: { workspaceId: ctx.workspaceId, clientName: client },
+      orderBy: { week: "asc" },
+    });
+
+    if (cachedSpend.length > 0) {
+      // Group by week
+      const weekMap = new Map<string, { spend: Record<string, number>; outcome: number }>();
+      for (const row of cachedSpend) {
+        const existing = weekMap.get(row.week) || { spend: {}, outcome: 0 };
+        existing.spend[row.channel] = row.spend;
+        if (row.outcome != null && row.outcome > 0) {
+          existing.outcome += row.outcome;
+        }
+        weekMap.set(row.week, existing);
+      }
+
+      const weekRows = Array.from(weekMap.entries())
+        .sort(([a], [b]) => a.localeCompare(b))
+        .slice(-capped)
+        .map(([week, data]) => ({
+          week,
+          label: weekLabel(week),
+          spend: data.spend,
+          outcome: data.outcome,
+          isOutlier: false,
+          note: "",
+          source: "api" as const,
+        }));
+
+      return apiSuccess({
+        weeks: weekRows,
+        connected,
+        totalImported: weekRows.length,
+        accounts: accountIds.length,
+        source: "cache",
+      });
+    }
+  }
+
+  // ── Strategy 2: Read from MetaAdsCache (synced daily by sync-ads) ──
+  if (accountIds.length > 0) {
+    try {
+      const metaWeeks = await extractMetaSpendFromCache(accountIds, capped);
+
+      if (metaWeeks.length > 0) {
+        // Also try Google
+        const googleWeeks = await extractGoogleSpend(ctx.workspaceId, capped);
+        const googleByWeek = new Map(googleWeeks.map((g) => [g.week, g]));
+
+        const weekRows = metaWeeks.map((row) => {
+          const googleData = googleByWeek.get(row.week);
+          return {
+            week: row.week,
+            label: weekLabel(row.week),
+            spend: {
+              meta: row.spend,
+              ...(googleData ? { google: googleData.spend } : {}),
+            },
+            outcome: row.outcome || 0,
+            isOutlier: false,
+            note: "",
+            source: "api" as const,
+          };
+        });
+
+        return apiSuccess({
+          weeks: weekRows,
+          connected,
+          totalImported: weekRows.length,
+          accounts: accountIds.length,
+          source: "cache",
+        });
+      }
+    } catch (cacheErr) {
+      logger.warn("[MMM SPEND] Cache read failed, falling back to Graph API", {
+        error: cacheErr instanceof Error ? cacheErr.message : String(cacheErr),
+      });
+    }
+  }
+
+  // ── Strategy 3: Fallback to Graph API on-demand (original behavior) ──
+  if (!metaIntegration || accountIds.length === 0) {
+    return apiError(
+      client
+        ? `El cliente "${client}" no tiene cuentas Meta Ads configuradas.`
+        : "Ningún proyecto tiene cuentas Meta Ads configuradas.",
+      "NO_AD_ACCOUNTS",
+      400
+    );
   }
 
   let accessToken = "";
@@ -97,27 +185,13 @@ export const GET = withWorkspace(async (req, ctx) => {
     return apiError("No se pudo leer las credenciales de Meta Ads", "CREDENTIAL_ERROR", 500);
   }
   if (!accessToken) {
-    return apiError("Credenciales de Meta Ads incompletas. Reconecta el módulo Ads en Integraciones.", "CREDENTIAL_ERROR", 400);
-  }
-
-  // ── Ad accounts del cliente (o del workspace completo si no hay client) ──
-  const projects = await prisma.project.findMany({
-    where: { workspaceId: ctx.workspaceId, ...(client ? { client } : {}) },
-    select: { channels: { select: { config: true } } },
-  });
-  const accountIds = metaAdAccountsFromChannels(projects.flatMap((p) => p.channels));
-
-  if (accountIds.length === 0) {
     return apiError(
-      client
-        ? `El cliente "${client}" no tiene cuentas Meta Ads configuradas. Edita su proyecto y agrega las cuentas publicitarias en el canal Meta.`
-        : "Ningún proyecto tiene cuentas Meta Ads configuradas en sus canales.",
-      "NO_AD_ACCOUNTS",
+      "Credenciales de Meta Ads incompletas. Reconecta el módulo Ads en Integraciones.",
+      "CREDENTIAL_ERROR",
       400
     );
   }
 
-  // ── Rango de fechas ──
   const until = new Date();
   const since = new Date();
   since.setDate(since.getDate() - capped * 7);
@@ -125,7 +199,6 @@ export const GET = withWorkspace(async (req, ctx) => {
   const untilStr = until.toISOString().slice(0, 10);
   const timeRange = encodeURIComponent(JSON.stringify({ since: sinceStr, until: untilStr }));
 
-  // ── Insights por cuenta (paralelo), agregado por semana ISO ──
   const byWeek = new Map<string, number>();
   const results = await Promise.allSettled(
     accountIds.map(async (accountId) => {
@@ -145,7 +218,9 @@ export const GET = withWorkspace(async (req, ctx) => {
   const failures: string[] = [];
   results.forEach((r, i) => {
     if (r.status === "rejected") {
-      failures.push(`act_${accountIds[i]}: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`);
+      failures.push(
+        `act_${accountIds[i]}: ${r.reason instanceof Error ? r.reason.message : String(r.reason)}`
+      );
       return;
     }
     for (const row of r.value) {
@@ -155,11 +230,19 @@ export const GET = withWorkspace(async (req, ctx) => {
   });
 
   if (failures.length === accountIds.length) {
-    logger.error("[MMM SPEND] Todas las cuentas fallaron", { workspaceId: ctx.workspaceId, client, failures });
+    logger.error("[MMM SPEND] Todas las cuentas fallaron", {
+      workspaceId: ctx.workspaceId,
+      client,
+      failures,
+    });
     return apiError(`Meta Graph API error: ${failures[0]}`, "META_API_ERROR", 502);
   }
   if (failures.length > 0) {
-    logger.warn("[MMM SPEND] Algunas cuentas fallaron", { workspaceId: ctx.workspaceId, client, failures });
+    logger.warn("[MMM SPEND] Algunas cuentas fallaron", {
+      workspaceId: ctx.workspaceId,
+      client,
+      failures,
+    });
   }
 
   const weekRows = Array.from(byWeek.entries())
@@ -168,7 +251,7 @@ export const GET = withWorkspace(async (req, ctx) => {
       week,
       label: weekLabel(week),
       spend: { meta: parseFloat(spend.toFixed(2)) },
-      outcome: 0, // el usuario llena el KPI (ventas/leads)
+      outcome: 0,
       isOutlier: false,
       note: "",
       source: "api" as const,
@@ -179,6 +262,7 @@ export const GET = withWorkspace(async (req, ctx) => {
     connected,
     totalImported: weekRows.length,
     accounts: accountIds.length,
+    source: "api",
     ...(failures.length > 0 ? { partialFailures: failures.length } : {}),
   });
 });

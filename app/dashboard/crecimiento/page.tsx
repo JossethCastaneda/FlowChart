@@ -91,15 +91,6 @@ export default function CrecimientoInsights() {
               No tienes modelos entrenados. Dirígete a <strong style={{ color: "var(--foreground)" }}>Data Hub</strong> para subir tu primer CSV con leads históricos, o crea un <strong style={{ color: "var(--foreground)" }}>Proyecto nuevo</strong> para auto-generar modelos.
             </p>
           </div>
-          <Link href="/dashboard/crecimiento/copilot" style={{
-            display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 22px",
-            background: "var(--purple-dim)", border: "1px solid rgba(123,97,255,0.3)",
-            color: "var(--purple)", borderRadius: 10, fontWeight: 700, fontSize: 12,
-            letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none",
-            transition: "all 0.15s",
-          }}>
-            <Sparkles style={{ width: 14, height: 14 }} /> Elegir tu IA (GPT, Gemini o Claude)
-          </Link>
         </div>
       ) : (
         /* Active State */
@@ -126,14 +117,6 @@ export default function CrecimientoInsights() {
               textDecoration: "none",
             }}>
               Predictive Studio
-            </Link>
-            <Link href="/dashboard/crecimiento/copilot" style={{
-              display: "inline-flex", alignItems: "center", gap: 6,
-              padding: "9px 20px", background: "transparent", border: "1px solid var(--border)",
-              color: "var(--text-secondary)", borderRadius: 10, fontWeight: 600, fontSize: 12,
-              textDecoration: "none",
-            }}>
-              <Sparkles style={{ width: 13, height: 13 }} /> Elegir IA y conversar
             </Link>
           </div>
 

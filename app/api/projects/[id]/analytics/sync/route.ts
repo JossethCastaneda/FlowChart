@@ -232,6 +232,15 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     },
   });
 
+  // Ejecutar rollup de métricas en Neon
+  try {
+    const rollupStart = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
+    const rollupEnd = new Date(endDate.getTime() + 24 * 60 * 60 * 1000);
+    await prisma.$executeRawUnsafe(`SELECT sodare_compute_daily_rollups($1, $2)`, rollupStart, rollupEnd);
+  } catch (err) {
+    console.error("[Project Sync] Fallo ejecutando rollup en Neon:", err);
+  }
+
   return apiSuccess({ projectId, jobs: results });
 });
 

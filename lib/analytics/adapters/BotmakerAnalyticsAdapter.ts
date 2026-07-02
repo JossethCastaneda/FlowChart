@@ -279,21 +279,39 @@ export class BotmakerAnalyticsAdapter implements AnalyticsProviderAdapter {
       const chunkSize = 100;
       for (let i = 0; i < toUpsert.length; i += chunkSize) {
         const chunk = toUpsert.slice(i, i + chunkSize);
-        await Promise.all(
-          chunk.map(async (s) => {
-            try {
-              const normalized = this.mapSession(s);
-              await prisma.normalizedConversation.upsert({
-                where: { providerConversationId: normalized.providerConversationId },
-                create: { workspaceId, provider: "botmaker", ...normalized },
-                update: { ...normalized },
-              });
-              recordsInserted++;
-            } catch {
-              recordsFailed++;
-            }
-          })
-        );
+        const normalizedItems: NormalizedConversationInput[] = [];
+        for (const s of chunk) {
+          try {
+            normalizedItems.push(this.mapSession(s));
+          } catch {
+            recordsFailed++;
+          }
+        }
+
+        const buildUpsert = (normalized: NormalizedConversationInput) => 
+          prisma.normalizedConversation.upsert({
+            where: { providerConversationId: normalized.providerConversationId },
+            create: { workspaceId, provider: "botmaker", ...normalized },
+            update: { ...normalized },
+          });
+
+        try {
+          // Fast path: bulk upsert in a single transaction
+          await prisma.$transaction(normalizedItems.map(buildUpsert));
+          recordsInserted += normalizedItems.length;
+        } catch {
+          // Fallback path: sequential to isolate failures
+          await Promise.all(
+            normalizedItems.map(async (normalized) => {
+              try {
+                await buildUpsert(normalized);
+                recordsInserted++;
+              } catch {
+                recordsFailed++;
+              }
+            })
+          );
+        }
       }
       return { success: true, recordsInserted, recordsFailed };
     } catch (error) {
@@ -361,30 +379,48 @@ export class BotmakerAnalyticsAdapter implements AnalyticsProviderAdapter {
         const chunkSize = 100;
         for (let i = 0; i < msgs.length; i += chunkSize) {
           const chunk = msgs.slice(i, i + chunkSize);
-          await Promise.all(
-            chunk.map(async (m, chunkIndex) => {
-              const absoluteIndex = i + chunkIndex;
-              try {
-                // /sessions no trae id de mensaje → id determinístico (idempotente) por sesión+índice.
-                const normalized: NormalizedMessageInput = {
-                  providerMessageId: `${sessionId}::${absoluteIndex}`,
-                  conversationId: sessionId,
-                  senderType: m.from === "user" ? "user" : m.from === "agent" ? "agent" : "bot",
-                  messageType: m.content?.type || "text",
-                  // TODO: intent / isFallback no vienen en /sessions (requieren endpoint NLU).
-                  sentAt: toMs(m.creationTime) != null ? new Date(toMs(m.creationTime) as number) : new Date(),
-                };
-                await prisma.normalizedMessage.upsert({
-                  where: { providerMessageId: normalized.providerMessageId },
-                  create: { workspaceId, provider: "botmaker", ...normalized },
-                  update: { ...normalized },
-                });
-                recordsInserted++;
-              } catch {
-                recordsFailed++;
-              }
-            })
-          );
+          const normalizedItems: NormalizedMessageInput[] = [];
+          
+          for (let chunkIndex = 0; chunkIndex < chunk.length; chunkIndex++) {
+            const m = chunk[chunkIndex];
+            const absoluteIndex = i + chunkIndex;
+            try {
+              normalizedItems.push({
+                providerMessageId: `${sessionId}::${absoluteIndex}`,
+                conversationId: sessionId,
+                senderType: m.from === "user" ? "user" : m.from === "agent" ? "agent" : "bot",
+                messageType: m.content?.type || "text",
+                sentAt: toMs(m.creationTime) != null ? new Date(toMs(m.creationTime) as number) : new Date(),
+              });
+            } catch {
+              recordsFailed++;
+            }
+          }
+
+          const buildUpsert = (normalized: NormalizedMessageInput) =>
+            prisma.normalizedMessage.upsert({
+              where: { providerMessageId: normalized.providerMessageId },
+              create: { workspaceId, provider: "botmaker", ...normalized },
+              update: { ...normalized },
+            });
+
+          try {
+            // Fast path: bulk upsert in a single transaction
+            await prisma.$transaction(normalizedItems.map(buildUpsert));
+            recordsInserted += normalizedItems.length;
+          } catch {
+            // Fallback path: sequential to isolate failures
+            await Promise.all(
+              normalizedItems.map(async (normalized) => {
+                try {
+                  await buildUpsert(normalized);
+                  recordsInserted++;
+                } catch {
+                  recordsFailed++;
+                }
+              })
+            );
+          }
         }
       }
       return { success: true, recordsInserted, recordsFailed };

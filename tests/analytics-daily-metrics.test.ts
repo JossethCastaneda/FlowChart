@@ -78,7 +78,7 @@ describe("daily-metrics: acumuladores puros", () => {
 vi.mock("@/lib/prisma", () => ({
   default: {
     analyticsDailyMetric: { findMany: vi.fn() },
-    normalizedConversation: { findMany: vi.fn() },
+    normalizedConversation: { findMany: vi.fn(), groupBy: vi.fn(), count: vi.fn() },
   },
 }));
 
@@ -88,7 +88,11 @@ import type { AnalyticsFilters } from "../lib/analytics/query";
 
 const p = prisma as unknown as {
   analyticsDailyMetric: { findMany: ReturnType<typeof vi.fn> };
-  normalizedConversation: { findMany: ReturnType<typeof vi.fn> };
+  normalizedConversation: { 
+    findMany: ReturnType<typeof vi.fn>;
+    groupBy: ReturnType<typeof vi.fn>;
+    count: ReturnType<typeof vi.fn>;
+  };
 };
 
 // Rango histórico cerrado en el pasado (sin componente "hoy"): determinístico.
@@ -100,6 +104,8 @@ const pastRange: AnalyticsFilters = {
 beforeEach(() => {
   p.analyticsDailyMetric.findMany.mockReset();
   p.normalizedConversation.findMany.mockReset();
+  p.normalizedConversation.groupBy.mockReset();
+  p.normalizedConversation.count.mockReset();
 });
 
 describe("daily-metrics: lector servidor (agregado vs live)", () => {
@@ -134,8 +140,28 @@ describe("daily-metrics: lector servidor (agregado vs live)", () => {
   });
 
   it("FALLBACK a live cuando no hay agregados en la ventana", async () => {
+    const mockStatusGroups = [
+      {
+        status: "closed", outcome: "resolved", resolvedBy: "bot", wasHandoff: false, wasBotOnly: true,
+        _count: { _all: 1, csatScore: 1, firstResponseTimeSeconds: 1, handleTimeSeconds: 1, waitingTimeSeconds: 0 },
+        _sum: { totalUserMessages: 0, totalBotMessages: 3, totalFallbacks: 0, csatScore: 5, firstResponseTimeSeconds: 30, handleTimeSeconds: 300, waitingTimeSeconds: null }
+      },
+      {
+        status: "transferred", outcome: "transferred", resolvedBy: null, wasHandoff: true, wasBotOnly: false,
+        _count: { _all: 1, csatScore: 0, firstResponseTimeSeconds: 1, handleTimeSeconds: 0, waitingTimeSeconds: 0 },
+        _sum: { totalUserMessages: 4, totalBotMessages: 0, totalFallbacks: 0, csatScore: null, firstResponseTimeSeconds: 200, handleTimeSeconds: null, waitingTimeSeconds: null }
+      },
+      {
+        status: "abandoned", outcome: "abandoned", resolvedBy: null, wasHandoff: false, wasBotOnly: false,
+        _count: { _all: 1, csatScore: 0, firstResponseTimeSeconds: 0, handleTimeSeconds: 0, waitingTimeSeconds: 0 },
+        _sum: { totalUserMessages: 1, totalBotMessages: 0, totalFallbacks: 0, csatScore: null, firstResponseTimeSeconds: null, handleTimeSeconds: null, waitingTimeSeconds: null }
+      }
+    ];
     p.analyticsDailyMetric.findMany.mockResolvedValue([]);
+    p.normalizedConversation.groupBy.mockResolvedValue(mockStatusGroups);
+    p.normalizedConversation.count.mockResolvedValue(1);
     p.normalizedConversation.findMany.mockResolvedValue(convs);
+
     const ds = await getAnalyticsDataset("ws-1", pastRange, null);
     expect(ds.source).toBe("live");
     expect(ds.acc.total).toBe(3);
@@ -143,7 +169,27 @@ describe("daily-metrics: lector servidor (agregado vs live)", () => {
   });
 
   it("filtro de alta cardinalidad fuerza live y NO consulta agregados", async () => {
+    const mockStatusGroups = [
+      {
+        status: "closed", outcome: "resolved", resolvedBy: "bot", wasHandoff: false, wasBotOnly: true,
+        _count: { _all: 1, csatScore: 1, firstResponseTimeSeconds: 1, handleTimeSeconds: 1, waitingTimeSeconds: 0 },
+        _sum: { totalUserMessages: 0, totalBotMessages: 3, totalFallbacks: 0, csatScore: 5, firstResponseTimeSeconds: 30, handleTimeSeconds: 300, waitingTimeSeconds: null }
+      },
+      {
+        status: "transferred", outcome: "transferred", resolvedBy: null, wasHandoff: true, wasBotOnly: false,
+        _count: { _all: 1, csatScore: 0, firstResponseTimeSeconds: 1, handleTimeSeconds: 0, waitingTimeSeconds: 0 },
+        _sum: { totalUserMessages: 4, totalBotMessages: 0, totalFallbacks: 0, csatScore: null, firstResponseTimeSeconds: 200, handleTimeSeconds: null, waitingTimeSeconds: null }
+      },
+      {
+        status: "abandoned", outcome: "abandoned", resolvedBy: null, wasHandoff: false, wasBotOnly: false,
+        _count: { _all: 1, csatScore: 0, firstResponseTimeSeconds: 0, handleTimeSeconds: 0, waitingTimeSeconds: 0 },
+        _sum: { totalUserMessages: 1, totalBotMessages: 0, totalFallbacks: 0, csatScore: null, firstResponseTimeSeconds: null, handleTimeSeconds: null, waitingTimeSeconds: null }
+      }
+    ];
+    p.normalizedConversation.groupBy.mockResolvedValue(mockStatusGroups);
+    p.normalizedConversation.count.mockResolvedValue(1);
     p.normalizedConversation.findMany.mockResolvedValue(convs);
+
     const ds = await getAnalyticsDataset("ws-1", { ...pastRange, agentId: "agent-7" }, null);
     expect(ds.source).toBe("live");
     expect(p.analyticsDailyMetric.findMany).not.toHaveBeenCalled();

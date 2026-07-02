@@ -104,12 +104,73 @@ async function liveDataset(
   scope?: ProjectScope | null
 ): Promise<AnalyticsDataset> {
   const where = buildConversationWhere(workspaceId, filters, scope);
-  const convs = (await prisma.normalizedConversation.findMany({ where, select: LIVE_SELECT })) as DailyConv[];
+  
+  // 1. Offloaded Aggregations to Neon Postgres
+  const statusGroups = await prisma.normalizedConversation.groupBy({
+    by: ['status', 'outcome', 'resolvedBy', 'wasHandoff', 'wasBotOnly'],
+    where,
+    _count: { 
+      _all: true,
+      csatScore: true,
+      firstResponseTimeSeconds: true,
+      handleTimeSeconds: true,
+      waitingTimeSeconds: true,
+    },
+    _sum: {
+      totalUserMessages: true,
+      totalBotMessages: true,
+      totalFallbacks: true,
+      csatScore: true,
+      firstResponseTimeSeconds: true,
+      handleTimeSeconds: true,
+      waitingTimeSeconds: true,
+    }
+  });
+
+  const acc = emptyAccumulators();
+  for (const g of statusGroups) {
+    const n = g._count._all;
+    acc.total += n;
+    if (g.status === "active") acc.active += n;
+    if (g.status === "closed") acc.closed += n;
+    if (g.status === "abandoned") acc.abandoned += n;
+    if (g.status === "transferred") acc.transferred += n;
+    if (["closed", "abandoned", "transferred"].includes(g.status)) acc.closedSet += n;
+    if (g.outcome === "resolved" && g.resolvedBy === "bot") acc.botResolved += n;
+    if (g.wasHandoff) acc.handoffs += n;
+    if (g.wasBotOnly) acc.botOnly += n;
+    
+    acc.userMsgs += g._sum.totalUserMessages || 0;
+    acc.botMsgs += g._sum.totalBotMessages || 0;
+    acc.fallbacks += g._sum.totalFallbacks || 0;
+    
+    if (g._sum.csatScore !== null) { acc.csatSum += g._sum.csatScore; acc.csatN += g._count.csatScore; }
+    if (g._sum.firstResponseTimeSeconds !== null) { acc.frtSum += g._sum.firstResponseTimeSeconds; acc.frtN += g._count.firstResponseTimeSeconds; }
+    if (g._sum.handleTimeSeconds !== null) { acc.ahtSum += g._sum.handleTimeSeconds; acc.ahtN += g._count.handleTimeSeconds; }
+    if (g._sum.waitingTimeSeconds !== null) { acc.waitSum += g._sum.waitingTimeSeconds; acc.waitN += g._count.waitingTimeSeconds; }
+  }
+
+  // 2. Conditional counts not supported by Prisma groupBy (offloaded via count)
+  const [earlyAbandon, slaMet, slaBreached] = await Promise.all([
+    prisma.normalizedConversation.count({ where: { ...where, status: "abandoned", wasHandoff: false, totalUserMessages: { lte: 2 } } }),
+    prisma.normalizedConversation.count({ where: { ...where, firstResponseTimeSeconds: { lte: 120 } } }),
+    prisma.normalizedConversation.count({ where: { ...where, firstResponseTimeSeconds: { gt: 120 } } })
+  ]);
+  acc.earlyAbandon = earlyAbandon;
+  acc.slaMet = slaMet;
+  acc.slaBreached = slaBreached;
+
+  // 3. Lightweight fetch only for date and channel distributions
+  const trendRows = (await prisma.normalizedConversation.findMany({
+    where,
+    select: { conversationStartedAt: true, outcome: true, resolvedBy: true, wasHandoff: true, channel: true }
+  })) as DailyConv[];
+
   return {
     source: "live",
-    acc: accumulatorsFromConversations(convs),
-    perDate: perDateFromConvs(convs).sort((a, b) => a.date.localeCompare(b.date)),
-    perChannel: perChannelFromConvs(convs).sort((a, b) => b.count - a.count),
+    acc,
+    perDate: perDateFromConvs(trendRows).sort((a, b) => a.date.localeCompare(b.date)),
+    perChannel: perChannelFromConvs(trendRows).sort((a, b) => b.count - a.count),
   };
 }
 
