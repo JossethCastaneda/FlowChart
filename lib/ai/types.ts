@@ -16,6 +16,13 @@ export interface LLMMessage {
   content: string;
 }
 
+/** Imagen/documento adjunto (base64 sin data-URL). Cada adapter lo traduce:
+ *  Gemini → inlineData · OpenAI → image_url data-URL · Anthropic → bloque image. */
+export interface LLMAttachment {
+  mimeType: string;
+  data: string;
+}
+
 export interface CompleteOptions {
   messages: LLMMessage[];
   /** Instrucción de sistema (se mapea al campo nativo de cada proveedor). */
@@ -23,6 +30,8 @@ export interface CompleteOptions {
   /** Override de modelo; si se omite, el adapter usa su defaultModel. */
   model?: string;
   maxTokens?: number;
+  /** Adjuntos multimodales: se anexan al ÚLTIMO mensaje de usuario. */
+  attachments?: LLMAttachment[];
   signal?: AbortSignal;
 }
 

@@ -7,7 +7,12 @@ interface CatalogModel {
   id: string;
   label: string;
   note: string;
+  inputPerM: number;
+  outputPerM: number;
+  bestFor: string[];
 }
+
+const fmtUsd = (n: number) => `$${n < 1 ? n.toFixed(2) : n % 1 === 0 ? n : n.toFixed(2)}`;
 interface CatalogProvider {
   id: string;
   label: string;
@@ -143,7 +148,7 @@ export default function AriaCopilotPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Aria Copilot"
-        description="Elige la IA que prefieras y conversa con Aria sobre tus modelos predictivos."
+        description="Elige la IA de tu workspace: potencia el Copilot, los Insights, GridIA y todos los módulos inteligentes de Sodare."
       />
 
       {/* ── Catálogo deslizable de IAs ── */}
@@ -247,6 +252,25 @@ export default function AriaCopilotPage() {
                               </option>
                             ))}
                           </select>
+                          {(() => {
+                            const cm = p.models.find((m) => m.id === chosen);
+                            if (!cm) return null;
+                            return (
+                              <div className="mb-3 rounded-md bg-muted/50 border px-3 py-2 text-xs space-y-1">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-muted-foreground">Costo por 1M tokens</span>
+                                  <span className="font-semibold">
+                                    {fmtUsd(cm.inputPerM)} in · {fmtUsd(cm.outputPerM)} out
+                                  </span>
+                                </div>
+                                {cm.bestFor.length > 0 && (
+                                  <div className="text-muted-foreground">
+                                    Potencia: <span className="text-foreground">{cm.bestFor.join(" · ")}</span>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
                           <button
                             onClick={() => selectProvider(p)}
                             disabled={savingModel !== null || inUse || !canManage}
