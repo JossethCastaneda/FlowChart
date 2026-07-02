@@ -103,7 +103,11 @@ export default function AriaCopilotPage() {
   const send = async () => {
     const text = input.trim();
     if (!text || sending) return;
-    const history = messages.slice(-10).map((m) => ({ role: m.role, content: m.content }));
+    // Sin burbujas de error: son mensajes de la UI, no respuestas reales del LLM.
+    const history = messages
+      .filter((m) => m.meta !== "error")
+      .slice(-10)
+      .map((m) => ({ role: m.role, content: m.content }));
     setMessages((m) => [...m, { role: "user", content: text }]);
     setInput("");
     setSending(true);

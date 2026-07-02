@@ -83,8 +83,11 @@ async function call(
 }
 
 function extractText(data: AnthropicResponse): string {
-  const block = data.content?.find((b) => b.type === "text" && typeof b.text === "string");
-  return block?.text ?? "";
+  // Une TODOS los bloques de texto (la respuesta puede traer varios).
+  return (data.content ?? [])
+    .filter((b) => b.type === "text" && typeof b.text === "string")
+    .map((b) => b.text)
+    .join("");
 }
 
 export const anthropicProvider: LLMProvider = {

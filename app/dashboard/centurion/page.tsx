@@ -3,7 +3,6 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { PieChart as PieChartIcon, TrendingUp, Database, Sliders, Settings2, ArrowLeft, RefreshCw, Plus, Trash2, Info, Zap, BarChart2, Activity, Target, CheckCircle2, AlertCircle, Download, Upload, Cpu, X, AlertTriangle, Layers, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
 import type { ChannelConfig, WeeklyRow, MmmModel, MmmSavedConfig, MmmClient } from "@/lib/mmm/types";
 import { runMmm, simulateBudget, optimizeBudget } from "@/lib/mmm/optimizer";
 import { REAL_DEFAULT_CHANNELS, clientsFromProjects, verticalsFromClients, type ProjectLike } from "@/lib/mmm/channels";
@@ -615,7 +614,6 @@ function TabConfig({ channels, setChannels, rows }: { channels: ChannelConfig[];
 // ─── Main Page (v2) ───────────────────────────────────────────────────────────
 export default function MediaMixPage() {
   const router = useRouter();
-  const { data: session } = useSession();
   const [activeTab, setActiveTab] = React.useState<Tab>("resumen");
   const [channels, setChannels] = React.useState<ChannelConfig[]>(REAL_DEFAULT_CHANNELS);
   const [rows, setRows] = React.useState<WeeklyRow[]>([]);
@@ -627,8 +625,20 @@ export default function MediaMixPage() {
   // Evita que el auto-save dispare mientras cargamos la config de otro cliente.
   const loadingClientRef = useRef(false);
 
-  // Workspace ID from session
-  const workspaceId = (session?.user as any)?.activeWorkspaceId ?? "local";
+  // Workspace activo real (la sesión no trae workspaceId; se resuelve vía API).
+  // Namespacea el cache de localStorage para que clientes homónimos de otros
+  // workspaces no se mezclen.
+  const [workspaceId, setWorkspaceId] = React.useState<string>("");
+  useEffect(() => {
+    fetch("/api/workspace")
+      .then(r => r.json())
+      .then(d => {
+        const list = Array.isArray(d?.data) ? d.data : [];
+        const active = list.find((w: { id: string; isActive?: boolean }) => w.isActive) ?? list[0];
+        if (active?.id) setWorkspaceId(active.id);
+      })
+      .catch(() => {});
+  }, []);
 
   // ── Clientes y verticales reales (de los proyectos del workspace) ─────────
   const [projects, setProjects] = React.useState<ProjectLike[]>([]);
@@ -644,7 +654,7 @@ export default function MediaMixPage() {
   );
   const selectedClientObj = useMemo(() => clients.find(c => c.name === selectedClient) ?? null, [clients, selectedClient]);
 
-  const localKey = selectedClient ? `mmm_v2_${workspaceId}_${selectedClient}` : "";
+  const localKey = selectedClient && workspaceId ? `mmm_v2_${workspaceId}_${selectedClient}` : "";
 
   // Cargar proyectos reales una vez.
   useEffect(() => {
@@ -674,22 +684,34 @@ export default function MediaMixPage() {
     }
     loadingClientRef.current = true;
     let cancelled = false;
-    const apply = (cfg: MmmSavedConfig | null) => {
+    const paint = (cfg: MmmSavedConfig | null) => {
       if (cancelled) return;
       setChannels(cfg?.channels?.length ? cfg.channels : REAL_DEFAULT_CHANNELS);
       setRows(cfg?.rows ?? []);
-      loadingClientRef.current = false;
     };
-    // 1. localStorage inmediato
+    // 1. localStorage: pinta al instante, pero NO habilita el auto-save todavía —
+    //    la DB es la fuente de verdad (el cache puede ser de otra sesión/estar viejo).
+    let cachedCfg: MmmSavedConfig | null = null;
     const cached = localKey ? localStorage.getItem(localKey) : null;
     if (cached) {
-      try { apply(JSON.parse(cached) as MmmSavedConfig); return () => { cancelled = true; }; } catch {}
+      try { cachedCfg = JSON.parse(cached) as MmmSavedConfig; paint(cachedCfg); } catch {}
     }
-    // 2. DB fetch — si no hay config guardada, arrancamos VACÍO (no demo).
+    // 2. DB fetch — gana sobre el cache; si la DB no tiene config, se conserva el
+    //    cache pintado (puede ser un guardado local que falló). Sin nada: VACÍO.
     fetch(`/api/mmm/config?client=${encodeURIComponent(selectedClient)}`)
       .then(r => r.json())
-      .then(d => apply((d?.data?.config as MmmSavedConfig | null) ?? null))
-      .catch(() => apply(null));
+      .then(d => {
+        if (cancelled) return;
+        const dbCfg = (d?.data?.config as MmmSavedConfig | null) ?? null;
+        if (dbCfg) paint(dbCfg);
+        else if (!cachedCfg) paint(null);
+        loadingClientRef.current = false;
+      })
+      .catch(() => {
+        if (cancelled) return;
+        if (!cachedCfg) paint(null);
+        loadingClientRef.current = false;
+      });
     return () => { cancelled = true; };
   }, [selectedClient, localKey]);
 
@@ -705,11 +727,17 @@ export default function MediaMixPage() {
       const cfg: MmmSavedConfig = { channels, rows, savedAt: new Date().toISOString(), client: clientAtSave, ...(verticalAtSave ? { vertical: verticalAtSave } : {}) };
       // localStorage (instantaneo)
       try { if (localKey) localStorage.setItem(localKey, JSON.stringify(cfg)); } catch {}
-      // DB
+      // DB — fetch no lanza en 4xx/5xx: hay que verificar la respuesta para no
+      // mostrar "Guardado" cuando el servidor rechazó (p.ej. 403 para MEMBER).
       try {
-        await fetch("/api/mmm/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client: clientAtSave, vertical: verticalAtSave, channels, rows }) });
-        setSaveState("saved");
-        setTimeout(() => setSaveState("idle"), 2000);
+        const res = await fetch("/api/mmm/config", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client: clientAtSave, vertical: verticalAtSave, channels, rows }) });
+        const json = await res.json().catch(() => null);
+        if (res.ok && json?.success) {
+          setSaveState("saved");
+          setTimeout(() => setSaveState("idle"), 2000);
+        } else {
+          setSaveState("error");
+        }
       } catch { setSaveState("error"); }
     }, SAVE_DEBOUNCE);
   }, [JSON.stringify(channels), JSON.stringify(rows), selectedClient]);
@@ -724,9 +752,10 @@ export default function MediaMixPage() {
 
   // ── Import desde Meta Ads ─────────────────────────────────────────────────
   const handleImport = useCallback(async () => {
-    const res = await fetch("/api/mmm/spend?weeks=12");
+    if (!selectedClient) throw new Error("Selecciona un cliente primero.");
+    const res = await fetch(`/api/mmm/spend?weeks=12&client=${encodeURIComponent(selectedClient)}`);
     const data = await res.json();
-    if (!res.ok) throw new Error(data?.error?.message ?? "Error al conectar con Meta Ads");
+    if (!res.ok || data?.success === false) throw new Error(data?.error ?? "Error al conectar con Meta Ads");
     const imported: WeeklyRow[] = data.data?.weeks ?? [];
     if (!imported.length) throw new Error("No se encontraron semanas con gasto. Verifica que hay una cuenta Meta Ads conectada.");
     // Merge: conservar outcome existente si la semana ya existe
@@ -737,7 +766,7 @@ export default function MediaMixPage() {
       note: existingByWeek[r.week]?.note ?? "",
     }));
     setRows(merged);
-  }, [rows]);
+  }, [rows, selectedClient]);
 
   // ── Export ────────────────────────────────────────────────────────────────
   const handleExport = (type: "csv" | "text" | "copy") => {

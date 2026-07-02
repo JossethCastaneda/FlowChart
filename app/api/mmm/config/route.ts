@@ -13,10 +13,48 @@
 
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
+import { validateBody } from "@/lib/validate";
 import prisma from "@/lib/prisma";
+import { z } from "zod";
 import type { MmmSavedConfig } from "@/lib/mmm/types";
 
 const LEGACY_KEY = "__legacy__";
+
+// Shape de ChannelConfig / WeeklyRow (lib/mmm/types.ts). Campos extra se
+// permiten (passthrough) para no romper configs guardadas por versiones nuevas.
+const ChannelSchema = z
+  .object({
+    id: z.string().min(1).max(80),
+    name: z.string().min(1).max(120),
+    color: z.string().max(30),
+    adstockDecay: z.number().min(0).max(1),
+    saturationAlpha: z.number().positive().max(20),
+    saturationK: z.number().positive(),
+    enabled: z.boolean(),
+    autoCalibratedAt: z.string().max(40).optional(),
+    minSpend: z.number().nonnegative().optional(),
+    maxSpend: z.number().nonnegative().optional(),
+  })
+  .passthrough();
+
+const RowSchema = z
+  .object({
+    week: z.string().min(1).max(20),
+    label: z.string().max(40),
+    spend: z.record(z.string().max(80), z.number()),
+    outcome: z.number(),
+    isOutlier: z.boolean().optional(),
+    note: z.string().max(300).optional(),
+    source: z.enum(["manual", "api"]).optional(),
+  })
+  .passthrough();
+
+const PutConfigSchema = z.object({
+  client: z.string().trim().min(1, "'client' es requerido").max(150),
+  vertical: z.string().max(150).optional(),
+  channels: z.array(ChannelSchema).max(40, "Máximo 40 canales"),
+  rows: z.array(RowSchema).max(530, "Máximo 530 semanas (~10 años)"),
+});
 
 interface MmmStore {
   byClient: Record<string, MmmSavedConfig>;
@@ -71,28 +109,17 @@ export const PUT = withWorkspace(async (req, ctx) => {
     return apiError("No tienes permisos para modificar el modelo de MMM. Requiere rol de OWNER o ADMIN.", "FORBIDDEN", 403);
   }
 
-  let body: { client?: unknown; channels: unknown; rows: unknown; vertical?: unknown };
-  try {
-    body = await req.json();
-  } catch {
-    return apiError("Body JSON invalido", "BAD_REQUEST", 400);
-  }
-
-  const client = typeof body.client === "string" ? body.client.trim() : "";
-  if (!client) {
-    return apiError("'client' es requerido", "BAD_REQUEST", 400);
-  }
-  if (!Array.isArray(body.channels) || !Array.isArray(body.rows)) {
-    return apiError("channels y rows son requeridos", "BAD_REQUEST", 400);
-  }
+  const result = await validateBody(req, PutConfigSchema);
+  if (!result.ok) return result.response;
+  const { client, vertical, channels, rows } = result.data;
 
   const savedConfig: MmmSavedConfig = {
-    channels: body.channels as MmmSavedConfig["channels"],
-    rows: body.rows as MmmSavedConfig["rows"],
+    channels: channels as MmmSavedConfig["channels"],
+    rows: rows as MmmSavedConfig["rows"],
     savedAt: new Date().toISOString(),
     workspaceId: ctx.workspaceId,
     client,
-    ...(typeof body.vertical === "string" ? { vertical: body.vertical } : {}),
+    ...(vertical ? { vertical } : {}),
   };
 
   const existingModel = await prisma.centurionModel.findFirst({
@@ -112,7 +139,7 @@ export const PUT = withWorkspace(async (req, ctx) => {
       data: {
         workspaceId: ctx.workspaceId,
         clientName: client,
-        verticalName: typeof body.vertical === "string" ? body.vertical : null,
+        verticalName: vertical ?? null,
         engine: "FastMMM",
         config: savedConfig as any
       }

@@ -14,8 +14,24 @@ import { LLMProviderError } from "../types";
 import { toGeminiSchema } from "../schema";
 
 interface GeminiResponse {
-  candidates?: { content?: { parts?: { text?: string }[] } }[];
+  candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[];
   error?: { message?: string };
+}
+
+/** Une TODAS las parts de texto (Gemini puede responder multi-parte). */
+function extractText(data: GeminiResponse): string {
+  const parts = data.candidates?.[0]?.content?.parts ?? [];
+  return parts.map((p) => p.text ?? "").join("");
+}
+
+/**
+ * gemini-2.5-flash* razona ("thinking") por defecto y ese gasto CUENTA dentro de
+ * maxOutputTokens: con presupuestos chicos puede consumirlo pensando y devolver
+ * texto vacío. Para el chat lo desactivamos (thinkingBudget: 0 — soportado solo
+ * en flash; pro no permite 0, por eso el gate por nombre de modelo).
+ */
+function thinkingConfigFor(model: string): { thinkingBudget: number } | undefined {
+  return model.includes("flash") ? { thinkingBudget: 0 } : undefined;
 }
 
 function endpoint(model: string, key: string): string {
@@ -55,11 +71,13 @@ export const geminiProvider: LLMProvider = {
     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KEY no configurada");
     const model = opts.model ?? this.defaultModel;
     const payload = buildPayload(opts);
+    const thinkingConfig = thinkingConfigFor(model);
     const body = {
       contents: payload.contents,
       ...(payload.systemInstruction ? { systemInstruction: payload.systemInstruction } : {}),
       generationConfig: {
         ...(opts.maxTokens ? { maxOutputTokens: opts.maxTokens } : {}),
+        ...(thinkingConfig ? { thinkingConfig } : {}),
       },
     };
     const res = await fetch(endpoint(model, key), {
@@ -73,7 +91,13 @@ export const geminiProvider: LLMProvider = {
       throw new LLMProviderError("gemini", res.status, e.error?.message ?? `HTTP ${res.status}`);
     }
     const data = (await res.json()) as GeminiResponse;
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const text = extractText(data);
+    if (text.trim() === "") {
+      // Respuesta vacía (p.ej. presupuesto agotado en razonamiento o filtro del
+      // proveedor): mejor un error claro que una burbuja vacía en el chat.
+      const reason = data.candidates?.[0]?.finishReason ?? "sin candidates";
+      throw new LLMProviderError("gemini", 502, `Respuesta vacía del modelo (${reason})`);
+    }
     return { text, model, provider: "gemini" };
   },
 
@@ -84,6 +108,7 @@ export const geminiProvider: LLMProvider = {
     if (!key) throw new LLMProviderError("gemini", 500, "GEMINI_API_KEY no configurada");
     const model = opts.model ?? this.defaultModel;
     const payload = buildPayload(opts);
+    const thinkingConfig = thinkingConfigFor(model);
     const body = {
       contents: payload.contents,
       ...(payload.systemInstruction ? { systemInstruction: payload.systemInstruction } : {}),
@@ -91,6 +116,7 @@ export const geminiProvider: LLMProvider = {
         responseMimeType: "application/json",
         responseSchema: toGeminiSchema(opts.jsonSchema),
         ...(opts.maxTokens ? { maxOutputTokens: opts.maxTokens } : {}),
+        ...(thinkingConfig ? { thinkingConfig } : {}),
       },
     };
     const res = await fetch(endpoint(model, key), {
@@ -104,7 +130,7 @@ export const geminiProvider: LLMProvider = {
       throw new LLMProviderError("gemini", res.status, e.error?.message ?? `HTTP ${res.status}`);
     }
     const data = (await res.json()) as GeminiResponse;
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
+    const text = extractText(data);
     let json: unknown;
     try {
       json = JSON.parse(text);
