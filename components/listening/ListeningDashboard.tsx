@@ -1,696 +1,1075 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useRef } from "react";
 import {
-  Search, TrendingUp, MessageCircle, ThumbsUp, ThumbsDown, Minus, Hash, Globe,
-  Bell, Plus, X, AlertTriangle, Loader2, ExternalLink, Heart, Eye
+  Search, TrendingUp, MessageCircle, ThumbsUp, ThumbsDown, Minus,
+  Hash, Globe, Loader2, ExternalLink, Heart, Share2, BarChart2,
+  Sparkles, Users, Clock, ChevronRight, RefreshCw
 } from "lucide-react";
+import {
+  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell, Legend
+} from "recharts";
 import { useLanguage } from "@/components/layout/LanguageContext";
 
-/* ── Sentiment helpers ─────────────────────────────────── */
-const sentimentConfig = {
-  positive: { color: "var(--emerald)", icon: ThumbsUp, labelEs: "Positivo", labelEn: "Positive" },
-  negative: { color: "var(--red)", icon: ThumbsDown, labelEs: "Negativo", labelEn: "Negative" },
-  neutral: { color: "var(--text-secondary)", icon: Minus, labelEs: "Neutral", labelEn: "Neutral" },
+/* ─────────────────────────────────────────────────────────────
+   Types
+───────────────────────────────────────────────────────────── */
+interface SearchResult {
+  keyword: string;
+  period: string;
+  metrics: {
+    mentions: number;
+    interactions: number;
+    reach: number;
+    sentimentScore: number;
+    positiveCount: number;
+    negativeCount: number;
+    neutralCount: number;
+  };
+  timeseries: { date: string; count: number; positive: number; negative: number; neutral: number }[];
+  sentiment: {
+    positive: number;
+    negative: number;
+    neutral: number;
+    positiveThemes: string[];
+    negativeThemes: string[];
+    neutralThemes: string[];
+  };
+  topics: { text: string; size: number; sentiment: "positive" | "negative" | "neutral" }[];
+  posts: {
+    id: string;
+    platform: "facebook" | "instagram";
+    text: string;
+    author: string;
+    url: string | null;
+    publishedAt: string;
+    likes: number;
+    comments: number;
+    shares: number;
+    type: "post" | "comment" | "mention";
+    sentiment: "positive" | "negative" | "neutral";
+  }[];
+  heatmap: { day: number; hour: number; count: number }[];
+  sources: { facebook: number; instagram: number };
+}
+
+type SectionId = "metrics" | "sentiment" | "topics" | "results" | "heatmap";
+
+/* ─────────────────────────────────────────────────────────────
+   Constants
+───────────────────────────────────────────────────────────── */
+const SENTIMENT_COLORS = {
+  positive: "#22c55e",
+  negative: "#ef4444",
+  neutral: "#f59e0b",
 };
 
-const platformColors: Record<string, string> = {
-  instagram: "#E4405F",
+const PLATFORM_COLORS: Record<string, string> = {
   facebook: "#1877F2",
-  tiktok: "#000000",
-  twitter: "#1DA1F2",
+  instagram: "#E4405F",
 };
 
-function relativeTime(dateStr: string, lang: "es" | "en"): string {
+const DAYS_ES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+const DAYS_EN = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/* ─────────────────────────────────────────────────────────────
+   Helpers
+───────────────────────────────────────────────────────────── */
+function formatNum(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}K`;
+  return n.toString();
+}
+
+function relativeTime(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return lang === "es" ? "Ahora" : "Just now";
-  if (mins < 60) return lang === "es" ? `Hace ${mins}m` : `${mins}m ago`;
+  if (mins < 1) return "Ahora";
+  if (mins < 60) return `Hace ${mins}m`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return lang === "es" ? `Hace ${hrs}h` : `${hrs}h ago`;
-  return lang === "es" ? `Hace ${Math.floor(hrs / 24)}d` : `${Math.floor(hrs / 24)}d ago`;
+  if (hrs < 24) return `Hace ${hrs}h`;
+  return `Hace ${Math.floor(hrs / 24)}d`;
 }
 
-// Client-side rule-based sentiment classifier
-function analyzeSentiment(text: string): "positive" | "negative" | "neutral" {
-  const lower = (text || "").toLowerCase();
-  const positiveWords = [
-    "excelente", "bueno", "buena", "gracias", "love", "genial", "increible", "súper", "super", 
-    "maravilloso", "felicidades", "me encanta", "gusto", "exito", "great", "awesome", "perfect",
-    "recomiendo", "recomendado", "top", "lindo", "bella", "hermoso", "crack", "feliz", "alegre"
-  ];
-  const negativeWords = [
-    "malo", "pesimo", "pesima", "horrible", "error", "falla", "hate", "peor", "basura", "asco",
-    "fallando", "lento", "roto", "estafa", "decepcion", "problema", "queja", "malisimo", "malisima",
-    "inutil", "no funciona", "defecto", "duda", "tarde", "caro"
-  ];
-
-  let score = 0;
-  for (const word of positiveWords) {
-    if (lower.includes(word)) score++;
-  }
-  for (const word of negativeWords) {
-    if (lower.includes(word)) score--;
-  }
-
-  if (score > 0) return "positive";
-  if (score < 0) return "negative";
-  return "neutral";
+function formatDate(dateStr: string): string {
+  const d = new Date(dateStr);
+  return d.toLocaleDateString("es-ES", { day: "numeric", month: "short" });
 }
 
-const TRANSLATIONS = {
-  es: {
-    quickSearch: "Búsqueda Rápida",
-    mentions: "Menciones",
-    sentiment: "Sentimiento",
-    trends: "Tendencias",
-    searchPlaceholder: "Buscar menciones, hashtags o keywords...",
-    searchBtn: "Buscar",
-    monitoredKw: "Keywords Monitoreadas",
-    kwPlaceholder: "#hashtag, keyword o @competidor",
-    addBtn: "Agregar",
-    emptyKw: "Agrega keywords, #hashtags o @competidores para monitorear",
-    recentMentions: "Menciones Recientes",
-    noMentionsTitle: "No se encontraron menciones",
-    noMentionsDesc: "Las menciones de Facebook e Instagram aparecerán aquí automáticamente.",
-    sentimentDistribution: "Distribución de Sentimiento",
-    mentionsBySentiment: "Menciones por Sentimiento",
-    monitoredHashtags: "Hashtags Monitoreados",
-    trendsPrompt: "Agrega un hashtag en Búsqueda Rápida para monitorear tendencias",
-    updateBtn: "Actualizar",
-    viewPostsBtn: "Ver posts",
-    noHashtagPosts: "Sin posts recientes para este hashtag",
-    wordCloud: "Nube de Palabras",
-    spikeAlertsTitle: "Alertas de Picos",
-    spikeAlertsDesc: "Recibe notificaciones cuando haya un pico inusual de menciones",
-    configureAlertsBtn: "Configurar Alertas",
-    alertsConfiguredMsg: "✅ Alertas configuradas. Recibirás una notificación cuando haya un pico de menciones.",
-  },
-  en: {
-    quickSearch: "Quick Search",
-    mentions: "Mentions",
-    sentiment: "Sentiment",
-    trends: "Trends",
-    searchPlaceholder: "Search mentions, hashtags or keywords...",
-    searchBtn: "Search",
-    monitoredKw: "Monitored Keywords",
-    kwPlaceholder: "#hashtag, keyword or @competitor",
-    addBtn: "Add",
-    emptyKw: "Add keywords, #hashtags or @competitors to monitor",
-    recentMentions: "Recent Mentions",
-    noMentionsTitle: "No mentions found",
-    noMentionsDesc: "Facebook and Instagram mentions will appear here automatically.",
-    sentimentDistribution: "Sentiment Distribution",
-    mentionsBySentiment: "Mentions by Sentiment",
-    monitoredHashtags: "Monitored Hashtags",
-    trendsPrompt: "Add a hashtag in Quick Search to monitor trends",
-    updateBtn: "Update",
-    viewPostsBtn: "View posts",
-    noHashtagPosts: "No recent posts for this hashtag",
-    wordCloud: "Word Cloud",
-    spikeAlertsTitle: "Spike Alerts",
-    spikeAlertsDesc: "Receive notifications when there is an unusual spike in mentions",
-    configureAlertsBtn: "Configure Alerts",
-    alertsConfiguredMsg: "✅ Alerts configured. You will receive a notification when a spike in mentions occurs.",
-  }
-};
+/* ─────────────────────────────────────────────────────────────
+   Sub-components
+───────────────────────────────────────────────────────────── */
 
-/* ═══════════════════════════════════════════════════════
-   LISTENING DASHBOARD
-   ═══════════════════════════════════════════════════════ */
-export function ListeningDashboard() {
-  const { lang } = useLanguage();
-  const t = TRANSLATIONS[lang];
+function MetricCard({
+  label, value, sub, color, icon: Icon
+}: {
+  label: string;
+  value: string;
+  sub?: string;
+  color: string;
+  icon: React.ElementType;
+}) {
+  return (
+    <div style={{
+      background: "var(--surface-1)",
+      border: "1px solid var(--border)",
+      borderRadius: 12,
+      padding: "20px 24px",
+      display: "flex",
+      flexDirection: "column",
+      gap: 8,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ background: `${color}18`, borderRadius: 8, padding: 6 }}>
+          <Icon size={16} color={color} />
+        </div>
+        <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{label}</span>
+      </div>
+      <span style={{ fontSize: 28, fontWeight: 700, color: "var(--text-primary)" }}>{value}</span>
+      {sub && <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{sub}</span>}
+    </div>
+  );
+}
 
-  const [activeTab, setActiveTab] = useState<"search" | "mentions" | "sentiment" | "trends">("search");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [trackedKeywords, setTrackedKeywords] = useState<any[]>([]);
-  const [newKeyword, setNewKeyword] = useState("");
-  const [mentions, setMentions] = useState<any[]>([]);
-  const [loadingKw, setLoadingKw] = useState(true);
-  const [addingKw, setAddingKw] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
-
-  const [hashtagPosts, setHashtagPosts] = useState<Record<string, any[]>>({});
-  const [loadingHashtag, setLoadingHashtag] = useState<string | null>(null);
-
-  const showToast = useCallback((msg: string) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  }, []);
-
-  // Fetch tracked keywords from DB
-  useEffect(() => {
-    fetch("/api/listening/keywords")
-      .then((r) => r.json())
-      .then((data) => setTrackedKeywords(data.keywords || []))
-      .catch(() => {})
-      .finally(() => setLoadingKw(false));
-  }, []);
-
-  // Fetch mentions from API
-  useEffect(() => {
-    fetch("/api/listening/mentions")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((data) => {
-        if (data?.mentions?.length) {
-          const mapped = data.mentions.map((m: any) => ({
-            id: m.id,
-            platform: m.platform,
-            author: m.author,
-            content: m.content,
-            sentiment: m.sentiment || analyzeSentiment(m.content),
-            time: relativeTime(m.publishedAt, lang),
-            avatar: null,
-          }));
-          setMentions(mapped);
-        } else {
-          setMentions([]);
-        }
-      })
-      .catch(() => {
-        setMentions([]);
-      });
-  }, [lang]);
-
-  /* ── Keyword CRUD ── */
-  const addKeyword = async () => {
-    const q = newKeyword.trim();
-    if (!q || addingKw) return;
-    const type = q.startsWith("#") ? "hashtag" : q.startsWith("@") ? "competitor" : "keyword";
-    setAddingKw(true);
-    try {
-      const res = await fetch("/api/listening/keywords", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: q, type }),
-      });
-      const data = await res.json();
-      if (data.keyword) {
-        setTrackedKeywords((prev) => [...prev, data.keyword]);
-        setNewKeyword("");
-      }
-    } catch {}
-    setAddingKw(false);
-  };
-
-  const removeKeyword = async (id: string) => {
-    setTrackedKeywords((prev) => prev.filter((k) => k.id !== id));
-    await fetch(`/api/listening/keywords/${id}`, { method: "DELETE" }).catch(() => {});
-  };
-
-  /* ── Hashtag fetch ── */
-  const fetchHashtagPosts = async (hashtag: string) => {
-    const q = hashtag.replace(/^#/, "");
-    setLoadingHashtag(q);
-    try {
-      const res = await fetch(`/api/listening/hashtags?q=${encodeURIComponent(q)}`);
-      const data = await res.json();
-      setHashtagPosts((prev) => ({ ...prev, [q]: data.posts || [] }));
-      if (data.error) showToast(data.error);
-    } catch {}
-    setLoadingHashtag(null);
-  };
-
-  const tabs = [
-    { key: "search" as const, label: t.quickSearch, icon: Search },
-    { key: "mentions" as const, label: t.mentions, icon: MessageCircle },
-    { key: "sentiment" as const, label: t.sentiment, icon: ThumbsUp },
-    { key: "trends" as const, label: t.trends, icon: TrendingUp },
-  ] as const;
-
-  const filteredMentions = searchQuery
-    ? mentions.filter((m) => m.content.toLowerCase().includes(searchQuery.toLowerCase()))
-    : mentions;
-
-  // Sentiment counts
-  const sentimentCounts = {
-    positive: mentions.filter((m) => m.sentiment === "positive").length,
-    negative: mentions.filter((m) => m.sentiment === "negative").length,
-    neutral: mentions.filter((m) => m.sentiment === "neutral").length,
-  };
-  const totalMentions = mentions.length || 1;
-
-  // Hashtag keywords
-  const hashtagKeywords = trackedKeywords.filter((k) => k.type === "hashtag");
+function SentimentBadge({ sentiment }: { sentiment: "positive" | "negative" | "neutral" }) {
+  const cfg = {
+    positive: { label: "Positivo", color: SENTIMENT_COLORS.positive, bg: "#22c55e15" },
+    negative: { label: "Negativo", color: SENTIMENT_COLORS.negative, bg: "#ef444415" },
+    neutral: { label: "Neutral", color: SENTIMENT_COLORS.neutral, bg: "#f59e0b15" },
+  }[sentiment];
 
   return (
-    <div className="space-y-4" style={{ paddingBottom: 40 }}>
-      {/* Toast */}
-      {toast && (
-        <div style={{
-          position: "fixed", top: 20, right: 20, zIndex: 9999, padding: "10px 18px",
-          borderRadius: 8, background: "var(--cyan-dim)", border: "1px solid var(--border-strong)",
-          color: "var(--cyan)", fontSize: 13, fontWeight: 700, boxShadow: "0 4px 20px rgba(0,0,0,0.4)",
-          animation: "page-fade-in 0.2s ease-out",
-        }}>
-          {toast}
+    <span style={{
+      fontSize: 11, fontWeight: 600,
+      color: cfg.color, background: cfg.bg,
+      padding: "2px 8px", borderRadius: 99,
+    }}>{cfg.label}</span>
+  );
+}
+
+function TopicBubble({ topic }: { topic: SearchResult["topics"][0] }) {
+  const [hovered, setHovered] = useState(false);
+  const baseSize = Math.max(40, Math.min(140, (topic.size / 100) * 130));
+  const color = SENTIMENT_COLORS[topic.sentiment];
+  const opacity = 0.65 + (topic.size / 100) * 0.35;
+
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        width: baseSize,
+        height: baseSize,
+        borderRadius: "50%",
+        background: `${color}${Math.round(opacity * 255).toString(16).padStart(2, "0")}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "default",
+        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        transform: hovered ? "scale(1.1)" : "scale(1)",
+        boxShadow: hovered ? `0 4px 20px ${color}40` : "none",
+        flexShrink: 0,
+        fontSize: Math.max(10, Math.min(18, baseSize / 6)),
+        fontWeight: 700,
+        color: "#fff",
+        textAlign: "center",
+        padding: "0 6px",
+        wordBreak: "break-word",
+        lineHeight: 1.2,
+      }}
+      title={`${topic.text} — ${topic.sentiment}`}
+    >
+      {topic.text.slice(0, 14)}
+    </div>
+  );
+}
+
+function ActivityHeatmap({
+  heatmap,
+  days
+}: {
+  heatmap: SearchResult["heatmap"];
+  days: string[];
+}) {
+  const maxVal = Math.max(...heatmap.map(h => h.count), 1);
+  const hours = Array.from({ length: 24 }, (_, i) => i);
+
+  return (
+    <div style={{ overflowX: "auto" }}>
+      <div style={{ display: "flex", gap: 4, minWidth: 800 }}>
+        {/* Day labels */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 4, justifyContent: "flex-end" }}>
+          <div style={{ height: 24 }} /> {/* hour header spacer */}
+          {days.map((d, di) => (
+            <div key={d} style={{
+              height: 28,
+              fontSize: 12,
+              color: "var(--text-secondary)",
+              display: "flex",
+              alignItems: "center",
+              paddingRight: 8,
+              whiteSpace: "nowrap",
+            }}>{d}</div>
+          ))}
         </div>
-      )}
 
-      {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, background: "var(--surface)", border: "1px solid var(--border)", padding: 4, borderRadius: 12, width: "fit-content" }}>
-        {tabs.map((tab) => {
-          const Icon = tab.icon;
-          return (
-            <button
-              key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
-              style={{
-                display: "flex", alignItems: "center", gap: 8, padding: "8px 16px",
-                border: "none", borderRadius: 8, cursor: "pointer", fontSize: 13, fontWeight: 600,
-                background: activeTab === tab.key ? "var(--surface-hover)" : "transparent",
-                color: activeTab === tab.key ? "var(--cyan)" : "var(--text-secondary)",
-                transition: "all 0.15s"
-              }}
-            >
-              <Icon style={{ width: 14, height: 14 }} />
-              {tab.label}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── Tab: Quick Search ──────────────────────────── */}
-      {activeTab === "search" && (
-        <div className="space-y-4">
-          {/* Search bar */}
-          <div className="glass-panel" style={{ padding: 16 }}>
-            <div style={{ display: "flex", gap: 12 }}>
-              <div style={{ flex: 1, position: "relative" }}>
-                <Search style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", width: 16, height: 16, color: "var(--text-muted)" }} />
-                <input
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={t.searchPlaceholder}
-                  style={{
-                    width: "100%", padding: "10px 12px 10px 38px", borderRadius: 8,
-                    background: "var(--surface-hover)", border: "1px solid var(--border)",
-                    color: "var(--foreground)", fontSize: 14, outline: "none",
-                  }}
-                />
-              </div>
-              <button className="btn-primary" style={{ padding: "10px 24px" }}>
-                {t.searchBtn}
-              </button>
-            </div>
+        {/* Hours × Days grid */}
+        <div style={{ flex: 1 }}>
+          {/* Hour headers */}
+          <div style={{ display: "flex", gap: 4, marginBottom: 4 }}>
+            {hours.map(h => (
+              <div key={h} style={{
+                width: 28, fontSize: 10,
+                color: "var(--text-secondary)",
+                textAlign: "center",
+              }}>{h}h</div>
+            ))}
           </div>
 
-          {/* Tracked Keywords */}
-          <div className="glass-panel" style={{ padding: 20 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, flexWrap: "wrap", gap: 12 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", fontFamily: "'Orbitron',sans-serif" }}>
-                {t.monitoredKw}
-                {loadingKw && <Loader2 style={{ width: 12, height: 12, display: "inline-block", marginLeft: 8, animation: "spin 1s linear infinite", color: "var(--text-muted)" }} />}
-              </h3>
-              <div style={{ display: "flex", gap: 8 }}>
-                <input
-                  value={newKeyword}
-                  onChange={(e) => setNewKeyword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && addKeyword()}
-                  placeholder={t.kwPlaceholder}
-                  style={{
-                    padding: "6px 10px", borderRadius: 6, background: "var(--surface-hover)",
-                    border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 12, outline: "none",
-                    width: 220,
-                  }}
-                />
-                <button
-                  onClick={addKeyword}
-                  disabled={addingKw}
-                  style={{
-                    padding: "6px 14px", borderRadius: 6, background: "var(--cyan-dim)",
-                    border: "1px solid var(--border-strong)", color: "var(--cyan)", fontSize: 12, fontWeight: 700,
-                    cursor: addingKw ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: 4,
-                    opacity: addingKw ? 0.6 : 1,
-                  }}
-                >
-                  {addingKw ? <Loader2 style={{ width: 12, height: 12, animation: "spin 1s linear infinite" }} /> : <Plus style={{ width: 12, height: 12 }} />}
-                  {t.addBtn}
-                </button>
-              </div>
-            </div>
-
-            {trackedKeywords.length === 0 && !loadingKw && (
-              <div style={{ padding: "24px 16px", textAlign: "center" }}>
-                <Hash style={{ width: 24, height: 24, color: "var(--text-muted)", margin: "0 auto 8px" }} />
-                <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                  {t.emptyKw}
-                </p>
-              </div>
-            )}
-
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
-              {trackedKeywords.map((kw) => (
-                <div key={kw.id} style={{
-                  padding: 14, borderRadius: 10, background: "var(--surface-hover)",
-                  border: "1px solid var(--border)", position: "relative",
-                }}>
-                  <button
-                    onClick={() => removeKeyword(kw.id)}
+          {/* Rows */}
+          {days.map((_, di) => (
+            <div key={di} style={{ display: "flex", gap: 4, marginBottom: 4 }}>
+              {hours.map(h => {
+                const cell = heatmap.find(c => c.day === di && c.hour === h);
+                const val = cell?.count || 0;
+                const intensity = val / maxVal;
+                return (
+                  <div
+                    key={h}
+                    title={`${days[di]} ${h}:00 — ${val} menciones`}
                     style={{
-                      position: "absolute", top: 8, right: 8, background: "none", border: "none",
-                      color: "var(--text-secondary)", cursor: "pointer", padding: 2,
+                      width: 28,
+                      height: 28,
+                      borderRadius: 4,
+                      background: val === 0
+                        ? "var(--border)"
+                        : `rgba(139, 92, 246, ${0.2 + intensity * 0.8})`,
+                      cursor: "default",
+                      transition: "transform 0.15s",
+                      fontSize: val > 0 ? 9 : undefined,
+                      color: "#fff",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
                     }}
                   >
-                    <X style={{ width: 12, height: 12 }} />
-                  </button>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                    {kw.type === "hashtag" ? (
-                      <Hash style={{ width: 14, height: 14, color: "var(--amber)" }} />
-                    ) : kw.type === "competitor" ? (
-                      <Globe style={{ width: 14, height: 14, color: "var(--red)" }} />
-                    ) : (
-                      <Search style={{ width: 14, height: 14, color: "var(--cyan)" }} />
-                    )}
-                    <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>{kw.query}</span>
+                    {val > 0 && val}
                   </div>
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "var(--text-muted)" }}>
-                    <span style={{ textTransform: "capitalize" }}>{kw.type}</span>
-                    <span>{new Date(kw.createdAt).toLocaleDateString(lang === "es" ? "es-MX" : "en-US", { day: "numeric", month: "short" })}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MAIN COMPONENT
+───────────────────────────────────────────────────────────── */
+export function ListeningDashboard() {
+  const { lang } = useLanguage();
+  const days = lang === "es" ? DAYS_ES : DAYS_EN;
+
+  const [query, setQuery] = useState("");
+  const [period, setPeriod] = useState<"7d" | "30d" | "90d">("7d");
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<SearchResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [activeSection, setActiveSection] = useState<SectionId>("metrics");
+  const [postSort, setPostSort] = useState<"date" | "engagement" | "sentiment">("date");
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  /* ── Search handler ─────────────────────────────────────── */
+  const search = useCallback(async (q: string, p: typeof period) => {
+    const trimmed = q.trim();
+    if (!trimmed) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `/api/listening/search?q=${encodeURIComponent(trimmed)}&period=${p}`
+      );
+      if (!res.ok) {
+        const d = await res.json();
+        throw new Error(d.error || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      setResult(data);
+      setActiveSection("metrics");
+    } catch (err: any) {
+      setError(err.message || "Error fetching data");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const handleSearch = () => search(query, period);
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") handleSearch();
+  };
+
+  /* ── Sorted posts ───────────────────────────────────────── */
+  const sortedPosts = result ? [...result.posts].sort((a, b) => {
+    if (postSort === "engagement") return (b.likes + b.comments + b.shares) - (a.likes + a.comments + a.shares);
+    if (postSort === "sentiment") return a.sentiment.localeCompare(b.sentiment);
+    return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime();
+  }) : [];
+
+  /* ── Nav sections ───────────────────────────────────────── */
+  const sections: { id: SectionId; label: string; icon: React.ElementType }[] = [
+    { id: "metrics", label: lang === "es" ? "Métricas Clave" : "Key Metrics", icon: BarChart2 },
+    { id: "sentiment", label: lang === "es" ? "Sentimiento" : "Sentiment", icon: ThumbsUp },
+    { id: "topics", label: lang === "es" ? "Principales Temáticas" : "Main Topics", icon: Hash },
+    { id: "results", label: lang === "es" ? "Resultados" : "Results", icon: MessageCircle },
+    { id: "heatmap", label: lang === "es" ? "Actividad" : "Activity", icon: Clock },
+  ];
+
+  /* ── Custom tooltip for recharts ─────────────────────────── */
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload?.length) return null;
+    return (
+      <div style={{
+        background: "var(--surface-2)",
+        border: "1px solid var(--border)",
+        borderRadius: 8,
+        padding: "8px 12px",
+        fontSize: 12,
+      }}>
+        <p style={{ color: "var(--text-secondary)", marginBottom: 4 }}>{label}</p>
+        {payload.map((p: any) => (
+          <p key={p.dataKey} style={{ color: p.color, margin: "2px 0" }}>
+            {p.name}: <strong>{p.value}</strong>
+          </p>
+        ))}
+      </div>
+    );
+  };
+
+  /* ── Pie chart data ─────────────────────────────────────── */
+  const pieData = result ? [
+    { name: "Positivo", value: result.sentiment.positive, color: SENTIMENT_COLORS.positive },
+    { name: "Neutro", value: result.sentiment.neutral, color: SENTIMENT_COLORS.neutral },
+    { name: "Negativo", value: result.sentiment.negative, color: SENTIMENT_COLORS.negative },
+  ] : [];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+
+      {/* ── Search bar ─────────────────────────────────────── */}
+      <div style={{
+        background: "var(--surface-1)",
+        border: "1px solid var(--border)",
+        borderRadius: 16,
+        padding: "24px 28px",
+      }}>
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
+          🔍 {lang === "es" ? "Búsqueda de Keywords" : "Keyword Search"}
+        </h2>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20 }}>
+          {lang === "es"
+            ? "Analiza el impacto de una palabra clave en tu ecosistema de redes sociales con inteligencia artificial."
+            : "Analyze a keyword's impact in your social media ecosystem with AI intelligence."}
+        </p>
+
+        <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          {/* Period selector */}
+          <div style={{ display: "flex", gap: 4, background: "var(--surface-2)", borderRadius: 8, padding: 4 }}>
+            {(["7d", "30d", "90d"] as const).map(p => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                style={{
+                  padding: "6px 14px",
+                  borderRadius: 6,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                  background: period === p ? "var(--accent)" : "transparent",
+                  color: period === p ? "#fff" : "var(--text-secondary)",
+                  transition: "all 0.2s",
+                }}
+              >{p.toUpperCase()}</button>
+            ))}
           </div>
 
-          {/* Recent mentions */}
-          <div className="glass-panel" style={{ padding: 20 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "'Orbitron',sans-serif" }}>
-              {t.recentMentions}
-            </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {filteredMentions.length === 0 ? (
-                <div style={{ padding: "32px 16px", textAlign: "center" }}>
-                  <MessageCircle style={{ width: 32, height: 32, color: "var(--text-muted)", margin: "0 auto 12px" }} />
-                  <p style={{ fontSize: 13, color: "var(--foreground)", margin: 0, fontWeight: 600 }}>
-                    {t.noMentionsTitle}
-                  </p>
-                  <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>
-                    {t.noMentionsDesc}
-                  </p>
-                </div>
-              ) : (
-                filteredMentions.slice(0, 5).map((m) => (
-                  <MentionCard key={m.id} mention={m} />
-                ))
-              )}
-            </div>
+          {/* Search input */}
+          <div style={{ flex: 1, minWidth: 260, position: "relative" }}>
+            <Search size={16} style={{
+              position: "absolute", left: 14, top: "50%", transform: "translateY(-50%)",
+              color: "var(--text-secondary)",
+            }} />
+            <input
+              ref={inputRef}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={lang === "es" ? "#hashtag, keyword, @cuenta..." : "#hashtag, keyword, @account..."}
+              style={{
+                width: "100%",
+                padding: "10px 14px 10px 38px",
+                borderRadius: 8,
+                border: "1px solid var(--border)",
+                background: "var(--surface-2)",
+                color: "var(--text-primary)",
+                fontSize: 14,
+                outline: "none",
+                boxSizing: "border-box",
+              }}
+            />
           </div>
+
+          {/* Search button */}
+          <button
+            onClick={handleSearch}
+            disabled={loading || !query.trim()}
+            style={{
+              padding: "10px 24px",
+              borderRadius: 8,
+              background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+              color: "#fff",
+              fontWeight: 600,
+              fontSize: 14,
+              border: "none",
+              cursor: loading || !query.trim() ? "not-allowed" : "pointer",
+              opacity: loading || !query.trim() ? 0.6 : 1,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              transition: "opacity 0.2s",
+            }}
+          >
+            {loading
+              ? <><Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> {lang === "es" ? "Analizando..." : "Analyzing..."}</>
+              : <><Sparkles size={16} /> {lang === "es" ? "Analizar" : "Analyze"}</>
+            }
+          </button>
+        </div>
+
+        {/* Suggestions */}
+        {!result && !loading && (
+          <div style={{ marginTop: 16, display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>{lang === "es" ? "Prueba con:" : "Try:"}</span>
+            {["tu marca", "producto", "#hashtag", "@competidor"].map(s => (
+              <button
+                key={s}
+                onClick={() => { setQuery(s); search(s, period); }}
+                style={{
+                  fontSize: 12,
+                  padding: "4px 10px",
+                  borderRadius: 99,
+                  border: "1px solid var(--border)",
+                  background: "transparent",
+                  color: "var(--text-secondary)",
+                  cursor: "pointer",
+                }}
+              >{s}</button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* ── Error state ─────────────────────────────────────── */}
+      {error && (
+        <div style={{
+          background: "#ef444415",
+          border: "1px solid #ef444440",
+          borderRadius: 12,
+          padding: "16px 20px",
+          color: "#ef4444",
+          fontSize: 14,
+        }}>
+          ⚠️ {error}
         </div>
       )}
 
-      {/* ── Tab: Mentions ──────────────────────────────── */}
-      {activeTab === "mentions" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {mentions.length === 0 ? (
-            <div className="glass-panel" style={{ padding: "48px 16px", textAlign: "center" }}>
-              <MessageCircle style={{ width: 36, height: 36, color: "var(--text-muted)", margin: "0 auto 12px" }} />
-              <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{t.noMentionsTitle}</p>
-              <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 6 }}>
-                {t.noMentionsDesc}
+      {/* ── Loading skeleton ─────────────────────────────────── */}
+      {loading && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          {[1, 2, 3].map(i => (
+            <div key={i} style={{
+              background: "var(--surface-1)",
+              border: "1px solid var(--border)",
+              borderRadius: 12,
+              height: 120,
+              animation: "pulse 1.5s ease-in-out infinite",
+            }} />
+          ))}
+        </div>
+      )}
+
+      {/* ── Results area ─────────────────────────────────────── */}
+      {result && !loading && (
+        <div style={{ display: "flex", gap: 20 }}>
+
+          {/* Sidebar navigation */}
+          <div style={{
+            width: 200,
+            flexShrink: 0,
+            background: "var(--surface-1)",
+            border: "1px solid var(--border)",
+            borderRadius: 12,
+            padding: "12px 8px",
+            height: "fit-content",
+            position: "sticky",
+            top: 80,
+          }}>
+            <div style={{ padding: "4px 8px 12px", borderBottom: "1px solid var(--border)", marginBottom: 8 }}>
+              <p style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 600 }}>
+                {lang === "es" ? "BUSCANDO" : "SEARCHING"}
+              </p>
+              <p style={{ fontSize: 15, fontWeight: 700, color: "var(--text-primary)", marginTop: 2 }}>
+                {result.keyword}
+              </p>
+              <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>
+                {result.metrics.mentions} {lang === "es" ? "menciones" : "mentions"}
               </p>
             </div>
-          ) : (
-            mentions.map((m) => (
-              <MentionCard key={m.id} mention={m} />
-            ))
-          )}
-        </div>
-      )}
 
-      {/* ── Tab: Sentiment ─────────────────────────────── */}
-      {activeTab === "sentiment" && (
-        <div className="space-y-4">
-          {/* Sentiment Overview */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
-            {(["positive", "negative", "neutral"] as const).map((key) => {
-              const config = sentimentConfig[key];
-              const Icon = config.icon;
-              const count = sentimentCounts[key];
-              const pct = mentions.length > 0 ? Math.round((count / mentions.length) * 100) : 0;
-              const label = lang === "es" ? config.labelEs : config.labelEn;
-              return (
-                <div key={key} className="glass-panel" style={{ padding: 20, textAlign: "center" }}>
-                  <Icon style={{ width: 28, height: 28, color: config.color, margin: "0 auto 8px" }} />
-                  <div style={{ fontSize: 28, fontWeight: 800, color: config.color, fontFamily: "'Orbitron',sans-serif" }}>{pct}%</div>
-                  <div style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 4 }}>
-                    {label} · {count} {lang === "es" ? "menciones" : "mentions"}
+            {sections.map(s => (
+              <button
+                key={s.id}
+                onClick={() => setActiveSection(s.id)}
+                style={{
+                  width: "100%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "9px 12px",
+                  borderRadius: 8,
+                  border: "none",
+                  cursor: "pointer",
+                  background: activeSection === s.id ? "var(--accent)18" : "transparent",
+                  color: activeSection === s.id ? "var(--accent)" : "var(--text-secondary)",
+                  fontWeight: activeSection === s.id ? 600 : 400,
+                  fontSize: 13,
+                  textAlign: "left",
+                  transition: "all 0.15s",
+                  marginBottom: 2,
+                }}
+              >
+                <s.icon size={15} />
+                {s.label}
+              </button>
+            ))}
+
+            <div style={{ borderTop: "1px solid var(--border)", marginTop: 8, paddingTop: 8, padding: "8px 12px 4px" }}>
+              <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                📘 {result.sources.facebook} Facebook<br />
+                📸 {result.sources.instagram} Instagram
+              </p>
+            </div>
+          </div>
+
+          {/* Main content */}
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 20 }}>
+
+            {/* ── SECTION: Key Metrics ─────────────────────────── */}
+            {activeSection === "metrics" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                {/* Metric cards */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16 }}>
+                  <MetricCard
+                    label={lang === "es" ? "Menciones" : "Mentions"}
+                    value={formatNum(result.metrics.mentions)}
+                    sub={`${result.sources.facebook} FB + ${result.sources.instagram} IG`}
+                    color="#7c3aed"
+                    icon={MessageCircle}
+                  />
+                  <MetricCard
+                    label={lang === "es" ? "Interacciones" : "Interactions"}
+                    value={formatNum(result.metrics.interactions)}
+                    sub={lang === "es" ? "likes + comentarios + compartidos" : "likes + comments + shares"}
+                    color="#3b82f6"
+                    icon={Heart}
+                  />
+                  <MetricCard
+                    label={lang === "es" ? "Sentimiento Positivo" : "Positive Sentiment"}
+                    value={`${result.metrics.positiveCount}`}
+                    sub={`${result.sentiment.positive}% positivo`}
+                    color="#22c55e"
+                    icon={ThumbsUp}
+                  />
+                  <MetricCard
+                    label={lang === "es" ? "Alcance Estimado" : "Estimated Reach"}
+                    value={formatNum(result.metrics.reach)}
+                    sub={lang === "es" ? "personas potenciales" : "potential people"}
+                    color="#f59e0b"
+                    icon={Globe}
+                  />
+                </div>
+
+                {/* Volume over time */}
+                <div style={{
+                  background: "var(--surface-1)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 12,
+                  padding: 24,
+                }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, color: "var(--text-primary)" }}>
+                    📈 {lang === "es" ? "Menciones en el tiempo" : "Mentions over time"}
+                  </h3>
+                  {result.timeseries.some(t => t.count > 0) ? (
+                    <ResponsiveContainer width="100%" height={220}>
+                      <LineChart data={result.timeseries.map(t => ({ ...t, fecha: formatDate(t.date) }))}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                        <XAxis dataKey="fecha" tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
+                        <YAxis tick={{ fontSize: 11, fill: "var(--text-secondary)" }} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Line
+                          type="monotone"
+                          dataKey="count"
+                          name={lang === "es" ? "Menciones" : "Mentions"}
+                          stroke="#7c3aed"
+                          strokeWidth={2.5}
+                          dot={false}
+                          activeDot={{ r: 5 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <EmptyState
+                      icon="📊"
+                      message={lang === "es"
+                        ? "No hay suficientes datos para mostrar la tendencia en el tiempo."
+                        : "Not enough data to show the trend over time."}
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── SECTION: Sentiment ───────────────────────────── */}
+            {activeSection === "sentiment" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+                  {/* Themes */}
+                  <div style={{
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    padding: 24,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                      <Sparkles size={16} color="#22c55e" />
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#22c55e" }}>
+                        {lang === "es" ? "Temas con sentimiento positivo" : "Positive sentiment topics"}
+                      </h3>
+                    </div>
+                    <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                      {result.sentiment.positiveThemes.map((t, i) => (
+                        <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
+                          <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div style={{
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    padding: 24,
+                  }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+                      <Sparkles size={16} color="#ef4444" />
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#ef4444" }}>
+                        {lang === "es" ? "Temas con sentimiento negativo" : "Negative sentiment topics"}
+                      </h3>
+                    </div>
+                    <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
+                      {result.sentiment.negativeThemes.map((t, i) => (
+                        <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", flexShrink: 0 }} />
+                          <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
                   </div>
                 </div>
-              );
-            })}
-          </div>
 
-          {/* Sentiment bar */}
-          {mentions.length > 0 && (
-            <div className="glass-panel" style={{ padding: 20 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, fontFamily: "'Orbitron',sans-serif" }}>
-                {t.sentimentDistribution}
-              </h3>
-              <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", height: 32 }}>
-                <div style={{ width: `${(sentimentCounts.positive / mentions.length) * 100}%`, background: "var(--emerald)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--foreground)", fontWeight: 700 }}>
-                  {Math.round((sentimentCounts.positive / mentions.length) * 100)}%
-                </div>
-                <div style={{ width: `${(sentimentCounts.neutral / mentions.length) * 100}%`, background: "var(--text-secondary)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--foreground)", fontWeight: 700 }}>
-                  {Math.round((sentimentCounts.neutral / mentions.length) * 100)}%
-                </div>
-                <div style={{ width: `${(sentimentCounts.negative / mentions.length) * 100}%`, background: "var(--red)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, color: "var(--foreground)", fontWeight: 700 }}>
-                  {Math.round((sentimentCounts.negative / mentions.length) * 100)}%
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Mentions by sentiment */}
-          <div className="glass-panel" style={{ padding: 20 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "'Orbitron',sans-serif" }}>
-              {t.mentionsBySentiment}
-            </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {mentions.length === 0 ? (
-                <div style={{ padding: "32px 16px", textAlign: "center" }}>
-                  <MessageCircle style={{ width: 32, height: 32, color: "var(--text-muted)", margin: "0 auto 12px" }} />
-                  <p style={{ fontSize: 13, color: "var(--foreground)", margin: 0, fontWeight: 600 }}>{t.noMentionsTitle}</p>
-                  <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>{t.noMentionsDesc}</p>
-                </div>
-              ) : (
-                mentions.map((m) => (
-                  <MentionCard key={m.id} mention={m} />
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* ── Tab: Trends ────────────────────────────────── */}
-      {activeTab === "trends" && (
-        <div className="space-y-4">
-          {/* Monitored Hashtags */}
-          <div className="glass-panel" style={{ padding: 20 }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "'Orbitron',sans-serif" }}>
-              <Hash style={{ width: 14, height: 14, display: "inline-block", marginRight: 6, color: "var(--amber)" }} />
-              {t.monitoredHashtags}
-            </h3>
-
-            {hashtagKeywords.length === 0 ? (
-              <div style={{ padding: "24px 16px", textAlign: "center" }}>
-                <Hash style={{ width: 28, height: 28, color: "var(--text-muted)", margin: "0 auto 8px" }} />
-                <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                  {t.trendsPrompt}
-                </p>
-              </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-                {hashtagKeywords.map((kw) => {
-                  const q = kw.query.replace(/^#/, "");
-                  const posts = hashtagPosts[q];
-                  const isLoading = loadingHashtag === q;
-                  return (
-                    <div key={kw.id} style={{ borderBottom: "1px solid var(--border)", paddingBottom: 16 }}>
-                      {/* Hashtag header */}
-                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                        <span style={{ fontSize: 14, fontWeight: 700, color: "var(--amber)" }}>{kw.query}</span>
-                        <button
-                          onClick={() => fetchHashtagPosts(kw.query)}
-                          disabled={isLoading}
-                          style={{
-                            padding: "6px 14px", borderRadius: 8, fontSize: 11, fontWeight: 700,
-                            background: "var(--cyan-dim)", border: "1px solid var(--border-strong)",
-                            color: "var(--cyan)", cursor: isLoading ? "not-allowed" : "pointer",
-                            display: "flex", alignItems: "center", gap: 4, fontFamily: "inherit"
-                          }}
+                {/* Sentiment donut + timeseries */}
+                <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20 }}>
+                  {/* Donut */}
+                  <div style={{
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    padding: 24,
+                  }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "var(--text-primary)" }}>
+                      {lang === "es" ? "Cuota de Sentimiento" : "Sentiment Share"}
+                    </h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          innerRadius={55}
+                          outerRadius={85}
+                          paddingAngle={2}
+                          dataKey="value"
                         >
-                          {isLoading ? <Loader2 style={{ width: 11, height: 11, animation: "spin 1s linear infinite" }} /> : <Eye style={{ width: 11, height: 11 }} />}
-                          {posts ? t.updateBtn : t.viewPostsBtn}
-                        </button>
-                      </div>
-
-                      {/* Hashtag posts grid */}
-                      {posts && posts.length > 0 && (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 12 }}>
-                          {posts.slice(0, 8).map((p: any) => (
-                            <div key={p.id} style={{
-                              padding: 12, borderRadius: 8, background: "var(--surface-hover)",
-                              border: "1px solid var(--border)", fontSize: 12, display: "flex", flexDirection: "column", gap: 8
-                            }}>
-                              <p style={{ color: "var(--foreground)", lineHeight: 1.4, margin: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
-                                {p.caption || "(sin texto)"}
-                              </p>
-                              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "var(--text-secondary)", fontSize: 10, marginTop: "auto" }}>
-                                <div style={{ display: "flex", gap: 8 }}>
-                                  <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                    <Heart style={{ width: 10, height: 10 }} /> {p.likes}
-                                  </span>
-                                  <span style={{ display: "flex", alignItems: "center", gap: 2 }}>
-                                    <MessageCircle style={{ width: 10, height: 10 }} /> {p.comments}
-                                  </span>
-                                </div>
-                                <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                                  <span>{relativeTime(p.timestamp, lang)}</span>
-                                  {p.permalink && (
-                                    <a href={p.permalink} target="_blank" rel="noopener noreferrer" style={{ color: "#E4405F" }}>
-                                      <ExternalLink style={{ width: 10, height: 10 }} />
-                                    </a>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                          {pieData.map((entry, index) => (
+                            <Cell key={index} fill={entry.color} />
                           ))}
+                        </Pie>
+                        <Tooltip formatter={(val) => `${Number(val)}%`} />
+                      </PieChart>
+                    </ResponsiveContainer>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 8 }}>
+                      {pieData.map(p => (
+                        <div key={p.name} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                          <div style={{ width: 10, height: 10, borderRadius: 2, background: p.color, flexShrink: 0 }} />
+                          <span style={{ fontSize: 13, color: "var(--text-secondary)", flex: 1 }}>{p.name}</span>
+                          <span style={{ fontSize: 13, fontWeight: 700, color: p.color }}>{p.value}%</span>
                         </div>
-                      )}
-                      {posts && posts.length === 0 && !isLoading && (
-                        <p style={{ fontSize: 11, color: "var(--text-secondary)", padding: "8px 0" }}>{t.noHashtagPosts}</p>
-                      )}
+                      ))}
                     </div>
-                  );
-                })}
+                  </div>
+
+                  {/* Sentiment over time */}
+                  <div style={{
+                    background: "var(--surface-1)",
+                    border: "1px solid var(--border)",
+                    borderRadius: 12,
+                    padding: 24,
+                  }}>
+                    <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 16, color: "var(--text-primary)" }}>
+                      {lang === "es" ? "Sentimiento en el tiempo" : "Sentiment over time"}
+                    </h3>
+                    <ResponsiveContainer width="100%" height={200}>
+                      <LineChart data={result.timeseries.map(t => ({ ...t, fecha: formatDate(t.date) }))}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                        <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
+                        <YAxis tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
+                        <Tooltip content={<CustomTooltip />} />
+                        <Line type="monotone" dataKey="positive" name="Positivo" stroke="#22c55e" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="neutral" name="Neutral" stroke="#f59e0b" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="negative" name="Negativo" stroke="#ef4444" strokeWidth={2} dot={false} />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── SECTION: Topics ──────────────────────────────── */}
+            {activeSection === "topics" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+                <div style={{
+                  background: "var(--surface-1)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 12,
+                  padding: 24,
+                }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
+                    💭 {lang === "es" ? "Mapa de Temas" : "Topic Map"}
+                  </h3>
+                  <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
+                    {lang === "es"
+                      ? "Términos relacionados con tu keyword. El tamaño indica frecuencia; el color indica sentimiento."
+                      : "Terms related to your keyword. Size = frequency, color = sentiment."}
+                  </p>
+                  {result.topics.length > 0 ? (
+                    <div style={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: 12,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      minHeight: 300,
+                      padding: "20px 0",
+                    }}>
+                      {result.topics.map((topic, i) => (
+                        <TopicBubble key={i} topic={topic} />
+                      ))}
+                    </div>
+                  ) : (
+                    <EmptyState
+                      icon="💭"
+                      message={lang === "es"
+                        ? "Agrega más contenido relacionado con esta keyword para ver el mapa de temas."
+                        : "Add more content related to this keyword to see the topic map."}
+                    />
+                  )}
+                </div>
+
+                {/* Legend */}
+                <div style={{
+                  display: "flex",
+                  gap: 20,
+                  padding: "12px 20px",
+                  background: "var(--surface-1)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 10,
+                }}>
+                  {Object.entries(SENTIMENT_COLORS).map(([k, v]) => (
+                    <div key={k} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <div style={{ width: 12, height: 12, borderRadius: "50%", background: v }} />
+                      <span style={{ fontSize: 13, color: "var(--text-secondary)", textTransform: "capitalize" }}>
+                        {k === "positive" ? "Positivo" : k === "negative" ? "Negativo" : "Neutral"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* ── SECTION: Results ─────────────────────────────── */}
+            {activeSection === "results" && (
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                {/* Sort bar */}
+                <div style={{
+                  background: "var(--surface-1)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 10,
+                  padding: "12px 16px",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 16,
+                }}>
+                  <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                    {result.posts.length} {lang === "es" ? "resultados" : "results"}
+                  </span>
+                  <div style={{ flex: 1 }} />
+                  <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>
+                    {lang === "es" ? "Ordenar:" : "Sort:"}
+                  </span>
+                  {(["date", "engagement", "sentiment"] as const).map(s => (
+                    <button
+                      key={s}
+                      onClick={() => setPostSort(s)}
+                      style={{
+                        fontSize: 12, padding: "5px 12px", borderRadius: 6, border: "none",
+                        cursor: "pointer",
+                        background: postSort === s ? "var(--accent)" : "var(--surface-2)",
+                        color: postSort === s ? "#fff" : "var(--text-secondary)",
+                        fontWeight: postSort === s ? 600 : 400,
+                      }}
+                    >
+                      {s === "date" ? (lang === "es" ? "Fecha" : "Date")
+                        : s === "engagement" ? "Engagement"
+                          : lang === "es" ? "Sentimiento" : "Sentiment"}
+                    </button>
+                  ))}
+                </div>
+
+                {sortedPosts.length === 0 ? (
+                  <EmptyState
+                    icon="🔍"
+                    message={lang === "es"
+                      ? "No se encontraron menciones de esta keyword en tus redes conectadas. Intenta con otra keyword o conecta más integraciones."
+                      : "No mentions of this keyword found in your connected networks. Try a different keyword or connect more integrations."}
+                  />
+                ) : (
+                  sortedPosts.map(post => (
+                    <PostCard key={post.id} post={post} />
+                  ))
+                )}
+              </div>
+            )}
+
+            {/* ── SECTION: Activity Heatmap ─────────────────────── */}
+            {activeSection === "heatmap" && (
+              <div style={{
+                background: "var(--surface-1)",
+                border: "1px solid var(--border)",
+                borderRadius: 12,
+                padding: 24,
+              }}>
+                <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
+                  🕐 {lang === "es" ? "Pico de Actividad" : "Activity Peak"}
+                </h3>
+                <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 24 }}>
+                  {lang === "es"
+                    ? "Distribución de menciones por día de la semana y hora del día."
+                    : "Distribution of mentions by day of week and hour of day."}
+                </p>
+                {result.heatmap.length > 0 ? (
+                  <ActivityHeatmap heatmap={result.heatmap} days={days} />
+                ) : (
+                  <EmptyState
+                    icon="🕐"
+                    message={lang === "es"
+                      ? "No hay datos de actividad para mostrar. Necesitas más menciones con fechas recientes."
+                      : "No activity data to display. You need more mentions with recent dates."}
+                  />
+                )}
               </div>
             )}
           </div>
+        </div>
+      )}
 
-          {/* Word Cloud from mention content */}
-          <div className="glass-panel" style={{ padding: 20, textAlign: "center" }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "'Orbitron',sans-serif" }}>
-              {t.wordCloud}
-            </h3>
-            <div style={{
-              display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 16px",
-              padding: 10,
-            }}>
-              {(() => {
-                const stopWords = new Set(["de","la","el","en","y","a","los","las","del","un","una","por","con","para","que","es","se","with","the","and","for","your"]);
-                const words: Record<string, number> = {};
-                mentions.forEach((m) => {
-                  m.content.toLowerCase().split(/\s+/).forEach((w: string) => {
-                    const clean = w.replace(/[^a-záéíóúñü#@]/g, "");
-                    if (clean.length > 2 && !stopWords.has(clean)) {
-                      words[clean] = (words[clean] || 0) + 1;
-                    }
-                  });
-                });
-                const sorted = Object.entries(words).sort((a, b) => b[1] - a[1]).slice(0, 20);
-                const maxCount = sorted[0]?.[1] || 1;
+      {/* Empty state when no search yet */}
+      {!result && !loading && !error && (
+        <div style={{
+          background: "var(--surface-1)",
+          border: "1px solid var(--border)",
+          borderRadius: 16,
+          padding: "60px 24px",
+          textAlign: "center",
+        }}>
+          <div style={{ fontSize: 56, marginBottom: 16 }}>🔍</div>
+          <h3 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>
+            {lang === "es" ? "Busca tu primera keyword" : "Search your first keyword"}
+          </h3>
+          <p style={{ fontSize: 14, color: "var(--text-secondary)", maxWidth: 440, margin: "0 auto" }}>
+            {lang === "es"
+              ? "Escribe una palabra clave, #hashtag o @cuenta y obtén análisis de sentimiento, volumen de menciones y temas principales generados con IA."
+              : "Type a keyword, #hashtag or @account and get AI-powered sentiment analysis, mention volume, and main topics."}
+          </p>
 
-                if (sorted.length === 0) {
-                  return (
-                    <div style={{ padding: "24px 16px", textAlign: "center", width: "100%" }}>
-                      <p style={{ fontSize: 12, color: "var(--text-secondary)" }}>
-                        {lang === "es" ? "No hay suficientes datos para generar la nube de palabras." : "Not enough data to generate the word cloud."}
-                      </p>
-                    </div>
-                  );
-                }
-
-                return sorted.map(([word, count], i) => {
-                  const size = 12 + (count / maxCount) * 20;
-                  const hue = 25 + i * 12;
-                  return (
-                    <span key={word} style={{
-                      fontSize: size, fontWeight: count > maxCount * 0.5 ? 700 : 400,
-                      color: `hsl(${hue}, 80%, ${55 + (count / maxCount) * 15}%)`,
-                      opacity: 0.6 + (count / maxCount) * 0.4,
-                    }}>
-                      {word}
-                    </span>
-                  );
-                });
-              })()}
-            </div>
-          </div>
-
-          {/* Alert setup */}
-          <div className="glass-panel" style={{ padding: 20 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
-              <div>
-                <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", fontFamily: "'Orbitron',sans-serif" }}>{t.spikeAlertsTitle}</h3>
-                <p style={{ fontSize: 12, color: "var(--text-secondary)", marginTop: 2 }}>{t.spikeAlertsDesc}</p>
+          <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 40, flexWrap: "wrap" }}>
+            {[
+              { icon: "📊", label: lang === "es" ? "Volumen en el tiempo" : "Volume over time" },
+              { icon: "😊", label: lang === "es" ? "Análisis de sentimiento" : "Sentiment analysis" },
+              { icon: "💭", label: lang === "es" ? "Mapa de temas" : "Topic map" },
+              { icon: "🔥", label: lang === "es" ? "Pico de actividad" : "Activity peak" },
+            ].map(f => (
+              <div key={f.icon} style={{ textAlign: "center", maxWidth: 120 }}>
+                <div style={{ fontSize: 28, marginBottom: 6 }}>{f.icon}</div>
+                <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{f.label}</div>
               </div>
-              <button
-                onClick={() => {
-                  localStorage.setItem("sodare_spike_alerts", "true");
-                  showToast(t.alertsConfiguredMsg);
-                }}
-                style={{
-                  padding: "8px 16px", borderRadius: 8, background: "var(--cyan-dim)",
-                  border: "1px solid var(--border-strong)", color: "var(--cyan)", fontSize: 12, fontWeight: 700,
-                  cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit"
-                }}
-              >
-                <Bell style={{ width: 14, height: 14 }} /> {t.configureAlertsBtn}
-              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.5; }
+        }
+      `}</style>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────────────────────────
+   PostCard sub-component
+───────────────────────────────────────────────────────────── */
+function PostCard({ post }: { post: SearchResult["posts"][0] }) {
+  const [expanded, setExpanded] = useState(false);
+  const isLong = post.text.length > 200;
+
+  return (
+    <div style={{
+      background: "var(--surface-1)",
+      border: "1px solid var(--border)",
+      borderRadius: 12,
+      padding: 20,
+      transition: "border-color 0.2s",
+    }}>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: "50%",
+            background: PLATFORM_COLORS[post.platform] + "20",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 16, flexShrink: 0,
+          }}>
+            {post.platform === "instagram" ? "📸" : "📘"}
+          </div>
+          <div>
+            <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{post.author}</p>
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{
+                fontSize: 11, padding: "1px 7px", borderRadius: 99,
+                background: PLATFORM_COLORS[post.platform] + "20",
+                color: PLATFORM_COLORS[post.platform],
+                fontWeight: 600,
+              }}>
+                {post.platform}
+              </span>
+              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>·</span>
+              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{relativeTime(post.publishedAt)}</span>
+              <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>·</span>
+              <span style={{ fontSize: 11, color: "var(--text-secondary)", textTransform: "capitalize" }}>
+                {post.type}
+              </span>
             </div>
           </div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <SentimentBadge sentiment={post.sentiment} />
+          {post.url && (
+            <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ color: "var(--text-secondary)" }}>
+              <ExternalLink size={14} />
+            </a>
+          )}
+        </div>
+      </div>
+
+      {/* Content */}
+      <p style={{
+        fontSize: 14,
+        color: "var(--text-primary)",
+        lineHeight: 1.6,
+        marginBottom: 12,
+      }}>
+        {isLong && !expanded ? `${post.text.slice(0, 200)}...` : post.text}
+        {isLong && (
+          <button
+            onClick={() => setExpanded(!expanded)}
+            style={{
+              background: "none", border: "none", cursor: "pointer",
+              color: "var(--accent)", fontSize: 13, marginLeft: 4,
+            }}
+          >
+            {expanded ? " Ver menos" : " Ver más"}
+          </button>
+        )}
+      </p>
+
+      {/* Engagement */}
+      {(post.likes > 0 || post.comments > 0 || post.shares > 0) && (
+        <div style={{ display: "flex", gap: 16 }}>
+          {post.likes > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--text-secondary)" }}>
+              <Heart size={13} /> {formatNum(post.likes)}
+            </span>
+          )}
+          {post.comments > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--text-secondary)" }}>
+              <MessageCircle size={13} /> {formatNum(post.comments)}
+            </span>
+          )}
+          {post.shares > 0 && (
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "var(--text-secondary)" }}>
+              <Share2 size={13} /> {formatNum(post.shares)}
+            </span>
+          )}
         </div>
       )}
     </div>
   );
 }
 
-/* ── Mention Card ──────────────────────────────────────── */
-function MentionCard({ mention }: { mention: any }) {
-  const { lang } = useLanguage();
-  const config = sentimentConfig[mention.sentiment as keyof typeof sentimentConfig] || sentimentConfig.neutral;
-  const SentIcon = config.icon;
-  const platformColor = platformColors[mention.platform] || "var(--text-muted)";
-  const label = lang === "es" ? config.labelEs : config.labelEn;
-
+/* ─────────────────────────────────────────────────────────────
+   EmptyState helper
+───────────────────────────────────────────────────────────── */
+function EmptyState({ icon, message }: { icon: string; message: string }) {
   return (
     <div style={{
-      display: "flex", gap: 12, padding: "12px 14px", borderRadius: 10,
-      background: "var(--surface)", border: "1px solid var(--border)",
-      transition: "background 0.2s",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      padding: "40px 24px",
+      textAlign: "center",
+      color: "var(--text-secondary)",
+      gap: 12,
     }}>
-      <div style={{
-        width: 36, height: 36, borderRadius: "50%", flexShrink: 0,
-        background: `${platformColor}15`, display: "flex", alignItems: "center",
-        justifyContent: "center", fontSize: 13, fontWeight: 700, color: platformColor,
-      }}>
-        {mention.author.charAt(0).toUpperCase()}
-      </div>
-
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-          <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>@{mention.author}</span>
-          <span style={{
-            fontSize: 10, padding: "2px 6px", borderRadius: 4,
-            background: "var(--cyan-dim)", color: "var(--cyan)", fontWeight: 700
-          }}>
-            {mention.platform}
-          </span>
-          <span style={{ fontSize: 11, color: "var(--text-muted)", marginLeft: "auto" }}>{mention.time}</span>
-        </div>
-        <p style={{ fontSize: 12.5, color: "var(--text-secondary)", lineHeight: 1.5, margin: 0 }}>{mention.content}</p>
-      </div>
-
-      <div style={{
-        display: "flex", alignItems: "center", gap: 4, padding: "4px 8px",
-        borderRadius: 6, background: `${config.color}15`, alignSelf: "center", flexShrink: 0,
-      }}>
-        <SentIcon style={{ width: 12, height: 12, color: config.color }} />
-        <span style={{ fontSize: 10, color: config.color, fontWeight: 700 }}>{label}</span>
-      </div>
+      <span style={{ fontSize: 36 }}>{icon}</span>
+      <p style={{ fontSize: 14, maxWidth: 380, lineHeight: 1.6 }}>{message}</p>
     </div>
   );
 }
