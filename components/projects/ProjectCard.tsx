@@ -1,8 +1,9 @@
 import React from "react";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, Eye } from "lucide-react";
+import { MoreHorizontal, ExternalLink, Calendar } from "lucide-react";
 import { PLATFORMS } from "@/lib/project-constants";
 import type { Project } from "@/types/project";
+import { useInsightsStore } from "@/stores/insightsStore";
 
 interface ProjectCardProps {
   project: Project;
@@ -11,115 +12,195 @@ interface ProjectCardProps {
   setMenuPos: (pos: { top: number; right: number }) => void;
 }
 
+const parseBudget = (s: string) => parseFloat(s.replace(/[^0-9.]/g, "")) || 0;
+
+function fmtCurrency(n: number): string {
+  if (n >= 1_000_000) return `$${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
+  return `$${n.toLocaleString("es-MX", { maximumFractionDigits: 0 })}`;
+}
+
 export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: ProjectCardProps) {
   const router = useRouter();
+  const store = useInsightsStore();
 
-  const isActive = p.status === "EN VUELO" || p.status === "Activo";
-  const isOrbita = p.status === "EN ÓRBITA";
+  /* ── Status styles ── */
+  const isActive   = p.status === "EN VUELO" || p.status === "Activo";
+  const isOrbita   = p.status === "EN ÓRBITA";
   const isComplete = p.status === "Completado";
-  const statusColor = isActive ? "var(--emerald)" : isOrbita ? "var(--amber)" : isComplete ? "var(--cyan)" : "rgba(148,163,184,0.5)";
-  const statusBg = isActive ? "rgba(6,214,160,0.07)" : isOrbita ? "rgba(255,190,11,0.07)" : isComplete ? "rgba(0,212,255,0.07)" : "rgba(148,163,184,0.04)";
-  const accentBorder = isActive ? "rgba(6,214,160,0.25)" : isOrbita ? "rgba(255,190,11,0.22)" : isComplete ? "rgba(0,212,255,0.22)" : "var(--border)";
+  const accentColor = isActive ? "var(--emerald)" : isOrbita ? "var(--amber)" : isComplete ? "var(--cyan)" : "rgba(148,163,184,0.4)";
+  const statusDotClass = isActive ? "status-dot-emerald" : isOrbita ? "status-dot-amber" : isComplete ? "status-dot-cyan" : "status-dot-muted";
+
+  /* ── Budget ── */
+  const totalBudget = p.channels.reduce((acc, c) => acc + parseBudget(c.budget), 0);
+
+  /* ── Cached insights ── */
+  const metaCh = p.channels.find(c => c.platformId === "meta" || c.platformId === "facebook");
+  const cached = metaCh?.adAccounts?.length ? store.getCached(p.id, "this_month") : null;
+
+  /* Sum spend + results across timeSeries */
+  let spend: number | null = null;
+  let results: number | null = null;
+  if (cached?.timeSeries?.length) {
+    spend = 0;
+    results = 0;
+    for (const day of cached.timeSeries) {
+      spend += parseFloat(day.spend || "0");
+      if (day.actions?.length) {
+        // Sum first action value found (same goal-aware logic as project detail page)
+        const a = day.actions?.[0];
+        if (a) results += parseInt(a.value || "0", 10);
+      }
+    }
+  }
+  const cpr = (spend != null && spend > 0 && results != null && results > 0) ? spend / results : null;
+
+  /* ── Budget progress (spend vs total) ── */
+  const spendPct = (spend != null && totalBudget > 0) ? Math.min((spend / totalBudget) * 100, 100) : null;
+  const isOver   = spend != null && totalBudget > 0 && spend > totalBudget;
+
+  /* ── Date range ── */
+  const dateStr = [p.dateStart, p.dateEnd].filter(Boolean).join(" – ");
 
   return (
     <div
-      style={{
-        background: "var(--surface)",
-        border: `1px solid ${accentBorder}`,
-        borderRadius: 16,
-        overflow: "hidden",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease",
-        cursor: "pointer",
-        position: "relative",
-      }}
-      onMouseEnter={e => {
-        (e.currentTarget as HTMLDivElement).style.transform = "translateY(-3px)";
-        (e.currentTarget as HTMLDivElement).style.boxShadow = `0 12px 40px rgba(0,0,0,0.35), 0 0 0 1px ${accentBorder}`;
-      }}
-      onMouseLeave={e => {
-        (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)";
-        (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-      }}
+      className="project-card"
       onClick={() => router.push(`/dashboard/proyectos/${p.id}`)}
     >
-      {/* Top accent line */}
-      <div style={{ height: 2, background: `linear-gradient(90deg, ${statusColor}, transparent)` }} />
+      {/* Left accent bar (status color) */}
+      <div
+        className="project-card-accent"
+        style={{ background: accentColor }}
+      />
+
+      {/* Top gradient line */}
+      <div style={{ height: 2, background: `linear-gradient(90deg, ${accentColor}88, transparent)`, marginLeft: 3 }} />
 
       {/* Card body */}
-      <div style={{ padding: "16px 18px" }}>
+      <div className="project-card-body">
         {/* Header row */}
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 10, marginBottom: 10 }}>
           <div style={{ minWidth: 0, flex: 1 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
-              {/* Live pulse */}
+            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
               {isActive && (
-                <span style={{
-                  display: "inline-block", width: 7, height: 7, borderRadius: "50%",
-                  background: "var(--emerald)", boxShadow: "0 0 8px rgba(6,214,160,0.7)",
-                  animation: "status-pulse 2s infinite", flexShrink: 0
-                }} />
+                <span
+                  className={`status-dot ${statusDotClass}`}
+                  style={{ animation: "status-pulse 2s infinite" }}
+                />
               )}
-              <h3 style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)", lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <h3 style={{
+                fontSize: 14, fontWeight: 700, color: "var(--foreground)",
+                lineHeight: 1.2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                letterSpacing: "-0.01em",
+              }}>
                 {p.alias || "Sin nombre"}
               </h3>
             </div>
-            <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
               {[p.client, p.vertical].filter(Boolean).join(" · ") || "Sin cliente"}
             </p>
           </div>
 
           {/* Status badge */}
           <div style={{
-            padding: "4px 10px", borderRadius: 20, fontSize: 9, fontWeight: 700,
+            padding: "3px 9px", borderRadius: 6, fontSize: 9, fontWeight: 700,
             letterSpacing: "0.12em", textTransform: "uppercase",
-            background: statusBg, color: statusColor,
-            border: `1px solid ${accentBorder}`, whiteSpace: "nowrap", flexShrink: 0
+            background: isActive ? "rgba(6,214,160,0.09)" : isOrbita ? "rgba(255,190,11,0.09)" : isComplete ? "rgba(0,212,255,0.09)" : "rgba(148,163,184,0.06)",
+            color: accentColor,
+            border: `1px solid ${accentColor}44`,
+            whiteSpace: "nowrap", flexShrink: 0,
           }}>
             {p.status}
           </div>
         </div>
 
         {/* Platform chips */}
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 5, flexWrap: "wrap", marginBottom: 0 }}>
           {p.channels.length === 0 ? (
-            <span style={{ fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>Sin plataformas configuradas</span>
-          ) : p.channels.slice(0, 4).map((c, i) => {
+            <span style={{ fontSize: 10, color: "var(--text-muted)", fontStyle: "italic" }}>Sin plataformas</span>
+          ) : p.channels.slice(0, 3).map((c, i) => {
             const pl = PLATFORMS.find(x => x.id === c.platformId);
             return (
               <span key={`${c.platformId}-${i}`} style={{
-                display: "inline-flex", alignItems: "center", gap: 5,
-                fontSize: 10, padding: "3px 9px", fontWeight: 700, letterSpacing: "0.04em",
-                borderRadius: 4, border: `1px solid ${pl?.color ? pl.color + "44" : "var(--border)"}`,
+                display: "inline-flex", alignItems: "center", gap: 4,
+                fontSize: 10, padding: "2px 8px", fontWeight: 600, letterSpacing: "0.03em",
+                borderRadius: 5, border: `1px solid ${pl?.color ? pl.color + "33" : "var(--hairline)"}`,
                 color: pl?.color || "var(--text-secondary)",
-                background: pl?.color ? pl.color + "11" : "transparent",
+                background: pl?.color ? pl.color + "0d" : "transparent",
               }}>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: pl?.color || "currentColor", flexShrink: 0 }} />
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: pl?.color || "currentColor", flexShrink: 0 }} />
                 {c.platformName}
               </span>
             );
           })}
-          {p.channels.length > 4 && (
-            <span style={{ fontSize: 9, color: "var(--text-muted)", padding: "3px 7px", border: "1px solid var(--hairline)", borderRadius: 4 }}>+{p.channels.length - 4}</span>
+          {p.channels.length > 3 && (
+            <span style={{ fontSize: 9, color: "var(--text-muted)", padding: "2px 6px", border: "1px solid var(--hairline)", borderRadius: 4 }}>
+              +{p.channels.length - 3}
+            </span>
           )}
         </div>
+      </div>
 
-        {/* Footer row */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: 12, borderTop: "1px solid var(--hairline)" }}>
-          <div style={{ display: "flex", gap: 16 }}>
-            {p.dateStart && (
-              <div>
-                <p style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 1 }}>Inicio</p>
-                <p style={{ fontSize: 11, color: "var(--foreground)", fontWeight: 600 }}>{p.dateStart}</p>
-              </div>
-            )}
-            {p.channels.length > 0 && p.channels[0].goal && (
-              <div>
-                <p style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 1 }}>Objetivo</p>
-                <p style={{ fontSize: 11, color: "var(--foreground)", fontWeight: 600, maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{p.channels[0].goal}</p>
-              </div>
-            )}
+      {/* Metrics row */}
+      <div className="project-card-metrics">
+        <div className="project-card-metric">
+          <div className="project-card-metric-value">
+            {spend != null ? fmtCurrency(spend) : totalBudget > 0 ? fmtCurrency(totalBudget) : "—"}
           </div>
-          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <div className="project-card-metric-label">{spend != null ? "Inversión" : "Presupuesto"}</div>
+        </div>
+        <div className="project-card-metric">
+          <div className="project-card-metric-value">
+            {cpr != null ? fmtCurrency(cpr) : "—"}
+          </div>
+          <div className="project-card-metric-label">{p.channels[0]?.goal ? (p.channels[0].goal.includes("Lead") ? "CPL" : p.channels[0].goal.includes("Conv") ? "CPR" : "CPA") : "CPR"}</div>
+        </div>
+        <div className="project-card-metric">
+          <div className="project-card-metric-value">
+            {results != null ? results.toLocaleString("es-MX") : "—"}
+          </div>
+          <div className="project-card-metric-label">Resultados</div>
+        </div>
+      </div>
+
+      {/* Footer: budget bar + date + actions */}
+      <div className="project-card-footer">
+        {/* Budget progress bar */}
+        {totalBudget > 0 && (
+          <div style={{ marginBottom: 10 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+              <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}>
+                Presupuesto
+              </span>
+              <span style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: 10, color: isOver ? "var(--amber)" : "var(--text-secondary)",
+              }}>
+                {spendPct != null ? `${spendPct.toFixed(0)}%` : `${fmtCurrency(totalBudget)}`}
+              </span>
+            </div>
+            <div className="progress-track">
+              <div
+                className={`progress-bar${isOver ? " over-budget" : ""}`}
+                style={{ width: `${spendPct ?? 0}%` }}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Date + actions */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          {dateStr ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 5, overflow: "hidden" }}>
+              <Calendar style={{ width: 11, height: 11, color: "var(--text-muted)", flexShrink: 0 }} />
+              <span style={{ fontSize: 10, color: "var(--text-muted)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+                {dateStr}
+              </span>
+            </div>
+          ) : <div />}
+
+          <div style={{ display: "flex", gap: 6, alignItems: "center", flexShrink: 0 }}>
+            {/* More options */}
             <button
               onClick={e => {
                 e.stopPropagation();
@@ -127,34 +208,27 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
                 const rect = e.currentTarget.getBoundingClientRect();
                 const menuHeight = 220;
                 let topPos = rect.bottom + 4;
-                if (topPos + menuHeight > window.innerHeight) {
-                  topPos = Math.max(8, rect.top - menuHeight - 4);
-                }
+                if (topPos + menuHeight > window.innerHeight) topPos = Math.max(8, rect.top - menuHeight - 4);
                 setMenuPos({ top: topPos, right: window.innerWidth - rect.right });
                 setMenuOpen(p.id);
               }}
               style={{
-                background: "var(--surface-hover)", border: "1px solid var(--hairline)",
+                background: "rgba(255,255,255,0.04)", border: "1px solid var(--hairline)",
                 cursor: "pointer", color: "var(--text-muted)", padding: "5px 7px",
-                borderRadius: 6, display: "flex", alignItems: "center"
+                borderRadius: 7, display: "flex", alignItems: "center",
               }}
             >
-              <MoreHorizontal className="w-3.5 h-3.5" />
+              <MoreHorizontal style={{ width: 14, height: 14 }} />
             </button>
+
+            {/* Dashboard CTA */}
             <button
               onClick={e => { e.stopPropagation(); router.push(`/dashboard/proyectos/${p.id}`); }}
-              style={{
-                display: "inline-flex", alignItems: "center", gap: 5,
-                padding: "5px 12px", borderRadius: 6, fontSize: 11, fontWeight: 700,
-                background: "var(--cyan-dim)", color: "var(--cyan)",
-                border: "1px solid rgba(0,212,255,0.25)", cursor: "pointer",
-                letterSpacing: "0.05em", transition: "all 0.15s",
-              }}
-              onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(0,212,255,0.18)"; }}
-              onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "var(--cyan-dim)"; }}
+              className="btn-ghost"
+              style={{ fontSize: 11, padding: "5px 12px", borderRadius: 7, fontWeight: 700 }}
             >
-              <Eye className="w-3 h-3" />
-              Dashboard
+              <ExternalLink style={{ width: 11, height: 11 }} />
+              Ver
             </button>
           </div>
         </div>

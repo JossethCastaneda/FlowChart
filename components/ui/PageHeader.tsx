@@ -1,74 +1,112 @@
-"use client";
+﻿"use client";
 
 import React from "react";
 
 interface PageHeaderProps {
   title: string;
   description?: string;
+  subtitle?: string;
   icon?: React.ReactNode;
   action?: React.ReactNode;
+  iconColor?: string;
 }
 
-export function PageHeader({ title, description, icon, action }: PageHeaderProps) {
+export function PageHeader({ title, description, subtitle, icon, action, iconColor }: PageHeaderProps) {
   return (
     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 page-enter">
       <div className="flex items-center gap-4">
         {icon && (
-          <div style={{
-            width: "44px",
-            height: "44px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            background: "rgba(0,212,255,0.07)",
-            border: "1px solid var(--border)",
-            borderRadius: "10px",
-            position: "relative",
-            flexShrink: 0,
-          }}>
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              background: iconColor ? `color-mix(in srgb, ${iconColor} 10%, transparent)` : "rgba(255,255,255,0.05)",
+              border: "1px solid var(--border)",
+              borderRadius: 12,
+              position: "relative",
+              flexShrink: 0,
+              transition: "border-color 0.2s, box-shadow 0.2s",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border-strong)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLDivElement).style.borderColor = "var(--border)";
+            }}
+          >
             {icon}
-            {/* Corner accents */}
-            <span style={{
-              position: "absolute", top: "-1px", left: "-1px",
-              width: "8px", height: "8px",
-              borderTop: "1px solid rgba(0,212,255,0.3)",
-              borderLeft: "1px solid rgba(0,212,255,0.3)",
-            }} />
-            <span style={{
-              position: "absolute", bottom: "-1px", right: "-1px",
-              width: "8px", height: "8px",
-              borderBottom: "1px solid rgba(0,212,255,0.3)",
-              borderRight: "1px solid rgba(0,212,255,0.3)",
-            }} />
+            {/* Corner accents — use CSS variables */}
+            <span
+              style={{
+                position: "absolute", top: -1, left: -1,
+                width: 8, height: 8,
+                borderTop: "1.5px solid var(--border-strong)",
+                borderLeft: "1.5px solid var(--border-strong)",
+                borderRadius: "2px 0 0 0",
+                pointerEvents: "none",
+              }}
+            />
+            <span
+              style={{
+                position: "absolute", bottom: -1, right: -1,
+                width: 8, height: 8,
+                borderBottom: "1.5px solid var(--border-strong)",
+                borderRight: "1.5px solid var(--border-strong)",
+                borderRadius: "0 0 2px 0",
+                pointerEvents: "none",
+              }}
+            />
           </div>
         )}
         <div>
-          <h1 style={{
-            fontFamily: "var(--font-sans)",
-            fontSize: "24px",
-            fontWeight: 800,
-            color: "var(--foreground)",
-            letterSpacing: 0,
-            lineHeight: 1.2,
-          }}>
+          <h1
+            style={{
+              fontFamily: "var(--font-sans)",
+              fontSize: 22,
+              fontWeight: 800,
+              color: "var(--foreground)",
+              letterSpacing: "-0.01em",
+              lineHeight: 1.2,
+              margin: 0,
+            }}
+          >
             {title}
           </h1>
+          {subtitle && (
+            <p
+              style={{
+                fontFamily: "'Orbitron', sans-serif",
+                fontSize: 9,
+                fontWeight: 600,
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                color: "var(--text-muted)",
+                marginTop: 3,
+              }}
+            >
+              {subtitle}
+            </p>
+          )}
           {description && (
-            <p style={{
-              fontSize: "12px",
-              color: "var(--text-secondary)",
-              marginTop: "4px",
-              letterSpacing: "0.03em",
-            }}>
+            <p
+              style={{
+                fontSize: 12,
+                color: "var(--text-secondary)",
+                marginTop: subtitle ? 2 : 4,
+                letterSpacing: "0.02em",
+                lineHeight: 1.5,
+              }}
+            >
               {description}
             </p>
           )}
         </div>
       </div>
       {action && (
-        <div className="flex items-center gap-2">
-          {action}
-        </div>
+        <div className="flex items-center gap-2">{action}</div>
       )}
     </div>
   );

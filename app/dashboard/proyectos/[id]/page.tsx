@@ -109,16 +109,15 @@ function getBudgetBreakdown(budget: number, period: string) {
 
 /* ═══ SHARED UI ═══ */
 const panelStyle: React.CSSProperties = {
-  background: "rgba(255,255,255,0.025)",
-  border: "1px solid rgba(255,255,255,0.07)",
+  background: "var(--surface)",
+  border: "1px solid var(--border)",
   borderRadius: 12,
   padding: 18,
-  backdropFilter: "blur(8px)",
 };
 const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
 const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.03em", marginBottom: 4 };
-const subStyle: React.CSSProperties = { fontSize: 11, color: "rgba(148,163,184,0.65)", marginBottom: 12, lineHeight: 1.5 };
-const tooltipStyle = { backgroundColor: "rgba(6,8,20,0.97)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, fontSize: 12, color: "white", boxShadow: "0 8px 32px rgba(0,0,0,0.4)" };
+const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", marginBottom: 12, lineHeight: 1.5 };
+const tooltipStyle = { backgroundColor: "var(--surface)", border: "1px solid var(--border-strong)", borderLeft: "3px solid var(--cyan)", borderRadius: 8, fontSize: 12, color: "white", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" };
 const CHART_COLORS = ["var(--cyan)", "var(--emerald)", "var(--amber)", "var(--red)", "var(--purple)", "#579bfc", "#ff007f", "#25F4EE"];
 
 function KpiBox({ title, value, sub, icon, color, progress }: any) {
@@ -127,35 +126,29 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
   const isOverBudget = progress !== undefined && progress > 100;
   const progressColor = isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c;
   return (
-    <div style={{
-      ...panelStyle,
-      position: "relative", overflow: "hidden",
-      paddingBottom: progress !== undefined ? 20 : 18,
-      borderTop: `2px solid ${c}44`,
-      transition: "transform 0.2s, box-shadow 0.2s",
-    }}
-    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(-2px)"; (e.currentTarget as HTMLDivElement).style.boxShadow = `0 8px 24px rgba(0,0,0,0.25), 0 0 0 1px ${c}22`; }}
-    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.transform = "translateY(0)"; (e.currentTarget as HTMLDivElement).style.boxShadow = "none"; }}
+    <div
+      className={`kpi-card ${color.startsWith("#") ? "" : color}`}
+      style={{ paddingBottom: progress !== undefined ? 18 : 20, position: "relative" }}
     >
       {/* Background glow */}
-      <div style={{ position: "absolute", top: 0, right: 0, width: 120, height: 120, background: `radial-gradient(circle, ${c}12 0%, transparent 70%)`, transform: "translate(30%, -30%)", pointerEvents: "none" }} />
+      <div style={{ position: "absolute", top: 0, right: 0, width: 100, height: 100, background: `radial-gradient(circle, ${c}10 0%, transparent 70%)`, transform: "translate(30%, -30%)", pointerEvents: "none" }} />
       {/* Icon + Label */}
       <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 10 }}>
-        <div style={{ padding: "5px", background: `${c}18`, border: `1px solid ${c}30`, borderRadius: 7, color: c, display: "flex" }}>{icon}</div>
-        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)" }}>{title}</span>
+        <div style={{ padding: "6px", background: `${c}14`, border: `1px solid ${c}28`, borderRadius: 9, color: c, display: "flex" }}>{icon}</div>
+        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)" }}>{title}</span>
       </div>
       {/* Value */}
       <div style={{ fontSize: 22, fontWeight: 700, color: "white", marginBottom: 3, fontFamily: "'Orbitron',sans-serif", lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 10, color: "rgba(148,163,184,0.6)", marginBottom: progress !== undefined ? 10 : 0 }}>{sub}</div>
+      <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: progress !== undefined ? 10 : 0, fontFamily: "'JetBrains Mono', monospace" }}>{sub}</div>
       {/* Progress bar */}
       {progress !== undefined && (
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-            <span style={{ fontSize: 9, color: "rgba(148,163,184,0.5)", fontWeight: 600, letterSpacing: "0.08em" }}>PROGRESO</span>
-            <span style={{ fontSize: 9, fontWeight: 700, color: isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c }}>{progress.toFixed(0)}%</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
+            <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>PROGRESO</span>
+            <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c }}>{progress.toFixed(0)}%</span>
           </div>
-          <div style={{ position: "relative", bottom: 0, left: 0, right: 0, height: 3, background: "rgba(148,163,184,0.08)", borderRadius: 2 }}>
-            <div style={{ height: "100%", width: `${Math.min(progress, 100)}%`, background: `linear-gradient(90deg, ${progressColor}, ${progressColor}cc)`, borderRadius: 2, transition: "width 1s ease" }} />
+          <div className="progress-track">
+            <div className={`progress-bar${isOverBudget ? " over-budget" : ""}`} style={{ width: `${Math.min(progress, 100)}%`, background: `linear-gradient(90deg, ${progressColor}, ${progressColor}cc)` }} />
           </div>
         </div>
       )}
@@ -173,19 +166,14 @@ function LoadingOverlay() {
 
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
   return (
-    <button onClick={onClick} style={{
-      display: "flex", alignItems: "center", gap: 5,
-      padding: "6px 13px", fontSize: 11, fontWeight: 600,
-      background: active ? "rgba(0,212,255,0.1)" : "transparent",
-      border: `1px solid ${active ? "rgba(0,212,255,0.25)" : "rgba(255,255,255,0.05)"}`,
-      color: active ? "var(--cyan)" : "rgba(148,163,184,0.65)",
-      borderRadius: 20, cursor: "pointer", transition: "all 0.2s",
-      letterSpacing: "0.02em", whiteSpace: "nowrap",
-      boxShadow: active ? "0 0 16px rgba(0,212,255,0.12)" : "none",
-    }}
-    onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.85)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.12)"; } }}
-    onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLButtonElement).style.color = "rgba(148,163,184,0.65)"; (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.05)"; } }}
-    >{icon}{label}</button>
+    <button
+      onClick={onClick}
+      className={`tab-pill${active ? " active" : ""}`}
+      style={{ fontSize: 11 }}
+    >
+      <span className="tab-icon">{icon}</span>
+      {label}
+    </button>
   );
 }
 
@@ -658,7 +646,7 @@ export default function ProjectDashboardPage() {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         {/* Tabs scrollable container */}
         <div style={{ overflowX: "auto", flexShrink: 1, minWidth: 0, paddingBottom: 2 }}>
-          <div style={{ display: "flex", gap: 6, padding: "4px", background: "rgba(255,255,255,0.03)", borderRadius: 24, border: "1px solid rgba(255,255,255,0.06)", width: "max-content" }}>
+          <div className="tab-pill-nav">
             <TabButton active={activeTab === "resumen"} label="Resumen" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resumen")} />
             <TabButton active={activeTab === "gasto"} label="Gasto" icon={<DollarSign style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("gasto")} />
             <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
@@ -876,17 +864,61 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             {/* Charts Row */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-3" style={{ position: "relative" }}>
               {isLoading && <LoadingOverlay />}
-              <div style={panelStyle}><h3 style={headingStyle}>Inversión vs Resultados</h3><p style={subStyle}>Gasto diario y volumen de conversiones</p>
-                <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="left" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} /><YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)', stroke: 'rgba(255,255,255,0.05)' }} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="#8B5CF6" strokeWidth={3} fillOpacity={1} fill="url(#colorPurpleArea)" filter="url(#glow)" /><Bar yAxisId="right" dataKey="results" name="Resultados" fill="url(#colorEmeraldArea)" stroke="#10b981" strokeWidth={1} radius={[4, 4, 0, 0]} barSize={8} />
-                </ComposedChart></ResponsiveContainer> : <NoData />}</div>
+
+              {/* Chart 1: Inversión vs Resultados */}
+              <div className="chart-panel">
+                <div className="chart-panel-header">
+                  <div>
+                    <span className="chart-panel-title">Inversión vs Resultados</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Inversión</span></div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Resultados</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="chart-panel-body">
+                  <div style={{ width: "100%", height: 240 }}>
+                    {timeSeriesData.length > 0 ? (
+                      <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                        <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+                        <YAxis yAxisId="left" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+                        <YAxis yAxisId="right" orientation="right" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+                        <Tooltip content={<CustomTooltip formatter={(name, v) => name === "spend" || name === "Inversión" ? [fmtMXN(Number(v)), "Inversión"] : [String(v), "Resultados"]} />} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
+                        <Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#colorCyanArea)" dot={false} />
+                        <Bar yAxisId="right" dataKey="results" name="Resultados" fill="url(#colorEmeraldBar)" radius={[4, 4, 0, 0]} barSize={7} />
+                      </ComposedChart></ResponsiveContainer>
+                    ) : <NoData />}
+                  </div>
+                </div>
               </div>
-              <div style={panelStyle}><h3 style={headingStyle}>CTR vs CPC</h3><p style={subStyle}>Calidad de tráfico y costo por clic</p>
-                <div style={{ width: "100%", height: 250 }}>{timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 10, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" vertical={false} /><XAxis dataKey="date" stroke="rgba(148,163,184,0.7)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" /><YAxis yAxisId="l" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} /><YAxis yAxisId="r" orientation="right" stroke="rgba(148,163,184,0.7)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.02)', stroke: 'rgba(255,255,255,0.05)' }} /><Legend wrapperStyle={{ fontSize: 10 }} /><Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="#06b6d4" strokeWidth={3} fillOpacity={1} fill="url(#colorCyanArea)" filter="url(#glow)" /><Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="#f59e0b" strokeWidth={2} dot={{ r: 4, fill: "#0F172A", stroke: "#f59e0b", strokeWidth: 2 }} activeDot={{ r: 6, fill: "#f59e0b", stroke: "#fff" }} />
-                </ComposedChart></ResponsiveContainer> : <NoData />}</div>
+
+              {/* Chart 2: CTR vs CPC */}
+              <div className="chart-panel">
+                <div className="chart-panel-header">
+                  <div>
+                    <span className="chart-panel-title">CTR vs CPC</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CTR %</span></div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--amber)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CPC $</span></div>
+                    </div>
+                  </div>
+                </div>
+                <div className="chart-panel-body">
+                  <div style={{ width: "100%", height: 240 }}>
+                    {timeSeriesData.length > 0 ? (
+                      <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.04)" vertical={false} />
+                        <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+                        <YAxis yAxisId="l" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+                        <YAxis yAxisId="r" orientation="right" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+                        <Tooltip content={<CustomTooltip formatter={(name, v) => name === "ctr" || name === "CTR (%)" ? [`${Number(v).toFixed(2)}%`, "CTR"] : [fmtMXN(Number(v)), "CPC"]} />} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
+                        <Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#colorCyanArea)" dot={false} />
+                        <Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="var(--amber)" strokeWidth={2} dot={{ r: 3, fill: "var(--surface)", stroke: "var(--amber)", strokeWidth: 2 }} activeDot={{ r: 5, fill: "var(--amber)" }} />
+                      </ComposedChart></ResponsiveContainer>
+                    ) : <NoData />}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
