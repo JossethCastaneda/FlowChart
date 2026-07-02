@@ -350,7 +350,7 @@ export function InboxLayout() {
         <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
           {/* Left skeleton — conversation list */}
           <div style={{
-            width: 300, minWidth: 300, borderRight: "1px solid rgba(255,255,255,0.06)",
+            width: 300, minWidth: 300, borderRight: "1px solid var(--hairline)",
             display: "flex", flexDirection: "column", padding: "12px",
           }}>
             {/* Page selector skeleton */}
@@ -370,16 +370,16 @@ export function InboxLayout() {
             {[...Array(8)].map((_, i) => (
               <div key={i} style={{
                 display: "flex", gap: 10, padding: "10px 8px",
-                borderBottom: "1px solid rgba(255,255,255,0.03)",
+                borderBottom: "1px solid var(--hairline)",
                 animation: "pulse 1.5s ease-in-out infinite",
                 animationDelay: `${i * 0.08}s`,
               }}>
                 <div style={{
                   width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
-                  background: "rgba(255,255,255,0.09)",
+                  background: "var(--surface-hover)",
                 }} />
                 <div style={{ flex: 1 }}>
-                  <div style={{ height: 12, width: `${60 + (i % 3) * 15}%`, borderRadius: 4, marginBottom: 6, background: "rgba(255,255,255,0.09)" }} />
+                  <div style={{ height: 12, width: `${60 + (i % 3) * 15}%`, borderRadius: 4, marginBottom: 6, background: "var(--surface-hover)" }} />
                   <div style={{ height: 10, width: `${40 + (i % 4) * 12}%`, borderRadius: 4, background: "var(--row-hover)" }} />
                 </div>
                 <div style={{ height: 10, width: 24, borderRadius: 4, background: "var(--row-hover)" }} />
@@ -392,12 +392,12 @@ export function InboxLayout() {
             {/* Chat header skeleton */}
             <div style={{
               display: "flex", gap: 10, padding: "14px 16px",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              borderBottom: "1px solid var(--hairline)",
               animation: "pulse 1.5s ease-in-out infinite",
             }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "rgba(255,255,255,0.09)" }} />
+              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--surface-hover)" }} />
               <div>
-                <div style={{ height: 13, width: 120, borderRadius: 4, marginBottom: 4, background: "rgba(255,255,255,0.09)" }} />
+                <div style={{ height: 13, width: 120, borderRadius: 4, marginBottom: 4, background: "var(--surface-hover)" }} />
                 <div style={{ height: 10, width: 80, borderRadius: 4, background: "var(--row-hover)" }} />
               </div>
             </div>
@@ -419,7 +419,7 @@ export function InboxLayout() {
             </div>
             {/* Input skeleton */}
             <div style={{
-              padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)",
+              padding: "12px 16px", borderTop: "1px solid var(--hairline)",
               animation: "pulse 1.5s ease-in-out infinite",
             }}>
               <div style={{ height: 40, borderRadius: 20, background: "var(--row-hover)" }} />
@@ -490,7 +490,7 @@ export function InboxLayout() {
       {conversations.length > 0 && initialFetchDone && (
         <div style={{
           display: "flex", alignItems: "center", gap: 8,
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
+          borderBottom: "1px solid var(--hairline)",
           padding: "0 12px", flexShrink: 0,
         }}>
           {/* Channel tabs */}
@@ -530,7 +530,7 @@ export function InboxLayout() {
                       minWidth: 18, height: 18, borderRadius: 9,
                       background: unreadCount > 0
                         ? (tab.key === "all" ? "var(--red)" : tab.color)
-                        : "rgba(148,163,184,0.22)",
+                        : "var(--hairline)",
                       color: unreadCount > 0 ? "white" : "var(--text-secondary)",
                       fontSize: 10, fontWeight: 700,
                       display: "inline-flex", alignItems: "center", justifyContent: "center",
@@ -556,7 +556,7 @@ export function InboxLayout() {
                   style={{
                     display: "inline-flex", alignItems: "center", gap: 6,
                     padding: "6px 10px", borderRadius: 8,
-                    border: `1px solid ${filterActive ? `${active.color}55` : "rgba(255,255,255,0.08)"}`,
+                    border: `1px solid ${filterActive ? `${active.color}55` : "var(--hairline)"}`,
                     background: filterActive ? `${active.color}14` : "var(--row-hover)",
                     color: filterActive ? active.color : "var(--text-secondary)",
                     fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
@@ -572,7 +572,7 @@ export function InboxLayout() {
             {queueMenuOpen && (
               <div style={{
                 position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 200,
-                background: "rgba(12,12,24,0.98)", border: "1px solid var(--hairline)",
+                background: "var(--panel-bg)", border: "1px solid var(--hairline)",
                 borderRadius: 10, zIndex: 50, overflow: "hidden",
                 boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
               }}>
@@ -594,7 +594,7 @@ export function InboxLayout() {
                         display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
                         width: "100%", padding: "9px 14px",
                         background: isActive ? `${tab.color}12` : "transparent",
-                        border: "none", borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        border: "none", borderBottom: "1px solid var(--hairline)",
                         borderLeft: isActive ? `3px solid ${tab.color}` : "3px solid transparent",
                         color: isActive ? tab.color : "var(--text-secondary)",
                         fontSize: 12, fontWeight: isActive ? 600 : 400,
@@ -605,7 +605,7 @@ export function InboxLayout() {
                       <span style={{
                         minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px",
                         display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        background: isActive ? `${tab.color}2b` : "rgba(148,163,184,0.16)",
+                        background: isActive ? `${tab.color}2b` : "var(--surface-hover)",
                         color: isActive ? tab.color : "var(--text-secondary)", fontSize: 10, fontWeight: 700,
                       }}>{total}</span>
                     </button>
@@ -628,7 +628,7 @@ export function InboxLayout() {
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
 
         {/* ═══ LEFT — Conversation List ═══ */}
-        <div className={`w-full md:w-[300px] md:min-w-[300px] flex-col border-r border-white/5 bg-white/5 ${selected ? 'hidden md:flex' : 'flex'}`}>
+        <div className={`w-full md:w-[300px] md:min-w-[300px] flex-col ${selected ? 'hidden md:flex' : 'flex'}`} style={{ borderRight: "1px solid var(--hairline)", background: "var(--surface)" }}>
           {/* Page Selector */}
           {connectedPages.length > 0 && (
             <div style={{ padding: "10px 12px 6px", borderBottom: "1px solid var(--hairline)" }}>
@@ -645,11 +645,11 @@ export function InboxLayout() {
             <div style={{
               display: "flex", alignItems: "center", gap: 8,
               padding: "7px 10px",
-              background: "rgba(255,255,255,0.09)",
+              background: "var(--surface-hover)",
               borderRadius: 8,
-              border: "1px solid rgba(255,255,255,0.06)",
+              border: "1px solid var(--hairline)",
             }}>
-              <Search style={{ width: 14, height: 14, color: "rgba(148,163,184,0.55)", flexShrink: 0 }} />
+              <Search style={{ width: 14, height: 14, color: "var(--text-muted)", flexShrink: 0 }} />
               <input
                 type="text"
                 placeholder="Buscar conversación..."
@@ -684,7 +684,7 @@ export function InboxLayout() {
                       cursor: "pointer",
                       background: isActive ? "rgba(168,85,247,0.06)" : "transparent",
                       borderLeft: isActive ? "3px solid var(--purple)" : "3px solid transparent",
-                      borderBottom: "1px solid rgba(255,255,255,0.03)",
+                      borderBottom: "1px solid var(--hairline)",
                       transition: "all 0.12s",
                       display: "flex", gap: 10, alignItems: "flex-start",
                     }}
@@ -730,7 +730,7 @@ export function InboxLayout() {
                           position: "absolute", top: -1, right: -1,
                           width: 10, height: 10, borderRadius: "50%",
                           background: "var(--purple)",
-                          border: "2px solid rgba(10,10,20,1)",
+                          border: "2px solid var(--background)",
                         }} />
                       )}
                       {/* Platform indicator */}
@@ -739,7 +739,7 @@ export function InboxLayout() {
                         width: 16, height: 16, borderRadius: "50%",
                         background: pc.color,
                         display: "flex", alignItems: "center", justifyContent: "center",
-                        border: "2px solid rgba(10,10,20,1)",
+                        border: "2px solid var(--background)",
                       }}>
                         <pc.icon style={{ width: 8, height: 8, color: "var(--foreground)" }} />
                       </div>
@@ -750,13 +750,13 @@ export function InboxLayout() {
                       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
                         <span style={{
                           fontSize: 13, fontWeight: conv.unread ? 700 : 500,
-                          color: conv.unread ? "white" : "rgba(255,255,255,0.75)",
+                          color: conv.unread ? "white" : "var(--foreground)",
                           whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                         }}>
                           {conv.contactName}
                         </span>
                         <span style={{
-                          fontSize: 10, color: conv.unread ? "var(--purple)" : "rgba(148,163,184,0.65)",
+                          fontSize: 10, color: conv.unread ? "var(--purple)" : "var(--text-muted)",
                           whiteSpace: "nowrap", marginLeft: 8, fontWeight: conv.unread ? 600 : 400,
                         }}>
                           {relativeTime(conv.lastMessageTime)}
@@ -764,7 +764,7 @@ export function InboxLayout() {
                       </div>
                       <p style={{
                         fontSize: 11,
-                        color: conv.unread ? "rgba(255,255,255,0.75)" : "rgba(148,163,184,0.65)",
+                        color: conv.unread ? "var(--foreground)" : "var(--text-muted)",
                         margin: 0,
                         whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
                         fontWeight: conv.unread ? 500 : 400,
@@ -780,8 +780,8 @@ export function InboxLayout() {
                           display: "inline-block", fontSize: 8, fontWeight: 600,
                           padding: "1px 6px", marginTop: 4,
                           color: "var(--text-muted)",
-                          background: "rgba(148,163,184,0.16)",
-                          border: "1px solid rgba(148,163,184,0.22)",
+                          background: "var(--surface-hover)",
+                          border: "1px solid var(--hairline)",
                           borderRadius: 3,
                         }}>
                           CERRADO
@@ -796,7 +796,7 @@ export function InboxLayout() {
         </div>
 
         {/* ═══ CENTER — Chat View / Post View ═══ */}
-        <div className={`flex-1 flex-col min-w-0 bg-[#05081280] ${selected ? 'flex' : 'hidden md:flex'}`}>
+        <div className={`flex-1 flex-col min-w-0 ${selected ? 'flex' : 'hidden md:flex'}`} style={{ background: "var(--background)" }}>
           <ErrorBoundary
             name="InboxConversation"
             fallback={
@@ -830,7 +830,7 @@ export function InboxLayout() {
 
         {/* ═══ RIGHT — Contact Profile ═══ */}
         {showProfile && selected && (
-          <div className="absolute inset-y-0 right-0 z-20 w-[280px] md:static md:w-[280px] md:min-w-[280px] bg-[#0A0E17] md:bg-white/5 border-l border-white/5 shadow-2xl md:shadow-none flex flex-col" style={{ overflow: "hidden" }}>
+          <div className="absolute inset-y-0 right-0 z-20 w-[280px] md:static md:w-[280px] md:min-w-[280px] shadow-2xl md:shadow-none flex flex-col" style={{ background: 'var(--surface)', borderLeft: '1px solid var(--hairline)', overflow: 'hidden' }}>
             <ContactProfile
               conversation={selected}
               onAssign={handleAssign}
