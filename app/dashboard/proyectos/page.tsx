@@ -508,20 +508,7 @@ function ProyectosContent() {
       </div>
 
       {/* ── META ADS CONNECTION PANEL ── */}
-      {adsConnected === true || justConnected ? (
-        <div style={{
-          display: "flex", alignItems: "center", gap: "10px",
-          padding: "12px 16px",
-          background: "rgba(6,214,160,0.08)",
-          border: "1px solid rgba(6,214,160,0.3)",
-          borderRadius: "6px",
-        }}>
-          <CheckCircle className="w-4 h-4" style={{ color: "var(--emerald)", flexShrink: 0 }} />
-          <span style={{ fontSize: "12px", color: "var(--emerald)", fontWeight: 600 }}>
-            ✅ Meta Ads conectado
-          </span>
-        </div>
-      ) : adsConnected === false ? (
+      {adsConnected === false ? (
         <div style={{
           position: "relative",
           display: "flex", alignItems: "center", gap: "16px",
