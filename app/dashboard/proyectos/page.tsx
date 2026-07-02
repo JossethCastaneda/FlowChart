@@ -163,7 +163,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
       >
         <div style={{ display: "flex", alignItems: "center", gap: "8px", overflow: "hidden" }}>
           {selected?.picture && <img src={selected.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
-          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: selected ? "var(--foreground)" : "rgba(148,163,184,0.55)" }}>
+          <span style={{ whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: selected ? "var(--foreground)" : "var(--text-muted)" }}>
             {selected ? selected.label : placeholder}
           </span>
         </div>
@@ -509,7 +509,6 @@ function ProyectosContent() {
           border: "1px solid rgba(168,85,247,0.2)",
           borderRadius: "12px",
           overflow: "hidden",
-          backdropFilter: "blur(12px)",
         }}>
           {/* Animated gradient accent line */}
           <div style={{
@@ -534,7 +533,7 @@ function ProyectosContent() {
             <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)", margin: 0, lineHeight: 1.3 }}>
               Conecta Meta Ads Manager
             </p>
-            <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.8)", margin: "3px 0 0", lineHeight: 1.4 }}>
+            <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "3px 0 0", lineHeight: 1.4 }}>
               Vincula tus cuentas publicitarias para gestionar campañas y presupuestos en tiempo real.
             </p>
           </div>
@@ -632,7 +631,7 @@ function ProyectosContent() {
             <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Editar Proyecto" onClick={() => { setEditingId(menuOpen); setModalMode("edit"); setMenuOpen(null); }} />
             <div style={{ height: "1px", background: "rgba(255,255,255,0.09)", margin: "4px 0" }} />
             {STATUSES.filter(s => s !== projects.find(pp => pp.id === menuOpen)?.status).map(s => (
-              <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "EN VUELO" ? "var(--emerald)" : s === "EN ÓRBITA" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "rgba(148,163,184,0.65)" }} />}
+              <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "EN VUELO" ? "var(--emerald)" : s === "EN ÓRBITA" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "var(--text-muted)" }} />}
                 text={`Cambiar a ${s}`} onClick={() => handleStatusChange(menuOpen, s)} />
             ))}
             <div style={{ height: "1px", background: "rgba(255,255,255,0.09)", margin: "4px 0" }} />
