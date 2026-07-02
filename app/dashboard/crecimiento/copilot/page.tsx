@@ -9,7 +9,7 @@ interface CatalogModel {
   note: string;
   inputPerM: number;
   outputPerM: number;
-  bestFor: string[];
+  performance: string;
 }
 
 const fmtUsd = (n: number) => `$${n < 1 ? n.toFixed(2) : n % 1 === 0 ? n : n.toFixed(2)}`;
@@ -191,7 +191,7 @@ export default function AriaCopilotPage() {
     <div className="flex flex-col gap-6">
       <PageHeader
         title="Aria Copilot"
-        description="Elige la IA de tu workspace: potencia el Copilot, los Insights, GridIA y todos los módulos inteligentes de Sodare."
+        description="Conversa con Aria sobre tus modelos predictivos. La IA de tu workspace potencia todos los módulos de la plataforma."
       />
 
       {/* ── Catálogo deslizable de IAs ── */}
@@ -306,11 +306,7 @@ export default function AriaCopilotPage() {
                                     {fmtUsd(cm.inputPerM)} in · {fmtUsd(cm.outputPerM)} out
                                   </span>
                                 </div>
-                                {cm.bestFor.length > 0 && (
-                                  <div className="text-muted-foreground">
-                                    Potencia: <span className="text-foreground">{cm.bestFor.join(" · ")}</span>
-                                  </div>
-                                )}
+                                <div className="text-muted-foreground">{cm.performance}</div>
                               </div>
                             );
                           })()}

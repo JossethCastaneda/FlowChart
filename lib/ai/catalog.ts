@@ -2,8 +2,8 @@
  * Catálogo de IAs de Sodare — NODO PRINCIPAL de la capa de inteligencia.
  *
  * Metadatos ESTÁTICOS (sin secretos): etiqueta, fabricante, puntos fuertes, modelos
- * con COSTOS por millón de tokens y qué módulos de Sodare potencia cada uno. El
- * endpoint `/api/crecimiento/providers` lo combina con `isConfigured()` (server-side)
+ * con COSTOS por millón de tokens y su RENDIMIENTO en la plataforma. El endpoint
+ * `/api/crecimiento/providers` lo combina con `isConfigured()` (server-side)
  * para marcar cuáles tienen API key.
  *
  * Al contratar/seleccionar un modelo (PUT /api/workspace/ai-model →
@@ -26,8 +26,12 @@ export interface CatalogModel {
   outputPerM: number;
   /** Potencia relativa 1–5 (capacidad de razonamiento/calidad de salida). */
   power: 1 | 2 | 3 | 4 | 5;
-  /** Módulos de Sodare donde este modelo rinde mejor. */
-  bestFor: string[];
+  /**
+   * Rendimiento en la plataforma (texto ejecutivo). La IA contratada potencia
+   * TODOS los módulos por igual; este texto describe el perfil del modelo
+   * (velocidad, profundidad, costo), no módulos específicos.
+   */
+  performance: string;
 }
 
 export interface CatalogProvider {
@@ -66,7 +70,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 0.3,
         outputPerM: 2.5,
         power: 3,
-        bestFor: ["Aria Copilot", "Aria Insights", "GridIA"],
+        performance:
+          "Respuestas casi instantáneas en toda la plataforma; ideal para la operación diaria de alto volumen a costo muy bajo.",
       },
       {
         id: "gemini-2.5-pro",
@@ -75,7 +80,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 1.25,
         outputPerM: 10,
         power: 4,
-        bestFor: ["GridIA (parrillas complejas)", "Aria Insights profundos"],
+        performance:
+          "Mayor profundidad de análisis en tareas complejas, manteniendo fluidez en toda la plataforma.",
       },
       {
         id: "gemini-2.5-flash-lite",
@@ -84,7 +90,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 0.1,
         outputPerM: 0.4,
         power: 2,
-        bestFor: ["Aria Copilot (chat frecuente)", "Resúmenes masivos"],
+        performance:
+          "El costo más bajo del catálogo; rendimiento ágil para flujos masivos y repetitivos en toda la plataforma.",
       },
     ],
     envVar: "GEMINI_API_KEY",
@@ -110,7 +117,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 2,
         outputPerM: 8,
         power: 4,
-        bestFor: ["Aria Copilot", "GridIA", "Aria Insights"],
+        performance:
+          "Equilibrio sólido entre razonamiento y velocidad; rendimiento consistente en todos los flujos de la plataforma.",
       },
       {
         id: "gpt-4.1-mini",
@@ -119,7 +127,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 0.4,
         outputPerM: 1.6,
         power: 3,
-        bestFor: ["Aria Copilot (chat frecuente)", "Aria Insights"],
+        performance:
+          "Alta calidad a una fracción del costo; fluido en el uso intensivo diario de toda la plataforma.",
       },
       {
         id: "gpt-4.1-nano",
@@ -128,7 +137,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 0.1,
         outputPerM: 0.4,
         power: 2,
-        bestFor: ["Clasificación y resúmenes de alto volumen"],
+        performance:
+          "El más veloz de OpenAI; óptimo para tareas cortas y clasificación a gran escala en la plataforma.",
       },
       {
         id: "gpt-4o",
@@ -137,7 +147,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 2.5,
         outputPerM: 10,
         power: 4,
-        bestFor: ["GridIA (análisis de brandbooks)", "Aria Copilot"],
+        performance:
+          "Multimodal y rápido; sobresale analizando imágenes y documentos en cualquier flujo de la plataforma.",
       },
       {
         id: "gpt-4o-mini",
@@ -146,7 +157,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 0.15,
         outputPerM: 0.6,
         power: 2,
-        bestFor: ["GridIA ligero", "Chat de alto volumen"],
+        performance:
+          "Multimodal económico; desempeño general sólido con costos contenidos en toda la plataforma.",
       },
       {
         id: "o4-mini",
@@ -155,7 +167,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 1.1,
         outputPerM: 4.4,
         power: 3,
-        bestFor: ["Aria Insights (análisis con razonamiento)"],
+        performance:
+          "Razonamiento estructurado a bajo costo; destaca en análisis y toma de decisiones en la plataforma.",
       },
     ],
     envVar: "OPENAI_API_KEY",
@@ -181,7 +194,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 5,
         outputPerM: 25,
         power: 5,
-        bestFor: ["Aria Insights estratégicos", "GridIA premium"],
+        performance:
+          "La máxima capacidad del catálogo; profundidad y criterio superiores en cada rincón de la plataforma.",
       },
       {
         id: "claude-sonnet-4-6",
@@ -190,7 +204,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 3,
         outputPerM: 15,
         power: 4,
-        bestFor: ["Aria Copilot", "Aria Insights", "GridIA"],
+        performance:
+          "Análisis matizado y redacción impecable; rendimiento premium constante en toda la plataforma.",
       },
       {
         id: "claude-haiku-4-5",
@@ -199,7 +214,8 @@ export const AI_CATALOG: CatalogProvider[] = [
         inputPerM: 1,
         outputPerM: 5,
         power: 3,
-        bestFor: ["Aria Copilot (chat frecuente)", "Resúmenes"],
+        performance:
+          "Rápido y confiable; excelente relación velocidad-calidad para la operación completa de la plataforma.",
       },
     ],
     envVar: "ANTHROPIC_API_KEY",
