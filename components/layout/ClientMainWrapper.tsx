@@ -209,6 +209,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [isEmbedded, setIsEmbedded] = useState(false);
   const sidebarRef = useRef<HTMLElement>(null);
   const hideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: session } = useSession();
 
@@ -238,20 +239,37 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ── Auto show/hide on hover ──
-  // Show sidebar when mouse enters the left-edge trigger zone
+  // Show sidebar when mouse enters the left-edge trigger zone with 150ms debounce
   const handleMouseEnterTrigger = useCallback(() => {
     if (hideTimerRef.current) {
       clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
     }
-    setSidebarOpen(true);
+    if (showTimerRef.current) {
+      clearTimeout(showTimerRef.current);
+    }
+    showTimerRef.current = setTimeout(() => {
+      setSidebarOpen(true);
+    }, 150);
   }, []);
 
-  // Keep sidebar visible while mouse is inside it
+  // Clear debounce timer if mouse leaves trigger zone before opening
+  const handleMouseLeaveTrigger = useCallback(() => {
+    if (showTimerRef.current) {
+      clearTimeout(showTimerRef.current);
+      showTimerRef.current = null;
+    }
+  }, []);
+
+  // Keep sidebar visible while mouse is inside it (cancel hide and show timers)
   const handleMouseEnterSidebar = useCallback(() => {
     if (hideTimerRef.current) {
       clearTimeout(hideTimerRef.current);
       hideTimerRef.current = null;
+    }
+    if (showTimerRef.current) {
+      clearTimeout(showTimerRef.current);
+      showTimerRef.current = null;
     }
   }, []);
 
@@ -272,10 +290,11 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  // Clean up timer on unmount
+  // Clean up timers on unmount
   useEffect(() => {
     return () => {
       if (hideTimerRef.current) clearTimeout(hideTimerRef.current);
+      if (showTimerRef.current) clearTimeout(showTimerRef.current);
     };
   }, []);
 
@@ -399,8 +418,23 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {theme !== 'claro' && <GalaxyBackground />}
       <div className="dashboard-grid" />
 
-      {/* Hover trigger zone removed to prevent user fatigue */}
-
+      {/* Hover trigger zone */}
+      {!pinned && (
+        <div
+          onMouseEnter={handleMouseEnterTrigger}
+          onMouseLeave={handleMouseLeaveTrigger}
+          className="hidden lg:block"
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            bottom: 0,
+            width: `${HOVER_TRIGGER_WIDTH}px`,
+            zIndex: 50,
+            background: "transparent",
+          }}
+        />
+      )}
 
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -414,6 +448,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       <aside
         ref={sidebarRef}
         className="sidebar-floating"
+        onMouseEnter={handleMouseEnterSidebar}
+        onMouseLeave={handleMouseLeaveSidebar}
         style={{
           position: "fixed",
           top: 12,
