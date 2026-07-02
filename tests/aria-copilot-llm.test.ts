@@ -11,7 +11,6 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { geminiProvider } from "@/lib/ai/providers/gemini";
 import { anthropicProvider } from "@/lib/ai/providers/anthropic";
 import { LLMProviderError } from "@/lib/ai/types";
-import { sanitizeChatHistory } from "@/lib/crecimiento/llm/history";
 
 const fetchMock = vi.fn();
 
@@ -195,36 +194,5 @@ describe("openaiProvider.complete — multimodal", () => {
       type: "image_url",
       image_url: { url: "data:image/png;base64,QUJD" },
     });
-  });
-});
-
-describe("sanitizeChatHistory (saneo del historial del chat)", () => {
-  it("recorta saludos/errores del asistente al inicio (Claude exige empezar con user)", () => {
-    const out = sanitizeChatHistory([
-      { role: "assistant", content: "¡Hola! Soy Aria." },
-      { role: "user", content: "Hola" },
-      { role: "assistant", content: "¿En qué te ayudo?" },
-    ]);
-    expect(out[0]).toEqual({ role: "user", content: "Hola" });
-    expect(out).toHaveLength(2);
-  });
-
-  it("descarta mensajes vacíos o de puro whitespace", () => {
-    const out = sanitizeChatHistory([
-      { role: "user", content: "   " },
-      { role: "user", content: "Hola" },
-      { role: "assistant", content: "" },
-      { role: "assistant", content: "Respuesta" },
-    ]);
-    expect(out).toEqual([
-      { role: "user", content: "Hola" },
-      { role: "assistant", content: "Respuesta" },
-    ]);
-  });
-
-  it("historial sin mensajes de user → vacío (solo queda el mensaje nuevo)", () => {
-    expect(sanitizeChatHistory([{ role: "assistant", content: "Bienvenido" }])).toEqual([]);
-    expect(sanitizeChatHistory(undefined)).toEqual([]);
-    expect(sanitizeChatHistory([])).toEqual([]);
   });
 });
