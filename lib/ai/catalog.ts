@@ -24,6 +24,8 @@ export interface CatalogModel {
   inputPerM: number;
   /** USD por 1 millón de tokens de salida. */
   outputPerM: number;
+  /** Potencia relativa 1–5 (capacidad de razonamiento/calidad de salida). */
+  power: 1 | 2 | 3 | 4 | 5;
   /** Módulos de Sodare donde este modelo rinde mejor. */
   bestFor: string[];
 }
@@ -63,6 +65,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Rápido y económico (recomendado)",
         inputPerM: 0.3,
         outputPerM: 2.5,
+        power: 3,
         bestFor: ["Aria Copilot", "Aria Insights", "GridIA"],
       },
       {
@@ -71,6 +74,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Más capacidad, algo más lento",
         inputPerM: 1.25,
         outputPerM: 10,
+        power: 4,
         bestFor: ["GridIA (parrillas complejas)", "Aria Insights profundos"],
       },
       {
@@ -79,6 +83,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "El más barato para alto volumen",
         inputPerM: 0.1,
         outputPerM: 0.4,
+        power: 2,
         bestFor: ["Aria Copilot (chat frecuente)", "Resúmenes masivos"],
       },
     ],
@@ -104,6 +109,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Equilibrado (recomendado)",
         inputPerM: 2,
         outputPerM: 8,
+        power: 4,
         bestFor: ["Aria Copilot", "GridIA", "Aria Insights"],
       },
       {
@@ -112,6 +118,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Calidad alta a bajo costo",
         inputPerM: 0.4,
         outputPerM: 1.6,
+        power: 3,
         bestFor: ["Aria Copilot (chat frecuente)", "Aria Insights"],
       },
       {
@@ -120,6 +127,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "El más rápido y barato de OpenAI",
         inputPerM: 0.1,
         outputPerM: 0.4,
+        power: 2,
         bestFor: ["Clasificación y resúmenes de alto volumen"],
       },
       {
@@ -128,6 +136,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Multimodal y rápido",
         inputPerM: 2.5,
         outputPerM: 10,
+        power: 4,
         bestFor: ["GridIA (análisis de brandbooks)", "Aria Copilot"],
       },
       {
@@ -136,6 +145,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Multimodal económico",
         inputPerM: 0.15,
         outputPerM: 0.6,
+        power: 2,
         bestFor: ["GridIA ligero", "Chat de alto volumen"],
       },
       {
@@ -144,6 +154,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Razonamiento, económico",
         inputPerM: 1.1,
         outputPerM: 4.4,
+        power: 3,
         bestFor: ["Aria Insights (análisis con razonamiento)"],
       },
     ],
@@ -169,6 +180,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Máxima capacidad",
         inputPerM: 5,
         outputPerM: 25,
+        power: 5,
         bestFor: ["Aria Insights estratégicos", "GridIA premium"],
       },
       {
@@ -177,6 +189,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Balance costo/calidad (recomendado)",
         inputPerM: 3,
         outputPerM: 15,
+        power: 4,
         bestFor: ["Aria Copilot", "Aria Insights", "GridIA"],
       },
       {
@@ -185,6 +198,7 @@ export const AI_CATALOG: CatalogProvider[] = [
         note: "Rápido y económico",
         inputPerM: 1,
         outputPerM: 5,
+        power: 3,
         bestFor: ["Aria Copilot (chat frecuente)", "Resúmenes"],
       },
     ],
