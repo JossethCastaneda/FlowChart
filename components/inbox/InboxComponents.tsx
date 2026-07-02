@@ -37,7 +37,7 @@ export function PageSelector({
           width: "100%", display: "flex", alignItems: "center", gap: 10,
           padding: "8px 12px",
           background: open ? "rgba(168,85,247,0.06)" : "var(--surface-hover)",
-          border: `1px solid ${open ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.06)"}`,
+          border: `1px solid ${open ? "rgba(168,85,247,0.2)" : "var(--hairline)"}`,
           borderRadius: 10, cursor: "pointer",
           transition: "all 0.15s", fontFamily: "inherit",
         }}
@@ -94,7 +94,7 @@ export function PageSelector({
       {open && (
         <div style={{
           position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
-          background: "rgba(12,12,24,0.98)",
+          background: "var(--panel-bg)",
           border: "1px solid var(--hairline)",
           borderRadius: 10, zIndex: 50,
           boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
@@ -102,12 +102,12 @@ export function PageSelector({
           overflow: "hidden",
         }}>
           {/* Search */}
-          <div style={{ padding: "8px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--hairline)" }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "5px 8px",
-              background: "rgba(255,255,255,0.09)",
-              borderRadius: 6, border: "1px solid rgba(255,255,255,0.06)",
+              background: "var(--surface-hover)",
+              borderRadius: 6, border: "1px solid var(--hairline)",
             }}>
               <Search style={{ width: 12, height: 12, color: "var(--text-muted)", flexShrink: 0 }} />
               <input
@@ -132,7 +132,7 @@ export function PageSelector({
               style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 10,
                 padding: "8px 12px", background: !selectedPage ? "rgba(168,85,247,0.06)" : "transparent",
-                border: "none", borderBottom: "1px solid rgba(255,255,255,0.03)",
+                border: "none", borderBottom: "1px solid var(--hairline)",
                 cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
                 borderLeft: !selectedPage ? "3px solid var(--purple)" : "3px solid transparent",
               }}
@@ -162,7 +162,7 @@ export function PageSelector({
                     width: "100%", display: "flex", alignItems: "center", gap: 10,
                     padding: "8px 12px",
                     background: isActive ? "rgba(168,85,247,0.06)" : "transparent",
-                    border: "none", borderBottom: "1px solid rgba(255,255,255,0.03)",
+                    border: "none", borderBottom: "1px solid var(--hairline)",
                     cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
                     borderLeft: isActive ? "3px solid var(--purple)" : "3px solid transparent",
                   }}
@@ -195,7 +195,7 @@ export function PageSelector({
                       width: 14, height: 14, borderRadius: "50%",
                       background: page.platform === "instagram" ? "#E1306C" : "#1877F2",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      border: "2px solid rgba(12,12,24,1)",
+                      border: "2px solid var(--background)",
                     }}>
                       {page.platform === "instagram" ? (
                         <MessageCircle style={{ width: 7, height: 7, color: "var(--foreground)" }} />
@@ -259,7 +259,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
       {/* Header */}
       <div style={{
         padding: "12px 16px",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        borderBottom: "1px solid var(--hairline)",
         display: "flex", alignItems: "center", gap: 10,
       }}>
         {onBack && (
@@ -281,7 +281,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           <a href={postData.permalink} target="_blank" rel="noopener noreferrer"
             style={{
               padding: "5px 10px", borderRadius: 6,
-              background: "rgba(255,255,255,0.09)",
+              background: "var(--surface-hover)",
               border: "1px solid var(--hairline)",
               color: "var(--cyan)", fontSize: 10, fontWeight: 600,
               textDecoration: "none", display: "flex", alignItems: "center", gap: 4,
@@ -299,7 +299,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
         {postData.mediaUrl && (
           <div style={{
             width: "100%",
-            borderBottom: "1px solid rgba(255,255,255,0.06)",
+            borderBottom: "1px solid var(--hairline)",
             background: "rgba(0,0,0,0.4)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
@@ -344,7 +344,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
         {postData.caption && (
           <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)" }}>
             <p style={{
-              fontSize: 13, color: "rgba(255,255,255,0.75)", lineHeight: 1.6,
+              fontSize: 13, color: "var(--foreground)", lineHeight: 1.6,
               margin: 0, whiteSpace: "pre-wrap",
             }}>
               {postData.caption.length > 300 ? postData.caption.slice(0, 300) + "..." : postData.caption}
@@ -369,7 +369,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
             postData.comments.map((comment, i) => (
               <div key={comment.id || i} style={{
                 display: "flex", gap: 10, padding: "10px 0",
-                borderBottom: i < postData.comments.length - 1 ? "1px solid rgba(255,255,255,0.03)" : "none",
+                borderBottom: i < postData.comments.length - 1 ? "1px solid var(--hairline)" : "none",
               }}>
                 {/* Commenter avatar */}
                 <div style={{ flexShrink: 0 }}>
@@ -467,12 +467,12 @@ export function ChatView({
     });
     return (
     <>
-      {/* ─── Chat Header ─── */}
+      {/* --- Chat Header --- */}
       <div style={{
         padding: "10px 16px",
-        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        borderBottom: "1px solid var(--hairline)",
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexShrink: 0, background: "rgba(255,255,255,0.015)",
+        flexShrink: 0, background: "var(--hairline)",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           {onBack && (
@@ -498,10 +498,10 @@ export function ChatView({
               {conversation.assignedTo && (
                 <span style={{
                   fontSize: 9, color: "var(--text-muted)",
-                  padding: "1px 6px", background: "rgba(255,255,255,0.09)",
+                  padding: "1px 6px", background: "var(--surface-hover)",
                   borderRadius: 4, border: "1px solid var(--hairline)",
                 }}>
-                  → {conversation.assignedTo}
+                  ? {conversation.assignedTo}
                 </span>
               )}
             </div>
@@ -527,7 +527,7 @@ export function ChatView({
               padding: "6px 12px", fontSize: 10, fontWeight: 600,
               color: conversation.closed ? "var(--emerald)" : "var(--text-secondary)",
               background: conversation.closed ? "rgba(0,200,117,0.08)" : "var(--row-hover)",
-              border: `1px solid ${conversation.closed ? "rgba(0,200,117,0.2)" : "rgba(255,255,255,0.06)"}`,
+              border: `1px solid ${conversation.closed ? "rgba(0,200,117,0.2)" : "var(--hairline)"}`,
               borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
               fontFamily: "inherit",
             }}
@@ -540,7 +540,7 @@ export function ChatView({
               width: 32, height: 32,
               display: "flex", alignItems: "center", justifyContent: "center",
               background: showProfile ? "rgba(168,85,247,0.08)" : "var(--row-hover)",
-              border: `1px solid ${showProfile ? "rgba(168,85,247,0.2)" : "rgba(255,255,255,0.06)"}`,
+              border: `1px solid ${showProfile ? "rgba(168,85,247,0.2)" : "var(--hairline)"}`,
               borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
             }}
           >
@@ -552,7 +552,7 @@ export function ChatView({
         </div>
       </div>
 
-      {/* ─── Messages Area ─── */}
+      {/* --- Messages Area --- */}
       <div style={{
         flex: 1, overflowY: "auto", padding: "12px 20px",
         display: "flex", flexDirection: "column", gap: 4,
@@ -564,14 +564,14 @@ export function ChatView({
               display: "flex", alignItems: "center", gap: 12,
               margin: "12px 0", padding: "0 20px",
             }}>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+              <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
               <span style={{
                 fontSize: 10, color: "var(--text-muted)",
                 fontWeight: 500, whiteSpace: "nowrap",
               }}>
                 {group.date}
               </span>
-              <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
+              <div style={{ flex: 1, height: 1, background: "var(--hairline)" }} />
             </div>
 
             {group.msgs.map(msg => (
@@ -600,7 +600,7 @@ export function ChatView({
                   <div style={{
                     padding: "10px 14px",
                     background: msg.incoming
-                      ? "rgba(255,255,255,0.1)"
+                      ? "var(--surface-hover)"
                       : "linear-gradient(135deg, var(--purple), var(--purple))",
                     border: msg.incoming ? "1px solid var(--hairline)" : "none",
                     borderRadius: msg.incoming ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
@@ -615,7 +615,7 @@ export function ChatView({
                   </div>
                   <p style={{
                     fontSize: 9, margin: "3px 4px 0",
-                    color: "rgba(148,163,184,0.55)",
+                    color: "var(--text-muted)",
                     textAlign: msg.incoming ? "left" : "right",
                   }}>
                     {formatTime(msg.timestamp)}
@@ -628,26 +628,26 @@ export function ChatView({
         <div ref={messagesEndRef} />
       </div>
 
-      {/* ─── Suggested Replies ─── */}
+      {/* --- Suggested Replies --- */}
       {showReplies && (
         <div style={{
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          borderTop: "1px solid var(--hairline)",
           padding: "8px 16px",
-          background: "rgba(255,255,255,0.015)",
+          background: "var(--hairline)",
           flexShrink: 0,
         }}>
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             marginBottom: 6,
           }}>
-            <span style={{ fontSize: 10, color: "rgba(148,163,184,0.7)", fontWeight: 600 }}>
+            <span style={{ fontSize: 10, color: "var(--text-secondary)", fontWeight: 600 }}>
               Respuestas sugeridas
             </span>
             <button
               onClick={() => setShowReplies(false)}
               style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
             >
-              <X style={{ width: 12, height: 12, color: "rgba(148,163,184,0.55)" }} />
+              <X style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
             </button>
           </div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
@@ -658,7 +658,7 @@ export function ChatView({
                 style={{
                   padding: "5px 10px", fontSize: 11,
                   color: "rgba(255,255,255,0.6)",
-                  background: "rgba(255,255,255,0.09)",
+                  background: "var(--surface-hover)",
                   border: "1px solid var(--hairline)",
                   borderRadius: 16, cursor: "pointer",
                   transition: "all 0.15s",
@@ -670,8 +670,8 @@ export function ChatView({
                   e.currentTarget.style.color = "var(--purple)";
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.09)";
-                  e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)";
+                  e.currentTarget.style.background = "var(--surface-hover)";
+                  e.currentTarget.style.borderColor = "var(--hairline)";
                   e.currentTarget.style.color = "rgba(255,255,255,0.6)";
                 }}
               >
@@ -682,12 +682,12 @@ export function ChatView({
         </div>
       )}
 
-      {/* ─── Input Bar (always visible at bottom) ─── */}
+      {/* --- Input Bar (always visible at bottom) --- */}
       <div style={{
         padding: "10px 16px",
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        borderTop: "1px solid var(--hairline)",
         flexShrink: 0,
-        background: "rgba(255,255,255,0.015)",
+        background: "var(--hairline)",
       }}>
         <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
           {/* Toolbar icons */}
@@ -708,7 +708,7 @@ export function ChatView({
                   border: "none", borderRadius: 6, cursor: "pointer",
                   transition: "all 0.15s",
                 }}
-                onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+                onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
                 onMouseLeave={e => e.currentTarget.style.background = btn.active ? "rgba(168,85,247,0.08)" : "transparent"}
               >
                 <btn.icon style={{
@@ -722,7 +722,7 @@ export function ChatView({
           {/* Text input */}
           <div style={{
             flex: 1, display: "flex", alignItems: "flex-end", gap: 8,
-            background: "rgba(255,255,255,0.09)",
+            background: "var(--surface-hover)",
             border: "1px solid var(--hairline)",
             borderRadius: 10, padding: "4px 4px 4px 14px",
           }}>
@@ -758,14 +758,14 @@ export function ChatView({
             >
               <Send style={{
                 width: 14, height: 14,
-                color: input.trim() ? "white" : "rgba(148,163,184,0.65)",
+                color: input.trim() ? "white" : "var(--text-muted)",
               }} />
             </button>
           </div>
 
           {/* Quick like */}
           <button
-            onClick={() => onSend("👍")}
+            onClick={() => onSend("??")}
             style={{
               width: 32, height: 32,
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -773,7 +773,7 @@ export function ChatView({
               borderRadius: 6, cursor: "pointer", flexShrink: 0,
               transition: "all 0.15s",
             }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.1)"}
+            onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
           >
             <ThumbsUp style={{ width: 18, height: 18, color: "var(--text-muted)" }} />
@@ -849,7 +849,7 @@ export function ContactProfile({
             style={{
               display: "flex", alignItems: "center", gap: 4,
               padding: "4px 8px", fontSize: 10,
-              background: "transparent", border: "1px solid rgba(255,255,255,0.06)",
+              background: "transparent", border: "1px solid var(--hairline)",
               borderRadius: 6, color: "var(--text-muted)", cursor: "pointer",
             }}
           >
@@ -883,7 +883,7 @@ export function ContactProfile({
         {/* Información de contacto */}
         <ProfileSection title="Información de contacto">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.75)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "var(--foreground)" }}>
               <User style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
               {conversation.contactName}
             </div>
@@ -904,7 +904,7 @@ export function ContactProfile({
 
         {/* Perfil de plataforma */}
         <ProfileSection title={`Perfil de ${pc.label}`}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.75)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "var(--foreground)" }}>
             <pc.icon style={{ width: 14, height: 14, color: pc.color }} />
             <span>{conversation.contactName}</span>
             <ExternalLink style={{ width: 10, height: 10, color: "var(--text-muted)", cursor: "pointer" }} />
@@ -935,7 +935,7 @@ export function ContactProfile({
               placeholder="Agregar etiqueta..."
               style={{
                 flex: 1, background: "var(--row-hover)",
-                border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6,
+                border: "1px solid var(--hairline)", borderRadius: 6,
                 padding: "4px 8px", fontSize: 10, color: "var(--foreground)", outline: "none",
                 fontFamily: "inherit",
               }}
@@ -989,10 +989,10 @@ export function ContactProfile({
             display: "flex", justifyContent: "space-between",
           }}>
             <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
-              📩 Recibidos: {incomingCount}
+              ?? Recibidos: {incomingCount}
             </span>
             <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
-              📤 Enviados: {outgoingCount}
+              ?? Enviados: {outgoingCount}
             </span>
           </div>
         </ProfileSection>
@@ -1006,7 +1006,7 @@ export function ContactProfile({
                 width: "100%", padding: "8px 10px",
                 display: "flex", alignItems: "center", justifyContent: "space-between",
                 background: "var(--row-hover)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid var(--hairline)",
                 borderRadius: 6, cursor: "pointer",
                 color: conversation.assignedTo ? "white" : "var(--text-muted)",
                 fontSize: 11, fontFamily: "inherit",
@@ -1038,7 +1038,7 @@ export function ContactProfile({
                       color: (member === "Sin asignar" && !conversation.assignedTo) ||
                              member === conversation.assignedTo ? "var(--purple)" : "rgba(255,255,255,0.5)",
                       cursor: "pointer",
-                      borderBottom: "1px solid rgba(255,255,255,0.03)",
+                      borderBottom: "1px solid var(--hairline)",
                       transition: "background 0.1s",
                     }}
                     onMouseEnter={e => e.currentTarget.style.background = "rgba(168,85,247,0.06)"}
@@ -1058,7 +1058,7 @@ export function ContactProfile({
             display: "flex", alignItems: "center", gap: 8,
             padding: "8px 10px", borderRadius: 6,
             background: conversation.closed ? "rgba(148,163,184,0.04)" : "rgba(0,200,117,0.04)",
-            border: `1px solid ${conversation.closed ? "rgba(148,163,184,0.16)" : "rgba(0,200,117,0.12)"}`,
+            border: `1px solid ${conversation.closed ? "var(--surface-hover)" : "rgba(0,200,117,0.12)"}`,
           }}>
             {conversation.closed ? (
               <CheckCircle2 style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
