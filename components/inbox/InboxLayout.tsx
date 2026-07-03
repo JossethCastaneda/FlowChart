@@ -65,7 +65,6 @@ export function InboxLayout() {
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [connectedPages, setConnectedPages] = useState<ConnectedPage[]>([]);
   const [selectedPage, setSelectedPage] = useState<ConnectedPage | null>(null);
-  const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
   const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
   const [queueMenuOpen, setQueueMenuOpen] = useState(false);
   const queueRef = useRef<HTMLDivElement>(null);
@@ -226,7 +225,7 @@ export function InboxLayout() {
       }).catch(() => {});
   };
 
-  // Apply search + page + channel filter
+  // Apply search + page + queue filter (unified — no channel separation)
   const filtered = conversations.filter(c => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -236,11 +235,6 @@ export function InboxLayout() {
     if (selectedPage) {
       const convPageId = (c as any)?._pageId;
       if (convPageId && convPageId !== selectedPage.id) return false;
-    }
-    // Filter by channel
-    if (channelFilter !== "all") {
-      const tab = CHANNEL_TABS.find(t => t.key === channelFilter);
-      if (tab && tab.platforms.length > 0 && !tab.platforms.includes(c.platform)) return false;
     }
     if (queueFilter === "unassigned" && c.assignedTo) return false;
     if (queueFilter === "mine" && c.assignedTo !== currentAssignee) return false;
@@ -253,13 +247,13 @@ export function InboxLayout() {
   const isDesktop = typeof window !== "undefined" ? window.innerWidth >= 768 : true;
   const selected = filtered.find(c => c.id === selectedId) || (isDesktop ? filtered[0] : null) || null;
 
-  // Auto-select first filtered conversation when channelFilter changes (only on desktop)
+  // Auto-select first filtered conversation when queueFilter changes (only on desktop)
   useEffect(() => {
     if (isDesktop && filtered.length > 0 && !filtered.find(c => c.id === selectedId)) {
       setSelectedId(filtered[0].id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [channelFilter, queueFilter]);
+  }, [queueFilter]);
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || !selected) return;
@@ -489,140 +483,10 @@ export function InboxLayout() {
         </div>
       )}
 
-      {/* ─── Filters: channels + queue in a single, compact row ─── */}
-      {conversations.length > 0 && initialFetchDone && (
-        <div style={{
-          display: "flex", alignItems: "center", gap: 8,
-          borderBottom: "1px solid var(--hairline)",
-          padding: "0 12px", flexShrink: 0,
-        }}>
-          {/* Channel tabs */}
-          <div style={{ display: "flex", alignItems: "center", gap: 0, overflowX: "auto", flex: 1 }}>
-            {CHANNEL_TABS.map(tab => {
-              const total = tab.key === "all"
-                ? conversations.length
-                : conversations.filter(c => tab.platforms.includes(c.platform)).length;
-              const unreadCount = tab.key === "all"
-                ? conversations.filter(c => c.unread).length
-                : conversations.filter(c => tab.platforms.includes(c.platform) && c.unread).length;
-              const isActive = channelFilter === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  onClick={() => setChannelFilter(tab.key)}
-                  style={{
-                    padding: "10px 14px",
-                    fontSize: 12, fontWeight: isActive ? 600 : 400,
-                    color: isActive ? tab.color : "var(--text-muted)",
-                    background: "transparent",
-                    border: "none",
-                    borderBottom: isActive ? `2px solid ${tab.color}` : "2px solid transparent",
-                    cursor: "pointer",
-                    transition: "all 0.15s",
-                    whiteSpace: "nowrap",
-                    fontFamily: "inherit",
-                    display: "flex", alignItems: "center", gap: 6,
-                    position: "relative",
-                  }}
-                  onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = "rgba(255,255,255,0.7)"; }}
-                  onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = "var(--text-muted)"; }}
-                >
-                  {tab.label}
-                  {total > 0 && (
-                    <span style={{
-                      minWidth: 18, height: 18, borderRadius: 9,
-                      background: unreadCount > 0
-                        ? (tab.key === "all" ? "var(--red)" : tab.color)
-                        : "var(--hairline)",
-                      color: unreadCount > 0 ? "white" : "var(--text-secondary)",
-                      fontSize: 10, fontWeight: 700,
-                      display: "inline-flex", alignItems: "center", justifyContent: "center",
-                      padding: "0 5px",
-                    }}>
-                      {unreadCount > 0 ? unreadCount : total}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Queue filter — compact dropdown (was a full second row) */}
-          <div ref={queueRef} style={{ position: "relative", flexShrink: 0 }}>
-            {(() => {
-              const active = QUEUE_TABS.find(t => t.key === queueFilter) || QUEUE_TABS[0];
-              const filterActive = queueFilter !== "all";
-              return (
-                <button
-                  onClick={() => setQueueMenuOpen(o => !o)}
-                  title="Filtrar conversaciones"
-                  style={{
-                    display: "inline-flex", alignItems: "center", gap: 6,
-                    padding: "6px 10px", borderRadius: 8,
-                    border: `1px solid ${filterActive ? `${active.color}55` : "var(--hairline)"}`,
-                    background: filterActive ? `${active.color}14` : "var(--row-hover)",
-                    color: filterActive ? active.color : "var(--text-secondary)",
-                    fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  <Filter style={{ width: 12, height: 12 }} />
-                  {active.label}
-                  <ChevronDown style={{ width: 12, height: 12, opacity: 0.7 }} />
-                </button>
-              );
-            })()}
-            {queueMenuOpen && (
-              <div style={{
-                position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 200,
-                background: "var(--panel-bg)", border: "1px solid var(--hairline)",
-                borderRadius: 10, zIndex: 50, overflow: "hidden",
-                boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-              }}>
-                {QUEUE_TABS.map((tab) => {
-                  const total = conversations.filter((c) => {
-                    if (tab.key === "all") return true;
-                    if (tab.key === "unassigned") return !c.assignedTo;
-                    if (tab.key === "mine") return c.assignedTo === currentAssignee;
-                    if (tab.key === "needs_reply") return !c.closed && c.unread;
-                    if (tab.key === "done") return c.closed;
-                    return true;
-                  }).length;
-                  const isActive = queueFilter === tab.key;
-                  return (
-                    <button
-                      key={tab.key}
-                      onClick={() => { setQueueFilter(tab.key); setQueueMenuOpen(false); }}
-                      style={{
-                        display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-                        width: "100%", padding: "9px 14px",
-                        background: isActive ? `${tab.color}12` : "transparent",
-                        border: "none", borderBottom: "1px solid var(--hairline)",
-                        borderLeft: isActive ? `3px solid ${tab.color}` : "3px solid transparent",
-                        color: isActive ? tab.color : "var(--text-secondary)",
-                        fontSize: 12, fontWeight: isActive ? 600 : 400,
-                        cursor: "pointer", textAlign: "left", fontFamily: "inherit",
-                      }}
-                    >
-                      <span>{tab.label}</span>
-                      <span style={{
-                        minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px",
-                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        background: isActive ? `${tab.color}2b` : "var(--surface-hover)",
-                        color: isActive ? tab.color : "var(--text-secondary)", fontSize: 10, fontWeight: 700,
-                      }}>{total}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
+      {/* ─── No matching conversations notice ─── */}
       {conversations.length > 0 && filtered.length === 0 && initialFetchDone && (
         <div style={{ padding: 32, textAlign: "center", color: "var(--text-secondary)", fontSize: 12 }}>
-          No hay conversaciones en esta vista. Cambia el filtro de cola o canal para revisar otros mensajes.
+          No hay conversaciones en esta vista. Cambia el filtro para revisar otros mensajes.
         </div>
       )}
 
@@ -643,11 +507,11 @@ export function InboxLayout() {
             </div>
           )}
 
-          {/* Search */}
-          <div style={{ padding: "6px 12px 10px" }}>
+          {/* Search + Queue filter */}
+          <div style={{ padding: "6px 12px 10px", display: "flex", gap: 6, alignItems: "center" }}>
             <div style={{
               display: "flex", alignItems: "center", gap: 8,
-              padding: "7px 10px",
+              padding: "7px 10px", flex: 1,
               background: "var(--surface-hover)",
               borderRadius: 8,
               border: "1px solid var(--hairline)",
@@ -663,6 +527,76 @@ export function InboxLayout() {
                   color: "var(--foreground)", fontSize: 12, width: "100%", fontFamily: "inherit",
                 }}
               />
+            </div>
+
+            {/* Queue filter dropdown */}
+            <div ref={queueRef} style={{ position: "relative", flexShrink: 0 }}>
+              {(() => {
+                const active = QUEUE_TABS.find(t => t.key === queueFilter) || QUEUE_TABS[0];
+                const filterActive = queueFilter !== "all";
+                return (
+                  <button
+                    onClick={() => setQueueMenuOpen(o => !o)}
+                    title="Filtrar conversaciones"
+                    style={{
+                      display: "inline-flex", alignItems: "center", gap: 4,
+                      padding: "7px 8px", borderRadius: 8,
+                      border: `1px solid ${filterActive ? `${active.color}55` : "var(--hairline)"}`,
+                      background: filterActive ? `${active.color}14` : "var(--surface-hover)",
+                      color: filterActive ? active.color : "var(--text-muted)",
+                      fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    <Filter style={{ width: 12, height: 12 }} />
+                    <ChevronDown style={{ width: 10, height: 10, opacity: 0.7 }} />
+                  </button>
+                );
+              })()}
+              {queueMenuOpen && (
+                <div style={{
+                  position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 200,
+                  background: "var(--panel-bg)", border: "1px solid var(--hairline)",
+                  borderRadius: 10, zIndex: 50, overflow: "hidden",
+                  boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+                }}>
+                  {QUEUE_TABS.map((tab) => {
+                    const total = conversations.filter((c) => {
+                      if (tab.key === "all") return true;
+                      if (tab.key === "unassigned") return !c.assignedTo;
+                      if (tab.key === "mine") return c.assignedTo === currentAssignee;
+                      if (tab.key === "needs_reply") return !c.closed && c.unread;
+                      if (tab.key === "done") return c.closed;
+                      return true;
+                    }).length;
+                    const isActive = queueFilter === tab.key;
+                    return (
+                      <button
+                        key={tab.key}
+                        onClick={() => { setQueueFilter(tab.key); setQueueMenuOpen(false); }}
+                        style={{
+                          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
+                          width: "100%", padding: "9px 14px",
+                          background: isActive ? `${tab.color}12` : "transparent",
+                          border: "none", borderBottom: "1px solid var(--hairline)",
+                          borderLeft: isActive ? `3px solid ${tab.color}` : "3px solid transparent",
+                          color: isActive ? tab.color : "var(--text-secondary)",
+                          fontSize: 12, fontWeight: isActive ? 600 : 400,
+                          cursor: "pointer", textAlign: "left", fontFamily: "inherit",
+                        }}
+                      >
+                        <span>{tab.label}</span>
+                        <span style={{
+                          minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px",
+                          display: "inline-flex", alignItems: "center", justifyContent: "center",
+                          background: isActive ? `${tab.color}2b` : "var(--surface-hover)",
+                          color: isActive ? tab.color : "var(--text-secondary)", fontSize: 10, fontWeight: 700,
+                        }}>{total}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
 

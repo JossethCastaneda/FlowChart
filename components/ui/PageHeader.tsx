@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React from "react";
 
@@ -23,7 +23,7 @@ export function PageHeader({ title, description, subtitle, icon, action, iconCol
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              background: iconColor ? `color-mix(in srgb, ${iconColor} 10%, transparent)` : "rgba(255,255,255,0.05)",
+              background: iconColor ? `color-mix(in srgb, ${iconColor} 10%, transparent)` : "var(--surface-hover)",
               border: "1px solid var(--border)",
               borderRadius: 12,
               position: "relative",

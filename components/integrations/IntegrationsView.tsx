@@ -306,14 +306,14 @@ export function IntegrationsView() {
         @keyframes pulse-dot { 0%,100%{box-shadow:0 0 0 0 rgba(16,185,129,0.4);} 50%{box-shadow:0 0 0 4px rgba(16,185,129,0);} }
         @keyframes fadeInUp { from{opacity:0;transform:translateY(8px);} to{opacity:1;transform:none;} }
         .int-card { transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease !important; }
-        .int-card:hover:not([data-soon="true"]) { transform: translateY(-2px) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.4) !important; border-color: rgba(255,255,255,0.12) !important; }
+        .int-card:hover:not([data-soon="true"]) { transform: translateY(-2px) !important; box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important; border-color: var(--border-strong) !important; }
         .int-btn:hover { filter: brightness(1.1); }
       `}</style>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 20, animation: "fadeInUp 0.25s ease" }}>
 
         {/* ── Summary ─── */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px", borderRadius: "14px", background: "var(--row-hover)", border: "1px solid var(--hairline)", boxShadow: "0 4px 20px rgba(0,0,0,0.2), inset 0 0 0 1px rgba(255,255,255,0.02)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px", padding: "16px 20px", borderRadius: "14px", background: "var(--row-hover)", border: "1px solid var(--hairline)", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
           {loading ? (
             <Loader2 size={16} style={{ color: "var(--text-secondary)", animation: "spin 1s linear infinite" }} />
           ) : (
@@ -324,10 +324,10 @@ export function IntegrationsView() {
                   <strong style={{ color: "var(--foreground)", fontWeight: 800 }}>{uniqueConnected}</strong> {lang === "es" ? `de ${totalActive} canales conectados` : `of ${totalActive} connected channels`}
                 </span>
               </div>
-              <div style={{ flex: 1, height: "6px", borderRadius: "3px", background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+              <div style={{ flex: 1, height: "6px", borderRadius: "3px", background: "var(--surface-hover)", overflow: "hidden" }}>
                 <motion.div initial={{ width: 0 }} animate={{ width: `${totalActive > 0 ? (uniqueConnected / totalActive) * 100 : 0}%` }} transition={{ duration: 1, ease: "easeOut" }} style={{ height: "100%", borderRadius: "3px", background: "linear-gradient(90deg,var(--cyan),#2563eb,#bc5fb2)", boxShadow: "0 0 10px rgba(59,130,246,0.5)" }} />
               </div>
-              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadIntegrations} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)", borderRadius: "8px", cursor: "pointer", color: "var(--foreground)", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 600, padding: "6px 12px", transition: "background 0.2s" }}>
+              <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadIntegrations} style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "8px", cursor: "pointer", color: "var(--foreground)", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 600, padding: "6px 12px", transition: "background 0.2s" }}>
                 <RefreshCw size={12} /> {lang === "es" ? "Refrescar" : "Refresh"}
               </motion.button>
             </>
@@ -362,11 +362,11 @@ export function IntegrationsView() {
                 style={{
                   display: "flex", flexDirection: "column",
                   padding: "24px 22px 20px", borderRadius: "18px",
-                  background: connected ? "rgba(16, 185, 129, 0.05)" : "rgba(255, 255, 255, 0.02)",
-                  border: connected ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(255, 255, 255, 0.08)",
+                  background: connected ? "rgba(16, 185, 129, 0.05)" : "var(--bg-raised)",
+                  border: connected ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid var(--border)",
                   opacity: ch.comingSoon ? 0.55 : 1,
                   position: "relative", overflow: "hidden",
-                  boxShadow: connected ? "0 10px 30px rgba(16,185,129,0.1), inset 0 0 0 1px rgba(16,185,129,0.1)" : "0 4px 14px rgba(0,0,0,0.2)",
+                  boxShadow: connected ? "0 10px 30px rgba(16,185,129,0.1)" : "0 4px 14px rgba(0,0,0,0.06)",
                   backdropFilter: "blur(12px)",
                 }}
               >
@@ -400,7 +400,7 @@ export function IntegrationsView() {
                         ? "0 8px 24px rgba(0,0,0,0.1)"
                         : `0 8px 24px ${isGradient ? "rgba(0,100,224,0.18)" : ch.iconBg + "33"}`,
                   }}>
-                    <ch.Icon size={26} />
+                    <ch.Icon size={26} style={ch.iconLight ? undefined : { color: "white" }} />
                   </motion.div>
  
                   {ch.badges && (
@@ -423,10 +423,10 @@ export function IntegrationsView() {
                 </div>
  
                 {/* Bottom: status + button */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "20px", paddingTop: "16px", borderTop: "1px solid var(--hairline)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                     {loading ? (
-                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "rgba(255,255,255,0.1)" }} />
+                      <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--surface-hover)" }} />
                     ) : connected ? (
                       <>
                         <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 10px var(--emerald)" }} />
@@ -451,9 +451,9 @@ export function IntegrationsView() {
                       style={{
                         padding: "8px 18px", borderRadius: "8px",
                         fontSize: "12px", fontWeight: 700,
-                        background: connected ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, var(--cyan), #2563eb)",
+                        background: connected ? "var(--surface-hover)" : "linear-gradient(135deg, var(--cyan), #2563eb)",
                         border: connected ? "1px solid var(--hairline)" : "none",
-                        color: connected ? "white" : "white",
+                        color: connected ? "var(--foreground)" : "white",
                         cursor: "pointer", fontFamily: "inherit",
                         boxShadow: connected ? "none" : "0 4px 14px rgba(59,130,246,0.4)",
                       }}
