@@ -17,8 +17,8 @@ const LEVEL_CONFIG: Record<AlertLevel, {
 }> = {
   critical: {
     icon: <AlertCircle className="w-3.5 h-3.5" />,
-    borderColor: "rgba(239,68,68,0.3)",
-    bgColor: "rgba(239,68,68,0.06)",
+    borderColor: "rgba(229,72,77,0.3)",
+    bgColor: "rgba(229,72,77,0.06)",
     textColor: "var(--red)",
     label: "ALERTA CRÍTICA",
   },
@@ -57,7 +57,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
     <div style={{
       borderRadius: "8px",
       border: criticalCount > 0
-        ? "1px solid rgba(239,68,68,0.15)"
+        ? "1px solid rgba(229,72,77,0.15)"
         : warningCount > 0
         ? "1px solid rgba(251,191,36,0.12)"
         : "1px solid rgba(52,211,153,0.12)",
@@ -70,7 +70,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
         style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "8px 14px", cursor: "pointer",
-          background: criticalCount > 0 ? "rgba(239,68,68,0.04)" : warningCount > 0 ? "rgba(251,191,36,0.03)" : "rgba(52,211,153,0.03)",
+          background: criticalCount > 0 ? "rgba(229,72,77,0.04)" : warningCount > 0 ? "rgba(251,191,36,0.03)" : "rgba(52,211,153,0.03)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "10px", fontSize: "10px" }}>

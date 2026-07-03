@@ -8,7 +8,7 @@ interface Member { id: string; name: string; activityStatus?: string }
 
 const STATUS_COLORS: Record<string, string> = { disponible: "var(--emerald)", ocupado: "var(--amber)", ausente: "var(--red)", offline: "var(--text-muted)" };
 
-const COLORS = ["#0081FB", "#f472b6", "var(--emerald)", "var(--purple)", "#fb923c", "var(--cyan)", "var(--red)", "var(--amber)"];
+const COLORS = ["#0081FB", "#bc5fb2", "var(--emerald)", "var(--purple)", "#d98843", "var(--cyan)", "var(--red)", "var(--amber)"];
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 /* ── Permission defaults ── */

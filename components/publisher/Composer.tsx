@@ -612,7 +612,7 @@ export function Composer() {
                 const isFb = target.platform === "facebook";
                 const bgColor = isFb ? "rgba(24,119,242,0.12)" : "rgba(225,48,108,0.12)";
                 const borderColor = isFb ? "rgba(24,119,242,0.4)" : "rgba(225,48,108,0.4)";
-                const textColor = isFb ? "var(--cyan)" : "#f472b6";
+                const textColor = isFb ? "var(--cyan)" : "#bc5fb2";
                 const Icon = isFb ? Facebook : Instagram;
                 const label = isFb ? target.pageName : `@${target.igUsername}`;
                 return (
@@ -809,7 +809,7 @@ export function Composer() {
             onDrop={handleDrop}
             style={{
               flex: 1, display: "flex", flexDirection: "column",
-              background: isDragging ? "rgba(0,212,255,0.04)" : "transparent",
+              background: isDragging ? "rgba(59,130,246,0.04)" : "transparent",
               transition: "all 0.2s", minHeight: 200,
             }}
           >
@@ -833,7 +833,7 @@ export function Composer() {
                   <span key={tag} style={{
                     display: "flex", alignItems: "center", gap: 4,
                     padding: "3px 10px", borderRadius: 20,
-                    background: "rgba(123,97,255,0.15)", border: "1px solid rgba(123,97,255,0.3)",
+                    background: "rgba(139,141,242,0.15)", border: "1px solid rgba(139,141,242,0.3)",
                     color: "var(--purple)", fontSize: 12, fontWeight: 500,
                   }}>
                     #{tag}
@@ -1157,8 +1157,8 @@ export function Composer() {
             </span>
             <span style={{
               fontSize: 10, fontWeight: 600, color: "var(--cyan)",
-              background: "rgba(0,212,255,0.1)", padding: "2px 8px", borderRadius: 10,
-              border: "1px solid rgba(0,212,255,0.2)", textTransform: "uppercase", letterSpacing: 0.5,
+              background: "rgba(59,130,246,0.1)", padding: "2px 8px", borderRadius: 10,
+              border: "1px solid rgba(59,130,246,0.2)", textTransform: "uppercase", letterSpacing: 0.5,
             }}>
               {format}
             </span>

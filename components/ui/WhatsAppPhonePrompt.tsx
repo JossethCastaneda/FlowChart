@@ -306,7 +306,7 @@ export function WhatsAppPhonePrompt() {
                         padding: "11px 12px 11px 32px",
                         borderRadius: 10,
                         background: "rgba(255,255,255,0.05)",
-                        border: `1px solid ${error ? "rgba(239,68,68,0.5)" : "rgba(37,211,102,0.2)"}`,
+                        border: `1px solid ${error ? "rgba(229,72,77,0.5)" : "rgba(37,211,102,0.2)"}`,
                         color: "#fff",
                         fontSize: 14,
                         outline: "none",
@@ -364,7 +364,7 @@ export function WhatsAppPhonePrompt() {
                   </button>
                 </div>
                 {error && (
-                  <p style={{ fontSize: 11, color: "rgba(239,68,68,0.9)", marginTop: 6, marginBottom: 0 }}>
+                  <p style={{ fontSize: 11, color: "rgba(229,72,77,0.9)", marginTop: 6, marginBottom: 0 }}>
                     {error}
                   </p>
                 )}

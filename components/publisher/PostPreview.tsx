@@ -51,7 +51,7 @@ const platformLabel = (format: PostFormat, platform: "facebook" | "instagram") =
 const platformColors = (platform: "facebook" | "instagram") => ({
   bg: platform === "facebook" ? "rgba(24,119,242,0.06)" : "rgba(225,48,108,0.06)",
   border: platform === "facebook" ? "rgba(24,119,242,0.15)" : "rgba(225,48,108,0.15)",
-  text: platform === "facebook" ? "var(--cyan)" : "#f472b6",
+  text: platform === "facebook" ? "var(--cyan)" : "#bc5fb2",
   icon: platform === "facebook" ? "#1877f2" : "#E1306C",
 });
 

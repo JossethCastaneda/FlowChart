@@ -488,8 +488,8 @@ export function WhatsAppConnectCard() {
               onClick={handleDisconnect}
               disabled={disconnecting}
               style={{
-                background: "rgba(239, 68, 68, 0.08)",
-                border: "1px solid rgba(239, 68, 68, 0.2)",
+                background: "rgba(229,72,77, 0.08)",
+                border: "1px solid rgba(229,72,77, 0.2)",
                 borderRadius: "6px",
                 color: "var(--red)",
                 fontSize: "10px",
@@ -538,8 +538,8 @@ export function WhatsAppConnectCard() {
           {linesError && (
             <div style={{
               padding: "10px 14px",
-              background: "rgba(239, 68, 68, 0.05)",
-              border: "1px solid rgba(239, 68, 68, 0.15)",
+              background: "rgba(229,72,77, 0.05)",
+              border: "1px solid rgba(229,72,77, 0.15)",
               borderRadius: "8px",
               color: "var(--red)",
               fontSize: "11px",
@@ -605,9 +605,9 @@ export function WhatsAppConnectCard() {
                             padding: "1px 5px",
                             borderRadius: "4px",
                             fontWeight: 600,
-                            background: isStatusApproved ? "rgba(16, 185, 129, 0.08)" : "rgba(245, 158, 11, 0.08)",
+                            background: isStatusApproved ? "rgba(16, 185, 129, 0.08)" : "rgba(224,168,60, 0.08)",
                             color: isStatusApproved ? "var(--emerald)" : "var(--amber)",
-                            border: `1px solid ${isStatusApproved ? "rgba(16, 185, 129, 0.15)" : "rgba(245, 158, 11, 0.15)"}`,
+                            border: `1px solid ${isStatusApproved ? "rgba(16, 185, 129, 0.15)" : "rgba(224,168,60, 0.15)"}`,
                           }}>
                             {line.status}
                           </span>
@@ -616,9 +616,9 @@ export function WhatsAppConnectCard() {
                             padding: "1px 5px",
                             borderRadius: "4px",
                             fontWeight: 600,
-                            background: isQualityGreen ? "rgba(16, 185, 129, 0.08)" : isQualityYellow ? "rgba(245, 158, 11, 0.08)" : "rgba(239, 68, 68, 0.08)",
+                            background: isQualityGreen ? "rgba(16, 185, 129, 0.08)" : isQualityYellow ? "rgba(224,168,60, 0.08)" : "rgba(229,72,77, 0.08)",
                             color: isQualityGreen ? "var(--emerald)" : isQualityYellow ? "var(--amber)" : "var(--red)",
-                            border: `1px solid ${isQualityGreen ? "rgba(16, 185, 129, 0.15)" : isQualityYellow ? "rgba(245, 158, 11, 0.15)" : "rgba(239, 68, 68, 0.15)"}`,
+                            border: `1px solid ${isQualityGreen ? "rgba(16, 185, 129, 0.15)" : isQualityYellow ? "rgba(224,168,60, 0.15)" : "rgba(229,72,77, 0.15)"}`,
                           }}>
                             {line.qualityRating}
                           </span>
@@ -639,8 +639,8 @@ export function WhatsAppConnectCard() {
                               setTestRecipient("");
                             }}
                             style={{
-                              background: "rgba(0, 212, 255, 0.08)",
-                              border: "1px solid rgba(0, 212, 255, 0.2)",
+                              background: "rgba(59,130,246, 0.08)",
+                              border: "1px solid rgba(59,130,246, 0.2)",
                               borderRadius: "6px",
                               color: "var(--cyan)",
                               fontSize: "10px",
@@ -676,8 +676,8 @@ export function WhatsAppConnectCard() {
                         <button
                           onClick={() => handleRegisterLine(line.id)}
                           style={{
-                            background: "rgba(245, 158, 11, 0.08)",
-                            border: "1px solid rgba(245, 158, 11, 0.2)",
+                            background: "rgba(224,168,60, 0.08)",
+                            border: "1px solid rgba(224,168,60, 0.2)",
                             borderRadius: "6px",
                             color: "var(--amber)",
                             fontSize: "10px",
@@ -758,8 +758,8 @@ export function WhatsAppConnectCard() {
           <div style={{
             padding: 16,
             borderRadius: 10,
-            background: "rgba(0, 212, 255, 0.02)",
-            border: "1px solid rgba(0, 212, 255, 0.12)",
+            background: "rgba(59,130,246, 0.02)",
+            border: "1px solid rgba(59,130,246, 0.12)",
             display: "flex",
             flexDirection: "column",
             gap: 12,
@@ -824,8 +824,8 @@ export function WhatsAppConnectCard() {
               {testResult && (
                 <div style={{
                   padding: "8px 12px",
-                  background: testResult.success ? "rgba(16, 185, 129, 0.05)" : "rgba(239, 68, 68, 0.05)",
-                  border: `1px solid ${testResult.success ? "rgba(16, 185, 129, 0.15)" : "rgba(239, 68, 68, 0.15)"}`,
+                  background: testResult.success ? "rgba(16, 185, 129, 0.05)" : "rgba(229,72,77, 0.05)",
+                  border: `1px solid ${testResult.success ? "rgba(16, 185, 129, 0.15)" : "rgba(229,72,77, 0.15)"}`,
                   borderRadius: "6px",
                   color: testResult.success ? "var(--emerald)" : "var(--red)",
                   fontSize: "10px",
@@ -838,8 +838,8 @@ export function WhatsAppConnectCard() {
                 type="submit"
                 disabled={sendingTest || !testRecipient.trim()}
                 style={{
-                  background: "rgba(0, 212, 255, 0.12)",
-                  border: "1px solid rgba(0, 212, 255, 0.25)",
+                  background: "rgba(59,130,246, 0.12)",
+                  border: "1px solid rgba(59,130,246, 0.25)",
                   borderRadius: "6px",
                   color: "var(--cyan)",
                   fontSize: "11px",
@@ -942,8 +942,8 @@ export function WhatsAppConnectCard() {
             title="Desconectar WhatsApp Business"
             style={{
               padding: "5px 10px", borderRadius: 6, flexShrink: 0,
-              background: "rgba(239,68,68,0.06)",
-              border: "1px solid rgba(239,68,68,0.18)",
+              background: "rgba(229,72,77,0.06)",
+              border: "1px solid rgba(229,72,77,0.18)",
               color: "var(--red)", fontSize: 10, fontWeight: 600,
               cursor: disconnecting ? "wait" : "pointer",
               display: "flex", alignItems: "center", gap: 5,
@@ -964,8 +964,8 @@ export function WhatsAppConnectCard() {
         <div style={{
           padding: "8px 14px 10px 54px",
           fontSize: 10, color: "var(--red)",
-          borderTop: "1px solid rgba(239,68,68,0.1)",
-          background: "rgba(239,68,68,0.03)",
+          borderTop: "1px solid rgba(229,72,77,0.1)",
+          background: "rgba(229,72,77,0.03)",
         }}>
           {error}
         </div>

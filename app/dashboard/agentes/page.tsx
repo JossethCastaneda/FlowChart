@@ -44,9 +44,9 @@ interface ProvidersResponse {
 }
 
 const PROVIDER_ACCENT: Record<string, string> = {
-  gemini: "#2b8fff",
-  openai: "#06d6a0",
-  anthropic: "#ffbe0b",
+  gemini: "#3b82f6",
+  openai: "#34b77c",
+  anthropic: "#e0a83c",
 };
 
 const POWER_LABEL: Record<number, string> = {
@@ -157,7 +157,7 @@ export default function AgentesPage() {
             fontSize: 13,
             color: "var(--red)",
             background: "var(--red-dim)",
-            border: "1px solid rgba(255,45,85,0.3)",
+            border: "1px solid rgba(229,72,77,0.3)",
           }}
         >
           {saveError}

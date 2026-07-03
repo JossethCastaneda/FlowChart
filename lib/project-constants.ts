@@ -1,7 +1,7 @@
 export const PLATFORMS = [
   { id: "meta",      name: "Meta Ads",            color: "#0081FB" },
   { id: "google",    name: "Google Ads",           color: "#4285F4" },
-  { id: "tiktok",    name: "TikTok Ads",           color: "#25F4EE" },
+  { id: "tiktok",    name: "TikTok Ads",           color: "#45aec2" },
   { id: "whatsapp",  name: "WhatsApp Business",    color: "#25D366" },
 ];
 

@@ -106,7 +106,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
     roas: "var(--amber)",
     impressions: "var(--purple)",
     clicks: "var(--cyan)",
-    ctr: "#f472b6",
+    ctr: "#bc5fb2",
   };
 
   const metricButtons: { key: ChartMetric; label: string }[] = [
@@ -135,7 +135,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
           position: "fixed", top: 0, right: 0, bottom: 0,
           width: "440px", maxWidth: "100vw", zIndex: 90,
           background: "rgba(6,10,22,0.98)", backdropFilter: "blur(16px)",
-          borderLeft: "1px solid rgba(0,212,255,0.12)",
+          borderLeft: "1px solid rgba(59,130,246,0.12)",
           display: "flex", flexDirection: "column",
           animation: "slideInRight 0.25s ease-out",
           boxShadow: "-12px 0 40px rgba(0,0,0,0.5)",
@@ -171,7 +171,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 {advPlus && (
                   <span style={{
                     fontSize: "8px", fontWeight: 700, padding: "2px 6px", borderRadius: 4,
-                    background: "rgba(168,85,247,0.15)", color: "var(--purple)",
+                    background: "rgba(155,123,232,0.15)", color: "var(--purple)",
                   }}>
                     ? ADV+
                   </span>
@@ -255,7 +255,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
               { label: "Gasto Total", value: fmt$(ins.spend || 0), color: "var(--cyan)", icon: "??" },
               { label: "ROAS", value: roas > 0 ? fmtROAS(roas) : "—", color: roas >= 3 ? "var(--emerald)" : roas >= 1 ? "var(--amber)" : "var(--red)", icon: "??" },
               { label: "Resultados", value: fmtNum(resultsCount), color: "var(--purple)", icon: "??" },
-              { label: cpa.label, value: cpa.value > 0 ? fmt$(cpa.value) : "—", color: "#f472b6", icon: "??" },
+              { label: cpa.label, value: cpa.value > 0 ? fmt$(cpa.value) : "—", color: "#bc5fb2", icon: "??" },
             ].map((kpi, i) => (
               <div key={i} style={{
                 padding: "14px", borderRadius: "8px",
@@ -320,8 +320,8 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                     display: "flex", alignItems: "center", gap: "3px",
                     padding: "4px 8px", fontSize: "9px", fontWeight: 600,
                     borderRadius: "4px", cursor: "pointer",
-                    background: breakdownTab === tab.key ? "rgba(0,212,255,0.1)" : "transparent",
-                    border: `1px solid ${breakdownTab === tab.key ? "rgba(0,212,255,0.2)" : "transparent"}`,
+                    background: breakdownTab === tab.key ? "rgba(59,130,246,0.1)" : "transparent",
+                    border: `1px solid ${breakdownTab === tab.key ? "rgba(59,130,246,0.2)" : "transparent"}`,
                     color: breakdownTab === tab.key ? "var(--cyan)" : "var(--text-muted)",
                     transition: "all 0.15s",
                   }}
@@ -376,7 +376,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                       />
                       <Tooltip
                         contentStyle={{
-                          background: "rgba(6,10,22,0.95)", border: "1px solid rgba(0,212,255,0.15)",
+                          background: "rgba(6,10,22,0.95)", border: "1px solid rgba(59,130,246,0.15)",
                           borderRadius: "6px", fontSize: "10px", color: "var(--foreground)",
                         }}
                       />

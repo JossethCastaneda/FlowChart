@@ -5,7 +5,7 @@ import { Palette, Image as ImageIcon } from "lucide-react";
 
 export function BrandingManager() {
   const [logoUrl, setLogoUrl] = useState("");
-  const [accentColor, setAccentColor] = useState("#00d4ff");
+  const [accentColor, setAccentColor] = useState("#5b9bff");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -13,8 +13,8 @@ export function BrandingManager() {
 
   const inp: React.CSSProperties = {
     padding: "8px 12px",
-    background: "rgba(0,212,255,0.03)",
-    border: "1px solid rgba(0,212,255,0.1)",
+    background: "rgba(59,130,246,0.03)",
+    border: "1px solid rgba(59,130,246,0.1)",
     color: "var(--foreground)",
     fontSize: "13px",
     outline: "none",
@@ -27,7 +27,7 @@ export function BrandingManager() {
       .then((data) => {
         if (data.branding) {
           setLogoUrl(data.branding.logoUrl || "");
-          setAccentColor(data.branding.accentColor || "#00d4ff");
+          setAccentColor(data.branding.accentColor || "#5b9bff");
         }
         setLoading(false);
       })
@@ -120,7 +120,7 @@ export function BrandingManager() {
               value={accentColor}
               onChange={(e) => setAccentColor(e.target.value)}
               style={{ ...inp, width: "120px" }}
-              placeholder="#00d4ff"
+              placeholder="#5b9bff"
               pattern="^#[0-9a-fA-F]{6}$"
             />
           </div>

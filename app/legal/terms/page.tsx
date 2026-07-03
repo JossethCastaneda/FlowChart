@@ -15,15 +15,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section style={{ marginBottom: 48 }}>
       <h2 style={{
-        fontFamily: "'Orbitron', sans-serif",
+        fontFamily: "var(--font-display)",
         fontSize: 15,
         fontWeight: 700,
-        color: "#00d4ff",
+        color: "#5b9bff",
         letterSpacing: "0.08em",
         textTransform: "uppercase",
         marginBottom: 16,
         paddingBottom: 8,
-        borderBottom: "1px solid rgba(0,212,255,0.15)",
+        borderBottom: "1px solid rgba(59,130,246,0.15)",
       }}>
         {title}
       </h2>
@@ -43,7 +43,7 @@ function Ul({ items }: { items: string[] }) {
     <ul style={{ paddingLeft: 20, marginBottom: 12 }}>
       {items.map((item, i) => (
         <li key={i} style={{ marginBottom: 6 }}>
-          <span style={{ color: "#00d4ff", marginRight: 8 }}>›</span>
+          <span style={{ color: "#5b9bff", marginRight: 8 }}>›</span>
           {item}
         </li>
       ))}
@@ -58,13 +58,13 @@ export default function TermsPage() {
       <div style={{ marginBottom: 56 }}>
         <div style={{
           display: "inline-block",
-          background: "rgba(0,212,255,0.08)",
-          border: "1px solid rgba(0,212,255,0.2)",
+          background: "rgba(59,130,246,0.08)",
+          border: "1px solid rgba(59,130,246,0.2)",
           borderRadius: 6,
           padding: "4px 14px",
           fontSize: 11,
           fontWeight: 700,
-          color: "#00d4ff",
+          color: "#5b9bff",
           letterSpacing: "0.1em",
           textTransform: "uppercase",
           marginBottom: 20,
@@ -72,7 +72,7 @@ export default function TermsPage() {
           Legal
         </div>
         <h1 style={{
-          fontFamily: "'Orbitron', sans-serif",
+          fontFamily: "var(--font-display)",
           fontSize: "clamp(24px, 4vw, 36px)",
           fontWeight: 700,
           color: "#dde6f0",
@@ -88,8 +88,8 @@ export default function TermsPage() {
         <div style={{
           marginTop: 24,
           padding: "16px 20px",
-          background: "rgba(0,212,255,0.04)",
-          border: "1px solid rgba(0,212,255,0.12)",
+          background: "rgba(59,130,246,0.04)",
+          border: "1px solid rgba(59,130,246,0.12)",
           borderRadius: 8,
           fontSize: 13,
           color: "#94a3b8",
@@ -200,7 +200,7 @@ export default function TermsPage() {
       <Section title="8. Privacidad y Protección de Datos">
         <P>
           El tratamiento de datos personales se rige por nuestra{" "}
-          <a href="/legal/privacy" style={{ color: "#00d4ff", textDecoration: "none" }}>
+          <a href="/legal/privacy" style={{ color: "#5b9bff", textDecoration: "none" }}>
             Política de Privacidad
           </a>
           , la cual forma parte integral de estos Términos de Servicio. Al utilizar la Plataforma, el Usuario consiente el tratamiento de sus datos de conformidad con dicha política.
@@ -266,8 +266,8 @@ export default function TermsPage() {
           Para cualquier consulta relacionada con estos Términos de Servicio, puede contactarnos en:
         </P>
         <div style={{
-          background: "rgba(0,212,255,0.04)",
-          border: "1px solid rgba(0,212,255,0.12)",
+          background: "rgba(59,130,246,0.04)",
+          border: "1px solid rgba(59,130,246,0.12)",
           borderRadius: 8,
           padding: "16px 20px",
           fontSize: 13,
@@ -275,13 +275,13 @@ export default function TermsPage() {
           <p style={{ margin: "0 0 4px", color: "#dde6f0", fontWeight: 600 }}>{COMPANY}</p>
           <p style={{ margin: "0 0 4px", color: "#94a3b8" }}>
             Correo electrónico:{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#00d4ff", textDecoration: "none" }}>
+            <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#5b9bff", textDecoration: "none" }}>
               {CONTACT_EMAIL}
             </a>
           </p>
           <p style={{ margin: 0, color: "#94a3b8" }}>
             Sitio web:{" "}
-            <a href={WEBSITE} style={{ color: "#00d4ff", textDecoration: "none" }}>
+            <a href={WEBSITE} style={{ color: "#5b9bff", textDecoration: "none" }}>
               {WEBSITE}
             </a>
           </p>

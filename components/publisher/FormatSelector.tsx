@@ -37,10 +37,10 @@ export function FormatSelector({ value, onChange }: Props) {
                 padding: "8px 16px",
                 borderRadius: 20,
                 background: isActive
-                  ? "linear-gradient(135deg, rgba(0,212,255,0.15), rgba(0,119,182,0.15))"
+                  ? "linear-gradient(135deg, rgba(59,130,246,0.15), rgba(0,119,182,0.15))"
                   : "rgba(255,255,255,0.06)",
                 border: isActive
-                  ? "1px solid rgba(0,212,255,0.4)"
+                  ? "1px solid rgba(59,130,246,0.4)"
                   : "1px solid var(--hairline)",
                 color: isActive ? "var(--cyan)" : "var(--text-secondary)",
                 fontSize: 13,
@@ -67,9 +67,9 @@ export function FormatSelector({ value, onChange }: Props) {
                 fontSize: 10,
                 padding: "2px 8px",
                 borderRadius: 10,
-                background: "rgba(0,212,255,0.1)",
+                background: "rgba(59,130,246,0.1)",
                 color: "var(--cyan)",
-                border: "1px solid rgba(0,212,255,0.2)",
+                border: "1px solid rgba(59,130,246,0.2)",
                 fontWeight: 500,
                 fontFamily: "Inter, sans-serif",
               }}

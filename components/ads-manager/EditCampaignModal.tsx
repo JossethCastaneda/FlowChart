@@ -154,7 +154,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
                   style={{
                     ...toggleStyle,
                     background: status === s
-                      ? s === "ACTIVE" ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.1)"
+                      ? s === "ACTIVE" ? "rgba(52,183,124,0.15)" : "rgba(224,168,60,0.1)"
                       : "rgba(255,255,255,0.09)",
                     borderColor: status === s
                       ? s === "ACTIVE" ? "var(--emerald)" : "var(--amber)"
@@ -233,7 +233,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
 
           {/* Error */}
           {localError && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(255,45,85,0.1)", border: "1px solid rgba(255,45,85,0.3)", borderRadius: 8, fontSize: 12, color: "var(--red)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 8, fontSize: 12, color: "var(--red)" }}>
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {localError}
             </div>
@@ -312,7 +312,7 @@ const cancelBtnStyle: React.CSSProperties = {
 const saveBtnStyle = (saved: boolean): React.CSSProperties => ({
   display: "flex", alignItems: "center", gap: 6,
   padding: "9px 18px",
-  background: saved ? "rgba(6,214,160,0.2)" : "rgba(0,129,251,0.2)",
+  background: saved ? "rgba(52,183,124,0.2)" : "rgba(0,129,251,0.2)",
   border: `1px solid ${saved ? "var(--emerald)" : "var(--cyan)"}`,
   borderRadius: 8,
   color: saved ? "var(--emerald)" : "var(--cyan)",

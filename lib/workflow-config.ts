@@ -93,7 +93,7 @@ export const SUGGESTED_AREAS: Omit<Area, "leadIds" | "memberIds">[] = [
     ],
   },
   {
-    id: "design", name: "Diseño", color: "#f472b6", slaHours: 48,
+    id: "design", name: "Diseño", color: "#bc5fb2", slaHours: 48,
     requestTypes: [
       { id: "static", name: "Creativo estático", slaHours: 24 },
       { id: "carousel", name: "Carrusel", slaHours: 36 },
@@ -101,21 +101,21 @@ export const SUGGESTED_AREAS: Omit<Area, "leadIds" | "memberIds">[] = [
     ],
   },
   {
-    id: "comms", name: "Comunicación", color: "#06d6a0", slaHours: 24,
+    id: "comms", name: "Comunicación", color: "#34b77c", slaHours: 24,
     requestTypes: [
       { id: "copy", name: "Copy / Caption", slaHours: 12 },
       { id: "script", name: "Guion", slaHours: 24 },
     ],
   },
   {
-    id: "strategy", name: "Estrategia", color: "#7b61ff", slaHours: 72,
+    id: "strategy", name: "Estrategia", color: "#8b8df2", slaHours: 72,
     requestTypes: [
       { id: "brief", name: "Brief", slaHours: 48 },
       { id: "report", name: "Reporte", slaHours: 48 },
     ],
   },
   {
-    id: "community", name: "Community", color: "#fb923c", slaHours: 12,
+    id: "community", name: "Community", color: "#d98843", slaHours: 12,
     requestTypes: [{ id: "moderation", name: "Moderación", slaHours: 6 }],
   },
 ];

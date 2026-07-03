@@ -69,7 +69,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
             values.map((v: string) => {
               const opt = options.find((o: any) => o.value === v);
               return (
-                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
                   {opt?.picture && <img src={opt.picture} alt="" style={{ width: 12, height: 12, borderRadius: "50%", objectFit: "cover" }} />}
                   {opt ? opt.label : v}
                   {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
@@ -81,7 +81,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
       </div>
       {open && !ro && !disabled && createPortal(
-        <div id={`portal-${id}`} style={{ position: "absolute", top: coords.top + 4, left: coords.left, width: coords.width, zIndex: 99999, background: "var(--panel-bg)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", boxShadow: "0 8px 30px rgba(0,0,0,0.5)", borderRadius: 8 }}>
+        <div id={`portal-${id}`} style={{ position: "absolute", top: coords.top + 4, left: coords.left, width: coords.width, zIndex: 99999, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", boxShadow: "0 8px 30px rgba(0,0,0,0.5)", borderRadius: 8 }}>
           <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input
               type="text"
@@ -94,7 +94,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(59,130,246,0.05)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => {
@@ -103,7 +103,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
                   <div key={o.value} onClick={() => {
                     if (selected) onChange(values.filter((v: string) => v !== o.value));
                     else onChange([...values, o.value]);
-                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
+                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(59,130,246,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.05)" : "transparent"}>
                     <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "var(--cyan)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "var(--cyan)" : "transparent" }}>
                       {selected && <Check className="w-2 h-2 text-black" />}
                     </div>
@@ -203,7 +203,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
             values.map((v: string) => {
               const opt = options.find((o: any) => o.id === v);
               return (
-                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
                   {opt ? opt.name : v} 
                   {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
                 </span>
@@ -214,7 +214,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input 
               type="text" 
@@ -227,7 +227,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(59,130,246,0.05)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => {
@@ -236,7 +236,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
                   <div key={o.id} onClick={() => {
                     if (selected) onChange(values.filter((v: string) => v !== o.id));
                     else onChange([...values, o.id]);
-                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(0,212,255,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(0,212,255,0.05)" : "transparent"}>
+                  }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(59,130,246,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.05)" : "transparent"}>
                     <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "var(--cyan)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "var(--cyan)" : "transparent" }}>
                       {selected && <Check className="w-2 h-2 text-black" />}
                     </div>
@@ -289,11 +289,11 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, marginRight: "10px", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); setOpen(!open); }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           {filtered.map((o: any) => (
             <div key={o.value} onClick={() => { onChange(o.value); setSearch(o.value); setOpen(false); }} 
                  style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--foreground)" }} 
-                 onMouseEnter={e => e.currentTarget.style.background = "rgba(0,212,255,0.1)"} 
+                 onMouseEnter={e => e.currentTarget.style.background = "rgba(59,130,246,0.1)"} 
                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
               {o.label}
             </div>
@@ -301,7 +301,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
           {search && !exactMatch && (
             <div onClick={() => { onChange(search); setOpen(false); }} 
                  style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--emerald)" }} 
-                 onMouseEnter={e => e.currentTarget.style.background = "rgba(6,214,160,0.1)"} 
+                 onMouseEnter={e => e.currentTarget.style.background = "rgba(52,183,124,0.1)"} 
                  onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
               <Plus className="w-3 h-3" /> Crear "{search}"
             </div>
@@ -839,7 +839,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                     <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: pl.color }} />
-                    <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", color: pl.color }}>{pl.name}</span>
+                    <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", color: pl.color }}>{pl.name}</span>
                   </div>
                   {!ro && (
                     <button onClick={() => toggleChannel(ch.platformId)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.65)", fontSize: "10px" }}>
@@ -924,8 +924,8 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.12)"; e.currentTarget.style.color = "var(--text-muted)"; }}
               >Cancelar</button>
               <button onClick={handleSubmit} className="btn-primary" style={{
-                padding: "8px 24px", background: "rgba(6,214,160,0.08)",
-                borderColor: "rgba(6,214,160,0.35)", color: "var(--emerald)",
+                padding: "8px 24px", background: "rgba(52,183,124,0.08)",
+                borderColor: "rgba(52,183,124,0.35)", color: "var(--emerald)",
               }}>{mode === "create" ? "Crear Proyecto" : "Guardar"}</button>
             </div>
           ) : (

@@ -28,27 +28,27 @@ export interface StateDef {
 
 export const TASK_STATES: Record<TaskState, StateDef> = {
   solicitada: {
-    label: "Solicitada", color: "#00d4ff", icon: "send", actor: "solicitante",
+    label: "Solicitada", color: "#5b9bff", icon: "send", actor: "solicitante",
     can: ["editar_brief", "adjuntar_referencias", "cancelar"],
     next: ["asignada", "cancelada"],
   },
   asignada: {
-    label: "Asignada", color: "#7b61ff", icon: "user-check", actor: "sistema",
+    label: "Asignada", color: "#8b8df2", icon: "user-check", actor: "sistema",
     can: ["reasignar_lider", "iniciar"],
     next: ["en_progreso", "cancelada"],
   },
   en_progreso: {
-    label: "En progreso", color: "#ffbe0b", icon: "loader", actor: "ejecutor",
+    label: "En progreso", color: "#e0a83c", icon: "loader", actor: "ejecutor",
     can: ["subir_archivos", "subir_version", "comentar", "enviar_a_aprobacion"],
     next: ["en_aprobacion", "cancelada"],
   },
   en_aprobacion: {
-    label: "En aprobación", color: "#fb923c", icon: "eye", actor: "solicitante",
+    label: "En aprobación", color: "#d98843", icon: "eye", actor: "solicitante",
     can: ["ver_preview", "aprobar", "pedir_cambios", "comentar"],
     next: ["aprobada", "en_progreso"], // pedir_cambios → vuelve a en_progreso
   },
   aprobada: {
-    label: "Aprobada", color: "#06d6a0", icon: "check-check", actor: "solicitante",
+    label: "Aprobada", color: "#34b77c", icon: "check-check", actor: "solicitante",
     can: ["descargar", "ver_preview", "enviar_a_biblioteca", "vincular_a_post"],
     next: [], // terminal
   },
@@ -104,9 +104,9 @@ export function isOverloaded(openTasks: number, teamAvg: number): boolean {
 }
 
 export const HEALTH_COLOR: Record<AreaHealth, string> = {
-  sana:      "#06d6a0",
-  en_riesgo: "#ffbe0b",
-  rezagada:  "#ff2d55",
+  sana:      "#34b77c",
+  en_riesgo: "#e0a83c",
+  rezagada:  "#e5484d",
 };
 
 /* ════════════════════════════════════════════════════════════

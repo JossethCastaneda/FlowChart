@@ -142,7 +142,7 @@ export default function DashboardGrid({
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 10px",
                 borderBottom: "1px solid var(--hairline, rgba(255,255,255,0.06))",
                 cursor: editable ? "grab" : "default", flexShrink: 0,
-                background: editable ? "rgba(168,85,247,0.06)" : "transparent", userSelect: "none",
+                background: editable ? "rgba(155,123,232,0.06)" : "transparent", userSelect: "none",
               }}
             >
               {editable && <GripVertical style={{ width: 13, height: 13, color: accent, opacity: 0.7 }} />}

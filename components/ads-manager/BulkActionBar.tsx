@@ -30,7 +30,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
         backdropFilter: "blur(20px)",
         border: "1px solid var(--border-strong)",
         borderRadius: "999px",
-        boxShadow: "0 10px 40px rgba(0,0,0,0.6), 0 0 15px rgba(0,212,255,0.15)",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.6), 0 0 15px rgba(59,130,246,0.15)",
         padding: "8px 16px",
         display: "flex",
         alignItems: "center",
@@ -58,7 +58,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
         >
           <X className="w-4 h-4" />
         </button>
-        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--foreground)", fontFamily: "'Orbitron', sans-serif" }}>
+        <span style={{ fontSize: "11px", fontWeight: 600, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>
           {selectedCount} Seleccionado{selectedCount > 1 ? "s" : ""}
         </span>
       </div>

@@ -170,7 +170,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(0,212,255,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input 
               type="text" 
@@ -183,13 +183,13 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(0,212,255,0.05)", borderTop: "1px solid rgba(0,212,255,0.1)", borderBottom: "1px solid rgba(0,212,255,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(59,130,246,0.05)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => (
                 <div key={o.value} onClick={() => { onChange(o.value); setOpen(false); setSearch(""); }} 
                      style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--foreground)" }} 
-                     onMouseEnter={e => e.currentTarget.style.background = "rgba(0,212,255,0.1)"} 
+                     onMouseEnter={e => e.currentTarget.style.background = "rgba(59,130,246,0.1)"} 
                      onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                   {o.picture && <img src={o.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
                   {o.label}
@@ -476,9 +476,9 @@ function ProyectosContent() {
       {banner && (
         <div style={{
           padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-          background: banner.type === "success" ? "rgba(6,214,160,0.15)" : "rgba(226,68,92,0.15)",
+          background: banner.type === "success" ? "rgba(52,183,124,0.15)" : "rgba(226,68,92,0.15)",
           color: banner.type === "success" ? "var(--emerald)" : "var(--red)",
-          border: `1px solid ${banner.type === "success" ? "rgba(6,214,160,0.4)" : "rgba(226,68,92,0.4)"}`,
+          border: `1px solid ${banner.type === "success" ? "rgba(52,183,124,0.4)" : "rgba(226,68,92,0.4)"}`,
           display: "flex", alignItems: "center", justifyContent: "space-between"
         }}>
           <span>{banner.message}</span>
@@ -513,8 +513,8 @@ function ProyectosContent() {
           position: "relative",
           display: "flex", alignItems: "center", gap: "16px",
           padding: "16px 20px",
-          background: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.06) 50%, rgba(236,72,153,0.08) 100%)",
-          border: "1px solid rgba(168,85,247,0.2)",
+          background: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(155,123,232,0.06) 50%, rgba(236,72,153,0.08) 100%)",
+          border: "1px solid rgba(155,123,232,0.2)",
           borderRadius: "12px",
           overflow: "hidden",
         }}>
@@ -528,8 +528,8 @@ function ProyectosContent() {
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "center",
             width: "40px", height: "40px", borderRadius: "10px", flexShrink: 0,
-            background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
-            boxShadow: "0 0 20px rgba(168,85,247,0.15)",
+            background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(155,123,232,0.2))",
+            boxShadow: "0 0 20px rgba(155,123,232,0.15)",
           }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -694,7 +694,7 @@ function ProyectosContent() {
       {menuOpen && createPortal(
         <>
           <div style={{ position: "fixed", inset: 0, zIndex: 9990 }} onClick={() => setMenuOpen(null)} />
-          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "rgba(5,8,18,0.98)", border: "1px solid rgba(0,212,255,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0", backdropFilter: "blur(12px)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "rgba(5,8,18,0.98)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0", backdropFilter: "blur(12px)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
             <MenuBtn icon={<Eye className="w-3.5 h-3.5" />} text="Abrir Dashboard" onClick={() => { router.push(`/dashboard/proyectos/${menuOpen}`); setMenuOpen(null); }} />
             <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Editar Proyecto" onClick={() => { setEditingId(menuOpen); setModalMode("edit"); setMenuOpen(null); }} />
             <div style={{ height: "1px", background: "rgba(255,255,255,0.09)", margin: "4px 0" }} />
@@ -768,7 +768,7 @@ function MenuBtn({ icon, text, onClick, danger }: { icon: React.ReactNode; text:
       padding: "7px 14px", fontSize: "11px", border: "none", background: "none",
       color: danger ? "var(--red)" : "rgba(200,214,229,0.7)", cursor: "pointer", textAlign: "left",
     }}
-      onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,212,255,0.05)")}
+      onMouseEnter={e => (e.currentTarget.style.background = "rgba(59,130,246,0.05)")}
       onMouseLeave={e => (e.currentTarget.style.background = "none")}
     >{icon}{text}</button>
   );

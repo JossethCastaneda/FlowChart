@@ -56,7 +56,7 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
         width: "480px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
-        border: "1px solid rgba(0,212,255,0.15)", borderRadius: "12px", overflow: "hidden",
+        border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
@@ -77,8 +77,8 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
               {(["daily", "lifetime"] as const).map((t) => (
                 <button key={t} onClick={() => setBudgetType(t)} style={{
                   flex: 1, padding: "8px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer",
-                  background: budgetType === t ? "rgba(0,212,255,0.1)" : "var(--surface-hover)",
-                  border: `1px solid ${budgetType === t ? "rgba(0,212,255,0.25)" : "rgba(255,255,255,0.06)"}`,
+                  background: budgetType === t ? "rgba(59,130,246,0.1)" : "var(--surface-hover)",
+                  border: `1px solid ${budgetType === t ? "rgba(59,130,246,0.25)" : "rgba(255,255,255,0.06)"}`,
                   color: budgetType === t ? "var(--cyan)" : "var(--text-muted)",
                 }}>
                   {t === "daily" ? "? Diario" : "? Total de campaña"}
@@ -91,16 +91,16 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
           <div style={{ display: "flex", gap: "8px", marginBottom: "14px" }}>
             <button onClick={() => setMode("absolute")} style={{
               display: "flex", alignItems: "center", gap: "4px", padding: "6px 12px", fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
-              background: mode === "absolute" ? "rgba(0,212,255,0.1)" : "transparent",
-              border: `1px solid ${mode === "absolute" ? "rgba(0,212,255,0.2)" : "transparent"}`,
+              background: mode === "absolute" ? "rgba(59,130,246,0.1)" : "transparent",
+              border: `1px solid ${mode === "absolute" ? "rgba(59,130,246,0.2)" : "transparent"}`,
               color: mode === "absolute" ? "var(--cyan)" : "var(--text-muted)",
             }}>
               <DollarSign className="w-3 h-3" /> Monto fijo
             </button>
             <button onClick={() => setMode("percentage")} style={{
               display: "flex", alignItems: "center", gap: "4px", padding: "6px 12px", fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
-              background: mode === "percentage" ? "rgba(0,212,255,0.1)" : "transparent",
-              border: `1px solid ${mode === "percentage" ? "rgba(0,212,255,0.2)" : "transparent"}`,
+              background: mode === "percentage" ? "rgba(59,130,246,0.1)" : "transparent",
+              border: `1px solid ${mode === "percentage" ? "rgba(59,130,246,0.2)" : "transparent"}`,
               color: mode === "percentage" ? "var(--cyan)" : "var(--text-muted)",
             }}>
               <Percent className="w-3 h-3" /> Cambio porcentual
@@ -168,7 +168,7 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
           </button>
           <button onClick={handleApply} disabled={loading} style={{
             padding: "7px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer",
-            background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.25)", color: "var(--cyan)", opacity: loading ? 0.5 : 1,
+            background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)", opacity: loading ? 0.5 : 1,
           }}>
             {loading ? "Guardando..." : "Guardar presupuesto"}
           </button>

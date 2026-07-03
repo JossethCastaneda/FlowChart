@@ -397,7 +397,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
               {sectionHeader("Top Errores Intelix", <AlertTriangle style={{ width: 14, height: 14 }} />)}
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {overview.topIntelixErrors.map((e, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.1)", borderRadius: 8 }}>
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "rgba(229,72,77,0.05)", border: "1px solid rgba(229,72,77,0.1)", borderRadius: 8 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: RED, minWidth: 24 }}>#{i + 1}</span>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{e.code ?? "UNKNOWN"}</div>
@@ -482,7 +482,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
                 {sectionHeader("Top Códigos de Rechazo", <Shield style={{ width: 14, height: 14 }} />)}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {intelix.topErrors.slice(0, 10).map((e, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.1)", borderRadius: 8 }}>
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "rgba(229,72,77,0.05)", border: "1px solid rgba(229,72,77,0.1)", borderRadius: 8 }}>
                       <span style={{ fontSize: 10, color: RED, fontWeight: 700, minWidth: 16 }}>#{i + 1}</span>
                       <div style={{ flex: 1 }}>
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{e.code ?? "DESCONOCIDO"}</div>
@@ -515,7 +515,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                <div style={{ background: "var(--row-hover)", border: "1px solid rgba(239,68,68,0.15)", borderRadius: 12, padding: 16 }}>
+                <div style={{ background: "var(--row-hover)", border: "1px solid rgba(229,72,77,0.15)", borderRadius: 12, padding: 16 }}>
                   {sectionHeader("Inconsistencias OCR", <AlertTriangle style={{ width: 14, height: 14 }} />)}
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <div>

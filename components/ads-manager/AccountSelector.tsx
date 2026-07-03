@@ -70,20 +70,20 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
     <div className="relative" style={{ minWidth: "260px", zIndex: 60 }} ref={containerRef}>
       {/* ── Selector Button ── */}
       <motion.button
-        whileHover={{ scale: 1.01, backgroundColor: "rgba(255, 255, 255, 0.05)", borderColor: "rgba(0, 212, 255, 0.4)" }}
+        whileHover={{ scale: 1.01, backgroundColor: "rgba(255, 255, 255, 0.05)", borderColor: "rgba(59,130,246, 0.4)" }}
         whileTap={{ scale: 0.98 }}
         onClick={() => setIsOpen(!isOpen)}
         style={{
           display: "flex", alignItems: "center", gap: "10px", width: "100%", padding: "10px 14px",
           background: isOpen ? "rgba(255, 255, 255, 0.05)" : "rgba(10, 15, 30, 0.6)",
-          border: isOpen ? "1px solid rgba(0, 212, 255, 0.5)" : "1px solid rgba(255, 255, 255, 0.1)",
+          border: isOpen ? "1px solid rgba(59,130,246, 0.5)" : "1px solid rgba(255, 255, 255, 0.1)",
           borderRadius: "10px", color: "var(--foreground)", fontSize: "14px", fontWeight: 600,
           textAlign: "left", cursor: "pointer", backdropFilter: "blur(12px)",
-          boxShadow: isOpen ? "0 0 20px rgba(0, 212, 255, 0.15)" : "0 4px 12px rgba(0,0,0,0.2)",
+          boxShadow: isOpen ? "0 0 20px rgba(59,130,246, 0.15)" : "0 4px 12px rgba(0,0,0,0.2)",
           transition: "border 0.2s ease, background 0.2s ease"
         }}
       >
-        <div style={{ background: "linear-gradient(135deg, var(--emerald), #059669)", padding: "4px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(16, 185, 129, 0.4)" }}>
+        <div style={{ background: "linear-gradient(135deg, var(--emerald), #2b9a67)", padding: "4px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(16, 185, 129, 0.4)" }}>
            <HoloIcon icon={Folder} variant="emerald" isActive={true} className="w-4 h-4" />
         </div>
         <span style={{ flex: 1, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
@@ -154,7 +154,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                 <div style={{ overflowY: "auto", flex: 1, padding: "0 12px" }} className="custom-scrollbar">
                   {Object.entries(portfolios).map(([portName, items], idx) => {
                     const isSelected = selectedPortfolio === portName;
-                    const bgColors = ["linear-gradient(135deg, var(--emerald), #059669)", "linear-gradient(135deg, var(--amber), var(--amber))", "linear-gradient(135deg, var(--amber), var(--amber))", "linear-gradient(135deg, var(--purple), var(--purple))", "linear-gradient(135deg, var(--cyan), var(--cyan))"];
+                    const bgColors = ["linear-gradient(135deg, var(--emerald), #2b9a67)", "linear-gradient(135deg, var(--amber), var(--amber))", "linear-gradient(135deg, var(--amber), var(--amber))", "linear-gradient(135deg, var(--purple), var(--purple))", "linear-gradient(135deg, var(--cyan), var(--cyan))"];
                     const bgColor = portName.includes("LID") ? bgColors[0] : bgColors[idx % bgColors.length];
                     const initial = portName.charAt(0).toUpperCase();
                     
@@ -165,13 +165,13 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                         onClick={() => setSelectedPortfolio(portName)}
                         style={{
                           display: "flex", alignItems: "center", gap: "12px", width: "100%", padding: "12px",
-                          borderRadius: "10px", background: isSelected ? "rgba(0, 212, 255, 0.1)" : "transparent",
-                          border: isSelected ? "1px solid rgba(0, 212, 255, 0.3)" : "1px solid transparent",
+                          borderRadius: "10px", background: isSelected ? "rgba(59,130,246, 0.1)" : "transparent",
+                          border: isSelected ? "1px solid rgba(59,130,246, 0.3)" : "1px solid transparent",
                           color: isSelected ? "white" : "rgba(255,255,255,0.6)",
                           cursor: "pointer", marginBottom: "6px", textAlign: "left",
-                          boxShadow: isSelected ? "inset 0 0 20px rgba(0, 212, 255, 0.05)" : "none"
+                          boxShadow: isSelected ? "inset 0 0 20px rgba(59,130,246, 0.05)" : "none"
                         }}
-                        whileHover={{ backgroundColor: isSelected ? "rgba(0, 212, 255, 0.15)" : "rgba(255,255,255,0.05)" }}
+                        whileHover={{ backgroundColor: isSelected ? "rgba(59,130,246, 0.15)" : "rgba(255,255,255,0.05)" }}
                       >
                         <div style={{ width: "38px", height: "38px", borderRadius: "8px", background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--foreground)", fontWeight: 800, fontSize: "16px", flexShrink: 0, boxShadow: "0 4px 10px rgba(0,0,0,0.3)" }}>
                           {portName.includes("LID") ? <HoloIcon icon={Folder} variant="emerald" isActive={true} className="w-5 h-5" /> : initial}
@@ -233,12 +233,12 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                           style={{
                             display: "flex", alignItems: "center", gap: "16px", padding: "16px",
                             borderRadius: "12px", cursor: "pointer",
-                            background: selectedAccountId === "all" ? "rgba(0, 212, 255, 0.08)" : "rgba(255,255,255,0.015)",
-                            border: selectedAccountId === "all" ? "1px solid rgba(0, 212, 255, 0.5)" : "1px solid rgba(255,255,255,0.05)",
-                            boxShadow: selectedAccountId === "all" ? "0 4px 20px rgba(0, 212, 255, 0.15)" : "none"
+                            background: selectedAccountId === "all" ? "rgba(59,130,246, 0.08)" : "rgba(255,255,255,0.015)",
+                            border: selectedAccountId === "all" ? "1px solid rgba(59,130,246, 0.5)" : "1px solid rgba(255,255,255,0.05)",
+                            boxShadow: selectedAccountId === "all" ? "0 4px 20px rgba(59,130,246, 0.15)" : "none"
                           }}
                         >
-                          <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "linear-gradient(135deg, rgba(0,212,255,0.2), rgba(162,93,220,0.2))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid rgba(0,212,255,0.3)" }}>
+                          <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(162,93,220,0.2))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid rgba(59,130,246,0.3)" }}>
                             <HoloIcon icon={Command} variant="cyan" isActive={true} className="w-5 h-5" />
                           </div>
                           <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "2px" }}>
@@ -258,15 +258,15 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                           <motion.div
                             key={acc.id}
                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
-                            whileHover={{ scale: 1.01, backgroundColor: isSelected ? "rgba(0, 212, 255, 0.1)" : "var(--surface-hover)" }}
+                            whileHover={{ scale: 1.01, backgroundColor: isSelected ? "rgba(59,130,246, 0.1)" : "var(--surface-hover)" }}
                             whileTap={{ scale: 0.99 }}
                             onClick={() => { onSelectAccount(acc.id); setIsOpen(false); }}
                             style={{
                               display: "flex", alignItems: "center", gap: "16px", padding: "16px",
                               borderRadius: "12px", cursor: "pointer",
-                              background: isSelected ? "rgba(0, 212, 255, 0.08)" : "rgba(255,255,255,0.015)",
-                              border: isSelected ? "1px solid rgba(0, 212, 255, 0.5)" : "1px solid rgba(255,255,255,0.05)",
-                              boxShadow: isSelected ? "0 4px 20px rgba(0, 212, 255, 0.15)" : "none"
+                              background: isSelected ? "rgba(59,130,246, 0.08)" : "rgba(255,255,255,0.015)",
+                              border: isSelected ? "1px solid rgba(59,130,246, 0.5)" : "1px solid rgba(255,255,255,0.05)",
+                              boxShadow: isSelected ? "0 4px 20px rgba(59,130,246, 0.15)" : "none"
                             }}
                           >
                             <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid rgba(255,255,255,0.05)" }}>

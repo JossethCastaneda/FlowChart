@@ -28,7 +28,7 @@ export default function CondicionesDelServicio() {
         {/* Header */}
         <div style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)", paddingBottom: "24px", marginBottom: "32px" }}>
           <h1 style={{
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: "var(--font-display)",
             fontSize: "28px",
             fontWeight: 700,
             color: "#ffffff",

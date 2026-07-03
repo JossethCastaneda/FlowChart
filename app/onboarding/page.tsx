@@ -15,7 +15,7 @@ export default function OnboardingPage() {
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "24px"
       }}>
         <Orbi state="working" scale={0.8} />
-        <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>INICIALIZANDO...</p>
+        <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>INICIALIZANDO...</p>
       </div>
     }>
       <OnboardingContent />
@@ -135,7 +135,7 @@ function OnboardingContent() {
         display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: "24px"
       }}>
         <Orbi state="working" scale={0.8} />
-        <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>VERIFICANDO ACCESOS...</p>
+        <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>VERIFICANDO ACCESOS...</p>
       </div>
     );
   }
@@ -149,7 +149,7 @@ function OnboardingContent() {
           {[1, 2, 3].map((s) => (
             <div key={s} style={{
               flex: 1, height: "4px", borderRadius: "2px",
-              background: s === step ? "var(--cyan)" : s < step ? "rgba(0,212,255,0.4)" : "rgba(255,255,255,0.1)",
+              background: s === step ? "var(--cyan)" : s < step ? "rgba(59,130,246,0.4)" : "rgba(255,255,255,0.1)",
               transition: "all 0.3s"
             }} />
           ))}
@@ -162,7 +162,7 @@ function OnboardingContent() {
         {/* STEP 1: WORKSPACE NAME */}
         {step === 1 && (
           <div className="page-enter">
-            <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "16px", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
               {isNewWorkspace ? "Nuevo Workspace" : "Inicializar Command Center"}
             </h1>
             <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.5 }}>
@@ -181,7 +181,7 @@ function OnboardingContent() {
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreateWorkspace()}
                 placeholder="Ej: Agencia Matrix / Mi Empresa"
-                style={{ width: "100%", padding: "12px 16px", background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.2)", color: "white", fontSize: "15px", outline: "none", boxSizing: "border-box", borderRadius: "6px" }}
+                style={{ width: "100%", padding: "12px 16px", background: "rgba(59,130,246,0.03)", border: "1px solid rgba(59,130,246,0.2)", color: "white", fontSize: "15px", outline: "none", boxSizing: "border-box", borderRadius: "6px" }}
                 autoFocus
               />
               {error && <p style={{ fontSize: "12px", color: "var(--red)", marginTop: "8px" }}>{error}</p>}
@@ -202,7 +202,7 @@ function OnboardingContent() {
         {/* STEP 2: PROFILE */}
         {step === 2 && (
           <div className="page-enter">
-            <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "16px", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
               Perfil de Uso
             </h1>
             <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.5 }}>
@@ -233,7 +233,7 @@ function OnboardingContent() {
         {/* STEP 3: INVITES */}
         {step === 3 && (
           <div className="page-enter">
-            <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "16px", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: "16px", fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "8px" }}>
               Invita a tu equipo
             </h1>
             <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "32px", lineHeight: 1.5 }}>
@@ -288,7 +288,7 @@ function OptionCard({ icon, title, desc, selected, onClick }: { icon: React.Reac
   return (
     <div onClick={onClick} style={{
       display: "flex", alignItems: "center", gap: "16px", padding: "16px",
-      background: selected ? "rgba(0,212,255,0.08)" : "rgba(255,255,255,0.03)",
+      background: selected ? "rgba(59,130,246,0.08)" : "rgba(255,255,255,0.03)",
       border: `1px solid ${selected ? "var(--cyan)" : "rgba(255,255,255,0.1)"}`,
       borderRadius: "8px", cursor: "pointer", transition: "all 0.2s"
     }}>

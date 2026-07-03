@@ -22,7 +22,7 @@ const MODULE_CONFIG: Record<string, { label: string; color: string; description:
   },
   analytics: {
     label: "Analytics Engine",
-    color: "#f472b6",
+    color: "#bc5fb2",
     description: "Acceso a métricas, insights y datos de audiencia",
     permissions: ["read_insights", "instagram_manage_insights", "pages_read_engagement"],
   },

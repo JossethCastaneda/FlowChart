@@ -17,7 +17,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
     }}>
       {/* Top nav */}
       <header style={{
-        borderBottom: "1px solid rgba(0,212,255,0.12)",
+        borderBottom: "1px solid rgba(59,130,246,0.12)",
         background: "rgba(4,9,22,0.95)",
         backdropFilter: "blur(20px)",
         position: "sticky",
@@ -47,9 +47,9 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
               href="/login"
               style={{
                 fontSize: 13,
-                color: "#00d4ff",
+                color: "#5b9bff",
                 textDecoration: "none",
-                border: "1px solid rgba(0,212,255,0.3)",
+                border: "1px solid rgba(59,130,246,0.3)",
                 borderRadius: 8,
                 padding: "6px 16px",
                 transition: "all 0.2s",

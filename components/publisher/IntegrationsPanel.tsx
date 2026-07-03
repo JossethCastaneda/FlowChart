@@ -59,11 +59,11 @@ const META_MODULES = [
     key: "analytics",
     label: "Analytics",
     icon: () => (
-      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#f472b6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#bc5fb2" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" />
       </svg>
     ),
-    color: "#f472b6",
+    color: "#bc5fb2",
     permissions: ["read_insights", "instagram_manage_insights", "pages_read_engagement"],
   },
   {
@@ -221,8 +221,8 @@ export function IntegrationsPanel() {
                     {expiring && (
                       <span style={{
                         fontSize: 8, padding: "1px 5px", borderRadius: 2,
-                        background: "rgba(255,190,11,0.1)", color: "var(--amber)",
-                        border: "1px solid rgba(255,190,11,0.2)", fontWeight: 700,
+                        background: "rgba(224,168,60,0.1)", color: "var(--amber)",
+                        border: "1px solid rgba(224,168,60,0.2)", fontWeight: 700,
                       }}>
                         ⚠ exp. {st?.daysUntilExpiry}d
                       </span>
@@ -290,8 +290,8 @@ export function IntegrationsPanel() {
                     title={`Desconectar ${mod.label}`}
                     style={{
                       padding: "5px 10px", borderRadius: 6, flexShrink: 0,
-                      background: "rgba(239,68,68,0.06)",
-                      border: "1px solid rgba(239,68,68,0.18)",
+                      background: "rgba(229,72,77,0.06)",
+                      border: "1px solid rgba(229,72,77,0.18)",
                       color: "var(--red)", fontSize: 10, fontWeight: 600,
                       cursor: disconnecting === mod.key ? "wait" : "pointer",
                       display: "flex", alignItems: "center", gap: 5,
@@ -378,7 +378,7 @@ export function IntegrationsPanel() {
         confirmUnlink ? (
           <div style={{
             display: "flex", alignItems: "center", gap: 12, padding: "11px 14px",
-            borderRadius: 8, border: "1px solid rgba(239,68,68,0.25)", background: "rgba(239,68,68,0.05)",
+            borderRadius: 8, border: "1px solid rgba(229,72,77,0.25)", background: "rgba(229,72,77,0.05)",
           }}>
             <AlertTriangle style={{ width: 15, height: 15, color: "var(--red)", flexShrink: 0 }} />
             <div style={{ flex: 1, fontSize: 11, color: "var(--red)" }}>
@@ -400,7 +400,7 @@ export function IntegrationsPanel() {
               disabled={disconnecting === "all"}
               style={{
                 padding: "5px 12px", borderRadius: 6, flexShrink: 0,
-                background: "rgba(239,68,68,0.9)", border: "none", color: "#fff",
+                background: "rgba(229,72,77,0.9)", border: "none", color: "#fff",
                 fontSize: 10, fontWeight: 700, cursor: disconnecting === "all" ? "wait" : "pointer",
                 display: "flex", alignItems: "center", gap: 5, fontFamily: "inherit",
               }}
@@ -416,11 +416,11 @@ export function IntegrationsPanel() {
             style={{
               display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
               padding: "9px 14px", borderRadius: 8,
-              background: "transparent", border: "1px solid rgba(239,68,68,0.18)",
+              background: "transparent", border: "1px solid rgba(229,72,77,0.18)",
               color: "var(--red)", fontSize: 11, fontWeight: 600, cursor: "pointer",
               fontFamily: "inherit", transition: "all 0.15s",
             }}
-            onMouseEnter={e => e.currentTarget.style.background = "rgba(239,68,68,0.06)"}
+            onMouseEnter={e => e.currentTarget.style.background = "rgba(229,72,77,0.06)"}
             onMouseLeave={e => e.currentTarget.style.background = "transparent"}
           >
             <X style={{ width: 13, height: 13 }} />
@@ -465,12 +465,12 @@ function WebhookRow({ connectedCount }: { connectedCount: number }) {
   return (
     <div style={{
       display: "flex", alignItems: "center", gap: 12, padding: "11px 14px",
-      borderRadius: 8, border: `1px solid ${allOk ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.12)"}`,
-      background: allOk ? "rgba(6,214,160,0.03)" : "transparent",
+      borderRadius: 8, border: `1px solid ${allOk ? "rgba(52,183,124,0.15)" : "rgba(224,168,60,0.12)"}`,
+      background: allOk ? "rgba(52,183,124,0.03)" : "transparent",
     }}>
       <div style={{
         width: 28, height: 28, borderRadius: 6, flexShrink: 0,
-        background: allOk ? "rgba(6,214,160,0.1)" : "rgba(255,190,11,0.08)",
+        background: allOk ? "rgba(52,183,124,0.1)" : "rgba(224,168,60,0.08)",
         display: "flex", alignItems: "center", justifyContent: "center",
       }}>
         <Bell style={{ width: 13, height: 13, color: allOk ? "var(--emerald)" : "var(--amber)" }} />
@@ -496,8 +496,8 @@ function WebhookRow({ connectedCount }: { connectedCount: number }) {
           disabled={subscribing || connectedCount === 0}
           style={{
             padding: "5px 12px", borderRadius: 6, flexShrink: 0,
-            background: connectedCount === 0 ? "var(--row-hover)" : "rgba(255,190,11,0.15)",
-            border: "1px solid rgba(255,190,11,0.2)",
+            background: connectedCount === 0 ? "var(--row-hover)" : "rgba(224,168,60,0.15)",
+            border: "1px solid rgba(224,168,60,0.2)",
             color: connectedCount === 0 ? "var(--text-secondary)" : "var(--amber)",
             fontSize: 10, fontWeight: 600, cursor: subscribing ? "wait" : connectedCount === 0 ? "not-allowed" : "pointer",
             display: "flex", alignItems: "center", gap: 5,

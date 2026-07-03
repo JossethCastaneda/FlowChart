@@ -53,7 +53,7 @@ export default function PublicReportPage() {
     return (
       <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "var(--bg)", gap: 16 }}>
         <Loader2 style={{ width: 24, height: 24, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
-        <p style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em" }}>CARGANDO REPORTE...</p>
+        <p style={{ fontSize: 13, color: "var(--text-muted)", fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>CARGANDO REPORTE...</p>
       </div>
     );
   }

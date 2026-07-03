@@ -39,7 +39,7 @@ export function StatusToggle({ status, onToggle }: StatusToggleProps) {
         cursor: loading ? "not-allowed" : "pointer",
         position: "relative",
         transition: "background-color 0.2s, justify-content 0.2s",
-        boxShadow: isActive ? "0 0 8px rgba(0,212,255,0.4)" : "none",
+        boxShadow: isActive ? "0 0 8px rgba(59,130,246,0.4)" : "none",
       }}
     >
       <div

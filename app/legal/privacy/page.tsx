@@ -15,15 +15,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section style={{ marginBottom: 48 }}>
       <h2 style={{
-        fontFamily: "'Orbitron', sans-serif",
+        fontFamily: "var(--font-display)",
         fontSize: 15,
         fontWeight: 700,
-        color: "#06d6a0",
+        color: "#34b77c",
         letterSpacing: "0.08em",
         textTransform: "uppercase",
         marginBottom: 16,
         paddingBottom: 8,
-        borderBottom: "1px solid rgba(6,214,160,0.15)",
+        borderBottom: "1px solid rgba(52,183,124,0.15)",
       }}>
         {title}
       </h2>
@@ -43,7 +43,7 @@ function Ul({ items }: { items: string[] }) {
     <ul style={{ paddingLeft: 20, marginBottom: 12 }}>
       {items.map((item, i) => (
         <li key={i} style={{ marginBottom: 6 }}>
-          <span style={{ color: "#06d6a0", marginRight: 8 }}>›</span>
+          <span style={{ color: "#34b77c", marginRight: 8 }}>›</span>
           {item}
         </li>
       ))}
@@ -72,13 +72,13 @@ export default function PrivacyPage() {
       <div style={{ marginBottom: 56 }}>
         <div style={{
           display: "inline-block",
-          background: "rgba(6,214,160,0.08)",
-          border: "1px solid rgba(6,214,160,0.2)",
+          background: "rgba(52,183,124,0.08)",
+          border: "1px solid rgba(52,183,124,0.2)",
           borderRadius: 6,
           padding: "4px 14px",
           fontSize: 11,
           fontWeight: 700,
-          color: "#06d6a0",
+          color: "#34b77c",
           letterSpacing: "0.1em",
           textTransform: "uppercase",
           marginBottom: 20,
@@ -86,7 +86,7 @@ export default function PrivacyPage() {
           Legal
         </div>
         <h1 style={{
-          fontFamily: "'Orbitron', sans-serif",
+          fontFamily: "var(--font-display)",
           fontSize: "clamp(24px, 4vw, 36px)",
           fontWeight: 700,
           color: "#dde6f0",
@@ -102,8 +102,8 @@ export default function PrivacyPage() {
         <div style={{
           marginTop: 24,
           padding: "16px 20px",
-          background: "rgba(6,214,160,0.04)",
-          border: "1px solid rgba(6,214,160,0.12)",
+          background: "rgba(52,183,124,0.04)",
+          border: "1px solid rgba(52,183,124,0.12)",
           borderRadius: 8,
           fontSize: 13,
           color: "#94a3b8",
@@ -116,13 +116,13 @@ export default function PrivacyPage() {
 
       {/* Summary table */}
       <div style={{
-        background: "rgba(6,214,160,0.03)",
-        border: "1px solid rgba(6,214,160,0.12)",
+        background: "rgba(52,183,124,0.03)",
+        border: "1px solid rgba(52,183,124,0.12)",
         borderRadius: 12,
         padding: "20px 24px",
         marginBottom: 52,
       }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: "#06d6a0", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: "#34b77c", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
           Resumen rápido
         </p>
         <InfoBox label="Responsable del tratamiento" value={COMPANY} />
@@ -139,7 +139,7 @@ export default function PrivacyPage() {
         <P>
           El responsable del tratamiento de los datos personales recogidos a través de la Plataforma es <strong style={{ color: "#dde6f0" }}>{COMPANY}</strong>.
           Puedes contactarnos en:{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#06d6a0", textDecoration: "none" }}>
+          <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#34b77c", textDecoration: "none" }}>
             {CONTACT_EMAIL}
           </a>
         </P>
@@ -293,7 +293,7 @@ export default function PrivacyPage() {
         ]} />
         <P>
           Para ejercer tus derechos, contáctanos en{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#06d6a0", textDecoration: "none" }}>
+          <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#34b77c", textDecoration: "none" }}>
             {CONTACT_EMAIL}
           </a>
           . Responderemos en el plazo legalmente establecido (generalmente 30 días).
@@ -329,8 +329,8 @@ export default function PrivacyPage() {
           Para cualquier consulta, solicitud o reclamación relacionada con el tratamiento de tus datos personales:
         </P>
         <div style={{
-          background: "rgba(6,214,160,0.04)",
-          border: "1px solid rgba(6,214,160,0.12)",
+          background: "rgba(52,183,124,0.04)",
+          border: "1px solid rgba(52,183,124,0.12)",
           borderRadius: 8,
           padding: "16px 20px",
           fontSize: 13,
@@ -338,19 +338,19 @@ export default function PrivacyPage() {
           <p style={{ margin: "0 0 4px", color: "#dde6f0", fontWeight: 600 }}>{COMPANY} — Responsable de Privacidad</p>
           <p style={{ margin: "0 0 4px", color: "#94a3b8" }}>
             Correo electrónico:{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#06d6a0", textDecoration: "none" }}>
+            <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#34b77c", textDecoration: "none" }}>
               {CONTACT_EMAIL}
             </a>
           </p>
           <p style={{ margin: "0 0 4px", color: "#94a3b8" }}>
             Para asuntos generales:{" "}
-            <a href="mailto:legal@sodare.com" style={{ color: "#06d6a0", textDecoration: "none" }}>
+            <a href="mailto:legal@sodare.com" style={{ color: "#34b77c", textDecoration: "none" }}>
               legal@sodare.com
             </a>
           </p>
           <p style={{ margin: 0, color: "#94a3b8" }}>
             Sitio web:{" "}
-            <a href={WEBSITE} style={{ color: "#06d6a0", textDecoration: "none" }}>
+            <a href={WEBSITE} style={{ color: "#34b77c", textDecoration: "none" }}>
               {WEBSITE}
             </a>
           </p>

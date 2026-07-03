@@ -15,27 +15,27 @@ const STATE_COLORS: Record<OrbiState, { accent: string; shadow: string; edge: st
   idle: {
     accent: "var(--cyan)",
     shadow: "rgba(0,200,255,0.5)",
-    edge: "rgba(0,212,255,0.5)",
+    edge: "rgba(59,130,246,0.5)",
   },
   thinking: {
     accent: "var(--amber)",
-    shadow: "rgba(255,190,11,0.5)",
-    edge: "rgba(255,190,11,0.5)",
+    shadow: "rgba(224,168,60,0.5)",
+    edge: "rgba(224,168,60,0.5)",
   },
   success: {
     accent: "var(--emerald)",
-    shadow: "rgba(6,214,160,0.5)",
-    edge: "rgba(6,214,160,0.5)",
+    shadow: "rgba(52,183,124,0.5)",
+    edge: "rgba(52,183,124,0.5)",
   },
   error: {
     accent: "var(--red)",
-    shadow: "rgba(255,45,85,0.5)",
-    edge: "rgba(255,45,85,0.5)",
+    shadow: "rgba(229,72,77,0.5)",
+    edge: "rgba(229,72,77,0.5)",
   },
   working: {
     accent: "var(--purple)",
-    shadow: "rgba(123,97,255,0.5)",
-    edge: "rgba(123,97,255,0.5)",
+    shadow: "rgba(139,141,242,0.5)",
+    edge: "rgba(139,141,242,0.5)",
   }
 };
 
@@ -75,9 +75,9 @@ export function Orbi({ state = "idle", scale = 1, className = "", style }: OrbiP
       >
         <div style={{ position: "relative", width: 176, height: 200 }}>
           <div style={{ position: "absolute", left: 33, top: 185, width: 110, height: 15, borderRadius: "50%", background: "radial-gradient(ellipse,var(--orbi-shadow),transparent 70%)", filter: "blur(5px)", animation: "orbi-hover 5.5s ease-in-out infinite" }} />
-          <div style={{ position: "absolute", left: 64, top: 14, width: 2.5, height: 30, borderRadius: 2, background: "linear-gradient(var(--orbi-accent),#0080ff)", transform: "rotate(20deg)", transformOrigin: "bottom center" }} />
+          <div style={{ position: "absolute", left: 64, top: 14, width: 2.5, height: 30, borderRadius: 2, background: "linear-gradient(var(--orbi-accent),#2563eb)", transform: "rotate(20deg)", transformOrigin: "bottom center" }} />
           <div style={{ position: "absolute", left: 50, top: 6, width: 9, height: 9, borderRadius: "50%", background: "var(--orbi-accent)", boxShadow: "0 0 9px var(--orbi-accent)", animation: "orbi-tip 1.9s ease-in-out infinite" }} />
-          <div style={{ position: "absolute", left: 109, top: 14, width: 2.5, height: 30, borderRadius: 2, background: "linear-gradient(var(--orbi-accent),#0080ff)", transform: "rotate(-20deg)", transformOrigin: "bottom center" }} />
+          <div style={{ position: "absolute", left: 109, top: 14, width: 2.5, height: 30, borderRadius: 2, background: "linear-gradient(var(--orbi-accent),#2563eb)", transform: "rotate(-20deg)", transformOrigin: "bottom center" }} />
           <div style={{ position: "absolute", left: 117, top: 6, width: 9, height: 9, borderRadius: "50%", background: "var(--orbi-accent)", boxShadow: "0 0 9px var(--orbi-accent)", animation: "orbi-tip 2.3s ease-in-out infinite .4s" }} />
           <div style={{ position: "absolute", left: 4, top: 86, width: 18, height: 34, borderRadius: 9, background: "linear-gradient(#101c3a,#050b18)", border: "2px solid var(--orbi-edge)", boxShadow: "0 0 12px rgba(0,0,0,0.18)" }} />
           <div style={{ position: "absolute", left: 154, top: 86, width: 18, height: 34, borderRadius: 9, background: "linear-gradient(#101c3a,#050b18)", border: "2px solid var(--orbi-edge)", boxShadow: "0 0 12px rgba(0,0,0,0.18)" }} />
@@ -87,12 +87,12 @@ export function Orbi({ state = "idle", scale = 1, className = "", style }: OrbiP
             <div style={{ position: "absolute", left: "50%", top: "50%", width: 78, height: 78, margin: "-39px 0 0 -39px", borderRadius: "50%", background: "radial-gradient(circle,var(--orbi-shadow),transparent 65%)", animation: "orbi-glow 3s ease-in-out infinite" }} />
             <div style={{ position: "absolute", left: "50%", top: "50%", width: 42, height: 42, margin: "-21px 0 0 -21px", animation: "orbi-blink 5.5s ease-in-out infinite" }}>
               <div style={{ width: "100%", height: "100%", animation: "orbi-look 7s ease-in-out infinite" }}>
-                <div style={{ position: "absolute", left: 3, top: 3, width: 36, height: 36, borderRadius: "50%", background: "radial-gradient(circle at 38% 38%,#c8faff,var(--orbi-accent) 38%,#0066d6)", boxShadow: "0 0 14px var(--orbi-shadow)" }} />
+                <div style={{ position: "absolute", left: 3, top: 3, width: 36, height: 36, borderRadius: "50%", background: "radial-gradient(circle at 38% 38%,#c8faff,var(--orbi-accent) 38%,#2563eb)", boxShadow: "0 0 14px var(--orbi-shadow)" }} />
                 <div style={{ position: "absolute", left: 9, top: 8, width: 10, height: 10, borderRadius: "50%", background: "#eafdff" }} />
               </div>
             </div>
           </div>
-          <div style={{ position: "absolute", left: 78, top: 131, width: 20, height: 22, clipPath: "polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)", background: "linear-gradient(135deg,var(--orbi-accent),#0080ff)", boxShadow: "0 0 10px var(--orbi-shadow)" }} />
+          <div style={{ position: "absolute", left: 78, top: 131, width: 20, height: 22, clipPath: "polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)", background: "linear-gradient(135deg,var(--orbi-accent),#2563eb)", boxShadow: "0 0 10px var(--orbi-shadow)" }} />
           <div style={{ position: "absolute", left: 80.5, top: 134, width: 15, height: 16, clipPath: "polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)", background: "#060f1e" }} />
           <div style={{ position: "absolute", left: 85, top: 139, width: 6, height: 6, borderRadius: "50%", background: "var(--orbi-accent)", boxShadow: "0 0 6px var(--orbi-accent)", animation: "orbi-pulse 2s ease-in-out infinite" }} />
         </div>

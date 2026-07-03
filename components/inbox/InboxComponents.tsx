@@ -36,8 +36,8 @@ export function PageSelector({
         style={{
           width: "100%", display: "flex", alignItems: "center", gap: 10,
           padding: "8px 12px",
-          background: open ? "rgba(168,85,247,0.06)" : "var(--surface-hover)",
-          border: `1px solid ${open ? "rgba(168,85,247,0.2)" : "var(--hairline)"}`,
+          background: open ? "rgba(155,123,232,0.06)" : "var(--surface-hover)",
+          border: `1px solid ${open ? "rgba(155,123,232,0.2)" : "var(--hairline)"}`,
           borderRadius: 10, cursor: "pointer",
           transition: "all 0.15s", fontFamily: "inherit",
         }}
@@ -63,7 +63,7 @@ export function PageSelector({
         ) : (
           <div style={{
             width: 28, height: 28, borderRadius: "50%",
-            background: "rgba(168,85,247,0.1)",
+            background: "rgba(155,123,232,0.1)",
             display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0,
           }}>
@@ -131,7 +131,7 @@ export function PageSelector({
               onClick={() => { onSelect(null); setOpen(false); setSearch(""); }}
               style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 10,
-                padding: "8px 12px", background: !selectedPage ? "rgba(168,85,247,0.06)" : "transparent",
+                padding: "8px 12px", background: !selectedPage ? "rgba(155,123,232,0.06)" : "transparent",
                 border: "none", borderBottom: "1px solid var(--hairline)",
                 cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
                 borderLeft: !selectedPage ? "3px solid var(--purple)" : "3px solid transparent",
@@ -141,7 +141,7 @@ export function PageSelector({
             >
               <div style={{
                 width: 32, height: 32, borderRadius: "50%",
-                background: "rgba(168,85,247,0.1)",
+                background: "rgba(155,123,232,0.1)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <Globe style={{ width: 15, height: 15, color: "var(--purple)" }} />
@@ -161,7 +161,7 @@ export function PageSelector({
                   style={{
                     width: "100%", display: "flex", alignItems: "center", gap: 10,
                     padding: "8px 12px",
-                    background: isActive ? "rgba(168,85,247,0.06)" : "transparent",
+                    background: isActive ? "rgba(155,123,232,0.06)" : "transparent",
                     border: "none", borderBottom: "1px solid var(--hairline)",
                     cursor: "pointer", transition: "background 0.1s", fontFamily: "inherit",
                     borderLeft: isActive ? "3px solid var(--purple)" : "3px solid transparent",
@@ -384,7 +384,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                         if (parent && !parent.querySelector(".fb-avatar")) {
                           const d = document.createElement("div");
                           d.className = "fb-avatar";
-                          d.style.cssText = "width:32px;height:32px;border-radius:50%;background:rgba(168,85,247,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--purple);";
+                          d.style.cssText = "width:32px;height:32px;border-radius:50%;background:rgba(155,123,232,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--purple);";
                           d.textContent = comment.username.charAt(0).toUpperCase();
                           parent.insertBefore(d, e.target as Node);
                         }
@@ -393,7 +393,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                   ) : (
                     <div style={{
                       width: 32, height: 32, borderRadius: "50%",
-                      background: "rgba(168,85,247,0.1)",
+                      background: "rgba(155,123,232,0.1)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 11, fontWeight: 700, color: "var(--purple)",
                     }}>
@@ -539,8 +539,8 @@ export function ChatView({
             style={{
               width: 32, height: 32,
               display: "flex", alignItems: "center", justifyContent: "center",
-              background: showProfile ? "rgba(168,85,247,0.08)" : "var(--row-hover)",
-              border: `1px solid ${showProfile ? "rgba(168,85,247,0.2)" : "var(--hairline)"}`,
+              background: showProfile ? "rgba(155,123,232,0.08)" : "var(--row-hover)",
+              border: `1px solid ${showProfile ? "rgba(155,123,232,0.2)" : "var(--hairline)"}`,
               borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
             }}
           >
@@ -604,7 +604,7 @@ export function ChatView({
                       : "linear-gradient(135deg, var(--purple), var(--purple))",
                     border: msg.incoming ? "1px solid var(--hairline)" : "none",
                     borderRadius: msg.incoming ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
-                    boxShadow: msg.incoming ? "none" : "0 2px 8px rgba(168,85,247,0.3)",
+                    boxShadow: msg.incoming ? "none" : "0 2px 8px rgba(155,123,232,0.3)",
                   }}>
                     <p style={{
                       fontSize: 13, color: "var(--foreground)",
@@ -665,8 +665,8 @@ export function ChatView({
                   whiteSpace: "nowrap", fontFamily: "inherit",
                 }}
                 onMouseEnter={e => {
-                  e.currentTarget.style.background = "rgba(168,85,247,0.08)";
-                  e.currentTarget.style.borderColor = "rgba(168,85,247,0.2)";
+                  e.currentTarget.style.background = "rgba(155,123,232,0.08)";
+                  e.currentTarget.style.borderColor = "rgba(155,123,232,0.2)";
                   e.currentTarget.style.color = "var(--purple)";
                 }}
                 onMouseLeave={e => {
@@ -704,12 +704,12 @@ export function ChatView({
                 style={{
                   width: 32, height: 32,
                   display: "flex", alignItems: "center", justifyContent: "center",
-                  background: btn.active ? "rgba(168,85,247,0.08)" : "transparent",
+                  background: btn.active ? "rgba(155,123,232,0.08)" : "transparent",
                   border: "none", borderRadius: 6, cursor: "pointer",
                   transition: "all 0.15s",
                 }}
                 onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
-                onMouseLeave={e => e.currentTarget.style.background = btn.active ? "rgba(168,85,247,0.08)" : "transparent"}
+                onMouseLeave={e => e.currentTarget.style.background = btn.active ? "rgba(155,123,232,0.08)" : "transparent"}
               >
                 <btn.icon style={{
                   width: 16, height: 16,
@@ -753,7 +753,7 @@ export function ChatView({
                 border: "none", borderRadius: 8,
                 cursor: input.trim() ? "pointer" : "default",
                 transition: "all 0.2s", flexShrink: 0,
-                boxShadow: input.trim() ? "0 2px 8px rgba(168,85,247,0.3)" : "none",
+                boxShadow: input.trim() ? "0 2px 8px rgba(155,123,232,0.3)" : "none",
               }}
             >
               <Send style={{
@@ -918,8 +918,8 @@ export function ContactProfile({
               <span key={tag} style={{
                 display: "inline-flex", alignItems: "center", gap: 4,
                 fontSize: 10, color: "var(--purple)", padding: "3px 8px",
-                background: "rgba(168,85,247,0.08)",
-                border: "1px solid rgba(168,85,247,0.15)", borderRadius: 12,
+                background: "rgba(155,123,232,0.08)",
+                border: "1px solid rgba(155,123,232,0.15)", borderRadius: 12,
               }}>
                 {tag}
                 <X style={{ width: 10, height: 10, cursor: "pointer", opacity: 0.5 }}
@@ -944,8 +944,8 @@ export function ContactProfile({
               onClick={() => { onAddTag(newTag); setNewTag(""); }}
               style={{
                 padding: "4px 8px", fontSize: 10, color: "var(--purple)",
-                background: "rgba(168,85,247,0.08)",
-                border: "1px solid rgba(168,85,247,0.15)",
+                background: "rgba(155,123,232,0.08)",
+                border: "1px solid rgba(155,123,232,0.15)",
                 borderRadius: 6, cursor: "pointer",
               }}
             >
@@ -1041,7 +1041,7 @@ export function ContactProfile({
                       borderBottom: "1px solid var(--hairline)",
                       transition: "background 0.1s",
                     }}
-                    onMouseEnter={e => e.currentTarget.style.background = "rgba(168,85,247,0.06)"}
+                    onMouseEnter={e => e.currentTarget.style.background = "rgba(155,123,232,0.06)"}
                     onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                   >
                     {member}

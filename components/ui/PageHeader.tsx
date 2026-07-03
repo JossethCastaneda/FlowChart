@@ -78,7 +78,7 @@ export function PageHeader({ title, description, subtitle, icon, action, iconCol
           {subtitle && (
             <p
               style={{
-                fontFamily: "'Orbitron', sans-serif",
+                fontFamily: "var(--font-display)",
                 fontSize: 9,
                 fontWeight: 600,
                 letterSpacing: "0.2em",

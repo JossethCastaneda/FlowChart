@@ -79,7 +79,7 @@ export async function sendAlertEmail({
 
     <!-- CTA -->
     <div style="text-align:center;padding:16px 0;">
-      <a href="${dashboardUrl}" style="display:inline-block;background:#00d4ff;color:#0a0f1e;font-size:13px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;">Ver Dashboard</a>
+      <a href="${dashboardUrl}" style="display:inline-block;background:#5b9bff;color:#0a0f1e;font-size:13px;font-weight:700;padding:10px 24px;border-radius:6px;text-decoration:none;">Ver Dashboard</a>
     </div>
 
     <!-- Footer -->

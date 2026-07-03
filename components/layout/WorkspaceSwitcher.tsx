@@ -65,7 +65,7 @@ export function WorkspaceSwitcher() {
   return (
     <div ref={dropdownRef} style={{
       padding: "12px",
-      borderBottom: "1px solid rgba(0,212,255,0.08)",
+      borderBottom: "1px solid rgba(59,130,246,0.08)",
       position: "relative",
     }}>
       <button
@@ -77,8 +77,8 @@ export function WorkspaceSwitcher() {
           alignItems: "center",
           gap: "8px",
           padding: "8px 10px",
-          background: "rgba(0,212,255,0.04)",
-          border: "1px solid rgba(0,212,255,0.1)",
+          background: "rgba(59,130,246,0.04)",
+          border: "1px solid rgba(59,130,246,0.1)",
           cursor: switching ? "wait" : "pointer",
           color: "var(--foreground)",
           opacity: switching ? 0.6 : 1,
@@ -90,14 +90,14 @@ export function WorkspaceSwitcher() {
           background: "linear-gradient(135deg, var(--cyan), var(--cyan))",
           display: "flex", alignItems: "center",
           justifyContent: "center", flexShrink: 0,
-          fontFamily: "'Orbitron', sans-serif",
+          fontFamily: "var(--font-display)",
           fontSize: "10px", fontWeight: 700, color: "var(--foreground)",
         }}>
           {active.name.substring(0, 2).toUpperCase()}
         </div>
         <div className="sidebar-hide-compact" style={{ flex: 1, textAlign: "left", minWidth: 0 }}>
           <p style={{
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: "var(--font-display)",
             fontSize: "10px", fontWeight: 600,
             color: "var(--foreground)", letterSpacing: "0.1em",
             overflow: "hidden",
@@ -131,7 +131,7 @@ export function WorkspaceSwitcher() {
           right: "12px",
           zIndex: 200,
           background: "var(--panel-bg)",
-          border: "1px solid rgba(0,212,255,0.15)",
+          border: "1px solid rgba(59,130,246,0.15)",
           backdropFilter: "blur(20px)",
           marginTop: "4px",
           maxHeight: "300px",
@@ -149,31 +149,31 @@ export function WorkspaceSwitcher() {
                 gap: "10px",
                 padding: "10px 12px",
                 background: ws.id === active.id
-                  ? "rgba(0,212,255,0.06)" : "none",
+                  ? "rgba(59,130,246,0.06)" : "none",
                 border: "none",
                 cursor: "pointer",
                 color: "var(--foreground)",
-                borderBottom: "1px solid rgba(0,212,255,0.05)",
+                borderBottom: "1px solid rgba(59,130,246,0.05)",
                 textAlign: "left",
                 transition: "background 0.15s",
               }}
               onMouseEnter={(e) =>
                 (e.currentTarget.style.background =
-                  "rgba(0,212,255,0.08)")}
+                  "rgba(59,130,246,0.08)")}
               onMouseLeave={(e) =>
                 (e.currentTarget.style.background =
                   ws.id === active.id
-                    ? "rgba(0,212,255,0.06)" : "transparent")}
+                    ? "rgba(59,130,246,0.06)" : "transparent")}
             >
               <div style={{
                 width: 24, height: 24,
                 background: ws.id === active.id
                   ? "linear-gradient(135deg, var(--cyan), var(--cyan))"
-                  : "rgba(0,212,255,0.15)",
+                  : "rgba(59,130,246,0.15)",
                 display: "flex", alignItems: "center",
                 justifyContent: "center",
                 fontSize: "10px", fontWeight: 700,
-                fontFamily: "'Orbitron', sans-serif",
+                fontFamily: "var(--font-display)",
                 flexShrink: 0,
               }}>
                 {ws.name.substring(0, 2).toUpperCase()}
@@ -223,14 +223,14 @@ export function WorkspaceSwitcher() {
             }}
             onMouseEnter={(e) =>
               (e.currentTarget.style.background =
-                "rgba(0,212,255,0.04)")}
+                "rgba(59,130,246,0.04)")}
             onMouseLeave={(e) =>
               (e.currentTarget.style.background = "transparent")}
           >
             <div style={{
               width: 24, height: 24,
-              background: "rgba(0,212,255,0.05)",
-              border: "1px dashed rgba(0,212,255,0.2)",
+              background: "rgba(59,130,246,0.05)",
+              border: "1px dashed rgba(59,130,246,0.2)",
               display: "flex", alignItems: "center",
               justifyContent: "center",
               flexShrink: 0,

@@ -175,10 +175,10 @@ export function NotificationBell() {
             maxWidth: "calc(100vw - 24px)",
             maxHeight: "min(480px, calc(100vh - 80px))",
             background: "var(--background)",
-            border: "1px solid rgba(0,212,255,0.18)",
+            border: "1px solid rgba(59,130,246,0.18)",
             borderRadius: 10,
             overflow: "hidden",
-            boxShadow: "0 16px 64px rgba(0,0,0,0.8), 0 0 0 1px rgba(0,212,255,0.08)",
+            boxShadow: "0 16px 64px rgba(0,0,0,0.8), 0 0 0 1px rgba(59,130,246,0.08)",
             zIndex: 99999,
             display: "flex",
             flexDirection: "column",
@@ -188,13 +188,13 @@ export function NotificationBell() {
           {/* Header */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "14px 18px", borderBottom: "1px solid rgba(0,212,255,0.08)",
-            background: "rgba(0,212,255,0.03)", flexShrink: 0,
+            padding: "14px 18px", borderBottom: "1px solid rgba(59,130,246,0.08)",
+            background: "rgba(59,130,246,0.03)", flexShrink: 0,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Bell style={{ width: 14, height: 14, color: "var(--cyan)" }} />
               <span style={{
-                fontFamily: "'Orbitron', sans-serif", fontSize: 11, fontWeight: 700,
+                fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700,
                 color: "var(--foreground)", letterSpacing: "0.1em",
               }}>NOTIFICACIONES</span>
               {unreadCount > 0 && (
@@ -238,11 +238,11 @@ export function NotificationBell() {
                   <div key={n.id} onClick={() => handleClick(n)} style={{
                     display: "flex", gap: 12, padding: "12px 18px", cursor: n.link ? "pointer" : "default",
                     borderBottom: "1px solid rgba(255,255,255,0.04)",
-                    background: n.read ? "transparent" : "rgba(0,212,255,0.04)",
+                    background: n.read ? "transparent" : "rgba(59,130,246,0.04)",
                     transition: "background 0.15s",
                   }}
                     onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.06)"}
-                    onMouseLeave={e => e.currentTarget.style.background = n.read ? "transparent" : "rgba(0,212,255,0.04)"}>
+                    onMouseLeave={e => e.currentTarget.style.background = n.read ? "transparent" : "rgba(59,130,246,0.04)"}>
                     <div style={{
                       flexShrink: 0, width: 32, height: 32, borderRadius: 8,
                       background: `${typeCfg.color}18`, display: "flex",
@@ -265,7 +265,7 @@ export function NotificationBell() {
                         WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden",
                       }}>{n.message}</p>
                     </div>
-                    {!n.read && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--cyan)", flexShrink: 0, alignSelf: "center", boxShadow: "0 0 8px rgba(0,212,255,0.5)" }} />}
+                    {!n.read && <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--cyan)", flexShrink: 0, alignSelf: "center", boxShadow: "0 0 8px rgba(59,130,246,0.5)" }} />}
                   </div>
                 );
               })

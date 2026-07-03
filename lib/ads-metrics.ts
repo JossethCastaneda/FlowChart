@@ -5,44 +5,44 @@
 
 // ── Meta Objective mapping ──────────────────────────────────────────────────
 export const OBJECTIVE_MAP: Record<string, { label: string; icon: string; color: string }> = {
-  OUTCOME_AWARENESS:     { label: "Awareness",      icon: "📡", color: "#22d3ee" },
+  OUTCOME_AWARENESS:     { label: "Awareness",      icon: "📡", color: "#5b9bff" },
   OUTCOME_TRAFFIC:       { label: "Tráfico",         icon: "🔗", color: "#60a5fa" },
   OUTCOME_ENGAGEMENT:    { label: "Interacción",     icon: "💬", color: "#a78bfa" },
   OUTCOME_LEADS:         { label: "Leads",           icon: "📋", color: "#34d399" },
-  OUTCOME_APP_PROMOTION: { label: "App Promotion",   icon: "📱", color: "#fb923c" },
-  OUTCOME_SALES:         { label: "Ventas",          icon: "🛒", color: "#f472b6" },
+  OUTCOME_APP_PROMOTION: { label: "App Promotion",   icon: "📱", color: "#d98843" },
+  OUTCOME_SALES:         { label: "Ventas",          icon: "🛒", color: "#bc5fb2" },
   // Legacy objectives (still returned by API for old campaigns)
-  BRAND_AWARENESS:       { label: "Awareness",      icon: "📡", color: "#22d3ee" },
-  REACH:                 { label: "Alcance",         icon: "📡", color: "#22d3ee" },
+  BRAND_AWARENESS:       { label: "Awareness",      icon: "📡", color: "#5b9bff" },
+  REACH:                 { label: "Alcance",         icon: "📡", color: "#5b9bff" },
   LINK_CLICKS:           { label: "Tráfico",         icon: "🔗", color: "#60a5fa" },
   POST_ENGAGEMENT:       { label: "Interacción",     icon: "💬", color: "#a78bfa" },
   LEAD_GENERATION:       { label: "Leads",           icon: "📋", color: "#34d399" },
-  CONVERSIONS:           { label: "Conversiones",    icon: "🛒", color: "#f472b6" },
+  CONVERSIONS:           { label: "Conversiones",    icon: "🛒", color: "#bc5fb2" },
   MESSAGES:              { label: "Mensajes",        icon: "✉️", color: "#818cf8" },
-  VIDEO_VIEWS:           { label: "Video Views",     icon: "🎬", color: "#fb923c" },
+  VIDEO_VIEWS:           { label: "Video Views",     icon: "🎬", color: "#d98843" },
 };
 
 // ── Star Wars Status Vocabulary ─────────────────────────────────────────────
 export const SW_STATUS: Record<string, { label: string; color: string; glow: string }> = {
   ACTIVE:        { label: "EN VUELO",              color: "#34d399", glow: "rgba(52,211,153,0.3)" },
   PAUSED:        { label: "EN ÓRBITA",             color: "#fbbf24", glow: "rgba(251,191,36,0.3)" },
-  DELETED:       { label: "DESTRUIDO",             color: "#ef4444", glow: "rgba(239,68,68,0.3)" },
+  DELETED:       { label: "DESTRUIDO",             color: "#e5484d", glow: "rgba(229,72,77,0.3)" },
   ARCHIVED:      { label: "ARCHIVADO",             color: "#6b7280", glow: "rgba(107,114,128,0.3)" },
   DRAFT:         { label: "EN HANGAR",             color: "#94a3b8", glow: "rgba(148,163,184,0.3)" },
   // effective_status values
   CAMPAIGN_PAUSED:     { label: "NAVE NODRIZA EN ÓRBITA", color: "#fbbf24", glow: "rgba(251,191,36,0.3)" },
   ADSET_PAUSED:        { label: "ESCUADRÓN EN ÓRBITA",    color: "#fbbf24", glow: "rgba(251,191,36,0.3)" },
   NOT_DELIVERING:      { label: "SEÑAL PERDIDA",          color: "#6b7280", glow: "rgba(107,114,128,0.3)" },
-  IN_PROCESS:          { label: "INICIANDO MOTORES",      color: "#22d3ee", glow: "rgba(34,211,238,0.3)" },
-  WITH_ISSUES:         { label: "INTERCEPTADO",           color: "#ef4444", glow: "rgba(239,68,68,0.3)" },
+  IN_PROCESS:          { label: "INICIANDO MOTORES",      color: "#5b9bff", glow: "rgba(91,155,255,0.3)" },
+  WITH_ISSUES:         { label: "INTERCEPTADO",           color: "#e5484d", glow: "rgba(229,72,77,0.3)" },
 };
 
 // ── Learning Phase Labels ───────────────────────────────────────────────────
 export type LearningPhaseStatus = "LEARNING" | "SUCCESS" | "FAIL" | "LEARNING_LIMITED" | "";
 export const LEARNING_PHASE_MAP: Record<string, { label: string; color: string; swLabel: string }> = {
-  LEARNING:          { label: "Aprendizaje",  color: "#22d3ee", swLabel: "CALIBRANDO SENSORES" },
+  LEARNING:          { label: "Aprendizaje",  color: "#5b9bff", swLabel: "CALIBRANDO SENSORES" },
   SUCCESS:           { label: "Activa",       color: "#34d399", swLabel: "SISTEMAS OPERATIVOS" },
-  FAIL:              { label: "Fallida",      color: "#ef4444", swLabel: "SISTEMAS DAÑADOS" },
+  FAIL:              { label: "Fallida",      color: "#e5484d", swLabel: "SISTEMAS DAÑADOS" },
   LEARNING_LIMITED:  { label: "Limitada",     color: "#fbbf24", swLabel: "POTENCIA REDUCIDA" },
 };
 

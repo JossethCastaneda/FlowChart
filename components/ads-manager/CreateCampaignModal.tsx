@@ -125,7 +125,7 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
 
           {objective === "OUTCOME_SALES" && (
             <div style={{ marginTop: 8 }}>
-              <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer", background: "rgba(0,212,255,0.04)", border: "1px solid rgba(0,212,255,0.15)", padding: "14px", borderRadius: 8 }}>
+              <label style={{ display: "flex", alignItems: "flex-start", gap: 12, cursor: "pointer", background: "rgba(59,130,246,0.04)", border: "1px solid rgba(59,130,246,0.15)", padding: "14px", borderRadius: 8 }}>
                 <input type="checkbox" checked={isAsc} onChange={(e) => setIsAsc(e.target.checked)} style={{ width: 18, height: 18, accentColor: "var(--cyan)", marginTop: 2 }} />
                 <div>
                   <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cyan)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -186,7 +186,7 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
           </div>
 
           {error && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.2)" }}>
               <AlertTriangle style={{ width: 14, height: 14, color: "var(--red)", flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: "var(--red)" }}>{error}</span>
             </div>

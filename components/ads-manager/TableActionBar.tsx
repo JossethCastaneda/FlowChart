@@ -159,7 +159,7 @@ export function TableActionBar({
                 <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px" }}>Ctrl + V</span>
               </button>
               <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onShowClipboard, false)}>
-                Ver elementos copiados {clipboardCount > 0 && <span style={{ background: "rgba(0,212,255,0.15)", color: "var(--cyan)", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 700 }}>{clipboardCount}</span>}
+                Ver elementos copiados {clipboardCount > 0 && <span style={{ background: "rgba(59,130,246,0.15)", color: "var(--cyan)", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 700 }}>{clipboardCount}</span>}
               </button>
             </div>
           )}

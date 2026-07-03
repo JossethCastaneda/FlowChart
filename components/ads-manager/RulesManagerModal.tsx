@@ -72,7 +72,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
         width: "600px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
-        border: "1px solid rgba(0,212,255,0.15)", borderRadius: "12px", overflow: "hidden",
+        border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
         {/* Header */}
@@ -81,7 +81,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
             <Zap className="w-4 h-4" style={{ color: "var(--cyan)" }} />
             Administrar reglas automáticas
             {rules.length > 0 && (
-              <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 6px", borderRadius: "8px", background: "rgba(0,212,255,0.15)", color: "var(--cyan)" }}>
+              <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 6px", borderRadius: "8px", background: "rgba(59,130,246,0.15)", color: "var(--cyan)" }}>
                 {rules.length}
               </span>
             )}
@@ -140,7 +140,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
 
                   {/* Actions */}
                   <div style={{ display: "flex", gap: "4px" }}>
-                    <button onClick={() => deleteRule(rule.id)} style={{ background: "none", border: "none", color: "rgba(239,68,68,0.5)", cursor: "pointer", padding: "4px" }}>
+                    <button onClick={() => deleteRule(rule.id)} style={{ background: "none", border: "none", color: "rgba(229,72,77,0.5)", cursor: "pointer", padding: "4px" }}>
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
                   </div>

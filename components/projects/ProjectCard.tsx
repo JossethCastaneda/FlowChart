@@ -106,7 +106,7 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
           <div style={{
             padding: "3px 9px", borderRadius: 6, fontSize: 9, fontWeight: 700,
             letterSpacing: "0.12em", textTransform: "uppercase",
-            background: isActive ? "rgba(6,214,160,0.09)" : isOrbita ? "rgba(255,190,11,0.09)" : isComplete ? "rgba(0,212,255,0.09)" : "rgba(148,163,184,0.06)",
+            background: isActive ? "rgba(52,183,124,0.09)" : isOrbita ? "rgba(224,168,60,0.09)" : isComplete ? "rgba(59,130,246,0.09)" : "rgba(148,163,184,0.06)",
             color: accentColor,
             border: `1px solid ${accentColor}44`,
             whiteSpace: "nowrap", flexShrink: 0,
@@ -130,9 +130,9 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
                 display: "inline-flex", alignItems: "center", gap: 6,
                 fontSize: 10, padding: "2px 8px", fontWeight: 600, letterSpacing: "0.03em",
                 borderRadius: 5, 
-                border: `1px solid ${isExpired ? "rgba(245,158,11,0.3)" : (pl?.color ? pl.color + "33" : "var(--hairline)")}`,
+                border: `1px solid ${isExpired ? "rgba(224,168,60,0.3)" : (pl?.color ? pl.color + "33" : "var(--hairline)")}`,
                 color: isExpired ? "var(--amber)" : (pl?.color || "var(--text-secondary)"),
-                background: isExpired ? "rgba(245,158,11,0.06)" : (pl?.color ? pl.color + "0d" : "transparent"),
+                background: isExpired ? "rgba(224,168,60,0.06)" : (pl?.color ? pl.color + "0d" : "transparent"),
               }} title={isExpired ? "El token de acceso ha expirado o ha sido invalidado por Facebook. Reconecta la cuenta en Integraciones." : undefined}>
                 {IconComponent ? (
                   <IconComponent size={10} style={{ flexShrink: 0, color: isExpired ? "var(--amber)" : "currentColor" }} />

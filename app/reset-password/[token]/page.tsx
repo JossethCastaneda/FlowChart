@@ -58,7 +58,7 @@ export default function ResetPasswordPage() {
 
   const cardStyle: React.CSSProperties = {
     background: "rgba(15, 23, 42, 0.6)",
-    border: "1px solid rgba(0, 240, 255, 0.1)",
+    border: "1px solid rgba(91,155,255, 0.1)",
     borderRadius: "16px",
     padding: "40px",
     maxWidth: "420px",
@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
   const btnStyle: React.CSSProperties = {
     width: "100%",
     padding: "14px",
-    background: "linear-gradient(135deg, var(--c-brand), #0080ff)",
+    background: "linear-gradient(135deg, var(--c-brand), #2563eb)",
     border: "none",
     borderRadius: "8px",
     color: "#030508",

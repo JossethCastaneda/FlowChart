@@ -65,7 +65,7 @@ const MODULES: Array<{
     title: "Publisher Instagram",
     description: "IG business account, Reels, Stories y carruseles.",
     icon: Zap,
-    color: "#f472b6",
+    color: "#bc5fb2",
     nextStep: "Conectar Instagram",
   },
   {

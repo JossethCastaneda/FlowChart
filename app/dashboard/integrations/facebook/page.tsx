@@ -270,7 +270,7 @@ export default function FacebookPagesPage() {
             {/* Messenger icon badge */}
             <div style={{
               width: 36, height: 36, borderRadius: 10,
-              background: "linear-gradient(135deg, var(--cyan), #0064E0)",
+              background: "linear-gradient(135deg, var(--cyan), #2563eb)",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 4px 12px rgba(0,100,224,0.3)",
               color: "white",
@@ -410,7 +410,7 @@ export default function FacebookPagesPage() {
                     <p style={{ fontSize: 12, color: "var(--red)", opacity: 0.9, margin: "0 0 10px" }}>{t.missingScopesMsg}</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                       {missingScopes.map(scope => (
-                        <span key={scope} style={{ background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.3)", padding: "2px 8px", borderRadius: 6, fontSize: 10, fontFamily: "monospace", color: "var(--red)" }}>
+                        <span key={scope} style={{ background: "rgba(229,72,77,0.15)", border: "1px solid rgba(229,72,77,0.3)", padding: "2px 8px", borderRadius: 6, fontSize: 10, fontFamily: "monospace", color: "var(--red)" }}>
                           {scope}
                         </span>
                       ))}
@@ -441,13 +441,13 @@ export default function FacebookPagesPage() {
                   }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em" }}>{t.profile}</span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "linear-gradient(135deg, var(--cyan), #0064E0)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "linear-gradient(135deg, var(--cyan), #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
                         <MessengerIcon />
                       </div>
                       {t.messenger}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "#0064E0", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
                         <MetaIcon />
                       </div>
                       {t.facebookPage}

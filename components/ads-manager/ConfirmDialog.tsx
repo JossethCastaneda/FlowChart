@@ -16,11 +16,11 @@ interface ConfirmDialogProps {
 
 const VARIANTS = {
   danger: {
-    border: "rgba(239,68,68,0.25)",
-    bg: "rgba(239,68,68,0.06)",
+    border: "rgba(229,72,77,0.25)",
+    bg: "rgba(229,72,77,0.06)",
     icon: "var(--red)",
-    btn: "rgba(239,68,68,0.15)",
-    btnBorder: "rgba(239,68,68,0.35)",
+    btn: "rgba(229,72,77,0.15)",
+    btnBorder: "rgba(229,72,77,0.35)",
     btnColor: "var(--red)",
   },
   warning: {
@@ -32,11 +32,11 @@ const VARIANTS = {
     btnColor: "var(--amber)",
   },
   info: {
-    border: "rgba(0,212,255,0.25)",
-    bg: "rgba(0,212,255,0.06)",
+    border: "rgba(59,130,246,0.25)",
+    bg: "rgba(59,130,246,0.06)",
     icon: "var(--cyan)",
-    btn: "rgba(0,212,255,0.15)",
-    btnBorder: "rgba(0,212,255,0.35)",
+    btn: "rgba(59,130,246,0.15)",
+    btnBorder: "rgba(59,130,246,0.35)",
     btnColor: "var(--cyan)",
   },
 };

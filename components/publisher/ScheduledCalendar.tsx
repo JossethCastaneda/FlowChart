@@ -349,8 +349,8 @@ export function ScheduledCalendar() {
             {boostResults[post.id] && (
               <span style={{
                 fontSize: 9, fontWeight: 600, color: "var(--amber)",
-                background: "rgba(245,158,11,0.1)",
-                border: "1px solid rgba(245,158,11,0.3)",
+                background: "rgba(224,168,60,0.1)",
+                border: "1px solid rgba(224,168,60,0.3)",
                 borderRadius: 4, padding: "2px 6px",
                 display: "inline-flex", alignItems: "center", gap: 3,
               }}>
@@ -435,8 +435,8 @@ export function ScheduledCalendar() {
   const FilterPill = ({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) => (
     <button onClick={onClick} style={{
       padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: 500, cursor: "pointer",
-      border: active ? "1px solid rgba(0,212,255,0.4)" : "1px solid rgba(255,255,255,0.06)",
-      background: active ? "rgba(0,212,255,0.1)" : "var(--surface-hover)",
+      border: active ? "1px solid rgba(59,130,246,0.4)" : "1px solid rgba(255,255,255,0.06)",
+      background: active ? "rgba(59,130,246,0.1)" : "var(--surface-hover)",
       color: active ? "var(--cyan)" : "var(--text-muted)", transition: "all 0.15s",
     }}>{label}</button>
   );
@@ -473,13 +473,13 @@ export function ScheduledCalendar() {
           <button onClick={() => setView("month")} style={{
             display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 6,
             border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500,
-            background: view === "month" ? "rgba(0,212,255,0.1)" : "transparent",
+            background: view === "month" ? "rgba(59,130,246,0.1)" : "transparent",
             color: view === "month" ? "var(--cyan)" : "var(--text-muted)",
           }}><CalendarIcon style={{ width: 14, height: 14 }} /> Mes</button>
           <button onClick={() => setView("list")} style={{
             display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 6,
             border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500,
-            background: view === "list" ? "rgba(0,212,255,0.1)" : "transparent",
+            background: view === "list" ? "rgba(59,130,246,0.1)" : "transparent",
             color: view === "list" ? "var(--cyan)" : "var(--text-muted)",
           }}><List style={{ width: 14, height: 14 }} /> Lista</button>
         </div>
@@ -559,8 +559,8 @@ export function ScheduledCalendar() {
                     minHeight: 80, padding: "4px 6px", cursor: "pointer",
                     borderBottom: "1px solid rgba(255,255,255,0.03)",
                     borderRight: (idx + 1) % 7 !== 0 ? "1px solid rgba(255,255,255,0.03)" : "none",
-                    background: dragOverDay === key ? "rgba(0,212,255,0.08)" : isSelected ? "rgba(0,212,255,0.04)" : isToday ? "rgba(0,212,255,0.02)" : "transparent",
-                    outline: dragOverDay === key ? "2px dashed rgba(0,212,255,0.6)" : "none",
+                    background: dragOverDay === key ? "rgba(59,130,246,0.08)" : isSelected ? "rgba(59,130,246,0.04)" : isToday ? "rgba(59,130,246,0.02)" : "transparent",
+                    outline: dragOverDay === key ? "2px dashed rgba(59,130,246,0.6)" : "none",
                     outlineOffset: "-2px",
                     opacity: isCurrentMonth ? 1 : 0.3,
                     transition: "background 0.15s",
@@ -571,7 +571,7 @@ export function ScheduledCalendar() {
                     color: isToday ? "var(--cyan)" : "var(--text-secondary)",
                     width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center",
                     borderRadius: "50%",
-                    background: isToday ? "rgba(0,212,255,0.15)" : "none",
+                    background: isToday ? "rgba(59,130,246,0.15)" : "none",
                     marginBottom: 4,
                   }}>
                     {date.getDate()}
@@ -613,7 +613,7 @@ export function ScheduledCalendar() {
 
           {/* Selected day detail */}
           {selectedDay && postsByDate[selectedDay] && (
-            <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(0,212,255,0.02)" }}>
+            <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(59,130,246,0.02)" }}>
               <h4 style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 10 }}>
                 Publicaciones del {fmtDate(new Date(selectedDay + "T12:00:00"))}
               </h4>

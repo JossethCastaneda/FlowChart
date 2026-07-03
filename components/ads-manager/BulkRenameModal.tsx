@@ -64,7 +64,7 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
         width: "520px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
-        border: "1px solid rgba(0,212,255,0.15)", borderRadius: "12px", overflow: "hidden",
+        border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
         {/* Header */}
@@ -90,8 +90,8 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
                 onClick={() => setMode(t.key)}
                 style={{
                   padding: "6px 12px", fontSize: "11px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
-                  background: mode === t.key ? "rgba(0,212,255,0.1)" : "transparent",
-                  border: `1px solid ${mode === t.key ? "rgba(0,212,255,0.2)" : "transparent"}`,
+                  background: mode === t.key ? "rgba(59,130,246,0.1)" : "transparent",
+                  border: `1px solid ${mode === t.key ? "rgba(59,130,246,0.2)" : "transparent"}`,
                   color: mode === t.key ? "var(--cyan)" : "var(--text-muted)",
                 }}
               >
@@ -169,8 +169,8 @@ export function BulkRenameModal({ items, onClose, onApply }: BulkRenameModalProp
             disabled={affectedCount === 0 || loading}
             style={{
               padding: "7px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: affectedCount > 0 ? "pointer" : "not-allowed",
-              background: affectedCount > 0 ? "rgba(0,212,255,0.1)" : "rgba(148,163,184,0.05)",
-              border: `1px solid ${affectedCount > 0 ? "rgba(0,212,255,0.25)" : "rgba(148,163,184,0.18)"}`,
+              background: affectedCount > 0 ? "rgba(59,130,246,0.1)" : "rgba(148,163,184,0.05)",
+              border: `1px solid ${affectedCount > 0 ? "rgba(59,130,246,0.25)" : "rgba(148,163,184,0.18)"}`,
               color: affectedCount > 0 ? "var(--cyan)" : "rgba(148,163,184,0.65)",
               opacity: loading ? 0.5 : 1,
             }}

@@ -347,7 +347,7 @@ const HeatmapWidget = ({ data }: WidgetCtx) => {
           <span style={{ width: HEAT_LABEL_W, fontSize: 10, color: muted, flexShrink: 0 }}>{days[d]}</span>
           {row.map((v, h) => {
             const t = v / max;
-            return <div key={h} title={`${days[d]} ${h}:00 — ${v} sesiones`} style={{ flex: 1, height: "100%", borderRadius: 2, minWidth: 0, background: v === 0 ? "rgba(255,255,255,0.04)" : `rgba(168,85,247,${0.18 + t * 0.82})` }} />;
+            return <div key={h} title={`${days[d]} ${h}:00 — ${v} sesiones`} style={{ flex: 1, height: "100%", borderRadius: 2, minWidth: 0, background: v === 0 ? "rgba(255,255,255,0.04)" : `rgba(155,123,232,${0.18 + t * 0.82})` }} />;
           })}
         </div>
       ))}
@@ -355,7 +355,7 @@ const HeatmapWidget = ({ data }: WidgetCtx) => {
         <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
           menos
           <span style={{ display: "flex", gap: 2 }}>
-            {[0.18, 0.4, 0.6, 0.8, 1].map((o, i) => <span key={i} style={{ width: 11, height: 11, borderRadius: 2, background: `rgba(168,85,247,${o})` }} />)}
+            {[0.18, 0.4, 0.6, 0.8, 1].map((o, i) => <span key={i} style={{ width: 11, height: 11, borderRadius: 2, background: `rgba(155,123,232,${o})` }} />)}
           </span>
           más
         </span>
@@ -604,7 +604,7 @@ const cell: React.CSSProperties = { padding: "6px 8px", textAlign: "right", whit
 function BotRow({ b }: { b: BotPerf }) {
   const dim = !b.sufficient || b.isUnattributed;
   return (
-    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: b.health === "broken" && !b.isUnattributed ? "rgba(239,68,68,0.06)" : "transparent", opacity: dim ? 0.65 : 1 }}>
+    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: b.health === "broken" && !b.isUnattributed ? "rgba(229,72,77,0.06)" : "transparent", opacity: dim ? 0.65 : 1 }}>
       <td style={{ padding: "6px 8px", textAlign: "left", maxWidth: 230 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span title={b.botName} style={{ color: b.isUnattributed ? muted : "rgba(255,255,255,0.92)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>{b.botName}</span>
@@ -640,7 +640,7 @@ const BotLeaderboardWidget = ({ data }: WidgetCtx) => {
         <thead>
           <tr>
             {HEADERS.map((h, i) => (
-              <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "6px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.1)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "#070b14" }}>{h}</th>
+              <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "6px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.1)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "#0e1117" }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -719,7 +719,7 @@ const OcrNipWidget = ({ data }: WidgetCtx) => {
           <thead>
             <tr>
               {HEADERS.map((h, i) => (
-                <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "5px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.1)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "#070b14" }}>{h}</th>
+                <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "5px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.1)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "#0e1117" }}>{h}</th>
               ))}
             </tr>
           </thead>

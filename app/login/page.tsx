@@ -6,7 +6,7 @@
  * Usa 100% los design tokens del sistema Sodare:
  *  • Background: --background (#04070e) + dashboard-bg radial gradients
  *  • Superficies: --surface glass-panel con borde var(--border) cyan
- *  • Color primario: --c-brand / --cyan (#00d4ff)
+ *  • Color primario: --c-brand / --cyan (#5b9bff)
  *  • Tipografía: Inter (--font-sans) + Orbitron (--font-display) solo en logo
  *  • Botones: btn-brand (cyan→indigo gradient) y btn-ghost
  *  • Inputs: f-input con focus cyan
@@ -337,7 +337,7 @@ export default function LoginPage() {
           overflow: hidden;
           box-shadow:
             0 30px 80px rgba(0,0,0,0.6),
-            0 0 0 1px rgba(0,212,255,0.06) inset;
+            0 0 0 1px rgba(59,130,246,0.06) inset;
         }
 
         /* Top cyan accent line — same as .glass-panel::before */
@@ -368,7 +368,7 @@ export default function LoginPage() {
 
         /* ── System label — .t-label style ── */
         .login-system-label {
-          font-family: var(--font-display, 'Orbitron', sans-serif);
+          font-family: var(--font-display);
           font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.25em;
@@ -454,7 +454,7 @@ export default function LoginPage() {
         .login-tab {
           flex: 1;
           padding: 8px 10px;
-          font-family: var(--font-display, 'Orbitron', sans-serif);
+          font-family: var(--font-display);
           font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.15em;
@@ -483,21 +483,21 @@ export default function LoginPage() {
           padding: 11px 22px;
           border-radius: 8px;
           border: none;
-          background: linear-gradient(135deg, var(--cyan) 0%, #4f46e5 100%);
+          background: linear-gradient(135deg, var(--cyan) 0%, #2563eb 100%);
           color: #fff;
-          font-family: var(--font-display, 'Orbitron', sans-serif);
+          font-family: var(--font-display);
           font-size: 10px;
           font-weight: 700;
           letter-spacing: 0.18em;
           text-transform: uppercase;
           cursor: pointer;
           transition: all 0.25s ease;
-          box-shadow: 0 4px 18px rgba(0,212,255,0.35);
+          box-shadow: 0 4px 18px rgba(59,130,246,0.35);
           margin-top: 8px;
         }
         .login-btn-primary:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 6px 24px rgba(0,212,255,0.5);
+          box-shadow: 0 6px 24px rgba(59,130,246,0.5);
         }
         .login-btn-primary:disabled {
           opacity: 0.4;
@@ -536,9 +536,9 @@ export default function LoginPage() {
           gap: 8px;
           padding: 9px 12px;
           border-radius: 6px;
-          background: rgba(255,45,85,0.08);
-          border: 1px solid rgba(255,45,85,0.2);
-          color: var(--c-danger, #ff2d55);
+          background: rgba(229,72,77,0.08);
+          border: 1px solid rgba(229,72,77,0.2);
+          color: var(--c-danger, #e5484d);
           font-size: 12px;
           margin-bottom: 12px;
           line-height: 1.4;
@@ -575,10 +575,10 @@ export default function LoginPage() {
         .login-avatar {
           width: 52px; height: 52px;
           margin: 0 auto 14px;
-          background: linear-gradient(135deg, var(--red), #ff6b35);
-          border: 1px solid rgba(255,45,85,0.35);
+          background: linear-gradient(135deg, var(--red), #d98843);
+          border: 1px solid rgba(229,72,77,0.35);
           display: flex; align-items: center; justify-content: center;
-          font-family: var(--font-display, 'Orbitron', sans-serif);
+          font-family: var(--font-display);
           font-size: 18px;
           font-weight: 700;
           color: #fff;
@@ -588,7 +588,7 @@ export default function LoginPage() {
           content: '';
           position: absolute;
           inset: -3px;
-          border: 1px solid rgba(255,45,85,0.2);
+          border: 1px solid rgba(229,72,77,0.2);
         }
 
         /* ── Lang toggle ── */
@@ -609,7 +609,7 @@ export default function LoginPage() {
           border: none;
           border-radius: 100px;
           cursor: pointer;
-          font-family: var(--font-display, 'Orbitron', sans-serif);
+          font-family: var(--font-display);
           font-size: 9px;
           font-weight: 700;
           letter-spacing: 0.1em;

@@ -187,7 +187,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
   return (
     <div style={{
       padding: "16px", borderRadius: "8px",
-      background: "var(--surface-hover)", border: "1px solid rgba(0,212,255,0.08)",
+      background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.08)",
     }}>
       <div style={{
         display: "flex", alignItems: "center", gap: "6px", marginBottom: "14px",
@@ -230,7 +230,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
                 <div key={i} style={{
                   fontSize: "10px", color: "rgba(255,255,255,0.7)", lineHeight: "1.5",
                   padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                  background: "rgba(239,68,68,0.06)", borderLeft: "2px solid rgba(239,68,68,0.3)",
+                  background: "rgba(229,72,77,0.06)", borderLeft: "2px solid rgba(229,72,77,0.3)",
                 }}>
                   {p}
                 </div>

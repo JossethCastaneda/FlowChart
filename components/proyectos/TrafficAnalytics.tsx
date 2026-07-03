@@ -40,8 +40,8 @@ const TRAFFIC_METRICS = [
   { id: "sessions", label: "Sesiones", icon: TrendingUp, color: "var(--cyan)" },
   { id: "engagement", label: "Tasa de interacción", icon: MousePointer, color: "var(--emerald)" },
   { id: "avg_duration", label: "Duración media", icon: Clock, color: "var(--purple)" },
-  { id: "conversions", label: "Conversiones", icon: Target, color: "#f472b6" },
-  { id: "bounce", label: "Tasa de rebote", icon: MousePointer, color: "#fb923c" },
+  { id: "conversions", label: "Conversiones", icon: Target, color: "#bc5fb2" },
+  { id: "bounce", label: "Tasa de rebote", icon: MousePointer, color: "#d98843" },
 ];
 
 interface Project { id: string; website?: string }
@@ -145,7 +145,7 @@ export function TrafficAnalytics({ project }: { project: Project }) {
                 <Icon style={{ width: 14, height: 14, color: m.color }} />
                 <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600 }}>{m.label}</span>
               </div>
-              <div style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 22, fontWeight: 700, color: m.color }}>
+              <div style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, color: m.color }}>
                 {trafficLoading ? "…" : connected ? fmtMetric(m.id, metrics) : "—"}
               </div>
               <div style={{ fontSize: 9, color: "var(--text-secondary)", marginTop: 4 }}>{connected ? "Últimos 28 días" : "Conecta GA4"}</div>

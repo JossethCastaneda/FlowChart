@@ -191,7 +191,7 @@ export function PermissionsManager() {
                           border: "1px solid rgba(255,255,255,0.03)",
                         }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                            <div style={{ width: 28, height: 28, borderRadius: 6, background: checked ? "rgba(0, 212, 255, 0.1)" : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                            <div style={{ width: 28, height: 28, borderRadius: 6, background: checked ? "rgba(59,130,246, 0.1)" : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                               <Icon className="w-4 h-4" style={{ color: checked ? "var(--cyan)" : "var(--text-muted)" }} />
                             </div>
                             <div>

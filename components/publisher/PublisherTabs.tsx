@@ -10,7 +10,7 @@ const TABS = [
   { key: "composer", label: "Redactor", icon: Zap, color: "var(--amber)" },
   { key: "calendar", label: "Calendario", icon: Calendar, color: "var(--emerald)" },
   { key: "approvals", label: "Aprobaciones", icon: CheckCircle2, color: "var(--emerald)" },
-  { key: "library", label: "Biblioteca", icon: Images, color: "#f472b6" },
+  { key: "library", label: "Biblioteca", icon: Images, color: "#bc5fb2" },
 ] as const;
 
 export function PublisherTabs() {

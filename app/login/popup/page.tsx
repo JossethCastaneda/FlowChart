@@ -24,7 +24,7 @@ function LoginPopup() {
       background: "var(--background)", color: "var(--foreground)", fontFamily: "sans-serif", flexDirection: "column", gap: 12,
     }}>
       <Orbi state="working" scale={0.7} />
-      <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>CONECTANDO...</p>
+      <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CONECTANDO...</p>
     </div>
   );
 }

@@ -40,7 +40,7 @@ const STATUS_CFG: Record<string, { label: string; bg: string; c: string }> = {
 const PRIO_CFG: Record<string, { label: string; bg: string; c: string }> = {
   P0: { label: "Urgente", bg: "var(--red-dim)", c: "var(--red)" },
   P1: { label: "Alta", bg: "var(--cyan-dim)", c: "var(--cyan)" },
-  P2: { label: "Media", bg: "rgba(123,97,255,0.15)", c: "var(--purple)" },
+  P2: { label: "Media", bg: "rgba(139,141,242,0.15)", c: "var(--purple)" },
   P3: { label: "Baja", bg: "rgba(148,163,184,0.1)", c: "var(--text-secondary)" },
 };
 const GROUPS = [
@@ -154,7 +154,7 @@ function sla(due: string | null, st: string, lang: "es" | "en") {
   if (d < 0) return { l: lang === "es" ? `${Math.abs(days)}d vencido` : `${Math.abs(days)}d overdue`, c: "var(--red)", bg: "var(--red-dim)", i: "late" as const };
   if (d <= 24) return { l: lang === "es" ? "Vence hoy" : "Due today", c: "var(--amber)", bg: "rgba(253,171,61,0.1)", i: "warn" as const };
   if (days <= 3) return { l: `${days}d`, c: "var(--amber)", bg: "rgba(253,171,61,0.08)", i: "warn" as const };
-  return { l: `${days}d`, c: "var(--emerald)", bg: "rgba(6,214,160,0.08)", i: "ok" as const };
+  return { l: `${days}d`, c: "var(--emerald)", bg: "rgba(52,183,124,0.08)", i: "ok" as const };
 }
 const fmt = (d: string, lang: "es" | "en") => new Date(d).toLocaleDateString(lang === "es" ? "es-MX" : "en-US", { day: "2-digit", month: "short" });
 const timeAgo = (d: string, lang: "es" | "en") => {
@@ -316,7 +316,7 @@ function TaskDetailModal({ task, onClose, onSave, members, onRefresh, onSubtaskC
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <FileText style={{ width: 18, height: 18, color: "var(--cyan)" }} />
-            <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>{t.title}</span>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>{t.title}</span>
             <Pill label={STATUS_CFG[task.status]?.label || task.status} bg={STATUS_CFG[task.status]?.bg || "var(--text-muted)"} color={STATUS_CFG[task.status]?.c || "#fff"} />
           </div>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 4 }}><X style={{ width: 18, height: 18 }} /></button>
@@ -536,7 +536,7 @@ function CreateModal({ onClose, onSave, members }: { onClose: () => void; onSave
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>NUEVA TAREA</span>
+          <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>NUEVA TAREA</span>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
         </div>
         <div style={{ padding: 24, display: "grid", gap: 14 }}>
@@ -605,7 +605,7 @@ function RequestModal({ onClose, onSave, areas, members }: { onClose: () => void
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: `1px solid ${area ? `${area.color}40` : "var(--border)"}`, borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
-          <span style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: 8 }}><Send style={{ width: 14, height: 14, color: area?.color || "var(--cyan)" }} /> NUEVA SOLICITUD</span>
+          <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: 8 }}><Send style={{ width: 14, height: 14, color: area?.color || "var(--cyan)" }} /> NUEVA SOLICITUD</span>
           <button onClick={onClose} style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}><X style={{ width: 18, height: 18 }} /></button>
         </div>
         <div style={{ padding: 24, display: "grid", gap: 14 }}>
@@ -1111,8 +1111,8 @@ export default function OpsPage() {
           <div key={k.label} className="glass-panel" style={{ padding: "14px 16px", display: "flex", alignItems: "center", gap: 12 }}>
             <div style={{ color: k.color, opacity: 0.8 }}>{k.icon}</div>
             <div>
-              <p style={{ fontFamily: "'Orbitron',sans-serif", fontSize: 20, fontWeight: 700, color: k.color }}>{loading ? "—" : k.value}</p>
-              <p style={{ fontSize: 9, color: "var(--text-secondary)", fontFamily: "'Orbitron',sans-serif", letterSpacing: "0.12em", marginTop: 2 }}>{k.label}</p>
+              <p style={{ fontFamily: "var(--font-display)", fontSize: 20, fontWeight: 700, color: k.color }}>{loading ? "—" : k.value}</p>
+              <p style={{ fontSize: 9, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.12em", marginTop: 2 }}>{k.label}</p>
             </div>
           </div>
         ))}
@@ -1523,10 +1523,10 @@ export default function OpsPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 16 }}>
             <div className="glass-panel" style={{ padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "'Orbitron',sans-serif", letterSpacing: "0.05em" }}>KPI GLOBAL SLA</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>KPI GLOBAL SLA</span>
                 <Target style={{ width: 16, height: 16, color: "var(--cyan)" }} />
               </div>
-              <p style={{ fontSize: 32, fontWeight: 800, color: globalSlaStats.globalSlaPct >= 95 ? "var(--emerald)" : "var(--amber)", fontFamily: "'Orbitron',sans-serif", margin: "4px 0" }}>
+              <p style={{ fontSize: 32, fontWeight: 800, color: globalSlaStats.globalSlaPct >= 95 ? "var(--emerald)" : "var(--amber)", fontFamily: "var(--font-display)", margin: "4px 0" }}>
                 {globalSlaStats.globalSlaPct}%
               </p>
               <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden", margin: "12px 0 8px 0" }}>
@@ -1541,10 +1541,10 @@ export default function OpsPage() {
 
             <div className="glass-panel" style={{ padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "'Orbitron',sans-serif", letterSpacing: "0.05em" }}>ENTREGAS COMPLETADAS</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>ENTREGAS COMPLETADAS</span>
                 <CheckCircle2 style={{ width: 16, height: 16, color: "var(--emerald)" }} />
               </div>
-              <p style={{ fontSize: 32, fontWeight: 800, color: "var(--foreground)", fontFamily: "'Orbitron',sans-serif", margin: "4px 0" }}>
+              <p style={{ fontSize: 32, fontWeight: 800, color: "var(--foreground)", fontFamily: "var(--font-display)", margin: "4px 0" }}>
                 {globalSlaStats.completedCount}
               </p>
               <span style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginTop: 22 }}>
@@ -1554,10 +1554,10 @@ export default function OpsPage() {
 
             <div className="glass-panel" style={{ padding: 20 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "'Orbitron',sans-serif", letterSpacing: "0.05em" }}>SLA BREACH ACTIVO</span>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.05em" }}>SLA BREACH ACTIVO</span>
                 <AlertTriangle style={{ width: 16, height: 16, color: "var(--red)" }} />
               </div>
-              <p style={{ fontSize: 32, fontWeight: 800, color: overdue > 0 ? "var(--red)" : "var(--text-muted)", fontFamily: "'Orbitron',sans-serif", margin: "4px 0" }}>
+              <p style={{ fontSize: 32, fontWeight: 800, color: overdue > 0 ? "var(--red)" : "var(--text-muted)", fontFamily: "var(--font-display)", margin: "4px 0" }}>
                 {overdue}
               </p>
               <span style={{ fontSize: 11, color: "var(--text-muted)", display: "block", marginTop: 22 }}>
@@ -1569,7 +1569,7 @@ export default function OpsPage() {
           <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: 20 }}>
             {/* Area SLA OKR */}
             <div className="glass-panel" style={{ padding: 20 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "'Orbitron',sans-serif" }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "var(--font-display)" }}>
                 {lang === "es" ? "Salud Operativa: SLA por Área (Meta: >= 95%)" : "Health: Area SLA Compliance (Target: >= 95%)"}
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1586,7 +1586,7 @@ export default function OpsPage() {
                         </span>
                         <span style={{
                           fontSize: 10, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
-                          background: stat.okrStatus === "success" ? "rgba(6,214,160,0.12)" : "rgba(253,171,61,0.12)",
+                          background: stat.okrStatus === "success" ? "rgba(52,183,124,0.12)" : "rgba(253,171,61,0.12)",
                           color: stat.okrStatus === "success" ? "var(--emerald)" : "var(--amber)"
                         }}>
                           {stat.slaPct}% {stat.okrStatus === "success" ? "🟢 OK" : "⚠️ En Riesgo"}
@@ -1603,7 +1603,7 @@ export default function OpsPage() {
 
             {/* User Workload OKR */}
             <div className="glass-panel" style={{ padding: 20 }}>
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "'Orbitron',sans-serif" }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 16, fontFamily: "var(--font-display)" }}>
                 {lang === "es" ? "Salud Operativa: Carga de Equipo (Límite: <= 5 Activas)" : "Health: Workload Distribution (Limit: <= 5 Active)"}
               </h3>
               <div style={{ display: "flex", flexDirection: "column", gap: 14, maxHeight: 300, overflowY: "auto", paddingRight: 6 }}>
@@ -1623,7 +1623,7 @@ export default function OpsPage() {
                       </span>
                       <span style={{
                         fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
-                        background: stat.okrStatus === "success" ? "rgba(6,214,160,0.1)" : "rgba(239,68,68,0.1)",
+                        background: stat.okrStatus === "success" ? "rgba(52,183,124,0.1)" : "rgba(229,72,77,0.1)",
                         color: stat.okrStatus === "success" ? "var(--emerald)" : "var(--red)"
                       }}>
                         {stat.okrStatus === "success" ? (lang === "es" ? "Estable" : "Healthy") : (lang === "es" ? "Saturado" : "Overloaded")}
@@ -1658,7 +1658,7 @@ export default function OpsPage() {
         <div style={{ padding: 20 }} className="glass-panel">
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
             <TrendingUp style={{ width: 20, height: 20, color: "var(--cyan)" }} />
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", fontFamily: "'Orbitron',sans-serif" }}>
+            <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>
               {lang === "es" ? "Estrategia Trimestral (OKRs)" : "Quarterly Strategy (OKRs)"}
             </h2>
           </div>

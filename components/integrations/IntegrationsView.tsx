@@ -83,11 +83,11 @@ function TokenModal({ provider, label, isConnected, onClose, onSuccess, onDiscon
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
           {isConnected && onDisconnect ? (
-            <button onClick={onDisconnect} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit" }}>Desconectar</button>
+            <button onClick={onDisconnect} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit" }}>Desconectar</button>
           ) : (
             <button onClick={onClose} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "transparent", border: "1px solid var(--hairline)", color: "var(--text-muted)", cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
           )}
-          <button onClick={save} disabled={!token.trim() || saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "rgba(0,212,255,0.12)", border: "1px solid rgba(0,212,255,0.25)", color: "var(--cyan)", cursor: !token.trim() || saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: !token.trim() || saving ? 0.6 : 1 }}>
+          <button onClick={save} disabled={!token.trim() || saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)", cursor: !token.trim() || saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: !token.trim() || saving ? 0.6 : 1 }}>
             {saving && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
             Guardar y conectar
           </button>
@@ -125,7 +125,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     provider: "meta_community",
     name: "Facebook Pages",
     description: "Gestiona páginas, publicaciones y comentarios de Facebook.",
-    Icon: MetaIcon, iconBg: "#0064E0",
+    Icon: MetaIcon, iconBg: "#2563eb",
     badges: [{ label: "PÁGINAS", color: "var(--cyan)" }],
     managePage: "/dashboard/integrations/facebook",
   },
@@ -134,7 +134,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     name: "Instagram",
     description: "Automatiza conversaciones, responde mensajes y comentarios.",
     Icon: InstagramIcon, iconBg: "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)",
-    badges: [{ label: "POSTS", color: "#f472b6" }, { label: "DMS", color: "#f472b6" }],
+    badges: [{ label: "POSTS", color: "#bc5fb2" }, { label: "DMS", color: "#bc5fb2" }],
   },
   // WhatsApp
   {
@@ -325,7 +325,7 @@ export function IntegrationsView() {
                 </span>
               </div>
               <div style={{ flex: 1, height: "6px", borderRadius: "3px", background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
-                <motion.div initial={{ width: 0 }} animate={{ width: `${totalActive > 0 ? (uniqueConnected / totalActive) * 100 : 0}%` }} transition={{ duration: 1, ease: "easeOut" }} style={{ height: "100%", borderRadius: "3px", background: "linear-gradient(90deg,var(--cyan),#4f46e5,#f472b6)", boxShadow: "0 0 10px rgba(0,212,255,0.5)" }} />
+                <motion.div initial={{ width: 0 }} animate={{ width: `${totalActive > 0 ? (uniqueConnected / totalActive) * 100 : 0}%` }} transition={{ duration: 1, ease: "easeOut" }} style={{ height: "100%", borderRadius: "3px", background: "linear-gradient(90deg,var(--cyan),#2563eb,#bc5fb2)", boxShadow: "0 0 10px rgba(59,130,246,0.5)" }} />
               </div>
               <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={loadIntegrations} style={{ background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)", borderRadius: "8px", cursor: "pointer", color: "var(--foreground)", display: "flex", alignItems: "center", gap: "6px", fontSize: "12px", fontWeight: 600, padding: "6px 12px", transition: "background 0.2s" }}>
                 <RefreshCw size={12} /> {lang === "es" ? "Refrescar" : "Refresh"}
@@ -377,7 +377,7 @@ export function IntegrationsView() {
 
                 {/* PRONTO badge */}
                 {ch.comingSoon && (
-                  <span style={{ position: "absolute", top: 10, right: 10, fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: "rgba(168,85,247,0.12)", border: "1px solid rgba(168,85,247,0.2)", color: "var(--purple)", letterSpacing: "0.08em" }}>
+                  <span style={{ position: "absolute", top: 10, right: 10, fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: "rgba(155,123,232,0.12)", border: "1px solid rgba(155,123,232,0.2)", color: "var(--purple)", letterSpacing: "0.08em" }}>
                     {lang === "es" ? "PRONTO" : "SOON"}
                   </span>
                 )}
@@ -451,11 +451,11 @@ export function IntegrationsView() {
                       style={{
                         padding: "8px 18px", borderRadius: "8px",
                         fontSize: "12px", fontWeight: 700,
-                        background: connected ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, var(--cyan), #4f46e5)",
+                        background: connected ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, var(--cyan), #2563eb)",
                         border: connected ? "1px solid var(--hairline)" : "none",
                         color: connected ? "white" : "white",
                         cursor: "pointer", fontFamily: "inherit",
-                        boxShadow: connected ? "none" : "0 4px 14px rgba(0,212,255,0.4)",
+                        boxShadow: connected ? "none" : "0 4px 14px rgba(59,130,246,0.4)",
                       }}
                     >
                       {connected ? (lang === "es" ? "Configurar" : "Configure") : (lang === "es" ? "Conectar" : "Connect")}

@@ -122,7 +122,7 @@ export function ConfirmModalContainer() {
             onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
             style={{
               width: "100%", padding: "10px 14px", marginBottom: 20, boxSizing: "border-box",
-              background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.15)",
+              background: "rgba(59,130,246,0.03)", border: "1px solid rgba(59,130,246,0.15)",
               color: "var(--foreground)", fontSize: 13, outline: "none", borderRadius: 6,
             }}
           />
@@ -142,8 +142,8 @@ export function ConfirmModalContainer() {
             onClick={handleConfirm}
             style={{
               padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 600,
-              background: config.danger ? "rgba(255,45,85,0.15)" : "rgba(0,212,255,0.12)",
-              border: `1px solid ${config.danger ? "rgba(255,45,85,0.3)" : "rgba(0,212,255,0.25)"}`,
+              background: config.danger ? "rgba(229,72,77,0.15)" : "rgba(59,130,246,0.12)",
+              border: `1px solid ${config.danger ? "rgba(229,72,77,0.3)" : "rgba(59,130,246,0.25)"}`,
               color: config.danger ? "var(--red)" : "var(--cyan)", cursor: "pointer",
             }}
           >

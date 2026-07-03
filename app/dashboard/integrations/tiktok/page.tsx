@@ -43,7 +43,7 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
       </div>
       <div>
         <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 2px", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</p>
-        <p style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)", margin: 0, fontFamily: "'Orbitron', sans-serif" }}>{value}</p>
+        <p style={{ fontSize: 20, fontWeight: 800, color: "var(--foreground)", margin: 0, fontFamily: "var(--font-display)" }}>{value}</p>
       </div>
     </div>
   );
@@ -125,7 +125,7 @@ export default function TikTokIntegrationPage() {
               <TikTokIcon size={32} />
             </div>
             <div>
-              <h2 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: "0 0 4px" }}>
+              <h2 style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: "0 0 4px" }}>
                 TikTok Ads
               </h2>
               {loading ? (
@@ -168,7 +168,7 @@ export default function TikTokIntegrationPage() {
               <button
                 onClick={handleDisconnect}
                 disabled={disconnecting}
-                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "rgba(255,45,85,0.08)", border: "1px solid rgba(255,45,85,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit", opacity: disconnecting ? 0.6 : 1 }}
+                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit", opacity: disconnecting ? 0.6 : 1 }}
               >
                 {disconnecting ? "..." : (lang === "es" ? "Desconectar" : "Disconnect")}
               </button>
@@ -188,7 +188,7 @@ export default function TikTokIntegrationPage() {
       {/* Stats preview (mock — will show real data once API is implemented) */}
       {status?.connected && (
         <>
-          <h3 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 13, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "8px 0 0" }}>
+          <h3 style={{ fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.08em", textTransform: "uppercase", margin: "8px 0 0" }}>
             {lang === "es" ? "Resumen de rendimiento" : "Performance Summary"}
           </h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 14 }}>
@@ -213,7 +213,7 @@ export default function TikTokIntegrationPage() {
         background: "rgba(255,255,255,0.01)",
         border: "1px solid rgba(255,255,255,0.06)",
       }}>
-        <h3 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 12, fontWeight: 700, color: TK_CYAN, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 16px" }}>
+        <h3 style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 700, color: TK_CYAN, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 16px" }}>
           {lang === "es" ? "¿Cómo funciona?" : "How does it work?"}
         </h3>
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
@@ -224,7 +224,7 @@ export default function TikTokIntegrationPage() {
             { step: "04", text: lang === "es" ? "Sodare sincronizará métricas de campañas In-Feed, TopView y Spark Ads." : "Sodare will sync metrics for In-Feed, TopView and Spark Ads campaigns." },
           ].map(({ step, text }) => (
             <div key={step} style={{ display: "flex", alignItems: "flex-start", gap: 14 }}>
-              <span style={{ fontSize: 10, fontWeight: 800, fontFamily: "'Orbitron', sans-serif", color: TK_CYAN, background: `${TK_CYAN}14`, border: `1px solid ${TK_CYAN}25`, borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>
+              <span style={{ fontSize: 10, fontWeight: 800, fontFamily: "var(--font-display)", color: TK_CYAN, background: `${TK_CYAN}14`, border: `1px solid ${TK_CYAN}25`, borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>
                 {step}
               </span>
               <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.6 }}>{text}</p>

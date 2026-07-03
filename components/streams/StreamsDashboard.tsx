@@ -924,7 +924,7 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--foreground)", fontFamily: "'Orbitron',sans-serif" }}>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>
               {t.postDetail}
             </span>
             <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "var(--cyan-dim)", color: "var(--cyan)", fontWeight: 700, textTransform: "capitalize" }}>

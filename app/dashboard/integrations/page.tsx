@@ -57,10 +57,10 @@ function OAuthToast() {
       position: "fixed", bottom: 24, right: 24, zIndex: 9999,
       display: "flex", alignItems: "center", gap: 12,
       padding: "14px 20px", borderRadius: 12,
-      background: isSuccess ? "rgba(6,214,160,0.12)" : "rgba(239,68,68,0.12)",
-      border: `1px solid ${isSuccess ? "rgba(6,214,160,0.3)" : "rgba(239,68,68,0.3)"}`,
+      background: isSuccess ? "rgba(52,183,124,0.12)" : "rgba(229,72,77,0.12)",
+      border: `1px solid ${isSuccess ? "rgba(52,183,124,0.3)" : "rgba(229,72,77,0.3)"}`,
       backdropFilter: "blur(20px)",
-      boxShadow: `0 8px 32px ${isSuccess ? "rgba(6,214,160,0.2)" : "rgba(239,68,68,0.2)"}`,
+      boxShadow: `0 8px 32px ${isSuccess ? "rgba(52,183,124,0.2)" : "rgba(229,72,77,0.2)"}`,
       maxWidth: 360,
       animation: "slideUp 0.3s ease",
     }}>

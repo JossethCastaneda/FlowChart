@@ -52,7 +52,7 @@ export default function PublicProjectPortal() {
     return (
       <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-6">
         <Orbi state="working" scale={0.8} />
-        <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO PORTAL...</p>
+        <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO PORTAL...</p>
       </div>
     );
   }
@@ -76,7 +76,7 @@ export default function PublicProjectPortal() {
     <div className="min-h-screen bg-[#050505] text-slate-200 overflow-x-hidden selection:bg-[var(--cyan)]/30 relative">
       {/* Abstract Background Effects */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-r from-[rgba(0,212,255,0.03)] to-transparent blur-3xl opacity-50" />
+        <div className="absolute top-[-20%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-gradient-to-r from-[rgba(59,130,246,0.03)] to-transparent blur-3xl opacity-50" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] rounded-full bg-gradient-to-l from-[rgba(139,92,246,0.03)] to-transparent blur-3xl opacity-50" />
       </div>
 

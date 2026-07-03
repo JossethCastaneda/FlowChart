@@ -54,12 +54,12 @@ export function PaywallInterceptor() {
 
   const modalContent = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#0b101d] border border-[var(--cyan)]/20 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div className="bg-[#12151c] border border-[var(--cyan)]/20 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         
         {/* Header decoration */}
         <div className="h-32 w-full relative bg-gradient-to-br from-indigo-900/40 to-[var(--cyan)]/20 flex items-center justify-center border-b border-white/5">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-          <div className="w-16 h-16 rounded-full bg-black/40 border border-[var(--cyan)]/30 flex items-center justify-center shadow-[0_0_30px_rgba(0,212,255,0.2)]">
+          <div className="w-16 h-16 rounded-full bg-black/40 border border-[var(--cyan)]/30 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)]">
             <Zap className="w-8 h-8 text-[var(--cyan)]" />
           </div>
         </div>
@@ -92,7 +92,7 @@ export function PaywallInterceptor() {
           <div className="flex flex-col gap-3">
             <button 
               onClick={handleUpgrade}
-              className="w-full py-3 px-4 rounded-xl font-bold text-white shadow-[0_0_20px_rgba(0,212,255,0.15)] transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 rounded-xl font-bold text-white shadow-[0_0_20px_rgba(59,130,246,0.15)] transition-all flex items-center justify-center gap-2"
               style={{
                 background: "linear-gradient(135deg, var(--cyan) 0%, #005bb5 100%)",
               }}

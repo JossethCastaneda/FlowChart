@@ -191,7 +191,7 @@ export function ConnectedMetaBadge({
         }}
         onMouseEnter={(e) => {
           e.currentTarget.style.color = "var(--red)";
-          e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)";
+          e.currentTarget.style.backgroundColor = "rgba(229,72,77, 0.1)";
         }}
         onMouseLeave={(e) => {
           e.currentTarget.style.color = "var(--text-muted)";

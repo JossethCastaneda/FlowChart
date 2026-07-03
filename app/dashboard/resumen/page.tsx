@@ -87,7 +87,7 @@ function KpiCard({ icon: Icon, label, value, sub, color, href }: {
           <ChevronRight style={{ width: 14, height: 14, color: "var(--text-muted)", marginTop: 2 }} />
         </div>
 
-        <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 30, fontWeight: 800, color, lineHeight: 1, margin: "0 0 4px" }}>
+        <p style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 800, color, lineHeight: 1, margin: "0 0 4px" }}>
           <AnimatedNumber value={value} />
         </p>
         <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-muted)", margin: "0 0 2px" }}>{label}</p>
@@ -101,7 +101,7 @@ function KpiCard({ icon: Icon, label, value, sub, color, href }: {
 function StatusBlock({ label, value, color, bg }: { label: string; value: number; color: string; bg: string }) {
   return (
     <div style={{ textAlign: "center", padding: "14px 10px", background: bg, border: `1px solid ${color}18`, borderRadius: 10 }}>
-      <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 22, fontWeight: 700, color, margin: "0 0 4px" }}>{value}</p>
+      <p style={{ fontFamily: "var(--font-display)", fontSize: 22, fontWeight: 700, color, margin: "0 0 4px" }}>{value}</p>
       <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: `${color}90`, margin: 0 }}>{label}</p>
     </div>
   );
@@ -114,9 +114,9 @@ function ProjectCard({ pc }: { pc: any }) {
 
   type HealthKey = "healthy" | "warning" | "danger";
   const configs: Record<HealthKey, { color: string; text: string; bg: string; Icon: any }> = {
-    healthy: { color: "var(--emerald)", text: "SALUDABLE", bg: "rgba(6,214,160,0.06)", Icon: ShieldCheck },
-    warning: { color: "var(--amber)", text: "PRECAUCIÓN", bg: "rgba(255,190,11,0.06)", Icon: Clock },
-    danger: { color: "var(--red)", text: "EN RIESGO", bg: "rgba(255,45,85,0.06)", Icon: AlertCircle },
+    healthy: { color: "var(--emerald)", text: "SALUDABLE", bg: "rgba(52,183,124,0.06)", Icon: ShieldCheck },
+    warning: { color: "var(--amber)", text: "PRECAUCIÓN", bg: "rgba(224,168,60,0.06)", Icon: Clock },
+    danger: { color: "var(--red)", text: "EN RIESGO", bg: "rgba(229,72,77,0.06)", Icon: AlertCircle },
   };
   const key: HealthKey = isHealthy ? "healthy" : isWarning ? "warning" : "danger";
   const cfg = configs[key];
@@ -147,7 +147,7 @@ function ProjectCard({ pc }: { pc: any }) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px 12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(0,212,255,0.08)", border: "1px solid rgba(0,212,255,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Activity style={{ width: 11, height: 11, color: "var(--cyan)" }} />
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pc.alias}</span>
@@ -173,7 +173,7 @@ function ProjectCard({ pc }: { pc: any }) {
               <div style={{ textAlign: "center", padding: "10px 0 18px", borderBottom: "1px solid var(--hairline)" }}>
                 <p style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", margin: "0 0 6px" }}>Costo Por Resultado</p>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                  <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 28, fontWeight: 800, color: cprColor, lineHeight: 1 }}>
+                  <span style={{ fontFamily: "var(--font-display)", fontSize: 28, fontWeight: 800, color: cprColor, lineHeight: 1 }}>
                     {pc.cprActual > 0 ? fmtMXN(pc.cprActual) : "—"}
                   </span>
                   {pc.cprActual > 0 && pc.cprProjected > 0 && (
@@ -291,9 +291,9 @@ export default function ResumenPage() {
       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", gap: 20 }}>
         <div style={{ position: "relative" }}>
           <Loader2 style={{ width: 32, height: 32, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
-          <div style={{ position: "absolute", inset: -8, borderRadius: "50%", border: "1px solid rgba(0,212,255,0.2)", animation: "pulse 2s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", inset: -8, borderRadius: "50%", border: "1px solid rgba(59,130,246,0.2)", animation: "pulse 2s ease-in-out infinite" }} />
         </div>
-        <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 11, letterSpacing: "0.2em", color: "var(--cyan)", textTransform: "uppercase" }}>Sintonizando datos...</p>
+        <p style={{ fontFamily: "var(--font-display)", fontSize: 11, letterSpacing: "0.2em", color: "var(--cyan)", textTransform: "uppercase" }}>Sintonizando datos...</p>
       </div>
     );
   }
@@ -453,17 +453,17 @@ export default function ResumenPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
+              <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
                 Salud de Proyectos Activos
               </span>
               {insightsLoading && (
-                <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 8px", background: "rgba(0,212,255,0.08)", borderRadius: 99, border: "1px solid rgba(0,212,255,0.2)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 8px", background: "rgba(59,130,246,0.08)", borderRadius: 99, border: "1px solid rgba(59,130,246,0.2)" }}>
                   <Loader2 style={{ width: 10, height: 10, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
                   <span style={{ fontSize: 9, color: "var(--cyan)", fontWeight: 600 }}>Cargando</span>
                 </div>
               )}
             </div>
-            <Link href="/dashboard/proyectos" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "rgba(0,212,255,0.5)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", textDecoration: "none" }}>
+            <Link href="/dashboard/proyectos" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "rgba(59,130,246,0.5)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", textDecoration: "none" }}>
               VER TODO <ArrowRight style={{ width: 10, height: 10 }} />
             </Link>
           </div>
@@ -481,10 +481,10 @@ export default function ResumenPage() {
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, var(--cyan), transparent)" }} />
 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}>
-            <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
               Operations Pipeline
             </span>
-            <Link href="/dashboard/ops" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "rgba(0,212,255,0.5)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", textDecoration: "none" }}>
+            <Link href="/dashboard/ops" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "rgba(59,130,246,0.5)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", textDecoration: "none" }}>
               VER TODO <ArrowRight style={{ width: 10, height: 10 }} />
             </Link>
           </div>
@@ -497,17 +497,17 @@ export default function ResumenPage() {
               <div style={{ marginBottom: 20 }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
                   <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "var(--text-muted)" }}>Completion Rate</span>
-                  <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 18, fontWeight: 700, color: "var(--emerald)" }}>{taskDoneRate}%</span>
+                  <span style={{ fontFamily: "var(--font-display)", fontSize: 18, fontWeight: 700, color: "var(--emerald)" }}>{taskDoneRate}%</span>
                 </div>
                 <div style={{ height: 6, background: "var(--surface-hover)", borderRadius: 99, overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${taskDoneRate}%`, borderRadius: 99, background: "linear-gradient(90deg, var(--cyan), var(--emerald))", transition: "width 0.8s ease", boxShadow: "0 0 8px rgba(6,214,160,0.4)" }} />
+                  <div style={{ height: "100%", width: `${taskDoneRate}%`, borderRadius: 99, background: "linear-gradient(90deg, var(--cyan), var(--emerald))", transition: "width 0.8s ease", boxShadow: "0 0 8px rgba(52,183,124,0.4)" }} />
                 </div>
               </div>
 
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
                 <StatusBlock label="Backlog" value={d.tasks.backlog} color="var(--text-muted)" bg="rgba(255,255,255,0.03)" />
-                <StatusBlock label="WIP" value={d.tasks.wip} color="var(--cyan)" bg="rgba(0,212,255,0.05)" />
-                <StatusBlock label="Done" value={d.tasks.done} color="var(--emerald)" bg="rgba(6,214,160,0.05)" />
+                <StatusBlock label="WIP" value={d.tasks.wip} color="var(--cyan)" bg="rgba(59,130,246,0.05)" />
+                <StatusBlock label="Done" value={d.tasks.done} color="var(--emerald)" bg="rgba(52,183,124,0.05)" />
               </div>
             </>
           )}
@@ -518,7 +518,7 @@ export default function ResumenPage() {
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, var(--purple), transparent)" }} />
 
           <div style={{ marginBottom: 18 }}>
-            <span style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--text-secondary)" }}>
               Quick Actions
             </span>
           </div>
@@ -566,7 +566,7 @@ export default function ResumenPage() {
               : "Sin integraciones conectadas"}
           </span>
         </div>
-        <Link href="/dashboard/integrations" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "rgba(0,212,255,0.5)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", textDecoration: "none" }}>
+        <Link href="/dashboard/integrations" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: "rgba(59,130,246,0.5)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", textDecoration: "none" }}>
           CONFIGURAR <ArrowRight style={{ width: 9, height: 9 }} />
         </Link>
       </div>

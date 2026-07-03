@@ -177,7 +177,7 @@ export function AdsExecutiveSummary({
       </div>
 
       {error && (
-        <div style={{ display: "flex", gap: 10, padding: 12, borderRadius: 8, border: "1px solid rgba(255,45,85,0.25)", background: "rgba(255,45,85,0.08)", color: "var(--red)", fontSize: 12 }}>
+        <div style={{ display: "flex", gap: 10, padding: 12, borderRadius: 8, border: "1px solid rgba(229,72,77,0.25)", background: "rgba(229,72,77,0.08)", color: "var(--red)", fontSize: 12 }}>
           <ShieldAlert style={{ width: 16, height: 16, flexShrink: 0 }} />
           <span>{error}</span>
         </div>

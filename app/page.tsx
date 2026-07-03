@@ -116,7 +116,7 @@ function AnimatedText({ text, delayOffset = 0 }: { text: string, delayOffset?: n
 }
 
 // ── Constants ──────────────────────────────────────────
-const ACCENT_COLOR = "#00d4ff"; // Sodare Cyan
+const ACCENT_COLOR = "#5b9bff"; // Sodare Cyan
 const GRADIENT_START = "#0284c7"; // Darker blue for gradient
 
 const FEATURES = [
@@ -193,8 +193,8 @@ export default function Home() {
           background: linear-gradient(
             to right,
             #ffffff 20%,
-            #00d4ff 40%,
-            #00d4ff 60%,
+            #5b9bff 40%,
+            #5b9bff 60%,
             #ffffff 80%
           );
           background-size: 200% auto;
@@ -225,12 +225,12 @@ export default function Home() {
           background: linear-gradient(180deg, ${GRADIENT_START} 0%, ${ACCENT_COLOR} 100%); 
           color: #fff; 
           border: 1px solid rgba(255, 255, 255, 0.2);
-          box-shadow: 0 10px 40px rgba(0, 212, 255, 0.4); 
+          box-shadow: 0 10px 40px rgba(59,130,246, 0.4); 
         }
         .col-pill-primary:hover { 
           background: linear-gradient(180deg, #0284c7 0%, #38bdf8 100%);
           transform: translateY(-2px); 
-          box-shadow: 0 15px 50px rgba(0, 212, 255, 0.6); 
+          box-shadow: 0 15px 50px rgba(59,130,246, 0.6); 
         }
         .col-pill-secondary { 
           background: #fff; color: #000; border: none; font-weight: 600;
@@ -247,7 +247,7 @@ export default function Home() {
           transition: all 0.4s cubic-bezier(0.25,1,0.5,1); 
           position: relative;
         }
-        .col-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); border-color: rgba(0, 212, 255, 0.4); }
+        .col-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); border-color: rgba(59,130,246, 0.4); }
 
         .col-nav-link { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.25s; }
         .col-nav-link:hover { color: #fff; }
@@ -268,7 +268,7 @@ export default function Home() {
         .mockup-chart-bar {
           flex: 1; border-radius: 4px 4px 0 0; background: rgba(255,255,255,0.1); transition: all 0.5s;
         }
-        .mockup-chart-bar.active { background: linear-gradient(180deg, ${ACCENT_COLOR}, rgba(0, 212, 255, 0.1)); box-shadow: 0 0 20px rgba(0, 212, 255, 0.5); }
+        .mockup-chart-bar.active { background: linear-gradient(180deg, ${ACCENT_COLOR}, rgba(59,130,246, 0.1)); box-shadow: 0 0 20px rgba(59,130,246, 0.5); }
 
         @media (max-width: 768px) {
           .col-features-grid { grid-template-columns: 1fr !important; }
@@ -371,12 +371,12 @@ export default function Home() {
             {/* Left Faint Curve */}
             <path d="M -10,0 Q 30,40 21.5,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
             {/* Left Beam */}
-            <path d="M -10,0 Q 30,40 21.5,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+            <path d="M -10,0 Q 30,40 21.5,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(59,130,246,0.8))" }} />
             
             {/* Right Faint Curve */}
             <path d="M 110,0 Q 70,40 78.5,100" fill="none" stroke="rgba(255,255,255,0.03)" strokeWidth="0.05" />
             {/* Right Beam */}
-            <path d="M 110,0 Q 70,40 78.5,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(0,212,255,0.8))" }} />
+            <path d="M 110,0 Q 70,40 78.5,100" fill="none" stroke="url(#beam-synced)" strokeWidth="0.15" style={{ filter: "drop-shadow(0 0 2px rgba(59,130,246,0.8))" }} />
           </svg>
         </div>
 
@@ -385,7 +385,7 @@ export default function Home() {
           initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: "easeOut", type: "spring", bounce: 0.5 }}
           style={{ display: "flex", justifyContent: "center", alignItems: "center", marginBottom: 24, zIndex: 10 }}
         >
-          <Orbi scale={0.9} style={{ filter: "drop-shadow(0px 0px 20px rgba(0, 212, 255, 0.6))" }} />
+          <Orbi scale={0.9} style={{ filter: "drop-shadow(0px 0px 20px rgba(59,130,246, 0.6))" }} />
         </motion.div>
 
         {/* Badge */}
@@ -456,7 +456,7 @@ export default function Home() {
           <div style={{
             position: "absolute", top: "15%", left: "50%", transform: "translate(-50%, -50%)",
             width: "140vw", height: "400px",
-            background: "radial-gradient(ellipse 70% 30% at 50% 50%, rgba(0,212,255,0.12) 0%, transparent 60%)",
+            background: "radial-gradient(ellipse 70% 30% at 50% 50%, rgba(59,130,246,0.12) 0%, transparent 60%)",
             borderRadius: "50%",
             zIndex: -1, pointerEvents: "none"
           }} />
@@ -472,7 +472,7 @@ export default function Home() {
             borderRadius: "24px 24px 0 0",
             position: "relative",
             overflow: "hidden",
-            boxShadow: "0 -20px 100px rgba(0, 212, 255, 0.15)",
+            boxShadow: "0 -20px 100px rgba(59,130,246, 0.15)",
             display: "flex",
           }}
         >
@@ -500,7 +500,7 @@ export default function Home() {
             ))}
           </div>
           {/* Main Area */}
-          <div style={{ flex: 1, padding: 32, display: "flex", flexDirection: "column", gap: 24, background: "radial-gradient(circle at bottom right, rgba(0, 212, 255, 0.1), transparent 50%)" }}>
+          <div style={{ flex: 1, padding: 32, display: "flex", flexDirection: "column", gap: 24, background: "radial-gradient(circle at bottom right, rgba(59,130,246, 0.1), transparent 50%)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                <h3 style={{ fontSize: 24, fontWeight: 600, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
                  Resumen de Campañas 
@@ -520,9 +520,9 @@ export default function Home() {
               ].map((c, i) => (
                 <div key={i} style={{ 
                   flex: 1, padding: 24, borderRadius: 16, 
-                  background: c.glow ? "linear-gradient(145deg, rgba(0, 212, 255, 0.1), rgba(255,255,255,0.02))" : "rgba(255,255,255,0.02)",
-                  border: c.glow ? `1px solid rgba(0, 212, 255, 0.3)` : "1px solid rgba(255,255,255,0.05)",
-                  boxShadow: c.glow ? "0 10px 30px rgba(0, 212, 255, 0.1)" : "none"
+                  background: c.glow ? "linear-gradient(145deg, rgba(59,130,246, 0.1), rgba(255,255,255,0.02))" : "rgba(255,255,255,0.02)",
+                  border: c.glow ? `1px solid rgba(59,130,246, 0.3)` : "1px solid rgba(255,255,255,0.05)",
+                  boxShadow: c.glow ? "0 10px 30px rgba(59,130,246, 0.1)" : "none"
                 }}>
                   <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.glow ? ACCENT_COLOR : "rgba(255,255,255,0.2)" }} />
@@ -581,7 +581,7 @@ export default function Home() {
       <section id="problema" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(0, 212, 255, 0.1)", border: `1px solid rgba(0, 212, 255, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(59,130,246, 0.1)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
               El Problema
              </div>
           </div>
@@ -630,7 +630,7 @@ export default function Home() {
         <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 2 }}>
           <Reveal>
             <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-               <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(0, 212, 255, 0.1)", border: `1px solid rgba(0, 212, 255, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+               <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(59,130,246, 0.1)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
                 La Solución
                </div>
             </div>
@@ -653,9 +653,9 @@ export default function Home() {
                   <div>
                     <div style={{
                       width: 56, height: 56, borderRadius: 16,
-                      background: "linear-gradient(135deg, rgba(0, 212, 255, 0.2), rgba(0, 212, 255, 0.05))",
-                      border: "1px solid rgba(0, 212, 255, 0.2)",
-                      boxShadow: "0 10px 20px rgba(0, 212, 255, 0.1)",
+                      background: "linear-gradient(135deg, rgba(59,130,246, 0.2), rgba(59,130,246, 0.05))",
+                      border: "1px solid rgba(59,130,246, 0.2)",
+                      boxShadow: "0 10px 20px rgba(59,130,246, 0.1)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       marginBottom: 24, color: "#fff",
                     }}>
@@ -688,7 +688,7 @@ export default function Home() {
       <section style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(0, 212, 255, 0.1)", border: `1px solid rgba(0, 212, 255, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(59,130,246, 0.1)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
               Cómo Funciona
              </div>
           </div>

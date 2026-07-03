@@ -58,7 +58,7 @@ function FallbackImage({ url, alt, style }: { url?: string; alt: string; style?:
       <div
         style={{
           ...style,
-          background: "linear-gradient(135deg, rgba(0,129,251,0.15) 0%, rgba(0,212,255,0.08) 100%)",
+          background: "linear-gradient(135deg, rgba(0,129,251,0.15) 0%, rgba(59,130,246,0.08) 100%)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",

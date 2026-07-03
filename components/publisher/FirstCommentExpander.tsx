@@ -49,16 +49,16 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
             flex: 1,
             fontSize: 12,
             fontWeight: 500,
-            color: "#f472b6",
+            color: "#bc5fb2",
             fontFamily: "Inter, sans-serif",
           }}
         >
           Agregar primer comentario en Instagram
         </span>
         {expanded ? (
-          <ChevronUp style={{ width: 14, height: 14, color: "#f472b6" }} />
+          <ChevronUp style={{ width: 14, height: 14, color: "#bc5fb2" }} />
         ) : (
-          <ChevronDown style={{ width: 14, height: 14, color: "#f472b6" }} />
+          <ChevronDown style={{ width: 14, height: 14, color: "#bc5fb2" }} />
         )}
       </button>
 

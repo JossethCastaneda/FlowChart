@@ -70,11 +70,11 @@ export default function ReportesPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(244,63,94,0.10)", border: "1px solid rgba(244,63,94,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <FileText style={{ width: 18, height: 18, color: "#f43f5e" }} />
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(224,96,126,0.10)", border: "1px solid rgba(224,96,126,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <FileText style={{ width: 18, height: 18, color: "#e0607e" }} />
           </div>
           <div>
-            <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
+            <h1 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
               Reportes
             </h1>
             <p style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", margin: 0, marginTop: 2, textTransform: "uppercase" }}>
@@ -84,8 +84,8 @@ export default function ReportesPage() {
         </div>
         <Link href="/dashboard/proyectos" style={{
           display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px",
-          background: "rgba(244,63,94,0.10)", border: "1px solid rgba(244,63,94,0.25)",
-          color: "#f43f5e", borderRadius: 10, fontWeight: 700, fontSize: 11,
+          background: "rgba(224,96,126,0.10)", border: "1px solid rgba(224,96,126,0.25)",
+          color: "#e0607e", borderRadius: 10, fontWeight: 700, fontSize: 11,
           letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none",
           transition: "all 0.15s",
         }}>
@@ -109,10 +109,10 @@ export default function ReportesPage() {
           borderRadius: 16, textAlign: "center",
         }}>
           <div style={{
-            width: 56, height: 56, borderRadius: 16, background: "rgba(244,63,94,0.10)",
-            border: "1px solid rgba(244,63,94,0.20)", display: "flex", alignItems: "center", justifyContent: "center",
+            width: 56, height: 56, borderRadius: 16, background: "rgba(224,96,126,0.10)",
+            border: "1px solid rgba(224,96,126,0.20)", display: "flex", alignItems: "center", justifyContent: "center",
           }}>
-            <FileText style={{ width: 26, height: 26, color: "#f43f5e" }} />
+            <FileText style={{ width: 26, height: 26, color: "#e0607e" }} />
           </div>
           <div>
             <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", margin: "0 0 8px" }}>
@@ -125,8 +125,8 @@ export default function ReportesPage() {
           </div>
           <Link href="/dashboard/proyectos" style={{
             display: "inline-flex", alignItems: "center", gap: 8, padding: "10px 22px",
-            background: "rgba(244,63,94,0.10)", border: "1px solid rgba(244,63,94,0.25)",
-            color: "#f43f5e", borderRadius: 10, fontWeight: 700, fontSize: 12,
+            background: "rgba(224,96,126,0.10)", border: "1px solid rgba(224,96,126,0.25)",
+            color: "#e0607e", borderRadius: 10, fontWeight: 700, fontSize: 12,
             letterSpacing: "0.08em", textTransform: "uppercase", textDecoration: "none",
           }}>
             <Plus style={{ width: 14, height: 14 }} /> Ir a Proyectos

@@ -55,7 +55,7 @@ export function CustomTooltip({
       {displayLabel && (
         <p
           style={{
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: "var(--font-display)",
             fontSize: 9,
             fontWeight: 600,
             letterSpacing: "0.18em",

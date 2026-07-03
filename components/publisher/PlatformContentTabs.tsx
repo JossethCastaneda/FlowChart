@@ -78,9 +78,9 @@ export function PlatformContentTabs({
             gap: 6,
             padding: "7px 14px",
             borderRadius: 20,
-            background: enabled ? "rgba(0,212,255,0.12)" : "transparent",
+            background: enabled ? "rgba(59,130,246,0.12)" : "transparent",
             border: enabled
-              ? "1px solid rgba(0,212,255,0.3)"
+              ? "1px solid rgba(59,130,246,0.3)"
               : "1px solid rgba(255,255,255,0.06)",
             color: enabled ? "var(--cyan)" : "var(--text-muted)",
             fontSize: 12,
@@ -143,7 +143,7 @@ export function PlatformContentTabs({
                   activePlatform === "instagram"
                     ? "2px solid #E1306C"
                     : "2px solid transparent",
-                color: activePlatform === "instagram" ? "#f472b6" : "var(--text-muted)",
+                color: activePlatform === "instagram" ? "#bc5fb2" : "var(--text-muted)",
                 fontSize: 12,
                 fontWeight: activePlatform === "instagram" ? 600 : 500,
                 cursor: "pointer",

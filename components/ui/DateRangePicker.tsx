@@ -282,8 +282,8 @@ export default function DateRangePicker({
         onClick={() => setShowDatePicker(!showDatePicker)}
         style={{
           display: "flex", alignItems: "center", gap: "8px",
-          background: showDatePicker ? "rgba(0,212,255,0.08)" : "rgba(10,15,30,0.6)",
-          border: showDatePicker ? "1px solid rgba(0,212,255,0.3)" : "1px solid var(--border)",
+          background: showDatePicker ? "rgba(59,130,246,0.08)" : "rgba(10,15,30,0.6)",
+          border: showDatePicker ? "1px solid rgba(59,130,246,0.3)" : "1px solid var(--border)",
           padding: "7px 14px", borderRadius: "8px", fontSize: "12px", color: "var(--foreground)",
           cursor: "pointer", transition: "all 0.2s", whiteSpace: "nowrap", fontWeight: 500
         }}
@@ -326,7 +326,7 @@ export default function DateRangePicker({
                       display: "flex", alignItems: "center", gap: "10px",
                       width: "100%", textAlign: "left", padding: "8px 14px",
                       fontSize: "12px", border: "none", cursor: "pointer",
-                      background: active ? "rgba(0,212,255,0.06)" : "transparent",
+                      background: active ? "rgba(59,130,246,0.06)" : "transparent",
                       color: active ? "var(--cyan)" : "rgba(255,255,255,0.7)",
                       fontWeight: active ? 600 : 400,
                       transition: "all 0.15s"
@@ -545,7 +545,7 @@ function MonthGrid({
               style={{
                 position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
                 height: "32px",
-                background: inRange && !isEdge ? "rgba(0,212,255,0.12)" : "transparent",
+                background: inRange && !isEdge ? "rgba(59,130,246,0.12)" : "transparent",
                 borderRadius: isStart ? "6px 0 0 6px" : isEnd ? "0 6px 6px 0" : "0"
               }}
             >

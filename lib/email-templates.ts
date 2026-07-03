@@ -23,24 +23,24 @@ function baseWrapper(content: string): string {
       .bg-body { background-color: #000000 !important; }
       .bg-card { 
         background: linear-gradient(180deg,#060c1a 0%,#030508 100%) !important; 
-        border: 1px solid rgba(0,240,255,0.12) !important;
-        box-shadow: 0 0 60px rgba(0,240,255,0.06), 0 0 120px rgba(0,128,255,0.03) !important;
+        border: 1px solid rgba(91,155,255,0.12) !important;
+        box-shadow: 0 0 60px rgba(91,155,255,0.06), 0 0 120px rgba(0,128,255,0.03) !important;
       }
       .bg-inner-card {
         background: linear-gradient(135deg,rgba(0,20,40,0.8),rgba(0,10,25,0.6)) !important;
-        border: 1px solid rgba(0,240,255,0.1) !important;
+        border: 1px solid rgba(91,155,255,0.1) !important;
         box-shadow: 0 4px 24px rgba(0,0,0,0.3) !important;
       }
-      .bg-banner { background: linear-gradient(135deg,rgba(0,240,255,0.04),rgba(0,128,255,0.02)) !important; border: 1px solid rgba(0,240,255,0.12) !important; }
+      .bg-banner { background: linear-gradient(135deg,rgba(91,155,255,0.04),rgba(0,128,255,0.02)) !important; border: 1px solid rgba(91,155,255,0.12) !important; }
       
       .text-main { color: #f0f4f8 !important; }
       .text-muted { color: #94a3b8 !important; }
-      .text-accent { color: #00f0ff !important; }
+      .text-accent { color: #5b9bff !important; }
       
-      .logo-emblem { background: linear-gradient(135deg,#040a18,#0a1628) !important; border-color: #00f0ff !important; color: #00f0ff !important; box-shadow: 0 0 30px rgba(0,240,255,0.25),inset 0 0 20px rgba(0,240,255,0.05) !important; }
-      .logo-text { color: #f0f4f8 !important; text-shadow: 0 0 20px rgba(0,240,255,0.3),0 0 40px rgba(0,240,255,0.1) !important; }
+      .logo-emblem { background: linear-gradient(135deg,#040a18,#0a1628) !important; border-color: #5b9bff !important; color: #5b9bff !important; box-shadow: 0 0 30px rgba(91,155,255,0.25),inset 0 0 20px rgba(91,155,255,0.05) !important; }
+      .logo-text { color: #f0f4f8 !important; text-shadow: 0 0 20px rgba(91,155,255,0.3),0 0 40px rgba(91,155,255,0.1) !important; }
       
-      .border-line { background: linear-gradient(90deg,transparent,rgba(0,240,255,0.08),transparent) !important; }
+      .border-line { background: linear-gradient(90deg,transparent,rgba(91,155,255,0.08),transparent) !important; }
       .footer-text { color: rgba(148,163,184,0.5) !important; }
     }
   </style>
@@ -61,7 +61,7 @@ function baseWrapper(content: string): string {
         <table width="100%" style="max-width:580px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.05);" cellpadding="0" cellspacing="0" border="0" class="bg-card">
           <!-- TOP ACCENT BAR -->
           <tr>
-            <td style="height:4px;background:linear-gradient(90deg,#0080ff,#00f0ff,#00f0ff,#0080ff);"></td>
+            <td style="height:4px;background:linear-gradient(90deg,#2563eb,#5b9bff,#5b9bff,#2563eb);"></td>
           </tr>
 
           <!-- LOGO SECTION -->
@@ -83,7 +83,7 @@ function baseWrapper(content: string): string {
                 <tr>
                   <td class="border-line" style="height:1px;background-color:#cbd5e1;"></td>
                   <td width="12" align="center" style="padding:0 4px;">
-                    <div style="width:6px;height:6px;background-color:#0080ff;border-radius:1px;transform:rotate(45deg);"></div>
+                    <div style="width:6px;height:6px;background-color:#2563eb;border-radius:1px;transform:rotate(45deg);"></div>
                   </td>
                   <td class="border-line" style="height:1px;background-color:#cbd5e1;"></td>
                 </tr>
@@ -166,7 +166,7 @@ export function getInviteEmailHtml({
   inviteUrl: string;
 }): string {
   const roleLabel = role === "ADMIN" ? "ADMINISTRADOR" : "MIEMBRO";
-  const roleColorLight = role === "ADMIN" ? "#d97706" : "#059669";
+  const roleColorLight = role === "ADMIN" ? "#d97706" : "#2b9a67";
   const roleBgLight = role === "ADMIN" ? "#fef3c7" : "#d1fae5";
   const roleBorderLight = role === "ADMIN" ? "#fde68a" : "#a7f3d0";
   
@@ -179,14 +179,14 @@ export function getInviteEmailHtml({
             TRANSMISION ENTRANTE
           </p>
           <p class="text-main" style="margin:0;font-size:15px;color:#0f172a;line-height:1.6;">
-            <strong class="text-accent" style="color:#0080ff;">${inviterName}</strong> te ha invitado a unirte al equipo
+            <strong class="text-accent" style="color:#2563eb;">${inviterName}</strong> te ha invitado a unirte al equipo
           </p>
         </td>
       </tr>
     </table>
 
     <!-- Workspace info card -->
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-inner-card" style="background-color:#ffffff;border:1px solid #e2e8f0;border-left:3px solid #0080ff;border-radius:0 4px 4px 0;margin-bottom:28px;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-inner-card" style="background-color:#ffffff;border:1px solid #e2e8f0;border-left:3px solid #2563eb;border-radius:0 4px 4px 0;margin-bottom:28px;">
       <tr>
         <td style="padding:24px;">
           <table width="100%" cellpadding="0" cellspacing="0" border="0">
@@ -225,7 +225,7 @@ export function getInviteEmailHtml({
         <td align="center" style="padding:4px 0 32px;">
           <table cellpadding="0" cellspacing="0" border="0">
             <tr>
-              <td style="background:linear-gradient(135deg,#00e0ff,#0080ff);border-radius:4px;box-shadow:0 4px 16px rgba(0,128,255,0.3);">
+              <td style="background:linear-gradient(135deg,#00e0ff,#2563eb);border-radius:4px;box-shadow:0 4px 16px rgba(0,128,255,0.3);">
                 <a href="${inviteUrl}" target="_blank" style="display:inline-block;padding:16px 48px;font-family:'Courier New',monospace;font-size:13px;font-weight:900;color:#ffffff;text-decoration:none;letter-spacing:3px;">ACEPTAR MISION &#8594;</a>
               </td>
             </tr>
@@ -274,7 +274,7 @@ export function getPasswordResetEmailHtml({
       </tr>
     </table>
 
-    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-inner-card" style="background-color:#ffffff;border:1px solid #e2e8f0;border-left:3px solid #ef4444;border-radius:0 4px 4px 0;margin-bottom:28px;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-inner-card" style="background-color:#ffffff;border:1px solid #e2e8f0;border-left:3px solid #e5484d;border-radius:0 4px 4px 0;margin-bottom:28px;">
       <tr>
         <td style="padding:24px;">
           <p class="text-main" style="margin:0 0 8px;font-size:14px;color:#0f172a;line-height:1.7;">
@@ -292,7 +292,7 @@ export function getPasswordResetEmailHtml({
         <td align="center" style="padding:4px 0 32px;">
           <table cellpadding="0" cellspacing="0" border="0">
             <tr>
-              <td style="background:linear-gradient(135deg,#ff2d55,#ff6b35);border-radius:4px;">
+              <td style="background:linear-gradient(135deg,#e5484d,#d98843);border-radius:4px;">
                 <a href="${resetUrl}" target="_blank" style="display:inline-block;padding:16px 48px;font-family:'Courier New',monospace;font-size:13px;font-weight:900;color:#ffffff;text-decoration:none;letter-spacing:3px;">RESTABLECER ACCESO &#8594;</a>
               </td>
             </tr>
@@ -319,7 +319,7 @@ export function getWelcomeEmailHtml({
     <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-banner" style="background-color:#ecfdf5;border:1px solid #a7f3d0;border-radius:4px;margin-bottom:24px;">
       <tr>
         <td style="padding:18px 22px;">
-          <p style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:9px;color:#059669;letter-spacing:4px;">
+          <p style="margin:0 0 6px;font-family:'Courier New',monospace;font-size:9px;color:#2b9a67;letter-spacing:4px;">
             SISTEMA ACTIVADO
           </p>
           <p class="text-main" style="margin:0;font-size:15px;color:#0f172a;line-height:1.6;">
@@ -347,7 +347,7 @@ export function getWelcomeEmailHtml({
         <td align="center" style="padding:4px 0 32px;">
           <table cellpadding="0" cellspacing="0" border="0">
             <tr>
-              <td style="background:linear-gradient(135deg,#06d6a0,#00b894);border-radius:4px;">
+              <td style="background:linear-gradient(135deg,#34b77c,#00b894);border-radius:4px;">
                 <a href="${dashboardUrl}" target="_blank" style="display:inline-block;padding:16px 48px;font-family:'Courier New',monospace;font-size:13px;font-weight:900;color:#ffffff;text-decoration:none;letter-spacing:3px;">INICIAR SESION &#8594;</a>
               </td>
             </tr>
@@ -406,7 +406,7 @@ export function getTaskAssignedEmailHtml({
         <td align="center" style="padding:4px 0 32px;">
           <table cellpadding="0" cellspacing="0" border="0">
             <tr>
-              <td style="background:linear-gradient(135deg,#00e0ff,#0080ff);border-radius:4px;">
+              <td style="background:linear-gradient(135deg,#00e0ff,#2563eb);border-radius:4px;">
                 <a href="${taskUrl}" target="_blank" style="display:inline-block;padding:16px 48px;font-family:'Courier New',monospace;font-size:13px;font-weight:900;color:#ffffff;text-decoration:none;letter-spacing:3px;">VER TAREA &#8594;</a>
               </td>
             </tr>

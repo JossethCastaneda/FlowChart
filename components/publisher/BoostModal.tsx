@@ -123,17 +123,17 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
         onClick={(e) => e.stopPropagation()}
         style={{
           background: "var(--foreground)",
-          border: "1px solid rgba(245,158,11,0.3)",
+          border: "1px solid rgba(224,168,60,0.3)",
           borderRadius: 12, padding: 0, width: "100%", maxWidth: 420,
           maxHeight: "90vh", overflowY: "auto",
-          boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(245,158,11,0.06)",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(224,168,60,0.06)",
         }}
       >
         {/* ── Header ── */}
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
-          padding: "14px 20px", borderBottom: "1px solid rgba(245,158,11,0.15)",
-          background: "rgba(245,158,11,0.04)",
+          padding: "14px 20px", borderBottom: "1px solid rgba(224,168,60,0.15)",
+          background: "rgba(224,168,60,0.04)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
@@ -227,8 +227,8 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                   style={{
                     padding: "4px 12px", borderRadius: 16, fontSize: 11, fontWeight: 600,
                     cursor: "pointer", transition: "all 0.15s",
-                    background: budget === preset ? "rgba(245,158,11,0.15)" : "var(--surface-hover)",
-                    border: budget === preset ? "1px solid rgba(245,158,11,0.4)" : "1px solid rgba(255,255,255,0.06)",
+                    background: budget === preset ? "rgba(224,168,60,0.15)" : "var(--surface-hover)",
+                    border: budget === preset ? "1px solid rgba(224,168,60,0.4)" : "1px solid rgba(255,255,255,0.06)",
                     color: budget === preset ? "var(--amber)" : "var(--text-muted)",
                   }}
                 >
@@ -272,8 +272,8 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
             <div style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
               marginTop: 6, padding: "6px 10px", borderRadius: 6,
-              background: "rgba(245,158,11,0.06)",
-              border: "1px solid rgba(245,158,11,0.15)",
+              background: "rgba(224,168,60,0.06)",
+              border: "1px solid rgba(224,168,60,0.15)",
             }}>
               <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Total estimado:</span>
               <span style={{ fontSize: 14, fontWeight: 700, color: "var(--amber)" }}>
@@ -340,7 +340,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                 color: "var(--foreground)", fontSize: 13, fontFamily: "Inter, sans-serif",
                 outline: "none",
               }}
-              onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(245,158,11,0.4)"; }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(224,168,60,0.4)"; }}
               onBlur={(e) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; }}
             />
             <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: "4px 0 0" }}>
@@ -389,11 +389,11 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
               display: "flex", alignItems: "center", gap: 6,
               padding: "8px 22px", borderRadius: 8, fontSize: 13, fontWeight: 600,
               background: loading
-                ? "rgba(245,158,11,0.2)"
+                ? "rgba(224,168,60,0.2)"
                 : "linear-gradient(135deg, var(--amber), var(--amber))",
               border: "none",
               color: "#fff", cursor: loading ? "not-allowed" : "pointer",
-              boxShadow: loading ? "none" : "0 4px 16px rgba(245,158,11,0.25)",
+              boxShadow: loading ? "none" : "0 4px 16px rgba(224,168,60,0.25)",
               transition: "all 0.2s",
               opacity: loading ? 0.7 : 1,
             }}

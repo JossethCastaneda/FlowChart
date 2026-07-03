@@ -1117,7 +1117,7 @@ function AdsManagerContent() {
         {renderHeader()}
         <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
           <Radar className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.65)" }} />
-          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
             Conexión Google Ads requerida
           </p>
           <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.65)", marginBottom: "20px" }}>
@@ -1155,8 +1155,8 @@ function AdsManagerContent() {
           <div style={{
             display: "flex", alignItems: "center", gap: "10px",
             padding: "12px 16px",
-            background: "rgba(6,214,160,0.08)",
-            border: "1px solid rgba(6,214,160,0.3)",
+            background: "rgba(52,183,124,0.08)",
+            border: "1px solid rgba(52,183,124,0.3)",
             borderRadius: "6px",
           }}>
             <CheckCircle className="w-4 h-4" style={{ color: "var(--emerald)", flexShrink: 0 }} />
@@ -1169,8 +1169,8 @@ function AdsManagerContent() {
             position: "relative",
             display: "flex", alignItems: "center", gap: "16px",
             padding: "16px 20px",
-            background: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.06) 50%, rgba(236,72,153,0.08) 100%)",
-            border: "1px solid rgba(168,85,247,0.2)",
+            background: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(155,123,232,0.06) 50%, rgba(236,72,153,0.08) 100%)",
+            border: "1px solid rgba(155,123,232,0.2)",
             borderRadius: "12px",
             overflow: "hidden",
             backdropFilter: "blur(12px)",
@@ -1185,8 +1185,8 @@ function AdsManagerContent() {
             <div style={{
               display: "flex", alignItems: "center", justifyContent: "center",
               width: "40px", height: "40px", borderRadius: "10px", flexShrink: 0,
-              background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(168,85,247,0.2))",
-              boxShadow: "0 0 20px rgba(168,85,247,0.15)",
+              background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(155,123,232,0.2))",
+              boxShadow: "0 0 20px rgba(155,123,232,0.15)",
             }}>
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 2L2 7l10 5 10-5-10-5z" />
@@ -1246,7 +1246,7 @@ function AdsManagerContent() {
 
         <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
           <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.65)" }} />
-          <p style={{ fontFamily: "'Orbitron', sans-serif", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
+          <p style={{ fontFamily: "var(--font-display)", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
             Conexión Meta Ads requerida
           </p>
           <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.65)", marginBottom: "20px" }}>
@@ -1346,7 +1346,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateAdSet(true)}
             title="Crear un conjunto de anuncios (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(123,97,255,0.12)", border: "1px solid rgba(123,97,255,0.35)", color: "var(--purple)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(139,141,242,0.12)", border: "1px solid rgba(139,141,242,0.35)", color: "var(--purple)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear conjunto
           </button>
@@ -1475,7 +1475,7 @@ function AdsManagerContent() {
         level={activeLevel}
       />
       {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "rgba(255,45,85,0.1)", border: "1px solid var(--red-dim)", borderRadius: "4px", color: "var(--red)", fontSize: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "rgba(229,72,77,0.1)", border: "1px solid var(--red-dim)", borderRadius: "4px", color: "var(--red)", fontSize: "10px" }}>
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span>{error}</span>
         </div>
@@ -1507,7 +1507,7 @@ function AdsManagerContent() {
             >
               {label}
               {count > 0 && (
-                <span style={{ fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "8px", background: active ? "rgba(0,212,255,0.2)" : "rgba(148,163,184,0.18)", color: active ? "var(--cyan)" : "var(--text-muted)" }}>
+                <span style={{ fontSize: "8px", fontWeight: 700, padding: "1px 5px", borderRadius: "8px", background: active ? "rgba(59,130,246,0.2)" : "rgba(148,163,184,0.18)", color: active ? "var(--cyan)" : "var(--text-muted)" }}>
                   {count}
                 </span>
               )}

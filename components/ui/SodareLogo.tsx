@@ -48,8 +48,8 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
             100% { transform: rotate(360deg); }
           }
           @keyframes sodare-glow-breathe {
-            0%, 100% { filter: drop-shadow(0 0 3px rgba(0,240,255,0.4)); }
-            50% { filter: drop-shadow(0 0 8px rgba(0,240,255,0.8)); }
+            0%, 100% { filter: drop-shadow(0 0 3px rgba(91,155,255,0.4)); }
+            50% { filter: drop-shadow(0 0 8px rgba(91,155,255,0.8)); }
           }
           @keyframes sodare-text-shimmer {
             0% { background-position: -200% center; }
@@ -106,16 +106,16 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
             {/* Holographic gradient */}
             <linearGradient id={`${uid}-glow`} x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="var(--cyan)" />
-              <stop offset="50%" stopColor="#0080ff" />
+              <stop offset="50%" stopColor="#2563eb" />
               <stop offset="100%" stopColor="var(--cyan)" />
             </linearGradient>
             {/* Animated gradient for S glyph */}
             <linearGradient id={`${uid}-s-glow`} x1="0" y1="0" x2="0" y2="64" gradientUnits="userSpaceOnUse">
               <stop offset="0%" stopColor="var(--cyan)">
-                {animated && <animate attributeName="stopColor" values="var(--cyan);#0080ff;var(--cyan)" dur="2s" repeatCount="indefinite" />}
+                {animated && <animate attributeName="stopColor" values="var(--cyan);#2563eb;var(--cyan)" dur="2s" repeatCount="indefinite" />}
               </stop>
-              <stop offset="100%" stopColor="#0080ff">
-                {animated && <animate attributeName="stopColor" values="#0080ff;var(--cyan);#0080ff" dur="2s" repeatCount="indefinite" />}
+              <stop offset="100%" stopColor="#2563eb">
+                {animated && <animate attributeName="stopColor" values="#2563eb;var(--cyan);#2563eb" dur="2s" repeatCount="indefinite" />}
               </stop>
             </linearGradient>
             {/* Inner glow */}
@@ -196,12 +196,12 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
         <span
           className={animated ? "sodare-wordmark-animated" : undefined}
           style={{
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: "var(--font-display)",
             fontSize,
             fontWeight: 900,
             letterSpacing: "0.2em",
             color: animated ? undefined : "var(--foreground)",
-            textShadow: animated ? undefined : "0 0 12px rgba(0,240,255,0.3), 0 0 40px rgba(0,240,255,0.1)",
+            textShadow: animated ? undefined : "0 0 12px rgba(91,155,255,0.3), 0 0 40px rgba(91,155,255,0.1)",
             lineHeight: 1,
           }}
         >
@@ -227,7 +227,7 @@ export function SodareIcon({ size = 24 }: { size?: number }) {
       <defs>
         <linearGradient id="si-glow" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
           <stop offset="0%" stopColor="var(--cyan)" />
-          <stop offset="50%" stopColor="#0080ff" />
+          <stop offset="50%" stopColor="#2563eb" />
           <stop offset="100%" stopColor="var(--cyan)" />
         </linearGradient>
         <filter id="si-shadow" x="-20%" y="-20%" width="140%" height="140%">

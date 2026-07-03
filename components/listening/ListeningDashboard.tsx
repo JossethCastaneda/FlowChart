@@ -70,9 +70,9 @@ type SectionId = "metrics" | "sentiment" | "topics" | "results" | "heatmap" | "i
    Constants
 ───────────────────────────────────────────────────────────── */
 const SENTIMENT_COLORS = {
-  positive: "#22c55e",
-  negative: "#ef4444",
-  neutral: "#f59e0b",
+  positive: "#34b77c",
+  negative: "#e5484d",
+  neutral: "#e0a83c",
 };
 
 const PLATFORM_COLORS: Record<string, string> = {
@@ -144,9 +144,9 @@ function MetricCard({
 
 function SentimentBadge({ sentiment }: { sentiment: "positive" | "negative" | "neutral" }) {
   const cfg = {
-    positive: { label: "Positivo", color: SENTIMENT_COLORS.positive, bg: "#22c55e15" },
-    negative: { label: "Negativo", color: SENTIMENT_COLORS.negative, bg: "#ef444415" },
-    neutral: { label: "Neutral", color: SENTIMENT_COLORS.neutral, bg: "#f59e0b15" },
+    positive: { label: "Positivo", color: SENTIMENT_COLORS.positive, bg: "#34b77c15" },
+    negative: { label: "Negativo", color: SENTIMENT_COLORS.negative, bg: "#e5484d15" },
+    neutral: { label: "Neutral", color: SENTIMENT_COLORS.neutral, bg: "#e0a83c15" },
   }[sentiment];
 
   return (
@@ -441,7 +441,7 @@ export function ListeningDashboard() {
             style={{
               padding: "10px 24px",
               borderRadius: 8,
-              background: "linear-gradient(135deg, #7c3aed, #a855f7)",
+              background: "linear-gradient(135deg, #7c6bd6, #9b7be8)",
               color: "#fff",
               fontWeight: 600,
               fontSize: 14,
@@ -487,11 +487,11 @@ export function ListeningDashboard() {
       {/* ── Error state ─────────────────────────────────────── */}
       {error && (
         <div style={{
-          background: "#ef444415",
-          border: "1px solid #ef444440",
+          background: "#e5484d15",
+          border: "1px solid #e5484d40",
           borderRadius: 12,
           padding: "16px 20px",
-          color: "#ef4444",
+          color: "#e5484d",
           fontSize: 14,
         }}>
           ⚠️ {error}
@@ -588,7 +588,7 @@ export function ListeningDashboard() {
                     label={lang === "es" ? "Menciones" : "Mentions"}
                     value={formatNum(result.metrics.mentions)}
                     sub={`${result.sources.facebook} FB + ${result.sources.instagram} IG`}
-                    color="#7c3aed"
+                    color="#7c6bd6"
                     icon={MessageCircle}
                   />
                   <MetricCard
@@ -602,14 +602,14 @@ export function ListeningDashboard() {
                     label={lang === "es" ? "Sentimiento Positivo" : "Positive Sentiment"}
                     value={`${result.metrics.positiveCount}`}
                     sub={`${result.sentiment.positive}% positivo`}
-                    color="#22c55e"
+                    color="#34b77c"
                     icon={ThumbsUp}
                   />
                   <MetricCard
                     label={lang === "es" ? "Alcance Estimado" : "Estimated Reach"}
                     value={formatNum(result.metrics.reach)}
                     sub={lang === "es" ? "personas potenciales" : "potential people"}
-                    color="#f59e0b"
+                    color="#e0a83c"
                     icon={Globe}
                   />
                 </div>
@@ -635,7 +635,7 @@ export function ListeningDashboard() {
                           type="monotone"
                           dataKey="count"
                           name={lang === "es" ? "Menciones" : "Mentions"}
-                          stroke="#7c3aed"
+                          stroke="#7c6bd6"
                           strokeWidth={2.5}
                           dot={false}
                           activeDot={{ r: 5 }}
@@ -666,15 +666,15 @@ export function ListeningDashboard() {
                     padding: 24,
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                      <Sparkles size={16} color="#22c55e" />
-                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#22c55e" }}>
+                      <Sparkles size={16} color="#34b77c" />
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#34b77c" }}>
                         {lang === "es" ? "Temas con sentimiento positivo" : "Positive sentiment topics"}
                       </h3>
                     </div>
                     <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
                       {result.sentiment.positiveThemes.map((t, i) => (
                         <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#34b77c", flexShrink: 0 }} />
                           <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{t}</span>
                         </li>
                       ))}
@@ -688,15 +688,15 @@ export function ListeningDashboard() {
                     padding: 24,
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-                      <Sparkles size={16} color="#ef4444" />
-                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#ef4444" }}>
+                      <Sparkles size={16} color="#e5484d" />
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#e5484d" }}>
                         {lang === "es" ? "Temas con sentimiento negativo" : "Negative sentiment topics"}
                       </h3>
                     </div>
                     <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
                       {result.sentiment.negativeThemes.map((t, i) => (
                         <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#ef4444", flexShrink: 0 }} />
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#e5484d", flexShrink: 0 }} />
                           <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{t}</span>
                         </li>
                       ))}
@@ -759,9 +759,9 @@ export function ListeningDashboard() {
                         <XAxis dataKey="fecha" tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
                         <YAxis tick={{ fontSize: 10, fill: "var(--text-secondary)" }} />
                         <Tooltip content={<CustomTooltip />} />
-                        <Line type="monotone" dataKey="positive" name="Positivo" stroke="#22c55e" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="neutral" name="Neutral" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                        <Line type="monotone" dataKey="negative" name="Negativo" stroke="#ef4444" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="positive" name="Positivo" stroke="#34b77c" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="neutral" name="Neutral" stroke="#e0a83c" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="negative" name="Negativo" stroke="#e5484d" strokeWidth={2} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>

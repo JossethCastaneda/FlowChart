@@ -84,7 +84,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)", backdropFilter: "blur(6px)" }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, background: "rgba(8,12,24,0.98)", border: "1px solid rgba(123,97,255,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, background: "rgba(8,12,24,0.98)", border: "1px solid rgba(139,141,242,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
             <Layers style={{ width: 16, height: 16, color: "var(--purple)" }} /> Crear conjunto de anuncios
@@ -183,7 +183,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           </div>
 
           {error && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.2)" }}>
               <AlertTriangle style={{ width: 14, height: 14, color: "var(--red)", flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: "var(--red)" }}>{error}</span>
             </div>

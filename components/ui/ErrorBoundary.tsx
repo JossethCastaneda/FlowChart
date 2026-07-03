@@ -49,8 +49,8 @@ export class ErrorBoundary extends Component<Props, State> {
             justifyContent: "center",
             padding: "24px",
             textAlign: "center",
-            background: "rgba(255,45,85,0.05)",
-            border: "1px solid rgba(255,45,85,0.2)",
+            background: "rgba(229,72,77,0.05)",
+            border: "1px solid rgba(229,72,77,0.2)",
             borderRadius: "12px",
             position: "relative",
             overflow: "hidden",
@@ -64,17 +64,17 @@ export class ErrorBoundary extends Component<Props, State> {
 
           <div style={{
             width: "44px", height: "44px", borderRadius: "12px",
-            background: "rgba(255,45,85,0.1)",
-            border: "1px solid rgba(255,45,85,0.3)",
+            background: "rgba(229,72,77,0.1)",
+            border: "1px solid rgba(229,72,77,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
             marginBottom: "12px",
-            boxShadow: "0 0 20px rgba(255,45,85,0.15)",
+            boxShadow: "0 0 20px rgba(229,72,77,0.15)",
           }}>
             <AlertTriangle style={{ width: 20, height: 20, color: "var(--red)" }} />
           </div>
 
           <p style={{
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: "var(--font-display)",
             fontSize: "11px", fontWeight: 700,
             letterSpacing: "0.15em", textTransform: "uppercase",
             color: "var(--red)", marginBottom: "6px",
@@ -90,8 +90,8 @@ export class ErrorBoundary extends Component<Props, State> {
             style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
               padding: "7px 16px", borderRadius: "6px",
-              background: "rgba(255,45,85,0.1)",
-              border: "1px solid rgba(255,45,85,0.25)",
+              background: "rgba(229,72,77,0.1)",
+              border: "1px solid rgba(229,72,77,0.25)",
               color: "var(--red)", fontSize: "11px", fontWeight: 600,
               cursor: "pointer", fontFamily: "inherit",
               transition: "all 0.2s",

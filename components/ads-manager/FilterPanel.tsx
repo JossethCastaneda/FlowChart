@@ -127,10 +127,10 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             style={{
               position: "absolute", top: "100%", left: 0, marginTop: "8px",
               background: "rgba(10,18,35,0.97)", backdropFilter: "blur(12px)",
-              border: "1px solid rgba(0,212,255,0.15)", borderRadius: "10px",
+              border: "1px solid rgba(59,130,246,0.15)", borderRadius: "10px",
               padding: "8px", zIndex: 100, minWidth: "260px", maxHeight: "360px",
               overflowY: "auto",
-              boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7), 0 0 20px rgba(0,212,255,0.05)",
+              boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7), 0 0 20px rgba(59,130,246,0.05)",
             }}
             className="custom-scrollbar"
           >

@@ -30,7 +30,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
         width: "420px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
-        border: "1px solid rgba(0,212,255,0.15)", borderRadius: "12px", overflow: "hidden",
+        border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
@@ -43,7 +43,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
         </div>
 
         <div style={{ padding: "16px 20px" }}>
-          <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "16px", padding: "10px 12px", background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.08)", borderRadius: "6px" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "16px", padding: "10px 12px", background: "rgba(59,130,246,0.03)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: "6px" }}>
             El límite de gasto es el máximo que esta campaña puede gastar en total, independientemente del presupuesto diario. Una vez alcanzado, la campaña se pausa automáticamente.
           </div>
 
@@ -110,7 +110,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
           <button onClick={handleApply} disabled={loading || (!noLimit && !amount)} style={{
             padding: "7px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px",
             cursor: (!noLimit && !amount) ? "not-allowed" : "pointer",
-            background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.25)", color: "var(--cyan)",
+            background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)",
             opacity: loading ? 0.5 : 1,
           }}>
             {loading ? "Guardando..." : "Guardar"}

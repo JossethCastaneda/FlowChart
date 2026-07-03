@@ -17,7 +17,7 @@ export function ClipboardModal({ onClose, onPaste }: ClipboardModalProps) {
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
         width: "420px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
-        border: "1px solid rgba(0,212,255,0.15)", borderRadius: "12px", overflow: "hidden",
+        border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
@@ -73,7 +73,7 @@ export function ClipboardModal({ onClose, onPaste }: ClipboardModalProps) {
             disabled={items.length === 0}
             style={{
               display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600,
-              background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", borderRadius: "6px",
+              background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.2)", borderRadius: "6px",
               color: items.length > 0 ? "var(--red)" : "rgba(148,163,184,0.65)", cursor: items.length > 0 ? "pointer" : "not-allowed",
             }}
           >
@@ -84,8 +84,8 @@ export function ClipboardModal({ onClose, onPaste }: ClipboardModalProps) {
             disabled={items.length === 0}
             style={{
               display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600,
-              background: items.length > 0 ? "rgba(0,212,255,0.1)" : "rgba(148,163,184,0.05)",
-              border: `1px solid ${items.length > 0 ? "rgba(0,212,255,0.25)" : "rgba(148,163,184,0.18)"}`, borderRadius: "6px",
+              background: items.length > 0 ? "rgba(59,130,246,0.1)" : "rgba(148,163,184,0.05)",
+              border: `1px solid ${items.length > 0 ? "rgba(59,130,246,0.25)" : "rgba(148,163,184,0.18)"}`, borderRadius: "6px",
               color: items.length > 0 ? "var(--cyan)" : "rgba(148,163,184,0.65)",
               cursor: items.length > 0 ? "pointer" : "not-allowed",
             }}

@@ -49,19 +49,19 @@ function fmtDate(dateStr?: string | null): string {
 function StatusBadge({ status, error }: { status: Post["status"]; error?: string | null }) {
   const cfg: Record<string, { color: string; bg: string; border: string; icon: React.ReactNode; label: string }> = {
     Published: {
-      color: "var(--emerald)", bg: "rgba(6,214,160,0.1)", border: "rgba(6,214,160,0.3)",
+      color: "var(--emerald)", bg: "rgba(52,183,124,0.1)", border: "rgba(52,183,124,0.3)",
       icon: <CheckCircle2 size={11} />, label: "Publicado",
     },
     Failed: {
-      color: "var(--red)", bg: "rgba(255,45,85,0.1)", border: "rgba(255,45,85,0.3)",
+      color: "var(--red)", bg: "rgba(229,72,77,0.1)", border: "rgba(229,72,77,0.3)",
       icon: <XCircle size={11} />, label: "Error",
     },
     Scheduled: {
-      color: "var(--purple)", bg: "rgba(123,97,255,0.1)", border: "rgba(123,97,255,0.3)",
+      color: "var(--purple)", bg: "rgba(139,141,242,0.1)", border: "rgba(139,141,242,0.3)",
       icon: <Calendar size={11} />, label: "Programado",
     },
     Processing: {
-      color: "var(--amber)", bg: "rgba(255,190,11,0.1)", border: "rgba(255,190,11,0.3)",
+      color: "var(--amber)", bg: "rgba(224,168,60,0.1)", border: "rgba(224,168,60,0.3)",
       icon: <RefreshCw size={11} className="animate-spin" />, label: "Procesando",
     },
     Draft: {
@@ -124,7 +124,7 @@ function ChannelIcons({ channels }: { channels: string[] }) {
 function FormatIcon({ post }: { post: Post }) {
   const hasMedia = post.mediaUrls && post.mediaUrls.length > 0;
   const hasVideo = post.type === "video";
-  if (hasVideo) return <Play size={12} color="#a25ddc" />;
+  if (hasVideo) return <Play size={12} color="#9b7be8" />;
   if (hasMedia) return <Image size={12} color="var(--cyan)" />;
   return <AlignLeft size={12} color="var(--text-secondary)" />;
 }
@@ -179,20 +179,20 @@ export default function DeploymentHistoryPage() {
       {/* ── TOP BAR ── */}
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "14px 20px", borderBottom: "1px solid rgba(0,212,255,0.1)",
+        padding: "14px 20px", borderBottom: "1px solid rgba(59,130,246,0.1)",
         background: "rgba(5,8,18,0.6)", backdropFilter: "blur(20px)",
         gap: 16,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{
             width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(255,190,11,0.1)", border: "1px solid rgba(255,190,11,0.3)",
+            background: "rgba(224,168,60,0.1)", border: "1px solid rgba(224,168,60,0.3)",
           }}>
             <Activity size={16} color="var(--amber)" />
           </div>
           <div>
             <h1 style={{
-              fontFamily: "Orbitron, sans-serif", fontSize: 13, fontWeight: 700,
+              fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
               letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--foreground)", margin: 0,
             }}>Historial de Publicaciones</h1>
             <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0, marginTop: 2 }}>
@@ -291,8 +291,8 @@ export default function DeploymentHistoryPage() {
         gridTemplateColumns: "2fr 90px 100px 130px 120px 110px 100px",
         gap: 0,
         padding: "8px 20px",
-        borderBottom: "1px solid rgba(0,212,255,0.08)",
-        background: "rgba(0,212,255,0.02)",
+        borderBottom: "1px solid rgba(59,130,246,0.08)",
+        background: "rgba(59,130,246,0.02)",
       }}>
         {["Contenido", "Canales", "Formato", "Estado", "Página", "Publicado", "ID"].map(h => (
           <span key={h} style={{
@@ -317,7 +317,7 @@ export default function DeploymentHistoryPage() {
         ) : filtered.length === 0 ? (
           <div style={{ padding: 60, textAlign: "center" }}>
             <Zap size={32} color="rgba(148,163,184,0.3)" style={{ margin: "0 auto 12px" }} />
-            <p style={{ fontSize: 13, color: "var(--text-secondary)", fontFamily: "Orbitron, sans-serif", letterSpacing: "0.1em" }}>
+            <p style={{ fontSize: 13, color: "var(--text-secondary)", fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>
               SIN PUBLICACIONES
             </p>
             <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>Crea tu primer post desde el Publisher</p>
@@ -336,17 +336,17 @@ export default function DeploymentHistoryPage() {
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                   background: expandedId === post.id
-                    ? "rgba(0,212,255,0.04)"
+                    ? "rgba(59,130,246,0.04)"
                     : i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)",
                   borderLeft: `2px solid ${
-                    post.status === "Published" ? "rgba(6,214,160,0.4)" :
-                    post.status === "Failed" ? "rgba(255,45,85,0.4)" :
-                    post.status === "Scheduled" ? "rgba(123,97,255,0.4)" :
-                    post.status === "Processing" ? "rgba(255,190,11,0.4)" :
+                    post.status === "Published" ? "rgba(52,183,124,0.4)" :
+                    post.status === "Failed" ? "rgba(229,72,77,0.4)" :
+                    post.status === "Scheduled" ? "rgba(139,141,242,0.4)" :
+                    post.status === "Processing" ? "rgba(224,168,60,0.4)" :
                     "transparent"
                   }`,
                 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(0,212,255,0.04)"; }}
+                onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = "rgba(59,130,246,0.04)"; }}
                 onMouseLeave={e => {
                   if (expandedId !== post.id) {
                     (e.currentTarget as HTMLElement).style.background = i % 2 === 0 ? "transparent" : "rgba(255,255,255,0.01)";
@@ -414,7 +414,7 @@ export default function DeploymentHistoryPage() {
               {expandedId === post.id && (
                 <div style={{
                   padding: "12px 20px 16px 22px",
-                  borderBottom: "1px solid rgba(0,212,255,0.08)",
+                  borderBottom: "1px solid rgba(59,130,246,0.08)",
                   background: "rgba(0,0,0,0.25)",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr",
@@ -450,7 +450,7 @@ export default function DeploymentHistoryPage() {
                     {post.error ? (
                       <>
                         <p style={{ fontSize: 9, color: "var(--red)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>ERROR</p>
-                        <p style={{ fontSize: 11, color: "var(--red)", lineHeight: 1.5, background: "rgba(255,45,85,0.08)", padding: "8px 10px", borderRadius: 3, border: "1px solid rgba(255,45,85,0.2)" }}>
+                        <p style={{ fontSize: 11, color: "var(--red)", lineHeight: 1.5, background: "rgba(229,72,77,0.08)", padding: "8px 10px", borderRadius: 3, border: "1px solid rgba(229,72,77,0.2)" }}>
                           {post.error}
                         </p>
                       </>
@@ -503,7 +503,7 @@ export default function DeploymentHistoryPage() {
       {/* ── FOOTER STATS ── */}
       <div style={{
         display: "flex", alignItems: "center", gap: 20, padding: "10px 20px",
-        borderTop: "1px solid rgba(0,212,255,0.08)",
+        borderTop: "1px solid rgba(59,130,246,0.08)",
         background: "rgba(5,8,18,0.6)", backdropFilter: "blur(10px)",
         flexShrink: 0,
       }}>
@@ -517,7 +517,7 @@ export default function DeploymentHistoryPage() {
           <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 10, color: "var(--text-secondary)", letterSpacing: "0.1em", textTransform: "uppercase" }}>{label}</span>
             <span style={{
-              fontFamily: "Orbitron, sans-serif", fontSize: 13, fontWeight: 700, color,
+              fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700, color,
             }}>{value}</span>
           </div>
         ))}

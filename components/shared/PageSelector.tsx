@@ -127,7 +127,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
               <div style={{
                 width: 16, height: 16, borderRadius: 4,
                 border: `1px solid ${selectedIds.size === pages.length ? "var(--cyan)" : "rgba(255,255,255,0.15)"}`,
-                background: selectedIds.size === pages.length ? "rgba(0,212,255,0.15)" : "transparent",
+                background: selectedIds.size === pages.length ? "rgba(59,130,246,0.15)" : "transparent",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 {selectedIds.size === pages.length && (
@@ -148,7 +148,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                 style={{
                   display: "flex", alignItems: "center", gap: 10,
                   width: "100%", padding: "10px 14px",
-                  background: isSelected ? "rgba(0,212,255,0.04)" : "transparent",
+                  background: isSelected ? "rgba(59,130,246,0.04)" : "transparent",
                   border: "none", cursor: "pointer",
                   transition: "background 0.15s",
                 }}
@@ -156,14 +156,14 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                   if (!isSelected) e.currentTarget.style.background = "var(--row-hover)";
                 }}
                 onMouseLeave={e => {
-                  e.currentTarget.style.background = isSelected ? "rgba(0,212,255,0.04)" : "transparent";
+                  e.currentTarget.style.background = isSelected ? "rgba(59,130,246,0.04)" : "transparent";
                 }}
               >
                 {/* Checkbox */}
                 <div style={{
                   width: 16, height: 16, borderRadius: 4, flexShrink: 0,
                   border: `1px solid ${isSelected ? "var(--cyan)" : "rgba(255,255,255,0.15)"}`,
-                  background: isSelected ? "rgba(0,212,255,0.15)" : "transparent",
+                  background: isSelected ? "rgba(59,130,246,0.15)" : "transparent",
                   display: "flex", alignItems: "center", justifyContent: "center",
                   transition: "all 0.2s",
                 }}>
@@ -185,7 +185,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                 ) : (
                   <div style={{
                     width: 24, height: 24, borderRadius: "50%",
-                    background: "rgba(0,212,255,0.1)",
+                    background: "rgba(59,130,246,0.1)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 10, fontWeight: 600, color: "var(--cyan)",
                     flexShrink: 0,

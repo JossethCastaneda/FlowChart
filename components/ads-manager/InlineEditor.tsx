@@ -90,8 +90,8 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
           onClick={handleSave}
           disabled={loading}
           style={{
-            background: "rgba(6,214,160,0.15)",
-            border: "1px solid rgba(6,214,160,0.3)",
+            background: "rgba(52,183,124,0.15)",
+            border: "1px solid rgba(52,183,124,0.3)",
             borderRadius: "4px",
             color: "var(--emerald)",
             padding: "4px",
@@ -106,8 +106,8 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
           onClick={handleCancel}
           disabled={loading}
           style={{
-            background: "rgba(255,45,85,0.15)",
-            border: "1px solid rgba(255,45,85,0.3)",
+            background: "rgba(229,72,77,0.15)",
+            border: "1px solid rgba(229,72,77,0.3)",
             borderRadius: "4px",
             color: "var(--red)",
             padding: "4px",

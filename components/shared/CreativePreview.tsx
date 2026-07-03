@@ -37,8 +37,8 @@ interface AdCreative {
 /* ═══ FORMAT BADGE ═══ */
 const FormatBadge = ({ format }: { format: string }) => {
   const colors: Record<string, { bg: string; text: string }> = {
-    video:    { bg: "rgba(162,93,220,0.15)", text: "#a25ddc" },
-    image:    { bg: "rgba(0,212,255,0.12)", text: "var(--cyan)" },
+    video:    { bg: "rgba(162,93,220,0.15)", text: "#9b7be8" },
+    image:    { bg: "rgba(59,130,246,0.12)", text: "var(--cyan)" },
     carousel: { bg: "rgba(253,171,61,0.12)", text: "var(--amber)" },
   };
   const c = colors[format] || colors.image;
@@ -210,7 +210,7 @@ export const CreativeCard = ({
         borderRadius: 8, overflow: "hidden", cursor: "pointer",
         transition: "border-color 0.2s, transform 0.15s",
       }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(0,212,255,0.25)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.25)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "none"; }}
     >
       {/* Media area — auto-size based on content */}

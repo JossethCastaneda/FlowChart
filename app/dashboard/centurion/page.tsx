@@ -22,16 +22,16 @@ const fmtPct = (n: number) => (n * 100).toFixed(1) + "%";
 // ─── Color tokens (aligned with 1A Comando design system) ────────────────────
 const VIOLET        = "var(--purple)";
 const VIOLET_LIGHT  = "var(--purple-dim)";
-const VIOLET_BORDER = "rgba(123,97,255,0.25)";
+const VIOLET_BORDER = "rgba(139,141,242,0.25)";
 const GREEN         = "var(--emerald)";
 const GREEN_DIM     = "var(--emerald-dim)";
-const GREEN_BORDER  = "rgba(6,214,160,0.25)";
+const GREEN_BORDER  = "rgba(52,183,124,0.25)";
 const AMBER         = "var(--amber)";
 const AMBER_DIM     = "var(--amber-dim)";
-const AMBER_BORDER  = "rgba(255,190,11,0.25)";
+const AMBER_BORDER  = "rgba(224,168,60,0.25)";
 const RED           = "var(--red)";
 const RED_DIM       = "var(--red-dim)";
-const RED_BORDER    = "rgba(255,45,85,0.25)";
+const RED_BORDER    = "rgba(229,72,77,0.25)";
 const SAVE_DEBOUNCE = 2500;
 
 
@@ -292,7 +292,7 @@ function TabDatos({ rows, setRows, channels, onImport }: { rows: WeeklyRow[]; se
           </thead>
           <tbody>
             {rows.map((row, ri) => (
-              <tr key={row.week} style={{ borderTop: "1px solid var(--border)", background: row.isOutlier ? "rgba(255,45,85,0.04)" : "transparent", opacity: row.isOutlier ? 0.6 : 1 }}>
+              <tr key={row.week} style={{ borderTop: "1px solid var(--border)", background: row.isOutlier ? "rgba(229,72,77,0.04)" : "transparent", opacity: row.isOutlier ? 0.6 : 1 }}>
                 <td style={{ padding: "6px 12px", color: "var(--text-secondary)", fontWeight: 600, whiteSpace: "nowrap" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     {row.source === "api" && <span style={{ fontSize: 9, background: GREEN_DIM, color: GREEN, padding: "1px 5px", borderRadius: 4, fontWeight: 700 }}>API</span>}
@@ -797,7 +797,7 @@ export default function MediaMixPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 26px 0", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button onClick={() => router.back()} style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}><ArrowLeft size={15} /></button>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 18px rgba(123,97,255,0.2)" }}><PieChartIcon size={20} color={VIOLET} /></div>
+            <div style={{ width: 42, height: 42, borderRadius: 12, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 18px rgba(139,141,242,0.2)" }}><PieChartIcon size={20} color={VIOLET} /></div>
             <div>
               <h1 style={{ fontSize: 19, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Centurion MMM</h1>
               <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>

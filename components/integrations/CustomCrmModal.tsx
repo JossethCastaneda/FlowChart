@@ -148,8 +148,8 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
         {testResult && (
           <div style={{
             padding: "10px 14px", borderRadius: 6, fontSize: 12,
-            background: testResult.success ? "rgba(16,185,129,0.1)" : "rgba(239,68,68,0.1)",
-            border: `1px solid ${testResult.success ? "rgba(16,185,129,0.3)" : "rgba(239,68,68,0.3)"}`,
+            background: testResult.success ? "rgba(16,185,129,0.1)" : "rgba(229,72,77,0.1)",
+            border: `1px solid ${testResult.success ? "rgba(16,185,129,0.3)" : "rgba(229,72,77,0.3)"}`,
             color: testResult.success ? "var(--emerald)" : "var(--red)"
           }}>
             {testResult.msg}

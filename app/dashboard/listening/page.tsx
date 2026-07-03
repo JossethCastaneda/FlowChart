@@ -8,7 +8,7 @@ export default function ListeningPage() {
       <PageHeader
         title="Social Listening"
         description="Monitorea menciones de tu marca, keywords y sentimiento en redes sociales."
-        icon={<Ear className="w-6 h-6" style={{ color: "#fb923c" }} />}
+        icon={<Ear className="w-6 h-6" style={{ color: "#d98843" }} />}
       />
       <ListeningDashboard />
     </div>

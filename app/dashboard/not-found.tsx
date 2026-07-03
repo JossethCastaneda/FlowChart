@@ -37,7 +37,7 @@ export default function DashboardNotFound() {
       <div>
         <h2
           style={{
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: "var(--font-display)",
             fontSize: 20,
             fontWeight: 700,
             color: "var(--foreground)",
@@ -60,14 +60,14 @@ export default function DashboardNotFound() {
           gap: 8,
           padding: "10px 20px",
           borderRadius: 8,
-          background: "linear-gradient(135deg, var(--cyan), #4f46e5)",
+          background: "linear-gradient(135deg, var(--cyan), #2563eb)",
           border: "none",
           color: "#fff",
           fontSize: 13,
           fontWeight: 600,
           cursor: "pointer",
           fontFamily: "inherit",
-          boxShadow: "0 4px 16px rgba(0,212,255,0.35)",
+          boxShadow: "0 4px 16px rgba(59,130,246,0.35)",
           transition: "all 0.2s",
         }}
       >

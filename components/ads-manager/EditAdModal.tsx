@@ -169,7 +169,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(6,214,160,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(52,183,124,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Image className="w-4 h-4" style={{ color: "var(--emerald)" }} />
             </div>
             <div>
@@ -179,7 +179,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {creativeChanged && activeTab === "creative" && (
-              <div style={{ fontSize: 10, color: "var(--amber)", background: "rgba(255,190,11,0.1)", padding: "3px 8px", borderRadius: 20, border: "1px solid rgba(255,190,11,0.3)" }}>
+              <div style={{ fontSize: 10, color: "var(--amber)", background: "rgba(224,168,60,0.1)", padding: "3px 8px", borderRadius: 20, border: "1px solid rgba(224,168,60,0.3)" }}>
                 Creativo modificado
               </div>
             )}
@@ -207,7 +207,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               {tab.icon}
               {tab.label}
               {tab.key === "preview" && (
-                <span style={{ marginLeft: 4, fontSize: 9, background: "rgba(0,212,255,0.15)", color: "var(--cyan)", padding: "1px 5px", borderRadius: 10 }}>
+                <span style={{ marginLeft: 4, fontSize: 9, background: "rgba(59,130,246,0.15)", color: "var(--cyan)", padding: "1px 5px", borderRadius: 10 }}>
                   LIVE
                 </span>
               )}
@@ -225,7 +225,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
               <FormGroup label="Estado">
                 <div style={{ display: "flex", gap: 8 }}>
                   {(["ACTIVE", "PAUSED"] as const).map((s) => (
-                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(6,214,160,0.15)" : "rgba(255,190,11,0.1)") : "rgba(255,255,255,0.09)", borderColor: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--border)", color: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--text-secondary)" }}>
+                    <button key={s} onClick={() => setStatus(s)} style={{ ...toggleStyle, background: status === s ? (s === "ACTIVE" ? "rgba(52,183,124,0.15)" : "rgba(224,168,60,0.1)") : "rgba(255,255,255,0.09)", borderColor: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--border)", color: status === s ? (s === "ACTIVE" ? "var(--emerald)" : "var(--amber)") : "var(--text-secondary)" }}>
                       {s === "ACTIVE" ? "? Activo" : "? Pausado"}
                     </button>
                   ))}
@@ -246,7 +246,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
           {activeTab === "creative" && (
             <>
               {!existingStorySpec.page_id && (
-                <div style={{ padding: "10px 12px", background: "rgba(255,190,11,0.05)", border: "1px solid rgba(255,190,11,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(255,190,11,0.9)", lineHeight: 1.5, marginBottom: 4 }}>
+                <div style={{ padding: "10px 12px", background: "rgba(224,168,60,0.05)", border: "1px solid rgba(224,168,60,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(224,168,60,0.9)", lineHeight: 1.5, marginBottom: 4 }}>
                   ?? Los datos del creativo no están disponibles completamente desde la API. Los cambios de creativo pueden no aplicarse correctamente si la información de la página no está disponible.
                 </div>
               )}
@@ -286,7 +286,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
                 <input value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://... (opcional)" style={inputStyle} />
               </FormGroup>
 
-              <div style={{ padding: "10px 12px", background: "rgba(0,212,255,0.03)", border: "1px solid rgba(0,212,255,0.08)", borderRadius: 8, fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.5 }}>
+              <div style={{ padding: "10px 12px", background: "rgba(59,130,246,0.03)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: 8, fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.5 }}>
                 ?? Los creativos en Meta son <strong style={{ color: "var(--foreground)" }}>inmutables</strong>. Al guardar con cambios de creativo, se creará automáticamente un nuevo creativo y se asignará al anuncio.
               </div>
             </>
@@ -297,7 +297,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
           )}
 
           {localError && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(255,45,85,0.1)", border: "1px solid rgba(255,45,85,0.3)", borderRadius: 8, fontSize: 12, color: "var(--red)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 8, fontSize: 12, color: "var(--red)" }}>
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {localError}
             </div>
@@ -316,7 +316,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
             <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "rgba(148,163,184,0.7)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
               Cancelar
             </button>
-            <button onClick={handleSave} disabled={loading || saved} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", background: saved ? "rgba(6,214,160,0.2)" : "rgba(0,129,251,0.2)", border: `1px solid ${saved ? "var(--emerald)" : "var(--cyan)"}`, borderRadius: 8, color: saved ? "var(--emerald)" : "var(--cyan)", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>
+            <button onClick={handleSave} disabled={loading || saved} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", background: saved ? "rgba(52,183,124,0.2)" : "rgba(0,129,251,0.2)", border: `1px solid ${saved ? "var(--emerald)" : "var(--cyan)"}`, borderRadius: 8, color: saved ? "var(--emerald)" : "var(--cyan)", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : saved ? "? Guardado" : <><Save className="w-4 h-4" /> Guardar</>}
             </button>
           </div>

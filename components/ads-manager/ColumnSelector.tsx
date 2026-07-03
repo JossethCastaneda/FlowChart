@@ -80,7 +80,7 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
       >
         <Columns className="w-3.5 h-3.5" />
         <span>Columnas</span>
-        <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 5px", borderRadius: "6px", background: "rgba(0,212,255,0.1)", color: "var(--cyan)" }}>
+        <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 5px", borderRadius: "6px", background: "rgba(59,130,246,0.1)", color: "var(--cyan)" }}>
           {selectedKeys.length}
         </span>
         <ChevronDown className="w-3 h-3" />
@@ -100,14 +100,14 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
             <div style={{ display: "flex", borderBottom: "1px solid var(--border)", padding: "6px" }}>
               <button onClick={() => setShowOrder(false)} style={{
                 flex: 1, padding: "4px", fontSize: "10px", fontWeight: 600, borderRadius: "4px", cursor: "pointer",
-                background: !showOrder ? "rgba(0,212,255,0.08)" : "transparent",
+                background: !showOrder ? "rgba(59,130,246,0.08)" : "transparent",
                 border: "none", color: !showOrder ? "var(--cyan)" : "var(--text-muted)",
               }}>
                 Seleccionar
               </button>
               <button onClick={() => setShowOrder(true)} style={{
                 flex: 1, padding: "4px", fontSize: "10px", fontWeight: 600, borderRadius: "4px", cursor: "pointer",
-                background: showOrder ? "rgba(0,212,255,0.08)" : "transparent",
+                background: showOrder ? "rgba(59,130,246,0.08)" : "transparent",
                 border: "none", color: showOrder ? "var(--cyan)" : "var(--text-muted)",
               }}>
                 Ordenar
@@ -119,7 +119,7 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
               <div style={{ maxHeight: "320px", overflowY: "auto", padding: "4px 0" }} className="custom-scrollbar">
                 {/* Quick actions */}
                 <div style={{ display: "flex", gap: "4px", padding: "4px 8px 8px" }}>
-                  <button onClick={selectAll} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "rgba(0,212,255,0.05)", border: "1px solid rgba(0,212,255,0.1)", borderRadius: "3px", color: "var(--cyan)", cursor: "pointer" }}>
+                  <button onClick={selectAll} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "rgba(59,130,246,0.05)", border: "1px solid rgba(59,130,246,0.1)", borderRadius: "3px", color: "var(--cyan)", cursor: "pointer" }}>
                     Todas
                   </button>
                   <button onClick={selectNone} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "3px", color: "var(--text-muted)", cursor: "pointer" }}>
@@ -204,7 +204,7 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
                     style={{
                       display: "flex", alignItems: "center", gap: "6px", padding: "5px 10px",
                       cursor: "grab", fontSize: "11px", color: "var(--foreground)",
-                      background: dragOverIdx === idx ? "rgba(0,212,255,0.06)" : "transparent",
+                      background: dragOverIdx === idx ? "rgba(59,130,246,0.06)" : "transparent",
                       borderTop: dragOverIdx === idx ? "2px solid var(--cyan)" : "2px solid transparent",
                       opacity: dragIdx === idx ? 0.4 : 1,
                     }}

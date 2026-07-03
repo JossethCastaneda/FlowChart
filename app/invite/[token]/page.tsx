@@ -170,16 +170,16 @@ export default function InvitePage() {
   const card: React.CSSProperties = {
     width: "100%", maxWidth: "420px", margin: "0 16px", padding: "40px",
     background: "rgba(8,12,24,0.85)",
-    border: "1px solid rgba(0,212,255,0.15)",
+    border: "1px solid rgba(59,130,246,0.15)",
     backdropFilter: "blur(20px)",
   };
   const orbitron: React.CSSProperties = {
-    fontFamily: "'Orbitron', sans-serif",
+    fontFamily: "var(--font-display)",
   };
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "10px 14px",
-    background: "rgba(0,212,255,0.03)",
-    border: "1px solid rgba(0,212,255,0.15)",
+    background: "rgba(59,130,246,0.03)",
+    border: "1px solid rgba(59,130,246,0.15)",
     color: "white", fontSize: "13px", outline: "none",
     boxSizing: "border-box" as const,
   };
@@ -189,7 +189,7 @@ export default function InvitePage() {
     return (
       <div style={{ ...page, flexDirection: "column", gap: "24px" }}>
         <Orbi state="working" scale={0.8} />
-        <p style={{ color: "var(--cyan)", fontFamily: "'Orbitron', sans-serif", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO INVITACIÓN...</p>
+        <p style={{ color: "var(--cyan)", fontFamily: "var(--font-display)", letterSpacing: "0.1em", fontSize: "14px" }}>CARGANDO INVITACIÓN...</p>
       </div>
     );
   }
@@ -256,8 +256,8 @@ export default function InvitePage() {
         {/* Info del workspace */}
         <div style={{ display: "flex", alignItems: "center",
           gap: "10px", marginBottom: "20px", padding: "14px",
-          background: "rgba(0,212,255,0.04)",
-          border: "1px solid rgba(0,212,255,0.1)" }}>
+          background: "rgba(59,130,246,0.04)",
+          border: "1px solid rgba(59,130,246,0.1)" }}>
           <Users style={{ width: 20, height: 20,
             color: "var(--cyan)", flexShrink: 0 }} />
           <div>
@@ -285,8 +285,8 @@ export default function InvitePage() {
         {error && (
           <p style={{ fontSize: "12px", color: "var(--red)",
             marginBottom: "16px", padding: "8px 12px",
-            background: "rgba(255,45,85,0.05)",
-            border: "1px solid rgba(255,45,85,0.15)" }}>
+            background: "rgba(229,72,77,0.05)",
+            border: "1px solid rgba(229,72,77,0.15)" }}>
             {error}
           </p>
         )}
@@ -299,8 +299,8 @@ export default function InvitePage() {
               onClick={() => signIn("google",
                 { callbackUrl: `/invite/${token}` })}
               style={{ width: "100%", padding: "13px",
-                background: "rgba(0,212,255,0.08)",
-                border: "1px solid rgba(0,212,255,0.3)",
+                background: "rgba(59,130,246,0.08)",
+                border: "1px solid rgba(59,130,246,0.3)",
                 color: "white", cursor: "pointer",
                 ...orbitron, fontSize: "11px",
                 letterSpacing: "0.15em" }}>
@@ -311,7 +311,7 @@ export default function InvitePage() {
                 { callbackUrl: `/invite/${token}` })}
               style={{ width: "100%", padding: "11px",
                 background: "transparent",
-                border: "1px solid rgba(0,212,255,0.1)",
+                border: "1px solid rgba(59,130,246,0.1)",
                 color: "rgba(148,163,184,0.6)",
                 cursor: "pointer", fontSize: "13px" }}>
               Continuar con Facebook
@@ -321,12 +321,12 @@ export default function InvitePage() {
             <div style={{ display: "flex", alignItems: "center",
               gap: "8px", margin: "4px 0" }}>
               <span style={{ flex: 1, height: "1px",
-                background: "rgba(0,212,255,0.1)" }} />
+                background: "rgba(59,130,246,0.1)" }} />
               <span style={{ fontSize: "10px",
                 color: "rgba(148,163,184,0.65)",
                 ...orbitron, letterSpacing: "0.1em" }}>O</span>
               <span style={{ flex: 1, height: "1px",
-                background: "rgba(0,212,255,0.1)" }} />
+                background: "rgba(59,130,246,0.1)" }} />
             </div>
 
             {!showRegister ? (
@@ -334,7 +334,7 @@ export default function InvitePage() {
                 onClick={() => setShowRegister(true)}
                 style={{ width: "100%", padding: "12px",
                   background: "transparent",
-                  border: "1px solid rgba(0,212,255,0.1)",
+                  border: "1px solid rgba(59,130,246,0.1)",
                   color: "rgba(148,163,184,0.6)",
                   cursor: "pointer", fontSize: "13px" }}>
                 Crear cuenta con email
@@ -350,7 +350,7 @@ export default function InvitePage() {
                   disabled
                   style={{ ...inputStyle,
                     color: "rgba(148,163,184,0.75)",
-                    borderColor: "rgba(0,212,255,0.1)" }} />
+                    borderColor: "rgba(59,130,246,0.1)" }} />
                 <input type="password"
                   placeholder="Contraseña (mín. 8 caracteres)"
                   value={regPassword}
@@ -373,8 +373,8 @@ export default function InvitePage() {
                   onClick={handleRegisterAndAccept}
                   disabled={regLoading}
                   style={{ width: "100%", padding: "12px",
-                    background: "rgba(0,212,255,0.1)",
-                    border: "1px solid rgba(0,212,255,0.3)",
+                    background: "rgba(59,130,246,0.1)",
+                    border: "1px solid rgba(59,130,246,0.3)",
                     color: regLoading
                       ? "rgba(148,163,184,0.7)" : "white",
                     cursor: regLoading
@@ -394,8 +394,8 @@ export default function InvitePage() {
             onClick={handleAccept}
             disabled={accepting}
             style={{ width: "100%", padding: "13px",
-              background: "rgba(0,212,255,0.08)",
-              border: "1px solid rgba(0,212,255,0.3)",
+              background: "rgba(59,130,246,0.08)",
+              border: "1px solid rgba(59,130,246,0.3)",
               color: accepting
                 ? "rgba(148,163,184,0.7)" : "white",
               cursor: accepting ? "not-allowed" : "pointer",
@@ -418,11 +418,11 @@ function Logo() {
       <div style={{ width: 38, height: 38,
         display: "flex", alignItems: "center",
         justifyContent: "center", background: "#000",
-        border: "1px solid rgba(0,212,255,0.4)",
-        boxShadow: "0 0 12px rgba(0,212,255,0.2)" }}>
+        border: "1px solid rgba(59,130,246,0.4)",
+        boxShadow: "0 0 12px rgba(59,130,246,0.2)" }}>
         <Zap style={{ width: 20, height: 20, color: "var(--cyan)" }} />
       </div>
-      <span style={{ fontFamily: "'Orbitron', sans-serif",
+      <span style={{ fontFamily: "var(--font-display)",
         fontSize: "18px", fontWeight: 700, color: "white",
         letterSpacing: "0.2em" }}>
         SODARE

@@ -256,7 +256,7 @@ export function GoogleHubCenter() {
             disabled={connectingModule === "disconnecting"}
             style={{
               padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-              background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)",
+              background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.2)",
               color: "var(--red)", cursor: "pointer", transition: "all 0.15s",
               display: "flex", alignItems: "center", gap: 6,
             }}
@@ -325,8 +325,8 @@ export function GoogleHubCenter() {
                     <div style={{
                       display: "flex", alignItems: "center", gap: 6,
                       padding: "6px 12px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                      background: isConfigured ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)",
-                      border: `1px solid ${isConfigured ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}`,
+                      background: isConfigured ? "rgba(16,185,129,0.1)" : "rgba(224,168,60,0.1)",
+                      border: `1px solid ${isConfigured ? "rgba(16,185,129,0.2)" : "rgba(224,168,60,0.2)"}`,
                       color: isConfigured ? "var(--emerald)" : "var(--amber)",
                     }}>
                       <CheckCircle size={12} />
@@ -377,7 +377,7 @@ export function GoogleHubCenter() {
                       {errorMsg && (
                         <div style={{
                           display: "flex", alignItems: "center", gap: 8, padding: "8px 12px",
-                          background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)",
+                          background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.2)",
                           borderRadius: 6, color: "var(--red)", fontSize: 11
                         }}>
                           <AlertCircle size={12} />

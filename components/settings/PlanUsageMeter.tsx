@@ -25,7 +25,7 @@ function MeterRow({ label, used, limit, isUnlimited, loading }: MeterRowProps) {
     ? "#e2445c"
     : warning
     ? "#fdab3d"
-    : "#00d4ff";
+    : "#5b9bff";
 
   return (
     <div style={{ marginBottom: "18px" }}>
@@ -99,8 +99,8 @@ export function PlanUsageMeter({ onUpgrade }: PlanUsageMeterProps) {
             </span>
             <span style={{
               fontSize: "10px", fontWeight: 700, padding: "2px 8px",
-              background: plan === "agency" ? "rgba(0,212,255,0.12)" : plan === "pro" ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.06)",
-              color: plan === "agency" ? "#00d4ff" : plan === "pro" ? "#818cf8" : "rgba(148,163,184,0.7)",
+              background: plan === "agency" ? "rgba(59,130,246,0.12)" : plan === "pro" ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.06)",
+              color: plan === "agency" ? "#5b9bff" : plan === "pro" ? "#818cf8" : "rgba(148,163,184,0.7)",
               borderRadius: "20px",
               textTransform: "uppercase",
               letterSpacing: "0.05em",
@@ -118,7 +118,7 @@ export function PlanUsageMeter({ onUpgrade }: PlanUsageMeterProps) {
               padding: "8px 16px",
               background: hasAnyExceeded
                 ? "linear-gradient(135deg, #e2445c, #c01f3d)"
-                : "linear-gradient(135deg, #00d4ff, #0081fb)",
+                : "linear-gradient(135deg, #5b9bff, #0081fb)",
               border: "none",
               borderRadius: "8px",
               color: "white",

@@ -63,8 +63,8 @@ type Prefs = typeof DEFAULT_PREFS;
 
 const inp: React.CSSProperties = {
   padding: "8px 12px",
-  background: "rgba(0,212,255,0.03)",
-  border: "1px solid rgba(0,212,255,0.1)",
+  background: "rgba(59,130,246,0.03)",
+  border: "1px solid rgba(59,130,246,0.1)",
   color: "var(--foreground)",
   fontSize: "13px",
   outline: "none",
@@ -399,7 +399,7 @@ export default function SettingsPage() {
                 <div style={{
                   fontSize: 9, fontWeight: 800, letterSpacing: "0.2em", textTransform: "uppercase",
                   color: "rgba(148,163,184,0.45)", padding: "4px 12px 8px",
-                  borderLeft: "2px solid rgba(0,212,255,0.15)", marginLeft: 4,
+                  borderLeft: "2px solid rgba(59,130,246,0.15)", marginLeft: 4,
                 }}>
                   {g.group}
                 </div>
@@ -414,7 +414,7 @@ export default function SettingsPage() {
                       onClick={() => selectSection(it.key)}
                       className={`flex items-center gap-2 lg:gap-3 px-3 py-2 lg:py-2.5 rounded-lg border transition-all text-sm lg:text-[13px] whitespace-nowrap lg:whitespace-normal
                         ${active 
-                          ? "bg-[rgba(0,212,255,0.08)] border-[rgba(0,212,255,0.18)] text-slate-200 font-semibold" 
+                          ? "bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.18)] text-slate-200 font-semibold" 
                           : "bg-transparent border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-300"}`}
                       style={{ textAlign: "left" }}
                     >
@@ -447,9 +447,9 @@ export default function SettingsPage() {
                 </div>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6 mb-6">
                   {session?.user?.image ? (
-                    <img src={session.user.image} alt="" className="w-14 h-14 rounded-full border border-[rgba(0,212,255,0.2)]" />
+                    <img src={session.user.image} alt="" className="w-14 h-14 rounded-full border border-[rgba(59,130,246,0.2)]" />
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center font-display text-lg text-[var(--cyan)]">
+                    <div className="w-14 h-14 rounded-full bg-[rgba(59,130,246,0.1)] flex items-center justify-center font-display text-lg text-[var(--cyan)]">
                       {(session?.user?.name || "U")[0].toUpperCase()}
                     </div>
                   )}
@@ -649,11 +649,11 @@ export default function SettingsPage() {
                       style={{
                         flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
                         padding: "7px 10px", borderRadius: 7, border: "none", cursor: "pointer",
-                        background: active ? "rgba(0,212,255,0.1)" : "transparent",
+                        background: active ? "rgba(59,130,246,0.1)" : "transparent",
                         color: active ? "var(--cyan)" : "var(--text-secondary)",
                         fontSize: 12, fontWeight: active ? 700 : 400, fontFamily: "inherit",
                         transition: "all 0.15s",
-                        boxShadow: active ? "inset 0 0 0 1px rgba(0,212,255,0.2)" : "none",
+                        boxShadow: active ? "inset 0 0 0 1px rgba(59,130,246,0.2)" : "none",
                       }}
                     >
                       <TabIcon style={{ width: 13, height: 13 }} />
@@ -776,7 +776,7 @@ export default function SettingsPage() {
                             {m.user.image ? (
                               <img src={m.user.image} alt="" className="w-8 h-8 rounded-full border border-white/10" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-[rgba(0,212,255,0.1)] flex items-center justify-center text-[var(--cyan)] text-xs font-semibold">
+                              <div className="w-8 h-8 rounded-full bg-[rgba(59,130,246,0.1)] flex items-center justify-center text-[var(--cyan)] text-xs font-semibold">
                                 {(m.user.name || "?")[0].toUpperCase()}
                               </div>
                             )}
@@ -874,7 +874,7 @@ export default function SettingsPage() {
 
           {/* ZONA PELIGROSA */}
           {activeSection === "danger" && userRole === "OWNER" && (
-            <div className="glass-panel p-4 md:p-6 border-[rgba(255,45,85,0.15)]">
+            <div className="glass-panel p-4 md:p-6 border-[rgba(229,72,77,0.15)]">
               <div className="section-header !px-0 !pt-0 !border-none !bg-transparent mb-4">
                 <span className="section-title flex items-center gap-2 text-red-500">
                   <Shield className="w-4 h-4 text-red-500" /> Zona peligrosa

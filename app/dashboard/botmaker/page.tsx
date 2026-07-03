@@ -373,7 +373,7 @@ const CATEGORIES: Category[] = [
   {
     id: "notifications", label: "Notificaciones",
     description: "Envía campañas masivas por WA",
-    icon: Bell, color: "#fb923c",
+    icon: Bell, color: "#d98843",
     endpoints: [
       {
         id: "send-notification", label: "Enviar Campaña",
@@ -404,7 +404,7 @@ const CATEGORIES: Category[] = [
   {
     id: "ecommerce", label: "E-commerce",
     description: "Catálogos y productos por WhatsApp",
-    icon: ShoppingCart, color: "#f472b6",
+    icon: ShoppingCart, color: "#bc5fb2",
     endpoints: [
       { id: "list-catalogs", label: "Listar Catálogos", description: "Lista todos los catálogos.", method: "GET", path: "/ecommerce/catalogs" },
       {
@@ -517,7 +517,7 @@ const CATEGORIES: Category[] = [
 // ─────────────────────────────────────────────────────────────────────────────
 
 const METHOD_COLORS: Record<string, string> = {
-  GET: "var(--emerald)", POST: "var(--cyan)", PATCH: "var(--amber)", DELETE: "var(--red)", PUT: "#fb923c",
+  GET: "var(--emerald)", POST: "var(--cyan)", PATCH: "var(--amber)", DELETE: "var(--red)", PUT: "#d98843",
 };
 
 async function callProxy(method: string, path: string, body?: Record<string, unknown>) {
@@ -598,7 +598,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
               width: 52, height: 52, borderRadius: 14,
               background: "linear-gradient(135deg, var(--purple), var(--purple))",
               display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 8px 24px rgba(124,58,237,0.35)",
+              boxShadow: "0 8px 24px rgba(124,107,214,0.35)",
             }}>
               <Bot style={{ width: 26, height: 26, color: "white" }} />
             </div>
@@ -620,7 +620,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
               { icon: MessageSquare, label: "Gestión de Chats", color: "var(--purple)" },
               { icon: Send, label: "Envío de Mensajes", color: "var(--emerald)" },
               { icon: Users, label: "CRM Contactos", color: "var(--cyan)" },
-              { icon: Bell, label: "Notificaciones WA", color: "#fb923c" },
+              { icon: Bell, label: "Notificaciones WA", color: "#d98843" },
               { icon: Webhook, label: "Webhooks", color: "var(--purple)" },
               { icon: Shield, label: "40+ Endpoints", color: "var(--amber)" },
             ].map(({ icon: Icon, label, color }) => (
@@ -654,7 +654,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                   style={{
                     width: "100%", padding: "12px 44px 12px 14px",
                     background: "rgba(255,255,255,0.05)",
-                    border: `1px solid ${error ? "rgba(255,45,85,0.5)" : "rgba(255,255,255,0.1)"}`,
+                    border: `1px solid ${error ? "rgba(229,72,77,0.5)" : "rgba(255,255,255,0.1)"}`,
                     borderRadius: 10, color: "white", fontSize: 13,
                     outline: "none", fontFamily: "monospace", boxSizing: "border-box",
                     transition: "border-color 0.2s",
@@ -702,8 +702,8 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
             {error && (
               <div style={{
                 padding: "10px 14px",
-                background: "rgba(255,45,85,0.08)",
-                border: "1px solid rgba(255,45,85,0.2)",
+                background: "rgba(229,72,77,0.08)",
+                border: "1px solid rgba(229,72,77,0.2)",
                 borderRadius: 8, display: "flex", gap: 8, alignItems: "flex-start",
               }}>
                 <XCircle style={{ width: 14, height: 14, color: "var(--red)", flexShrink: 0, marginTop: 1 }} />
@@ -715,8 +715,8 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
             {success && (
               <div style={{
                 padding: "10px 14px",
-                background: "rgba(6,214,160,0.08)",
-                border: "1px solid rgba(6,214,160,0.2)",
+                background: "rgba(52,183,124,0.08)",
+                border: "1px solid rgba(52,183,124,0.2)",
                 borderRadius: 8, display: "flex", gap: 8, alignItems: "center",
               }}>
                 <CheckCircle style={{ width: 14, height: 14, color: "var(--emerald)" }} />
@@ -739,7 +739,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                   : "rgba(255,255,255,0.06)",
                 color: token.trim() && !loading && !success ? "white" : "rgba(148,163,184,0.4)",
                 fontWeight: 700, fontSize: 14, transition: "all 0.25s",
-                boxShadow: token.trim() && !loading && !success ? "0 4px 16px rgba(124,58,237,0.3)" : "none",
+                boxShadow: token.trim() && !loading && !success ? "0 4px 16px rgba(124,107,214,0.3)" : "none",
               }}
             >
               {loading ? (
@@ -875,8 +875,8 @@ function EndpointForm({
 
       {endpoint.note && (
         <div style={{
-          padding: "10px 14px", background: "rgba(255,190,11,0.06)",
-          border: "1px solid rgba(255,190,11,0.18)", borderRadius: 8,
+          padding: "10px 14px", background: "rgba(224,168,60,0.06)",
+          border: "1px solid rgba(224,168,60,0.18)", borderRadius: 8,
           fontSize: 12, color: "var(--amber)", display: "flex", gap: 8, alignItems: "flex-start",
         }}>
           <AlertTriangle style={{ width: 14, height: 14, flexShrink: 0, marginTop: 1 }} />
@@ -904,7 +904,7 @@ function EndpointForm({
                   {f.label}
                   {f.required && <span style={{ color: "var(--red)", fontSize: 11 }}>*</span>}
                   {f.dynamicOptions && dynamicOpts && dynamicOpts.length > 0 && (
-                    <span style={{ fontSize: 9, color: "var(--emerald)", fontWeight: 600, background: "rgba(6,214,160,0.1)", padding: "1px 5px", borderRadius: 4 }}>
+                    <span style={{ fontSize: 9, color: "var(--emerald)", fontWeight: 600, background: "rgba(52,183,124,0.1)", padding: "1px 5px", borderRadius: 4 }}>
                       PRECARGADO
                     </span>
                   )}
@@ -986,13 +986,13 @@ function EndpointForm({
       {result && (
         <div style={{
           background: "rgba(255,255,255,0.015)",
-          border: `1px solid ${result.ok ? "rgba(6,214,160,0.2)" : "rgba(255,45,85,0.2)"}`,
+          border: `1px solid ${result.ok ? "rgba(52,183,124,0.2)" : "rgba(229,72,77,0.2)"}`,
           borderRadius: 12, overflow: "hidden",
         }}>
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "10px 16px",
-            background: result.ok ? "rgba(6,214,160,0.05)" : "rgba(255,45,85,0.05)",
+            background: result.ok ? "rgba(52,183,124,0.05)" : "rgba(229,72,77,0.05)",
             borderBottom: "1px solid rgba(255,255,255,0.05)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -1155,7 +1155,7 @@ function ConnectedModule({
             <div style={{
               display: "flex", alignItems: "center", gap: 5,
               padding: "3px 8px", borderRadius: 20,
-              background: "rgba(6,214,160,0.1)", border: "1px solid rgba(6,214,160,0.25)",
+              background: "rgba(52,183,124,0.1)", border: "1px solid rgba(52,183,124,0.25)",
             }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 4px var(--emerald)" }} />
               <span style={{ fontSize: 9, fontWeight: 700, color: "var(--emerald)", letterSpacing: "0.05em" }}>ACTIVO</span>
@@ -1166,7 +1166,7 @@ function ConnectedModule({
           <div style={{
             display: "flex", alignItems: "center", gap: 7,
             padding: "7px 10px", borderRadius: 7,
-            background: preloadStatus === "done" ? "rgba(6,214,160,0.05)" : "rgba(255,255,255,0.03)",
+            background: preloadStatus === "done" ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.03)",
             border: "1px solid rgba(255,255,255,0.06)",
             marginBottom: 10,
           }}>
@@ -1180,7 +1180,7 @@ function ConnectedModule({
                 </span></>
             ) : (
               <><AlertTriangle style={{ width: 11, height: 11, color: "var(--amber)" }} />
-                <span style={{ fontSize: 10, color: "rgba(255,190,11,0.7)" }}>Preload parcial</span></>
+                <span style={{ fontSize: 10, color: "rgba(224,168,60,0.7)" }}>Preload parcial</span></>
             )}
           </div>
 
@@ -1189,8 +1189,8 @@ function ConnectedModule({
             style={{
               width: "100%", display: "flex", alignItems: "center", gap: 7,
               padding: "8px 10px", marginBottom: 8,
-              background: "rgba(124,58,237,0.1)",
-              border: "1px solid rgba(124,58,237,0.3)", borderRadius: 7,
+              background: "rgba(124,107,214,0.1)",
+              border: "1px solid rgba(124,107,214,0.3)", borderRadius: 7,
               color: "rgba(196,181,253,0.95)", fontSize: 11, fontWeight: 600,
               textDecoration: "none", transition: "all 0.15s",
             }}
@@ -1223,8 +1223,8 @@ function ConnectedModule({
             disabled={disconnecting}
             style={{
               width: "100%", display: "flex", alignItems: "center", gap: 7,
-              padding: "7px 10px", background: "rgba(255,45,85,0.06)",
-              border: "1px solid rgba(255,45,85,0.15)", borderRadius: 7,
+              padding: "7px 10px", background: "rgba(229,72,77,0.06)",
+              border: "1px solid rgba(229,72,77,0.15)", borderRadius: 7,
               cursor: "pointer", color: "rgba(255,100,120,0.75)", fontSize: 11,
               transition: "all 0.15s",
             }}
@@ -1361,7 +1361,7 @@ function ConnectedModule({
             display: "flex", flexDirection: "column", alignItems: "center",
             justifyContent: "center", height: "100%", gap: 12,
           }}>
-            <Bot style={{ width: 48, height: 48, color: "rgba(124,58,237,0.3)" }} />
+            <Bot style={{ width: 48, height: 48, color: "rgba(124,107,214,0.3)" }} />
             <p style={{ color: "rgba(148,163,184,0.4)", fontSize: 14 }}>
               Selecciona un endpoint del menú
             </p>
@@ -1450,7 +1450,7 @@ export default function BotmakerPage() {
           width: 52, height: 52, borderRadius: 14,
           background: "linear-gradient(135deg, var(--purple), var(--purple))",
           display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 8px 24px rgba(124,58,237,0.3)",
+          boxShadow: "0 8px 24px rgba(124,107,214,0.3)",
           animation: "pulse 2s ease-in-out infinite",
         }}>
           <Bot style={{ width: 26, height: 26, color: "white" }} />
@@ -1458,8 +1458,8 @@ export default function BotmakerPage() {
         <p style={{ color: "rgba(148,163,184,0.5)", fontSize: 13 }}>Verificando conexión...</p>
         <style>{`
           @keyframes pulse {
-            0%, 100% { box-shadow: 0 8px 24px rgba(124,58,237,0.3); transform: scale(1); }
-            50% { box-shadow: 0 8px 32px rgba(124,58,237,0.5); transform: scale(1.04); }
+            0%, 100% { box-shadow: 0 8px 24px rgba(124,107,214,0.3); transform: scale(1); }
+            50% { box-shadow: 0 8px 32px rgba(124,107,214,0.5); transform: scale(1.04); }
           }
         `}</style>
       </div>

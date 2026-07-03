@@ -54,8 +54,8 @@ const BG_FOOTER = "rgba(3,7,18,1)";
 const BORDER    = "1px solid var(--border)";
 
 // Accent lines for header and footer
-const TH_BORDER_BOTTOM = "2px solid rgba(0,212,255,0.45)";
-const TF_BORDER_TOP    = "2px solid rgba(0,212,255,0.55)";
+const TH_BORDER_BOTTOM = "2px solid rgba(59,130,246,0.45)";
+const TF_BORDER_TOP    = "2px solid rgba(59,130,246,0.55)";
 
 // ── Action helpers ──────────────────────────────────────────────────────────
 function findResultsValue(actions: any[]): number {
@@ -374,7 +374,7 @@ export function AdsManagerTable({
         position: "absolute", right: 0, top: 0, bottom: 0, width: 5,
         cursor: "col-resize", background: "transparent", zIndex: 1,
       }}
-      onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,212,255,0.3)")}
+      onMouseEnter={e => (e.currentTarget.style.background = "rgba(59,130,246,0.3)")}
       onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
     />
   );
@@ -494,7 +494,7 @@ export function AdsManagerTable({
                   <div
                     onMouseDown={e => startResize("name", e)}
                     style={{ position: "absolute", right: 0, top: 0, bottom: 0, width: 5, cursor: "col-resize", background: "transparent", zIndex: 1 }}
-                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(0,212,255,0.3)")}
+                    onMouseEnter={e => (e.currentTarget.style.background = "rgba(59,130,246,0.3)")}
                     onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                     onClick={e => e.stopPropagation()}
                   />
@@ -730,7 +730,7 @@ export function AdsManagerTable({
                                     display: "flex", alignItems: "center", justifyContent: "center",
                                     width: 20, height: 20,
                                     background: "rgba(0,129,251,0.12)",
-                                    border: "1px solid rgba(0,212,255,0.2)",
+                                    border: "1px solid rgba(59,130,246,0.2)",
                                     borderRadius: 4,
                                     cursor: "pointer",
                                     color: "var(--cyan)",
@@ -746,7 +746,7 @@ export function AdsManagerTable({
                               )}
                             </div>
                             <span style={{ fontSize: 9, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
-                              {row._accountName && <span style={{ padding: "1px 4px", fontSize: 8, background: "rgba(0,129,251,0.1)", color: "rgba(0,212,255,0.7)", borderRadius: 2, fontWeight: 600 }}>{row._accountName}</span>}
+                              {row._accountName && <span style={{ padding: "1px 4px", fontSize: 8, background: "rgba(0,129,251,0.1)", color: "rgba(59,130,246,0.7)", borderRadius: 2, fontWeight: 600 }}>{row._accountName}</span>}
                               ID: {row.id}{" "}
                               <a
                                 href={`https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${row.campaign_id || row.id}`}
@@ -885,8 +885,8 @@ export function AdsManagerTable({
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: 3,
                             fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
-                            background: "rgba(168,85,247,0.15)", color: "var(--purple)",
-                            border: "1px solid rgba(168,85,247,0.25)",
+                            background: "rgba(155,123,232,0.15)", color: "var(--purple)",
+                            border: "1px solid rgba(155,123,232,0.25)",
                           }}>
                             <Zap className="w-3 h-3" /> ADV+
                           </span>
@@ -988,10 +988,10 @@ export function AdsManagerTable({
                           style={{
                             fontSize: 9, fontWeight: 700, padding: "2px 6px", borderRadius: 4,
                             background: ins.quality_ranking?.includes("ABOVE")
-                              ? "rgba(6,214,160,0.15)"
+                              ? "rgba(52,183,124,0.15)"
                               : ins.quality_ranking?.includes("BELOW")
-                              ? "rgba(255,45,85,0.15)"
-                              : "rgba(255,190,11,0.15)",
+                              ? "rgba(229,72,77,0.15)"
+                              : "rgba(224,168,60,0.15)",
                             color: ins.quality_ranking?.includes("ABOVE")
                               ? "var(--emerald)"
                               : ins.quality_ranking?.includes("BELOW")
@@ -1015,11 +1015,11 @@ export function AdsManagerTable({
                       : bd.device_platform || bd.country || bd.region || bd.dma || bd.date_start || bd.hourly_stats_aggregated_by_audience_time_zone || bd.impression_device || bd.image_asset?.name || bd.body_asset?.text?.substring(0, 40) || bd.title_asset?.text || `Row ${bdIdx + 1}`;
                     const bdBg = "rgba(4,12,28,1)";
                     return (
-                      <tr key={`${row.id}-bd-${bdIdx}`} style={{ background: "rgba(0,212,255,0.02)" }}>
+                      <tr key={`${row.id}-bd-${bdIdx}`} style={{ background: "rgba(59,130,246,0.02)" }}>
                         <td style={tdFrozen(L_CHECK, CHECKBOX_W, bdBg, false)} />
                         <td style={tdFrozen(L_STATUS, STATUS_W, bdBg, false)} />
                         {showName && (
-                          <td style={{ ...tdFrozen(L_NAME, nameW, bdBg, isLastFrozen("name")), padding: "4px 10px 4px 30px", fontSize: 10, color: "rgba(0,212,255,0.7)", fontWeight: 500 }}>
+                          <td style={{ ...tdFrozen(L_NAME, nameW, bdBg, isLastFrozen("name")), padding: "4px 10px 4px 30px", fontSize: 10, color: "rgba(59,130,246,0.7)", fontWeight: 500 }}>
                             ↳ {bdLabel}
                           </td>
                         )}

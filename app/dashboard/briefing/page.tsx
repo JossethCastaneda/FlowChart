@@ -150,7 +150,7 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
           {fileNames.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
               {fileNames.map((name, i) => (
-                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "var(--cyan-dim)", border: "1px solid rgba(0,212,255,0.2)", padding: "2px 8px", borderRadius: 4, fontSize: 10, color: "var(--cyan)" }}>
+                <div key={i} style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", padding: "2px 8px", borderRadius: 4, fontSize: 10, color: "var(--cyan)" }}>
                   <span style={{ maxWidth: 100, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{name}</span>
                   <button type="button" onClick={() => handleRemoveFile(i)} style={{ background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", fontSize: 12, padding: 0, lineHeight: 1, display: "flex" }}><X style={{ width: 10, height: 10 }} /></button>
                 </div>
@@ -167,9 +167,9 @@ function SetupForm({ onGenerate, isLoading }: { onGenerate: (d: GridFormData) =>
           fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase",
           background: isLoading ? "var(--surface-hover)" : "var(--cyan-dim)",
           color: isLoading ? "var(--text-muted)" : "var(--cyan)",
-          border: `1px solid ${isLoading ? "var(--border)" : "rgba(0,212,255,0.4)"}`,
+          border: `1px solid ${isLoading ? "var(--border)" : "rgba(59,130,246,0.4)"}`,
           borderRadius: 6, cursor: isLoading ? "not-allowed" : "pointer", transition: "all 0.2s",
-          boxShadow: isLoading ? "none" : "0 0 20px rgba(0,212,255,0.1)",
+          boxShadow: isLoading ? "none" : "0 0 20px rgba(59,130,246,0.1)",
           opacity: !formData.client.trim() ? 0.35 : 1,
           marginTop: 12,
         }}>
@@ -216,18 +216,18 @@ export default function BriefingPage() {
         {/* ── Page Header ── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(123,97,255,0.1)", border: "1px solid rgba(123,97,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(139,141,242,0.1)", border: "1px solid rgba(139,141,242,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <BrainCircuit style={{ width: 18, height: 18, color: "var(--purple)" }} />
             </div>
             <div>
-              <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
+              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
                 Briefs <span style={{ color: "var(--purple)" }}>IA</span>
               </h1>
               <p style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", margin: 0, marginTop: 2, textTransform: "uppercase" }}>Powered by Gemini 2.5 Flash</p>
             </div>
           </div>
           {gridData && !isLoading && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "rgba(123,97,255,0.07)", border: "1px solid rgba(123,97,255,0.2)", borderRadius: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "rgba(139,141,242,0.07)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple)", display: "inline-block", animation: "pulse 2s ease-in-out infinite" }} />
               <span style={{ fontSize: 9, fontWeight: 700, color: "var(--purple)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Brief generado</span>
             </div>
@@ -256,7 +256,7 @@ export default function BriefingPage() {
 
         {/* ── Error ── */}
         {error && (
-          <div style={{ marginTop: 8, padding: "10px 14px", background: "var(--red-dim)", border: "1px solid rgba(255,45,85,0.25)", borderRadius: 8, color: "var(--red)", fontSize: 12 }}>
+          <div style={{ marginTop: 8, padding: "10px 14px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.25)", borderRadius: 8, color: "var(--red)", fontSize: 12 }}>
             <strong>Error:</strong> {error}
           </div>
         )}
@@ -267,7 +267,7 @@ export default function BriefingPage() {
         {/* ── Empty state ── */}
         {!gridData && !isLoading && !error && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", gap: 14, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(123,97,255,0.08)", border: "1px solid rgba(123,97,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(139,141,242,0.08)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <BrainCircuit style={{ width: 24, height: 24, color: "var(--purple)" }} />
             </div>
             <div style={{ textAlign: "center" }}>
@@ -326,7 +326,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
       {/* Grid Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, padding: "10px 14px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "10px 10px 0 0", borderBottom: "1px solid var(--hairline)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 10, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "'Orbitron', sans-serif" }}>Parrilla</span>
+          <span style={{ fontSize: 10, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.1em", fontFamily: "var(--font-display)" }}>Parrilla</span>
           <span className="badge badge-muted">{gridData.posts.length} posts</span>
           {gridData.creditos?.summary && (
             <span style={{ fontSize: 9, color: "var(--purple)", fontStyle: "italic" }}>{gridData.creditos.summary}</span>
@@ -337,7 +337,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
           style={{
             display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
             fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-            background: "var(--cyan-dim)", border: "1px solid rgba(0,212,255,0.3)",
+            background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.3)",
             color: "var(--cyan)", borderRadius: 6, cursor: "pointer",
           }}
         >
@@ -377,7 +377,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                   {/* Idea */}
                   <td style={tdS}><textarea style={editInput} value={post.ideaPrincipal} onChange={e => updatePost(i, "ideaPrincipal", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Idea..." /></td>
                   {/* Etapa */}
-                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "2px 5px", borderRadius: 3, background: "var(--cyan-dim)", color: "var(--cyan)", whiteSpace: "nowrap", border: "1px solid rgba(0,212,255,0.2)" }}>{post.enfoquePublicacion}</span></td>
+                  <td style={tdS}><span style={{ fontSize: 7, fontWeight: 700, padding: "2px 5px", borderRadius: 3, background: "var(--cyan-dim)", color: "var(--cyan)", whiteSpace: "nowrap", border: "1px solid rgba(59,130,246,0.2)" }}>{post.enfoquePublicacion}</span></td>
                   {/* Copy In */}
                   <td style={tdS}><textarea style={{ ...editInput, fontWeight: 600, color: "var(--foreground)" }} value={post.copyIn} onChange={e => updatePost(i, "copyIn", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Headline..." /></td>
                   {/* Copy Out */}
@@ -388,9 +388,9 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                   <td style={tdS}>
                     <span style={{
                       fontSize: 7, fontWeight: 700, padding: "2px 5px", borderRadius: 3,
-                      background: post.formatoArte === "Video" ? "rgba(123,97,255,0.1)" : "var(--surface-hover)",
+                      background: post.formatoArte === "Video" ? "rgba(139,141,242,0.1)" : "var(--surface-hover)",
                       color: post.formatoArte === "Video" ? "var(--purple)" : "var(--text-muted)",
-                      border: `1px solid ${post.formatoArte === "Video" ? "rgba(123,97,255,0.25)" : "var(--hairline)"}`,
+                      border: `1px solid ${post.formatoArte === "Video" ? "rgba(139,141,242,0.25)" : "var(--hairline)"}`,
                     }}>{post.formatoArte}</span>
                   </td>
                   {/* Prompt MJ */}

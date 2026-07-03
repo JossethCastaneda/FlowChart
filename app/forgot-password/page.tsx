@@ -56,7 +56,7 @@ export default function ForgotPasswordPage() {
 
   const cardStyle: React.CSSProperties = {
     background: "rgba(15, 23, 42, 0.6)",
-    border: "1px solid rgba(0, 240, 255, 0.1)",
+    border: "1px solid rgba(91,155,255, 0.1)",
     borderRadius: "16px",
     padding: "40px",
     maxWidth: "440px",
@@ -80,7 +80,7 @@ export default function ForgotPasswordPage() {
   const btnStyle: React.CSSProperties = {
     width: "100%",
     padding: "14px",
-    background: "linear-gradient(135deg, var(--c-brand), #0080ff)",
+    background: "linear-gradient(135deg, var(--c-brand), #2563eb)",
     border: "none",
     borderRadius: "8px",
     color: "#030508",
@@ -107,8 +107,8 @@ export default function ForgotPasswordPage() {
                 Usa el siguiente enlace para restablecer la contraseña:
               </p>
               <div style={{
-                background: "rgba(0, 240, 255, 0.05)",
-                border: "1px solid rgba(0, 240, 255, 0.2)",
+                background: "rgba(91,155,255, 0.05)",
+                border: "1px solid rgba(91,155,255, 0.2)",
                 borderRadius: "8px",
                 padding: "16px",
                 marginBottom: "16px",
@@ -135,7 +135,7 @@ export default function ForgotPasswordPage() {
                   display: "block",
                   textAlign: "center",
                   padding: "12px",
-                  background: "linear-gradient(135deg, var(--c-brand), #0080ff)",
+                  background: "linear-gradient(135deg, var(--c-brand), #2563eb)",
                   color: "#030508",
                   fontWeight: 700,
                   fontSize: "14px",
@@ -216,7 +216,7 @@ export default function ForgotPasswordPage() {
           <a
             href="/login"
             style={{
-              color: "rgba(0, 240, 255, 0.6)",
+              color: "rgba(91,155,255, 0.6)",
               fontSize: "12px",
               textDecoration: "none",
             }}

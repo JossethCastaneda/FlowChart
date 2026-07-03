@@ -59,11 +59,11 @@ export default function CrecimientoInsights() {
 
       {/* ── Page Header ── */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--purple-dim)", border: "1px solid rgba(123,97,255,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--purple-dim)", border: "1px solid rgba(139,141,242,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <BrainCircuit style={{ width: 18, height: 18, color: "var(--purple)" }} />
         </div>
         <div>
-          <h1 style={{ fontFamily: "'Orbitron', sans-serif", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
+          <h1 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
             Aria <span style={{ color: "var(--purple)" }}>IA</span>
           </h1>
           <p style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", margin: 0, marginTop: 2, textTransform: "uppercase" }}>Métricas globales · Modelos predictivos</p>
@@ -82,7 +82,7 @@ export default function CrecimientoInsights() {
       {stats.modelsCount === 0 ? (
         /* Empty State */
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "52px 24px", gap: 16, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 16, textAlign: "center" }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: "var(--purple-dim)", border: "1px solid rgba(123,97,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: "var(--purple-dim)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <BrainCircuit style={{ width: 26, height: 26, color: "var(--purple)" }} />
           </div>
           <div>
@@ -105,7 +105,7 @@ export default function CrecimientoInsights() {
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
             <Link href="/dashboard/crecimiento/scores" style={{
-              padding: "9px 20px", background: "var(--purple-dim)", border: "1px solid rgba(123,97,255,0.3)",
+              padding: "9px 20px", background: "var(--purple-dim)", border: "1px solid rgba(139,141,242,0.3)",
               color: "var(--purple)", borderRadius: 10, fontWeight: 700, fontSize: 12,
               letterSpacing: "0.06em", textTransform: "uppercase", textDecoration: "none",
             }}>
@@ -146,7 +146,7 @@ export default function CrecimientoInsights() {
                 </div>
               </div>
               {insights.anomalies && insights.anomalies.length > 0 && (
-                <div style={{ marginTop: 12, background: "var(--amber-dim)", padding: 14, borderRadius: 10, border: "1px solid rgba(255,190,11,0.25)" }}>
+                <div style={{ marginTop: 12, background: "var(--amber-dim)", padding: 14, borderRadius: 10, border: "1px solid rgba(224,168,60,0.25)" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
                     <AlertTriangle style={{ width: 13, height: 13, color: "var(--amber)" }} />
                     <h5 style={{ fontWeight: 700, fontSize: 11, color: "var(--amber)", textTransform: "uppercase", letterSpacing: "0.1em", margin: 0 }}>Anomalías Detectadas</h5>

@@ -381,7 +381,7 @@ function TestChatModal({ line, onClose }: { line: WaLine; onClose: () => void })
             </p>
           </div>
           {result && (
-            <div style={{ padding: "10px 14px", borderRadius: 8, background: result.ok ? "rgba(16,185,129,0.06)" : "rgba(239,68,68,0.06)", border: `1px solid ${result.ok ? "rgba(16,185,129,0.2)" : "rgba(239,68,68,0.2)"}`, color: result.ok ? "var(--emerald)" : "var(--red)", fontSize: 12 }}>
+            <div style={{ padding: "10px 14px", borderRadius: 8, background: result.ok ? "rgba(16,185,129,0.06)" : "rgba(229,72,77,0.06)", border: `1px solid ${result.ok ? "rgba(16,185,129,0.2)" : "rgba(229,72,77,0.2)"}`, color: result.ok ? "var(--emerald)" : "var(--red)", fontSize: 12 }}>
               {result.msg}
             </div>
           )}
@@ -607,7 +607,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
 
           {/* Quality reason note */}
           {(line.qualityRating === "YELLOW" || line.qualityRating === "MEDIUM" || line.qualityRating === "RED" || line.qualityRating === "LOW") && (
-            <div style={{ padding: "10px 12px", borderRadius: 8, background: "rgba(245,158,11,0.06)", border: "1px solid rgba(245,158,11,0.15)", display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 16 }}>
+            <div style={{ padding: "10px 12px", borderRadius: 8, background: "rgba(224,168,60,0.06)", border: "1px solid rgba(224,168,60,0.15)", display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 16 }}>
               <Info size={12} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
               <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>
                 Reason: See our guidelines on how best to send messages to your customers.
@@ -860,7 +860,7 @@ export default function WhatsAppIntegrationPage() {
                 <button onClick={handleConnect} disabled={connecting || !sdkReady} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer" }}>
                   <Plus size={13} /> {t.newAccount}
                 </button>
-                <button onClick={handleDisconnect} disabled={disconnecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--red)", cursor: "pointer" }}>
+                <button onClick={handleDisconnect} disabled={disconnecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer" }}>
                   {disconnecting ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <XCircle size={13} />}
                   {t.disconnect}
                 </button>
@@ -877,7 +877,7 @@ export default function WhatsAppIntegrationPage() {
 
         {/* ── Error ───────────────────────────────────────────────────────── */}
         {connectError && (
-          <div style={{ padding: "12px 16px", borderRadius: 10, marginBottom: 16, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--red)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ padding: "12px 16px", borderRadius: 10, marginBottom: 16, background: "rgba(229,72,77,0.06)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
             <AlertCircle size={14} style={{ flexShrink: 0 }} /> {connectError}
             <button onClick={() => setConnectError(null)} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--red)", cursor: "pointer" }}><X size={12} /></button>
           </div>
@@ -909,7 +909,7 @@ export default function WhatsAppIntegrationPage() {
             <div style={{ padding: "24px 32px 28px" }}>
 
               {/* Tip callout */}
-              <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(245,158,11,0.05)", border: "1px solid rgba(245,158,11,0.18)", marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 10 }}>
+              <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(224,168,60,0.05)", border: "1px solid rgba(224,168,60,0.18)", marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <AlertCircle size={14} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
                 <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.65 }}>
                   Meta muestra campos como <em>Catálogo, Página, Instagram, Píxel y Cuenta publicitaria</em> pero <strong style={{ color: "var(--foreground)" }}>todos son opcionales</strong>.
@@ -1075,8 +1075,8 @@ export default function WhatsAppIntegrationPage() {
                               <input autoFocus value={aliasInput} onChange={(e) => setAliasInput(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === "Enter") handleAliasSave(line.id); if (e.key === "Escape") setEditingAlias(null); }}
                                 placeholder={t.aliasPlaceholder}
-                                style={{ flex: 1, padding: "4px 8px", borderRadius: 5, fontSize: 11, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(0,212,255,0.3)", color: "var(--foreground)", outline: "none", fontFamily: "inherit", minWidth: 0 }} />
-                              <button onClick={() => handleAliasSave(line.id)} style={{ background: "rgba(0,212,255,0.1)", border: "1px solid rgba(0,212,255,0.2)", borderRadius: 5, color: "var(--cyan)", cursor: "pointer", padding: "4px 6px", display: "flex", alignItems: "center" }}><Check size={11} /></button>
+                                style={{ flex: 1, padding: "4px 8px", borderRadius: 5, fontSize: 11, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(59,130,246,0.3)", color: "var(--foreground)", outline: "none", fontFamily: "inherit", minWidth: 0 }} />
+                              <button onClick={() => handleAliasSave(line.id)} style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 5, color: "var(--cyan)", cursor: "pointer", padding: "4px 6px", display: "flex", alignItems: "center" }}><Check size={11} /></button>
                             </div>
                           ) : (
                             <button onClick={() => { setEditingAlias(line.id); setAliasInput(line.alias || line.verifiedName || ""); }}
