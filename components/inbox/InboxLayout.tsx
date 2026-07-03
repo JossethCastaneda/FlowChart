@@ -71,6 +71,7 @@ export function InboxLayout() {
   const [queueMenuOpen, setQueueMenuOpen] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<Record<string, { connected: boolean; connectedAt: string | null; pages: any[] }>>({});
   const [disconnecting, setDisconnecting] = useState(false);
+  const [connectToast, setConnectToast] = useState<string | null>(null);
   const queueRef = useRef<HTMLDivElement>(null);
   const currentAssignee = session?.user?.name || "Ana";
 
@@ -158,6 +159,53 @@ export function InboxLayout() {
   const hasMessenger = connectionStatus.community?.connected || connectionStatus.social?.connected || connectedPages.some(p => p.platform === "facebook");
   const hasInstagram = connectedPages.some(p => p.platform === "instagram");
   const hasWhatsApp = connectionStatus.whatsapp_business?.connected;
+  const hasAnyConnection = Object.values(connectionStatus).some(m => m?.connected);
+
+  // Handle connect callback — refresh state instead of full reload
+  const handleConnectSuccess = useCallback(() => {
+    setConnectToast("¡Conectado! Ahora puedes recibir mensajes.");
+    fetchConnectionStatus();
+    // Re-fetch conversations
+    fetch("/api/inbox/conversations")
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.conversations?.length) {
+          const mapped: Conversation[] = data.conversations.map((c: any) => {
+            const platformMap: Record<string, Platform> = {
+              facebook_messenger: "fb_messenger",
+              instagram_dm: "instagram_dm",
+              ig_dm: "ig_dm",
+              ig_comment: "ig_comment",
+              instagram_comment: "instagram_comment",
+              facebook_comment: "fb_comment",
+              whatsapp: "whatsapp",
+            };
+            return {
+              id: c.id,
+              contactName: c.contactName || "Usuario",
+              contactAvatar: c.contactAvatar || null,
+              platform: (platformMap[c.platform] || "fb_messenger") as Platform,
+              lastMessage: c.lastMessage || "",
+              lastMessageTime: new Date(c.lastMessageAt || Date.now()),
+              unread: c.unread || false,
+              closed: false,
+              assignedTo: null,
+              tags: [],
+              messages: [],
+              pageId: c.pageId,
+              contactId: c.contactId,
+              _pageId: c.pageId,
+              _pageName: c.pageName,
+              _postData: c._postData || null,
+            };
+          });
+          setConversations(mapped);
+          setSelectedId(mapped[0]?.id || "");
+        }
+      }).catch(() => {});
+    // Auto-dismiss toast
+    setTimeout(() => setConnectToast(null), 5000);
+  }, [fetchConnectionStatus]);
 
   // Fetch real conversations from API
   useEffect(() => {
@@ -567,8 +615,8 @@ export function InboxLayout() {
         </div>
       )}
 
-      {/* Empty state */}
-      {conversations.length === 0 && initialFetchDone && (
+      {/* Empty state — not connected */}
+      {conversations.length === 0 && initialFetchDone && !hasAnyConnection && (
         <div style={{
           display: "flex", flexDirection: "column", alignItems: "center",
           justifyContent: "center", flex: 1, padding: 60, gap: 20,
@@ -591,7 +639,7 @@ export function InboxLayout() {
           <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 340 }}>
             <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-secondary)", margin: 0, letterSpacing: "0.08em", textAlign: "center" }}>ACCESO RÁPIDO</p>
             <button
-              onClick={() => openConnectPopup("community", () => window.location.reload())}
+              onClick={() => openConnectPopup("community", handleConnectSuccess)}
               style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(0,100,224,0.08)", border: "1px solid rgba(0,100,224,0.2)", color: "var(--cyan)", cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}
             >
               <div style={{ width: 32, height: 32, borderRadius: 8, background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -605,7 +653,7 @@ export function InboxLayout() {
             </button>
 
             <button
-              onClick={() => openConnectPopup("community", () => window.location.reload())}
+              onClick={() => openConnectPopup("community", handleConnectSuccess)}
               style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(188,95,178,0.06)", border: "1px solid rgba(188,95,178,0.18)", color: "#bc5fb2", cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}
             >
               <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
@@ -622,6 +670,62 @@ export function InboxLayout() {
               O ve a <a onClick={() => window.location.href = "/dashboard/integrations"} style={{ color: "var(--cyan)", cursor: "pointer", textDecoration: "underline" }}>Integraciones</a> para gestionar todos los canales
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Connected but no conversations state */}
+      {conversations.length === 0 && initialFetchDone && hasAnyConnection && (
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center",
+          justifyContent: "center", flex: 1, padding: 60, gap: 16,
+        }}>
+          <div style={{
+            width: 56, height: 56, borderRadius: 14,
+            background: "rgba(16,185,129,0.08)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          }}>
+            <CheckCircle2 style={{ width: 26, height: 26, color: "var(--emerald)" }} />
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: "0 0 8px" }}>Conectado — esperando mensajes</h3>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", maxWidth: 360, margin: 0 }}>
+              Tus cuentas están conectadas. Los mensajes nuevos de Facebook Messenger, Instagram y WhatsApp aparecerán aquí automáticamente.
+            </p>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            style={{
+              padding: "8px 20px", borderRadius: 8,
+              background: "rgba(155,123,232,0.08)",
+              border: "1px solid rgba(155,123,232,0.2)",
+              color: "var(--purple)", cursor: "pointer",
+              fontSize: 12, fontWeight: 600, fontFamily: "inherit",
+            }}
+          >
+            Recargar
+          </button>
+        </div>
+      )}
+
+      {/* Connect toast */}
+      {connectToast && (
+        <div style={{
+          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
+          background: "var(--emerald)", color: "white",
+          padding: "10px 20px", borderRadius: 10,
+          fontSize: 13, fontWeight: 600,
+          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
+          zIndex: 999, display: "flex", alignItems: "center", gap: 8,
+          animation: "slideUp 0.3s ease-out",
+        }}>
+          <CheckCircle2 style={{ width: 16, height: 16 }} />
+          {connectToast}
+          <button
+            onClick={() => setConnectToast(null)}
+            style={{ background: "none", border: "none", color: "white", cursor: "pointer", padding: 2 }}
+          >
+            <X style={{ width: 14, height: 14 }} />
+          </button>
         </div>
       )}
 
