@@ -28,7 +28,12 @@ async function persistMetaDm(
     const contactId = isEcho ? msg.recipient?.id : msg.sender?.id;
     if (!assetId || !contactId) return;
     const workspaceId = await resolveWorkspaceForMetaAsset(assetId, kind);
-    if (!workspaceId) return;
+    if (!workspaceId) {
+      logger.warn("[WEBHOOK] persistMetaDm: workspace not resolved — message dropped", {
+        platform, kind, assetId, contactId, mid: msg.message.mid,
+      });
+      return;
+    }
     await persistInboundMessage({
       workspaceId,
       platform,

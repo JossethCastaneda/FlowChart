@@ -38,7 +38,50 @@ export async function resolveWorkspaceForMetaAsset(
     where: { externalId: { in: ids } },
     select: { project: { select: { workspaceId: true } } },
   });
-  return src?.project?.workspaceId ?? null;
+  if (src?.project?.workspaceId) return src.project.workspaceId;
+
+  // 3. Fallback: Channel.config — buscar en la configuración de canales
+  //    del proyecto (mismo camino que usa createAlert/findProjectsForEvent).
+  //    Esto cubre el caso donde el asset sync no corrió pero el proyecto
+  //    tiene la página configurada como fuente de datos.
+  try {
+    const channels = await prisma.channel.findMany({
+      where: { type: { in: ["FACEBOOK", "META"] } },
+      select: {
+        config: true,
+        project: { select: { workspaceId: true, status: true } },
+      },
+    });
+    for (const ch of channels) {
+      if (ch.project.status !== "Activo") continue;
+      const cfg = ch.config as Record<string, unknown> | null;
+      if (!cfg) continue;
+      // Verificar pageId directo o en arrays pages[]/instagramAccounts[]
+      if (kind === "page") {
+        if (cfg.pageId === externalId || cfg.pageId === normalized) return ch.project.workspaceId;
+        const pages = cfg.pages as Array<{ id: string }> | undefined;
+        if (pages?.some((p) => ids.includes(p.id))) return ch.project.workspaceId;
+      } else {
+        if (cfg.igAccountId === externalId || cfg.igAccountId === normalized) return ch.project.workspaceId;
+        const accounts = cfg.instagramAccounts as Array<{ id: string }> | undefined;
+        if (accounts?.some((a) => ids.includes(a.id))) return ch.project.workspaceId;
+      }
+    }
+  } catch (err) {
+    logger.warn("[INBOX-STORE] Channel fallback query failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
+  // Si llegamos aquí, no pudimos resolver el workspace → el mensaje se descartará.
+  logger.warn("[INBOX-STORE] resolveWorkspaceForMetaAsset: no workspace found", {
+    externalId,
+    kind,
+    hint: "La página/cuenta IG no está en IntegrationAssetCache, MetaSource ni MetaChannel. "
+        + "Verifica que el módulo 'community' esté conectado y que sync-assets haya corrido.",
+  });
+
+  return null;
 }
 
 export interface InboundMessageInput {
