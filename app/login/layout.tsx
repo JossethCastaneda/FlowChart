@@ -10,14 +10,5 @@ export default function LoginLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <>
-      {/* eslint-disable-next-line @next/next/no-page-custom-font */}
-      <link
-        href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap"
-        rel="stylesheet"
-      />
-      {children}
-    </>
-  );
+  return <>{children}</>;
 }

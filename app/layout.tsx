@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
@@ -24,9 +24,10 @@ const GTM_ID = rawGtmId?.startsWith("GTM-") ? rawGtmId : undefined;
 const GA4_ID = rawGa4Id?.startsWith("G-") ? rawGa4Id : undefined;
 
 const inter = Inter_Tight({ subsets: ["latin"], variable: "--font-inter" });
+const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jbmono" });
 
 export const viewport: Viewport = {
-  themeColor: "#050812",
+  themeColor: "#0b0d12",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -106,12 +107,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className="dark">
+    <html lang="es">
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Aplica el tema guardado antes del primer paint (evita FOUC) */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem("sodare:theme");if(t==="claro")document.documentElement.classList.add("theme-claro");else if(t==="azul_medianoche")document.documentElement.classList.add("theme-azul-medianoche");}catch(e){}`,
+          }}
+        />
       </head>
-      <body className={`${inter.variable} font-sans antialiased`}>
+      <body className={`${inter.variable} ${jbMono.variable} font-sans antialiased`}>
         <SodareBrandDefs />
         <AuthProvider>
           <LanguageProvider>
