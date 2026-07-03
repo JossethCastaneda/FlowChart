@@ -52,7 +52,8 @@ export async function GET(request: NextRequest) {
           fields: "id,name,access_token,instagram_business_account{id,username,profile_picture_url}",
           limit: "50",
         }),
-        fbToken
+        fbToken,
+        { cache: "no-store" }
       );
       const pagesData = await pagesRes.json();
       fbPages = pagesData.data || [];
@@ -72,7 +73,8 @@ export async function GET(request: NextRequest) {
           fields: "id,name,access_token,instagram_business_account{id,username,profile_picture_url}",
           limit: "50",
         }),
-        igToken
+        igToken,
+        { cache: "no-store" }
       );
       const igPagesData = await igPagesRes.json();
       igPages = igPagesData.data || [];
@@ -97,7 +99,8 @@ export async function GET(request: NextRequest) {
           fields: "id,participants,updated_time,unread_count,messages.limit(1){message,from,created_time}",
           limit: "25",
         }),
-        pageToken
+        pageToken,
+        { cache: "no-store" }
       )
         .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
         .then(data => {
@@ -130,7 +133,8 @@ export async function GET(request: NextRequest) {
           fields: "id,message,created_time,permalink_url,full_picture,shares,likes.summary(true),comments.summary(true).limit(10){id,message,from{id,name},created_time,like_count}",
           limit: "15",
         }),
-        pageToken
+        pageToken,
+        { cache: "no-store" }
       )
         .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
         .then(data => {
@@ -198,7 +202,8 @@ export async function GET(request: NextRequest) {
           platform: "instagram",
           limit: "25",
         }),
-        pageToken
+        pageToken,
+        { cache: "no-store" }
       )
         .then(r => {
           if (!r.ok) return Promise.reject(new Error(`IG DM: HTTP ${r.status}`));
@@ -234,7 +239,8 @@ export async function GET(request: NextRequest) {
           fields: "id,caption,timestamp,permalink,like_count,comments_count,media_url,thumbnail_url,media_type,comments.limit(10){id,text,from{id,username},timestamp,like_count}",
           limit: "15",
         }),
-        pageToken
+        pageToken,
+        { cache: "no-store" }
       )
         .then(r => {
           if (!r.ok) return Promise.reject(new Error(`IG Comments: HTTP ${r.status}`));
@@ -284,15 +290,19 @@ export async function GET(request: NextRequest) {
   const results = await Promise.allSettled(channelFetchers.map(f => f.promise));
 
   const remoteConversations: any[] = [];
+  // Canales que fallaron: se exponen en la respuesta para que el usuario sepa POR QUÉ
+  // falta un canal (p.ej. Messenger sin pages_messaging / sin App Review) en vez de
+  // ver un inbox vacío sin explicación (antes se tragaba el error con un solo warn).
+  const skipped: { channel: string; reason: string }[] = [];
   results.forEach((result, i) => {
     const { channel } = channelFetchers[i];
     if (result.status === "fulfilled") {
       remoteConversations.push(...result.value);
       logger.info(`[INBOX] ✅ ${channel}`, { count: result.value.length });
     } else {
-      logger.warn(`[INBOX] ⚠️ ${channel} skipped`, {
-        reason: result.reason?.message || String(result.reason),
-      });
+      const reason = result.reason?.message || String(result.reason);
+      skipped.push({ channel, reason });
+      logger.warn(`[INBOX] ⚠️ ${channel} skipped`, { reason });
     }
   });
 
@@ -339,5 +349,5 @@ export async function GET(request: NextRequest) {
     },
   });
 
-  return NextResponse.json({ conversations });
+  return NextResponse.json({ conversations, skipped });
 }

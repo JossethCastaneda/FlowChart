@@ -15,7 +15,8 @@ async function getPageTokens(userToken: string): Promise<Record<string, string>>
   }
   const pagesRes = await metaFetch(
     metaUrl("me/accounts", { fields: "id,access_token", limit: "50" }),
-    userToken
+    userToken,
+    { cache: "no-store" }
   );
   const pagesData = await pagesRes.json();
   const tokens: Record<string, string> = {};
@@ -78,7 +79,8 @@ export async function GET(request: NextRequest) {
       metaUrl(`${conversationId}`, {
         fields: "messages{id,message,from,created_time}",
       }),
-      pageToken
+      pageToken,
+      { cache: "no-store" }
     );
 
     if (!msgRes.ok) {

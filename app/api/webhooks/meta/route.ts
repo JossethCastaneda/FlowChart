@@ -899,7 +899,7 @@ function getAlertLink(alert: { type: string; meta?: any; channel?: string }, pro
     case "messenger":
     case "instagram":
     case "whatsapp":
-      return `${base}/publisher?tab=inbox`;
+      return `${base}/inbox`;
     case "facebook":
       if (alert.type.includes("comment") || alert.type.includes("mention")) {
         return `${base}/publisher?tab=listening`;
