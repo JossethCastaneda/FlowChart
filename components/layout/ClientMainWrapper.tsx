@@ -63,9 +63,13 @@ import {
   Shield,
   Webhook,
   PieChart,
+  BrainCircuit,
+  type LucideIcon,
 } from "lucide-react";
 
-const ICON_MAP: Record<string, any> = {
+/* Mapa nombre-kebab (modules.ts) → componente Lucide.
+   Todo icono declarado en MODULES/FUTURE_MODULES debe existir aquí. */
+const ICON_MAP: Record<string, LucideIcon> = {
   "activity": Activity,
   "folder-kanban": FolderKanban,
   "messages-square": MessagesSquare,
@@ -87,6 +91,7 @@ const ICON_MAP: Record<string, any> = {
   "shield": Shield,
   "webhook": Webhook,
   "pie-chart": PieChart,
+  "brain-circuit": BrainCircuit,
 };
 
 
@@ -186,15 +191,26 @@ const getTranslatedNavItemName = (name: string, lang: 'es' | 'en') => {
 };
 
 /** Width of the invisible hover-trigger zone at the left edge */
-const HOVER_TRIGGER_WIDTH = 16;
+const HOVER_TRIGGER_WIDTH = 20;
 /** Delay (ms) before the sidebar auto-hides after mouse leaves */
-const AUTO_HIDE_DELAY = 400;
+const AUTO_HIDE_DELAY = 600;
 
 export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // "pinned" is the manual toggle via the hamburger — when true, sidebar stays visible
-  const [pinned, setPinned] = useState(false);
+  // "sidebarPinned" persists across sessions — sidebar stays open without hover
+  const [sidebarPinned, setSidebarPinned] = useState(false);
   const pathname = usePathname();
+
+  // Load pinned preference on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("sodare:sidebar-pinned");
+      if (saved === "true") {
+        setSidebarPinned(true);
+        setSidebarOpen(true);
+      }
+    } catch {}
+  }, []);
   
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>(() => {
     const initial: Record<string, boolean> = {};
@@ -275,17 +291,18 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   // Start auto-hide timer when mouse leaves sidebar (unless pinned)
   const handleMouseLeaveSidebar = useCallback(() => {
-    if (pinned) return;
+    if (sidebarPinned) return;
     hideTimerRef.current = setTimeout(() => {
       setSidebarOpen(false);
     }, AUTO_HIDE_DELAY);
-  }, [pinned]);
+  }, [sidebarPinned]);
 
-  // Toggle pinned state via hamburger button
-  const togglePinned = useCallback(() => {
-    setPinned(prev => {
+  // Toggle pinned state — persisted in localStorage
+  const toggleSidebarPin = useCallback(() => {
+    setSidebarPinned(prev => {
       const next = !prev;
-      setSidebarOpen(next);
+      try { localStorage.setItem("sodare:sidebar-pinned", String(next)); } catch {}
+      if (!next) setSidebarOpen(false);
       return next;
     });
   }, []);
@@ -410,7 +427,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   }
 
   // Whether the sidebar is visually shown (either auto-hover or pinned)
-  const sidebarVisible = sidebarOpen || pinned;
+  const sidebarVisible = sidebarOpen || sidebarPinned;
 
   return (
     <div className="h-screen overflow-hidden flex" style={{ background: "var(--background)" }}>
@@ -418,23 +435,21 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {theme !== 'claro' && <GalaxyBackground />}
       <div className="dashboard-grid" />
 
-      {/* Hover trigger zone */}
-      {!pinned && (
-        <div
-          onMouseEnter={handleMouseEnterTrigger}
-          onMouseLeave={handleMouseLeaveTrigger}
-          className="hidden lg:block"
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width: `${HOVER_TRIGGER_WIDTH}px`,
-            zIndex: 50,
-            background: "transparent",
-          }}
-        />
-      )}
+      {/* Hover trigger zone — always active on desktop */}
+      <div
+        onMouseEnter={handleMouseEnterTrigger}
+        onMouseLeave={handleMouseLeaveTrigger}
+        className="hidden lg:block"
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          bottom: 0,
+          width: sidebarPinned ? 0 : `${HOVER_TRIGGER_WIDTH}px`,
+          zIndex: 50,
+          background: "transparent",
+        }}
+      />
 
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -477,8 +492,24 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
             <SodareLogo size="sm" showText={true} />
           </Link>
-          <button onClick={() => { setPinned(false); setSidebarOpen(false); }} className="text-slate-500 hover:text-[var(--foreground)] cursor-pointer" title={t.colapsar}>
-            <X className="w-5 h-5" />
+          {/* Pin toggle — inside sidebar, no hamburger needed */}
+          <button
+            onClick={toggleSidebarPin}
+            title={sidebarPinned ? t.colapsar : t.expandir}
+            style={{
+              background: sidebarPinned ? "rgba(0,212,255,0.12)" : "transparent",
+              border: sidebarPinned ? "1px solid rgba(0,212,255,0.3)" : "1px solid transparent",
+              borderRadius: 6,
+              padding: "4px 6px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s",
+              color: sidebarPinned ? "var(--cyan)" : "var(--text-muted)",
+            }}
+          >
+            {sidebarPinned ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
           </button>
         </div>
 
@@ -498,7 +529,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
                 >
                   <span style={{
-                    fontFamily: "'Orbitron', sans-serif",
+                    fontFamily: "var(--font-display)",
                     fontSize: "9px",
                     fontWeight: 600,
                     letterSpacing: "0.3em",
@@ -529,20 +560,19 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     className={`nav-item ${isActive ? "active" : ""}`}
                     data-mod={m.key}
                     onClick={() => {
-                      setSidebarOpen(false);
-                      if (!pinned) setSidebarOpen(false);
+                      if (!sidebarPinned) setSidebarOpen(false);
                     }}
                     style={isActive ? { "--nav-color": m.color, borderLeftColor: m.color } as React.CSSProperties : {}}
                   >
                     <HoloIcon
                       icon={Icon}
-                      variant={isActive ? "cyan" : "pink"} 
                       isActive={isActive}
                       className="w-[18px] h-[18px]"
+                      style={isActive ? { color: m.color } : undefined}
                     />
                     <span className="flex-1" style={{ color: isActive ? m.color : undefined }}>{m.label}</span>
                     {isActive && (
-                      <HoloIcon icon={ChevronRight} variant="cyan" isActive={true} className="w-3 h-3" style={{ opacity: 0.5 }} />
+                      <HoloIcon icon={ChevronRight} isActive={true} className="w-3 h-3" style={{ opacity: 0.5, color: m.color }} />
                     )}
                   </Link>
                 );
@@ -592,15 +622,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           position: "relative",
           zIndex: 50,
         }}>
-          {/* Hamburger Menu Toggle (Desktop) */}
-          <button
-            onClick={togglePinned}
-            className="flex items-center justify-center p-2 rounded-lg text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors cursor-pointer mr-auto"
-            style={{ background: "transparent", border: "none" }}
-            title={pinned ? t.colapsar : t.expandir}
-          >
-            <Menu className="w-5 h-5" />
-          </button>
 
           {/* Quick actions */}
           <Link href="/dashboard/inbox" className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Conversaciones">
@@ -621,7 +642,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               style={{ background: "transparent", border: "none" }}
             >
               <div style={{ position: "relative" }}>
-                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/10" style={{ background: "linear-gradient(135deg,var(--cyan),#0064E0)" }}>
+                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/10" style={{ background: "linear-gradient(135deg,var(--cyan),#2563eb)" }}>
                   {session?.user?.image ? (
                     <img
                       src={session.user.image}
@@ -681,7 +702,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   <>
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
-                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-white/10" style={{ background: "linear-gradient(135deg,#4f46e5,var(--purple))", flexShrink: 0 }}>
+                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-white/10" style={{ background: "linear-gradient(135deg,#2563eb,var(--purple))", flexShrink: 0 }}>
                           {session?.user?.image ? (
                             <img
                               src={session.user.image}

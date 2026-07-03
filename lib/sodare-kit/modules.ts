@@ -39,7 +39,7 @@ export const MODULES: ModuleDef[] = [
   // ── OPERACIÓN — el día a día ──
   // Agentes va PRIMERO en el menú: es el nodo principal de la capa de IA
   // (catálogo de modelos por proveedor + contratación que potencia el sistema).
-  { key: "agentes",     label: "Agentes",  code: "Núcleo",   route: "/dashboard/agentes",  color: "var(--purple)",       icon: "sparkles",        tagline: "La IA que potencia tu sistema", group: "operacion" },
+  { key: "agentes",     label: "Agentes",  code: "Núcleo",   route: "/dashboard/agentes",  color: "var(--mod-agentes)",  icon: "sparkles",        tagline: "La IA que potencia tu sistema", group: "operacion" },
   { key: "resumen",     label: "Resumen",  code: "Pulso",    route: "/dashboard/resumen",  color: "var(--mod-resumen)",  icon: "activity",        tagline: "El latido de tu operación",   group: "operacion" },
   { key: "clientes",    label: "Clientes", code: "Cartera",  route: "/dashboard/proyectos", color: "var(--mod-clientes)", icon: "folder-kanban",  tagline: "Tus cuentas, en órbita",      group: "operacion",
     tabs: [
@@ -66,7 +66,7 @@ export const MODULES: ModuleDef[] = [
       { label: "Reglas",                  route: "/analisis-resultados/reglas" },
       { label: "Configuración",           route: "/analisis-resultados/configuracion" },
     ] },
-  { key: "mmm",         label: "Centurion MMM",    code: "Convergencia", route: "/dashboard/centurion",   color: "#7c3aed",             icon: "pie-chart",   tagline: "Marketing Mix Modeling SaaS",      group: "crecimiento",
+  { key: "mmm",         label: "Centurion MMM",    code: "Convergencia", route: "/dashboard/centurion",   color: "var(--mod-mmm)",      icon: "pie-chart",   tagline: "Marketing Mix Modeling SaaS",      group: "crecimiento",
     tabs: [
       { label: "Resumen",     route: "" },
       { label: "Datos",       route: "/datos" },
@@ -76,14 +76,14 @@ export const MODULES: ModuleDef[] = [
     ] },
   { key: "escucha",     label: "Escucha",      code: "Radar",     route: "/dashboard/listening",    color: "var(--mod-escucha)",  icon: "radar",       tagline: "Escucha todo el espectro",       group: "crecimiento" },
   { key: "envivo",      label: "En vivo",      code: "Órbita",    route: "/dashboard/streams",     color: "var(--mod-envivo)",   icon: "columns-3",  tagline: "Tu feed, en tiempo real",        group: "crecimiento" },
-  { key: "aria",        label: "Aria IA",      code: "Oráculo",   route: "/dashboard/crecimiento", color: "#f43f5e",             icon: "brain-circuit", tagline: "Predice tu siguiente venta",    group: "crecimiento",
+  { key: "aria",        label: "Aria IA",      code: "Oráculo",   route: "/dashboard/crecimiento", color: "var(--mod-aria)",     icon: "brain-circuit", tagline: "Predice tu siguiente venta",    group: "crecimiento",
     tabs: [
       { label: "Insights",         route: "" },
       { label: "Data Hub",         route: "/data-hub" },
       { label: "Predictive Studio", route: "/studio" },
       { label: "Scores",           route: "/scores" },
     ] },
-  { key: "reportes",    label: "Reportes",     code: "Bitácora",  route: "/dashboard/reportes",    color: "#f43f5e",             icon: "file-text",   tagline: "Informes white-label para el cliente", group: "crecimiento" },
+  { key: "reportes",    label: "Reportes",     code: "Bitácora",  route: "/dashboard/reportes",    color: "var(--mod-reportes)", icon: "file-text",   tagline: "Informes white-label para el cliente", group: "crecimiento" },
 
   // ── AUTOMATIZACIÓN — los bots (Métricas es pestaña, no ítem de menú) ──
   { key: "chatbots",    label: "Chatbots", code: "Piloto", route: "/dashboard/botmaker", color: "var(--mod-chatbots)", icon: "bot", tagline: "Tu copiloto automático", group: "automatizacion",
@@ -138,13 +138,13 @@ export interface FutureModuleDef extends ModuleDef {
 
 export const FUTURE_MODULES: FutureModuleDef[] = [
   // ── Fase 1 · cerrar la brecha de agencia ──
-  { key: "aprobaciones", label: "Aprobaciones", code: "Visto bueno", route: "/dashboard/aprobaciones", color: "#10b981", icon: "check-check",  tagline: "Revisión y firma antes de publicar", group: "contenido",   status: "planned", phase: 1 },
-  { key: "biblioteca",   label: "Biblioteca",   code: "Bóveda",      route: "/dashboard/publisher/biblioteca", color: "#f59e0b", icon: "folder-open", tagline: "Activos de marca centralizados", group: "contenido", status: "planned", phase: 1, tabOf: "publicacion" },
+  { key: "aprobaciones", label: "Aprobaciones", code: "Visto bueno", route: "/dashboard/aprobaciones", color: "#34b77c", icon: "check-check",  tagline: "Revisión y firma antes de publicar", group: "contenido",   status: "planned", phase: 1 },
+  { key: "biblioteca",   label: "Biblioteca",   code: "Bóveda",      route: "/dashboard/publisher/biblioteca", color: "#e0a83c", icon: "folder-open", tagline: "Activos de marca centralizados", group: "contenido", status: "planned", phase: 1, tabOf: "publicacion" },
 
   // ── Fase 2 · inteligencia & alcance ──
-  { key: "datos", label: "Datos", code: "Telescopio", route: "/dashboard/datos", color: "#00b8d9", icon: "database", tagline: "Todas tus métricas, una fuente", group: "crecimiento", status: "planned", phase: 2 },
-  { key: "competidores", label: "Competidores", code: "Rivales", route: "/dashboard/listening/competidores", color: "#f97316", icon: "swords", tagline: "Benchmark contra otras marcas", group: "crecimiento", status: "planned", phase: 2, tabOf: "escucha" },
-  { key: "linkinbio",    label: "Link-in-bio",  code: "Portal",  route: "/dashboard/portal", color: "#14b8a6", icon: "link", tagline: "Mini-landing con métricas de clic", group: "contenido", status: "planned", phase: 2 },
+  { key: "datos", label: "Datos", code: "Telescopio", route: "/dashboard/datos", color: "#3898ac", icon: "database", tagline: "Todas tus métricas, una fuente", group: "crecimiento", status: "planned", phase: 2 },
+  { key: "competidores", label: "Competidores", code: "Rivales", route: "/dashboard/listening/competidores", color: "#d9822b", icon: "swords", tagline: "Benchmark contra otras marcas", group: "crecimiento", status: "planned", phase: 2, tabOf: "escucha" },
+  { key: "linkinbio",    label: "Link-in-bio",  code: "Portal",  route: "/dashboard/portal", color: "#45aec2", icon: "link", tagline: "Mini-landing con métricas de clic", group: "contenido", status: "planned", phase: 2 },
   // Orbi Copilot+ NO es un módulo: es una capa transversal. Ver orbi-states.md.
 
   // ── Fase 3 · gobernanza & escala (exploratoria) ──
@@ -154,10 +154,10 @@ export const FUTURE_MODULES: FutureModuleDef[] = [
 
 /** Acentos reservados para los módulos futuros — NO reutilizar en otra cosa. */
 export const RESERVED_ACCENTS: Record<string, string> = {
-  datos:        "#00b8d9",
-  aprobaciones: "#10b981",
-  reportes:     "#f43f5e",
-  biblioteca:   "#f59e0b",
-  competidores: "#f97316",
-  linkinbio:    "#14b8a6",
+  datos:        "#3898ac",
+  aprobaciones: "#34b77c",
+  reportes:     "#45aec2",
+  biblioteca:   "#e0a83c",
+  competidores: "#d9822b",
+  linkinbio:    "#45aec2",
 };
