@@ -63,13 +63,10 @@ describe("meta-scopes — fuente única", () => {
       "instagram_manage_comments",
       "instagram_manage_engagement",
       "instagram_manage_contents",
-      "instagram_branded_content_ads_brand",
-      "instagram_branded_content_brand",
-      "instagram_branded_content_creator",
-      "instagram_shopping_tag_products",
     ];
     const result = validateModulePermissions("publisher_instagram", granted);
     expect(result.missing).toEqual([]);
     expect(result.valid).toBe(true);
   });
+
 });

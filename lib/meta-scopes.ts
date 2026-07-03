@@ -8,6 +8,8 @@
  *   pages_read_posts) no deben volver a aparecer en el código.
  * - `scopes` = lo que se solicita en el diálogo OAuth (complementa al config_id).
  * - `required` = mínimo para que el módulo FUNCIONE (validación de status).
+ * - Solo incluir permisos con implementación funcional REAL en el código.
+ *   Meta rechaza permisos que no pueden demostrarse con screencast.
  *
  * ══ App Separation (July 2026) ══
  * - publisher_instagram → FACEBOOK_PUBLISHER_IG_CONFIG_ID
@@ -18,7 +20,38 @@
  * - community → FACEBOOK_COMMUNITY_CONFIG_ID
  *   Scopes: pages_messaging + FB page scopes (no IG scopes — separate app)
  *   Added: pages_manage_engagement, pages_read_user_content, read_insights,
- *          read_page_mailboxes, publish_video
+ *          publish_video
+ *
+ * ══ WhatsApp ══
+ * WhatsApp Business NO usa el flujo OAuth con config_id. Se conecta via:
+ * - Embedded Signup (popup de Meta → code → token exchange)
+ * - System User Token (manual)
+ * Los permisos whatsapp_business_messaging / whatsapp_business_management
+ * se solicitan directamente en Meta Developers → App Review.
+ * Ver: app/api/connect/whatsapp/route.ts
+ *
+ * ══ Permisos especiales (panel Meta Developers, NO scopes OAuth) ══
+ * - Marketing API Access Tier
+ * - Meta oEmbed Read
+ * - Business Asset User Profile Access
+ * Estos NO se declaran aquí — se solicitan directamente en App Review.
+ *
+ * ══ FUTURE — permisos a agregar cuando se implemente la funcionalidad ══
+ * - instagram_manage_events (IG Events API)
+ * - instagram_creator_marketplace_discovery (Creator Marketplace)
+ * - instagram_branded_content_ads_brand (Branded Content)
+ * - instagram_branded_content_creator (Branded Content)
+ * - instagram_shopping_tag_products (Shopping Tags)
+ * - facebook_branded_content_ads_brand (FB Branded Content)
+ * - user_messenger_contact (Messenger Contact)
+ * - pages_user_timezone / pages_user_locale (User Profile Data)
+ * - catalog_management (Product Catalogs)
+ * - marketing_messages_messenger (Marketing Messages)
+ * - business_management (Business Manager API)
+ * - leads_retrieval (Lead Ads fetching)
+ * - pages_utility_messaging (Message Tags outside 24h)
+ * - pages_messaging_phone_number (Messenger Phone Number access)
+ * - page_events (Facebook Page Events management)
  */
 
 export const MODULE_SCOPE_MAP: Record<string, {
@@ -57,12 +90,7 @@ export const MODULE_SCOPE_MAP: Record<string, {
       "instagram_manage_engagement",
       "instagram_manage_contents",
     ],
-    permissions: [
-      "instagram_branded_content_ads_brand",
-      "instagram_branded_content_brand",
-      "instagram_branded_content_creator",
-      "instagram_shopping_tag_products",
-    ],
+    permissions: [],
     required: [
       "pages_show_list",
       "instagram_basic",
@@ -83,8 +111,12 @@ export const MODULE_SCOPE_MAP: Record<string, {
     riskLevel: "sensitive",
   },
   ads: {
-    scopes: ["ads_read", "ads_management"],
-    permissions: ["catalog_management", "leads_retrieval"],
+    scopes: [
+      "ads_read",
+      "ads_management",
+      "pages_manage_ads",
+    ],
+    permissions: [],
     required: ["ads_read", "ads_management"],
     label: "Meta Ads Manager",
     riskLevel: "critical",
@@ -113,12 +145,7 @@ export const MODULE_SCOPE_MAP: Record<string, {
       "read_insights",
       "publish_video",
     ],
-    permissions: [
-      "marketing_messages_messenger",
-      "pages_messaging_phone_number",
-      "pages_utility_messaging",
-      "page_events",
-    ],
+    permissions: [],
     required: ["pages_messaging", "pages_show_list"],
     label: "Community Management",
     riskLevel: "critical",
@@ -197,3 +224,4 @@ export function validateModulePermissions(
     extra,
   };
 }
+

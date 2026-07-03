@@ -2,7 +2,50 @@ import { NextRequest, NextResponse, after } from "next/server";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
+import { resolveWorkspaceForMetaAsset, persistInboundMessage, type InboxPlatform } from "@/lib/inbox-store";
 import { env } from "@/lib/env";
+
+/**
+ * Persiste un DM entrante de Messenger/IG en el inbox (tiempo real). Resuelve el
+ * workspace dueño del activo y deduplica por mid. No bloquea el webhook: cualquier
+ * fallo se loguea y sigue. Los "echo" (mensajes enviados por la propia página) se
+ * guardan como sender "page" para reflejar respuestas hechas fuera de Sodare.
+ */
+async function persistMetaDm(
+  platform: InboxPlatform,
+  kind: "page" | "ig_account",
+  assetId: string,
+  msg: {
+    sender?: { id?: string };
+    recipient?: { id?: string };
+    timestamp?: number | string;
+    message?: { mid?: string; text?: string; is_echo?: boolean; attachments?: unknown[] };
+  },
+): Promise<void> {
+  try {
+    if (!msg.message) return;
+    const isEcho = !!msg.message.is_echo;
+    const contactId = isEcho ? msg.recipient?.id : msg.sender?.id;
+    if (!assetId || !contactId) return;
+    const workspaceId = await resolveWorkspaceForMetaAsset(assetId, kind);
+    if (!workspaceId) return;
+    await persistInboundMessage({
+      workspaceId,
+      platform,
+      pageId: assetId,
+      contactId,
+      mid: msg.message.mid ?? null,
+      text: msg.message.text || (msg.message.attachments?.length ? "📎 Adjunto" : ""),
+      timestampMs: typeof msg.timestamp === "string" ? Number(msg.timestamp) : (msg.timestamp ?? Date.now()),
+      sender: isEcho ? "page" : "user",
+    });
+  } catch (err) {
+    logger.warn("[WEBHOOK] persistMetaDm failed", {
+      platform,
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
 
 const VERIFY_TOKEN = env.META_WEBHOOK_VERIFY_TOKEN;
 
@@ -119,6 +162,8 @@ async function processWebhookEvents(body: any, object: string) {
         // ─── Messenger Messages ───
         for (const msg of entry.messaging || []) {
           if (msg.message) {
+            // Persistir en el inbox (tiempo real, modelo DB).
+            await persistMetaDm("facebook_messenger", "page", entryId, msg);
             await createAlert({
               type: "new_message",
               severity: "info",
@@ -288,6 +333,8 @@ async function processWebhookEvents(body: any, object: string) {
         // ─── Instagram DM Messages ───
         for (const msg of entry.messaging || []) {
           if (msg.message) {
+            // Persistir en el inbox (tiempo real, modelo DB).
+            await persistMetaDm("instagram_dm", "ig_account", entryId, msg);
             await createAlert({
               type: "ig_message",
               severity: "info",

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect, useCallback } from "react";
 import { Loader2, RefreshCw, Bell, CheckCircle2, Circle, AlertTriangle, ChevronRight, X } from "lucide-react";
@@ -53,7 +53,7 @@ const META_MODULES = [
       </svg>
     ),
     color: "var(--purple)",
-    permissions: ["ads_management", "ads_read", "leads_retrieval"],
+    permissions: ["ads_management", "ads_read"],
   },
   {
     key: "analytics",
@@ -75,7 +75,7 @@ const META_MODULES = [
       </svg>
     ),
     color: "var(--purple)",
-    permissions: ["pages_messaging", "instagram_manage_messages", "read_page_mailboxes"],
+    permissions: ["pages_messaging", "instagram_manage_messages", "pages_manage_metadata"],
   },
 ];
 

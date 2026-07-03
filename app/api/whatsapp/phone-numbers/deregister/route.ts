@@ -8,17 +8,16 @@ import { logger } from "@/lib/logger";
 
 const GRAPH_BASE = "https://graph.facebook.com/v25.0";
 
-const registerSchema = z.object({
+const deregisterSchema = z.object({
   phoneNumberId: z.string().min(5),
-  pin: z.string().length(6, "El PIN debe ser de 6 dígitos"),
 });
 
 export const POST = withWorkspace(async (req: NextRequest, ctx) => {
-  const validation = await validateBody(req, registerSchema);
+  const validation = await validateBody(req, deregisterSchema);
   if (!validation.ok) return validation.response;
 
   const { workspaceId } = ctx;
-  const { phoneNumberId, pin } = validation.data;
+  const { phoneNumberId } = validation.data;
 
   const creds = await getWaCredentials(workspaceId);
   if (!creds) {
@@ -26,36 +25,32 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   }
 
   try {
-    // Register the phone number using the Meta Graph API
-    const url = `${GRAPH_BASE}/${phoneNumberId}/register`;
+    // Deregister the phone number using the Meta Graph API
+    const url = `${GRAPH_BASE}/${phoneNumberId}/deregister`;
     const res = await fetch(url, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${creds.accessToken}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        messaging_product: "whatsapp",
-        pin: pin,
-      }),
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-      logger.error("Error al registrar el número en Meta", { workspaceId, phoneNumberId, error: data });
+      logger.error("Error al eliminar registro del número en Meta", { workspaceId, phoneNumberId, error: data });
       return apiError(
-        data?.error?.message ?? "Error al registrar el número de WhatsApp.",
-        "META_REGISTER_ERROR",
+        data?.error?.message ?? "Error al eliminar el registro del número de WhatsApp.",
+        "META_DEREGISTER_ERROR",
         res.status
       );
     }
 
-    logger.info("Número de WhatsApp registrado exitosamente", { workspaceId, phoneNumberId });
+    logger.info("Número de WhatsApp eliminado del registro exitosamente", { workspaceId, phoneNumberId });
 
     return apiSuccess({ success: true, data });
   } catch (err) {
-    logger.error("Excepción al registrar línea de WhatsApp", { workspaceId, phoneNumberId, error: err });
-    return apiError("Error interno al registrar la línea de WhatsApp.", "INTERNAL_ERROR", 500);
+    logger.error("Excepción al eliminar registro de línea de WhatsApp", { workspaceId, phoneNumberId, error: err });
+    return apiError("Error interno al eliminar el registro de la línea de WhatsApp.", "INTERNAL_ERROR", 500);
   }
 });

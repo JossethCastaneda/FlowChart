@@ -265,6 +265,7 @@ async function exchangeCodeForToken(
     const url = new URL("https://graph.facebook.com/v25.0/oauth/access_token");
     url.searchParams.set("client_id",     appId);
     url.searchParams.set("client_secret", appSecret);
+    url.searchParams.set("redirect_uri",  "");
     url.searchParams.set("code",          code);
 
     const res = await fetch(url.toString(), {

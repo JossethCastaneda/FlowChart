@@ -615,7 +615,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         <MobileBottomNav onOpenMenu={() => setSidebarOpen(true)} />
 
         {/* Desktop top bar */}
-        <div className="hidden lg:flex items-center justify-end px-6 py-2 gap-5" style={{
+        <div className="hidden lg:flex items-center justify-between px-4 py-2 gap-5" style={{
           borderBottom: "1px solid var(--border)",
           background: "var(--topbar-bg)",
           height: "56px",
@@ -623,7 +623,49 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           zIndex: 50,
         }}>
 
-          {/* Quick actions */}
+          {/* ── Hamburger / Sidebar toggle ── */}
+          <button
+            id="sidebar-toggle-btn"
+            onClick={toggleSidebarPin}
+            title={sidebarPinned ? (lang === 'es' ? "Colapsar menú" : "Collapse menu") : (lang === 'es' ? "Abrir menú" : "Open menu")}
+            style={{
+              background: sidebarPinned ? "rgba(0,212,255,0.08)" : "transparent",
+              border: "1px solid transparent",
+              borderRadius: 8,
+              padding: "6px 8px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              color: sidebarPinned ? "var(--cyan)" : "var(--text-secondary)",
+              transition: "all 0.2s ease",
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = sidebarPinned ? "rgba(0,212,255,0.12)" : "rgba(255,255,255,0.05)";
+              e.currentTarget.style.borderColor = sidebarPinned ? "rgba(0,212,255,0.25)" : "rgba(255,255,255,0.08)";
+              e.currentTarget.style.color = sidebarPinned ? "var(--cyan)" : "var(--foreground)";
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = sidebarPinned ? "rgba(0,212,255,0.08)" : "transparent";
+              e.currentTarget.style.borderColor = "transparent";
+              e.currentTarget.style.color = sidebarPinned ? "var(--cyan)" : "var(--text-secondary)";
+            }}
+          >
+            <Menu
+              style={{
+                width: 18,
+                height: 18,
+                transition: "transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)",
+                transform: sidebarPinned ? "rotate(90deg)" : "rotate(0deg)",
+              }}
+            />
+          </button>
+
+          {/* Right side quick actions */}
+          <div className="flex items-center gap-5">
+
+
           <Link href="/dashboard/inbox" className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Conversaciones">
             <HoloIcon icon={MessageSquarePlus} variant="cyan" isActive={true} className="w-[18px] h-[18px]" />
           </Link>
@@ -908,7 +950,10 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               </div>
             )}
           </div>
+
+          </div>
         </div>
+
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" style={{ display: "flex", flexDirection: "column" }}>

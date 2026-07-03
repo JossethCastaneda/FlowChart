@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useEffect, useState, useCallback } from "react";
 import { Loader2, CheckCircle2, Circle, X, Phone, RefreshCw, Send, ExternalLink, Trash2 } from "lucide-react";
@@ -396,13 +396,10 @@ export function WhatsAppConnectCard() {
       {
         config_id: CONFIG_ID,
         response_type: "code",
-        override_default_response_type: true,
         extras: {
           setup,
-          featureType: "whatsapp_business_app_onboarding",
           sessionInfoVersion: "3",
           version: "v4",
-          features: [{ name: "app_only_install" }],
         },
       }
     );

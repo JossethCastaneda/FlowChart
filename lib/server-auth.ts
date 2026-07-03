@@ -33,7 +33,7 @@ const MODULE_PROVIDER_MAP: Record<string, string> = {
   ig_inbox: "meta_publisher_instagram",
   ig_comments: "meta_publisher_instagram",
   instagram_inbox: "meta_publisher_instagram",
-  // FB comments — community token has pages_read_user_content + read_page_mailboxes
+  // FB comments — community token has pages_read_user_content + pages_manage_engagement
   comments: "meta_community",
   // Aliases
   publisher: "meta_publisher_facebook",  // publisher defaults to FB publisher token

@@ -9,7 +9,7 @@ const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
 /**
  * GET /api/connect/status
  * Returns the connection status for all modules.
- * Response: { modules: { social, ads, analytics, community }, pages: [...], tokenExpiresSoon }
+ * Response: { modules: { publisher_facebook, publisher_instagram, social, ads, analytics, community, whatsapp_business }, pages: [...], tokenExpiresSoon }
  */
 export async function GET(request: NextRequest) {
   try {
@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
     const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; tokenExpiresSoon?: boolean; daysUntilExpiry?: number }> = {};
 
     for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community"]) {
+
       // Para módulos del publisher, no hacemos fallback al genérico "meta"
       const isPublisherMod = mod === "publisher_facebook" || mod === "publisher_instagram";
       const integration = integrations.find((i) => i.provider === `meta_${mod}`)

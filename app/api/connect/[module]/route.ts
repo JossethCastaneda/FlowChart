@@ -36,6 +36,7 @@ const CONFIG_MAP: Record<string, { envKey: keyof typeof env; label: string }> = 
   },
 };
 
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ module: string }> }

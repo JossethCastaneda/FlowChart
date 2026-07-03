@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { Plug, Check, Loader2, ExternalLink } from "lucide-react";
@@ -18,7 +18,7 @@ const MODULE_CONFIG: Record<string, { label: string; color: string; description:
     label: "Meta Ads Manager",
     color: "var(--purple)",
     description: "Gestionar campañas publicitarias y presupuestos",
-    permissions: ["ads_management", "ads_read", "leads_retrieval"],
+    permissions: ["ads_management", "ads_read"],
   },
   analytics: {
     label: "Analytics Engine",
