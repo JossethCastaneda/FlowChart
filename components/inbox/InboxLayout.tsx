@@ -10,7 +10,7 @@ import {
   Search, Send, X, ChevronRight, ChevronDown, ChevronUp, UserPlus, Tag, Clock,
   MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark,
   CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp,
-  User, Globe, ExternalLink, Plus, Filter,
+  User, Globe, ExternalLink, Plus, Filter, Unplug, Wifi, WifiOff,
   Heart, Share2,
 } from "lucide-react";
 import { Message, PostComment, PostData, Conversation, ConnectedPage, Platform, ChannelFilter, QueueFilter } from "./types";
@@ -65,8 +65,12 @@ export function InboxLayout() {
   const [initialFetchDone, setInitialFetchDone] = useState(false);
   const [connectedPages, setConnectedPages] = useState<ConnectedPage[]>([]);
   const [selectedPage, setSelectedPage] = useState<ConnectedPage | null>(null);
+  const [channelFilter, setChannelFilter] = useState<ChannelFilter>("all");
+  const [channelFilterOpen, setChannelFilterOpen] = useState(true);
   const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
   const [queueMenuOpen, setQueueMenuOpen] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<Record<string, { connected: boolean; connectedAt: string | null; pages: any[] }>>({});
+  const [disconnecting, setDisconnecting] = useState(false);
   const queueRef = useRef<HTMLDivElement>(null);
   const currentAssignee = session?.user?.name || "Ana";
 
@@ -92,12 +96,13 @@ export function InboxLayout() {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Fetch connected pages
-  useEffect(() => {
+  // Fetch connected pages and connection status
+  const fetchConnectionStatus = useCallback(() => {
     fetch("/api/connect/status")
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (!data?.modules) return;
+        setConnectionStatus(data.modules);
         const allPages: ConnectedPage[] = [];
         const seen = new Set<string>();
         Object.values(data.modules).forEach((mod: any) => {
@@ -129,6 +134,30 @@ export function InboxLayout() {
         setConnectedPages(allPages);
       }).catch(() => {});
   }, []);
+
+  useEffect(() => { fetchConnectionStatus(); }, [fetchConnectionStatus]);
+
+  // Disconnect handler
+  const handleDisconnect = async (module: string) => {
+    if (disconnecting) return;
+    setDisconnecting(true);
+    try {
+      const res = await fetch("/api/connect/disconnect", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ module }),
+      });
+      if (res.ok) {
+        fetchConnectionStatus();
+      }
+    } catch { /* ignore */ }
+    setDisconnecting(false);
+  };
+
+  // Derived: which platforms are connected
+  const hasMessenger = connectionStatus.community?.connected || connectionStatus.social?.connected || connectedPages.some(p => p.platform === "facebook");
+  const hasInstagram = connectedPages.some(p => p.platform === "instagram");
+  const hasWhatsApp = connectionStatus.whatsapp_business?.connected;
 
   // Fetch real conversations from API
   useEffect(() => {
@@ -225,7 +254,7 @@ export function InboxLayout() {
       }).catch(() => {});
   };
 
-  // Apply search + page + queue filter (unified — no channel separation)
+  // Apply search + page + channel + queue filter
   const filtered = conversations.filter(c => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
@@ -235,6 +264,11 @@ export function InboxLayout() {
     if (selectedPage) {
       const convPageId = (c as any)?._pageId;
       if (convPageId && convPageId !== selectedPage.id) return false;
+    }
+    // Filter by channel/platform
+    if (channelFilter !== "all") {
+      const tab = CHANNEL_TABS.find(t => t.key === channelFilter);
+      if (tab && tab.platforms.length > 0 && !tab.platforms.includes(c.platform)) return false;
     }
     if (queueFilter === "unassigned" && c.assignedTo) return false;
     if (queueFilter === "mine" && c.assignedTo !== currentAssignee) return false;
@@ -339,8 +373,116 @@ export function InboxLayout() {
     );
   };
 
+  // Count conversations per platform for badges
+  const platformCounts = conversations.reduce((acc, c) => {
+    for (const tab of CHANNEL_TABS) {
+      if (tab.key === "all") continue;
+      if (tab.platforms.includes(c.platform)) {
+        acc[tab.key] = (acc[tab.key] || 0) + 1;
+      }
+    }
+    return acc;
+  }, {} as Record<string, number>);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 200px)" }}>
+
+      {/* ═══ CONNECTED PROFILE BANNER ═══ */}
+      {initialFetchDone && connectedPages.length > 0 && (
+        <div style={{
+          display: "flex", alignItems: "center", gap: 12,
+          padding: "8px 16px",
+          background: "rgba(155,123,232,0.04)",
+          borderBottom: "1px solid var(--hairline)",
+          flexShrink: 0,
+        }}>
+          <Wifi style={{ width: 14, height: 14, color: "var(--emerald)", flexShrink: 0 }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, overflow: "hidden" }}>
+            {/* Connected accounts avatars */}
+            <div style={{ display: "flex", alignItems: "center" }}>
+              {connectedPages.slice(0, 5).map((page, i) => (
+                <div key={page.id} style={{
+                  marginLeft: i > 0 ? -8 : 0,
+                  position: "relative", zIndex: 5 - i,
+                }}>
+                  {page.picture ? (
+                    <img
+                      src={page.picture}
+                      alt={page.name}
+                      title={page.name}
+                      style={{
+                        width: 26, height: 26, borderRadius: "50%",
+                        border: "2px solid var(--background)", objectFit: "cover",
+                      }}
+                    />
+                  ) : (
+                    <div
+                      title={page.name}
+                      style={{
+                        width: 26, height: 26, borderRadius: "50%",
+                        border: "2px solid var(--background)",
+                        background: page.platform === "instagram"
+                          ? "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)"
+                          : "linear-gradient(135deg,#1877F2,#0d6efd)",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                        fontSize: 9, fontWeight: 700, color: "white",
+                      }}
+                    >
+                      {page.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {connectedPages.length > 5 && (
+                <div style={{
+                  marginLeft: -8, width: 26, height: 26, borderRadius: "50%",
+                  background: "var(--surface-hover)", border: "2px solid var(--background)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 9, fontWeight: 700, color: "var(--text-secondary)",
+                }}>
+                  +{connectedPages.length - 5}
+                </div>
+              )}
+            </div>
+            <span style={{ fontSize: 11, color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              {connectedPages.map(p => p.name).join(", ")}
+            </span>
+          </div>
+
+          {/* Recibiendo badge */}
+          <span style={{
+            display: "inline-flex", alignItems: "center", gap: 4,
+            padding: "3px 8px", borderRadius: 6,
+            background: "rgba(16,185,129,0.08)",
+            border: "1px solid rgba(16,185,129,0.2)",
+            fontSize: 9, fontWeight: 600, color: "var(--emerald)",
+            whiteSpace: "nowrap", flexShrink: 0,
+          }}>
+            <div style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--emerald)" }} />
+            Recibiendo mensajes
+          </span>
+
+          {/* Disconnect button */}
+          <button
+            onClick={() => handleDisconnect("community")}
+            disabled={disconnecting}
+            title="Desconectar"
+            style={{
+              display: "inline-flex", alignItems: "center", gap: 4,
+              padding: "4px 8px", borderRadius: 6,
+              background: "rgba(239,68,68,0.06)",
+              border: "1px solid rgba(239,68,68,0.15)",
+              color: "var(--red)", cursor: "pointer",
+              fontSize: 9, fontWeight: 600, fontFamily: "inherit",
+              opacity: disconnecting ? 0.5 : 1,
+              flexShrink: 0,
+            }}
+          >
+            <Unplug style={{ width: 10, height: 10 }} />
+            Desconectar
+          </button>
+        </div>
+      )}
 
       {/* Skeleton loading state */}
       {!initialFetchDone && (
@@ -506,6 +648,71 @@ export function InboxLayout() {
               />
             </div>
           )}
+
+          {/* ─── Platform Filter Tabs (Collapsible) ─── */}
+          <div style={{ borderBottom: "1px solid var(--hairline)" }}>
+            <button
+              onClick={() => setChannelFilterOpen(o => !o)}
+              style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                width: "100%", padding: "8px 12px",
+                background: "transparent", border: "none",
+                color: "var(--text-secondary)", fontSize: 9, fontWeight: 700,
+                letterSpacing: "0.08em", cursor: "pointer", fontFamily: "inherit",
+                textTransform: "uppercase",
+              }}
+            >
+              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                <Filter style={{ width: 10, height: 10 }} />
+                Plataformas
+                {channelFilter !== "all" && (
+                  <span style={{
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: CHANNEL_TABS.find(t => t.key === channelFilter)?.color || "var(--purple)",
+                  }} />
+                )}
+              </span>
+              {channelFilterOpen
+                ? <ChevronUp style={{ width: 10, height: 10 }} />
+                : <ChevronDown style={{ width: 10, height: 10 }} />
+              }
+            </button>
+            {channelFilterOpen && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "0 10px 8px" }}>
+                {CHANNEL_TABS.map(tab => {
+                  const count = tab.key === "all" ? conversations.length : (platformCounts[tab.key] || 0);
+                  const isActive = channelFilter === tab.key;
+                  // Only show tabs that have conversations or are "all"
+                  if (tab.key !== "all" && count === 0) return null;
+                  return (
+                    <button
+                      key={tab.key}
+                      onClick={() => setChannelFilter(tab.key)}
+                      style={{
+                        display: "inline-flex", alignItems: "center", gap: 4,
+                        padding: "4px 8px", borderRadius: 6,
+                        border: `1px solid ${isActive ? `${tab.color}55` : "var(--hairline)"}`,
+                        background: isActive ? `${tab.color}14` : "transparent",
+                        color: isActive ? tab.color : "var(--text-muted)",
+                        fontSize: 10, fontWeight: isActive ? 700 : 500,
+                        cursor: "pointer", fontFamily: "inherit",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      {tab.label}
+                      <span style={{
+                        minWidth: 14, height: 14, borderRadius: 7, padding: "0 3px",
+                        display: "inline-flex", alignItems: "center", justifyContent: "center",
+                        background: isActive ? `${tab.color}2b` : "var(--surface-hover)",
+                        color: isActive ? tab.color : "var(--text-secondary)",
+                        fontSize: 9, fontWeight: 700,
+                      }}>{count}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
 
           {/* Search + Queue filter */}
           <div style={{ padding: "6px 12px 10px", display: "flex", gap: 6, alignItems: "center" }}>
