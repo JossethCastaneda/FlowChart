@@ -61,20 +61,21 @@ export function GalaxyBackground() {
       offscreen.height = h;
       const offCtx = offscreen.getContext("2d");
       if (offCtx) {
+        /* Solo familia azul, muy tenue — coherente con el tema Ink */
         const nebulaColors: [number, number, number][] = [
-          [0, 80, 180],    // deep blue
-          [60, 0, 140],    // purple
-          [0, 140, 200],   // cyan
-          [120, 0, 80],    // magenta
-          [0, 60, 120],    // dark blue
+          [37, 99, 235],   // azul marca
+          [30, 64, 120],   // azul profundo
+          [59, 130, 246],  // azul claro
+          [25, 40, 80],    // azul noche
+          [45, 110, 180],  // azul medio
         ];
-        
+
         for (let i = 0; i < 5; i++) {
           const nx = Math.random() * w;
           const ny = Math.random() * h;
           const rx = 300 + Math.random() * 400;
           const ry = 250 + Math.random() * 300;
-          const alpha = 0.03 + Math.random() * 0.04;
+          const alpha = 0.02 + Math.random() * 0.025;
           const angle = Math.random() * Math.PI * 2;
           
           const grad = offCtx.createRadialGradient(nx, ny, 0, nx, ny, rx);
@@ -146,7 +147,7 @@ export function GalaxyBackground() {
 
     init();
     draw();
-    window.addEventListener("resize", () => { resize(); });
+    window.addEventListener("resize", resize);
 
     return () => {
       cancelAnimationFrame(animId);

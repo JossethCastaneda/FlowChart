@@ -13,12 +13,13 @@ interface KpiCardProps {
   sparkline?: number[];
 }
 
+/* RGB de los tokens de acento (ver app/globals.css) — para rgba() en gradientes SVG */
 const COLOR_MAP: Record<string, string> = {
-  cyan:    "0,212,255",
-  emerald: "6,214,160",
-  amber:   "255,190,11",
-  red:     "255,45,85",
-  purple:  "123,97,255",
+  cyan:    "91,155,255",
+  emerald: "52,183,124",
+  amber:   "224,168,60",
+  red:     "229,72,77",
+  purple:  "139,141,242",
 };
 
 /**
@@ -137,9 +138,9 @@ export function KpiCard({
                 letterSpacing: "0.04em",
                 background:
                   trend === "up"
-                    ? "rgba(6,214,160,0.12)"
+                    ? "rgba(52,183,124,0.12)"
                     : trend === "down"
-                    ? "rgba(255,45,85,0.12)"
+                    ? "rgba(229,72,77,0.12)"
                     : "rgba(148,163,184,0.10)",
                 color:
                   trend === "up"

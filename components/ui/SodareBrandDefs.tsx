@@ -20,32 +20,32 @@ export function SodareBrandDefs() {
   return (
     <svg width="0" height="0" style={{ position: "absolute", width: 0, height: 0, visibility: "hidden" }}>
       <defs>
-        {/* ─── Cyan Holographic Glow (Default Brand) ─── */}
+        {/* ─── Azul (marca) ─── */}
         <linearGradient id="sodare-holo-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="var(--cyan)" />
-          <stop offset="50%" stopColor="#0080ff" />
+          <stop offset="50%" stopColor="#2563eb" />
           <stop offset="100%" stopColor="var(--cyan)" />
         </linearGradient>
 
-        {/* ─── Emerald Holographic Glow (Success/Growth) ─── */}
+        {/* ─── Verde (éxito/crecimiento) ─── */}
         <linearGradient id="sodare-holo-emerald" x1="0%" y1="0%" x2="100%" y2="100%">
           <stop offset="0%" stopColor="var(--emerald)" />
-          <stop offset="50%" stopColor="#059669" />
+          <stop offset="50%" stopColor="#2b9a67" />
           <stop offset="100%" stopColor="var(--emerald)" />
         </linearGradient>
 
-        {/* ─── Purple/Pink Holographic Glow (Inbox/Analytics) ─── */}
+        {/* ─── Magenta atenuado (métricas) ─── */}
         <linearGradient id="sodare-holo-pink" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#f472b6" />
+          <stop offset="0%" stopColor="#bc5fb2" />
           <stop offset="50%" stopColor="var(--purple)" />
-          <stop offset="100%" stopColor="#f472b6" />
+          <stop offset="100%" stopColor="#bc5fb2" />
         </linearGradient>
-        
-        {/* ─── Orange/Gold Holographic Glow (Listening/Planner) ─── */}
+
+        {/* ─── Naranja atenuado (escucha/planner) ─── */}
         <linearGradient id="sodare-holo-gold" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#fb923c" />
+          <stop offset="0%" stopColor="#d98843" />
           <stop offset="50%" stopColor="var(--amber)" />
-          <stop offset="100%" stopColor="#fb923c" />
+          <stop offset="100%" stopColor="#d98843" />
         </linearGradient>
       </defs>
     </svg>

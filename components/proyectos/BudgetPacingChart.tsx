@@ -108,7 +108,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
   const statusConfig = {
     "on-track": { color: "var(--emerald)", bg: "rgba(52,211,153,0.06)", label: "On Track", icon: <Minus className="w-3.5 h-3.5" /> },
     "underspending": { color: "var(--amber)", bg: "rgba(251,191,36,0.06)", label: "Sub-paceando", icon: <TrendingDown className="w-3.5 h-3.5" /> },
-    "overspending": { color: "var(--red)", bg: "rgba(239,68,68,0.06)", label: "Sobre-paceando", icon: <TrendingUp className="w-3.5 h-3.5" /> },
+    "overspending": { color: "var(--red)", bg: "rgba(229,72,77,0.06)", label: "Sobre-paceando", icon: <TrendingUp className="w-3.5 h-3.5" /> },
   };
   const status = statusConfig[chartData.paceStatus];
 
@@ -177,9 +177,9 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
             {/* Budget line */}
             <ReferenceLine
               y={chartData.budget}
-              stroke="rgba(239,68,68,0.3)"
+              stroke="rgba(229,72,77,0.3)"
               strokeDasharray="4 4"
-              label={{ value: "Budget", position: "right", fill: "rgba(239,68,68,0.4)", fontSize: 9 }}
+              label={{ value: "Budget", position: "right", fill: "rgba(229,72,77,0.4)", fontSize: 9 }}
             />
             {/* Ideal pace */}
             <Area
@@ -194,17 +194,16 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
             <Area
               type="monotone"
               dataKey="real"
-              stroke="#8B5CF6"
+              stroke="var(--purple)"
               fill="url(#colorPurpleArea)"
-              strokeWidth={3}
-              filter="url(#glow)"
+              strokeWidth={2.5}
               connectNulls={false}
             />
             {/* Projected */}
             <Area
               type="monotone"
               dataKey="projected"
-              stroke="#8B5CF6"
+              stroke="var(--purple)"
               strokeDasharray="6 3"
               fill="none"
               strokeWidth={1.5}
@@ -219,8 +218,8 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
       <div style={{ display: "flex", gap: "16px", marginTop: "8px", justifyContent: "center" }}>
         {[
           { label: "Ritmo ideal", color: "var(--text-muted)", dashed: true },
-          { label: "Gasto real", color: "#8B5CF6", dashed: false },
-          { label: "Proyección", color: "#8B5CF6", dashed: true },
+          { label: "Gasto real", color: "var(--purple)", dashed: false },
+          { label: "Proyección", color: "var(--purple)", dashed: true },
         ].map(item => (
           <div key={item.label} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <div style={{
@@ -236,8 +235,8 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
       {chartData.paceStatus !== "on-track" && (
         <div style={{
           marginTop: "12px", padding: "10px 14px", borderRadius: "6px",
-          background: chartData.paceStatus === "overspending" ? "rgba(239,68,68,0.05)" : "rgba(251,191,36,0.05)",
-          border: `1px solid ${chartData.paceStatus === "overspending" ? "rgba(239,68,68,0.15)" : "rgba(251,191,36,0.15)"}`,
+          background: chartData.paceStatus === "overspending" ? "rgba(229,72,77,0.05)" : "rgba(251,191,36,0.05)",
+          border: `1px solid ${chartData.paceStatus === "overspending" ? "rgba(229,72,77,0.15)" : "rgba(251,191,36,0.15)"}`,
           display: "flex", alignItems: "center", gap: "8px",
         }}>
           <AlertTriangle className="w-4 h-4" style={{ color: status.color, flexShrink: 0 }} />
