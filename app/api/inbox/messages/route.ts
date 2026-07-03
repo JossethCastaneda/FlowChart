@@ -14,7 +14,7 @@ async function getPageTokens(userToken: string): Promise<Record<string, string>>
     return _pageTokenCache.tokens;
   }
   const pagesRes = await metaFetch(
-    metaUrl("me/accounts", { fields: "id,access_token", limit: "50" }),
+    metaUrl("me/accounts", { fields: "id,access_token", limit: "100" }),
     userToken,
     { cache: "no-store" }
   );

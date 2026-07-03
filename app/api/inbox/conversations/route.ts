@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
       const pagesRes = await metaFetch(
         metaUrl("me/accounts", {
           fields: "id,name,access_token,instagram_business_account{id,username,profile_picture_url}",
-          limit: "50",
+          limit: "100",
         }),
         fbToken,
         { cache: "no-store" }
@@ -71,7 +71,7 @@ export async function GET(request: NextRequest) {
       const igPagesRes = await metaFetch(
         metaUrl("me/accounts", {
           fields: "id,name,access_token,instagram_business_account{id,username,profile_picture_url}",
-          limit: "50",
+          limit: "100",
         }),
         igToken,
         { cache: "no-store" }
