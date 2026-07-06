@@ -1,10 +1,11 @@
-﻿import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, UserPlus, Tag, Clock, MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark, CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Plus, Filter, Heart, Share2 } from "lucide-react";
+import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, UserPlus, Tag, Clock, MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark, CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Plus, Filter, Heart, Share2 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message, PostComment, PostData, Conversation, ConnectedPage, Platform, ChannelFilter, QueueFilter } from "./types";
 import { relativeTime, formatTime, formatDate, getPlatformConfig, getInitials } from "./utils";
 import { SAVED_REPLIES } from "./utils";
 import { TEAM_MEMBERS } from "./utils";
+import { PlatformIcon } from "./InboxLayout";
 
 export function PageSelector({
       pages,
@@ -469,88 +470,60 @@ export function ChatView({
     <>
       {/* --- Chat Header --- */}
       <div style={{
-        padding: "10px 16px",
+        padding: "10px 16px 0",
         borderBottom: "1px solid var(--hairline)",
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        flexShrink: 0, background: "var(--hairline)",
+        display: "flex", flexDirection: "column", gap: 10,
+        flexShrink: 0, background: "var(--background)",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          {onBack && (
-            <button onClick={onBack} className="md:hidden text-slate-400 hover:text-white mr-1">
-              <ChevronLeft style={{ width: 20, height: 20 }} />
-            </button>
-          )}
-          {/* Avatar */}
-          <div style={{
-            width: 36, height: 36, borderRadius: "50%",
-            background: `linear-gradient(135deg, ${pc.color}20, ${pc.color}08)`,
-            border: `1.5px solid ${pc.color}30`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 12, fontWeight: 700, color: pc.color,
-          }}>
-            {getInitials(conversation.contactName)}
+        {/* Top Row: Breadcrumbs and Actions */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--text-muted)" }}>
+            {onBack && (
+              <button onClick={onBack} className="md:hidden text-slate-400 hover:text-white mr-1" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                <ChevronLeft style={{ width: 14, height: 14 }} />
+              </button>
+            )}
+            <span style={{ color: "var(--cyan)", cursor: "pointer" }}>Conversaciones</span>
+            <ChevronRight style={{ width: 10, height: 10 }} />
+            <span style={{ color: "var(--cyan)", cursor: "pointer" }}>Chats</span>
+            <ChevronRight style={{ width: 10, height: 10 }} />
+            <span style={{ color: "var(--foreground)", fontWeight: 500 }}>{conversation.contactName}</span>
           </div>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>
-                {conversation.contactName}
-              </span>
-              {conversation.assignedTo && (
-                <span style={{
-                  fontSize: 9, color: "var(--text-muted)",
-                  padding: "1px 6px", background: "var(--surface-hover)",
-                  borderRadius: 4, border: "1px solid var(--hairline)",
-                }}>
-                  ? {conversation.assignedTo}
-                </span>
-              )}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 1 }}>
-              <span style={{
-                fontSize: 10, fontWeight: 500,
-                padding: "1px 6px", color: pc.color,
-                background: pc.bgAlpha, borderRadius: 4,
-                display: "inline-flex", alignItems: "center", gap: 3,
-              }}>
-                <pc.icon style={{ width: 9, height: 9 }} />
-                {pc.label}
-              </span>
-            </div>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
+              <Globe style={{ width: 14, height: 14 }} />
+            </button>
+            <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
+              <MessageCircle style={{ width: 14, height: 14 }} />
+            </button>
+            <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
+              <Clock style={{ width: 14, height: 14 }} />
+            </button>
+            <button style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 4 }}>
+              <MoreHorizontal style={{ width: 14, height: 14 }} />
+            </button>
+            <button
+              onClick={onToggleProfile}
+              style={{ background: "none", border: "none", color: showProfile ? "var(--cyan)" : "var(--text-secondary)", cursor: "pointer", padding: 4 }}
+            >
+              <ChevronRight style={{ width: 14, height: 14, transform: showProfile ? "rotate(180deg)" : "none" }} />
+            </button>
           </div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-          {/* (Removed non-functional Notificaciones/Marcar/Archivar buttons for a cleaner header) */}
-          <button
-            onClick={onClose}
-            style={{
-              padding: "6px 12px", fontSize: 10, fontWeight: 600,
-              color: conversation.closed ? "var(--emerald)" : "var(--text-secondary)",
-              background: conversation.closed ? "rgba(0,200,117,0.08)" : "var(--row-hover)",
-              border: `1px solid ${conversation.closed ? "rgba(0,200,117,0.2)" : "var(--hairline)"}`,
-              borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
-              fontFamily: "inherit",
-            }}
-          >
-            {conversation.closed ? "REABRIR" : "CERRAR"}
-          </button>
-          <button
-            onClick={onToggleProfile}
-            style={{
-              width: 32, height: 32,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              background: showProfile ? "rgba(155,123,232,0.08)" : "var(--row-hover)",
-              border: `1px solid ${showProfile ? "rgba(155,123,232,0.2)" : "var(--hairline)"}`,
-              borderRadius: 8, cursor: "pointer", transition: "all 0.15s",
-            }}
-          >
-            <ChevronRight style={{
-              width: 14, height: 14,
-              color: showProfile ? "var(--purple)" : "var(--text-secondary)",
-            }} />
-          </button>
+        {/* Tabs Row */}
+        <div style={{ display: "flex", gap: 16 }}>
+          <div style={{ padding: "8px 0", borderBottom: "2px solid var(--cyan)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
+            Chat
+          </div>
+          <div style={{ padding: "8px 0", color: "var(--text-muted)", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
+            Respuestas rápidas
+          </div>
         </div>
       </div>
+
+
 
       {/* --- Messages Area --- */}
       <div style={{
@@ -601,18 +574,36 @@ export function ChatView({
                     padding: "10px 14px",
                     background: msg.incoming
                       ? "var(--surface-hover)"
-                      : "linear-gradient(135deg, var(--purple), var(--purple))",
+                      : "linear-gradient(135deg, #006AFF, #006AFF)",
                     border: msg.incoming ? "1px solid var(--hairline)" : "none",
                     borderRadius: msg.incoming ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
-                    boxShadow: msg.incoming ? "none" : "0 2px 8px rgba(155,123,232,0.3)",
+                    boxShadow: msg.incoming ? "none" : "0 2px 8px rgba(0,106,255,0.3)",
                   }}>
                     <p style={{
-                      fontSize: 13, color: "var(--foreground)",
+                      fontSize: 13, color: msg.incoming ? "var(--foreground)" : "white",
                       margin: 0, lineHeight: 1.5, wordBreak: "break-word",
                     }}>
                       {msg.text}
                     </p>
                   </div>
+                  {/* Mock quick reply buttons under bot messages */}
+                  {!msg.incoming && (
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8, justifyContent: "flex-end" }}>
+                      {["Más info.", "Quiero ser BAIT", "! Ya no tengo línea."].map((reply, i) => (
+                        <button
+                          key={i}
+                          style={{
+                            padding: "6px 12px", fontSize: 11, fontWeight: 500,
+                            color: "var(--cyan)", background: "transparent",
+                            border: "1px solid var(--cyan)", borderRadius: 16,
+                            cursor: "pointer", fontFamily: "inherit"
+                          }}
+                        >
+                          {reply}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <p style={{
                     fontSize: 9, margin: "3px 4px 0",
                     color: "var(--text-muted)",
@@ -735,7 +726,7 @@ export function ChatView({
                   handleSubmit();
                 }
               }}
-              placeholder="Escribe un mensaje..."
+              placeholder="Escribe un mensaje o '/' para acciones rapidas o respuestas predeterminadas"
               rows={1}
               style={{
                 flex: 1, background: "transparent", border: "none", outline: "none",
@@ -801,15 +792,18 @@ export function ProfileSection({ title, defaultOpen = true, children }: {
         onMouseLeave={e => e.currentTarget.style.background = "transparent"}
       >
         <span style={{
-          fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)",
-          letterSpacing: "0.03em",
+          fontSize: 12, fontWeight: 600, color: "var(--foreground)",
         }}>
           {title}
         </span>
         {open ? (
-          <ChevronUp style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", border: "1px solid var(--cyan)", color: "var(--cyan)" }}>
+            <span style={{ fontSize: 14, lineHeight: 1, marginTop: -2 }}>-</span>
+          </div>
         ) : (
-          <ChevronDown style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 16, height: 16, borderRadius: "50%", border: "1px solid var(--cyan)", color: "var(--cyan)" }}>
+            <span style={{ fontSize: 12, lineHeight: 1 }}>+</span>
+          </div>
         )}
       </button>
       {open && (
@@ -839,253 +833,108 @@ export function ContactProfile({
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
       {/* Profile Header — Avatar + Name */}
       <div style={{
-        padding: "20px 16px 16px", textAlign: "center",
+        padding: "20px 16px 16px",
         borderBottom: "1px solid var(--hairline)",
         flexShrink: 0,
+        position: "relative",
       }}>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-          <button
-            onClick={onClose}
-            style={{
-              display: "flex", alignItems: "center", gap: 4,
-              padding: "4px 8px", fontSize: 10,
-              background: "transparent", border: "1px solid var(--hairline)",
-              borderRadius: 6, color: "var(--text-muted)", cursor: "pointer",
-            }}
-          >
-            <MoreHorizontal style={{ width: 12, height: 12 }} />
-          </button>
-        </div>
-        <div style={{
-          width: 60, height: 60, borderRadius: "50%",
-          background: `linear-gradient(135deg, ${pc.color}25, ${pc.color}08)`,
-          border: `2px solid ${pc.color}35`,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          margin: "0 auto 10px", fontSize: 20, fontWeight: 700, color: pc.color,
-        }}>
-          {getInitials(conversation.contactName)}
-        </div>
-        <h3 style={{ fontSize: 15, fontWeight: 600, color: "var(--foreground)", margin: "0 0 4px" }}>
-          {conversation.contactName}
-        </h3>
-        <div style={{
-          display: "inline-flex", alignItems: "center", gap: 4,
-          fontSize: 10, color: pc.color, padding: "2px 8px",
-          background: pc.bgAlpha, borderRadius: 4,
-        }}>
-          <pc.icon style={{ width: 10, height: 10 }} />
-          {pc.label}
+        {/* Edit profile icon */}
+        <button style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </button>
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          <div style={{
+            width: 60, height: 60, borderRadius: "50%",
+            background: `linear-gradient(135deg, ${pc.color}25, ${pc.color}08)`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 10px", fontSize: 20, fontWeight: 700, color: pc.color,
+            position: "relative",
+          }}>
+            {getInitials(conversation.contactName)}
+          </div>
+          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 4px" }}>Datos del contacto</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 0 4px" }}>
+            <User style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>
+              {conversation.contactName}
+            </h3>
+          </div>
         </div>
       </div>
 
       {/* Scrollable Sections */}
       <div style={{ flex: 1, overflowY: "auto" }}>
-        {/* Información de contacto */}
-        <ProfileSection title="Información de contacto">
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "var(--foreground)" }}>
-              <User style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
-              {conversation.contactName}
-            </div>
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "var(--text-muted)" }}>
-              <Globe style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
-              {pc.label}
-            </div>
-            <button style={{
-              display: "flex", alignItems: "center", gap: 4,
-              fontSize: 10, color: "var(--cyan)", background: "transparent",
-              border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit",
-            }}>
-              <Plus style={{ width: 10, height: 10 }} />
-              Agregar detalles
-            </button>
-          </div>
+        <ProfileSection title="Notas">
+          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>Sin notas agregadas.</p>
         </ProfileSection>
 
-        {/* Perfil de plataforma */}
-        <ProfileSection title={`Perfil de ${pc.label}`}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "var(--foreground)" }}>
-            <pc.icon style={{ width: 14, height: 14, color: pc.color }} />
-            <span>{conversation.contactName}</span>
-            <ExternalLink style={{ width: 10, height: 10, color: "var(--text-muted)", cursor: "pointer" }} />
-          </div>
-        </ProfileSection>
-
-        {/* Etiquetas */}
         <ProfileSection title="Etiquetas">
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginBottom: 8 }}>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {conversation.tags.map(tag => (
               <span key={tag} style={{
                 display: "inline-flex", alignItems: "center", gap: 4,
-                fontSize: 10, color: "var(--purple)", padding: "3px 8px",
-                background: "rgba(155,123,232,0.08)",
-                border: "1px solid rgba(155,123,232,0.15)", borderRadius: 12,
+                fontSize: 10, color: "var(--cyan)", padding: "3px 8px",
+                background: "rgba(0, 178, 255, 0.08)",
+                border: "1px solid rgba(0, 178, 255, 0.15)", borderRadius: 12,
               }}>
                 {tag}
-                <X style={{ width: 10, height: 10, cursor: "pointer", opacity: 0.5 }}
-                  onClick={() => onRemoveTag(tag)} />
+                <X style={{ width: 10, height: 10, cursor: "pointer", opacity: 0.5 }} onClick={() => onRemoveTag(tag)} />
               </span>
             ))}
-          </div>
-          <div style={{ display: "flex", gap: 4 }}>
-            <input
-              type="text" value={newTag}
-              onChange={e => setNewTag(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") { onAddTag(newTag); setNewTag(""); } }}
-              placeholder="Agregar etiqueta..."
-              style={{
-                flex: 1, background: "var(--row-hover)",
-                border: "1px solid var(--hairline)", borderRadius: 6,
-                padding: "4px 8px", fontSize: 10, color: "var(--foreground)", outline: "none",
-                fontFamily: "inherit",
-              }}
-            />
-            <button
-              onClick={() => { onAddTag(newTag); setNewTag(""); }}
-              style={{
-                padding: "4px 8px", fontSize: 10, color: "var(--purple)",
-                background: "rgba(155,123,232,0.08)",
-                border: "1px solid rgba(155,123,232,0.15)",
-                borderRadius: 6, cursor: "pointer",
-              }}
-            >
-              <Tag style={{ width: 10, height: 10 }} />
-            </button>
+            {conversation.tags.length === 0 && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Sin etiquetas.</span>}
           </div>
         </ProfileSection>
 
-        {/* Actividad / Resumen */}
-        <ProfileSection title="Actividad">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-            <div style={{
-              padding: 10, textAlign: "center",
-              background: "var(--surface-hover)", borderRadius: 8,
-              border: "1px solid var(--hairline)",
-            }}>
-              <p style={{ fontSize: 20, fontWeight: 700, color: "var(--purple)", margin: 0 }}>
-                {conversation.messages.length}
-              </p>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", margin: "4px 0 0" }}>
-                Mensajes
-              </p>
-            </div>
-            <div style={{
-              padding: 10, textAlign: "center",
-              background: "var(--surface-hover)", borderRadius: 8,
-              border: "1px solid var(--hairline)",
-            }}>
-              <p style={{ fontSize: 20, fontWeight: 700, color: "var(--cyan)", margin: 0 }}>
-                {relativeTime(conversation.messages[0]?.timestamp || new Date())}
-              </p>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", margin: "4px 0 0" }}>
-                Primer msg
-              </p>
-            </div>
-          </div>
-          <div style={{
-            marginTop: 8, padding: "8px 10px",
-            background: "var(--surface-hover)", borderRadius: 8,
-            border: "1px solid var(--hairline)",
-            display: "flex", justifyContent: "space-between",
-          }}>
-            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
-              ?? Recibidos: {incomingCount}
-            </span>
-            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
-              ?? Enviados: {outgoingCount}
-            </span>
-          </div>
-        </ProfileSection>
-
-        {/* Asignado a */}
-        <ProfileSection title="Asignado a">
-          <div style={{ position: "relative" }}>
-            <button
-              onClick={() => setShowAssign(!showAssign)}
-              style={{
-                width: "100%", padding: "8px 10px",
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                background: "var(--row-hover)",
-                border: "1px solid var(--hairline)",
-                borderRadius: 6, cursor: "pointer",
-                color: conversation.assignedTo ? "white" : "var(--text-muted)",
-                fontSize: 11, fontFamily: "inherit",
-              }}
-            >
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <UserPlus style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
-                {conversation.assignedTo || "Sin asignar"}
+        <ProfileSection title="Variables">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[
+              { label: "Chatbot", value: "Bot Prepago OCR", icon: true },
+              { label: "Canal", value: "Facebook Messenger (Navega Max)", icon: true },
+              { label: "Locale", value: "es_LA" },
+              { label: "Flow State", value: "Inicio" },
+              { label: "NIP ERROR CODE", value: "OK_000" },
+              { label: "Zapier Success", value: "true" },
+            ].map((v, i) => (
+              <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>{v.label}</span>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
+                  {v.icon && <PlatformIcon platform={conversation.platform} size={12} />}
+                  {v.value}
+                </span>
               </div>
-              <ChevronDown style={{
-                width: 10, height: 10, color: "var(--text-muted)",
-                transform: showAssign ? "rotate(180deg)" : "none",
-                transition: "transform 0.15s",
-              }} />
-            </button>
-            {showAssign && (
-              <div style={{
-                position: "absolute", top: "100%", left: 0, right: 0,
-                background: "rgba(10,10,20,0.97)",
-                border: "1px solid var(--hairline)",
-                borderRadius: "0 0 6px 6px", zIndex: 10,
-              }}>
-                {TEAM_MEMBERS.map(member => (
-                  <div
-                    key={member}
-                    onClick={() => { onAssign(member); setShowAssign(false); }}
-                    style={{
-                      padding: "8px 10px", fontSize: 11,
-                      color: (member === "Sin asignar" && !conversation.assignedTo) ||
-                             member === conversation.assignedTo ? "var(--purple)" : "rgba(255,255,255,0.5)",
-                      cursor: "pointer",
-                      borderBottom: "1px solid var(--hairline)",
-                      transition: "background 0.1s",
-                    }}
-                    onMouseEnter={e => e.currentTarget.style.background = "rgba(155,123,232,0.06)"}
-                    onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                  >
-                    {member}
-                  </div>
-                ))}
-              </div>
-            )}
+            ))}
           </div>
         </ProfileSection>
 
-        {/* Estado */}
-        <ProfileSection title="Estado">
-          <div style={{
-            display: "flex", alignItems: "center", gap: 8,
-            padding: "8px 10px", borderRadius: 6,
-            background: conversation.closed ? "rgba(148,163,184,0.04)" : "rgba(0,200,117,0.04)",
-            border: `1px solid ${conversation.closed ? "var(--surface-hover)" : "rgba(0,200,117,0.12)"}`,
-          }}>
-            {conversation.closed ? (
-              <CheckCircle2 style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
-            ) : (
-              <Circle style={{ width: 14, height: 14, color: "var(--emerald)" }} />
-            )}
-            <span style={{
-              fontSize: 12, fontWeight: 500,
-              color: conversation.closed ? "var(--text-muted)" : "var(--emerald)",
-            }}>
-              {conversation.closed ? "Cerrado" : "Abierto"}
-            </span>
-          </div>
+        <ProfileSection title="DATOS" defaultOpen={false}>
+          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>No hay datos adicionales.</p>
         </ProfileSection>
 
-        {/* Etapa de cliente */}
-        <ProfileSection title="Etapa de cliente potencial" defaultOpen={false}>
-          <button style={{
-            display: "flex", alignItems: "center", gap: 4,
-            fontSize: 10, color: "var(--cyan)", background: "transparent",
-            border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit",
-          }}>
-            <Plus style={{ width: 10, height: 10 }} />
-            Marcar como cliente potencial
-          </button>
+        <ProfileSection title="Intelix" defaultOpen={false}>
+          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>Información de Intelix.</p>
         </ProfileSection>
+
+        <ProfileSection title="Nacimiento" defaultOpen={false}>
+          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>DD/MM/AAAA</p>
+        </ProfileSection>
+
+        <ProfileSection title="NIP" defaultOpen={false}>
+          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>****</p>
+        </ProfileSection>
+
+        {/* These sections act as links in the image */}
+        <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>Mensajes destacados</span>
+          <ChevronRight style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
+        </div>
+        
+        <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
+          <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>Multimedia y documentos</span>
+          <ChevronRight style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
+        </div>
+
       </div>
     </div>
-    );
+  );
 }

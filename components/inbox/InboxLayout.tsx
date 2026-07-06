@@ -1,65 +1,362 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { openConnectPopup } from "@/lib/connect-popup";
 
 import {
-  Search, Send, X, ChevronRight, ChevronDown, ChevronUp, UserPlus, Tag, Clock,
-  MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark,
-  CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp,
-  User, Globe, ExternalLink, Plus, Filter, Unplug, Wifi, WifiOff,
-  Heart, Share2,
+  Search, X, ChevronDown, ChevronUp,
+  CheckCircle2, AlertCircle, Filter, Unplug, Wifi,
+  RefreshCw, Plus,
 } from "lucide-react";
-import { Message, PostComment, PostData, Conversation, ConnectedPage, Platform, ChannelFilter, QueueFilter } from "./types";
-import { relativeTime, formatTime, formatDate, getPlatformConfig, getInitials } from "./utils";
-import { PageSelector, PostView, ChatView, ProfileSection, ContactProfile } from "./InboxComponents";
+import {
+  Message, Conversation,
+  ConnectedPage, Platform, ChannelFilter, QueueFilter,
+} from "./types";
+import { relativeTime, getPlatformConfig, getInitials } from "./utils";
+import { PageSelector, PostView, ChatView, ContactProfile } from "./InboxComponents";
 
 // ═══════════════════════════════════════════════════════════════
-// TYPES
+// OFFICIAL PLATFORM ICONS (Brand-accurate inline SVG)
 // ═══════════════════════════════════════════════════════════════
+
+function IconMessenger({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <defs>
+        <linearGradient id="msg-g" x1="0%" y1="100%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#00B2FF" />
+          <stop offset="100%" stopColor="#006AFF" />
+        </linearGradient>
+      </defs>
+      <circle cx="12" cy="12" r="12" fill="url(#msg-g)" />
+      <path d="M12 3C7.03 3 3 6.84 3 11.55c0 2.72 1.35 5.15 3.47 6.74V21l3.06-1.68c.82.23 1.68.35 2.47.35 4.97 0 9-3.84 9-8.45C21 6.84 16.97 3 12 3zm.94 11.38l-2.29-2.44-4.47 2.44 4.92-5.24 2.34 2.44 4.42-2.44-4.92 5.24z" fill="white" />
+    </svg>
+  );
+}
+
+function IconFacebook({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="12" fill="#1877F2" />
+      <path d="M16.67 15.5l.48-3.1h-2.97v-2.01c0-.85.41-1.67 1.74-1.67h1.35V6.1s-1.22-.21-2.39-.21c-2.44 0-4.04 1.48-4.04 4.15V12.4H8v3.1h2.84V23h3.34v-7.5h2.49z" fill="white" />
+    </svg>
+  );
+}
+
+function IconInstagram({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <defs>
+        <radialGradient id="ig-g" cx="30%" cy="107%" r="150%">
+          <stop offset="0%" stopColor="#ffd676" />
+          <stop offset="25%" stopColor="#f86f2b" />
+          <stop offset="55%" stopColor="#d62976" />
+          <stop offset="75%" stopColor="#962fbf" />
+          <stop offset="100%" stopColor="#4f5bd5" />
+        </radialGradient>
+      </defs>
+      <rect width="24" height="24" rx="6" fill="url(#ig-g)" />
+      <rect x="6.5" y="6.5" width="11" height="11" rx="3" stroke="white" strokeWidth="1.5" fill="none" />
+      <circle cx="12" cy="12" r="2.7" stroke="white" strokeWidth="1.5" fill="none" />
+      <circle cx="16" cy="8" r="0.8" fill="white" />
+    </svg>
+  );
+}
+
+function IconWhatsApp({ size = 16 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="12" cy="12" r="12" fill="#25D366" />
+      <path d="M17.47 6.53A7.6 7.6 0 0012 4.4a7.62 7.62 0 00-6.6 11.44l-1.04 3.8 3.9-1.02A7.62 7.62 0 0012 19.6a7.62 7.62 0 007.62-7.62c0-2.04-.8-3.95-2.15-5.45zM12 18.36a6.35 6.35 0 01-3.23-.89l-.23-.14-2.39.63.64-2.33-.15-.24A6.36 6.36 0 1112 18.36zm3.49-4.75c-.19-.1-1.13-.56-1.3-.62-.18-.06-.3-.1-.43.1-.13.19-.5.62-.62.75-.11.13-.23.15-.42.05a5.26 5.26 0 01-1.55-.95 5.79 5.79 0 01-1.07-1.33c-.11-.2-.01-.3.08-.4.09-.08.19-.23.28-.34.1-.11.13-.19.2-.32.06-.13.03-.25-.02-.35-.05-.1-.43-1.03-.59-1.41-.15-.37-.31-.32-.43-.32h-.36c-.13 0-.33.05-.5.25-.17.2-.66.64-.66 1.57s.68 1.82.77 1.95c.1.12 1.33 2.04 3.23 2.86.45.19.8.31 1.08.4.45.14.87.12 1.19.07.36-.05 1.12-.46 1.28-.9.16-.45.16-.83.11-.91-.05-.08-.18-.13-.37-.23z" fill="white" />
+    </svg>
+  );
+}
+
+export function PlatformIcon({ platform, size = 16 }: { platform: Platform; size?: number }) {
+  switch (platform) {
+    case "fb_messenger": return <IconMessenger size={size} />;
+    case "fb_comment":   return <IconFacebook size={size} />;
+    case "ig_dm":
+    case "instagram_dm":
+    case "ig_comment":
+    case "instagram_comment": return <IconInstagram size={size} />;
+    case "whatsapp":     return <IconWhatsApp size={size} />;
+    default:             return <IconMessenger size={size} />;
+  }
+}
+
 // ═══════════════════════════════════════════════════════════════
+// TABS CONFIG
 // ═══════════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════════
+
 const CHANNEL_TABS: { key: ChannelFilter; label: string; color: string; platforms: Platform[] }[] = [
-  { key: "all", label: "Todos los mensajes", color: "var(--cyan)", platforms: [] },
-  { key: "messenger", label: "Messenger", color: "#0084ff", platforms: ["fb_messenger"] },
-  // instagram_dm is the raw API value; ig_dm is the normalized frontend value — both included
-  { key: "instagram", label: "Instagram", color: "#E1306C", platforms: ["ig_dm", "instagram_dm"] },
-  { key: "fb_comment", label: "Comentarios de Facebook", color: "#1877F2", platforms: ["fb_comment"] },
-  { key: "ig_comment", label: "Comentarios de Instagram", color: "#F77737", platforms: ["ig_comment", "instagram_comment"] },
-  { key: "whatsapp", label: "WhatsApp", color: "#25D366", platforms: ["whatsapp"] },
+  { key: "all",        label: "Todo",              color: "#9b7be8", platforms: [] },
+  { key: "messenger",  label: "Messenger",         color: "#006AFF", platforms: ["fb_messenger"] },
+  { key: "instagram",  label: "Instagram DM",      color: "#d62976", platforms: ["ig_dm", "instagram_dm"] },
+  { key: "fb_comment", label: "FB Comentarios",    color: "#1877F2", platforms: ["fb_comment"] },
+  { key: "ig_comment", label: "IG Comentarios",    color: "#f86f2b", platforms: ["ig_comment", "instagram_comment"] },
+  { key: "whatsapp",   label: "WhatsApp",          color: "#25D366", platforms: ["whatsapp"] },
 ];
 
 const QUEUE_TABS: { key: QueueFilter; label: string; color: string }[] = [
-  { key: "all", label: "Todo", color: "var(--cyan)" },
-  { key: "unassigned", label: "Sin asignar", color: "var(--amber)" },
-  { key: "mine", label: "Mias", color: "var(--emerald)" },
-  { key: "needs_reply", label: "Requiere respuesta", color: "var(--red)" },
-  { key: "done", label: "Cerradas", color: "var(--text-secondary)" },
+  { key: "all",         label: "Todos",             color: "#9b7be8" },
+  { key: "unassigned",  label: "Sin asignar",        color: "#f59e0b" },
+  { key: "mine",        label: "Mías",               color: "#10b981" },
+  { key: "needs_reply", label: "Requiere respuesta", color: "#ef4444" },
+  { key: "done",        label: "Cerradas",           color: "#6b7280" },
 ];
+
 // ═══════════════════════════════════════════════════════════════
-// TYPES — Connected Pages
+// CONVERSATION SKELETON
 // ═══════════════════════════════════════════════════════════════
+
+function ConversationSkeleton() {
+  return (
+    <div aria-busy="true" aria-label="Cargando conversaciones">
+      {[...Array(9)].map((_, i) => (
+        <div key={i} style={{ display: "flex", gap: 10, padding: "12px 14px", borderBottom: "1px solid var(--hairline)", opacity: 1 - i * 0.09 }}>
+          <div style={{ width: 42, height: 42, borderRadius: "50%", flexShrink: 0, background: "var(--surface-hover)", animation: `shimmer 1.6s ease-in-out ${i * 0.06}s infinite` }} />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 7, justifyContent: "center" }}>
+            <div style={{ height: 11, width: `${48 + (i % 4) * 13}%`, borderRadius: 4, background: "var(--surface-hover)", animation: `shimmer 1.6s ease-in-out ${i * 0.06 + 0.1}s infinite` }} />
+            <div style={{ height: 9,  width: `${34 + (i % 5) * 11}%`, borderRadius: 4, background: "var(--row-hover)",    animation: `shimmer 1.6s ease-in-out ${i * 0.06 + 0.2}s infinite` }} />
+          </div>
+          <div style={{ height: 9, width: 24, borderRadius: 4, alignSelf: "flex-start", marginTop: 4, background: "var(--row-hover)", animation: `shimmer 1.6s ease-in-out ${i * 0.06 + 0.15}s infinite` }} />
+        </div>
+      ))}
+      <style>{`@keyframes shimmer{0%,100%{opacity:.4}50%{opacity:.85}}`}</style>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════
-// PAGE SELECTOR COMPONENT
+// CONVERSATION ROW
 // ═══════════════════════════════════════════════════════════════
+
+function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isActive: boolean; onClick: () => void }) {
+  const pc = getPlatformConfig(conv.platform);
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      aria-selected={isActive}
+      aria-label={`${conv.contactName} — ${pc.label}`}
+      onClick={onClick}
+      onKeyDown={e => (e.key === "Enter" || e.key === " ") && onClick()}
+      style={{
+        padding: "10px 14px",
+        cursor: "pointer",
+        background: isActive ? "rgba(155,123,232,0.07)" : "transparent",
+        borderLeft: isActive ? "3px solid #9b7be8" : "3px solid transparent",
+        borderBottom: "1px solid var(--hairline)",
+        display: "flex", gap: 10, alignItems: "flex-start",
+        transition: "background 0.1s, border-left-color 0.1s",
+        outline: "none",
+      }}
+      onMouseOver={e => { if (!isActive) e.currentTarget.style.background = "rgba(255,255,255,0.02)"; }}
+      onMouseOut={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
+      onFocus={e => { e.currentTarget.style.boxShadow = "inset 0 0 0 2px #9b7be8"; }}
+      onBlur={e => { e.currentTarget.style.boxShadow = "none"; }}
+    >
+      {/* Avatar + Platform badge */}
+      <div style={{ position: "relative", flexShrink: 0 }}>
+        {conv.contactAvatar ? (
+          <img src={conv.contactAvatar} alt="" role="presentation"
+            style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover" }}
+          />
+        ) : (
+          <div style={{
+            width: 42, height: 42, borderRadius: "50%",
+            background: `linear-gradient(135deg, ${pc.color}20, ${pc.color}08)`,
+            border: `1.5px solid ${pc.color}28`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: 14, fontWeight: 700, color: pc.color,
+          }}>
+            {getInitials(conv.contactName)}
+          </div>
+        )}
+        {/* Official platform badge */}
+        <div style={{
+          position: "absolute", bottom: -3, right: -3,
+          width: 19, height: 19, borderRadius: "50%",
+          background: "var(--background)", border: "2px solid var(--background)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          overflow: "hidden",
+        }}>
+          <PlatformIcon platform={conv.platform} size={17} />
+        </div>
+        {/* Unread indicator */}
+        {conv.unread && (
+          <div style={{
+            position: "absolute", top: 0, left: 0,
+            width: 9, height: 9, borderRadius: "50%",
+            background: "#9b7be8", border: "2px solid var(--background)",
+          }} aria-hidden="true" />
+        )}
+      </div>
+
+      {/* Text content */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3 }}>
+          <span style={{
+            fontSize: 13, fontWeight: conv.unread ? 700 : 500,
+            color: conv.unread ? "var(--foreground)" : "var(--text-secondary)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            maxWidth: "calc(100% - 38px)",
+          }}>
+            {conv.contactName}
+          </span>
+          <time
+            dateTime={conv.lastMessageTime.toISOString()}
+            style={{
+              fontSize: 10, flexShrink: 0, marginLeft: 4,
+              color: conv.unread ? "#9b7be8" : "var(--text-muted)",
+              fontWeight: conv.unread ? 600 : 400,
+            }}
+          >
+            {relativeTime(conv.lastMessageTime)}
+          </time>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          <p style={{
+            fontSize: 11, margin: 0, flex: 1,
+            color: conv.unread ? "var(--text-secondary)" : "var(--text-muted)",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+            fontWeight: conv.unread ? 500 : 400, lineHeight: 1.4,
+          }}>
+            {conv.lastMessage || "…"}
+          </p>
+        </div>
+        {/* Bot Badge */}
+        <div style={{
+          display: "inline-flex", alignItems: "center", gap: 4,
+          padding: "2px 6px", marginTop: 4,
+          background: "var(--surface-hover)", border: "1px solid var(--hairline)",
+          borderRadius: 4, fontSize: 9, color: "var(--text-secondary)", fontWeight: 500
+        }}>
+          <PlatformIcon platform={conv.platform} size={10} />
+          Bot Prepago OCR
+        </div>
+        {conv.closed && (
+          <span style={{
+            display: "inline-block", fontSize: 8, fontWeight: 700,
+            padding: "1px 5px", marginTop: 3, marginLeft: 4,
+            background: "rgba(107,114,128,0.1)", color: "#6b7280",
+            border: "1px solid rgba(107,114,128,0.2)", borderRadius: 3,
+            letterSpacing: "0.04em",
+          }}>CERRADO</span>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════
-// POST VIEW — For comment-type conversations
+// CONNECTED BANNER
 // ═══════════════════════════════════════════════════════════════
+
+function ConnectedBanner({ connectedPages, onDisconnect, disconnecting }: {
+  connectedPages: ConnectedPage[];
+  onDisconnect: () => void;
+  disconnecting: boolean;
+}) {
+  const page = connectedPages[0];
+
+  return (
+    <div role="status" aria-label="Cuenta conectada" style={{
+      display: "flex", alignItems: "center", justifyContent: "space-between",
+      padding: "16px 24px",
+      background: "var(--background)",
+      borderBottom: "1px solid var(--hairline)",
+      flexShrink: 0,
+    }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        {page ? (
+          <>
+            <img 
+              src={page.picture || `https://ui-avatars.com/api/?name=${page.name}&background=1877F2&color=fff`} 
+              alt={page.name} 
+              style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--hairline)" }} 
+            />
+            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+              <span style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)" }}>{page.name}</span>
+              <span style={{ fontSize: 13, color: "var(--text-muted)" }}>@{page.name.toLowerCase().replace(/\s+/g, '')}</span>
+            </div>
+          </>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+            <span style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)" }}>Bandeja de Entrada</span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Ninguna cuenta conectada</span>
+          </div>
+        )}
+      </div>
+
+      <button style={{
+        display: "flex", alignItems: "center", gap: 8,
+        padding: "8px 16px", borderRadius: 24,
+        background: "transparent",
+        border: "1px solid rgba(0, 106, 255, 0.4)",
+        color: "#006AFF",
+        fontSize: 13, fontWeight: 600,
+        cursor: "pointer",
+        fontFamily: "inherit",
+        transition: "background 0.2s"
+      }}
+      onMouseEnter={e => e.currentTarget.style.background = "rgba(0, 106, 255, 0.05)"}
+      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+          <path d="M6.915 4.03c-1.968 0-3.683 1.28-4.871 3.113C.704 9.208 0 11.883 0 14.449c0 .706.07 1.369.21 1.973a6.624 6.624 0 0 0 .265.86 5.297 5.297 0 0 0 .371.761c.696 1.159 1.818 1.927 3.593 1.927 1.497 0 2.633-.671 3.965-2.444.76-1.012 1.144-1.626 2.663-4.32l.756-1.339.186-.325c.061.1.121.196.183.3l2.152 3.595c.724 1.21 1.665 2.556 2.47 3.314 1.046.987 1.992 1.22 3.06 1.22 1.075 0 1.876-.355 2.455-.843a3.743 3.743 0 0 0 .81-.973c.542-.939.861-2.127.861-3.745 0-2.72-.681-5.357-2.084-7.45-1.282-1.912-2.957-2.93-4.716-2.93-1.047 0-2.088.467-3.053 1.308-.652.57-1.257 1.29-1.82 2.05-.69-.875-1.335-1.547-1.958-2.056-1.182-.966-2.315-1.303-3.454-1.303zm10.16 2.053c1.147 0 2.188.758 2.992 1.999 1.132 1.748 1.647 4.195 1.647 6.4 0 1.548-.368 2.9-1.839 2.9-.58 0-1.027-.23-1.664-1.004-.496-.601-1.343-1.878-2.832-4.358l-.617-1.028a44.908 44.908 0 0 0-1.255-1.98c.07-.109.141-.224.211-.327 1.12-1.667 2.118-2.602 3.358-2.602zm-10.201.553c1.265 0 2.058.791 2.675 1.446.307.327.737.871 1.234 1.579l-1.02 1.566c-.757 1.163-1.882 3.017-2.837 4.338-1.191 1.649-1.81 1.817-2.486 1.817-.524 0-1.038-.237-1.383-.794-.263-.426-.464-1.13-.464-2.046 0-2.221.63-4.535 1.66-6.088.454-.687.964-1.226 1.533-1.533a2.264 2.264 0 0 1 1.088-.285z" />
+        </svg>
+        Conectar Facebook
+      </button>
+    </div>
+  );
+}
+
 // ═══════════════════════════════════════════════════════════════
-// MAIN LAYOUT
+// EMPTY CHAT PANEL
+// ═══════════════════════════════════════════════════════════════
+
+function EmptyChat({ hasAnyConnection, onConnect }: { hasAnyConnection: boolean; onConnect: () => void }) {
+  return (
+    <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 48, textAlign: "center" }} role="status">
+      <div style={{ width: 60, height: 60, borderRadius: 14, background: hasAnyConnection ? "rgba(155,123,232,0.06)" : "rgba(239,68,68,0.05)", border: `1px solid ${hasAnyConnection ? "rgba(155,123,232,0.12)" : "rgba(239,68,68,0.12)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {hasAnyConnection
+          ? <Wifi style={{ width: 26, height: 26, color: "rgba(155,123,232,0.45)" }} />
+          : <AlertCircle style={{ width: 26, height: 26, color: "rgba(239,68,68,0.4)" }} />
+        }
+      </div>
+      <div>
+        <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: "0 0 5px" }}>
+          {hasAnyConnection ? "Esperando mensajes" : "Sin cuentas conectadas"}
+        </p>
+        <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0, maxWidth: 260, lineHeight: 1.6 }}>
+          {hasAnyConnection
+            ? "Los mensajes nuevos aparecerán en la lista izquierda automáticamente."
+            : "Conecta Facebook, Instagram o WhatsApp para recibir mensajes."
+          }
+        </p>
+      </div>
+      {!hasAnyConnection && (
+        <button onClick={onConnect} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 8, background: "#1877F2", color: "white", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
+          <Plus style={{ width: 14, height: 14 }} />
+          Conectar cuenta
+        </button>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+// MAIN INBOX LAYOUT
 // ═══════════════════════════════════════════════════════════════
 
 export function InboxLayout() {
   const { data: session } = useSession();
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
-  // Contact panel is collapsed by default for a cleaner, message-first view.
-  // The preference is restored after mount to avoid a hydration mismatch.
   const [showProfile, setShowProfile] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [initialFetchDone, setInitialFetchDone] = useState(false);
@@ -72,248 +369,143 @@ export function InboxLayout() {
   const [connectionStatus, setConnectionStatus] = useState<Record<string, { connected: boolean; connectedAt: string | null; pages: any[] }>>({});
   const [disconnecting, setDisconnecting] = useState(false);
   const [connectToast, setConnectToast] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const queueRef = useRef<HTMLDivElement>(null);
   const currentAssignee = session?.user?.name || "Ana";
 
-  // Restore the contact-panel preference (client-only).
   useEffect(() => {
     try { setShowProfile(localStorage.getItem("sodare:inbox-profile") === "1"); } catch { /* ignore */ }
   }, []);
 
-  const toggleProfile = () => {
-    setShowProfile((prev) => {
-      const next = !prev;
-      try { localStorage.setItem("sodare:inbox-profile", next ? "1" : "0"); } catch { /* ignore */ }
-      return next;
-    });
-  };
+  const toggleProfile = () => setShowProfile(prev => {
+    const next = !prev;
+    try { localStorage.setItem("sodare:inbox-profile", next ? "1" : "0"); } catch { /* ignore */ }
+    return next;
+  });
 
-  // Close the queue-filter dropdown on outside click.
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
+    const h = (e: MouseEvent) => {
       if (queueRef.current && !queueRef.current.contains(e.target as Node)) setQueueMenuOpen(false);
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    document.addEventListener("mousedown", h);
+    return () => document.removeEventListener("mousedown", h);
   }, []);
 
-  // Fetch connected pages and connection status
   const fetchConnectionStatus = useCallback(() => {
     fetch("/api/connect/status")
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (!data?.modules) return;
         setConnectionStatus(data.modules);
-        const allPages: ConnectedPage[] = [];
+        const pages: ConnectedPage[] = [];
         const seen = new Set<string>();
         Object.values(data.modules).forEach((mod: any) => {
           (mod.pages || []).forEach((p: any) => {
             if (seen.has(p.id)) return;
             seen.add(p.id);
-            allPages.push({
-              id: p.id,
-              name: p.name || "Página",
-              picture: p.picture || null,
-              platform: "facebook",
-            });
-            // If page has an IG account, add it too
+            pages.push({ id: p.id, name: p.name || "Página", picture: p.picture || null, platform: "facebook" });
             if (p.instagram_business_account?.id) {
               const igId = p.instagram_business_account.id;
               if (!seen.has(igId)) {
                 seen.add(igId);
-                allPages.push({
-                  id: igId,
-                  name: p.instagram_business_account.name || p.name,
-                  picture: p.instagram_business_account.picture || p.picture,
-                  platform: "instagram",
-                  igId,
-                });
+                pages.push({ id: igId, name: p.instagram_business_account.name || p.name, picture: p.instagram_business_account.picture || p.picture, platform: "instagram", igId });
               }
             }
           });
         });
-        setConnectedPages(allPages);
+        setConnectedPages(pages);
       }).catch(() => {});
   }, []);
 
   useEffect(() => { fetchConnectionStatus(); }, [fetchConnectionStatus]);
 
-  // Disconnect handler
-  const handleDisconnect = async (module: string) => {
+  const mapConversations = useCallback((raw: any[]): Conversation[] => {
+    const pm: Record<string, Platform> = {
+      facebook_messenger: "fb_messenger", instagram_dm: "instagram_dm", ig_dm: "ig_dm",
+      ig_comment: "ig_comment", instagram_comment: "instagram_comment",
+      facebook_comment: "fb_comment", whatsapp: "whatsapp",
+    };
+    return raw.map(c => ({
+      id: c.id, contactName: c.contactName || "Usuario", contactAvatar: c.contactAvatar || null,
+      platform: (pm[c.platform] || "fb_messenger") as Platform,
+      lastMessage: c.lastMessage || "", lastMessageTime: new Date(c.lastMessageAt || Date.now()),
+      unread: c.unread || false, closed: false, assignedTo: null, tags: [], messages: [],
+      pageId: c.pageId, contactId: c.contactId, _pageId: c.pageId, _pageName: c.pageName, _postData: c._postData || null,
+    }));
+  }, []);
+
+  const fetchConversations = useCallback(async (silent = false) => {
+    if (!silent) setIsRefreshing(true);
+    try {
+      const res = await fetch("/api/inbox/conversations");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.conversations?.length > 0) {
+          const mapped = mapConversations(data.conversations);
+          // Sort by lastMessageTime descending — most recent at top
+          mapped.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
+          setConversations(prev => {
+            const prevMap = new Map(prev.map(c => [c.id, c]));
+            return mapped.map(c => ({ ...c, messages: prevMap.get(c.id)?.messages || [] }));
+          });
+          setSelectedId(prev => prev || mapped[0]?.id || "");
+          // Prefetch first 3 conversations' messages
+          const prefetchers = mapped.slice(0, 3).map(conv => {
+            const pageId = (conv as any)._pageId;
+            return fetch(`/api/inbox/messages?conversationId=${conv.id}&pageId=${pageId || ""}`)
+              .then(r => r.ok ? r.json() : null)
+              .then(d => ({ id: conv.id, messages: d?.messages?.map((m: any) => ({ id: m.id, text: m.text, incoming: m.incoming, timestamp: new Date(m.timestamp) })) || null }))
+              .catch(() => ({ id: conv.id, messages: null }));
+          });
+          Promise.all(prefetchers).then(results => {
+            setConversations(prev => prev.map(c => {
+              const r = results.find(x => x.id === c.id);
+              return r?.messages ? { ...c, messages: r.messages } : c;
+            }));
+          });
+        }
+      }
+    } catch { /* silent */ }
+    setInitialFetchDone(true);
+    setIsRefreshing(false);
+  }, [mapConversations]);
+
+  useEffect(() => { fetchConversations(); }, [fetchConversations]);
+
+  // Poll every 30 seconds
+  useEffect(() => {
+    const id = setInterval(() => fetchConversations(true), 30_000);
+    return () => clearInterval(id);
+  }, [fetchConversations]);
+
+  const handleDisconnect = async () => {
     if (disconnecting) return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/connect/disconnect", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ module }),
-      });
-      if (res.ok) {
-        fetchConnectionStatus();
-      }
+      const res = await fetch("/api/connect/disconnect", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ module: "community" }) });
+      if (res.ok) fetchConnectionStatus();
     } catch { /* ignore */ }
     setDisconnecting(false);
   };
 
-  // Derived: which platforms are connected
-  const hasMessenger = connectionStatus.community?.connected || connectionStatus.social?.connected || connectedPages.some(p => p.platform === "facebook");
-  const hasInstagram = connectedPages.some(p => p.platform === "instagram");
-  const hasWhatsApp = connectionStatus.whatsapp_business?.connected;
-  const hasAnyConnection = Object.values(connectionStatus).some(m => m?.connected);
-
-  // Handle connect callback — refresh state instead of full reload
   const handleConnectSuccess = useCallback(() => {
     setConnectToast("¡Conectado! Ahora puedes recibir mensajes.");
     fetchConnectionStatus();
-    // Re-fetch conversations
-    fetch("/api/inbox/conversations")
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.conversations?.length) {
-          const mapped: Conversation[] = data.conversations.map((c: any) => {
-            const platformMap: Record<string, Platform> = {
-              facebook_messenger: "fb_messenger",
-              instagram_dm: "instagram_dm",
-              ig_dm: "ig_dm",
-              ig_comment: "ig_comment",
-              instagram_comment: "instagram_comment",
-              facebook_comment: "fb_comment",
-              whatsapp: "whatsapp",
-            };
-            return {
-              id: c.id,
-              contactName: c.contactName || "Usuario",
-              contactAvatar: c.contactAvatar || null,
-              platform: (platformMap[c.platform] || "fb_messenger") as Platform,
-              lastMessage: c.lastMessage || "",
-              lastMessageTime: new Date(c.lastMessageAt || Date.now()),
-              unread: c.unread || false,
-              closed: false,
-              assignedTo: null,
-              tags: [],
-              messages: [],
-              pageId: c.pageId,
-              contactId: c.contactId,
-              _pageId: c.pageId,
-              _pageName: c.pageName,
-              _postData: c._postData || null,
-            };
-          });
-          setConversations(mapped);
-          setSelectedId(mapped[0]?.id || "");
-        }
-      }).catch(() => {});
-    // Auto-dismiss toast
+    fetchConversations();
     setTimeout(() => setConnectToast(null), 5000);
-  }, [fetchConnectionStatus]);
+  }, [fetchConnectionStatus, fetchConversations]);
 
-  // Fetch real conversations from API
-  useEffect(() => {
-    const fetchReal = async () => {
-      try {
-        const res = await fetch("/api/inbox/conversations");
-        if (res.ok) {
-          const data = await res.json();
-          if (data.conversations && data.conversations.length > 0) {
-            const mapped: Conversation[] = data.conversations.map((c: any) => {
-              // Normalize all API platform strings to canonical frontend Platform values
-              const platformMap: Record<string, Platform> = {
-                facebook_messenger: "fb_messenger",
-                instagram_dm: "instagram_dm",  // kept as alias — handled by CHANNEL_TABS and utils
-                ig_dm: "ig_dm",
-                ig_comment: "ig_comment",
-                instagram_comment: "instagram_comment",
-                facebook_comment: "fb_comment",
-                whatsapp: "whatsapp",
-              };
-              return {
-                id: c.id,
-                contactName: c.contactName || "Usuario",
-                contactAvatar: c.contactAvatar || null,
-                platform: (platformMap[c.platform] || "fb_messenger") as Platform,
-                lastMessage: c.lastMessage || "",
-                lastMessageTime: new Date(c.lastMessageAt || Date.now()),
-                unread: c.unread || false,
-                closed: false,
-                assignedTo: null,
-                tags: [],
-                messages: [],
-                pageId: c.pageId,
-                contactId: c.contactId,
-                _pageId: c.pageId,
-                _pageName: c.pageName,
-                _postData: c._postData || null,
-              };
-            });
-            setConversations(mapped);
-            setSelectedId(mapped[0]?.id || "");
+  const hasAnyConnection = Object.values(connectionStatus).some(m => m?.connected);
 
-            // Prefetch messages for first 3 conversations in parallel
-            const prefetchCount = Math.min(3, mapped.length);
-            const prefetchers = mapped.slice(0, prefetchCount).map(conv => {
-              const pageId = (conv as any)?._pageId;
-              return fetch(`/api/inbox/messages?conversationId=${conv.id}&pageId=${pageId || ""}`)
-                .then(r => r.ok ? r.json() : null)
-                .then(data => ({
-                  id: conv.id,
-                  messages: data?.messages?.length ? data.messages.map((m: any) => ({
-                    id: m.id, text: m.text, incoming: m.incoming,
-                    timestamp: new Date(m.timestamp),
-                  })) : null,
-                }))
-                .catch(() => ({ id: conv.id, messages: null }));
-            });
-
-            Promise.all(prefetchers).then(results => {
-              setConversations(prev =>
-                prev.map(c => {
-                  const result = results.find(r => r.id === c.id);
-                  return result?.messages ? { ...c, messages: result.messages } : c;
-                })
-              );
-            });
-          }
-        }
-      } catch { /* fallback */ }
-      setInitialFetchDone(true);
-    };
-    fetchReal();
-  }, []);
-
-  const handleSelectConversation = (id: string) => {
-    setSelectedId(id);
-    setConversations(prev =>
-      prev.map(c => (c.id === id ? { ...c, unread: false } : c))
-    );
-    const conv = conversations.find(c => c.id === id);
-    const pageId = (conv as any)?._pageId;
-    fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.messages?.length) {
-          const mapped: Message[] = data.messages.map((m: any) => ({
-            id: m.id, text: m.text, incoming: m.incoming,
-            timestamp: new Date(m.timestamp),
-          }));
-          setConversations(prev =>
-            prev.map(c => c.id === id ? { ...c, messages: mapped } : c)
-          );
-        }
-      }).catch(() => {});
-  };
-
-  // Apply search + page + channel + queue filter
-  const filtered = conversations.filter(c => {
+  const filtered = useMemo(() => conversations.filter(c => {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       if (!c.contactName.toLowerCase().includes(q) && !c.lastMessage.toLowerCase().includes(q)) return false;
     }
-    // Filter by selected page
     if (selectedPage) {
-      const convPageId = (c as any)?._pageId;
-      if (convPageId && convPageId !== selectedPage.id) return false;
+      const pid = (c as any)?._pageId;
+      if (pid && pid !== selectedPage.id) return false;
     }
-    // Filter by channel/platform
     if (channelFilter !== "all") {
       const tab = CHANNEL_TABS.find(t => t.key === channelFilter);
       if (tab && tab.platforms.length > 0 && !tab.platforms.includes(c.platform)) return false;
@@ -323,494 +515,118 @@ export function InboxLayout() {
     if (queueFilter === "needs_reply" && (c.closed || !c.unread)) return false;
     if (queueFilter === "done" && !c.closed) return false;
     return true;
-  });
+  }), [conversations, searchQuery, selectedPage, channelFilter, queueFilter, currentAssignee]);
 
-  // Selected must be from filtered list — fallback to first filtered if not found (only on desktop)
   const isDesktop = typeof window !== "undefined" ? window.innerWidth >= 768 : true;
   const selected = filtered.find(c => c.id === selectedId) || (isDesktop ? filtered[0] : null) || null;
 
-  // Auto-select first filtered conversation when queueFilter changes (only on desktop)
-  useEffect(() => {
-    if (isDesktop && filtered.length > 0 && !filtered.find(c => c.id === selectedId)) {
-      setSelectedId(filtered[0].id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [queueFilter]);
+  const platformCounts = useMemo(() => conversations.reduce((acc, c) => {
+    CHANNEL_TABS.forEach(tab => {
+      if (tab.key !== "all" && tab.platforms.includes(c.platform))
+        acc[tab.key] = (acc[tab.key] || 0) + 1;
+    });
+    return acc;
+  }, {} as Record<string, number>), [conversations]);
+
+  const handleSelectConversation = (id: string) => {
+    setSelectedId(id);
+    setConversations(prev => prev.map(c => c.id === id ? { ...c, unread: false } : c));
+    const conv = conversations.find(c => c.id === id);
+    const pageId = (conv as any)?._pageId;
+    fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.messages?.length) {
+          const msgs: Message[] = data.messages.map((m: any) => ({ id: m.id, text: m.text, incoming: m.incoming, timestamp: new Date(m.timestamp) }));
+          setConversations(prev => prev.map(c => c.id === id ? { ...c, messages: msgs } : c));
+        }
+      }).catch(() => {});
+  };
 
   const handleSendMessage = async (text: string) => {
     if (!text.trim() || !selected) return;
-    const newMsg: Message = {
-      id: `${selected.id}_${Date.now()}`,
-      text: text.trim(),
-      incoming: false,
-      timestamp: new Date(),
-    };
-    
-    // Optimistic Update
-    setConversations(prev =>
-      prev.map(c =>
-        c.id === selected.id
-          ? { ...c, messages: [...c.messages, newMsg], lastMessage: text.trim(), lastMessageTime: new Date() }
-          : c
-      )
-    );
-
+    const newMsg: Message = { id: `${selected.id}_${Date.now()}`, text: text.trim(), incoming: false, timestamp: new Date() };
+    setConversations(prev => {
+      const updated = prev.map(c => c.id === selected.id ? { ...c, messages: [...c.messages, newMsg], lastMessage: text.trim(), lastMessageTime: new Date() } : c);
+      return [...updated].sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
+    });
     try {
       const pageId = (selected as any)._pageId || selected.pageId || "";
       const recipientId = selected.contactId || selected.id.replace("igc_", "").replace("fbc_", "");
-
-      const res = await fetch("/api/inbox/messages", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          conversationId: selected.id,
-          pageId,
-          recipientId,
-          message: text.trim(),
-          platform: selected.platform,
-        }),
-      });
-
-      if (!res.ok) {
-        console.error("[INBOX] Error al enviar mensaje:", await res.text());
-      }
-    } catch (err) {
-      console.error("[INBOX] Error de red al enviar mensaje:", err);
-    }
+      await fetch("/api/inbox/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ conversationId: selected.id, pageId, recipientId, message: text.trim(), platform: selected.platform }) });
+    } catch { /* ignore */ }
   };
 
   const handleCloseConversation = () => {
     if (!selected) return;
-    setConversations(prev =>
-      prev.map(c => (c.id === selected.id ? { ...c, closed: !c.closed } : c))
-    );
+    setConversations(prev => prev.map(c => c.id === selected.id ? { ...c, closed: !c.closed } : c));
   };
 
-  const handleAssign = (member: string) => {
-    if (!selected) return;
-    setConversations(prev =>
-      prev.map(c =>
-        c.id === selected.id
-          ? { ...c, assignedTo: member === "Sin asignar" ? null : member }
-          : c
-      )
-    );
-  };
-
-  const handleAddTag = (tag: string) => {
-    if (!tag.trim() || !selected) return;
-    setConversations(prev =>
-      prev.map(c =>
-        c.id === selected.id && !c.tags.includes(tag.trim())
-          ? { ...c, tags: [...c.tags, tag.trim()] }
-          : c
-      )
-    );
-  };
-
-  const handleRemoveTag = (tag: string) => {
-    if (!selected) return;
-    setConversations(prev =>
-      prev.map(c =>
-        c.id === selected.id
-          ? { ...c, tags: c.tags.filter(t => t !== tag) }
-          : c
-      )
-    );
-  };
-
-  // Count conversations per platform for badges
-  const platformCounts = conversations.reduce((acc, c) => {
-    for (const tab of CHANNEL_TABS) {
-      if (tab.key === "all") continue;
-      if (tab.platforms.includes(c.platform)) {
-        acc[tab.key] = (acc[tab.key] || 0) + 1;
-      }
-    }
-    return acc;
-  }, {} as Record<string, number>);
+  const handleAssign = (member: string) =>
+    setConversations(prev => prev.map(c => c.id === selected?.id ? { ...c, assignedTo: member === "Sin asignar" ? null : member } : c));
+  const handleAddTag = (tag: string) =>
+    setConversations(prev => prev.map(c => c.id === selected?.id && !c.tags.includes(tag.trim()) ? { ...c, tags: [...c.tags, tag.trim()] } : c));
+  const handleRemoveTag = (tag: string) =>
+    setConversations(prev => prev.map(c => c.id === selected?.id ? { ...c, tags: c.tags.filter(t => t !== tag) } : c));
 
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 200px)" }}>
 
-      {/* ═══ CONNECTED PROFILE BANNER ═══ */}
-      {initialFetchDone && connectedPages.length > 0 && (
-        <div style={{
-          display: "flex", alignItems: "center", gap: 12,
-          padding: "8px 16px",
-          background: "rgba(155,123,232,0.04)",
-          borderBottom: "1px solid var(--hairline)",
-          flexShrink: 0,
-        }}>
-          <Wifi style={{ width: 14, height: 14, color: "var(--emerald)", flexShrink: 0 }} />
-          <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1, overflow: "hidden" }}>
-            {/* Connected accounts avatars */}
-            <div style={{ display: "flex", alignItems: "center" }}>
-              {connectedPages.slice(0, 5).map((page, i) => (
-                <div key={page.id} style={{
-                  marginLeft: i > 0 ? -8 : 0,
-                  position: "relative", zIndex: 5 - i,
-                }}>
-                  {page.picture ? (
-                    <img
-                      src={page.picture}
-                      alt={page.name}
-                      title={page.name}
-                      style={{
-                        width: 26, height: 26, borderRadius: "50%",
-                        border: "2px solid var(--background)", objectFit: "cover",
-                      }}
-                    />
-                  ) : (
-                    <div
-                      title={page.name}
-                      style={{
-                        width: 26, height: 26, borderRadius: "50%",
-                        border: "2px solid var(--background)",
-                        background: page.platform === "instagram"
-                          ? "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)"
-                          : "linear-gradient(135deg,#1877F2,#0d6efd)",
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: 9, fontWeight: 700, color: "white",
-                      }}
-                    >
-                      {page.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
-                </div>
-              ))}
-              {connectedPages.length > 5 && (
-                <div style={{
-                  marginLeft: -8, width: 26, height: 26, borderRadius: "50%",
-                  background: "var(--surface-hover)", border: "2px solid var(--background)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontSize: 9, fontWeight: 700, color: "var(--text-secondary)",
-                }}>
-                  +{connectedPages.length - 5}
-                </div>
-              )}
-            </div>
-            <span style={{ fontSize: 11, color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
-              {connectedPages.map(p => p.name).join(", ")}
-            </span>
-          </div>
+      {/* CONNECTED BANNER */}
+      <ConnectedBanner connectedPages={connectedPages} onDisconnect={handleDisconnect} disconnecting={disconnecting} />
 
-          {/* Recibiendo badge */}
-          <span style={{
-            display: "inline-flex", alignItems: "center", gap: 4,
-            padding: "3px 8px", borderRadius: 6,
-            background: "rgba(16,185,129,0.08)",
-            border: "1px solid rgba(16,185,129,0.2)",
-            fontSize: 9, fontWeight: 600, color: "var(--emerald)",
-            whiteSpace: "nowrap", flexShrink: 0,
-          }}>
-            <div style={{ width: 5, height: 5, borderRadius: "50%", background: "var(--emerald)" }} />
-            Recibiendo mensajes
-          </span>
-
-          {/* Disconnect button */}
-          <button
-            onClick={() => handleDisconnect("community")}
-            disabled={disconnecting}
-            title="Desconectar"
-            style={{
-              display: "inline-flex", alignItems: "center", gap: 4,
-              padding: "4px 8px", borderRadius: 6,
-              background: "rgba(239,68,68,0.06)",
-              border: "1px solid rgba(239,68,68,0.15)",
-              color: "var(--red)", cursor: "pointer",
-              fontSize: 9, fontWeight: 600, fontFamily: "inherit",
-              opacity: disconnecting ? 0.5 : 1,
-              flexShrink: 0,
-            }}
-          >
-            <Unplug style={{ width: 10, height: 10 }} />
-            Desconectar
-          </button>
-        </div>
-      )}
-
-      {/* Skeleton loading state */}
-      {!initialFetchDone && (
-        <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-          {/* Left skeleton — conversation list */}
-          <div style={{
-            width: 300, minWidth: 300, borderRight: "1px solid var(--hairline)",
-            display: "flex", flexDirection: "column", padding: "12px",
-          }}>
-            {/* Page selector skeleton */}
-            <div style={{
-              height: 44, borderRadius: 10, marginBottom: 8,
-              background: "var(--row-hover)",
-              animation: "pulse 1.5s ease-in-out infinite",
-            }} />
-            {/* Search skeleton */}
-            <div style={{
-              height: 36, borderRadius: 8, marginBottom: 12,
-              background: "var(--row-hover)",
-              animation: "pulse 1.5s ease-in-out infinite",
-              animationDelay: "0.1s",
-            }} />
-            {/* Conversation skeletons */}
-            {[...Array(8)].map((_, i) => (
-              <div key={i} style={{
-                display: "flex", gap: 10, padding: "10px 8px",
-                borderBottom: "1px solid var(--hairline)",
-                animation: "pulse 1.5s ease-in-out infinite",
-                animationDelay: `${i * 0.08}s`,
-              }}>
-                <div style={{
-                  width: 40, height: 40, borderRadius: "50%", flexShrink: 0,
-                  background: "var(--surface-hover)",
-                }} />
-                <div style={{ flex: 1 }}>
-                  <div style={{ height: 12, width: `${60 + (i % 3) * 15}%`, borderRadius: 4, marginBottom: 6, background: "var(--surface-hover)" }} />
-                  <div style={{ height: 10, width: `${40 + (i % 4) * 12}%`, borderRadius: 4, background: "var(--row-hover)" }} />
-                </div>
-                <div style={{ height: 10, width: 24, borderRadius: 4, background: "var(--row-hover)" }} />
-              </div>
-            ))}
-          </div>
-
-          {/* Center skeleton — chat area */}
-          <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-            {/* Chat header skeleton */}
-            <div style={{
-              display: "flex", gap: 10, padding: "14px 16px",
-              borderBottom: "1px solid var(--hairline)",
-              animation: "pulse 1.5s ease-in-out infinite",
-            }}>
-              <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--surface-hover)" }} />
-              <div>
-                <div style={{ height: 13, width: 120, borderRadius: 4, marginBottom: 4, background: "var(--surface-hover)" }} />
-                <div style={{ height: 10, width: 80, borderRadius: 4, background: "var(--row-hover)" }} />
-              </div>
-            </div>
-            {/* Messages skeleton */}
-            <div style={{ flex: 1, padding: "20px 16px", display: "flex", flexDirection: "column", gap: 12 }}>
-              {[true, true, false, true, false, true].map((incoming, i) => (
-                <div key={i} style={{
-                  alignSelf: incoming ? "flex-start" : "flex-end",
-                  animation: "pulse 1.5s ease-in-out infinite",
-                  animationDelay: `${i * 0.12}s`,
-                }}>
-                  <div style={{
-                    height: 32 + (i % 3) * 10, width: 140 + (i % 4) * 40,
-                    borderRadius: 14,
-                    background: incoming ? "var(--row-hover)" : "rgba(155,123,232,0.06)",
-                  }} />
-                </div>
-              ))}
-            </div>
-            {/* Input skeleton */}
-            <div style={{
-              padding: "12px 16px", borderTop: "1px solid var(--hairline)",
-              animation: "pulse 1.5s ease-in-out infinite",
-            }}>
-              <div style={{ height: 40, borderRadius: 20, background: "var(--row-hover)" }} />
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Empty state — not connected */}
-      {conversations.length === 0 && initialFetchDone && !hasAnyConnection && (
-        <div style={{
-          display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", flex: 1, padding: 60, gap: 20,
-        }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 14,
-            background: "rgba(155,123,232,0.08)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <MessageSquare style={{ width: 26, height: 26, color: "var(--purple)" }} />
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: "0 0 8px" }}>Sin conversaciones</h3>
-            <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", maxWidth: 320, margin: 0 }}>
-              Conecta tus cuentas de Meta para recibir mensajes de Facebook Messenger e Instagram Direct.
-            </p>
-          </div>
-
-          {/* Quick connect buttons */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 10, width: "100%", maxWidth: 340 }}>
-            <p style={{ fontSize: 10, fontWeight: 700, color: "var(--text-secondary)", margin: 0, letterSpacing: "0.08em", textAlign: "center" }}>ACCESO RÁPIDO</p>
-            <button
-              onClick={() => openConnectPopup("community", handleConnectSuccess)}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(0,100,224,0.08)", border: "1px solid rgba(0,100,224,0.2)", color: "var(--cyan)", cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}
-            >
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg viewBox="0 0 24 24" width={16} height={16} fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-              </div>
-              <div>
-                <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Facebook & Messenger</p>
-                <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0 }}>Páginas, inbox y comentarios</p>
-              </div>
-              <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: "auto" }}><path d="M9 18l6-6-6-6"/></svg>
-            </button>
-
-            <button
-              onClick={() => openConnectPopup("community", handleConnectSuccess)}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderRadius: 10, background: "rgba(188,95,178,0.06)", border: "1px solid rgba(188,95,178,0.18)", color: "#bc5fb2", cursor: "pointer", fontFamily: "inherit", width: "100%", textAlign: "left" }}
-            >
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <svg viewBox="0 0 24 24" width={16} height={16} fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-              </div>
-              <div>
-                <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Instagram DMs</p>
-                <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0 }}>Mensajes directos e interacciones</p>
-              </div>
-              <svg viewBox="0 0 24 24" width={14} height={14} fill="none" stroke="currentColor" strokeWidth={2} style={{ marginLeft: "auto" }}><path d="M9 18l6-6-6-6"/></svg>
-            </button>
-
-            <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0, textAlign: "center" }}>
-              O ve a <a onClick={() => window.location.href = "/dashboard/integrations"} style={{ color: "var(--cyan)", cursor: "pointer", textDecoration: "underline" }}>Integraciones</a> para gestionar todos los canales
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Connected but no conversations state */}
-      {conversations.length === 0 && initialFetchDone && hasAnyConnection && (
-        <div style={{
-          display: "flex", flexDirection: "column", alignItems: "center",
-          justifyContent: "center", flex: 1, padding: 60, gap: 16,
-        }}>
-          <div style={{
-            width: 56, height: 56, borderRadius: 14,
-            background: "rgba(16,185,129,0.08)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <CheckCircle2 style={{ width: 26, height: 26, color: "var(--emerald)" }} />
-          </div>
-          <div style={{ textAlign: "center" }}>
-            <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", margin: "0 0 8px" }}>Conectado — esperando mensajes</h3>
-            <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", maxWidth: 360, margin: 0 }}>
-              Tus cuentas están conectadas. Los mensajes nuevos de Facebook Messenger, Instagram y WhatsApp aparecerán aquí automáticamente.
-            </p>
-          </div>
-          <button
-            onClick={() => window.location.reload()}
-            style={{
-              padding: "8px 20px", borderRadius: 8,
-              background: "rgba(155,123,232,0.08)",
-              border: "1px solid rgba(155,123,232,0.2)",
-              color: "var(--purple)", cursor: "pointer",
-              fontSize: 12, fontWeight: 600, fontFamily: "inherit",
-            }}
-          >
-            Recargar
-          </button>
-        </div>
-      )}
-
-      {/* Connect toast */}
-      {connectToast && (
-        <div style={{
-          position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)",
-          background: "var(--emerald)", color: "white",
-          padding: "10px 20px", borderRadius: 10,
-          fontSize: 13, fontWeight: 600,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.4)",
-          zIndex: 999, display: "flex", alignItems: "center", gap: 8,
-          animation: "slideUp 0.3s ease-out",
-        }}>
-          <CheckCircle2 style={{ width: 16, height: 16 }} />
-          {connectToast}
-          <button
-            onClick={() => setConnectToast(null)}
-            style={{ background: "none", border: "none", color: "white", cursor: "pointer", padding: 2 }}
-          >
-            <X style={{ width: 14, height: 14 }} />
-          </button>
-        </div>
-      )}
-
-      {/* ─── No matching conversations notice ─── */}
-      {conversations.length > 0 && filtered.length === 0 && initialFetchDone && (
-        <div style={{ padding: 32, textAlign: "center", color: "var(--text-secondary)", fontSize: 12 }}>
-          No hay conversaciones en esta vista. Cambia el filtro para revisar otros mensajes.
-        </div>
-      )}
-
-      {/* ─── 3-Panel Layout ─── */}
-      {conversations.length > 0 && filtered.length > 0 && (
+      {/* 3-PANEL LAYOUT — always visible */}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
 
-        {/* ═══ LEFT — Conversation List ═══ */}
-        <div className={`w-full md:w-[300px] md:min-w-[300px] flex-col ${selected ? 'hidden md:flex' : 'flex'}`} style={{ borderRight: "1px solid var(--hairline)", background: "var(--surface)" }}>
-          {/* Page Selector */}
+        {/* LEFT: Conversation List */}
+        <div
+          className={`w-full md:w-[300px] md:min-w-[300px] flex-col ${selected ? "hidden md:flex" : "flex"}`}
+          style={{ borderRight: "1px solid var(--hairline)", background: "var(--surface)", overflow: "hidden" }}
+          role="navigation" aria-label="Conversaciones"
+        >
+          {/* Page selector */}
           {connectedPages.length > 0 && (
-            <div style={{ padding: "10px 12px 6px", borderBottom: "1px solid var(--hairline)" }}>
-              <PageSelector
-                pages={connectedPages}
-                selectedPage={selectedPage}
-                onSelect={setSelectedPage}
-              />
+            <div style={{ padding: "8px 12px 6px", borderBottom: "1px solid var(--hairline)", flexShrink: 0 }}>
+              <PageSelector pages={connectedPages} selectedPage={selectedPage} onSelect={setSelectedPage} />
             </div>
           )}
 
-          {/* ─── Platform Filter Tabs (Collapsible) ─── */}
-          <div style={{ borderBottom: "1px solid var(--hairline)" }}>
+          {/* Platform filter (collapsible) */}
+          <div style={{ borderBottom: "1px solid var(--hairline)", flexShrink: 0 }}>
             <button
               onClick={() => setChannelFilterOpen(o => !o)}
-              style={{
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                width: "100%", padding: "8px 12px",
-                background: "transparent", border: "none",
-                color: "var(--text-secondary)", fontSize: 9, fontWeight: 700,
-                letterSpacing: "0.08em", cursor: "pointer", fontFamily: "inherit",
-                textTransform: "uppercase",
-              }}
+              aria-expanded={channelFilterOpen}
+              style={{ display: "flex", alignItems: "center", justifyContent: "space-between", width: "100%", padding: "7px 12px", background: "transparent", border: "none", color: "var(--text-secondary)", fontSize: 9, fontWeight: 700, letterSpacing: "0.08em", cursor: "pointer", fontFamily: "inherit", textTransform: "uppercase" }}
             >
-              <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <Filter style={{ width: 10, height: 10 }} />
-                Plataformas
-                {channelFilter !== "all" && (
-                  <span style={{
-                    width: 6, height: 6, borderRadius: "50%",
-                    background: CHANNEL_TABS.find(t => t.key === channelFilter)?.color || "var(--purple)",
-                  }} />
-                )}
+              <span style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                <Filter style={{ width: 9, height: 9 }} />
+                Plataforma
+                {channelFilter !== "all" && <span style={{ width: 5, height: 5, borderRadius: "50%", background: CHANNEL_TABS.find(t => t.key === channelFilter)?.color || "#9b7be8", display: "inline-block" }} />}
               </span>
-              {channelFilterOpen
-                ? <ChevronUp style={{ width: 10, height: 10 }} />
-                : <ChevronDown style={{ width: 10, height: 10 }} />
-              }
+              {channelFilterOpen ? <ChevronUp style={{ width: 10, height: 10 }} /> : <ChevronDown style={{ width: 10, height: 10 }} />}
             </button>
             {channelFilterOpen && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "0 10px 8px" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 4, padding: "0 10px 8px" }} role="group" aria-label="Filtrar por plataforma">
                 {CHANNEL_TABS.map(tab => {
                   const count = tab.key === "all" ? conversations.length : (platformCounts[tab.key] || 0);
                   const isActive = channelFilter === tab.key;
-                  // Only show tabs that have conversations or are "all"
                   if (tab.key !== "all" && count === 0) return null;
                   return (
                     <button
                       key={tab.key}
                       onClick={() => setChannelFilter(tab.key)}
+                      aria-pressed={isActive}
                       style={{
-                        display: "inline-flex", alignItems: "center", gap: 4,
-                        padding: "4px 8px", borderRadius: 6,
-                        border: `1px solid ${isActive ? `${tab.color}55` : "var(--hairline)"}`,
-                        background: isActive ? `${tab.color}14` : "transparent",
+                        display: "inline-flex", alignItems: "center", gap: 4, padding: "4px 8px", borderRadius: 6,
+                        border: `1px solid ${isActive ? `${tab.color}66` : "var(--hairline)"}`,
+                        background: isActive ? `${tab.color}16` : "transparent",
                         color: isActive ? tab.color : "var(--text-muted)",
-                        fontSize: 10, fontWeight: isActive ? 700 : 500,
-                        cursor: "pointer", fontFamily: "inherit",
-                        transition: "all 0.15s",
+                        fontSize: 10, fontWeight: isActive ? 700 : 500, cursor: "pointer", fontFamily: "inherit", transition: "all 0.12s",
                       }}
                     >
+                      {tab.key !== "all" && <PlatformIcon platform={tab.platforms[0]} size={12} />}
                       {tab.label}
-                      <span style={{
-                        minWidth: 14, height: 14, borderRadius: 7, padding: "0 3px",
-                        display: "inline-flex", alignItems: "center", justifyContent: "center",
-                        background: isActive ? `${tab.color}2b` : "var(--surface-hover)",
-                        color: isActive ? tab.color : "var(--text-secondary)",
-                        fontSize: 9, fontWeight: 700,
-                      }}>{count}</span>
+                      <span style={{ minWidth: 14, height: 14, borderRadius: 7, padding: "0 3px", display: "inline-flex", alignItems: "center", justifyContent: "center", background: isActive ? `${tab.color}28` : "var(--surface-hover)", color: isActive ? tab.color : "var(--text-secondary)", fontSize: 9, fontWeight: 700 }}>{count}</span>
                     </button>
                   );
                 })}
@@ -818,61 +634,39 @@ export function InboxLayout() {
             )}
           </div>
 
-          {/* Search + Queue filter */}
-          <div style={{ padding: "6px 12px 10px", display: "flex", gap: 6, alignItems: "center" }}>
-            <div style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "7px 10px", flex: 1,
-              background: "var(--surface-hover)",
-              borderRadius: 8,
-              border: "1px solid var(--hairline)",
-            }}>
-              <Search style={{ width: 14, height: 14, color: "var(--text-muted)", flexShrink: 0 }} />
+          {/* Search + Queue + Refresh */}
+          <div style={{ padding: "6px 10px 8px", display: "flex", gap: 5, alignItems: "center", borderBottom: "1px solid var(--hairline)", flexShrink: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 7, padding: "7px 10px", flex: 1, background: "var(--surface-hover)", borderRadius: 7, border: "1px solid var(--hairline)" }}>
+              <Search style={{ width: 13, height: 13, color: "var(--text-muted)", flexShrink: 0 }} />
               <input
-                type="text"
-                placeholder="Buscar conversación..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                style={{
-                  background: "transparent", border: "none", outline: "none",
-                  color: "var(--foreground)", fontSize: 12, width: "100%", fontFamily: "inherit",
-                }}
+                type="search" placeholder="Escriba aquí para filtrar la..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                aria-label="Buscar conversaciones"
+                style={{ background: "transparent", border: "none", outline: "none", color: "var(--foreground)", fontSize: 12, width: "100%", fontFamily: "inherit" }}
               />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")} aria-label="Limpiar" style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: "var(--text-muted)", display: "flex" }}>
+                  <X style={{ width: 11, height: 11 }} />
+                </button>
+              )}
             </div>
-
-            {/* Queue filter dropdown */}
+            {/* Queue filter */}
             <div ref={queueRef} style={{ position: "relative", flexShrink: 0 }}>
               {(() => {
                 const active = QUEUE_TABS.find(t => t.key === queueFilter) || QUEUE_TABS[0];
-                const filterActive = queueFilter !== "all";
+                const isF = queueFilter !== "all";
                 return (
-                  <button
-                    onClick={() => setQueueMenuOpen(o => !o)}
-                    title="Filtrar conversaciones"
-                    style={{
-                      display: "inline-flex", alignItems: "center", gap: 4,
-                      padding: "7px 8px", borderRadius: 8,
-                      border: `1px solid ${filterActive ? `${active.color}55` : "var(--hairline)"}`,
-                      background: filterActive ? `${active.color}14` : "var(--surface-hover)",
-                      color: filterActive ? active.color : "var(--text-muted)",
-                      fontSize: 11, fontWeight: 600, cursor: "pointer", fontFamily: "inherit",
-                      whiteSpace: "nowrap",
-                    }}
-                  >
+                  <button onClick={() => setQueueMenuOpen(o => !o)} aria-haspopup="listbox" aria-expanded={queueMenuOpen} title={active.label}
+                    style={{ display: "inline-flex", alignItems: "center", gap: 3, padding: "7px 7px", borderRadius: 7, border: `1px solid ${isF ? `${active.color}55` : "var(--hairline)"}`, background: isF ? `${active.color}10` : "var(--surface-hover)", color: isF ? active.color : "var(--text-muted)", cursor: "pointer", fontFamily: "inherit" }}>
                     <Filter style={{ width: 12, height: 12 }} />
-                    <ChevronDown style={{ width: 10, height: 10, opacity: 0.7 }} />
+                    {isF && <div style={{ width: 5, height: 5, borderRadius: "50%", background: active.color }} />}
+                    <ChevronDown style={{ width: 9, height: 9, opacity: 0.7 }} />
                   </button>
                 );
               })()}
               {queueMenuOpen && (
-                <div style={{
-                  position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 200,
-                  background: "var(--panel-bg)", border: "1px solid var(--hairline)",
-                  borderRadius: 10, zIndex: 50, overflow: "hidden",
-                  boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
-                }}>
-                  {QUEUE_TABS.map((tab) => {
-                    const total = conversations.filter((c) => {
+                <div role="listbox" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 195, background: "var(--panel-bg)", border: "1px solid var(--hairline)", borderRadius: 10, zIndex: 50, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                  {QUEUE_TABS.map(tab => {
+                    const count = conversations.filter(c => {
                       if (tab.key === "all") return true;
                       if (tab.key === "unassigned") return !c.assignedTo;
                       if (tab.key === "mine") return c.assignedTo === currentAssignee;
@@ -880,233 +674,102 @@ export function InboxLayout() {
                       if (tab.key === "done") return c.closed;
                       return true;
                     }).length;
-                    const isActive = queueFilter === tab.key;
+                    const isA = queueFilter === tab.key;
                     return (
-                      <button
-                        key={tab.key}
-                        onClick={() => { setQueueFilter(tab.key); setQueueMenuOpen(false); }}
-                        style={{
-                          display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10,
-                          width: "100%", padding: "9px 14px",
-                          background: isActive ? `${tab.color}12` : "transparent",
-                          border: "none", borderBottom: "1px solid var(--hairline)",
-                          borderLeft: isActive ? `3px solid ${tab.color}` : "3px solid transparent",
-                          color: isActive ? tab.color : "var(--text-secondary)",
-                          fontSize: 12, fontWeight: isActive ? 600 : 400,
-                          cursor: "pointer", textAlign: "left", fontFamily: "inherit",
-                        }}
-                      >
-                        <span>{tab.label}</span>
-                        <span style={{
-                          minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px",
-                          display: "inline-flex", alignItems: "center", justifyContent: "center",
-                          background: isActive ? `${tab.color}2b` : "var(--surface-hover)",
-                          color: isActive ? tab.color : "var(--text-secondary)", fontSize: 10, fontWeight: 700,
-                        }}>{total}</span>
+                      <button key={tab.key} role="option" aria-selected={isA} onClick={() => { setQueueFilter(tab.key); setQueueMenuOpen(false); }}
+                        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, width: "100%", padding: "8px 14px", background: isA ? `${tab.color}10` : "transparent", border: "none", borderBottom: "1px solid var(--hairline)", borderLeft: isA ? `3px solid ${tab.color}` : "3px solid transparent", color: isA ? tab.color : "var(--text-secondary)", fontSize: 12, fontWeight: isA ? 600 : 400, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}>
+                        {tab.label}
+                        <span style={{ minWidth: 18, height: 18, borderRadius: 9, padding: "0 5px", display: "inline-flex", alignItems: "center", justifyContent: "center", background: isA ? `${tab.color}25` : "var(--surface-hover)", color: isA ? tab.color : "var(--text-secondary)", fontSize: 10, fontWeight: 700 }}>{count}</span>
                       </button>
                     );
                   })}
                 </div>
               )}
             </div>
+            {/* Refresh */}
+            <button onClick={() => fetchConversations()} disabled={isRefreshing} title="Actualizar" aria-label="Actualizar conversaciones"
+              style={{ padding: 7, borderRadius: 7, border: "1px solid var(--hairline)", background: "var(--surface-hover)", cursor: "pointer", color: "var(--text-muted)", display: "flex", opacity: isRefreshing ? 0.5 : 1 }}>
+              <RefreshCw style={{ width: 12, height: 12, animation: isRefreshing ? "spin 0.6s linear infinite" : "none" }} />
+            </button>
           </div>
 
-
-
-          {/* Conversation List */}
-          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }}>
-            {filtered.length === 0 ? (
-              <div style={{ padding: 24, textAlign: "center", color: "var(--text-muted)", fontSize: 11 }}>
-                No hay conversaciones
+          {/* Conversation list */}
+          <div style={{ flex: 1, overflowY: "auto", overflowX: "hidden" }} role="list">
+            {!initialFetchDone ? (
+              <ConversationSkeleton />
+            ) : filtered.length === 0 ? (
+              <div style={{ padding: "28px 16px", textAlign: "center" }}>
+                <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 6px" }}>
+                  {searchQuery ? "Sin resultados para tu búsqueda" : channelFilter !== "all" ? "Sin mensajes en este canal" : "Sin conversaciones aún"}
+                </p>
+                {searchQuery && <button onClick={() => setSearchQuery("")} style={{ fontSize: 11, color: "#9b7be8", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>Limpiar búsqueda</button>}
+                {!hasAnyConnection && !searchQuery && (
+                  <button onClick={() => openConnectPopup("community", handleConnectSuccess)}
+                    style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 7, background: "#1877F2", color: "white", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "inherit" }}>
+                    <Plus style={{ width: 11, height: 11 }} />
+                    Conectar cuenta
+                  </button>
+                )}
               </div>
             ) : (
-              filtered.map(conv => {
-                const pc = getPlatformConfig(conv.platform);
-                const isActive = conv.id === selectedId;
-                return (
-                  <div
-                    key={conv.id}
-                    onClick={() => handleSelectConversation(conv.id)}
-                    style={{
-                      padding: "12px 14px",
-                      cursor: "pointer",
-                      background: isActive ? "rgba(155,123,232,0.06)" : "transparent",
-                      borderLeft: isActive ? "3px solid var(--purple)" : "3px solid transparent",
-                      borderBottom: "1px solid var(--hairline)",
-                      transition: "all 0.12s",
-                      display: "flex", gap: 10, alignItems: "flex-start",
-                    }}
-                  >
-                    {/* Avatar */}
-                    <div style={{ position: "relative", flexShrink: 0 }}>
-                      {conv.contactAvatar ? (
-                        <img
-                          src={conv.contactAvatar}
-                          alt=""
-                          style={{
-                            width: 42, height: 42, borderRadius: "50%",
-                            objectFit: "cover",
-                            border: `1.5px solid ${pc.color}30`,
-                          }}
-                          onError={(e) => {
-                            // Fallback to initials on load error
-                            const target = e.target as HTMLImageElement;
-                            target.style.display = "none";
-                            const parent = target.parentElement;
-                            if (parent && !parent.querySelector(".fallback-avatar")) {
-                              const fallback = document.createElement("div");
-                              fallback.className = "fallback-avatar";
-                              fallback.style.cssText = `width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,${pc.color}20,${pc.color}08);border:1.5px solid ${pc.color}30;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:${pc.color};`;
-                              fallback.textContent = getInitials(conv.contactName);
-                              parent.insertBefore(fallback, target);
-                            }
-                          }}
-                        />
-                      ) : (
-                        <div style={{
-                          width: 42, height: 42, borderRadius: "50%",
-                          background: `linear-gradient(135deg, ${pc.color}20, ${pc.color}08)`,
-                          border: `1.5px solid ${pc.color}30`,
-                          display: "flex", alignItems: "center", justifyContent: "center",
-                          fontSize: 14, fontWeight: 700, color: pc.color,
-                        }}>
-                          {getInitials(conv.contactName)}
-                        </div>
-                      )}
-                      {conv.unread && (
-                        <div style={{
-                          position: "absolute", top: -1, right: -1,
-                          width: 10, height: 10, borderRadius: "50%",
-                          background: "var(--purple)",
-                          border: "2px solid var(--background)",
-                        }} />
-                      )}
-                      {/* Platform indicator */}
-                      <div style={{
-                        position: "absolute", bottom: -2, right: -2,
-                        width: 16, height: 16, borderRadius: "50%",
-                        background: pc.color,
-                        display: "flex", alignItems: "center", justifyContent: "center",
-                        border: "2px solid var(--background)",
-                      }}>
-                        <pc.icon style={{ width: 8, height: 8, color: "var(--foreground)" }} />
-                      </div>
-                    </div>
-
-                    {/* Content */}
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 2 }}>
-                        <span style={{
-                          fontSize: 13, fontWeight: conv.unread ? 700 : 500,
-                          color: conv.unread ? "white" : "var(--foreground)",
-                          whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                        }}>
-                          {conv.contactName}
-                        </span>
-                        <span style={{
-                          fontSize: 10, color: conv.unread ? "var(--purple)" : "var(--text-muted)",
-                          whiteSpace: "nowrap", marginLeft: 8, fontWeight: conv.unread ? 600 : 400,
-                        }}>
-                          {relativeTime(conv.lastMessageTime)}
-                        </span>
-                      </div>
-                      <p style={{
-                        fontSize: 11,
-                        color: conv.unread ? "var(--foreground)" : "var(--text-muted)",
-                        margin: 0,
-                        whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
-                        fontWeight: conv.unread ? 500 : 400,
-                        lineHeight: 1.4,
-                      }}>
-                        {(conv.platform === "fb_comment" || conv.platform === "ig_comment" || conv.platform === "instagram_comment")
-                          ? conv.lastMessage
-                          : (conv.lastMessage.startsWith("Tú:") ? conv.lastMessage : `Tú: ${conv.lastMessage}`)
-                        }
-                        {/* Platform badge */}
-                        <span style={{
-                          display: "inline-block", marginTop: 3,
-                          fontSize: 9, fontWeight: 600, letterSpacing: "0.05em",
-                          padding: "1px 5px", borderRadius: 3,
-                          background: `${pc.color}18`,
-                          color: pc.color,
-                        }}>
-                          {pc.label}
-                        </span>
-                      </p>
-                      {conv.closed && (
-                        <span style={{
-                          display: "inline-block", fontSize: 8, fontWeight: 600,
-                          padding: "1px 6px", marginTop: 4,
-                          color: "var(--text-muted)",
-                          background: "var(--surface-hover)",
-                          border: "1px solid var(--hairline)",
-                          borderRadius: 3,
-                        }}>
-                          CERRADO
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })
+              filtered.map(conv => (
+                <div key={conv.id} role="listitem">
+                  <ConversationRow conv={conv} isActive={conv.id === selectedId} onClick={() => handleSelectConversation(conv.id)} />
+                </div>
+              ))
             )}
           </div>
         </div>
 
-        {/* ═══ CENTER — Chat View / Post View ═══ */}
-        <div className={`flex-1 flex-col min-w-0 ${selected ? 'flex' : 'hidden md:flex'}`} style={{ background: "var(--background)" }}>
-          <ErrorBoundary
-            name="InboxConversation"
-            fallback={
-              <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40, textAlign: "center" }}>
-                <AlertCircle style={{ width: 28, height: 28, color: "var(--red)" }} />
-                <p style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 280 }}>
-                  No se pudo mostrar esta conversación. Selecciona otra en la lista.
-                </p>
-              </div>
-            }
-          >
+        {/* CENTER: Chat / Post view */}
+        <div
+          className={`flex-1 flex-col min-w-0 ${selected ? "flex" : "hidden md:flex"}`}
+          style={{ background: "var(--background)" }}
+          role="main" aria-label="Conversación activa"
+        >
+          <ErrorBoundary name="InboxConversation" fallback={
+            <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40, textAlign: "center" }}>
+              <AlertCircle style={{ width: 28, height: 28, color: "var(--red)" }} />
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", maxWidth: 280 }}>No se pudo mostrar esta conversación. Selecciona otra en la lista.</p>
+            </div>
+          }>
             {!selected ? (
-              <div className="hidden md:flex flex-col flex-1 items-center justify-center gap-3 p-10 text-center">
-                <MessageSquare className="w-8 h-8 text-slate-500" />
-                <p className="text-sm text-slate-400">Selecciona una conversación para ver los detalles</p>
-              </div>
+              <EmptyChat hasAnyConnection={hasAnyConnection} onConnect={() => openConnectPopup("community", handleConnectSuccess)} />
             ) : selected.platform === "fb_comment" || selected.platform === "ig_comment" || selected.platform === "instagram_comment" ? (
               <PostView conversation={selected} onBack={() => setSelectedId("")} />
             ) : (
-              <ChatView
-                conversation={selected}
-                onSend={handleSendMessage}
-                onClose={handleCloseConversation}
-                onToggleProfile={toggleProfile}
-                showProfile={showProfile}
-                onBack={() => setSelectedId("")}
-              />
+              <ChatView conversation={selected} onSend={handleSendMessage} onClose={handleCloseConversation} onToggleProfile={toggleProfile} showProfile={showProfile} onBack={() => setSelectedId("")} />
             )}
           </ErrorBoundary>
         </div>
 
-        {/* ═══ RIGHT — Contact Profile ═══ */}
+        {/* RIGHT: Contact profile */}
         {showProfile && selected && (
-          <div className="absolute inset-y-0 right-0 z-20 w-[280px] md:static md:w-[280px] md:min-w-[280px] shadow-2xl md:shadow-none flex flex-col" style={{ background: 'var(--surface)', borderLeft: '1px solid var(--hairline)', overflow: 'hidden' }}>
-            <ContactProfile
-              conversation={selected}
-              onAssign={handleAssign}
-              onAddTag={handleAddTag}
-              onRemoveTag={handleRemoveTag}
-              onClose={toggleProfile}
-            />
+          <div
+            className="absolute inset-y-0 right-0 z-20 w-[280px] md:static md:w-[280px] md:min-w-[280px] shadow-2xl md:shadow-none flex flex-col"
+            style={{ background: "var(--surface)", borderLeft: "1px solid var(--hairline)", overflow: "hidden" }}
+            role="complementary" aria-label="Perfil del contacto"
+          >
+            <ContactProfile conversation={selected} onAssign={handleAssign} onAddTag={handleAddTag} onRemoveTag={handleRemoveTag} onClose={toggleProfile} />
           </div>
         )}
       </div>
+
+      {/* TOAST */}
+      {connectToast && (
+        <div role="alert" aria-live="polite" style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "#10b981", color: "white", padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", zIndex: 999, display: "flex", alignItems: "center", gap: 8 }}>
+          <CheckCircle2 style={{ width: 15, height: 15 }} />
+          {connectToast}
+          <button onClick={() => setConnectToast(null)} aria-label="Cerrar" style={{ background: "none", border: "none", color: "white", cursor: "pointer", padding: 2, display: "flex" }}>
+            <X style={{ width: 13, height: 13 }} />
+          </button>
+        </div>
       )}
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
     </div>
   );
 }
 
-// ═══════════════════════════════════════════════════════════════
-// CHAT VIEW
-// ═══════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════
-// CONTACT PROFILE SIDEBAR (Collapsible Sections)
-// ═══════════════════════════════════════════════════════════════

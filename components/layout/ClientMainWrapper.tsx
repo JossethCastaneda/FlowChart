@@ -48,6 +48,7 @@ import { useLanguage } from "@/components/layout/LanguageContext";
 import { HoloIcon } from "@/components/ui/HoloIcon";
 
 import { NAV_GROUPS } from "@/lib/sodare-kit/nav-items";
+import { MODULES } from "@/lib/sodare-kit/modules";
 import {
   Activity,
   MessagesSquare,
@@ -200,6 +201,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   // "sidebarPinned" persists across sessions — sidebar stays open without hover
   const [sidebarPinned, setSidebarPinned] = useState(false);
   const pathname = usePathname();
+  const currentModule = MODULES.find(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
 
   // Load pinned preference on mount
   useEffect(() => {
@@ -662,8 +664,17 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             />
           </button>
 
+          {/* Module Title / Breadcrumbs */}
+          {currentModule && (
+            <div className="flex-1 ml-4 hidden md:flex items-center gap-2 overflow-hidden" style={{ fontSize: 13 }}>
+              <span style={{ fontWeight: 600, color: currentModule.color, whiteSpace: "nowrap" }}>
+                {currentModule.label === "Inbox" ? "Inbox 2.0" : currentModule.label}
+              </span>
+            </div>
+          )}
+
           {/* Right side quick actions */}
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-5 ml-auto">
 
 
           <Link href="/dashboard/inbox" className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Conversaciones">
@@ -957,7 +968,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
         {/* Page content */}
         <div className="flex-1 overflow-y-auto pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0" style={{ display: "flex", flexDirection: "column" }}>
-          <div className="page-content page-enter" key={pathname} style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
+          <div className={`page-content page-enter ${pathname.startsWith('/dashboard/inbox') ? '!p-0' : ''}`} key={pathname} style={{ flex: 1, display: "flex", flexDirection: "column", minHeight: 0 }}>
             {children}
           </div>
         </div>
