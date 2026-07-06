@@ -96,7 +96,8 @@ scripts/grant-access.ts
 scripts/grant-access2.ts
 scripts/audit-*.ts
 scripts/fix-*.ts
-scripts/cleanup-*.tsscripts/get_users*.js
+scripts/cleanup-*.ts
+scripts/get_users*.js
 scripts/reset_users.*
 scripts/reset_test_pass.js
 scripts/verify_pass.js
