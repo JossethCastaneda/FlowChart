@@ -372,6 +372,11 @@ export function InboxLayout() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const queueRef = useRef<HTMLDivElement>(null);
   const currentAssignee = session?.user?.name || "Ana";
+  // Refs espejo para que el stream SSE (efecto sin deps de estado) lea el valor vigente.
+  const selectedIdRef = useRef(selectedId);
+  useEffect(() => { selectedIdRef.current = selectedId; }, [selectedId]);
+  const conversationsRef = useRef(conversations);
+  useEffect(() => { conversationsRef.current = conversations; }, [conversations]);
 
   useEffect(() => {
     try { setShowProfile(localStorage.getItem("sodare:inbox-profile") === "1"); } catch { /* ignore */ }
@@ -472,11 +477,73 @@ export function InboxLayout() {
 
   useEffect(() => { fetchConversations(); }, [fetchConversations]);
 
-  // Poll every 30 seconds
+  /** Trae los mensajes de un hilo y los mezcla en el estado. Estable (lee refs). */
+  const loadMessages = useCallback((id: string) => {
+    const conv = conversationsRef.current.find(c => c.id === id);
+    const pageId = (conv as any)?._pageId;
+    fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.messages?.length) {
+          const msgs: Message[] = data.messages.map((m: any) => ({ id: m.id, text: m.text, incoming: m.incoming, timestamp: new Date(m.timestamp) }));
+          setConversations(prev => prev.map(c => c.id === id ? { ...c, messages: msgs } : c));
+        }
+      }).catch(() => {});
+  }, []);
+
+  // Tiempo real: SSE contra /api/inbox/stream (el servidor vigila la DB y empuja
+  // `change` al instante). El polling queda solo como respaldo mientras el stream
+  // no está conectado; se apaga en cuanto llega `ready`.
   useEffect(() => {
-    const id = setInterval(() => fetchConversations(true), 30_000);
-    return () => clearInterval(id);
-  }, [fetchConversations]);
+    let es: EventSource | null = null;
+    let retryTimer: ReturnType<typeof setTimeout> | null = null;
+    let fallbackPoll: ReturnType<typeof setInterval> | null = null;
+    let stopped = false;
+
+    const startFallback = () => {
+      if (!fallbackPoll) fallbackPoll = setInterval(() => fetchConversations(true), 30_000);
+    };
+    const stopFallback = () => {
+      if (fallbackPoll) { clearInterval(fallbackPoll); fallbackPoll = null; }
+    };
+
+    const onChange = () => {
+      fetchConversations(true);
+      const id = selectedIdRef.current;
+      if (id) loadMessages(id);
+    };
+
+    const connect = () => {
+      if (stopped) return;
+      try { es = new EventSource("/api/inbox/stream"); } catch { startFallback(); return; }
+      es.addEventListener("ready", () => { stopFallback(); });
+      es.addEventListener("change", onChange);
+      es.onerror = () => {
+        // Caídas transitorias las reintenta EventSource solo; mientras tanto, respaldo.
+        startFallback();
+        if (es?.readyState === EventSource.CLOSED) {
+          es.close();
+          es = null;
+          if (!retryTimer) retryTimer = setTimeout(() => { retryTimer = null; connect(); }, 15_000);
+        }
+      };
+    };
+
+    connect();
+    startFallback(); // activo hasta el primer `ready`
+
+    // Al volver a la pestaña, refrescar de inmediato (cubre cambios perdidos en background).
+    const onVisible = () => { if (document.visibilityState === "visible") fetchConversations(true); };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      stopped = true;
+      es?.close();
+      if (retryTimer) clearTimeout(retryTimer);
+      stopFallback();
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [fetchConversations, loadMessages]);
 
   const handleDisconnect = async () => {
     if (disconnecting) return;
@@ -531,16 +598,7 @@ export function InboxLayout() {
   const handleSelectConversation = (id: string) => {
     setSelectedId(id);
     setConversations(prev => prev.map(c => c.id === id ? { ...c, unread: false } : c));
-    const conv = conversations.find(c => c.id === id);
-    const pageId = (conv as any)?._pageId;
-    fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}`)
-      .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.messages?.length) {
-          const msgs: Message[] = data.messages.map((m: any) => ({ id: m.id, text: m.text, incoming: m.incoming, timestamp: new Date(m.timestamp) }));
-          setConversations(prev => prev.map(c => c.id === id ? { ...c, messages: msgs } : c));
-        }
-      }).catch(() => {});
+    loadMessages(id);
   };
 
   const handleSendMessage = async (text: string) => {
