@@ -152,6 +152,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     description: "Search, Display y Performance Max desde el panel.",
     Icon: GoogleAdsIcon, iconBg: "#ffffff", iconLight: true,
     badges: [{ label: "ADS", color: "#4285F4" }],
+    managePage: "/dashboard/integrations/google-ads",
   },
   {
     provider: "google_analytics",
@@ -159,6 +160,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     description: "Sesiones, conversiones y engagement en tiempo real.",
     Icon: GA4Icon, iconBg: "#ffffff", iconLight: true,
     badges: [{ label: "DATA", color: "var(--amber)" }],
+    managePage: "/dashboard/integrations/google-analytics",
   },
   {
     provider: "google_tag",
@@ -166,6 +168,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     description: "Contenedores, tags y triggers sin tocar el código.",
     Icon: GTMIcon, iconBg: "#ffffff", iconLight: true,
     badges: [{ label: "TAGS", color: "var(--emerald)" }],
+    managePage: "/dashboard/integrations/tag-manager",
   },
   // Mensajería
   { provider: "telegram", name: "Telegram", description: "Bots, canales y mensajería directa con Telegram.", Icon: TelegramIcon, iconBg: "#229ED9", comingSoon: true },
