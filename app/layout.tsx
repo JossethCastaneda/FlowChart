@@ -107,10 +107,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         {/* Aplica el tema guardado antes del primer paint (evita FOUC) */}
         <script
+          id="theme-script"
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem("sodare:theme");if(t==="claro")document.documentElement.classList.add("theme-claro");else if(t==="azul_medianoche")document.documentElement.classList.add("theme-azul-medianoche");}catch(e){}`,
           }}
