@@ -141,7 +141,11 @@ export default function InvitePage() {
     });
     if (result?.error) {
       setRegLoading(false);
-      setRegError("Cuenta creada pero login falló. Intenta login manual.");
+      if (result.error === "RATE_LIMIT_EXCEEDED") {
+        setRegError("Demasiados intentos. Por seguridad, espera 5 minutos.");
+      } else {
+        setRegError("Cuenta creada pero login falló. Intenta login manual.");
+      }
       return;
     }
 

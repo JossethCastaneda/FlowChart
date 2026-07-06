@@ -111,12 +111,12 @@ providers.push(
         (req?.headers?.["x-forwarded-for"] as string | undefined)
           ?.split(",")[0]
           ?.trim() || "unknown";
-      const email = credentials.email.toLowerCase();
+      const email = credentials.email.toLowerCase().trim();
       const perIp = rateLimit(`login:ip:${ip}`, 30, 5 * 60_000);
       const perTarget = rateLimit(`login:${ip}:${email}`, 10, 5 * 60_000);
       if (!perIp.ok || !perTarget.ok) {
         console.warn(`[AUTH] Login rate limit exceeded for ${ip}`);
-        return null;
+        throw new Error("RATE_LIMIT_EXCEEDED");
       }
 
       const { default: prisma } = await import("@/lib/prisma");

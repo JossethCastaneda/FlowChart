@@ -212,7 +212,11 @@ export default function LoginPage() {
     setIsLoading(true); setCredError("");
     const { signIn } = await import("next-auth/react");
     const result = await signIn("credentials", { email, password, redirect: false });
-    if (result?.error) { setIsLoading(false); setCredError("Email o contraseña incorrectos"); return; }
+    if (result?.error) { 
+      setIsLoading(false); 
+      setCredError(result.error === "RATE_LIMIT_EXCEEDED" ? "Demasiados intentos. Por seguridad, espera 5 minutos." : "Email o contraseña incorrectos"); 
+      return; 
+    }
     rememberAndGo();
   }
 
@@ -229,7 +233,16 @@ export default function LoginPage() {
     if (!res.ok) { setIsLoading(false); setCredError(data.error || "Error al registrar"); return; }
     const { signIn } = await import("next-auth/react");
     const result = await signIn("credentials", { email, password, redirect: false });
-    if (result?.error) { setIsLoading(false); setCredError("Cuenta creada. Inicia sesión."); setIsRegister(false); return; }
+    if (result?.error) { 
+      setIsLoading(false); 
+      if (result.error === "RATE_LIMIT_EXCEEDED") {
+        setCredError("Demasiados intentos. Por seguridad, espera 5 minutos.");
+      } else {
+        setCredError("Cuenta creada. Inicia sesión."); 
+        setIsRegister(false); 
+      }
+      return; 
+    }
     rememberAndGo();
   }
 
