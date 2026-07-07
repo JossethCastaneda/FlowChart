@@ -216,6 +216,10 @@ model Project {
   /// tráfico a varias herramientas (ej. botmaker + cari) y el análisis de
   /// resultados se segmenta por cada una de forma independiente.
   crmIntegrationIds String[]        @default([])
+  /// Recursos de Google vinculados a este proyecto (por proyecto, no por workspace).
+  /// Estructura: { adsCustomerId, ga4PropertyId, gtmAccountId, gtmContainerId }
+  /// Permite que cada proyecto del cliente use sus propias cuentas de Google.
+  googleSources      Json?           @default("{}")
   ariaDatasets      AriaDataset[]
   reports           Report[]
 }

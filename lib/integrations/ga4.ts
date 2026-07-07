@@ -101,7 +101,8 @@ export interface ProjectTrafficResult {
 
 /** Resuelve el access token + propiedad GA4 desde la integración "google". */
 async function resolveGa4Property(
-  workspaceId: string
+  workspaceId: string,
+  overridePropertyId?: string
 ): Promise<{ token: string; propertyId: string } | null> {
   const integration = await prisma.integration.findUnique({
     where: { workspaceId_provider_userId: { workspaceId, provider: "google", userId: "workspace" } },
@@ -109,7 +110,8 @@ async function resolveGa4Property(
   if (!integration?.connected) return null;
 
   const creds = integration.credentials as unknown as GoogleCredentials | null;
-  const propertyId: string | undefined = creds?.resources?.page_analytics?.ga4PropertyId;
+  // Use project-level property if available, otherwise fall back to workspace-level
+  const propertyId: string | undefined = overridePropertyId || creds?.resources?.page_analytics?.ga4PropertyId;
   if (!propertyId) return null;
 
   const token = await refreshAccessToken(workspaceId);
@@ -120,14 +122,16 @@ async function resolveGa4Property(
 
 /**
  * Trae el resumen de tráfico del sitio (últimos `days` días) vía GA4 Data API
- * para el workspace. Pensado para la vista de proyecto (Google = web chat +
- * tráfico de landing). Nunca lanza: ante cualquier problema → connected:false.
+ * para el workspace o proyecto. Nunca lanza: ante cualquier problema → connected:false.
+ * @param projectGa4PropertyId - Optional GA4 property ID from the project's googleSources.
+ *   If provided, overrides the workspace-level GA4 property.
  */
 export async function getProjectTrafficSummary(
   workspaceId: string,
-  days = 28
+  days = 28,
+  projectGa4PropertyId?: string
 ): Promise<ProjectTrafficResult> {
-  const resolved = await resolveGa4Property(workspaceId);
+  const resolved = await resolveGa4Property(workspaceId, projectGa4PropertyId);
   if (!resolved) return { connected: false, propertyId: null, metrics: null };
 
   const { token, propertyId } = resolved;

@@ -9,24 +9,26 @@ export const dynamic = "force-dynamic";
 /**
  * GET /api/projects/[id]/traffic?days=28
  *
- * Tráfico de landing (GA4) para la pestaña "Análisis de Tráfico" del proyecto
- * (Plataforma Analítica = Google). Verifica ANTES la propiedad multi-tenant del
- * proyecto. Degrada con gracia: si Google/GA4 no está conectado devuelve
- * `connected:false` y la UI muestra el estado "Conecta GA4".
+ * Tráfico de landing (GA4) para la pestaña "Análisis de Tráfico" del proyecto.
+ * Prioriza el ga4PropertyId vinculado al proyecto (googleSources) sobre el del workspace.
  */
 export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const { id } = await ctx.params;
 
   const project = await prisma.project.findFirst({
     where: { id, workspaceId: ctx.workspaceId },
-    select: { website: true },
+    select: { website: true, googleSources: true },
   });
   if (!project) return apiError("Proyecto no encontrado", "NOT_FOUND", 404);
 
   const daysParam = new URL(req.url).searchParams.get("days");
   const days = daysParam ? parseInt(daysParam, 10) : 28;
 
-  const traffic = await getProjectTrafficSummary(ctx.workspaceId, days);
+  // Use the project-level GA4 property ID if configured, otherwise fall back to workspace
+  const googleSources = (project.googleSources as any) || {};
+  const projectGa4PropertyId: string | undefined = googleSources.ga4PropertyId || undefined;
+
+  const traffic = await getProjectTrafficSummary(ctx.workspaceId, days, projectGa4PropertyId);
 
   return apiSuccess({ ...traffic, website: project.website ?? null });
 });
