@@ -173,7 +173,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
       {showMenu && (
         <div style={{
           position: "absolute", top: "100%", right: 0, marginTop: "6px",
-          background: "rgba(10,18,35,0.97)", backdropFilter: "blur(12px)",
+          background: "var(--surface)", 
           border: "1px solid rgba(59,130,246,0.15)", borderRadius: "8px",
           padding: "4px", zIndex: 100, minWidth: "160px",
           boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7)",

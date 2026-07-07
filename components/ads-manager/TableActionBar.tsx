@@ -92,7 +92,7 @@ export function TableActionBar({
 
   const menuStyle: React.CSSProperties = {
     position: "absolute", top: "100%", left: 0, marginTop: "4px",
-    background: "var(--surface)", backdropFilter: "blur(10px)",
+    background: "var(--surface)", 
     border: "1px solid var(--border-strong)", borderRadius: "6px",
     padding: "6px 0", minWidth: "240px", zIndex: 100,
     boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
@@ -243,7 +243,7 @@ export function TableActionBar({
                 {exportSub && (
                   <div style={{
                     position: "absolute", top: 0, left: "100%", marginLeft: "4px",
-                    background: "var(--surface)", backdropFilter: "blur(10px)",
+                    background: "var(--surface)", 
                     border: "1px solid var(--border-strong)", borderRadius: "6px",
                     padding: "6px 0", minWidth: "180px", zIndex: 101,
                     boxShadow: "0 10px 30px rgba(0,0,0,0.5)",

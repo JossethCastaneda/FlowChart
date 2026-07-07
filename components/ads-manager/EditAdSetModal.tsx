@@ -137,7 +137,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "var(--overlay-dark)", backdropFilter: "blur(4px)",
+        background: "var(--overlay-dark)", 
         display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
       }}
     >
@@ -156,7 +156,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(159,0,251,0.15)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Target className="w-4 h-4" style={{ color: "var(--purple)" }} />
             </div>
             <div>
@@ -292,7 +292,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                 />
               </FormGroup>
 
-              <div style={{ padding: "10px 12px", background: "rgba(224,168,60,0.05)", border: "1px solid rgba(224,168,60,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(224,168,60,0.9)", lineHeight: 1.5 }}>
+              <div style={{ padding: "10px 12px", background: "var(--surface)", border: "1px solid rgba(224,168,60,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(224,168,60,0.9)", lineHeight: 1.5 }}>
                 ?? La segmentación detallada (intereses, comportamientos, audiencias personalizadas) se gestiona a nivel avanzado desde el Administrador de Meta para evitar pérdida de datos.
               </div>
             </>

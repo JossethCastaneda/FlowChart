@@ -107,7 +107,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
         <div style={{
           position: "absolute", top: "calc(100% + 4px)", left: 0,
           minWidth: 280, borderRadius: 10, overflow: "hidden",
-          background: "rgba(15,15,30,0.98)",
+          background: "var(--surface)",
           border: "1px solid var(--hairline)",
           boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
           zIndex: 100,

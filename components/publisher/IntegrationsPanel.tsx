@@ -221,7 +221,7 @@ export function IntegrationsPanel() {
                     {expiring && (
                       <span style={{
                         fontSize: 8, padding: "1px 5px", borderRadius: 2,
-                        background: "rgba(224,168,60,0.1)", color: "var(--amber)",
+                        background: "var(--surface)", color: "var(--amber)",
                         border: "1px solid rgba(224,168,60,0.2)", fontWeight: 700,
                       }}>
                         ⚠ exp. {st?.daysUntilExpiry}d

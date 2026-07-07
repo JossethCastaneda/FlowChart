@@ -96,7 +96,7 @@ export function TrafficAnalytics({ project }: { project: Project }) {
   return (
     <div className="space-y-4">
       {/* Connect GA4 banner */}
-      <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 8, background: "rgba(66,133,244,0.06)", border: "1px solid rgba(66,133,244,0.2)", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(66,133,244,0.2)", flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <Plug style={{ width: 16, height: 16, color: "#4285F4", flexShrink: 0 }} />
           <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>

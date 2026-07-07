@@ -247,7 +247,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
               <div key={i} style={{
                 fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
                 padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                background: "rgba(52,211,153,0.06)", borderLeft: "2px solid rgba(52,211,153,0.3)",
+                background: "var(--surface)", borderLeft: "2px solid rgba(52,211,153,0.3)",
               }}>
                 {o}
               </div>
@@ -263,7 +263,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
               <div key={i} style={{
                 fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
                 padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                background: "rgba(251,191,36,0.06)", borderLeft: "2px solid rgba(251,191,36,0.3)",
+                background: "var(--surface)", borderLeft: "2px solid rgba(251,191,36,0.3)",
               }}>
                 {i + 1}. {a}
               </div>

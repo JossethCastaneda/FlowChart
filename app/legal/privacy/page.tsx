@@ -72,7 +72,7 @@ export default function PrivacyPage() {
       <div style={{ marginBottom: 56 }}>
         <div style={{
           display: "inline-block",
-          background: "rgba(52,183,124,0.08)",
+          background: "var(--surface)",
           border: "1px solid rgba(52,183,124,0.2)",
           borderRadius: 6,
           padding: "4px 14px",
@@ -102,7 +102,7 @@ export default function PrivacyPage() {
         <div style={{
           marginTop: 24,
           padding: "16px 20px",
-          background: "rgba(52,183,124,0.04)",
+          background: "var(--surface)",
           border: "1px solid rgba(52,183,124,0.12)",
           borderRadius: 8,
           fontSize: 13,
@@ -116,7 +116,7 @@ export default function PrivacyPage() {
 
       {/* Summary table */}
       <div style={{
-        background: "rgba(52,183,124,0.03)",
+        background: "var(--surface)",
         border: "1px solid rgba(52,183,124,0.12)",
         borderRadius: 12,
         padding: "20px 24px",
@@ -329,7 +329,7 @@ export default function PrivacyPage() {
           Para cualquier consulta, solicitud o reclamación relacionada con el tratamiento de tus datos personales:
         </P>
         <div style={{
-          background: "rgba(52,183,124,0.04)",
+          background: "var(--surface)",
           border: "1px solid rgba(52,183,124,0.12)",
           borderRadius: 8,
           padding: "16px 20px",

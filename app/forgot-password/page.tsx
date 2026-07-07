@@ -55,7 +55,7 @@ export default function ForgotPasswordPage() {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "var(--surface)", backdropFilter: "blur(12px)",
+    background: "var(--surface)", 
     border: "1px solid rgba(91,155,255, 0.1)",
     borderRadius: "16px",
     padding: "40px",
@@ -66,7 +66,7 @@ export default function ForgotPasswordPage() {
   const inputStyle: React.CSSProperties = {
     width: "100%",
     padding: "12px 16px",
-    background: "var(--surface)", backdropFilter: "blur(12px)",
+    background: "var(--surface)", 
     border: "1px solid var(--border-strong)",
     borderRadius: "8px",
     color: "var(--foreground)",
@@ -106,7 +106,7 @@ export default function ForgotPasswordPage() {
                 Usa el siguiente enlace para restablecer la contraseña:
               </p>
               <div style={{
-                background: "rgba(91,155,255, 0.05)",
+                background: "var(--surface)",
                 border: "1px solid rgba(91,155,255, 0.2)",
                 borderRadius: "8px",
                 padding: "16px",

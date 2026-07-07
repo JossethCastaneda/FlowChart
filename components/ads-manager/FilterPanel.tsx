@@ -126,7 +126,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
           <div
             style={{
               position: "absolute", top: "100%", left: 0, marginTop: "8px",
-              background: "rgba(10,18,35,0.97)", backdropFilter: "blur(12px)",
+              background: "var(--surface)", 
               border: "1px solid rgba(59,130,246,0.15)", borderRadius: "10px",
               padding: "8px", zIndex: 100, minWidth: "260px", maxHeight: "360px",
               overflowY: "auto",
@@ -198,7 +198,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
           key={idx}
           style={{
             display: "flex", alignItems: "center", gap: "6px",
-            padding: "4px 10px", background: "rgba(0,129,251,0.12)",
+            padding: "4px 10px", background: "var(--surface)",
             border: "1px solid rgba(0,129,251,0.25)", borderRadius: "20px",
             color: "var(--foreground)", fontSize: "11px",
           }}

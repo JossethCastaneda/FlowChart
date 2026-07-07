@@ -344,8 +344,8 @@ export default function LoginPage() {
           max-width: 400px;
           /* glass-panel base */
           background: var(--surface);
-          backdrop-filter: blur(24px) saturate(1.4);
-          -webkit-backdrop-filter: blur(24px) saturate(1.4);
+           saturate(1.4);
+          -webkit- saturate(1.4);
           border: 1px solid var(--border);
           border-radius: 16px;
           overflow: hidden;
@@ -616,7 +616,7 @@ export default function LoginPage() {
           background: var(--surface);
           border: 1px solid var(--border);
           border-radius: 100px;
-          backdrop-filter: blur(12px);
+          
         }
         .login-lang-btn {
           padding: 5px 12px;

@@ -28,84 +28,101 @@ export function useInboxData() {
     }));
   }, []);
 
+  // Último dato conocido por fuente: DMs (DB) y comentarios FB/IG (Graph en vivo).
+  // Separados para que la fuente lenta no bloquee a la rápida y un fallo transitorio
+  // de una no borre de la lista lo que la otra ya trajo.
+  const dmCacheRef = useRef<any[]>([]);
+  const commentsCacheRef = useRef<any[]>([]);
+
   const fetchConversations = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true);
-    try {
-      const [convRes, commRes] = await Promise.allSettled([
-        fetch(`/api/inbox/conversations?_t=${Date.now()}`).then(r => r.ok ? r.json() : null),
-        fetch(`/api/inbox/comments?_t=${Date.now()}`).then(r => r.ok ? r.json() : null)
-      ]);
-      
-      const allData = [];
-      if (convRes.status === "fulfilled" && convRes.value?.conversations) {
-        allData.push(...convRes.value.conversations);
-      }
-      if (commRes.status === "fulfilled" && commRes.value?.conversations) {
-        allData.push(...commRes.value.conversations);
-      }
-      
-      if (allData.length > 0) {
-        const mapped = mapConversations(allData);
-        mapped.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
-          
-          setConversations(prev => {
-            const prevMap = new Map(prev.map(c => [c.id, c]));
-            return mapped.map(c => ({ ...c, messages: prevMap.get(c.id)?.messages || [] }));
-          });
-          
-          // Only auto-select if nothing is selected. Prevents jumping!
-          if (!selectedIdRef.current) {
-            setSelectedId(mapped[0]?.id || "");
-          }
-          
-          const prefetchers = mapped.slice(0, 3).map(conv => {
-            const pageId = (conv as any)._pageId;
-            return fetch(`/api/inbox/messages?conversationId=${conv.id}&pageId=${pageId || ""}&_t=${Date.now()}`)
-              .then(r => r.ok ? r.json() : null)
-              .then(d => ({ id: conv.id, messages: d?.messages?.map((m: any) => ({ id: m.id, text: m.text, incoming: m.incoming, timestamp: new Date(m.timestamp) })) || null }))
-              .catch(() => ({ id: conv.id, messages: null }));
-          });
-          Promise.all(prefetchers).then(results => {
-            setConversations(prev => prev.map(c => {
-              const r = results.find(x => x.id === c.id);
-              return r?.messages ? { ...c, messages: r.messages } : c;
-            }));
-          });
 
-          // Fetch missing profiles for Meta conversations (where name is just a numeric ID)
-          const profileFetchers = mapped.filter(c => 
-            (c.platform === "fb_messenger" || c.platform === "instagram_dm" || c.platform === "ig_dm") && 
-            /^\d+$/.test(c.contactName)
-          ).map(conv => {
-            const pageId = (conv as any)._pageId;
-            return fetch(`/api/inbox/profile?userId=${conv.contactId}&pageId=${pageId || ""}`)
-              .then(r => r.ok ? r.json() : null)
-              .then(d => {
-                if (d && d.name) {
-                  return { id: conv.id, name: d.name, picture: d.picture };
-                }
-                return null;
-              }).catch(() => null);
-          });
+    const rebuild = (): Conversation[] => {
+      const all = [...dmCacheRef.current, ...commentsCacheRef.current];
+      if (all.length === 0) return [];
+      const mapped = mapConversations(all);
+      mapped.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
 
-          if (profileFetchers.length > 0) {
-            Promise.all(profileFetchers).then(results => {
-              const validProfiles = results.filter(Boolean);
-              if (validProfiles.length > 0) {
-                setConversations(prev => prev.map(c => {
-                  const p = validProfiles.find((x: any) => x.id === c.id);
-                  if (p) {
-                    return { ...c, contactName: p.name, contactAvatar: p.picture || c.contactAvatar };
-                  }
-                  return c;
-                }));
+      setConversations(prev => {
+        const prevMap = new Map(prev.map(c => [c.id, c]));
+        return mapped.map(c => ({ ...c, messages: prevMap.get(c.id)?.messages || [] }));
+      });
+
+      // Only auto-select if nothing is selected. Prevents jumping!
+      if (!selectedIdRef.current) {
+        setSelectedId(mapped[0]?.id || "");
+      }
+      return mapped;
+    };
+
+    const dmFetch = fetch(`/api/inbox/conversations?_t=${Date.now()}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data?.conversations?.length) return;
+        dmCacheRef.current = data.conversations;
+        const mapped = rebuild();
+
+        const prefetchers = mapped.slice(0, 3).map(conv => {
+          const pageId = (conv as any)._pageId;
+          return fetch(`/api/inbox/messages?conversationId=${conv.id}&pageId=${pageId || ""}&_t=${Date.now()}`)
+            .then(r => r.ok ? r.json() : null)
+            .then(d => ({ id: conv.id, messages: d?.messages?.map((m: any) => ({ id: m.id, text: m.text, incoming: m.incoming, timestamp: new Date(m.timestamp) })) || null }))
+            .catch(() => ({ id: conv.id, messages: null }));
+        });
+        Promise.all(prefetchers).then(results => {
+          setConversations(prev => prev.map(c => {
+            const r = results.find(x => x.id === c.id);
+            return r?.messages ? { ...c, messages: r.messages } : c;
+          }));
+        });
+
+        // Fetch missing profiles for Meta conversations (where name is just a numeric ID)
+        const profileFetchers = mapped.filter(c =>
+          (c.platform === "fb_messenger" || c.platform === "instagram_dm" || c.platform === "ig_dm") &&
+          /^\d+$/.test(c.contactName)
+        ).map(conv => {
+          const pageId = (conv as any)._pageId;
+          return fetch(`/api/inbox/profile?userId=${conv.contactId}&pageId=${pageId || ""}`)
+            .then(r => r.ok ? r.json() : null)
+            .then(d => {
+              if (d && d.name) {
+                return { id: conv.id, name: d.name, picture: d.picture };
               }
-            });
-          }
+              return null;
+            }).catch(() => null);
+        });
+
+        if (profileFetchers.length > 0) {
+          Promise.all(profileFetchers).then(results => {
+            const validProfiles = results.filter(Boolean);
+            if (validProfiles.length > 0) {
+              setConversations(prev => prev.map(c => {
+                const p = validProfiles.find((x: any) => x.id === c.id);
+                if (p) {
+                  return { ...c, contactName: p.name, contactAvatar: p.picture || c.contactAvatar };
+                }
+                return c;
+              }));
+            }
+          });
         }
-    } catch { /* silent */ }
+      })
+      .catch(() => { /* silent */ });
+
+    const commentsFetch = fetch(`/api/inbox/comments?_t=${Date.now()}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data?.conversations) return;
+        commentsCacheRef.current = data.conversations;
+        rebuild();
+      })
+      .catch(() => { /* silent */ });
+
+    // Los DMs marcan el fin del "cargando"; los comentarios se integran al llegar.
+    await dmFetch;
     setInitialFetchDone(true);
     setIsRefreshing(false);
+    await commentsFetch;
   }, [mapConversations]);
 
   useEffect(() => { fetchConversations(); }, [fetchConversations]);

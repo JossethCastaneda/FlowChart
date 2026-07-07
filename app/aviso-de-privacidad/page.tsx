@@ -23,7 +23,7 @@ export default function AvisoDePrivacidad() {
         borderRadius: "16px",
         padding: "40px",
         boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
-        backdropFilter: "blur(12px)",
+        
       }}>
         {/* Header */}
         <div style={{ border: "1px solid var(--border)", paddingBottom: "24px", marginBottom: "32px" }}>

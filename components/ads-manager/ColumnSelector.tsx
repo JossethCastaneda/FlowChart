@@ -91,7 +91,7 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
           <div onClick={() => setIsOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
           <div style={{
             position: "absolute", top: "100%", right: 0, marginTop: "4px",
-            background: "var(--surface)", backdropFilter: "blur(20px)",
+            background: "var(--surface)", 
             border: "1px solid var(--border-strong)", borderRadius: "8px",
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)", zIndex: 50,
             width: "260px",

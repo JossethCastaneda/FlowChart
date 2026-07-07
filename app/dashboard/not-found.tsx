@@ -24,7 +24,7 @@ export default function DashboardNotFound() {
           width: 64,
           height: 64,
           borderRadius: "50%",
-          background: "rgba(226,68,92,0.08)",
+          background: "var(--surface)",
           border: "1px solid rgba(226,68,92,0.2)",
           display: "flex",
           alignItems: "center",

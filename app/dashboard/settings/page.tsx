@@ -415,7 +415,7 @@ export default function SettingsPage() {
                       onClick={() => selectSection(it.key)}
                       className={`flex items-center gap-2 lg:gap-3 px-3 py-2 lg:py-2.5 rounded-lg border transition-all text-sm lg:text-[13px] whitespace-nowrap lg:whitespace-normal
                         ${active 
-                          ? "bg-[rgba(59,130,246,0.08)] border-[rgba(59,130,246,0.18)] text-[var(--text-secondary)] font-semibold" 
+                          ? "bg-[var(--surface)] border-[rgba(59,130,246,0.18)] text-[var(--text-secondary)] font-semibold" 
                           : "bg-transparent border-transparent text-[var(--text-secondary)] hover:bg-[var(--surface-hover)] hover:text-[var(--text-secondary)]"}`}
                       style={{ textAlign: "left" }}
                     >
@@ -450,7 +450,7 @@ export default function SettingsPage() {
                   {session?.user?.image ? (
                     <img src={session.user.image} alt="" className="w-14 h-14 rounded-full border border-[rgba(59,130,246,0.2)]" />
                   ) : (
-                    <div className="w-14 h-14 rounded-full bg-[rgba(59,130,246,0.1)] flex items-center justify-center font-display text-lg text-[var(--cyan)]">
+                    <div className="w-14 h-14 rounded-full bg-[var(--surface)] flex items-center justify-center font-display text-lg text-[var(--cyan)]">
                       {(session?.user?.name || "U")[0].toUpperCase()}
                     </div>
                   )}
@@ -783,7 +783,7 @@ export default function SettingsPage() {
                             {m.user.image ? (
                               <img src={m.user.image} alt="" className="w-8 h-8 rounded-full border border-[var(--border)]" />
                             ) : (
-                              <div className="w-8 h-8 rounded-full bg-[rgba(59,130,246,0.1)] flex items-center justify-center text-[var(--cyan)] text-xs font-semibold">
+                              <div className="w-8 h-8 rounded-full bg-[var(--surface)] flex items-center justify-center text-[var(--cyan)] text-xs font-semibold">
                                 {(m.user.name || "?")[0].toUpperCase()}
                               </div>
                             )}

@@ -90,7 +90,7 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
           onClick={handleSave}
           disabled={loading}
           style={{
-            background: "rgba(52,183,124,0.15)",
+            background: "var(--surface)",
             border: "1px solid rgba(52,183,124,0.3)",
             borderRadius: "4px",
             color: "var(--emerald)",

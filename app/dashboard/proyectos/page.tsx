@@ -170,7 +170,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input 
               type="text" 
@@ -489,13 +489,13 @@ function ProyectosContent() {
       {fetchError && (
         <div style={{
           padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-          background: "rgba(251,191,36,0.12)", color: "var(--amber)",
+          background: "var(--surface)", color: "var(--amber)",
           border: "1px solid rgba(251,191,36,0.35)",
           display: "flex", alignItems: "center", gap: "10px"
         }}>
           <AlertTriangle className="w-4 h-4" style={{ flexShrink: 0 }} />
           <span style={{ flex: 1 }}>{fetchError}</span>
-          <button onClick={() => { setFetchError(null); loadProjects(); }} style={{ background: "rgba(251,191,36,0.2)", border: "1px solid rgba(251,191,36,0.4)", color: "inherit", cursor: "pointer", padding: "4px 12px", borderRadius: "4px", fontSize: "12px", fontWeight: 600 }}>Reintentar</button>
+          <button onClick={() => { setFetchError(null); loadProjects(); }} style={{ background: "var(--surface)", border: "1px solid rgba(251,191,36,0.4)", color: "inherit", cursor: "pointer", padding: "4px 12px", borderRadius: "4px", fontSize: "12px", fontWeight: 600 }}>Reintentar</button>
           <button onClick={() => setFetchError(null)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.8 }}><X className="w-4 h-4" /></button>
         </div>
       )}
@@ -694,7 +694,7 @@ function ProyectosContent() {
       {menuOpen && createPortal(
         <>
           <div style={{ position: "fixed", inset: 0, zIndex: 9990 }} onClick={() => setMenuOpen(null)} />
-          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "var(--surface)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0", backdropFilter: "blur(12px)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "var(--surface)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0",  boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
             <MenuBtn icon={<Eye className="w-3.5 h-3.5" />} text="Abrir Dashboard" onClick={() => { router.push(`/dashboard/proyectos/${menuOpen}`); setMenuOpen(null); }} />
             <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Editar Proyecto" onClick={() => { setEditingId(menuOpen); setModalMode("edit"); setMenuOpen(null); }} />
             <div style={{ height: "1px", background: "var(--surface-hover)", margin: "4px 0" }} />
@@ -711,7 +711,7 @@ function ProyectosContent() {
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--panel-bg)", backdropFilter: "blur(8px)" }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--panel-bg)",  }}
           onClick={() => setDeleteConfirm(null)}
         >
           <div onClick={e => e.stopPropagation()} style={{ background: "var(--surface)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
@@ -724,7 +724,7 @@ function ProyectosContent() {
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
               <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid var(--border)", color: "var(--text-secondary)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
-              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "var(--red)", background: "rgba(226,68,92,0.08)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
+              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "var(--red)", background: "var(--surface)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
             </div>
           </div>
         </div>,

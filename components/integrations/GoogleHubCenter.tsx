@@ -238,7 +238,7 @@ export function GoogleHubCenter() {
       <div style={{
         display: "flex", alignItems: "center", gap: 12,
         padding: "16px 20px", borderBottom: "1px solid var(--hairline)",
-        background: "rgba(66, 133, 244, 0.05)",
+        background: "var(--surface)",
       }}>
         <div style={{
           width: 36, height: 36, borderRadius: 8, background: "#185ABC",
@@ -374,7 +374,7 @@ export function GoogleHubCenter() {
                     disabled={isConnecting || connectingModule === "disconnecting"}
                     style={{
                       padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                      background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.2)",
+                      background: "var(--surface)", border: "1px solid rgba(56, 189, 248, 0.2)",
                       color: "var(--cyan)", cursor: "pointer", transition: "all 0.15s",
                       display: "flex", alignItems: "center", gap: 6,
                     }}
@@ -528,7 +528,7 @@ export function GoogleHubCenter() {
                           disabled={savingResources}
                           style={{
                             padding: "6px 16px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                            background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "var(--emerald)",
+                            background: "var(--surface)", border: "1px solid rgba(16,185,129,0.3)", color: "var(--emerald)",
                             cursor: "pointer", display: "flex", alignItems: "center", gap: 5
                           }}
                         >

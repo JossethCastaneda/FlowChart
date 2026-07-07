@@ -59,7 +59,7 @@ export function ConfirmDialog({
         onClick={onCancel}
         style={{
           position: "fixed", inset: 0, zIndex: 200,
-          background: "var(--panel-bg)", backdropFilter: "blur(8px)",
+          background: "var(--panel-bg)", 
         }}
       />
       <div
@@ -67,7 +67,7 @@ export function ConfirmDialog({
           position: "fixed", top: "50%", left: "50%",
           transform: "translate(-50%, -50%)", zIndex: 201,
           width: "380px", maxWidth: "90vw",
-          background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
+          background: "var(--surface)", 
           border: `1px solid ${v.border}`, borderRadius: "12px",
           padding: "24px",
           boxShadow: `0 20px 60px -12px rgba(0,0,0,0.7), 0 0 20px ${v.bg}`,

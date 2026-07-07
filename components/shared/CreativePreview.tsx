@@ -48,7 +48,7 @@ const FormatBadge = ({ format }: { format: string }) => {
       position: "absolute", top: 8, right: 8, padding: "2px 8px",
       fontSize: 9, fontWeight: 700, background: c.bg, color: c.text,
       borderRadius: 4, letterSpacing: "0.05em", textTransform: "uppercase",
-      backdropFilter: "blur(4px)", zIndex: 2,
+       zIndex: 2,
     }}>{label}</span>
   );
 };
@@ -112,7 +112,7 @@ const VideoPlayer = ({
         <button
           onClick={() => { setMuted(!muted); if (ref.current) ref.current.muted = !muted; }}
           style={{
-            background: "var(--panel-bg)", backdropFilter: "blur(8px)", border: "none", borderRadius: 4, padding: 4,
+            background: "var(--panel-bg)",  border: "none", borderRadius: 4, padding: 4,
             cursor: "pointer", display: "flex", alignItems: "center",
           }}
         >
@@ -185,7 +185,7 @@ const CarouselViewer = ({
       {!compact && items[idx].title && (
         <div style={{
           position: "absolute", bottom: 28, left: 8, right: 8,
-          background: "var(--panel-bg)", backdropFilter: "blur(8px)", borderRadius: 4, padding: "4px 8px", zIndex: 2,
+          background: "var(--panel-bg)",  borderRadius: 4, padding: "4px 8px", zIndex: 2,
         }}>
           <p style={{ fontSize: 10, color: "var(--foreground)", fontWeight: 600 }}>{items[idx].title}</p>
         </div>
@@ -232,7 +232,7 @@ export const CreativeCard = ({
         {/* Preview hint */}
         <div style={{
           position: "absolute", bottom: 8, left: 8, padding: "3px 8px",
-          background: "var(--panel-bg)", backdropFilter: "blur(8px)", borderRadius: 4, fontSize: 9, color: "var(--text-secondary)",
+          background: "var(--panel-bg)",  borderRadius: 4, fontSize: 9, color: "var(--text-secondary)",
           opacity: 0, transition: "opacity 0.2s", pointerEvents: "none",
         }} className="preview-hint">
           <Eye style={{ width: 10, height: 10, display: "inline", verticalAlign: "middle", marginRight: 4 }} />
@@ -287,7 +287,7 @@ export const CreativeLightbox = ({
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, background: "var(--overlay-dark)",
-        backdropFilter: "blur(8px)", zIndex: 9999,
+         zIndex: 9999,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20, animation: "fadeIn 0.2s ease",
       }}
@@ -380,7 +380,7 @@ export const CreativeLightbox = ({
               {ad.cta && (
                 <span style={{
                   padding: "6px 14px", fontSize: 11, fontWeight: 700,
-                  background: "rgba(0,129,251,0.12)", color: "#0081FB",
+                  background: "var(--surface)", color: "#0081FB",
                   borderRadius: 4, textTransform: "uppercase", whiteSpace: "nowrap", marginLeft: 12,
                 }}>{ad.cta}</span>
               )}

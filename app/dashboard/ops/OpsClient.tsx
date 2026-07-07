@@ -313,7 +313,7 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
   const subtaskPct = subtaskTotal > 0 ? Math.round((subtaskDone / subtaskTotal) * 100) : 0;
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "3vh 16px", background: "var(--panel-bg)", backdropFilter: "blur(8px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "3vh 16px", background: "var(--panel-bg)",  }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 700, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: "1px solid var(--border)" }}>
@@ -552,7 +552,7 @@ function CreateModal({ onClose, onSave, members }: { onClose: () => void; onSave
   const submit = async () => { if (!form.title.trim()) return; setSaving(true); await onSave({ ...form, dueDate: form.dueDate || null }); setSaving(false); };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)", backdropFilter: "blur(8px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)",  }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>NUEVA TAREA</span>
@@ -621,7 +621,7 @@ function RequestModal({ onClose, onSave, areas, members }: { onClose: () => void
   };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)", backdropFilter: "blur(8px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)",  }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: `1px solid ${area ? `${area.color}40` : "var(--border)"}`, borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: 8 }}><Send style={{ width: 14, height: 14, color: area?.color || "var(--cyan)" }} /> NUEVA SOLICITUD</span>
@@ -1176,7 +1176,7 @@ export default function OpsPage() {
                   <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
                       <thead>
-                        <tr style={{ borderBottom: "1px solid var(--border)", background: "rgba(0,0,0,0.02)" }}>
+                        <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
                           <th style={{ ...ch, textAlign: "left", width: "35%" }}>{t.taskTitle}</th>
                           <th style={{ ...ch, textAlign: "left" }}>{t.assignee}</th>
                           <th style={{ ...ch, textAlign: "center" }}>{t.status}</th>

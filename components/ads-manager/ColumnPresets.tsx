@@ -113,7 +113,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
       {showMenu && (
         <div style={{
           position: "absolute", top: "100%", right: 0, marginTop: "6px",
-          background: "rgba(10,18,35,0.97)", backdropFilter: "blur(12px)",
+          background: "var(--surface)", 
           border: "1px solid rgba(59,130,246,0.15)", borderRadius: "10px",
           padding: "6px", zIndex: 100, minWidth: "220px",
           boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7)",
@@ -169,7 +169,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                 <button
                   onClick={savePreset}
                   style={{
-                    background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.25)",
+                    background: "var(--surface)", border: "1px solid rgba(52,211,153,0.25)",
                     borderRadius: "4px", color: "var(--emerald)", cursor: "pointer", padding: "4px 6px",
                   }}
                 >

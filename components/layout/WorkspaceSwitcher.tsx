@@ -132,7 +132,7 @@ export function WorkspaceSwitcher() {
           zIndex: 200,
           background: "var(--panel-bg)",
           border: "1px solid rgba(59,130,246,0.15)",
-          backdropFilter: "blur(20px)",
+          
           marginTop: "4px",
           maxHeight: "300px",
           overflowY: "auto",

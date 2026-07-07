@@ -20,8 +20,8 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       {/* Top nav */}
       <header style={{
         borderBottom: "1px solid rgba(59,130,246,0.12)",
-        background: "rgba(4,9,22,0.95)",
-        backdropFilter: "blur(20px)",
+        background: "var(--surface)",
+        
         position: "sticky",
         top: 0,
         zIndex: 50,

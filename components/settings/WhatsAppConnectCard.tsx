@@ -674,7 +674,7 @@ export function WhatsAppConnectCard() {
                         <button
                           onClick={() => handleRegisterLine(line.id)}
                           style={{
-                            background: "rgba(224,168,60, 0.08)",
+                            background: "var(--surface)",
                             border: "1px solid rgba(224,168,60, 0.2)",
                             borderRadius: "6px",
                             color: "var(--amber)",

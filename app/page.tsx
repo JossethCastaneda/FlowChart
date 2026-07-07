@@ -247,8 +247,8 @@ export default function Home() {
 
         .col-card { 
           background: rgba(15, 15, 15, 0.4);
-          backdrop-filter: blur(12px);
-          -webkit-backdrop-filter: blur(12px);
+          
+          -webkit-
           border: 1px solid rgba(255,255,255,0.06);
           border-radius: 24px; 
           overflow: hidden; 
@@ -308,9 +308,9 @@ export default function Home() {
       <header className="main-nav" style={{
         position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)", zIndex: 100,
         width: "90%", maxWidth: 1000,
-        background: "rgba(10, 10, 10, 0.6)",
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
+        background: "var(--surface)",
+        
+        
         border: "1px solid var(--border)",
         borderRadius: 999,
         transition: "all 0.4s",

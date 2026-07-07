@@ -381,7 +381,7 @@ export function StreamsDashboard() {
                   onClick={(e) => { e.stopPropagation(); deleteBoard(board.id); }}
                   style={{
                     position: "absolute", top: -4, right: -4, width: 16, height: 16,
-                    borderRadius: "50%", background: "rgba(226,68,92,0.15)", border: "1px solid rgba(226,68,92,0.25)",
+                    borderRadius: "50%", background: "var(--surface)", border: "1px solid rgba(226,68,92,0.25)",
                     color: "var(--red)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 10,
                   }}
@@ -918,7 +918,7 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
   };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "var(--panel-bg)", backdropFilter: "blur(4px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "var(--panel-bg)",  }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 500, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--border)" }}>

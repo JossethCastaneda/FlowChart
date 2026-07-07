@@ -66,7 +66,7 @@ export function PageSelector({
         ) : (
           <div style={{
             width: 28, height: 28, borderRadius: "50%",
-            background: "rgba(155,123,232,0.1)",
+            background: "var(--surface)",
             display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0,
           }}>
@@ -97,7 +97,7 @@ export function PageSelector({
       {open && (
         <div style={{
           position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
-          background: "var(--panel-bg)", backdropFilter: "blur(12px)",
+          background: "var(--panel-bg)", 
           border: "1px solid var(--glass-border)", borderRadius: 12,
           boxShadow: "var(--shadow-hard)",
           maxHeight: 360, display: "flex", flexDirection: "column",
@@ -143,7 +143,7 @@ export function PageSelector({
             >
               <div style={{
                 width: 32, height: 32, borderRadius: "50%",
-                background: "rgba(155,123,232,0.1)",
+                background: "var(--surface)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <Globe style={{ width: 15, height: 15, color: "var(--purple)" }} />
@@ -302,7 +302,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           <div style={{
             width: "100%",
             borderBottom: "1px solid var(--hairline)",
-            background: "var(--panel-bg)", backdropFilter: "blur(8px)",
+            background: "var(--panel-bg)", 
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <img
@@ -395,7 +395,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                   ) : (
                     <div style={{
                       width: 32, height: 32, borderRadius: "50%",
-                      background: "rgba(155,123,232,0.1)",
+                      background: "var(--surface)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 11, fontWeight: 700, color: "var(--purple)",
                     }}>
@@ -891,7 +891,7 @@ export function ContactProfile({
               <span key={tag} style={{
                 display: "inline-flex", alignItems: "center", gap: 4,
                 fontSize: 10, color: "var(--cyan)", padding: "3px 8px",
-                background: "rgba(0, 178, 255, 0.08)",
+                background: "var(--surface)",
                 border: "1px solid rgba(0, 178, 255, 0.15)", borderRadius: 12,
               }}>
                 {tag}

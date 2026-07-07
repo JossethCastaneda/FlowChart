@@ -67,7 +67,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
     <div
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "var(--panel-bg)", backdropFilter: "blur(8px)",
+        background: "var(--panel-bg)", 
         display: "flex", alignItems: "center", justifyContent: "center",
       }}
       onClick={onClose}

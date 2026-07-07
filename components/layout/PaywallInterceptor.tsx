@@ -53,13 +53,13 @@ export function PaywallInterceptor() {
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[var(--panel-bg)] backdrop-blur-sm backdrop-blur-sm p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[var(--panel-bg)]   p-4">
       <div className="bg-[var(--surface)] border border-[var(--cyan)]/20 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         
         {/* Header decoration */}
         <div className="h-32 w-full relative bg-gradient-to-br from-indigo-900/40 to-[var(--cyan)]/20 flex items-center justify-center border-b border-[var(--hairline)]">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-          <div className="w-16 h-16 rounded-full bg-[var(--panel-bg)] backdrop-blur-sm border border-[var(--cyan)]/30 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+          <div className="w-16 h-16 rounded-full bg-[var(--panel-bg)]  border border-[var(--cyan)]/30 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)]">
             <Zap className="w-8 h-8 text-[var(--cyan)]" />
           </div>
         </div>
@@ -72,7 +72,7 @@ export function PaywallInterceptor() {
             {message}
           </p>
 
-          <div className="bg-[var(--panel-bg)] backdrop-blur-sm border border-[var(--hairline)] rounded-xl p-4 mb-6">
+          <div className="bg-[var(--panel-bg)]  border border-[var(--hairline)] rounded-xl p-4 mb-6">
             <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2 mb-2">
               <CreditCard className="w-4 h-4 text-emerald-400" />
               Sube de nivel tu Agencia

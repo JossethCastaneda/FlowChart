@@ -80,7 +80,7 @@ export function BreakdownSelector({ selectedBreakdown, onChange }: BreakdownSele
               right: 0,
               marginTop: "4px",
               background: "var(--surface)",
-              backdropFilter: "blur(20px)",
+              
               border: "1px solid var(--border-strong)",
               borderRadius: "8px",
               boxShadow: "0 10px 30px rgba(0,0,0,0.5)",

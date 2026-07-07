@@ -157,7 +157,7 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--panel-bg)] backdrop-blur-sm backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--panel-bg)]  ">
       <div className="bg-[var(--surface)] rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
         
         {/* Header */}

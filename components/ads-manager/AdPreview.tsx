@@ -339,7 +339,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
       {/* Top bar */}
       <div style={{ position: "relative", zIndex: 2, padding: "14px 12px 0" }}>
         {/* Progress bar */}
-        <div style={{ height: 2, background: "rgba(255,255,255,0.4)", borderRadius: 2, marginBottom: 10 }}>
+        <div style={{ height: 2, background: "var(--surface)", borderRadius: 2, marginBottom: 10 }}>
           <div style={{ width: "40%", height: "100%", background: "var(--surface)", borderRadius: 2 }} />
         </div>
         {/* Profile */}
@@ -384,7 +384,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
           style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
             width: "100%", padding: "10px 16px",
-            background: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)",
+            background: "var(--surface)", 
             border: "none", borderRadius: 24,
             fontSize: 13, fontWeight: 700, color: "var(--background)",
             cursor: "pointer",

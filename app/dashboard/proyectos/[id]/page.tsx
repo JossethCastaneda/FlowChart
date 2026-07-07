@@ -163,7 +163,7 @@ function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
 }
 
 function LoadingOverlay() {
-  return <div style={{ position: "absolute", inset: 0, background: "var(--surface)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid var(--border-strong)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
+  return <div style={{ position: "absolute", inset: 0, background: "var(--surface)",  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid var(--border-strong)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
 }
 
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
@@ -971,7 +971,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             {/* Presupuesto Diario */}
             <div style={panelStyle}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <div className="icon-container icon-container-sm" style={{ background: "rgba(224,168,60,0.1)", borderColor: "rgba(224,168,60,0.2)", color: "var(--amber)" }}>
+                <div className="icon-container icon-container-sm" style={{ background: "var(--surface)", borderColor: "rgba(224,168,60,0.2)", color: "var(--amber)" }}>
                   <DollarSign style={{ width: 14, height: 14, color: "var(--amber)" }} />
                 </div>
                 <div>
@@ -1307,7 +1307,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             {/* Presupuesto mensual */}
             <div style={{ ...panelStyle, borderTop: "2px solid rgba(251,191,36,0.5)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(251,191,36,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <DollarSign style={{ width: 12, height: 12, color: "var(--amber)" }} />
                 </div>
                 <p style={labelStyle}>Presupuesto {bk.label}</p>
@@ -1346,7 +1346,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             {/* Restante */}
             <div style={{ ...panelStyle, borderTop: "2px solid rgba(139,141,242,0.5)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(139,141,242,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <TrendingDown style={{ width: 12, height: 12, color: "var(--purple)" }} />
                 </div>
                 <p style={labelStyle}>Restante</p>
@@ -1389,7 +1389,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
                 const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "var(--foreground)", border: "1px solid var(--hairline)", whiteSpace: "nowrap" };
                 const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "var(--foreground)", fontWeight: 700, fontSize: 10, background: "var(--cyan)", borderBottom: "none" };
-                const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "var(--foreground)", fontWeight: 600, fontSize: 9, background: "rgba(0,120,255,0.5)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
+                const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "var(--foreground)", fontWeight: 600, fontSize: 9, background: "var(--surface)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
                 const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 600, color: "var(--foreground)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "var(--surface)", border: "1px solid var(--border)", zIndex: 2 };
                 const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "var(--surface-hover)", border: "1px solid var(--hairline)", position: "sticky" as const, left: 0, zIndex: 2 };
 
@@ -1875,8 +1875,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
                                   ? <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                   : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "var(--text-secondary)" }} /></div>
                                 }
-                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(162,93,220,0.8)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
-                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(253,171,61,0.8)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>⟡</span>}
+                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
+                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>⟡</span>}
                               </div>
                               <span style={{ color: "var(--foreground)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
                             </div>
@@ -2082,7 +2082,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             borderTop: "2px solid rgba(253,171,61,0.3)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(253,171,61,0.15)", border: "1px solid rgba(253,171,61,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(253,171,61,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
               </div>
               <div>
@@ -2099,20 +2099,20 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     border: "1px solid rgba(253,171,61,0.2)", borderRadius: 12, padding: 18,
                     position: "relative", overflow: "hidden",
                   }}>
-                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(253,171,61,0.08)" }} />
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(253,171,61,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🏆</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🏆</div>
                       <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "rgba(253,171,61,0.1)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
@@ -2127,20 +2127,20 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     border: "1px solid rgba(139,141,242,0.2)", borderRadius: 12, padding: 18,
                     position: "relative", overflow: "hidden",
                   }}>
-                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(139,141,242,0.08)" }} />
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🥇</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🥇</div>
                       <p style={{ fontSize: 9, color: "var(--purple)", fontWeight: 800, letterSpacing: "0.12em" }}>ADSET GANADOR</p>
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "rgba(139,141,242,0.1)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
@@ -2440,7 +2440,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
           {/* ── Google Sources Panel ── */}
           <div style={{ ...panelStyle, gridColumn: "1 / -1" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(66,133,244,0.1)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg viewBox="0 0 24 24" width={14} height={14} fill="#4285F4"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
               </div>
               <div>
@@ -2470,10 +2470,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 </button>
               ) : (
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "rgba(226,68,92,0.08)", border: "1px solid rgba(226,68,92,0.2)", color: "var(--red)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
+                  <button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "var(--surface)", border: "1px solid rgba(226,68,92,0.2)", color: "var(--red)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
                     <X style={{ width: 12, height: 12 }} /> Cancelar
                   </button>
-                  <button onClick={saveChanges} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 14px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", color: "var(--emerald)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
+                  <button onClick={saveChanges} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 14px", background: "var(--surface)", border: "1px solid rgba(0,200,117,0.2)", color: "var(--emerald)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
                     <Save style={{ width: 12, height: 12 }} /> Guardar
                   </button>
                 </div>

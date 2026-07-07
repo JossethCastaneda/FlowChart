@@ -306,7 +306,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
         </button>
         <button
           onClick={() => downloadJson({ overview, funnel, intelix, ocr, zapier }, "portabilidad.json")}
-          style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 20, color: "var(--cyan)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
+          style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", background: "var(--surface)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 20, color: "var(--cyan)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}
         >
           <Download style={{ width: 12, height: 12 }} />
           Exportar

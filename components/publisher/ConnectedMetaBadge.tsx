@@ -132,7 +132,7 @@ export function ConnectedMetaBadge({
           gap: 6,
           padding: "6px 12px",
           borderRadius: 16,
-          background: "rgba(0,132,255,0.1)",
+          background: "var(--surface)",
           border: "1px solid rgba(0,132,255,0.2)",
           color: "#0084ff",
           fontSize: 12,

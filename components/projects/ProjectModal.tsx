@@ -81,7 +81,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
       </div>
       {open && !ro && !disabled && createPortal(
-        <div id={`portal-${id}`} style={{ position: "absolute", top: coords.top + 4, left: coords.left, width: coords.width, zIndex: 99999, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", boxShadow: "0 8px 30px rgba(0,0,0,0.5)", borderRadius: 8 }}>
+        <div id={`portal-${id}`} style={{ position: "absolute", top: coords.top + 4, left: coords.left, width: coords.width, zIndex: 99999, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", boxShadow: "0 8px 30px rgba(0,0,0,0.5)", borderRadius: 8 }}>
           <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input
               type="text"
@@ -214,7 +214,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input 
               type="text" 
@@ -289,7 +289,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, marginRight: "10px", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); setOpen(!open); }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           {filtered.map((o: any) => (
             <div key={o.value} onClick={() => { onChange(o.value); setSearch(o.value); setOpen(false); }} 
                  style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--foreground)" }} 
@@ -513,7 +513,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
       position: "fixed", inset: 0, zIndex: 9999,
       display: "flex", alignItems: "flex-start", justifyContent: "center",
       overflowY: "auto", padding: "3vh 16px",
-      background: "var(--panel-bg)", backdropFilter: "blur(8px)",
+      background: "var(--panel-bg)", 
     }}>
       <div onClick={e => e.stopPropagation()} className="page-enter" style={{
         width: "640px", maxWidth: "100%",
@@ -924,7 +924,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.12)"; e.currentTarget.style.color = "var(--text-muted)"; }}
               >Cancelar</button>
               <button onClick={handleSubmit} className="btn-primary" style={{
-                padding: "8px 24px", background: "rgba(52,183,124,0.08)",
+                padding: "8px 24px", background: "var(--surface)",
                 borderColor: "rgba(52,183,124,0.35)", color: "var(--emerald)",
               }}>{mode === "create" ? "Crear Proyecto" : "Guardar"}</button>
             </div>

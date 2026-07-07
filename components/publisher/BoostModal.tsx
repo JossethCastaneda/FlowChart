@@ -114,7 +114,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
       onClick={onClose}
       style={{
         position: "fixed", inset: 0, zIndex: 50,
-        background: "var(--overlay-dark)", backdropFilter: "blur(4px)",
+        background: "var(--overlay-dark)", 
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20,
       }}
@@ -133,7 +133,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
         <div style={{
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "14px 20px", borderBottom: "1px solid rgba(224,168,60,0.15)",
-          background: "rgba(224,168,60,0.04)",
+          background: "var(--surface)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
@@ -272,7 +272,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
             <div style={{
               display: "flex", justifyContent: "space-between", alignItems: "center",
               marginTop: 6, padding: "6px 10px", borderRadius: 6,
-              background: "rgba(224,168,60,0.06)",
+              background: "var(--surface)",
               border: "1px solid rgba(224,168,60,0.15)",
             }}>
               <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>Total estimado:</span>
@@ -353,7 +353,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
             <div style={{
               display: "flex", alignItems: "center", gap: 6,
               padding: "8px 12px", borderRadius: 6, fontSize: 12,
-              background: "rgba(226,68,92,0.1)",
+              background: "var(--surface)",
               border: "1px solid rgba(226,68,92,0.25)",
               color: "var(--red)",
             }}>

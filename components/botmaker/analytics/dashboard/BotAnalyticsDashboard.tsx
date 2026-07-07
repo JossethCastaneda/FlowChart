@@ -174,7 +174,7 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--background)", overflow: "hidden" }}>
       {/* ── Toolbar ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", border: "1px solid var(--hairline)", background: "rgba(4,7,18,0.9)", flexShrink: 0, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", border: "1px solid var(--hairline)", background: "var(--surface)", flexShrink: 0, flexWrap: "wrap" }}>
         {!embedded && (
           <>
             <Link href="/dashboard/botmaker" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--text-secondary)", textDecoration: "none" }}>
@@ -190,7 +190,7 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
         <div style={{ flex: 1 }} />
 
         {!embedded && (
-          <Link href="/dashboard/botmaker/analytics/portabilidad" style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 20, color: "var(--cyan)", fontSize: 11, fontWeight: 600, textDecoration: "none" }}>
+          <Link href="/dashboard/botmaker/analytics/portabilidad" style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 12px", background: "var(--surface)", border: "1px solid rgba(6,182,212,0.3)", borderRadius: 20, color: "var(--cyan)", fontSize: 11, fontWeight: 600, textDecoration: "none" }}>
             <Smartphone style={{ width: 12, height: 12 }} /> Análisis de portabilidad
           </Link>
         )}
@@ -247,14 +247,14 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
         </button>
 
         {/* Refresh */}
-        <button onClick={() => fetchData(true)} disabled={loading} style={{ ...pillStyle, background: "rgba(155,123,232,0.1)", borderColor: "rgba(155,123,232,0.3)", color: "var(--purple)", opacity: loading ? 0.6 : 1 }}>
+        <button onClick={() => fetchData(true)} disabled={loading} style={{ ...pillStyle, background: "var(--surface)", borderColor: "rgba(155,123,232,0.3)", color: "var(--purple)", opacity: loading ? 0.6 : 1 }}>
           <RefreshCw style={{ width: 11, height: 11 }} className={loading ? "animate-spin" : ""} /> Actualizar
         </button>
       </div>
 
       {/* ── Edit palette ── */}
       {editing && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 18px", background: "rgba(155,123,232,0.05)", border: "1px solid var(--hairline)", flexShrink: 0, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 18px", background: "var(--surface)", border: "1px solid var(--hairline)", flexShrink: 0, flexWrap: "wrap" }}>
           <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Arrastra por el encabezado · redimensiona desde la esquina.</span>
           {hiddenWidgets.map((w) => (
             <button key={w.id} onClick={() => addWidget(w.id)} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 14, color: "var(--text-secondary)", fontSize: 10.5, fontWeight: 600, cursor: "pointer" }}>
@@ -282,13 +282,13 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
           </div>
         )}
         {embedded && data?.channelScope && !data.channelScope.autoScoped && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", marginBottom: 12, color: "var(--amber)", fontSize: 12, background: "rgba(224,168,60,0.08)", border: "1px solid rgba(224,168,60,0.25)", borderRadius: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", marginBottom: 12, color: "var(--amber)", fontSize: 12, background: "var(--surface)", border: "1px solid rgba(224,168,60,0.25)", borderRadius: 10 }}>
             <AlertCircle style={{ width: 15, height: 15, flexShrink: 0 }} />
             No se detectaron canales de Botmaker para este proyecto; mostrando todo el workspace. Asocia los canales del bot en <b style={{ margin: "0 3px" }}>Configuración</b> para acotar automáticamente.
           </div>
         )}
         {data?.download && !data.download.complete && (
-          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", marginBottom: 12, color: "var(--amber)", fontSize: 12, background: "rgba(224,168,60,0.08)", border: "1px solid rgba(224,168,60,0.25)", borderRadius: 10 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", marginBottom: 12, color: "var(--amber)", fontSize: 12, background: "var(--surface)", border: "1px solid rgba(224,168,60,0.25)", borderRadius: 10 }}>
             <AlertCircle style={{ width: 15, height: 15, flexShrink: 0 }} />
             <span>
               <b>Descarga incompleta</b> — {data.download.failedChunks > 0 && `${data.download.failedChunks} día(s) no se pudieron descargar`}

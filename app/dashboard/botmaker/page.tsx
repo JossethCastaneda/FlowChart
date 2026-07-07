@@ -715,7 +715,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
             {success && (
               <div style={{
                 padding: "10px 14px",
-                background: "rgba(52,183,124,0.08)",
+                background: "var(--surface)",
                 border: "1px solid rgba(52,183,124,0.2)",
                 borderRadius: 8, display: "flex", gap: 8, alignItems: "center",
               }}>
@@ -875,7 +875,7 @@ function EndpointForm({
 
       {endpoint.note && (
         <div style={{
-          padding: "10px 14px", background: "rgba(224,168,60,0.06)",
+          padding: "10px 14px", background: "var(--surface)",
           border: "1px solid rgba(224,168,60,0.18)", borderRadius: 8,
           fontSize: 12, color: "var(--amber)", display: "flex", gap: 8, alignItems: "flex-start",
         }}>
@@ -929,7 +929,7 @@ function EndpointForm({
                     onChange={(e) => setFields(p => ({ ...p, [f.key]: e.target.value }))}
                     style={{
                       width: "100%", padding: "10px 12px",
-                      background: "rgba(8,12,28,0.95)",
+                      background: "var(--surface)",
                       border: "1px solid var(--border)",
                       borderRadius: 8, color: "var(--foreground)", fontSize: 13, outline: "none", boxSizing: "border-box",
                     }}
@@ -1135,7 +1135,7 @@ function ConnectedModule({
       <div style={{
         width: 270, flexShrink: 0, display: "flex", flexDirection: "column",
         border: "1px solid var(--hairline)",
-        background: "rgba(4,7,16,0.9)", overflowY: "auto",
+        background: "var(--surface)", overflowY: "auto",
       }}>
         {/* Connection header */}
         <div style={{ padding: "16px 16px 12px", border: "1px solid var(--hairline)" }}>
@@ -1189,7 +1189,7 @@ function ConnectedModule({
             style={{
               width: "100%", display: "flex", alignItems: "center", gap: 7,
               padding: "8px 10px", marginBottom: 8,
-              background: "rgba(124,107,214,0.1)",
+              background: "var(--surface)",
               border: "1px solid rgba(124,107,214,0.3)", borderRadius: 7,
               color: "rgba(196,181,253,0.95)", fontSize: 11, fontWeight: 600,
               textDecoration: "none", transition: "all 0.15s",

@@ -31,7 +31,7 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
           gap: 8,
           width: "100%",
           padding: "10px 20px",
-          background: "rgba(225,48,108,0.04)",
+          background: "var(--surface)",
           border: "1px solid var(--hairline)",
           borderBottom: expanded ? "1px solid rgba(255,255,255,0.06)" : "none",
           borderLeft: "none",
@@ -74,7 +74,7 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
             style={{
               width: "100%",
               minHeight: 90,
-              background: "rgba(225,48,108,0.04)",
+              background: "var(--surface)",
               border: "1px solid rgba(225,48,108,0.15)",
               borderRadius: 8,
               outline: "none",

@@ -175,7 +175,7 @@ export function MetaConnectionHealthCenter() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              background: "rgba(0,129,251,0.12)",
+              background: "var(--surface)",
               border: "1px solid rgba(0,129,251,0.24)",
               color: "var(--cyan)",
               flexShrink: 0,

@@ -61,7 +61,7 @@ export function CariConnectModal({ onClose, onSuccess }: { onClose: () => void; 
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--panel-bg)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+      style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--panel-bg)",  display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={onClose}
     >
       <div

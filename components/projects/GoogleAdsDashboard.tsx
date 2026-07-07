@@ -106,7 +106,7 @@ export function GoogleAdsDashboard({ project, dateStart, dateEnd, preset }: any)
           
           <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 16 }}>
             {/* Step 1: Ads */}
-            <div style={{ background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
+            <div style={{ background: "var(--surface)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
               <p style={{ ...labelStyle, color: "var(--amber)" }}>Google Ads</p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                 <span style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)" }}>{fmtNum(ads.impressions)}</span>
@@ -128,7 +128,7 @@ export function GoogleAdsDashboard({ project, dateStart, dateEnd, preset }: any)
             <div style={{ width: 2, height: 20, background: "var(--surface-hover)", margin: "0 auto" }} />
             
             {/* Step 3: Landing (GA4) */}
-            <div style={{ background: "rgba(0,200,117,0.05)", border: "1px solid rgba(0,200,117,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
+            <div style={{ background: "var(--surface)", border: "1px solid rgba(0,200,117,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
               <p style={{ ...labelStyle, color: "var(--emerald)" }}>Google Analytics 4</p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                 <span style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)" }}>{fmtNum(ga4.sessions)}</span>
@@ -139,7 +139,7 @@ export function GoogleAdsDashboard({ project, dateStart, dateEnd, preset }: any)
             <div style={{ width: 2, height: 20, background: "var(--surface-hover)", margin: "0 auto" }} />
             
             {/* Step 4: Conversions (GA4) */}
-            <div style={{ background: "rgba(188,95,178,0.05)", border: "1px solid rgba(188,95,178,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
+            <div style={{ background: "var(--surface)", border: "1px solid rgba(188,95,178,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
               <p style={{ ...labelStyle, color: "var(--purple)" }}>Resultados</p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
                 <span style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)" }}>{fmtNum(ga4.conversions)}</span>

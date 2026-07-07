@@ -30,7 +30,7 @@ export default function ProjectError({
             Esto puede deberse a una configuración incompleta o a un fallo temporal de conexión con las APIs.
           </p>
 
-          <div className="w-full p-3 bg-[var(--panel-bg)] backdrop-blur-sm border border-[var(--hairline)] rounded-lg mb-8 overflow-hidden text-left">
+          <div className="w-full p-3 bg-[var(--panel-bg)]  border border-[var(--hairline)] rounded-lg mb-8 overflow-hidden text-left">
             <p className="text-[11px] font-mono text-amber-300/80 break-words line-clamp-3">
               {error.message || "Error desconocido al procesar la información del proyecto."}
             </p>

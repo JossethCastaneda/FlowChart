@@ -487,7 +487,7 @@ export function InboxLayout() {
                 );
               })()}
               {queueMenuOpen && (
-                <div role="listbox" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 195, background: "var(--panel-bg)", backdropFilter: "blur(12px)", border: "1px solid var(--glass-border)", borderRadius: 10, zIndex: 50, overflow: "hidden", boxShadow: "var(--shadow-hard)" }}>
+                <div role="listbox" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 195, background: "var(--panel-bg)",  border: "1px solid var(--glass-border)", borderRadius: 10, zIndex: 50, overflow: "hidden", boxShadow: "var(--shadow-hard)" }}>
                   {QUEUE_TABS.map(tab => {
                     const count = conversations.filter(c => {
                       if (tab.key === "all") return true;

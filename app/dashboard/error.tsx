@@ -24,7 +24,7 @@ export default function DashboardError({
     }}>
       <div style={{
         width: "100%", maxWidth: "440px",
-        background: "var(--surface)", backdropFilter: "blur(20px)",
+        background: "var(--surface)", 
         border: "1px solid rgba(229,72,77,0.25)",
         borderRadius: "20px", padding: "36px 32px",
         position: "relative", overflow: "hidden",
@@ -72,7 +72,7 @@ export default function DashboardError({
 
         <div style={{
           padding: "12px 14px",
-          background: "var(--surface-hover)", backdropFilter: "blur(10px)",
+          background: "var(--surface-hover)", 
           border: "1px solid var(--hairline)",
           borderRadius: "8px", marginBottom: "24px",
           textAlign: "left", overflow: "hidden",

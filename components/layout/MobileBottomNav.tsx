@@ -43,7 +43,7 @@ export function MobileBottomNav({ onOpenMenu }: { onOpenMenu: () => void }) {
   const navItems = MODULES.slice(0, 3);
 
   return (
-    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-2 pb-safe pt-2 bg-[rgba(5,8,18,0.85)] backdrop-blur-xl border-t border-[var(--border)] flex justify-around items-center">
+    <div className="lg:hidden fixed bottom-0 left-0 right-0 z-50 px-2 pb-safe pt-2 bg-[var(--surface)]  border-t border-[var(--border)] flex justify-around items-center">
       {navItems.map((item) => {
         const isActive = pathname === item.route || pathname?.startsWith(item.route + "/");
         const Icon = ICON_MAP[item.icon] || Activity;

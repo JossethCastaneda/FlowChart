@@ -349,7 +349,7 @@ export function ScheduledCalendar() {
             {boostResults[post.id] && (
               <span style={{
                 fontSize: 9, fontWeight: 600, color: "var(--amber)",
-                background: "rgba(224,168,60,0.1)",
+                background: "var(--surface)",
                 border: "1px solid rgba(224,168,60,0.3)",
                 borderRadius: 4, padding: "2px 6px",
                 display: "inline-flex", alignItems: "center", gap: 3,

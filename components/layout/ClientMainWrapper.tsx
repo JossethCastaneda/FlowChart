@@ -439,7 +439,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-[var(--panel-bg)] backdrop-blur-sm backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-[var(--panel-bg)]   lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -579,8 +579,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           style={{
             background: "var(--topbar-bg)",
             borderBottom: "1px solid var(--border)",
-            backdropFilter: "blur(12px)",
-            WebkitBackdropFilter: "blur(12px)",
+            
+            
           }}
         >
           <div className="flex items-center gap-3">
@@ -742,7 +742,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   right: 0,
                   width: 280,
                   background: "var(--panel-bg)",
-                  backdropFilter: "blur(20px)",
+                  
                   border: "1px solid var(--border)",
                   borderRadius: 12,
                   boxShadow: "0 10px 40px var(--overlay-dark)",
@@ -807,7 +807,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                                 cursor: "pointer",
                               }}
                             >
-                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "rgba(0,200,117,0.15)" }}>
+                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--surface)" }}>
                                 <Icon className="w-3.5 h-3.5 text-[var(--emerald)]" />
                               </div>
                               <span style={{ fontSize: 12, color: isSelected ? ("var(--foreground)") : ("var(--text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
@@ -835,7 +835,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                                 cursor: "pointer",
                               }}
                             >
-                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "rgba(253,171,61,0.15)", flexShrink: 0 }}>
+                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--surface)", flexShrink: 0 }}>
                                 <Icon className="w-3.5 h-3.5 text-[var(--amber)]" />
                               </div>
                               <span style={{ fontSize: 12, color: isSelected ? ("var(--foreground)") : ("var(--text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>

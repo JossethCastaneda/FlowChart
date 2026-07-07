@@ -125,7 +125,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
         onClick={onClose}
         style={{
           position: "fixed", inset: 0, zIndex: 80,
-          background: "var(--panel-bg)", backdropFilter: "blur(8px)",
+          background: "var(--panel-bg)", 
         }}
       />
 
@@ -134,7 +134,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
         style={{
           position: "fixed", top: 0, right: 0, bottom: 0,
           width: "440px", maxWidth: "100vw", zIndex: 90,
-          background: "rgba(6,10,22,0.98)", backdropFilter: "blur(16px)",
+          background: "var(--surface)", 
           borderLeft: "1px solid rgba(59,130,246,0.12)",
           display: "flex", flexDirection: "column",
           animation: "slideInRight 0.25s ease-out",
@@ -144,7 +144,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
         {/* -- Header -- */}
         <div style={{
           padding: "20px", borderBottom: "1px solid var(--border)",
-          background: "rgba(4,8,18,0.8)",
+          background: "var(--surface)",
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -171,7 +171,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 {advPlus && (
                   <span style={{
                     fontSize: "8px", fontWeight: 700, padding: "2px 6px", borderRadius: 4,
-                    background: "rgba(155,123,232,0.15)", color: "var(--purple)",
+                    background: "var(--surface)", color: "var(--purple)",
                   }}>
                     ? ADV+
                   </span>
@@ -225,7 +225,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
               style={{
                 display: "flex", alignItems: "center", gap: "4px", padding: "5px 10px",
                 fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
-                background: "rgba(0,129,251,0.1)", border: "1px solid rgba(0,129,251,0.25)",
+                background: "var(--surface)", border: "1px solid rgba(0,129,251,0.25)",
                 color: "var(--cyan)",
               }}
             >
@@ -376,7 +376,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                       />
                       <Tooltip
                         contentStyle={{
-                          background: "rgba(6,10,22,0.95)", border: "1px solid rgba(59,130,246,0.15)",
+                          background: "var(--surface)", border: "1px solid rgba(59,130,246,0.15)",
                           borderRadius: "6px", fontSize: "10px", color: "var(--foreground)",
                         }}
                       />

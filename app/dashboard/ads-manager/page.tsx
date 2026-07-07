@@ -1062,7 +1062,7 @@ function AdsManagerContent() {
         padding: "3px",
         borderRadius: "8px",
         background: "var(--surface)",
-        backdropFilter: "blur(12px)",
+        
         border: "1px solid var(--hairline)",
         gap: 4
       }}>
@@ -1155,7 +1155,7 @@ function AdsManagerContent() {
           <div style={{
             display: "flex", alignItems: "center", gap: "10px",
             padding: "12px 16px",
-            background: "rgba(52,183,124,0.08)",
+            background: "var(--surface)",
             border: "1px solid rgba(52,183,124,0.3)",
             borderRadius: "6px",
           }}>
@@ -1173,7 +1173,7 @@ function AdsManagerContent() {
             border: "1px solid rgba(155,123,232,0.2)",
             borderRadius: "12px",
             overflow: "hidden",
-            backdropFilter: "blur(12px)",
+            
           }}>
             {/* Animated gradient accent line */}
             <div style={{
@@ -1335,7 +1335,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateCampaign(true)}
             title="Crear una campaña nueva (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(0,129,251,0.12)", border: "1px solid rgba(0,129,251,0.35)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--surface)", border: "1px solid rgba(0,129,251,0.35)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear campaña
           </button>
@@ -1346,7 +1346,7 @@ function AdsManagerContent() {
           <button
             onClick={() => setShowCreateAdSet(true)}
             title="Crear un conjunto de anuncios (se crea en pausa)"
-            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "rgba(139,141,242,0.12)", border: "1px solid rgba(139,141,242,0.35)", color: "var(--purple)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
+            style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 12px", borderRadius: 6, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.35)", color: "var(--purple)", fontSize: 12, fontWeight: 600, cursor: "pointer", whiteSpace: "nowrap", fontFamily: "inherit" }}
           >
             <Plus style={{ width: 14, height: 14 }} /> Crear conjunto
           </button>
@@ -1578,8 +1578,8 @@ function AdsManagerContent() {
             style={{
               position: "absolute",
               inset: 0,
-              background: "rgba(3,5,8,0.9)",
-              backdropFilter: "blur(8px)",
+              background: "var(--surface)",
+              
               zIndex: 10,
               display: "flex",
               flexDirection: "column",

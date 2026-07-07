@@ -91,7 +91,7 @@ function ChannelIcons({ channels }: { channels: string[] }) {
         if (ch === "facebook") return (
           <span key="fb" title="Facebook" style={{
             width: 22, height: 22, borderRadius: 2,
-            background: "rgba(0,129,251,0.15)", border: "1px solid rgba(0,129,251,0.3)",
+            background: "var(--surface)", border: "1px solid rgba(0,129,251,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="#0081FB"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
@@ -100,7 +100,7 @@ function ChannelIcons({ channels }: { channels: string[] }) {
         if (ch === "instagram") return (
           <span key="ig" title="Instagram" style={{
             width: 22, height: 22, borderRadius: 2,
-            background: "rgba(228,64,95,0.12)", border: "1px solid rgba(228,64,95,0.3)",
+            background: "var(--surface)", border: "1px solid rgba(228,64,95,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#E4405F" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
@@ -180,13 +180,13 @@ export default function DeploymentHistoryPage() {
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "14px 20px", borderBottom: "1px solid rgba(59,130,246,0.1)",
-        background: "var(--surface)", backdropFilter: "blur(20px)",
+        background: "var(--surface)", 
         gap: 16,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{
             width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(224,168,60,0.1)", border: "1px solid rgba(224,168,60,0.3)",
+            background: "var(--surface)", border: "1px solid rgba(224,168,60,0.3)",
           }}>
             <Activity size={16} color="var(--amber)" />
           </div>
@@ -504,7 +504,7 @@ export default function DeploymentHistoryPage() {
       <div style={{
         display: "flex", alignItems: "center", gap: 20, padding: "10px 20px",
         borderTop: "1px solid rgba(59,130,246,0.08)",
-        background: "var(--surface)", backdropFilter: "blur(10px)",
+        background: "var(--surface)", 
         flexShrink: 0,
       }}>
         {[

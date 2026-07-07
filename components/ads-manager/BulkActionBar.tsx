@@ -27,7 +27,7 @@ export function BulkActionBar({ selectedCount, onClearSelection, onAction }: Bul
         left: "50%",
         transform: "translateX(-50%)",
         background: "var(--surface)",
-        backdropFilter: "blur(20px)",
+        
         border: "1px solid var(--border-strong)",
         borderRadius: "999px",
         boxShadow: "0 10px 40px rgba(0,0,0,0.6), 0 0 15px rgba(59,130,246,0.15)",

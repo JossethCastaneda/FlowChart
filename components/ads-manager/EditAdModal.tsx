@@ -147,7 +147,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "var(--panel-bg)", backdropFilter: "blur(4px)",
+        background: "var(--panel-bg)", 
         display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
       }}
     >
@@ -179,7 +179,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {creativeChanged && activeTab === "creative" && (
-              <div style={{ fontSize: 10, color: "var(--amber)", background: "rgba(224,168,60,0.1)", padding: "3px 8px", borderRadius: 20, border: "1px solid rgba(224,168,60,0.3)" }}>
+              <div style={{ fontSize: 10, color: "var(--amber)", background: "var(--surface)", padding: "3px 8px", borderRadius: 20, border: "1px solid rgba(224,168,60,0.3)" }}>
                 Creativo modificado
               </div>
             )}
@@ -246,7 +246,7 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
           {activeTab === "creative" && (
             <>
               {!existingStorySpec.page_id && (
-                <div style={{ padding: "10px 12px", background: "rgba(224,168,60,0.05)", border: "1px solid rgba(224,168,60,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(224,168,60,0.9)", lineHeight: 1.5, marginBottom: 4 }}>
+                <div style={{ padding: "10px 12px", background: "var(--surface)", border: "1px solid rgba(224,168,60,0.2)", borderRadius: 8, fontSize: 11, color: "rgba(224,168,60,0.9)", lineHeight: 1.5, marginBottom: 4 }}>
                   ?? Los datos del creativo no están disponibles completamente desde la API. Los cambios de creativo pueden no aplicarse correctamente si la información de la página no está disponible.
                 </div>
               )}

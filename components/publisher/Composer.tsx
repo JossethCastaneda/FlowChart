@@ -833,7 +833,7 @@ export function Composer() {
                   <span key={tag} style={{
                     display: "flex", alignItems: "center", gap: 4,
                     padding: "3px 10px", borderRadius: 20,
-                    background: "rgba(139,141,242,0.15)", border: "1px solid rgba(139,141,242,0.3)",
+                    background: "var(--surface)", border: "1px solid rgba(139,141,242,0.3)",
                     color: "var(--purple)", fontSize: 12, fontWeight: 500,
                   }}>
                     #{tag}
@@ -1064,7 +1064,7 @@ export function Composer() {
             <div style={{
               padding: "12px 16px",
               borderBottom: "1px solid rgba(0,200,117,0.15)",
-              background: "rgba(0,200,117,0.04)",
+              background: "var(--surface)",
             }}>
               {/* Facebook connected */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: socialInstagramAccounts.length > 0 ? 6 : 0 }}>
@@ -1119,7 +1119,7 @@ export function Composer() {
             <div style={{
               padding: "12px 16px",
               borderBottom: "1px solid rgba(251,191,36,0.2)",
-              background: "rgba(251,191,36,0.05)",
+              background: "var(--surface)",
               display: "flex", alignItems: "center", gap: 10,
             }}>
               <AlertCircle style={{ width: 16, height: 16, color: "var(--amber)", flexShrink: 0 }} />

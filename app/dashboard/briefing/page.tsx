@@ -216,7 +216,7 @@ export default function BriefingPage() {
         {/* ── Page Header ── */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(139,141,242,0.1)", border: "1px solid rgba(139,141,242,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <BrainCircuit style={{ width: 18, height: 18, color: "var(--purple)" }} />
             </div>
             <div>
@@ -227,7 +227,7 @@ export default function BriefingPage() {
             </div>
           </div>
           {gridData && !isLoading && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "rgba(139,141,242,0.07)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 6 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple)", display: "inline-block", animation: "pulse 2s ease-in-out infinite" }} />
               <span style={{ fontSize: 9, fontWeight: 700, color: "var(--purple)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Brief generado</span>
             </div>
@@ -267,7 +267,7 @@ export default function BriefingPage() {
         {/* ── Empty state ── */}
         {!gridData && !isLoading && !error && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", gap: 14, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(139,141,242,0.08)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <BrainCircuit style={{ width: 24, height: 24, color: "var(--purple)" }} />
             </div>
             <div style={{ textAlign: "center" }}>

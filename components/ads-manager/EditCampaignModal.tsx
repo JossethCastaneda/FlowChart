@@ -80,7 +80,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
       onClick={(e) => { if (e.target === overlayRef.current) onClose(); }}
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "var(--overlay-dark)", backdropFilter: "blur(4px)",
+        background: "var(--overlay-dark)", 
         display: "flex", alignItems: "center", justifyContent: "center", padding: 24,
       }}
     >
@@ -106,7 +106,7 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
             <div
               style={{
                 width: 32, height: 32, borderRadius: 8,
-                background: "rgba(0,129,251,0.15)",
+                background: "var(--surface)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >

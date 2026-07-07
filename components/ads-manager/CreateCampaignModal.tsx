@@ -85,7 +85,7 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
   };
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)", backdropFilter: "blur(6px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)",  }}>
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: "1px solid rgba(0,129,251,0.2)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", border: "1px solid var(--hairline)" }}>
@@ -178,7 +178,7 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
           </div>
 
           {/* Safety note */}
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.18)" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
             <PauseCircle style={{ width: 16, height: 16, color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
             <div style={{ fontSize: 11, color: "var(--amber)" }}>
               La campaña se crea <strong>en pausa</strong> y no gasta nada hasta que le agregues conjuntos de anuncios y anuncios, y la actives en Meta.

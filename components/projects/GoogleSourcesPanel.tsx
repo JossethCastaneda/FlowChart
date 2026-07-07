@@ -172,7 +172,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
     return (
       <div style={{
         padding: "20px 24px", borderRadius: 10,
-        background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.2)",
+        background: "var(--surface)", border: "1px solid rgba(251,191,36,0.2)",
         display: "flex", gap: 14, alignItems: "flex-start",
       }}>
         <AlertCircle size={18} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
@@ -234,7 +234,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
             return (
               <div style={{
                 padding: "16px 18px", borderRadius: 10, marginBottom: 16,
-                background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.25)",
+                background: "var(--surface)", border: "1px solid rgba(251,191,36,0.25)",
                 display: "flex", gap: 14, alignItems: "flex-start",
               }}>
                 <AlertCircle size={16} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
@@ -251,7 +251,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                       display: "inline-flex", alignItems: "center", gap: 6,
                       fontSize: 11, fontWeight: 600, color: "#4285F4",
                       padding: "6px 14px", borderRadius: 6, textDecoration: "none",
-                      background: "rgba(66,133,244,0.08)", border: "1px solid rgba(66,133,244,0.25)",
+                      background: "var(--surface)", border: "1px solid rgba(66,133,244,0.25)",
                     }}
                   >
                     <ExternalLink size={11} /> Reconectar {scopeInfo.label}
@@ -290,7 +290,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                       background: isCurrent ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.02)",
                       border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(255,255,255,0.06)"}`,
                     }}>
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(66,133,244,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4285F4", flexShrink: 0 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4285F4", flexShrink: 0 }}>
                         <Database size={13} />
                       </div>
                       <div style={{ flex: 1 }}>
@@ -332,7 +332,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                       background: isCurrent ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.02)",
                       border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(255,255,255,0.06)"}`,
                     }}>
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(251,191,36,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
                         <BarChart2 size={13} />
                       </div>
                       <div style={{ flex: 1 }}>
@@ -374,7 +374,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                   }}
                     onClick={() => loadGtmContainers(acct.accountId)}
                   >
-                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
                       <Settings size={13} />
                     </div>
                     <div style={{ flex: 1 }}>
@@ -407,7 +407,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                         background: isCurrent ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.02)",
                         border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(255,255,255,0.06)"}`,
                       }}>
-                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
                           <Box size={13} />
                         </div>
                         <div style={{ flex: 1 }}>
@@ -450,7 +450,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }`}</style>
 
       {successMsg && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "rgba(52,183,124,0.08)", border: "1px solid rgba(52,183,124,0.3)", color: "var(--emerald)", fontSize: 12, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(52,183,124,0.3)", color: "var(--emerald)", fontSize: 12, marginBottom: 16 }}>
           <CheckCircle2 size={13} /> {successMsg}
         </div>
       )}

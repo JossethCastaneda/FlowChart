@@ -145,7 +145,7 @@ export default function GoogleAdsPage() {
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "20px 28px 16px",
           borderBottom: "1px solid var(--border)",
-          background: "var(--surface)", backdropFilter: "blur(20px)",
+          background: "var(--surface)", 
           position: "sticky", top: 0, zIndex: 10,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>

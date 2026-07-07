@@ -78,7 +78,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
           background: isOpen ? "rgba(255, 255, 255, 0.05)" : "rgba(10, 15, 30, 0.6)",
           border: isOpen ? "1px solid rgba(59,130,246, 0.5)" : "1px solid rgba(255, 255, 255, 0.1)",
           borderRadius: "10px", color: "var(--foreground)", fontSize: "14px", fontWeight: 600,
-          textAlign: "left", cursor: "pointer", backdropFilter: "blur(12px)",
+          textAlign: "left", cursor: "pointer", 
           boxShadow: isOpen ? "0 0 20px rgba(59,130,246, 0.15)" : "0 4px 12px rgba(0,0,0,0.2)",
           transition: "border 0.2s ease, background 0.2s ease"
         }}
@@ -110,7 +110,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
             transition={{ duration: 0.2, ease: "easeOut" }}
             style={{
               position: "absolute", top: "100%", left: 0, marginTop: "8px",
-              background: "var(--surface)", backdropFilter: "blur(24px)",
+              background: "var(--surface)", 
               border: "1px solid var(--border)", borderRadius: "14px",
               boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset",
               zIndex: 70, width: "750px", display: "flex", flexDirection: "column",
@@ -278,7 +278,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                                   {acc.name.split(" — ")[0]}
                                 </span>
                                 {acc.id === topSpendId && (acc.spend || 0) > 0 && (
-                                  <span style={{ flexShrink: 0, fontSize: "10px", fontWeight: 800, color: "var(--emerald)", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)", borderRadius: "6px", padding: "2px 8px", letterSpacing: "0.05em", boxShadow: "0 0 10px rgba(16,185,129,0.2)" }}>
+                                  <span style={{ flexShrink: 0, fontSize: "10px", fontWeight: 800, color: "var(--emerald)", background: "var(--surface)", border: "1px solid rgba(16,185,129,0.4)", borderRadius: "6px", padding: "2px 8px", letterSpacing: "0.05em", boxShadow: "0 0 10px rgba(16,185,129,0.2)" }}>
                                     TOP GASTO
                                   </span>
                                 )}

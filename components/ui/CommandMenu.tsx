@@ -26,7 +26,7 @@ export function CommandMenu() {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-32 bg-[var(--panel-bg)] backdrop-blur-sm backdrop-blur-sm" onClick={() => setOpen(false)}>
+    <div className="fixed inset-0 z-[100] flex items-start justify-center pt-32 bg-[var(--panel-bg)]  " onClick={() => setOpen(false)}>
       <div 
         className="glass-panel w-full max-w-xl mx-4 overflow-hidden rounded-lg border-2 border-cyan/30 shadow-2xl shadow-cyan/20"
         onClick={(e) => e.stopPropagation()}

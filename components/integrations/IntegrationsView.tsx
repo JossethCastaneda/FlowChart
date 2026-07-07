@@ -69,7 +69,7 @@ function TokenModal({ provider, label, isConnected, onClose, onSuccess, onDiscon
     }
   };
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--overlay-dark)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--overlay-dark)",  display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 400, borderRadius: 14, background: "var(--background)", border: "1px solid var(--hairline)", padding: 24 }}>
         <p style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)", margin: "0 0 6px" }}>Conectar {label}</p>
         <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 16px" }}>Ingresa el token de acceso de tu cuenta</p>
@@ -370,7 +370,7 @@ export function IntegrationsView() {
                   opacity: ch.comingSoon ? 0.55 : 1,
                   position: "relative", overflow: "hidden",
                   boxShadow: connected ? "0 10px 30px rgba(16,185,129,0.1)" : "0 4px 14px rgba(0,0,0,0.06)",
-                  backdropFilter: "blur(12px)",
+                  
                 }}
               >
                 {/* top green accent when connected */}
@@ -380,7 +380,7 @@ export function IntegrationsView() {
 
                 {/* PRONTO badge */}
                 {ch.comingSoon && (
-                  <span style={{ position: "absolute", top: 10, right: 10, fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: "rgba(155,123,232,0.12)", border: "1px solid rgba(155,123,232,0.2)", color: "var(--purple)", letterSpacing: "0.08em" }}>
+                  <span style={{ position: "absolute", top: 10, right: 10, fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: "var(--surface)", border: "1px solid rgba(155,123,232,0.2)", color: "var(--purple)", letterSpacing: "0.08em" }}>
                     {lang === "es" ? "PRONTO" : "SOON"}
                   </span>
                 )}

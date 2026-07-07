@@ -175,7 +175,7 @@ export default function InvitePage() {
     width: "100%", maxWidth: "420px", margin: "0 16px", padding: "40px",
     background: "var(--surface)",
     border: "1px solid rgba(59,130,246,0.15)",
-    backdropFilter: "blur(20px)",
+    
   };
   const orbitron: React.CSSProperties = {
     fontFamily: "var(--font-display)",

@@ -102,9 +102,9 @@ export default function TikTokIntegrationPage() {
       <div style={{
         padding: "28px 32px",
         borderRadius: 18,
-        background: "rgba(10,15,28,0.72)",
+        background: "var(--surface)",
         border: `1px solid ${status?.connected ? "rgba(105,201,208,0.25)" : "rgba(255,255,255,0.08)"}`,
-        backdropFilter: "blur(20px)",
+        
         position: "relative",
         overflow: "hidden",
       }}>

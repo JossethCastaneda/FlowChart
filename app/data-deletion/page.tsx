@@ -28,7 +28,7 @@ function DeletionContent() {
         <div style={{
           width: 56, height: 56, margin: "0 auto 20px",
           borderRadius: "50%",
-          background: "rgba(0,200,117,0.1)",
+          background: "var(--surface)",
           border: "1px solid rgba(0,200,117,0.2)",
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 24,
@@ -51,7 +51,7 @@ function DeletionContent() {
         </p>
         {code && (
           <div style={{
-            background: "rgba(0,0,0,0.3)",
+            background: "var(--surface)",
             border: "1px solid var(--hairline)",
             borderRadius: 8,
             padding: "16px",

@@ -30,7 +30,7 @@ export default function PortabilidadPage() {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--background)", overflow: "hidden" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 20px", border: "1px solid var(--hairline)", background: "rgba(4,7,18,0.9)", flexShrink: 0 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 20px", border: "1px solid var(--hairline)", background: "var(--surface)", flexShrink: 0 }}>
         <Link href="/dashboard/botmaker/analytics" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--text-secondary)", textDecoration: "none" }}>
           <ArrowLeft style={{ width: 12, height: 12 }} /> Bot Analytics
         </Link>

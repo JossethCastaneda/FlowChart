@@ -348,7 +348,7 @@ function TestChatModal({ line, onClose }: { line: WaLine; onClose: () => void })
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--panel-bg)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}
+      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--panel-bg)",  display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}
       onClick={onClose}
     >
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 420, borderRadius: 14, background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 24px 80px rgba(0,0,0,0.6)", overflow: "hidden" }}>
@@ -440,7 +440,7 @@ function EditProfileModal({ line, onClose, onSave }: { line: WaLine; onClose: ()
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--panel-bg)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
+      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--panel-bg)",  display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
       onClick={onClose}
     >
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 500, borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 32px 100px rgba(0,0,0,0.7)", overflow: "hidden", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
@@ -557,7 +557,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--panel-bg)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
+      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--panel-bg)",  display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
       onClick={onClose}
     >
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 420, borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 32px 100px rgba(0,0,0,0.7)", overflow: "hidden" }}>
@@ -578,7 +578,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
           <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", margin: "0 0 12px", letterSpacing: "0.05em" }}>WABA info</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
             <InfoRow
-              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(0,129,251,0.12)", border: "1px solid rgba(0,129,251,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Phone size={14} style={{ color: "var(--cyan)" }} /></div>}
+              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface)", border: "1px solid rgba(0,129,251,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Phone size={14} style={{ color: "var(--cyan)" }} /></div>}
               label="WABA"
               value={wabaId || line.wabaId || "—"}
             />
@@ -608,7 +608,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
 
           {/* Quality reason note */}
           {(line.qualityRating === "YELLOW" || line.qualityRating === "MEDIUM" || line.qualityRating === "RED" || line.qualityRating === "LOW") && (
-            <div style={{ padding: "10px 12px", borderRadius: 8, background: "rgba(224,168,60,0.06)", border: "1px solid rgba(224,168,60,0.15)", display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 16 }}>
+            <div style={{ padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(224,168,60,0.15)", display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 16 }}>
               <Info size={12} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
               <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>
                 Reason: See our guidelines on how best to send messages to your customers.
@@ -912,7 +912,7 @@ export default function WhatsAppIntegrationPage() {
             <div style={{ padding: "24px 32px 28px" }}>
 
               {/* Tip callout */}
-              <div style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(224,168,60,0.05)", border: "1px solid rgba(224,168,60,0.18)", marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 10 }}>
+              <div style={{ padding: "12px 14px", borderRadius: 10, background: "var(--surface)", border: "1px solid rgba(224,168,60,0.18)", marginBottom: 20, display: "flex", alignItems: "flex-start", gap: 10 }}>
                 <AlertCircle size={14} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
                 <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.65 }}>
                   Meta muestra campos como <em>Catálogo, Página, Instagram, Píxel y Cuenta publicitaria</em> pero <strong style={{ color: "var(--foreground)" }}>todos son opcionales</strong>.
@@ -1054,7 +1054,7 @@ export default function WhatsAppIntegrationPage() {
 
                         {/* Type */}
                         <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
-                          <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 5, background: "rgba(96,165,250,0.08)", border: "1px solid rgba(96,165,250,0.15)", color: "var(--cyan)" }}>
+                          <span style={{ fontSize: 10, fontWeight: 600, padding: "3px 8px", borderRadius: 5, background: "var(--surface)", border: "1px solid rgba(96,165,250,0.15)", color: "var(--cyan)" }}>
                             Cloud
                           </span>
                         </td>

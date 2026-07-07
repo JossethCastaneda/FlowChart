@@ -83,7 +83,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
   };
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)", backdropFilter: "blur(6px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)",  }}>
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", border: "1px solid var(--hairline)" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
@@ -106,7 +106,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           </div>
 
           {campaign && !objSupported && (
-            <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.18)" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
               <AlertTriangle style={{ width: 15, height: 15, color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
               <div style={{ fontSize: 11, color: "var(--amber)" }}>Este objetivo (Leads/Ventas/App) necesita píxel, formulario o app. Créalo en Meta, o usa una campaña de <strong>Tráfico, Reconocimiento o Interacción</strong>.</div>
             </div>
@@ -175,7 +175,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
             </label>
           </div>
 
-          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.18)" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
             <PauseCircle style={{ width: 16, height: 16, color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
             <div style={{ fontSize: 11, color: "var(--amber)" }}>
               El conjunto se crea <strong>en pausa</strong>. No entrega ni gasta hasta que le agregues anuncios y lo actives en Meta. Si la campaña usa <strong>CBO</strong>, ajusta el presupuesto allí.
