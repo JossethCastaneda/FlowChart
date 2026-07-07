@@ -9,7 +9,22 @@ import { z } from "zod";
 function cleanEnv(raw: Record<string, string | undefined>): Record<string, string | undefined> {
   const cleaned: Record<string, string | undefined> = {};
   for (const [key, value] of Object.entries(raw)) {
-    cleaned[key] = value === "" ? undefined : value;
+    let cleanVal = value;
+    // Remove literal '""' that Vercel might inject
+    if (cleanVal === '""') cleanVal = "";
+
+    if (cleanVal === "") {
+      cleaned[key] = undefined;
+      // CRITICAL: NextAuth and other libraries read directly from process.env.
+      // If NEXTAUTH_URL is "", next-auth does new URL("") and throws ERR_INVALID_URL.
+      delete process.env[key];
+    } else {
+      cleaned[key] = cleanVal;
+      // Ensure process.env matches the cleaned value (in case we stripped quotes)
+      if (cleanVal !== undefined) {
+        process.env[key] = cleanVal;
+      }
+    }
   }
   return cleaned;
 }

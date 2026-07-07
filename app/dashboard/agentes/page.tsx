@@ -232,11 +232,38 @@ export default function AgentesPage() {
                     </span>
                   </div>
                   {ag.ok && ag.hallazgos ? (
-                    <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
-                      Hallazgos detectados.
+                    <div className="mt-3 flex flex-col gap-3">
+                      <div>
+                        <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Hallazgos</h4>
+                        <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "var(--text-secondary)", listStyleType: "circle" }}>
+                          {ag.hallazgos.hallazgos?.map((h: string, i: number) => (
+                            <li key={i} style={{ marginBottom: 3 }}>{h}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      {ag.hallazgos.recomendaciones?.length > 0 && (
+                        <div>
+                          <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Recomendaciones</h4>
+                          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "var(--text-muted)", listStyleType: "circle" }}>
+                            {ag.hallazgos.recomendaciones.map((r: string, i: number) => (
+                              <li key={i} style={{ marginBottom: 3 }}>{r}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div style={{ marginTop: 2, display: "flex", gap: 6, alignItems: "center" }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase" }}>Prioridad:</span>
+                        <span style={{ 
+                          fontSize: 10, padding: "2px 6px", borderRadius: 4, fontWeight: 700,
+                          background: ag.hallazgos.prioridad === "alta" ? "var(--red-dim)" : ag.hallazgos.prioridad === "media" ? "var(--amber-dim)" : "var(--blue-dim)",
+                          color: ag.hallazgos.prioridad === "alta" ? "var(--red)" : ag.hallazgos.prioridad === "media" ? "var(--amber)" : "var(--blue)"
+                        }}>
+                          {ag.hallazgos.prioridad}
+                        </span>
+                      </div>
                     </div>
                   ) : (
-                    <div style={{ fontSize: 11, color: "var(--red)" }}>Falló el análisis.</div>
+                    <div style={{ fontSize: 11, color: "var(--red)", marginTop: 8 }}>Falló el análisis.</div>
                   )}
                 </div>
               ))}

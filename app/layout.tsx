@@ -5,8 +5,8 @@ import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
 import { AuthProvider } from "@/components/layout/AuthProvider";
 import { QueryProvider } from "@/components/layout/QueryProvider";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
+// import { SpeedInsights } from "@vercel/speed-insights/next";
+// import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { ToastContainer } from "@/components/ui/Toast";
 import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
 import { PermissionsProvider } from "@/components/layout/PermissionsContext";
@@ -35,8 +35,20 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const safeUrl = (url: string | undefined): URL => {
+  if (!url) return new URL("https://sodare.xyz");
+  const cleaned = url.replace(/^"|"$/g, "").trim();
+  if (!cleaned) return new URL("https://sodare.xyz");
+  if (!cleaned.startsWith("http")) return new URL(`http://${cleaned}`);
+  try {
+    return new URL(cleaned);
+  } catch {
+    return new URL("https://sodare.xyz");
+  }
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://sodare.xyz"),
+  metadataBase: safeUrl(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL),
   title: {
     default: "Sodare — Plataforma de Marketing Multicanal para Agencias | LATAM",
     template: "%s | Sodare",
@@ -132,9 +144,9 @@ export default function RootLayout({
             </PermissionsProvider>
           </LanguageProvider>
         </AuthProvider>
-        <SpeedInsights />
+        {/* <SpeedInsights />
         {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
-        {GA4_ID && <GoogleAnalytics gaId={GA4_ID} />}
+        {GA4_ID && <GoogleAnalytics gaId={GA4_ID} />} */}
       </body>
     </html>
   );

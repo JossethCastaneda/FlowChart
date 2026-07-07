@@ -167,11 +167,12 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
 // ═══════════════════════════════════════════════════════════════
 // CONNECTED BANNER & EMPTY CHAT
 // ═══════════════════════════════════════════════════════════════
-function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnect }: {
+function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnect, isConnected }: {
   connectedPages: ConnectedPage[];
   onDisconnect: () => void;
   disconnecting: boolean;
   onConnect: () => void;
+  isConnected: boolean;
 }) {
   const page = connectedPages[0];
   return (
@@ -204,11 +205,13 @@ function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnec
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
             <span style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)" }}>Bandeja de Entrada</span>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>Ninguna cuenta conectada</span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
+              {isConnected ? "Sincronizando cuentas..." : "Ninguna cuenta conectada"}
+            </span>
           </div>
         )}
       </div>
-      {page ? (
+      {isConnected ? (
         <button style={{
           display: "flex", alignItems: "center", gap: 8,
           padding: "8px 16px", borderRadius: 24,
@@ -226,7 +229,7 @@ function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnec
         onClick={onDisconnect}
         disabled={disconnecting}
         >
-          {disconnecting ? "Desconectando..." : "Desconectar"}
+          {disconnecting ? "Cerrando sesión..." : "Cerrar sesión"}
         </button>
       ) : (
         <button style={{
@@ -384,7 +387,13 @@ export function InboxLayout() {
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 200px)" }}>
       {/* CONNECTED BANNER */}
-      <ConnectedBanner connectedPages={connectedPages} onDisconnect={handleDisconnect} disconnecting={disconnecting} onConnect={() => openConnectPopup("community", handleConnectSuccess)} />
+      <ConnectedBanner 
+        connectedPages={connectedPages} 
+        onDisconnect={handleDisconnect} 
+        disconnecting={disconnecting} 
+        onConnect={() => openConnectPopup("community", handleConnectSuccess)} 
+        isConnected={connectionStatus["community"]?.connected || false}
+      />
 
       {/* 3-PANEL LAYOUT — always visible */}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>

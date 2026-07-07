@@ -16,14 +16,14 @@ function loadFbSdk(): Promise<void> {
   return new Promise((resolve) => {
     if (typeof window === "undefined") return;
 
-    // Already initialized
-    if (window.FB) { resolve(); return; }
+    const w = window as any;
+    if (w.FB) { resolve(); return; }
 
     // Script already in DOM but fbAsyncInit not fired yet — queue up
-    const prevInit = window.fbAsyncInit;
-    window.fbAsyncInit = function () {
+    const prevInit = w.fbAsyncInit;
+    w.fbAsyncInit = function () {
       if (prevInit) prevInit();
-      window.FB!.init({
+      w.FB!.init({
         appId: APP_ID,
         autoLogAppEvents: true,
         xfbml: false,
@@ -280,7 +280,8 @@ export function WhatsAppConnectCard() {
 
   // ── Embedded Signup flow ─────────────────────────────────────────────────────
   const handleConnect = useCallback(() => {
-    if (!sdkReady || !window.FB) {
+    const w = window as any;
+    if (!sdkReady || !w.FB) {
       setError("El SDK de Facebook aún se está cargando. Intenta de nuevo en un momento.");
       return;
     }
@@ -360,8 +361,8 @@ export function WhatsAppConnectCard() {
     };
     window.addEventListener("message", onMessage);
 
-    window.FB.login(
-      (response: FbLoginResponse) => {
+    w.FB.login(
+      (response: any) => {
         const code = response?.authResponse?.code;
         if (!code) {
           window.removeEventListener("message", onMessage);

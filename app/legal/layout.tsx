@@ -11,6 +11,8 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
   return (
     <div style={{
       minHeight: "100vh",
+      display: "flex",
+      flexDirection: "column",
       background: "#04070e",
       color: "#dde6f0",
       fontFamily: "'Inter', system-ui, sans-serif",
@@ -60,8 +62,9 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           </nav>
         </div>
       </header>
-
-      {children}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        {children}
+      </div>
 
       {/* Footer */}
       <footer style={{

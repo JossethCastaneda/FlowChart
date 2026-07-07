@@ -266,11 +266,12 @@ function CopyButton({ text }: { text: string }) {
 function loadFbSdk(): Promise<void> {
   return new Promise((resolve) => {
     if (typeof window === "undefined") return;
-    if (window.FB) { resolve(); return; }
-    const prevInit = window.fbAsyncInit;
-    window.fbAsyncInit = function () {
+    const w = window as any;
+    if (w.FB) { resolve(); return; }
+    const prevInit = w.fbAsyncInit;
+    w.fbAsyncInit = function () {
       if (prevInit) prevInit();
-      window.FB!.init({ appId: APP_ID, autoLogAppEvents: true, xfbml: false, version: "v25.0" });
+      w.FB!.init({ appId: APP_ID, autoLogAppEvents: true, xfbml: false, version: "v25.0" });
       resolve();
     };
     if (!document.getElementById("facebook-jssdk")) {
@@ -732,7 +733,8 @@ export default function WhatsAppIntegrationPage() {
 
   // ── Connect via Embedded Signup ─────────────────────────────────────────────
   const handleConnect = useCallback(() => {
-    if (!sdkReady || !window.FB) { setConnectError(t.sdkLoading); return; }
+    const w = window as any;
+    if (!sdkReady || !w.FB) { setConnectError(t.sdkLoading); return; }
     if (!APP_ID || !CONFIG_ID) { setConnectError(t.missingVars); return; }
     setConnectError(null); setConnecting(true);
     const setup: Record<string, unknown> = {};
@@ -761,7 +763,8 @@ export default function WhatsAppIntegrationPage() {
       } catch { /* not JSON */ }
     };
     window.addEventListener("message", onMessage);
-    window.FB.login((response: FbLoginResponse) => {
+    const win = window as any;
+    win.FB.login((response: FbLoginResponse) => {
       const code = response?.authResponse?.code;
       if (!code) {
         window.removeEventListener("message", onMessage); setConnecting(false);

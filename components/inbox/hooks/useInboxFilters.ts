@@ -15,10 +15,10 @@ export function useInboxFilters(
   // Constants for tabs (should match InboxLayout constants or be imported)
   const CHANNEL_TABS = [
     { key: "all",        label: "Todo",              color: "#9b7be8", platforms: [] },
-    { key: "messenger",  label: "Messenger",         color: "#006AFF", platforms: ["fb_messenger"] },
-    { key: "instagram",  label: "Instagram DM",      color: "#d62976", platforms: ["ig_dm", "instagram_dm"] },
-    { key: "fb_comment", label: "FB Comentarios",    color: "#1877F2", platforms: ["fb_comment"] },
-    { key: "ig_comment", label: "IG Comentarios",    color: "#f86f2b", platforms: ["ig_comment", "instagram_comment"] },
+    { key: "messenger",  label: "Messenger",         color: "#006AFF", platforms: ["facebook_messenger"] },
+    { key: "instagram",  label: "Instagram DM",      color: "#d62976", platforms: ["instagram_dm"] },
+    { key: "fb_comment", label: "FB Comentarios",    color: "#1877F2", platforms: ["facebook_comment"] },
+    { key: "ig_comment", label: "IG Comentarios",    color: "#f86f2b", platforms: ["instagram_comment"] },
     { key: "whatsapp",   label: "WhatsApp",          color: "#25D366", platforms: ["whatsapp"] },
   ];
 

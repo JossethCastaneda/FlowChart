@@ -54,6 +54,17 @@ export async function POST(request: NextRequest) {
       await prisma.metaAnalyticsCache.deleteMany({
         where: { workspaceId, endpoint: "connection-status" },
       }).catch(() => {});
+      
+      if (provider === "community") {
+        // Eliminar también las conversaciones y los assets de caché para limpiar la bandeja
+        await prisma.inboxConversation.deleteMany({
+          where: { workspaceId, platform: { in: ["facebook_messenger", "instagram_dm", "facebook_comment", "instagram_comment"] } }
+        }).catch(() => {});
+        await prisma.integrationAssetCache.deleteMany({
+          where: { workspaceId, assetType: { in: ["page", "ig_account"] } }
+        }).catch(() => {});
+      }
+      
       return NextResponse.json({ success: true, scope: provider, removed: result.count });
     }
 
@@ -75,6 +86,14 @@ export async function POST(request: NextRequest) {
     // Invalida el cache de connection-status (F6).
     await prisma.metaAnalyticsCache.deleteMany({
       where: { workspaceId, endpoint: "connection-status" },
+    }).catch(() => {});
+
+    // Limpiar las conversaciones e integraciones cacheadas
+    await prisma.inboxConversation.deleteMany({
+      where: { workspaceId, platform: { in: ["facebook_messenger", "instagram_dm", "facebook_comment", "instagram_comment"] } }
+    }).catch(() => {});
+    await prisma.integrationAssetCache.deleteMany({
+      where: { workspaceId, assetType: { in: ["page", "ig_account"] } }
     }).catch(() => {});
 
     return NextResponse.json({ success: true, scope: "all", removed: result.count });
