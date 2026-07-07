@@ -167,10 +167,11 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
 // ═══════════════════════════════════════════════════════════════
 // CONNECTED BANNER & EMPTY CHAT
 // ═══════════════════════════════════════════════════════════════
-function ConnectedBanner({ connectedPages, onDisconnect, disconnecting }: {
+function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnect }: {
   connectedPages: ConnectedPage[];
   onDisconnect: () => void;
   disconnecting: boolean;
+  onConnect: () => void;
 }) {
   const page = connectedPages[0];
   return (
@@ -220,6 +221,7 @@ function ConnectedBanner({ connectedPages, onDisconnect, disconnecting }: {
       }}
       onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
       onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+      onClick={onConnect}
       >
         <FacebookIcon size={20} />
         Conectar Facebook
@@ -360,7 +362,7 @@ export function InboxLayout() {
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 200px)" }}>
       {/* CONNECTED BANNER */}
-      <ConnectedBanner connectedPages={connectedPages} onDisconnect={handleDisconnect} disconnecting={disconnecting} />
+      <ConnectedBanner connectedPages={connectedPages} onDisconnect={handleDisconnect} disconnecting={disconnecting} onConnect={() => openConnectPopup("community", handleConnectSuccess)} />
 
       {/* 3-PANEL LAYOUT — always visible */}
       <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
