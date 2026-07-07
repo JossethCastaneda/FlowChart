@@ -31,12 +31,22 @@ export function useInboxData() {
   const fetchConversations = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true);
     try {
-      const res = await fetch(`/api/inbox/conversations?_t=${Date.now()}`);
-      if (res.ok) {
-        const data = await res.json();
-        if (data.conversations?.length > 0) {
-          const mapped = mapConversations(data.conversations);
-          mapped.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
+      const [convRes, commRes] = await Promise.allSettled([
+        fetch(`/api/inbox/conversations?_t=${Date.now()}`).then(r => r.ok ? r.json() : null),
+        fetch(`/api/inbox/comments?_t=${Date.now()}`).then(r => r.ok ? r.json() : null)
+      ]);
+      
+      const allData = [];
+      if (convRes.status === "fulfilled" && convRes.value?.conversations) {
+        allData.push(...convRes.value.conversations);
+      }
+      if (commRes.status === "fulfilled" && commRes.value?.conversations) {
+        allData.push(...commRes.value.conversations);
+      }
+      
+      if (allData.length > 0) {
+        const mapped = mapConversations(allData);
+        mapped.sort((a, b) => b.lastMessageTime.getTime() - a.lastMessageTime.getTime());
           
           setConversations(prev => {
             const prevMap = new Map(prev.map(c => [c.id, c]));
@@ -93,7 +103,6 @@ export function useInboxData() {
             });
           }
         }
-      }
     } catch { /* silent */ }
     setInitialFetchDone(true);
     setIsRefreshing(false);
