@@ -13,7 +13,7 @@ interface PageHeaderProps {
 
 export function PageHeader({ title, description, subtitle, icon, action, iconColor }: PageHeaderProps) {
   return (
-    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 page-enter">
+    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-2 page-enter relative z-40">
       <div className="flex items-center gap-4">
         {icon && (
           <div
