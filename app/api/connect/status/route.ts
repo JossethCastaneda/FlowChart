@@ -64,7 +64,8 @@ export async function GET(request: NextRequest) {
     const genericMeta = integrations.find((i) => i.provider === "meta");
     const genericPages = ((genericMeta?.credentials as any)?.pages || []).map(({ accessToken, ...p }: any) => p);
     const genericCreds = genericMeta?.credentials as any;
-    const genericProfile = genericCreds?.profile || null;
+    const metaWithProfile = integrations.find((i) => (i.credentials as any)?.profile);
+    const genericProfile = (metaWithProfile?.credentials as any)?.profile || null;
 
     // Check generic token expiry
     let genericTokenExpiresSoon = false;

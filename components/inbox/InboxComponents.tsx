@@ -2,6 +2,7 @@ import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, Use
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message, PostComment, PostData, Conversation, ConnectedPage, Platform, ChannelFilter, QueueFilter } from "./types";
+import { useHeaderStore } from "@/lib/header-store";
 import { relativeTime, formatTime, formatDate, getPlatformConfig, getInitials } from "./utils";
 import { SAVED_REPLIES } from "./utils";
 import { TEAM_MEMBERS } from "./utils";
@@ -19,6 +20,7 @@ export function PageSelector({
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
     const ref = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -446,6 +448,16 @@ export function ChatView({
           onBack?: () => void;
         }) {
     const [input, setInput] = useState("");
+    const { setBreadcrumbs } = useHeaderStore();
+
+    useEffect(() => {
+      setBreadcrumbs([
+        { label: "Conversaciones", onClick: onBack },
+        { label: "Chats", onClick: onBack },
+        { label: conversation.contactName || conversation.id }
+      ]);
+      return () => setBreadcrumbs([]);
+    }, [conversation.id, conversation.contactName, onBack, setBreadcrumbs]);
     const [showReplies, setShowReplies] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const pc = getPlatformConfig(conversation.platform);
@@ -477,17 +489,23 @@ export function ChatView({
       }}>
         {/* Top Row: Breadcrumbs and Actions */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--text-muted)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--text-muted)" }}>
             {onBack && (
               <button onClick={onBack} className="md:hidden text-slate-400 hover:text-white mr-1" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                 <ChevronLeft style={{ width: 14, height: 14 }} />
               </button>
             )}
-            <span style={{ color: "var(--cyan)", cursor: "pointer" }}>Conversaciones</span>
-            <ChevronRight style={{ width: 10, height: 10 }} />
-            <span style={{ color: "var(--cyan)", cursor: "pointer" }}>Chats</span>
-            <ChevronRight style={{ width: 10, height: 10 }} />
-            <span style={{ color: "var(--foreground)", fontWeight: 500 }}>{conversation.contactName}</span>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              {conversation.contactAvatar ? (
+                <img src={conversation.contactAvatar} alt={conversation.contactName} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} />
+              ) : (
+                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>
+                  {conversation.contactName ? conversation.contactName.charAt(0).toUpperCase() : "U"}
+                </div>
+              )}
+              <span style={{ color: "var(--foreground)", fontWeight: 600, fontSize: 14 }}>{conversation.contactName || "Usuario"}</span>
+            </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>

@@ -30,7 +30,8 @@ export async function GET(request: NextRequest) {
     if (page?.access_token) pageToken = page.access_token;
 
     // Fetch profile
-    const profileUrl = `https://graph.facebook.com/${userId}?fields=name,profile_pic&access_token=${pageToken}`;
+    const cleanUserId = userId.replace("igc_", "").replace("fbc_", "");
+    const profileUrl = `https://graph.facebook.com/${cleanUserId}?fields=name,profile_pic&access_token=${pageToken}`;
     const profileRes = await fetch(profileUrl);
     const profileData = await profileRes.json();
 

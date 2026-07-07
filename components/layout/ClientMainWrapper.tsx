@@ -10,6 +10,7 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { WhatsAppPhonePrompt } from "@/components/ui/WhatsAppPhonePrompt";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useHeaderStore } from "@/lib/header-store";
 import {
   LayoutDashboard,
   Users,
@@ -257,6 +258,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ── Auto show/hide on hover ──
+  const { breadcrumbs } = useHeaderStore();
+
   // Show sidebar when mouse enters the left-edge trigger zone with 150ms debounce
   const handleMouseEnterTrigger = useCallback(() => {
     if (hideTimerRef.current) {
@@ -670,6 +673,21 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               <span style={{ fontWeight: 600, color: currentModule.color, whiteSpace: "nowrap" }}>
                 {currentModule.label === "Inbox" ? "Inbox 2.0" : currentModule.label}
               </span>
+              {breadcrumbs.length > 0 && breadcrumbs.map((crumb, idx) => (
+                <React.Fragment key={idx}>
+                  <ChevronRight style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
+                  <span
+                    onClick={crumb.onClick}
+                    style={{
+                      color: crumb.onClick ? 'var(--cyan)' : 'var(--text-secondary)',
+                      cursor: crumb.onClick ? 'pointer' : 'default',
+                      fontWeight: idx === breadcrumbs.length - 1 ? 500 : 400
+                    }}
+                  >
+                    {crumb.label}
+                  </span>
+                </React.Fragment>
+              ))}
             </div>
           )}
 
