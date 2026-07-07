@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useState, useRef } from "react";
-import { X, Search, ChevronLeft, ChevronRight, CheckCircle2, Circle, Sparkles, Bot, Info } from "lucide-react";
+import React, { useState } from "react";
+import { X, Search, CheckCircle2, Circle, Sparkles, Bot, Info } from "lucide-react";
+import { HScroller } from "@/components/ui/HScroller";
 
 export type GenerativeModelDef = {
   id: string;
@@ -147,8 +148,6 @@ interface GenerativeModelModalProps {
 export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedId = "gpt-4.1-mini" }: GenerativeModelModalProps) {
   const [selectedId, setSelectedId] = useState(initialSelectedId);
   const [searchQuery, setSearchQuery] = useState("");
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
-
   if (!isOpen) return null;
 
   const filteredModels = MODELS.filter(m => 
@@ -156,18 +155,6 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
     m.provider.toLowerCase().includes(searchQuery.toLowerCase()) ||
     m.useCase.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: -300, behavior: "smooth" });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({ left: 300, behavior: "smooth" });
-    }
-  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
@@ -203,23 +190,11 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
                 />
               </div>
               
-              <div className="flex items-center gap-2">
-                <button onClick={scrollLeft} className="w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-50 transition-colors">
-                  <ChevronLeft className="w-4 h-4" />
-                </button>
-                <button onClick={scrollRight} className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white hover:bg-blue-700 transition-colors">
-                  <ChevronRight className="w-4 h-4" />
-                </button>
-              </div>
             </div>
           </div>
 
           {/* Cards container */}
-          <div 
-            ref={scrollContainerRef}
-            className="flex gap-4 overflow-x-auto pb-4 snap-x -mx-2 px-2"
-            style={{ scrollbarWidth: "thin" }}
-          >
+          <HScroller ariaLabel="Modelos generativos" className="-mx-2 px-2">
             {filteredModels.map((model) => {
               const isSelected = selectedId === model.id;
               
@@ -294,8 +269,8 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
                 </div>
               );
             })}
-          </div>
-          
+          </HScroller>
+
           {filteredModels.length === 0 && (
             <div className="py-12 text-center text-gray-500">
               No se encontraron modelos que coincidan con la búsqueda.

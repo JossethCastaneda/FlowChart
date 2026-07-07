@@ -8,6 +8,7 @@ import {
   ExternalLink, Search, Check
 } from "lucide-react";
 import { useLanguage } from "@/components/layout/LanguageContext";
+import { HScroller } from "@/components/ui/HScroller";
 
 /* Column type definitions */
 const STREAM_TYPES = [
@@ -507,10 +508,8 @@ export function StreamsDashboard() {
       )}
 
       {/* Columns grid with horizontal layout */}
-      <div style={{
-        display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16,
-        minHeight: "calc(100vh - 280px)",
-      }}>
+      {/* snap desactivado: las columnas se reordenan con drag & drop y el snap pelea con el gesto */}
+      <HScroller ariaLabel="Columnas del tablero" snap={false} railStyle={{ minHeight: "calc(100vh - 280px)", paddingBottom: 16 }}>
         {activeBoard?.columns?.map((col) => (
           <div
             key={col.id}
@@ -534,7 +533,7 @@ export function StreamsDashboard() {
             />
           </div>
         ))}
-      </div>
+      </HScroller>
 
       {/* Modal Detail View */}
       {selectedPost && (

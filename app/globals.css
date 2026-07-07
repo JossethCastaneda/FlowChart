@@ -637,3 +637,9 @@ input:-webkit-autofill:active {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
 }
+
+/* Oculta la scrollbar nativa en rieles horizontales (HScroller y chips).
+   La affordance de scroll la dan las flechas + el degradado de borde.
+   `scrollbar-hide` es alias legacy (AreasManager la usaba sin definición). */
+.hide-scrollbar, .scrollbar-hide { scrollbar-width: none; -ms-overflow-style: none; }
+.hide-scrollbar::-webkit-scrollbar, .scrollbar-hide::-webkit-scrollbar { display: none; }
