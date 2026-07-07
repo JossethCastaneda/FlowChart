@@ -13,7 +13,7 @@ export function ClipboardModal({ onClose, onPaste }: ClipboardModalProps) {
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "var(--panel-bg)", backdropFilter: "blur(8px)" }} />
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
         width: "420px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
@@ -73,7 +73,7 @@ export function ClipboardModal({ onClose, onPaste }: ClipboardModalProps) {
             disabled={items.length === 0}
             style={{
               display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600,
-              background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.2)", borderRadius: "6px",
+              background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", borderRadius: "6px",
               color: items.length > 0 ? "var(--red)" : "rgba(148,163,184,0.65)", cursor: items.length > 0 ? "pointer" : "not-allowed",
             }}
           >

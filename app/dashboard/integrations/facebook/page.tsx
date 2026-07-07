@@ -148,7 +148,7 @@ function PageAvatar({ name, picture, pageId }: { name: string; picture: string |
       width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
       background: "linear-gradient(135deg, var(--cyan), var(--purple))",
       display: "flex", alignItems: "center", justifyContent: "center",
-      fontSize: 15, fontWeight: 700, color: "white", border: "2px solid var(--border-strong)",
+      fontSize: 15, fontWeight: 700, color: "var(--foreground)", border: "2px solid var(--border-strong)",
     }}>
       {name.charAt(0).toUpperCase()}
     </div>
@@ -273,7 +273,7 @@ export default function FacebookPagesPage() {
               background: "linear-gradient(135deg, var(--cyan), #2563eb)",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 4px 12px rgba(0,100,224,0.3)",
-              color: "white",
+              color: "var(--foreground)",
             }}>
               <MessengerIcon />
             </div>
@@ -410,7 +410,7 @@ export default function FacebookPagesPage() {
                     <p style={{ fontSize: 12, color: "var(--red)", opacity: 0.9, margin: "0 0 10px" }}>{t.missingScopesMsg}</p>
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                       {missingScopes.map(scope => (
-                        <span key={scope} style={{ background: "rgba(229,72,77,0.15)", border: "1px solid rgba(229,72,77,0.3)", padding: "2px 8px", borderRadius: 6, fontSize: 10, fontFamily: "monospace", color: "var(--red)" }}>
+                        <span key={scope} style={{ background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.3)", padding: "2px 8px", borderRadius: 6, fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--red)" }}>
                           {scope}
                         </span>
                       ))}
@@ -441,13 +441,13 @@ export default function FacebookPagesPage() {
                   }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em" }}>{t.profile}</span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "linear-gradient(135deg, var(--cyan), #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "linear-gradient(135deg, var(--cyan), #2563eb)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--foreground)" }}>
                         <MessengerIcon />
                       </div>
                       {t.messenger}
                     </span>
                     <span style={{ fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.06em", display: "flex", alignItems: "center", gap: 5 }}>
-                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", color: "white" }}>
+                      <div style={{ width: 18, height: 18, borderRadius: 5, background: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--foreground)" }}>
                         <MetaIcon />
                       </div>
                       {t.facebookPage}

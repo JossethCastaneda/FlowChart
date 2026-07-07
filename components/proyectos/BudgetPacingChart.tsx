@@ -114,7 +114,7 @@ export function BudgetPacingChart({ dailyData, budget, period = "Mensual" }: Bud
 
   return (
     <div style={{
-      background: "rgba(255,255,255,0.015)",
+      background: "var(--surface-hover)",
       border: "1px solid var(--border)",
       borderRadius: "8px",
       padding: "16px 20px",

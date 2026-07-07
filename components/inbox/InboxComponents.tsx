@@ -97,10 +97,9 @@ export function PageSelector({
       {open && (
         <div style={{
           position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
-          background: "var(--panel-bg)",
-          border: "1px solid var(--hairline)",
-          borderRadius: 10, zIndex: 50,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+          background: "var(--panel-bg)", backdropFilter: "blur(12px)",
+          border: "1px solid var(--glass-border)", borderRadius: 12,
+          boxShadow: "var(--shadow-hard)",
           maxHeight: 360, display: "flex", flexDirection: "column",
           overflow: "hidden",
         }}>
@@ -266,7 +265,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
         display: "flex", alignItems: "center", gap: 10,
       }}>
         {onBack && (
-          <button onClick={onBack} className="md:hidden text-slate-400 hover:text-white mr-2">
+          <button onClick={onBack} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--foreground)] mr-2">
             <ChevronLeft style={{ width: 20, height: 20 }} />
           </button>
         )}
@@ -303,7 +302,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           <div style={{
             width: "100%",
             borderBottom: "1px solid var(--hairline)",
-            background: "rgba(0,0,0,0.4)",
+            background: "var(--panel-bg)", backdropFilter: "blur(8px)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <img
@@ -413,7 +412,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                       {new Date(comment.timestamp).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
-                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
                     {comment.text}
                   </p>
                   {comment.likes > 0 && (
@@ -451,10 +450,14 @@ export function ChatView({
     const { setBreadcrumbs } = useHeaderStore();
 
     useEffect(() => {
+      let displayName = conversation.contactName || conversation.id;
+      if (/^\d+$/.test(displayName)) {
+        displayName = "Usuario Anonimizado";
+      }
       setBreadcrumbs([
         { label: "Conversaciones", onClick: onBack },
         { label: "Chats", onClick: onBack },
-        { label: conversation.contactName || conversation.id }
+        { label: displayName }
       ]);
       return () => setBreadcrumbs([]);
     }, [conversation.id, conversation.contactName, onBack, setBreadcrumbs]);
@@ -482,42 +485,38 @@ export function ChatView({
     <>
       {/* --- Chat Header --- */}
       <div style={{
-        padding: "10px 16px 0",
-        borderBottom: "1px solid var(--hairline)",
+        padding: "16px",
+        borderBottom: "1px solid var(--glass-border)",
         display: "flex", flexDirection: "column", gap: 10,
-        flexShrink: 0, background: "var(--background)",
+        flexShrink: 0, background: "transparent",
       }}>
-        {/* Top Row: Breadcrumbs and Actions */}
+        {/* Top Row: User Info */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--text-muted)" }}>
             {onBack && (
-              <button onClick={onBack} className="md:hidden text-slate-400 hover:text-white mr-1" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                <ChevronLeft style={{ width: 14, height: 14 }} />
+              <button onClick={onBack} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--foreground)] mr-1" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                <ChevronLeft style={{ width: 18, height: 18 }} />
               </button>
             )}
             
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               {conversation.contactAvatar ? (
-                <img src={conversation.contactAvatar} alt={conversation.contactName} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} />
+                <img src={conversation.contactAvatar} alt={conversation.contactName} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
               ) : (
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>
-                  {conversation.contactName ? conversation.contactName.charAt(0).toUpperCase() : "U"}
+                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>
+                  {conversation.contactName && !/^\d+$/.test(conversation.contactName) ? conversation.contactName.charAt(0).toUpperCase() : "U"}
                 </div>
               )}
-              <span style={{ color: "var(--foreground)", fontWeight: 600, fontSize: 14 }}>{conversation.contactName || "Usuario"}</span>
+              <span style={{ color: "var(--foreground)", fontWeight: 600, fontSize: 16 }}>
+                {conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")}
+              </span>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
-              <Globe style={{ width: 14, height: 14 }} />
-            </button>
-            <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
-              <MessageCircle style={{ width: 14, height: 14 }} />
-            </button>
             <button 
               onClick={onClose}
-              style={{ background: "transparent", border: "1px solid var(--hairline)", color: conversation.closed ? "#10b981" : "var(--text-secondary)", cursor: "pointer", padding: "6px 12px", borderRadius: "16px", fontSize: "11px", fontWeight: 600, display: "flex", alignItems: "center", gap: 6, transition: "background 0.2s" }}
+              style={{ background: "transparent", border: "1px solid var(--glass-border)", color: conversation.closed ? "var(--emerald)" : "var(--text-secondary)", cursor: "pointer", padding: "6px 12px", borderRadius: "16px", fontSize: "11px", fontWeight: 600, display: "flex", alignItems: "center", gap: 6, transition: "background 0.2s" }}
               onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
               onMouseLeave={e => e.currentTarget.style.background = "transparent"}
             >
@@ -528,15 +527,8 @@ export function ChatView({
               onClick={onToggleProfile}
               style={{ background: "none", border: "none", color: showProfile ? "var(--cyan)" : "var(--text-secondary)", cursor: "pointer", padding: 4 }}
             >
-              <ChevronRight style={{ width: 14, height: 14, transform: showProfile ? "rotate(180deg)" : "none" }} />
+              <ChevronRight style={{ width: 16, height: 16, transform: showProfile ? "rotate(180deg)" : "none" }} />
             </button>
-          </div>
-        </div>
-
-        {/* Tabs Row */}
-        <div style={{ display: "flex", gap: 16 }}>
-          <div style={{ padding: "8px 0", borderBottom: "2px solid var(--cyan)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-            Chat
           </div>
         </div>
       </div>
@@ -672,7 +664,7 @@ export function ChatView({
                 onClick={() => { setInput(reply); setShowReplies(false); }}
                 style={{
                   padding: "5px 10px", fontSize: 11,
-                  color: "rgba(255,255,255,0.6)",
+                  color: "var(--text-secondary)",
                   background: "var(--surface-hover)",
                   border: "1px solid var(--hairline)",
                   borderRadius: 16, cursor: "pointer",

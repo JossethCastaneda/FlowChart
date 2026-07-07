@@ -8,7 +8,7 @@
 
 @theme {
   --font-sans: var(--font-inter), 'Inter Tight', system-ui, sans-serif;
-  --font-display: var(--font-inter), 'Inter Tight', system-ui, sans-serif;
+  --font-display: var(--font-orbitron), 'Orbitron', system-ui, sans-serif;
   --font-mono: var(--font-jbmono), 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* ── Remap de la paleta Tailwind a la marca (sobria) ──
@@ -68,6 +68,7 @@
 @layer base {
   /* ── Tema por defecto: "Ink" (oscuro, negro/azul/blanco) ── */
   :root {
+    --font-display: var(--font-orbitron), 'Orbitron', system-ui, sans-serif;
     --background:     #0b0d12;
     --bg-raised:      #12151c;
     --surface:        #12151c;
@@ -121,14 +122,18 @@
     --sidebar-shadow:  0 8px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.03);
 
     /* Paneles / overlays (cambian con el tema) */
-    --panel-bg:       rgba(15, 18, 25, 0.97);
+    --panel-bg:       rgba(15, 18, 25, 0.65);
+    --glass-border:   rgba(255, 255, 255, 0.08);
+    --shadow-soft:    0 4px 20px rgba(0, 0, 0, 0.25);
+    --shadow-hard:    0 12px 40px rgba(0, 0, 0, 0.5);
     --overlay-dark:   rgba(0, 0, 0, 0.72);
     --row-hover:      rgba(255, 255, 255, 0.03);
-    --topbar-bg:      #0b0d12;
+    --topbar-bg:      rgba(11, 13, 18, 0.8);
   }
 
   /* ── Tema claro ("blanco") ── */
-  :root.theme-claro {
+  :root.light {
+    --font-display: var(--font-space), 'Space Grotesk', system-ui, sans-serif;
     --background:     #f5f7fa;
     --bg-raised:      #ffffff;
     --surface:        #ffffff;
@@ -153,14 +158,18 @@
     --red-dim:        rgba(206, 59, 63, 0.10);
     --sidebar-border: rgba(17, 25, 39, 0.08);
     --sidebar-shadow: 0 8px 40px rgba(15, 23, 42, 0.10), 0 0 0 1px rgba(15, 23, 42, 0.02);
-    --panel-bg:       rgba(255, 255, 255, 0.98);
+    --panel-bg:       rgba(255, 255, 255, 0.85);
+    --glass-border:   rgba(17, 25, 39, 0.10);
+    --shadow-soft:    0 4px 15px rgba(15, 23, 42, 0.06);
+    --shadow-hard:    0 12px 30px rgba(15, 23, 42, 0.10);
     --overlay-dark:   rgba(15, 23, 42, 0.45);
     --row-hover:      rgba(17, 25, 39, 0.03);
-    --topbar-bg:      #f5f7fa;
+    --topbar-bg:      rgba(245, 247, 250, 0.85);
   }
 
-  /* ── Tema azul medianoche ("azul") ── */
-  :root.theme-azul-medianoche {
+  /* ── Tema "Azul Medianoche" ── */
+  :root.azul {
+    --font-display: var(--font-sora), 'Sora', system-ui, sans-serif;
     --background:     #0c1220;
     --bg-raised:      #111a2e;
     --surface:        #111a2e;
@@ -180,10 +189,13 @@
     --amber-dim:      rgba(224, 168, 60, 0.10);
     --sidebar-border: rgba(148, 163, 184, 0.12);
     --sidebar-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(148, 163, 184, 0.06);
-    --panel-bg:       rgba(12, 18, 32, 0.97);
+    --panel-bg:       rgba(12, 18, 32, 0.70);
+    --glass-border:   rgba(148, 163, 184, 0.12);
+    --shadow-soft:    0 4px 20px rgba(0, 0, 0, 0.35);
+    --shadow-hard:    0 12px 40px rgba(0, 0, 0, 0.65);
     --overlay-dark:   rgba(0, 0, 0, 0.72);
     --row-hover:      rgba(255, 255, 255, 0.025);
-    --topbar-bg:      #0c1220;
+    --topbar-bg:      rgba(10, 17, 40, 0.85);
   }
 
   body {
@@ -191,6 +203,12 @@
     color: var(--foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+
+  /* Transición global para temas en los elementos principales de layout para evitar layout thrashing */
+  .glass-panel, .glass-panel-accent, .sidebar-container, .topbar, button, a {
+    transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease, color 0.3s ease;
   }
 }
 
@@ -240,12 +258,7 @@
 }
 
 .dashboard-grid {
-  position: fixed; inset: 0; z-index: 0; pointer-events: none;
-  background-image:
-    linear-gradient(var(--hairline) 1px, transparent 1px),
-    linear-gradient(90deg, var(--hairline) 1px, transparent 1px);
-  background-size: 80px 80px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, black 30%, transparent 90%);
+  display: none;
 }
 
 .page-content { padding: 14px 18px 14px; }
@@ -271,7 +284,7 @@
 }
 
 /* ═══════════════ SIDEBAR ═══════════════ */
-.sidebar { background: var(--surface); border-right: 1px solid var(--border); box-shadow: 4px 0 30px rgba(0, 0, 0, 0.25); }
+.sidebar { background: var(--panel-bg); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-right: 1px solid var(--glass-border); box-shadow: 4px 0 30px var(--shadow-hard); }
 .sidebar-logo-text { font-family: var(--font-display); font-weight: 700; font-size: 19px; letter-spacing: 0.16em; color: var(--foreground); }
 .sidebar-logo-icon { width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; background: var(--bg-raised); border: 1px solid var(--border-strong); border-radius: 8px; position: relative; }
 
@@ -302,25 +315,25 @@
 /* ═══════════════ TARJETAS Y PANELES ═══════════════ */
 /* Superficies sólidas; el blur se reserva para overlays/modales */
 .glass-panel, .glass-card {
-  background: var(--surface); border: 1px solid var(--border); position: relative; overflow: hidden;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease; border-radius: 16px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+  background: var(--panel-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); position: relative; overflow: hidden;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease, background-color 0.3s ease; border-radius: 16px;
+  box-shadow: var(--shadow-soft);
 }
 .glass-panel::before, .glass-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--border-strong), transparent); pointer-events: none; }
-.glass-panel:hover, .glass-card:hover { border-color: var(--border-strong); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+.glass-panel:hover, .glass-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-hard); }
 
 .glass-panel-v2 {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
-  position: relative; overflow: hidden; transition: border-color 0.25s, box-shadow 0.25s;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.22);
+  background: var(--panel-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 14px;
+  position: relative; overflow: hidden; transition: border-color 0.25s, box-shadow 0.25s, background-color 0.3s ease;
+  box-shadow: var(--shadow-soft);
 }
 .glass-panel-v2::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent 0%, var(--border-strong) 50%, transparent 100%); pointer-events: none; }
-.glass-panel-v2:hover { border-color: var(--border-strong); box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3); }
+.glass-panel-v2:hover { border-color: var(--border-strong); box-shadow: var(--shadow-hard); }
 
 .kpi-card {
-  background: var(--surface); border: 1px solid var(--border); padding: 20px 24px; position: relative; overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease; border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  background: var(--panel-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--glass-border); padding: 20px 24px; position: relative; overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.3s ease; border-radius: 16px;
+  box-shadow: var(--shadow-soft);
 }
 .kpi-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 2px; }
 .kpi-card.cyan::before    { background: linear-gradient(90deg, var(--cyan), transparent); }
@@ -336,9 +349,9 @@
 .kpi-delta.negative { color: var(--red); }
 
 .metric-card {
-  background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 18px;
-  position: relative; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+  background: var(--panel-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--glass-border); border-radius: 14px; padding: 18px;
+  position: relative; overflow: hidden; transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease, background-color 0.3s ease;
+  box-shadow: var(--shadow-soft);
 }
 .metric-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28); border-color: var(--border-strong); }
 .metric-card-value { font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--foreground); line-height: 1; margin-bottom: 4px; }
@@ -585,6 +598,9 @@ input:-webkit-autofill:active {
 /* ═══════════════ MISC ═══════════════ */
 @keyframes float-up { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 .float-animation { animation: float-up 3s ease-in-out infinite; }
+
+svg.lucide { stroke-width: 1.5; transition: transform 0.2s ease, stroke 0.2s ease; }
+svg.lucide:hover { transform: scale(1.05); }
 
 ::-webkit-scrollbar { width: 6px; height: 6px; }
 ::-webkit-scrollbar-track { background: var(--row-hover); border-radius: 3px; }

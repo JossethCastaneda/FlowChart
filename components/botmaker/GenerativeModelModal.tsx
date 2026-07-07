@@ -157,36 +157,36 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--panel-bg)] backdrop-blur-sm backdrop-blur-sm">
+      <div className="bg-[var(--surface)] rounded-2xl w-full max-w-5xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
         
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center bg-white text-blue-600">
+            <div className="w-10 h-10 rounded-full border border-[var(--border)] flex items-center justify-center bg-[var(--surface)] text-blue-600">
               <Bot className="w-5 h-5" />
             </div>
-            <h2 className="text-xl font-semibold text-gray-800">Modelo generativo</h2>
+            <h2 className="text-xl font-semibold text-[var(--foreground)]">Modelo generativo</h2>
           </div>
-          <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors">
+          <button onClick={onClose} className="p-2 text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] rounded-full transition-colors">
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 flex-1 overflow-y-auto bg-white">
+        <div className="p-6 flex-1 overflow-y-auto bg-[var(--surface)]">
           <div className="flex items-center justify-between mb-6">
-            <h3 className="text-gray-700">Selecciona el modelo que deseas utilizar:</h3>
+            <h3 className="text-[var(--text-secondary)]">Selecciona el modelo que deseas utilizar:</h3>
             
             <div className="flex items-center gap-4">
               <div className="relative">
-                <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                <Search className="w-4 h-4 text-[var(--text-secondary)] absolute left-3 top-1/2 -translate-y-1/2" />
                 <input 
                   type="text" 
                   placeholder="Buscar" 
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-4 py-2 border border-gray-300 rounded-md text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black placeholder:text-gray-400"
+                  className="pl-9 pr-4 py-2 border border-[var(--border)] rounded-md text-sm w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-[var(--foreground)] placeholder:text-[var(--text-secondary)]"
                 />
               </div>
               
@@ -205,7 +205,7 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
                   className={`flex-shrink-0 w-80 rounded-xl cursor-pointer transition-all snap-start flex flex-col relative overflow-hidden border ${
                     isSelected 
                       ? 'border-blue-500 shadow-md ring-1 ring-blue-500' 
-                      : 'border-transparent bg-[#f5f6f8] hover:shadow-md'
+                      : 'border-transparent bg-[var(--surface)] hover:shadow-md'
                   }`}
                 >
                   {/* "Recomendado" Badge */}
@@ -216,8 +216,8 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
                   )}
 
                   {/* Card Header */}
-                  <div className={`p-5 flex items-start gap-3 rounded-t-xl ${isSelected ? 'bg-blue-50/30' : 'bg-[#eff0f3]'}`}>
-                    <div className="mt-1 flex-shrink-0 text-gray-700">
+                  <div className={`p-5 flex items-start gap-3 rounded-t-xl ${isSelected ? 'bg-blue-50/30' : 'bg-[var(--surface)]'}`}>
+                    <div className="mt-1 flex-shrink-0 text-[var(--text-secondary)]">
                       {model.provider === "Google" ? (
                         <Sparkles className="w-5 h-5 text-blue-400" fill="currentColor" />
                       ) : (
@@ -227,16 +227,16 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
                       )}
                     </div>
                     <div>
-                      <h4 className="font-semibold text-gray-900 text-lg leading-tight">{model.name}</h4>
-                      <p className="text-xs text-gray-500">by {model.provider}</p>
+                      <h4 className="font-semibold text-[var(--foreground)] text-lg leading-tight">{model.name}</h4>
+                      <p className="text-xs text-[var(--text-muted)]">by {model.provider}</p>
                     </div>
                   </div>
 
                   {/* Card Body */}
-                  <div className={`p-5 flex-1 flex flex-col gap-4 ${isSelected ? 'bg-white' : ''}`}>
+                  <div className={`p-5 flex-1 flex flex-col gap-4 ${isSelected ? 'bg-[var(--surface)]' : ''}`}>
                     <ul className="flex flex-col gap-3">
                       {model.features.map((feature, idx) => (
-                        <li key={idx} className="flex items-start gap-2 text-sm text-gray-700 leading-snug">
+                        <li key={idx} className="flex items-start gap-2 text-sm text-[var(--text-secondary)] leading-snug">
                           {isSelected ? (
                             <CheckCircle2 className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                           ) : (
@@ -255,13 +255,13 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
                   </div>
 
                   {/* Card Footer */}
-                  <div className={`p-5 border-t border-gray-100 flex items-center justify-between ${isSelected ? 'bg-white' : ''}`}>
-                    <span className="text-gray-600 font-medium text-sm">Costo</span>
+                  <div className={`p-5 border-t border-gray-100 flex items-center justify-between ${isSelected ? 'bg-[var(--surface)]' : ''}`}>
+                    <span className="text-[var(--text-secondary)] font-medium text-sm">Costo</span>
                     <div className="text-right">
                       <div className="text-blue-600 font-bold text-lg">
                         US$ {model.cost.toFixed(2).replace('.', ',')}
                       </div>
-                      <div className="text-[10px] text-gray-500 uppercase tracking-wider font-medium">
+                      <div className="text-[10px] text-[var(--text-muted)] uppercase tracking-wider font-medium">
                         por 1 millón de tokens
                       </div>
                     </div>
@@ -272,7 +272,7 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
           </HScroller>
 
           {filteredModels.length === 0 && (
-            <div className="py-12 text-center text-gray-500">
+            <div className="py-12 text-center text-[var(--text-muted)]">
               No se encontraron modelos que coincidan con la búsqueda.
             </div>
           )}
@@ -280,14 +280,14 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
           {/* Info Banner */}
           <div className="mt-6 bg-[#eef2ff] rounded-xl p-4 flex items-start gap-3">
             <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-gray-700 leading-relaxed">
+            <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
               Botmaker utiliza un motor de IA propietario con soluciones como agentes de IA, bases de datos vectoriales y búsquedas de texto indexado. El modelo generativo (LLM) que configuras aquí impacta en el desempeño de estas funcionalidades. Puedes ver tu consumo detallado haciendo click <a href="#" className="text-blue-600 font-medium underline">aquí</a>.
             </p>
           </div>
         </div>
 
         {/* Footer actions */}
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 bg-white">
+        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-end gap-3 bg-[var(--surface)]">
           <button 
             onClick={onClose}
             className="px-6 py-2 border border-blue-200 text-blue-600 hover:bg-blue-50 rounded-full text-sm font-medium transition-colors"
@@ -296,7 +296,7 @@ export function GenerativeModelModal({ isOpen, onClose, onSave, initialSelectedI
           </button>
           <button 
             onClick={() => onSave(selectedId)}
-            className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-full text-sm font-medium transition-colors shadow-sm"
+            className="px-6 py-2 bg-blue-600 text-[var(--foreground)] hover:bg-blue-700 rounded-full text-sm font-medium transition-colors shadow-sm"
           >
             Guardar
           </button>

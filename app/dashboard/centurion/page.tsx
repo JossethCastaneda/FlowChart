@@ -154,10 +154,10 @@ function TabResumen({ model, channels, rows }: { model: MmmModel | null; channel
             {/* Stacked bar */}
             <div style={{ height: 28, borderRadius: 8, overflow: "hidden", display: "flex", marginBottom: 12 }}>
               <div style={{ width: `${(1 - model.incrementalShare) * 100}%`, background: "#64748b", transition: "width 0.5s", display: "flex", alignItems: "center", paddingLeft: 8 }}>
-                <span style={{ fontSize: 10, color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>Base {fmtPct(1 - model.incrementalShare)}</span>
+                <span style={{ fontSize: 10, color: "var(--foreground)", fontWeight: 700, whiteSpace: "nowrap" }}>Base {fmtPct(1 - model.incrementalShare)}</span>
               </div>
               <div style={{ flex: 1, background: VIOLET, transition: "width 0.5s", display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: 8 }}>
-                <span style={{ fontSize: 10, color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>Publicidad {fmtPct(model.incrementalShare)}</span>
+                <span style={{ fontSize: 10, color: "var(--foreground)", fontWeight: 700, whiteSpace: "nowrap" }}>Publicidad {fmtPct(model.incrementalShare)}</span>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>

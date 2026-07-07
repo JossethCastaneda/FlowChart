@@ -62,7 +62,7 @@ export default function DashboardNotFound() {
           borderRadius: 8,
           background: "linear-gradient(135deg, var(--cyan), #2563eb)",
           border: "none",
-          color: "#fff",
+          color: "var(--foreground)",
           fontSize: 13,
           fontWeight: 600,
           cursor: "pointer",

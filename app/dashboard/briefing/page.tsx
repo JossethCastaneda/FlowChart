@@ -373,7 +373,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                   onMouseLeave={e => e.currentTarget.style.background = ""}
                 >
                   {/* Día */}
-                  <td style={{ ...tdS, fontWeight: 700, color: "var(--cyan)", textAlign: "center", fontSize: 12, fontFamily: "'JetBrains Mono', monospace" }}>{post.dia}</td>
+                  <td style={{ ...tdS, fontWeight: 700, color: "var(--cyan)", textAlign: "center", fontSize: 12, fontFamily: "var(--font-mono)" }}>{post.dia}</td>
                   {/* Idea */}
                   <td style={tdS}><textarea style={editInput} value={post.ideaPrincipal} onChange={e => updatePost(i, "ideaPrincipal", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Idea..." /></td>
                   {/* Etapa */}
@@ -394,7 +394,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                     }}>{post.formatoArte}</span>
                   </td>
                   {/* Prompt MJ */}
-                  <td style={tdS}><textarea style={{ ...editInput, color: "var(--text-secondary)", fontFamily: "'JetBrains Mono', monospace", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
+                  <td style={tdS}><textarea style={{ ...editInput, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
                   {/* Video Details */}
                   <td style={tdS}>
                     {post.videoDetails ? (

@@ -8,7 +8,7 @@ import { inputStyle, selectStyle, toggleStyle } from "./EditCampaignModal";
 function FormGroup({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <div>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(148,163,184,0.7)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {label}
         {hint && <span style={{ marginLeft: 6, fontSize: 9, color: "var(--text-muted)", fontWeight: 400, textTransform: "none", fontStyle: "italic" }}>{hint}</span>}
       </label>
@@ -143,7 +143,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
     >
       <div
         style={{
-          background: "rgba(10,15,30,0.98)",
+          background: "var(--surface)",
           border: "1px solid var(--border)",
           borderRadius: 12,
           width: "100%", maxWidth: 560,
@@ -311,14 +311,14 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
                   </button>
                 )}
               </FormGroup>
-              <div style={{ padding: "10px 12px", background: "rgba(59,130,246,0.03)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: 8, fontSize: 11, color: "rgba(148,163,184,0.7)", lineHeight: 1.5 }}>
+              <div style={{ padding: "10px 12px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: 8, fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
                 ?? Los cambios de programación pueden reiniciar la fase de aprendizaje del conjunto.
               </div>
             </>
           )}
 
           {localError && (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 8, fontSize: 12, color: "var(--red)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 8, fontSize: 12, color: "var(--red)" }}>
               <AlertCircle className="w-4 h-4 flex-shrink-0" />
               {localError}
             </div>
@@ -327,7 +327,7 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
 
         {/* Footer */}
         <div style={{ padding: "14px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "rgba(148,163,184,0.7)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--border)", borderRadius: 8, color: "var(--text-secondary)", fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
             Cancelar
           </button>
           <button onClick={handleSave} disabled={loading || saved} style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 18px", background: saved ? "rgba(52,183,124,0.2)" : "rgba(0,129,251,0.2)", border: `1px solid ${saved ? "var(--emerald)" : "var(--cyan)"}`, borderRadius: 8, color: saved ? "var(--emerald)" : "var(--cyan)", fontSize: 13, fontWeight: 600, cursor: "pointer", transition: "all 0.2s" }}>

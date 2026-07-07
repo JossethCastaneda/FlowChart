@@ -18,7 +18,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
         fontFamily: "var(--font-display)",
         fontSize: 15,
         fontWeight: 700,
-        color: "#34b77c",
+        color: "var(--c-success)",
         letterSpacing: "0.08em",
         textTransform: "uppercase",
         marginBottom: 16,
@@ -27,7 +27,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       }}>
         {title}
       </h2>
-      <div style={{ fontSize: 14, lineHeight: 1.8, color: "#94a3b8" }}>
+      <div style={{ fontSize: 14, lineHeight: 1.8, color: "var(--text-muted)" }}>
         {children}
       </div>
     </section>
@@ -43,7 +43,7 @@ function Ul({ items }: { items: string[] }) {
     <ul style={{ paddingLeft: 20, marginBottom: 12 }}>
       {items.map((item, i) => (
         <li key={i} style={{ marginBottom: 6 }}>
-          <span style={{ color: "#34b77c", marginRight: 8 }}>›</span>
+          <span style={{ color: "var(--c-success)", marginRight: 8 }}>›</span>
           {item}
         </li>
       ))}
@@ -57,10 +57,10 @@ function InfoBox({ label, value }: { label: string; value: string }) {
       display: "flex",
       gap: 12,
       padding: "10px 0",
-      borderBottom: "1px solid rgba(255,255,255,0.05)",
+      border: "1px solid var(--hairline)",
     }}>
-      <span style={{ fontSize: 13, color: "#6c7c93", minWidth: 160 }}>{label}</span>
-      <span style={{ fontSize: 13, color: "#dde6f0" }}>{value}</span>
+      <span style={{ fontSize: 13, color: "var(--text-muted)", minWidth: 160 }}>{label}</span>
+      <span style={{ fontSize: 13, color: "var(--foreground)" }}>{value}</span>
     </div>
   );
 }
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
           padding: "4px 14px",
           fontSize: 11,
           fontWeight: 700,
-          color: "#34b77c",
+          color: "var(--c-success)",
           letterSpacing: "0.1em",
           textTransform: "uppercase",
           marginBottom: 20,
@@ -89,15 +89,15 @@ export default function PrivacyPage() {
           fontFamily: "var(--font-display)",
           fontSize: "clamp(24px, 4vw, 36px)",
           fontWeight: 700,
-          color: "#dde6f0",
+          color: "var(--foreground)",
           letterSpacing: "0.04em",
           marginBottom: 12,
           lineHeight: 1.2,
         }}>
           Política de Privacidad
         </h1>
-        <p style={{ fontSize: 14, color: "#6c7c93" }}>
-          Última actualización: <strong style={{ color: "#94a3b8" }}>{LAST_UPDATED}</strong>
+        <p style={{ fontSize: 14, color: "var(--text-muted)" }}>
+          Última actualización: <strong style={{ color: "var(--text-muted)" }}>{LAST_UPDATED}</strong>
         </p>
         <div style={{
           marginTop: 24,
@@ -106,7 +106,7 @@ export default function PrivacyPage() {
           border: "1px solid rgba(52,183,124,0.12)",
           borderRadius: 8,
           fontSize: 13,
-          color: "#94a3b8",
+          color: "var(--text-muted)",
           lineHeight: 1.6,
         }}>
           En Sodare nos comprometemos a proteger tu privacidad. Esta política explica cómo recopilamos, usamos, almacenamos
@@ -122,7 +122,7 @@ export default function PrivacyPage() {
         padding: "20px 24px",
         marginBottom: 52,
       }}>
-        <p style={{ fontSize: 12, fontWeight: 700, color: "#34b77c", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
+        <p style={{ fontSize: 12, fontWeight: 700, color: "var(--c-success)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 16 }}>
           Resumen rápido
         </p>
         <InfoBox label="Responsable del tratamiento" value={COMPANY} />
@@ -137,9 +137,9 @@ export default function PrivacyPage() {
 
       <Section title="1. Responsable del Tratamiento">
         <P>
-          El responsable del tratamiento de los datos personales recogidos a través de la Plataforma es <strong style={{ color: "#dde6f0" }}>{COMPANY}</strong>.
+          El responsable del tratamiento de los datos personales recogidos a través de la Plataforma es <strong style={{ color: "var(--foreground)" }}>{COMPANY}</strong>.
           Puedes contactarnos en:{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#34b77c", textDecoration: "none" }}>
+          <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--c-success)", textDecoration: "none" }}>
             {CONTACT_EMAIL}
           </a>
         </P>
@@ -147,7 +147,7 @@ export default function PrivacyPage() {
 
       <Section title="2. Datos que Recopilamos">
         <P>
-          <strong style={{ color: "#dde6f0" }}>2.1 Datos de cuenta y registro:</strong>
+          <strong style={{ color: "var(--foreground)" }}>2.1 Datos de cuenta y registro:</strong>
         </P>
         <Ul items={[
           "Nombre y apellidos.",
@@ -158,7 +158,7 @@ export default function PrivacyPage() {
         ]} />
 
         <P>
-          <strong style={{ color: "#dde6f0" }}>2.2 Datos de uso de la Plataforma:</strong>
+          <strong style={{ color: "var(--foreground)" }}>2.2 Datos de uso de la Plataforma:</strong>
         </P>
         <Ul items={[
           "Acciones realizadas en la Plataforma (navegación, clics, configuraciones).",
@@ -168,7 +168,7 @@ export default function PrivacyPage() {
         ]} />
 
         <P>
-          <strong style={{ color: "#dde6f0" }}>2.3 Datos de campañas e integraciones:</strong>
+          <strong style={{ color: "var(--foreground)" }}>2.3 Datos de campañas e integraciones:</strong>
         </P>
         <Ul items={[
           "Datos de cuentas publicitarias conectadas (Meta Ads, TikTok Ads, Google Ads).",
@@ -179,7 +179,7 @@ export default function PrivacyPage() {
         ]} />
 
         <P>
-          <strong style={{ color: "#dde6f0" }}>2.4 Datos técnicos automáticos:</strong>
+          <strong style={{ color: "var(--foreground)" }}>2.4 Datos técnicos automáticos:</strong>
         </P>
         <Ul items={[
           "Dirección IP y datos de geolocalización aproximada.",
@@ -238,7 +238,7 @@ export default function PrivacyPage() {
           "Transacciones corporativas: en caso de fusión, adquisición o venta de activos, con las salvaguardas adecuadas.",
         ]} />
         <P>
-          <strong style={{ color: "#dde6f0" }}>Nunca vendemos tus datos personales a terceros.</strong>
+          <strong style={{ color: "var(--foreground)" }}>Nunca vendemos tus datos personales a terceros.</strong>
         </P>
       </Section>
 
@@ -293,7 +293,7 @@ export default function PrivacyPage() {
         ]} />
         <P>
           Para ejercer tus derechos, contáctanos en{" "}
-          <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#34b77c", textDecoration: "none" }}>
+          <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--c-success)", textDecoration: "none" }}>
             {CONTACT_EMAIL}
           </a>
           . Responderemos en el plazo legalmente establecido (generalmente 30 días).
@@ -335,27 +335,27 @@ export default function PrivacyPage() {
           padding: "16px 20px",
           fontSize: 13,
         }}>
-          <p style={{ margin: "0 0 4px", color: "#dde6f0", fontWeight: 600 }}>{COMPANY} — Responsable de Privacidad</p>
-          <p style={{ margin: "0 0 4px", color: "#94a3b8" }}>
+          <p style={{ margin: "0 0 4px", color: "var(--foreground)", fontWeight: 600 }}>{COMPANY} — Responsable de Privacidad</p>
+          <p style={{ margin: "0 0 4px", color: "var(--text-muted)" }}>
             Correo electrónico:{" "}
-            <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#34b77c", textDecoration: "none" }}>
+            <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "var(--c-success)", textDecoration: "none" }}>
               {CONTACT_EMAIL}
             </a>
           </p>
-          <p style={{ margin: "0 0 4px", color: "#94a3b8" }}>
+          <p style={{ margin: "0 0 4px", color: "var(--text-muted)" }}>
             Para asuntos generales:{" "}
-            <a href="mailto:legal@sodare.com" style={{ color: "#34b77c", textDecoration: "none" }}>
+            <a href="mailto:legal@sodare.com" style={{ color: "var(--c-success)", textDecoration: "none" }}>
               legal@sodare.com
             </a>
           </p>
-          <p style={{ margin: 0, color: "#94a3b8" }}>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>
             Sitio web:{" "}
-            <a href={WEBSITE} style={{ color: "#34b77c", textDecoration: "none" }}>
+            <a href={WEBSITE} style={{ color: "var(--c-success)", textDecoration: "none" }}>
               {WEBSITE}
             </a>
           </p>
         </div>
-        <p style={{ marginTop: 16, marginBottom: 12, fontSize: 14, lineHeight: 1.8, color: "#94a3b8" }}>
+        <p style={{ marginTop: 16, marginBottom: 12, fontSize: 14, lineHeight: 1.8, color: "var(--text-muted)" }}>
           También tienes derecho a presentar una reclamación ante la autoridad de control de protección de datos de tu país de residencia si consideras que el tratamiento de tus datos infringe la normativa aplicable.
         </p>
       </Section>

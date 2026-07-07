@@ -36,8 +36,8 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
         <div style={{ padding: "6px", background: `${c}14`, border: `1px solid ${c}28`, borderRadius: 9, color: c, display: "flex" }}>{icon}</div>
         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)" }}>{title}</span>
       </div>
-      <div style={{ fontSize: 22, fontWeight: 700, color: "white", marginBottom: 3, fontFamily: "var(--font-display)", lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "'JetBrains Mono', monospace" }}>{sub}</div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", marginBottom: 3, fontFamily: "var(--font-display)", lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{sub}</div>
     </div>
   );
 }
@@ -109,40 +109,40 @@ export function GoogleAdsDashboard({ project, dateStart, dateEnd, preset }: any)
             <div style={{ background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
               <p style={{ ...labelStyle, color: "var(--amber)" }}>Google Ads</p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{fmtNum(ads.impressions)}</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)" }}>{fmtNum(ads.impressions)}</span>
                 <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Impresiones</span>
               </div>
             </div>
             
-            <div style={{ width: 2, height: 20, background: "rgba(255,255,255,0.1)", margin: "0 auto" }} />
+            <div style={{ width: 2, height: 20, background: "var(--surface-hover)", margin: "0 auto" }} />
             
             {/* Step 2: Clicks */}
-            <div style={{ background: "rgba(59,130,246,0.05)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
+            <div style={{ background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
               <p style={{ ...labelStyle, color: "var(--cyan)" }}>Tráfico Pagado</p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{fmtNum(ads.clicks)}</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)" }}>{fmtNum(ads.clicks)}</span>
                 <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Clics (CTR: {ads.impressions > 0 ? ((ads.clicks / ads.impressions) * 100).toFixed(1) : 0}%)</span>
               </div>
             </div>
             
-            <div style={{ width: 2, height: 20, background: "rgba(255,255,255,0.1)", margin: "0 auto" }} />
+            <div style={{ width: 2, height: 20, background: "var(--surface-hover)", margin: "0 auto" }} />
             
             {/* Step 3: Landing (GA4) */}
             <div style={{ background: "rgba(0,200,117,0.05)", border: "1px solid rgba(0,200,117,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
               <p style={{ ...labelStyle, color: "var(--emerald)" }}>Google Analytics 4</p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{fmtNum(ga4.sessions)}</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)" }}>{fmtNum(ga4.sessions)}</span>
                 <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Sesiones CPC</span>
               </div>
             </div>
             
-            <div style={{ width: 2, height: 20, background: "rgba(255,255,255,0.1)", margin: "0 auto" }} />
+            <div style={{ width: 2, height: 20, background: "var(--surface-hover)", margin: "0 auto" }} />
             
             {/* Step 4: Conversions (GA4) */}
             <div style={{ background: "rgba(188,95,178,0.05)", border: "1px solid rgba(188,95,178,0.15)", borderRadius: 8, padding: 16, position: "relative" }}>
               <p style={{ ...labelStyle, color: "var(--purple)" }}>Resultados</p>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                <span style={{ fontSize: 24, fontWeight: 700, color: "white" }}>{fmtNum(ga4.conversions)}</span>
+                <span style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)" }}>{fmtNum(ga4.conversions)}</span>
                 <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Eventos clave (GA4)</span>
               </div>
             </div>
@@ -157,7 +157,7 @@ export function GoogleAdsDashboard({ project, dateStart, dateEnd, preset }: any)
               <p style={subStyle}>Clics vs Conversiones vs Gasto</p>
             </div>
           </div>
-          <div style={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center", border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 8 }}>
+          <div style={{ height: 350, display: "flex", alignItems: "center", justifyContent: "center", border: "1px dashed var(--border)", borderRadius: 8 }}>
             <span style={{ color: "var(--text-muted)", fontSize: 12 }}>Gráfica en construcción (Pendiente de endpoints de API)</span>
           </div>
         </div>

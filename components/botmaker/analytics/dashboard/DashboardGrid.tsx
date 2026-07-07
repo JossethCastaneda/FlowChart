@@ -146,7 +146,7 @@ export default function DashboardGrid({
               }}
             >
               {editable && <GripVertical style={{ width: 13, height: 13, color: accent, opacity: 0.7 }} />}
-              <span style={{ fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.7)", letterSpacing: "0.02em", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+              <span style={{ fontSize: 11.5, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.02em", flex: 1, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {it.title}
               </span>
               {editable && onRemove && (
@@ -154,7 +154,7 @@ export default function DashboardGrid({
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => onRemove(it.id)}
                   title="Quitar widget"
-                  style={{ display: "flex", background: "none", border: "none", color: "rgba(255,255,255,0.4)", cursor: "pointer", padding: 2, borderRadius: 6 }}
+                  style={{ display: "flex", background: "none", border: "none", color: "var(--text-muted)", cursor: "pointer", padding: 2, borderRadius: 6 }}
                 >
                   <X style={{ width: 14, height: 14 }} />
                 </button>

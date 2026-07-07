@@ -118,7 +118,7 @@ export function ConnectedMetaBadge({
 
   if (loading) {
     return (
-      <div style={{ height: 32, width: 120, borderRadius: 16, background: "rgba(255,255,255,0.05)", animation: "pulse 2s infinite" }} />
+      <div style={{ height: 32, width: 120, borderRadius: 16, background: "var(--surface-hover)", animation: "pulse 2s infinite" }} />
     );
   }
 
@@ -154,17 +154,17 @@ export function ConnectedMetaBadge({
         gap: 8,
         padding: "4px 8px 4px 4px",
         borderRadius: 20,
-        background: "rgba(255,255,255,0.05)",
-        border: "1px solid rgba(255,255,255,0.1)",
+        background: "var(--surface-hover)",
+        border: "1px solid var(--border)",
       }}
       title="Perfil de Facebook conectado que otorga los permisos de esta sección"
     >
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-        <div style={{ width: 24, height: 24, borderRadius: "50%", overflow: "hidden", position: "relative", background: "rgba(255,255,255,0.1)" }}>
+        <div style={{ width: 24, height: 24, borderRadius: "50%", overflow: "hidden", position: "relative", background: "var(--surface-hover)" }}>
           {profile.picture ? (
             <Image src={profile.picture} alt={profile.name || "Perfil"} fill style={{ objectFit: "cover" }} unoptimized />
           ) : (
-            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#fff" }}>
+            <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "var(--foreground)" }}>
               {profile.name?.charAt(0) || "F"}
             </div>
           )}

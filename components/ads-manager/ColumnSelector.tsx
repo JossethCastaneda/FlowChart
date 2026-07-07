@@ -72,7 +72,7 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
         onClick={() => setIsOpen(!isOpen)}
         style={{
           display: "flex", alignItems: "center", gap: "6px", padding: "6px 12px",
-          background: "rgba(10, 15, 30, 0.6)", border: "1px solid var(--border)", borderRadius: "6px",
+          background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "6px",
           color: "var(--text-secondary)", fontSize: "11px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s",
         }}
         onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.color = "white"; }}
@@ -80,7 +80,7 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
       >
         <Columns className="w-3.5 h-3.5" />
         <span>Columnas</span>
-        <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 5px", borderRadius: "6px", background: "rgba(59,130,246,0.1)", color: "var(--cyan)" }}>
+        <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 5px", borderRadius: "6px", background: "var(--cyan-dim)", color: "var(--cyan)" }}>
           {selectedKeys.length}
         </span>
         <ChevronDown className="w-3 h-3" />
@@ -91,7 +91,7 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
           <div onClick={() => setIsOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 40 }} />
           <div style={{
             position: "absolute", top: "100%", right: 0, marginTop: "4px",
-            background: "rgba(5, 8, 18, 0.98)", backdropFilter: "blur(20px)",
+            background: "var(--surface)", backdropFilter: "blur(20px)",
             border: "1px solid var(--border-strong)", borderRadius: "8px",
             boxShadow: "0 10px 30px rgba(0,0,0,0.5)", zIndex: 50,
             width: "260px",
@@ -119,10 +119,10 @@ export function ColumnSelector({ columns, selectedKeys, onChange }: ColumnSelect
               <div style={{ maxHeight: "320px", overflowY: "auto", padding: "4px 0" }} className="custom-scrollbar">
                 {/* Quick actions */}
                 <div style={{ display: "flex", gap: "4px", padding: "4px 8px 8px" }}>
-                  <button onClick={selectAll} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "rgba(59,130,246,0.05)", border: "1px solid rgba(59,130,246,0.1)", borderRadius: "3px", color: "var(--cyan)", cursor: "pointer" }}>
+                  <button onClick={selectAll} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.1)", borderRadius: "3px", color: "var(--cyan)", cursor: "pointer" }}>
                     Todas
                   </button>
-                  <button onClick={selectNone} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: "3px", color: "var(--text-muted)", cursor: "pointer" }}>
+                  <button onClick={selectNone} style={{ flex: 1, padding: "3px", fontSize: "9px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "3px", color: "var(--text-muted)", cursor: "pointer" }}>
                     Solo nombre
                   </button>
                 </div>

@@ -87,7 +87,7 @@ export default function ScoresPage() {
                     <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                       p.priority === "High" ? "bg-red-500/10 text-red-500" :
                       p.priority === "Medium" ? "bg-yellow-500/10 text-yellow-500" : 
-                      "bg-blue-500/10 text-blue-500"
+                      "bg-[var(--cyan-dim)] text-blue-500"
                     }`}>
                       {p.priority === "High" ? "Alta" : p.priority === "Medium" ? "Media" : "Baja"}
                     </span>

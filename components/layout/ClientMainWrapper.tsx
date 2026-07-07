@@ -11,6 +11,7 @@ import { WhatsAppPhonePrompt } from "@/components/ui/WhatsAppPhonePrompt";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useHeaderStore } from "@/lib/header-store";
+import { useTheme } from "next-themes";
 import {
   LayoutDashboard,
   Users,
@@ -335,30 +336,12 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const [theme, setTheme] = useState<'original' | 'claro' | 'azul_medianoche'>('original');
+  const { theme, setTheme } = useTheme();
   const { lang, setLang } = useLanguage();
   const [activePanel, setActivePanel] = useState<'main' | 'lang' | 'theme'>('main');
 
-  useEffect(() => {
-    // Load saved theme
-    const savedTheme = localStorage.getItem("sodare:theme") as 'original' | 'claro' | 'azul_medianoche' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    }
-  }, []);
-
-  const applyTheme = (t: 'original' | 'claro' | 'azul_medianoche') => {
-    const root = document.documentElement;
-    root.classList.remove('theme-claro', 'theme-azul-medianoche');
-    if (t === 'claro') root.classList.add('theme-claro');
-    if (t === 'azul_medianoche') root.classList.add('theme-azul-medianoche');
-  };
-
-  const changeTheme = (t: 'original' | 'claro' | 'azul_medianoche') => {
+  const changeTheme = (t: string) => {
     setTheme(t);
-    applyTheme(t);
-    localStorage.setItem("sodare:theme", t);
     setActivePanel('main');
     showToast("success", lang === 'es' ? `Tema cambiado` : `Theme changed`);
   };
@@ -459,7 +442,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-[var(--panel-bg)] backdrop-blur-sm backdrop-blur-sm lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -528,7 +511,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           {NAV_GROUPS.map((group) => {
             const isCollapsed = collapsedGroups[group.key];
             return (
-              <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-white/5" : "mt-2"}>
+              <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-[var(--hairline)]" : "mt-2"}>
                 <div 
                   className="px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
                   onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
@@ -541,10 +524,10 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     textTransform: "uppercase",
                     color: group.key === "sistema" ? "var(--text-muted)" : "var(--text-muted)",
                     transition: "color 0.2s"
-                  }} className="group-hover/nav:text-white">
+                  }} className="group-hover/nav:text-[var(--foreground)]">
                     {group.title}
                   </span>
-                  <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+                  <ChevronDown className={`w-3 h-3 text-[var(--text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
                 </div>
                 
                 <div style={{
@@ -599,6 +582,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           style={{
             background: "var(--topbar-bg)",
             borderBottom: "1px solid var(--border)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
           }}
         >
           <div className="flex items-center gap-3">
@@ -675,13 +660,14 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               </span>
               {breadcrumbs.length > 0 && breadcrumbs.map((crumb, idx) => (
                 <React.Fragment key={idx}>
-                  <ChevronRight style={{ width: 12, height: 12, color: 'var(--text-muted)' }} />
+                  <span style={{ color: "var(--text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>
                   <span
                     onClick={crumb.onClick}
+                    className={crumb.onClick ? "hover:text-[var(--foreground)] transition-colors" : ""}
                     style={{
-                      color: crumb.onClick ? 'var(--cyan)' : 'var(--text-secondary)',
+                      color: crumb.onClick ? 'var(--text-secondary)' : 'var(--foreground)',
                       cursor: crumb.onClick ? 'pointer' : 'default',
-                      fontWeight: idx === breadcrumbs.length - 1 ? 500 : 400
+                      fontWeight: idx === breadcrumbs.length - 1 ? 600 : 500
                     }}
                   >
                     {crumb.label}
@@ -713,7 +699,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               style={{ background: "transparent", border: "none" }}
             >
               <div style={{ position: "relative" }}>
-                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/10" style={{ background: "linear-gradient(135deg,var(--cyan),#2563eb)" }}>
+                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-[var(--border)]" style={{ background: "linear-gradient(135deg,var(--cyan),#2563eb)" }}>
                   {session?.user?.image ? (
                     <img
                       src={session.user.image}
@@ -723,7 +709,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     />
                   ) : null}
                   {(!session?.user?.image) && (
-                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
+                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--foreground)]">
                       {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                     </div>
                   )}
@@ -773,7 +759,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   <>
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
-                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-white/10" style={{ background: "linear-gradient(135deg,#2563eb,var(--purple))", flexShrink: 0 }}>
+                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-[var(--border)]" style={{ background: "linear-gradient(135deg,#2563eb,var(--purple))", flexShrink: 0 }}>
                           {session?.user?.image ? (
                             <img
                               src={session.user.image}
@@ -783,7 +769,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                             />
                           ) : null}
                           {(!session?.user?.image) && (
-                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[var(--foreground)]">
                               {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                             </div>
                           )}
@@ -950,28 +936,28 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", marginBottom: 12 }}>{t.aparienciaTitulo}</p>
                     <div className="space-y-1">
                       <button
-                        onClick={() => changeTheme('original')}
+                        onClick={() => changeTheme('dark')}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
                         style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoOscuro}</span>
-                        {theme === 'original' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
+                        {theme === 'dark' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
-                        onClick={() => changeTheme('claro')}
+                        onClick={() => changeTheme('light')}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
                         style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoClaro}</span>
-                        {theme === 'claro' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
+                        {theme === 'light' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
-                        onClick={() => changeTheme('azul_medianoche')}
+                        onClick={() => changeTheme('azul')}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
                         style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoAzul}</span>
-                        {theme === 'azul_medianoche' && <Check className="w-4 h-4 text-[var(--emerald)]" />}
+                        {theme === 'azul' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                     </div>
                   </div>

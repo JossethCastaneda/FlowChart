@@ -11,7 +11,7 @@ const PortabilidadTab = dynamic(() => import("@/components/botmaker/analytics/Po
   loading: () => (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1, gap: 12, padding: 60 }}>
       <Loader2 className="animate-spin" style={{ width: 20, height: 20, color: "var(--cyan)" }} />
-      <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Cargando…</span>
+      <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Cargando…</span>
     </div>
   ),
 });
@@ -29,16 +29,16 @@ export default function PortabilidadPage() {
   const { from, to } = range(period);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#030508", overflow: "hidden" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(4,7,18,0.9)", flexShrink: 0 }}>
-        <Link href="/dashboard/botmaker/analytics" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(148,163,184,0.5)", textDecoration: "none" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--background)", overflow: "hidden" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 20px", border: "1px solid var(--hairline)", background: "rgba(4,7,18,0.9)", flexShrink: 0 }}>
+        <Link href="/dashboard/botmaker/analytics" style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--text-secondary)", textDecoration: "none" }}>
           <ArrowLeft style={{ width: 12, height: 12 }} /> Bot Analytics
         </Link>
-        <span style={{ color: "rgba(255,255,255,0.15)" }}>›</span>
+        <span style={{ color: "var(--border-strong)" }}>›</span>
         <Smartphone style={{ width: 14, height: 14, color: "var(--cyan)" }} />
-        <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.8)" }}>Portabilidad (BAIT)</span>
+        <span style={{ fontSize: 12, fontWeight: 700, color: "var(--text-secondary)" }}>Portabilidad (BAIT)</span>
         <div style={{ flex: 1 }} />
-        <div style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.05)", borderRadius: 20, padding: 3 }}>
+        <div style={{ display: "flex", gap: 2, background: "var(--surface-hover)", borderRadius: 20, padding: 3 }}>
           {(["Hoy", "7 días", "30 días"] as Period[]).map((p) => (
             <button key={p} onClick={() => setPeriod(p)} style={{
               display: "flex", alignItems: "center", gap: 4, padding: "5px 12px", borderRadius: 16, border: "none",

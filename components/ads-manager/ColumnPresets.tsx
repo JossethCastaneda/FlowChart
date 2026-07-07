@@ -101,7 +101,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
           display: "flex", alignItems: "center", gap: "5px",
           padding: "6px 10px", fontSize: "11px", fontWeight: 600,
           background: "var(--row-hover)", border: "1px solid var(--hairline)",
-          borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
+          borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
           transition: "all 0.15s",
         }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--cyan)"; e.currentTarget.style.color = "white"; }}
@@ -128,7 +128,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                 onClick={() => { onApply(preset.columns); setShowMenu(false); }}
                 style={{
                   flex: 1, textAlign: "left", padding: "7px 10px", fontSize: "11px",
-                  color: "rgba(255,255,255,0.85)", background: "transparent",
+                  color: "var(--text-secondary)", background: "transparent",
                   border: "none", cursor: "pointer", borderRadius: "5px",
                   transition: "all 0.15s",
                 }}
@@ -162,7 +162,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                   placeholder="Nombre del preset..."
                   autoFocus
                   style={{
-                    flex: 1, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(148,163,184,0.18)",
+                    flex: 1, background: "var(--surface-hover)", border: "1px solid var(--border)",
                     borderRadius: "4px", padding: "4px 8px", fontSize: "10px", color: "var(--foreground)", outline: "none",
                   }}
                 />

@@ -825,7 +825,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
                 )}
 
                 {post.image && (
-                  <div style={{ width: "100%", height: 120, borderRadius: 6, overflow: "hidden", marginTop: 4, background: "rgba(0,0,0,0.2)" }}>
+                  <div style={{ width: "100%", height: 120, borderRadius: 6, overflow: "hidden", marginTop: 4, background: "var(--surface-hover)" }}>
                     <img src={post.image} alt="Media" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                 )}
@@ -918,7 +918,7 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
   };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "var(--panel-bg)", backdropFilter: "blur(4px)" }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 500, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--border)" }}>
@@ -958,7 +958,7 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
 
           {/* Full Media Image */}
           {post.image && (
-            <div style={{ width: "100%", borderRadius: 8, overflow: "hidden", background: "rgba(0,0,0,0.1)", border: "1px solid var(--border)" }}>
+            <div style={{ width: "100%", borderRadius: 8, overflow: "hidden", background: "var(--surface-hover)", border: "1px solid var(--border)" }}>
               <img src={post.image} alt="Full Post Media" style={{ width: "100%", height: "auto", maxHeight: 260, objectFit: "contain" }} />
             </div>
           )}

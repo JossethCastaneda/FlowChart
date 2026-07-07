@@ -164,7 +164,7 @@ export default function GoogleAnalyticsPage() {
               background: "var(--amber)",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 4px 12px rgba(251,191,36,0.3)",
-              color: "white",
+              color: "var(--foreground)",
             }}>
               <GA4Icon />
             </div>

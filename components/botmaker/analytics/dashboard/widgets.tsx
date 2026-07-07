@@ -24,7 +24,7 @@ import type { BotPerf, CoverageInfo } from "@/lib/botmaker/bot-perf";
 // ── tokens ───────────────────────────────────────────────────────────────────
 const P = "var(--purple)", C = "var(--cyan)", G = "var(--emerald)", R = "var(--red)", A = "var(--amber)", B = "var(--cyan)";
 const SERIES = [P, C, G, A, R, B, "var(--red)", "var(--purple)", "var(--emerald)", "var(--amber)"];
-const TT = { background: "var(--background)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 8, fontSize: 11 } as const;
+const TT = { background: "var(--background)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 11 } as const;
 const muted = "rgba(255,255,255,0.45)";
 
 const fmt = (n: number) => (n ?? 0).toLocaleString("es-MX");
@@ -55,7 +55,7 @@ const Col: React.FC<{ children: React.ReactNode; gap?: number }> = ({ children, 
 
 function Kpi({ label, value, sub, accent = P, icon, trend }: { label: string; value: string | number; sub?: string; accent?: string; icon?: React.ReactNode; trend?: KpiDelta }) {
   return (
-    <div style={{ flex: "1 1 140px", minWidth: 128, background: "rgba(255,255,255,0.03)", border: `1px solid ${accent}28`, borderRadius: 10, padding: "11px 13px", display: "flex", flexDirection: "column", gap: 4 }}>
+    <div style={{ flex: "1 1 140px", minWidth: 128, background: "var(--surface)", border: `1px solid ${accent}28`, borderRadius: 10, padding: "11px 13px", display: "flex", flexDirection: "column", gap: 4 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: 10.5, color: muted, textTransform: "uppercase", letterSpacing: "0.05em", fontWeight: 600 }}>{label}</span>
         {icon && <span style={{ color: accent, opacity: 0.7, display: "flex" }}>{icon}</span>}
@@ -80,10 +80,10 @@ function BarList({ rows, color = P, suffix = "", max }: { rows: { label: string;
         return (
           <div key={i} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-              <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.72)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={r.label}>{r.label}</span>
+              <span style={{ fontSize: 11.5, color: "var(--foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={r.label}>{r.label}</span>
               <span style={{ fontSize: 11.5, fontWeight: 700, color: col, flexShrink: 0 }}>{fmt(r.value)}{suffix} {r.hint && <span style={{ color: muted, fontWeight: 400 }}>{r.hint}</span>}</span>
             </div>
-            <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ height: 6, background: "var(--surface-hover)", borderRadius: 3, overflow: "hidden" }}>
               <div style={{ width: `${Math.min(100, (r.value / top) * 100)}%`, height: "100%", background: col, borderRadius: 3 }} />
             </div>
           </div>
@@ -178,10 +178,10 @@ const FunnelWidget = ({ data }: WidgetCtx) => {
       {data.funnel.map((s, i) => (
         <div key={s.key} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5 }}>
-            <span style={{ color: "rgba(255,255,255,0.75)" }}>{s.label}</span>
+            <span style={{ color: "var(--text-secondary)" }}>{s.label}</span>
             <span style={{ fontWeight: 700, color: SERIES[i % SERIES.length] }}>{fmt(s.count)} <span style={{ color: muted, fontWeight: 400 }}>({s.pct}%)</span></span>
           </div>
-          <div style={{ height: 18, background: "rgba(255,255,255,0.05)", borderRadius: 5, overflow: "hidden" }}>
+          <div style={{ height: 18, background: "var(--surface-hover)", borderRadius: 5, overflow: "hidden" }}>
             <div style={{ width: `${s.pct}%`, height: "100%", background: SERIES[i % SERIES.length], opacity: 0.85, borderRadius: 5, transition: "width 0.3s" }} />
           </div>
           {i > 0 && s.dropOff > 0 && (
@@ -264,24 +264,24 @@ const BotFlowWidget = ({ data }: WidgetCtx) => {
         return (
           <div key={r.field} style={{ display: "flex", gap: 16, position: "relative" }}>
             {/* Timeline line */}
-            {!isLast && <div style={{ position: "absolute", left: 11, top: 24, bottom: -16, width: 2, background: "rgba(255,255,255,0.05)" }} />}
+            {!isLast && <div style={{ position: "absolute", left: 11, top: 24, bottom: -16, width: 2, background: "var(--surface-hover)" }} />}
             
             {/* Timeline node */}
-            <div style={{ width: 24, height: 24, borderRadius: 12, background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff", zIndex: 1, flexShrink: 0 }}>
+            <div style={{ width: 24, height: 24, borderRadius: 12, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "var(--foreground)", zIndex: 1, flexShrink: 0 }}>
               {i + 1}
             </div>
 
             <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 6, paddingBottom: 6 }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{r.field}</span>
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.05)", padding: "2px 8px", borderRadius: 12 }}>
+                <span style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>{r.field}</span>
+                <span style={{ fontSize: 12, color: "var(--text-secondary)", background: "var(--surface-hover)", padding: "2px 8px", borderRadius: 12 }}>
                   {fmt(total)} llegan
                 </span>
               </div>
               
               <div style={{ fontSize: 12, color: insightColor, fontWeight: 500 }}>{insight}</div>
               
-              <div style={{ display: "flex", gap: 12, marginTop: 4, background: "rgba(0,0,0,0.2)", padding: 8, borderRadius: 6 }}>
+              <div style={{ display: "flex", gap: 12, marginTop: 4, background: "var(--surface-hover)", padding: 8, borderRadius: 6 }}>
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 10, color: muted, textTransform: "uppercase" }}>Éxito</div>
                   <div style={{ fontSize: 13, color: G, fontWeight: 600 }}>{successRate}%</div>
@@ -359,7 +359,7 @@ const HeatmapWidget = ({ data }: WidgetCtx) => {
           </span>
           más
         </span>
-        <span style={{ marginLeft: "auto" }}>Pico: <b style={{ color: "rgba(255,255,255,0.8)" }}>{days[peak.d]} {peak.h}:00h</b> · {fmt(peak.v)} conv.</span>
+        <span style={{ marginLeft: "auto" }}>Pico: <b style={{ color: "var(--text-secondary)" }}>{days[peak.d]} {peak.h}:00h</b> · {fmt(peak.v)} conv.</span>
       </div>
     </div>
   );
@@ -373,10 +373,10 @@ const ChannelsWidget = ({ data }: WidgetCtx) => {
       {rows.map((c, i) => (
         <div key={c.id} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
           <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-            <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.78)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={`${c.name} · ${c.platform}`}>{c.name}</span>
+            <span style={{ fontSize: 11.5, color: "var(--foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={`${c.name} · ${c.platform}`}>{c.name}</span>
             <span style={{ fontSize: 11.5, fontWeight: 700, color: SERIES[i % SERIES.length], flexShrink: 0 }}>{fmt(c.sessions)} <span style={{ color: muted, fontWeight: 400 }}>({c.pct}%)</span></span>
           </div>
-          <div style={{ height: 6, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+          <div style={{ height: 6, background: "var(--surface-hover)", borderRadius: 3, overflow: "hidden" }}>
             <div style={{ width: `${c.pct}%`, height: "100%", background: SERIES[i % SERIES.length], borderRadius: 3 }} />
           </div>
           <div style={{ display: "flex", gap: 10, fontSize: 9.5, color: muted }}>
@@ -398,10 +398,10 @@ const ButtonsWidget = ({ data }: WidgetCtx) => {
         {rows.map((r, i) => (
           <div key={i} style={{ display: "flex", flexDirection: "column", gap: 3, marginBottom: 8 }}>
             <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.75)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={r.label}>{r.label}</span>
+              <span style={{ fontSize: 11, color: "var(--text-secondary)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={r.label}>{r.label}</span>
               <span style={{ fontSize: 11, fontWeight: 700, color: r.ctr < 0.15 ? R : r.ctr < 0.4 ? A : G, flexShrink: 0 }}>{Math.round(r.ctr * 100)}%</span>
             </div>
-            <div style={{ height: 5, background: "rgba(255,255,255,0.06)", borderRadius: 3, overflow: "hidden" }}>
+            <div style={{ height: 5, background: "var(--surface-hover)", borderRadius: 3, overflow: "hidden" }}>
               <div style={{ width: `${Math.min(100, r.ctr * 100)}%`, height: "100%", background: r.ctr < 0.15 ? R : r.ctr < 0.4 ? A : G, borderRadius: 3 }} />
             </div>
             <span style={{ fontSize: 9, color: muted }}>{fmt(r.shown)} mostrados · {fmt(r.selected)} elegidos</span>
@@ -444,13 +444,13 @@ const FlowWidget = ({ data }: WidgetCtx) => {
     <div style={{ overflow: "auto", height: "100%", display: "flex", flexDirection: "column", gap: 6 }}>
       {rows.map((e, i) => (
         <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(255,255,255,0.72)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "var(--foreground)" }}>
             <span style={{ maxWidth: "42%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={e.source}>{e.source}</span>
             <span style={{ color: muted }}>→</span>
-            <span style={{ maxWidth: "42%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "rgba(255,255,255,0.9)" }} title={e.target}>{e.target}</span>
+            <span style={{ maxWidth: "42%", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", color: "var(--foreground)" }} title={e.target}>{e.target}</span>
             <span style={{ marginLeft: "auto", fontWeight: 700, color: C, flexShrink: 0 }}>{fmt(e.value)}</span>
           </div>
-          <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+          <div style={{ height: 4, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
             <div style={{ width: `${(e.value / max) * 100}%`, height: "100%", background: C, opacity: 0.7, borderRadius: 2 }} />
           </div>
         </div>
@@ -467,7 +467,7 @@ const VariablesWidget = ({ data }: WidgetCtx) => {
       <div style={{ display: "flex", flexWrap: "wrap", gap: 6, flexShrink: 0 }}>
         <span style={{ fontSize: 11.5, fontWeight: 700, color: P }}>{fmt(v.total)} variables</span>
         {v.byType.map((t) => (
-          <span key={t.name} style={{ fontSize: 10, color: muted, background: "rgba(255,255,255,0.05)", borderRadius: 10, padding: "2px 8px" }}>{t.name}: {t.count}</span>
+          <span key={t.name} style={{ fontSize: 10, color: muted, background: "var(--surface-hover)", borderRadius: 10, padding: "2px 8px" }}>{t.name}: {t.count}</span>
         ))}
       </div>
       <div style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
@@ -493,8 +493,8 @@ const InsightsWidget = ({ data }: WidgetCtx) => {
           <div key={i} style={{ flex: "1 1 280px", minWidth: 240, background: `${s.c}10`, border: `1px solid ${s.c}35`, borderRadius: 10, padding: "10px 12px", display: "flex", gap: 8 }}>
             <span style={{ color: s.c, flexShrink: 0, marginTop: 1 }}>{s.icon}</span>
             <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-              <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.9)" }}>{ins.title}</span>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.4 }}>{ins.detail}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>{ins.title}</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.4 }}>{ins.detail}</span>
             </div>
           </div>
         );
@@ -522,7 +522,7 @@ function DeltaChip({ d, unit = "%" }: { d?: KpiDelta; unit?: string }) {
 }
 
 const Tag: React.FC<{ children: React.ReactNode; color?: string }> = ({ children, color = muted }) => (
-  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10.5, fontWeight: 600, color, background: "rgba(255,255,255,0.04)", border: `1px solid ${color}30`, borderRadius: 12, padding: "2px 9px", whiteSpace: "nowrap" }}>
+  <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10.5, fontWeight: 600, color, background: "var(--surface)", border: `1px solid ${color}30`, borderRadius: 12, padding: "2px 9px", whiteSpace: "nowrap" }}>
     {children}
   </span>
 );
@@ -537,9 +537,9 @@ const CoverageWidget = ({ data }: WidgetCtx) => {
   const unattrPct = c.total ? Math.round((c.unattributed / c.total) * 1000) / 10 : 0;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, height: "100%", justifyContent: "center" }}>
-      <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", background: "rgba(255,255,255,0.05)" }}>
+      <div style={{ display: "flex", height: 14, borderRadius: 7, overflow: "hidden", background: "var(--surface-hover)" }}>
         <div style={{ width: `${attrPct}%`, background: P }} />
-        <div style={{ width: `${unattrPct}%`, background: "rgba(255,255,255,0.18)" }} />
+        <div style={{ width: `${unattrPct}%`, background: "var(--surface-hover)" }} />
       </div>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "center" }}>
         <Tag color={P}><ShieldCheck size={11} /> {attrPct}% atribuidas a un bot</Tag>
@@ -560,7 +560,7 @@ const OutcomesWidget = ({ data }: WidgetCtx) => {
   const venta = rows.find((r) => r.key === "venta");
   return (
     <Col gap={10}>
-      <div style={{ display: "flex", height: 26, borderRadius: 6, overflow: "hidden", background: "rgba(255,255,255,0.04)", flexShrink: 0 }}>
+      <div style={{ display: "flex", height: 26, borderRadius: 6, overflow: "hidden", background: "var(--surface)", flexShrink: 0 }}>
         {rows.map((r) => (
           <div key={r.key}
             title={`${r.label}: ${fmt(r.count)} (${r.pct}%)${r.rawLabels.length ? " ← " + r.rawLabels.map((x) => x.name).join(", ") : ""}`}
@@ -571,8 +571,8 @@ const OutcomesWidget = ({ data }: WidgetCtx) => {
         {rows.map((r) => (
           <span key={r.key} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11.5 }}>
             <span style={{ width: 9, height: 9, borderRadius: 2, background: CATEGORY_COLOR[r.category] }} />
-            <span style={{ color: "rgba(255,255,255,0.78)" }}>{r.label}</span>
-            <span style={{ color: "#fff", fontWeight: 700 }}>{r.pct}%</span>
+            <span style={{ color: "var(--foreground)" }}>{r.label}</span>
+            <span style={{ color: "var(--foreground)", fontWeight: 700 }}>{r.pct}%</span>
             <span style={{ color: muted }}>({fmt(r.count)})</span>
           </span>
         ))}
@@ -599,16 +599,16 @@ function HealthChip({ h }: { h: BotPerf["health"] }) {
   );
 }
 
-const cell: React.CSSProperties = { padding: "6px 8px", textAlign: "right", whiteSpace: "nowrap", color: "rgba(255,255,255,0.82)" };
+const cell: React.CSSProperties = { padding: "6px 8px", textAlign: "right", whiteSpace: "nowrap", color: "var(--foreground)" };
 
 function BotRow({ b }: { b: BotPerf }) {
   const dim = !b.sufficient || b.isUnattributed;
   return (
-    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: b.health === "broken" && !b.isUnattributed ? "rgba(229,72,77,0.06)" : "transparent", opacity: dim ? 0.65 : 1 }}>
+    <tr style={{ border: "1px solid var(--hairline)", background: b.health === "broken" && !b.isUnattributed ? "rgba(229,72,77,0.06)" : "transparent", opacity: dim ? 0.65 : 1 }}>
       <td style={{ padding: "6px 8px", textAlign: "left", maxWidth: 230 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           <span title={b.botName} style={{ color: b.isUnattributed ? muted : "rgba(255,255,255,0.92)", fontWeight: 600, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 }}>{b.botName}</span>
-          {b.isUnnamed && <span style={{ fontSize: 9, fontFamily: "monospace", color: muted, background: "rgba(255,255,255,0.06)", padding: "1px 4px", borderRadius: 4 }}>{b.botId.slice(0, 6)}</span>}
+          {b.isUnnamed && <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: muted, background: "var(--surface-hover)", padding: "1px 4px", borderRadius: 4 }}>{b.botId.slice(0, 6)}</span>}
           {!b.sufficient && !b.isUnattributed && <span style={{ fontSize: 9, color: muted }}>n={b.sessions}</span>}
         </div>
       </td>
@@ -640,7 +640,7 @@ const BotLeaderboardWidget = ({ data }: WidgetCtx) => {
         <thead>
           <tr>
             {HEADERS.map((h, i) => (
-              <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "6px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.1)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "#0e1117" }}>{h}</th>
+              <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "6px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", border: "1px solid var(--border)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "var(--background)" }}>{h}</th>
             ))}
           </tr>
         </thead>
@@ -675,10 +675,10 @@ const CaptureFunnelWidget = ({ data }: WidgetCtx) => {
           return (
             <div key={s.key} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
               <div style={{ display: "flex", justifyContent: "space-between", fontSize: 12 }}>
-                <span style={{ color: "rgba(255,255,255,0.82)", fontWeight: isVenta ? 700 : 500 }}>{s.label}</span>
+                <span style={{ color: "var(--foreground)", fontWeight: isVenta ? 700 : 500 }}>{s.label}</span>
                 <span style={{ fontWeight: 700, color: isVenta ? G : "rgba(255,255,255,0.85)" }}>{fmt(s.count)} <span style={{ color: muted, fontWeight: 400 }}>({s.pct}%)</span></span>
               </div>
-              <div style={{ height: 16, background: "rgba(255,255,255,0.05)", borderRadius: 5, overflow: "hidden" }}>
+              <div style={{ height: 16, background: "var(--surface-hover)", borderRadius: 5, overflow: "hidden" }}>
                 <div style={{ width: `${s.pct}%`, height: "100%", background: isVenta ? G : P, opacity: 0.82, borderRadius: 5 }} />
               </div>
               {i > 0 && s.dropOff > 0 && (
@@ -711,23 +711,23 @@ const OcrNipWidget = ({ data }: WidgetCtx) => {
   return (
     <Col gap={8}>
       <div style={{ fontSize: 10.5, color: muted, flexShrink: 0, lineHeight: 1.5 }}>
-        El usuario manda foto del NIP → el form la guarda en <b style={{ color: "rgba(255,255,255,0.72)" }}>ocr_image_url</b> → el OCR valida NIP + vigencia + legibilidad.
-        El OCR corre fuera de <code>/sessions</code>, así que se observan la <b style={{ color: "rgba(255,255,255,0.72)" }}>imagen del usuario</b> y los nodos de rama <b style={{ color: "rgba(255,255,255,0.72)" }}>«¿es Legible?»</b> (legibilidad) y <b style={{ color: "rgba(255,255,255,0.72)" }}>«Fecha Vigencia Nip»</b> (vigencia).
+        El usuario manda foto del NIP → el form la guarda en <b style={{ color: "var(--foreground)" }}>ocr_image_url</b> → el OCR valida NIP + vigencia + legibilidad.
+        El OCR corre fuera de <code>/sessions</code>, así que se observan la <b style={{ color: "var(--foreground)" }}>imagen del usuario</b> y los nodos de rama <b style={{ color: "var(--foreground)" }}>«¿es Legible?»</b> (legibilidad) y <b style={{ color: "var(--foreground)" }}>«Fecha Vigencia Nip»</b> (vigencia).
       </div>
       <div style={{ flex: 1, overflow: "auto", minHeight: 0 }}>
         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
           <thead>
             <tr>
               {HEADERS.map((h, i) => (
-                <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "5px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", borderBottom: "1px solid rgba(255,255,255,0.1)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "#0e1117" }}>{h}</th>
+                <th key={h} style={{ textAlign: i === 0 ? "left" : "right", padding: "5px 8px", fontSize: 10, fontWeight: 700, color: muted, textTransform: "uppercase", letterSpacing: "0.04em", border: "1px solid var(--border)", whiteSpace: "nowrap", position: "sticky", top: 0, background: "var(--background)" }}>{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {sorted.map((b) => (
-              <tr key={b.botId} style={{ borderBottom: "1px solid rgba(255,255,255,0.05)", background: b.usesOcrNip ? "rgba(16,185,129,0.05)" : "transparent" }}>
-                <td style={{ padding: "5px 8px", textAlign: "left", color: "rgba(255,255,255,0.88)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 240 }} title={b.botName}>
-                  {b.botName}{b.isUnnamed && <span style={{ fontSize: 9, fontFamily: "monospace", color: muted, marginLeft: 6 }}>{b.botId.slice(0, 6)}</span>}
+              <tr key={b.botId} style={{ border: "1px solid var(--hairline)", background: b.usesOcrNip ? "rgba(16,185,129,0.05)" : "transparent" }}>
+                <td style={{ padding: "5px 8px", textAlign: "left", color: "var(--foreground)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 240 }} title={b.botName}>
+                  {b.botName}{b.isUnnamed && <span style={{ fontSize: 9, fontFamily: "var(--font-mono)", color: muted, marginLeft: 6 }}>{b.botId.slice(0, 6)}</span>}
                 </td>
                 <td style={cell}>{fmt(b.sessions)}</td>
                 <td style={{ ...cell, color: b.ocrImageRate >= 10 ? G : "rgba(255,255,255,0.7)" }}>{b.ocrImageRate}%</td>

@@ -183,7 +183,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(59,130,246,0.05)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "var(--cyan-dim)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => (
@@ -552,7 +552,7 @@ function ProyectosContent() {
               display: "inline-flex", alignItems: "center", gap: "8px",
               padding: "10px 20px",
               background: "linear-gradient(135deg, var(--purple), var(--purple))",
-              color: "#fff",
+              color: "var(--foreground)",
               fontSize: "12px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" as const,
               borderRadius: "8px", cursor: "pointer", textDecoration: "none",
               whiteSpace: "nowrap",
@@ -694,15 +694,15 @@ function ProyectosContent() {
       {menuOpen && createPortal(
         <>
           <div style={{ position: "fixed", inset: 0, zIndex: 9990 }} onClick={() => setMenuOpen(null)} />
-          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "rgba(5,8,18,0.98)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0", backdropFilter: "blur(12px)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "var(--surface)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0", backdropFilter: "blur(12px)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
             <MenuBtn icon={<Eye className="w-3.5 h-3.5" />} text="Abrir Dashboard" onClick={() => { router.push(`/dashboard/proyectos/${menuOpen}`); setMenuOpen(null); }} />
             <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Editar Proyecto" onClick={() => { setEditingId(menuOpen); setModalMode("edit"); setMenuOpen(null); }} />
-            <div style={{ height: "1px", background: "rgba(255,255,255,0.09)", margin: "4px 0" }} />
+            <div style={{ height: "1px", background: "var(--surface-hover)", margin: "4px 0" }} />
             {STATUSES.filter(s => s !== projects.find(pp => pp.id === menuOpen)?.status).map(s => (
               <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "EN VUELO" ? "var(--emerald)" : s === "EN ÓRBITA" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "var(--text-muted)" }} />}
                 text={`Cambiar a ${s}`} onClick={() => handleStatusChange(menuOpen, s)} />
             ))}
-            <div style={{ height: "1px", background: "rgba(255,255,255,0.09)", margin: "4px 0" }} />
+            <div style={{ height: "1px", background: "var(--surface-hover)", margin: "4px 0" }} />
             <MenuBtn icon={<Trash2 className="w-3.5 h-3.5" />} text="Eliminar" onClick={() => { setDeleteConfirm(menuOpen); setMenuOpen(null); }} danger />
           </div>
         </>,
@@ -711,19 +711,19 @@ function ProyectosContent() {
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--panel-bg)", backdropFilter: "blur(8px)" }}
           onClick={() => setDeleteConfirm(null)}
         >
-          <div onClick={e => e.stopPropagation()} style={{ background: "rgba(5,8,18,0.98)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--surface)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <AlertTriangle style={{ width: 20, height: 20, color: "var(--red)" }} />
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "white" }}>Eliminar Proyecto</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>Eliminar Proyecto</h3>
             </div>
             <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
-              ¿Estás seguro de que deseas eliminar <strong style={{ color: "white" }}>{projects.find(p => p.id === deleteConfirm)?.alias || "este proyecto"}</strong>? Esta acción no se puede deshacer. Se eliminarán todos los canales, configuraciones y datos asociados.
+              ¿Estás seguro de que deseas eliminar <strong style={{ color: "var(--foreground)" }}>{projects.find(p => p.id === deleteConfirm)?.alias || "este proyecto"}</strong>? Esta acción no se puede deshacer. Se eliminarán todos los canales, configuraciones y datos asociados.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(148,163,184,0.22)", color: "var(--text-secondary)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
+              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid var(--border)", color: "var(--text-secondary)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
               <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "var(--red)", background: "rgba(226,68,92,0.08)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
             </div>
           </div>

@@ -434,7 +434,7 @@ export function AdsManagerTable({
   return (
     <div
       style={{
-        background: "rgba(8,12,24,0.4)",
+        background: "var(--surface)",
         border: "1px solid var(--border)",
         borderRadius: "8px",
         width: "100%",
@@ -1015,7 +1015,7 @@ export function AdsManagerTable({
                       : bd.device_platform || bd.country || bd.region || bd.dma || bd.date_start || bd.hourly_stats_aggregated_by_audience_time_zone || bd.impression_device || bd.image_asset?.name || bd.body_asset?.text?.substring(0, 40) || bd.title_asset?.text || `Row ${bdIdx + 1}`;
                     const bdBg = "rgba(4,12,28,1)";
                     return (
-                      <tr key={`${row.id}-bd-${bdIdx}`} style={{ background: "rgba(59,130,246,0.02)" }}>
+                      <tr key={`${row.id}-bd-${bdIdx}`} style={{ background: "var(--cyan-dim)" }}>
                         <td style={tdFrozen(L_CHECK, CHECKBOX_W, bdBg, false)} />
                         <td style={tdFrozen(L_STATUS, STATUS_W, bdBg, false)} />
                         {showName && (

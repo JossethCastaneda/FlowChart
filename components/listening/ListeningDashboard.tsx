@@ -183,7 +183,7 @@ function TopicBubble({ topic }: { topic: SearchResult["topics"][0] }) {
         flexShrink: 0,
         fontSize: Math.max(10, Math.min(18, baseSize / 6)),
         fontWeight: 700,
-        color: "#fff",
+        color: "var(--foreground)",
         textAlign: "center",
         padding: "0 6px",
         wordBreak: "break-word",
@@ -259,7 +259,7 @@ function ActivityHeatmap({
                       cursor: "default",
                       transition: "transform 0.15s",
                       fontSize: val > 0 ? 9 : undefined,
-                      color: "#fff",
+                      color: "var(--foreground)",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -442,7 +442,7 @@ export function ListeningDashboard() {
               padding: "10px 24px",
               borderRadius: 8,
               background: "linear-gradient(135deg, #7c6bd6, #9b7be8)",
-              color: "#fff",
+              color: "var(--foreground)",
               fontWeight: 600,
               fontSize: 14,
               border: "none",
@@ -491,7 +491,7 @@ export function ListeningDashboard() {
           border: "1px solid #e5484d40",
           borderRadius: 12,
           padding: "16px 20px",
-          color: "#e5484d",
+          color: "var(--c-danger)",
           fontSize: 14,
         }}>
           ⚠️ {error}
@@ -667,14 +667,14 @@ export function ListeningDashboard() {
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                       <Sparkles size={16} color="#34b77c" />
-                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#34b77c" }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--c-success)" }}>
                         {lang === "es" ? "Temas con sentimiento positivo" : "Positive sentiment topics"}
                       </h3>
                     </div>
                     <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
                       {result.sentiment.positiveThemes.map((t, i) => (
                         <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#34b77c", flexShrink: 0 }} />
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--c-success)", flexShrink: 0 }} />
                           <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{t}</span>
                         </li>
                       ))}
@@ -689,14 +689,14 @@ export function ListeningDashboard() {
                   }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
                       <Sparkles size={16} color="#e5484d" />
-                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "#e5484d" }}>
+                      <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--c-danger)" }}>
                         {lang === "es" ? "Temas con sentimiento negativo" : "Negative sentiment topics"}
                       </h3>
                     </div>
                     <ul style={{ listStyle: "none", display: "flex", flexDirection: "column", gap: 10 }}>
                       {result.sentiment.negativeThemes.map((t, i) => (
                         <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#e5484d", flexShrink: 0 }} />
+                          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--c-danger)", flexShrink: 0 }} />
                           <span style={{ fontSize: 14, color: "var(--text-primary)" }}>{t}</span>
                         </li>
                       ))}

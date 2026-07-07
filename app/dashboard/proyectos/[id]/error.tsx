@@ -24,13 +24,13 @@ export default function ProjectError({
             <AlertTriangle className="w-7 h-7 text-amber-400" />
           </div>
           
-          <h2 className="text-lg font-bold text-white mb-2 tracking-wide">Error al cargar el proyecto</h2>
-          <p className="text-[13px] text-slate-400 mb-6 leading-relaxed">
+          <h2 className="text-lg font-bold text-[var(--foreground)] mb-2 tracking-wide">Error al cargar el proyecto</h2>
+          <p className="text-[13px] text-[var(--text-secondary)] mb-6 leading-relaxed">
             Se produjo un error al procesar o descargar los datos de este proyecto. 
             Esto puede deberse a una configuración incompleta o a un fallo temporal de conexión con las APIs.
           </p>
 
-          <div className="w-full p-3 bg-black/40 border border-white/5 rounded-lg mb-8 overflow-hidden text-left">
+          <div className="w-full p-3 bg-[var(--panel-bg)] backdrop-blur-sm border border-[var(--hairline)] rounded-lg mb-8 overflow-hidden text-left">
             <p className="text-[11px] font-mono text-amber-300/80 break-words line-clamp-3">
               {error.message || "Error desconocido al procesar la información del proyecto."}
             </p>
@@ -39,7 +39,7 @@ export default function ProjectError({
           <div className="flex items-center gap-3 w-full">
             <Link 
               href="/dashboard/proyectos"
-              className="flex-1 flex items-center justify-center gap-2 bg-white/5 hover:bg-white/10 text-white py-2.5 rounded-lg text-sm font-medium transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 bg-[var(--surface-hover)] hover:bg-[var(--surface-hover)] text-[var(--foreground)] py-2.5 rounded-lg text-sm font-medium transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Volver a Proyectos

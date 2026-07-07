@@ -348,13 +348,13 @@ function TestChatModal({ line, onClose }: { line: WaLine; onClose: () => void })
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}
+      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--panel-bg)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "0 16px" }}
       onClick={onClose}
     >
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 420, borderRadius: 14, background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 24px 80px rgba(0,0,0,0.6)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 20px", background: "linear-gradient(135deg,rgba(7,94,84,0.5),rgba(18,140,126,0.3))", borderBottom: "1px solid var(--border)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Send size={14} style={{ color: "#25D366" }} />
             </div>
             <div>
@@ -373,7 +373,7 @@ function TestChatModal({ line, onClose }: { line: WaLine; onClose: () => void })
           <div style={{ padding: "10px 14px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 8 }}>
             <label style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer", fontSize: 12, color: "var(--foreground)" }}>
               <div onClick={() => setUseTemplate(!useTemplate)} style={{ width: 36, height: 20, borderRadius: 10, flexShrink: 0, background: useTemplate ? "#25D366" : "rgba(255,255,255,0.06)", border: `1px solid ${useTemplate ? "#25D366" : "rgba(255,255,255,0.12)"}`, position: "relative", cursor: "pointer", transition: "all 0.2s" }}>
-                <div style={{ position: "absolute", top: 2, left: useTemplate ? 18 : 2, width: 14, height: 14, borderRadius: "50%", background: "#fff", transition: "left 0.2s" }} />
+                <div style={{ position: "absolute", top: 2, left: useTemplate ? 18 : 2, width: 14, height: 14, borderRadius: "50%", background: "var(--surface)", transition: "left 0.2s" }} />
               </div>
               {t.useTemplate} <code style={{ fontSize: 10, color: "var(--text-secondary)" }}>hello_world</code>
             </label>
@@ -388,7 +388,7 @@ function TestChatModal({ line, onClose }: { line: WaLine; onClose: () => void })
           )}
           <div style={{ display: "flex", gap: 8 }}>
             <button type="button" onClick={onClose} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontFamily: "inherit" }}>{t.cancel}</button>
-            <button type="submit" disabled={sending || !recipient.trim()} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#25D366,#128C7E)", border: "none", color: "#fff", cursor: sending || !recipient.trim() ? "not-allowed" : "pointer", opacity: sending || !recipient.trim() ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit" }}>
+            <button type="submit" disabled={sending || !recipient.trim()} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#25D366,#128C7E)", border: "none", color: "var(--foreground)", cursor: sending || !recipient.trim() ? "not-allowed" : "pointer", opacity: sending || !recipient.trim() ? 0.6 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit" }}>
               {sending && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
               <Send size={12} /> {t.sendTest}
             </button>
@@ -440,14 +440,14 @@ function EditProfileModal({ line, onClose, onSave }: { line: WaLine; onClose: ()
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
+      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--panel-bg)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
       onClick={onClose}
     >
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 500, borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 32px 100px rgba(0,0,0,0.7)", overflow: "hidden", maxHeight: "90vh", display: "flex", flexDirection: "column" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 20px", borderBottom: "1px solid var(--border)", flexShrink: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Pencil size={15} style={{ color: "#25D366" }} />
             </div>
             <div>
@@ -530,7 +530,7 @@ function EditProfileModal({ line, onClose, onSave }: { line: WaLine; onClose: ()
         {/* Footer */}
         <div style={{ padding: "16px 20px", borderTop: "1px solid var(--border)", display: "flex", gap: 10, flexShrink: 0 }}>
           <button onClick={onClose} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontFamily: "inherit" }}>{t.cancel}</button>
-          <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "rgba(37,211,102,0.15)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: saving ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: saving ? 0.7 : 1 }}>
+          <button onClick={handleSave} disabled={saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: saving ? "wait" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: saving ? 0.7 : 1 }}>
             {saving ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Save size={12} />}
             {saving ? t.saving : t.save}
           </button>
@@ -557,7 +557,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
+      style={{ position: "fixed", inset: 0, zIndex: 1100, background: "var(--panel-bg)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: "16px" }}
       onClick={onClose}
     >
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 420, borderRadius: 16, background: "var(--surface)", border: "1px solid var(--border)", boxShadow: "0 32px 100px rgba(0,0,0,0.7)", overflow: "hidden" }}>
@@ -583,7 +583,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
               value={wabaId || line.wabaId || "—"}
             />
             <InfoRow
-              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Signal size={14} style={{ color: "#25D366" }} /></div>}
+              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Signal size={14} style={{ color: "#25D366" }} /></div>}
               label="Is Cloud API"
               value={line.isCloudApi !== false ? "true" : "false"}
             />
@@ -593,7 +593,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
           <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", margin: "0 0 12px", letterSpacing: "0.05em" }}>Whatsapp line info</p>
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 20 }}>
             <InfoRow
-              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Phone size={14} style={{ color: "#25D366" }} /></div>}
+              icon={<div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}><Phone size={14} style={{ color: "#25D366" }} /></div>}
               label="WhatsApp Phone Id"
               value={line.id}
               copyable
@@ -649,7 +649,7 @@ function InfoRow({ icon, label, value, copyable, badge }: { icon: React.ReactNod
           </span>
         ) : (
           <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-            <span style={{ fontSize: 12, color: "var(--foreground)", fontFamily: "monospace" }}>{value}</span>
+            <span style={{ fontSize: 12, color: "var(--foreground)", fontFamily: "var(--font-mono)" }}>{value}</span>
             {copyable && value && value !== "—" && <CopyButton text={value} />}
           </div>
         )}
@@ -860,17 +860,17 @@ export default function WhatsAppIntegrationPage() {
                 <button onClick={fetchLines} disabled={loadingLines} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: loadingLines ? "wait" : "pointer" }}>
                   <RefreshCw size={13} style={{ animation: loadingLines ? "spin 1s linear infinite" : "none" }} /> {t.update}
                 </button>
-                <button onClick={handleConnect} disabled={connecting || !sdkReady} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer" }}>
+                <button onClick={handleConnect} disabled={connecting || !sdkReady} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer" }}>
                   <Plus size={13} /> {t.newAccount}
                 </button>
-                <button onClick={handleDisconnect} disabled={disconnecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer" }}>
+                <button onClick={handleDisconnect} disabled={disconnecting} style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer" }}>
                   {disconnecting ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <XCircle size={13} />}
                   {t.disconnect}
                 </button>
               </>
             )}
             {!wabaStatus.connected && !loadingStatus && (
-              <button onClick={handleConnect} disabled={connecting || !sdkReady} className="wa-connect-btn" style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700, background: "rgba(37,211,102,0.12)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.6 : 1, transition: "all 0.25s", fontFamily: "inherit" }}>
+              <button onClick={handleConnect} disabled={connecting || !sdkReady} className="wa-connect-btn" style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 20px", borderRadius: 10, fontSize: 13, fontWeight: 700, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", cursor: connecting || !sdkReady ? "wait" : "pointer", opacity: connecting || !sdkReady ? 0.6 : 1, transition: "all 0.25s", fontFamily: "inherit" }}>
                 {connecting ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <WaIcon size={16} />}
                 {connecting ? "Conectando..." : t.connectMeta}
               </button>
@@ -880,7 +880,7 @@ export default function WhatsAppIntegrationPage() {
 
         {/* ── Error ───────────────────────────────────────────────────────── */}
         {connectError && (
-          <div style={{ padding: "12px 16px", borderRadius: 10, marginBottom: 16, background: "rgba(229,72,77,0.06)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ padding: "12px 16px", borderRadius: 10, marginBottom: 16, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", fontSize: 12, display: "flex", alignItems: "center", gap: 8 }}>
             <AlertCircle size={14} style={{ flexShrink: 0 }} /> {connectError}
             <button onClick={() => setConnectError(null)} style={{ marginLeft: "auto", background: "none", border: "none", color: "var(--red)", cursor: "pointer" }}><X size={12} /></button>
           </div>
@@ -974,7 +974,7 @@ export default function WhatsAppIntegrationPage() {
 
         {/* ── Connected: BotMaker-style table ─────────────────────────────── */}
         {!loadingStatus && wabaStatus.connected && (
-          <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid var(--border)", background: "rgba(15,23,42,0.5)" }}>
+          <div style={{ borderRadius: 14, overflow: "hidden", border: "1px solid var(--border)", background: "var(--surface)" }}>
 
             {/* Table header — sticky blue like BotMaker */}
             <div className="wa-table-wrap">
@@ -1029,7 +1029,7 @@ export default function WhatsAppIntegrationPage() {
                         {/* Teléfono */}
                         <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                            <span style={{ fontSize: 12, color: "var(--foreground)", fontFamily: "monospace" }}>{line.displayPhoneNumber}</span>
+                            <span style={{ fontSize: 12, color: "var(--foreground)", fontFamily: "var(--font-mono)" }}>{line.displayPhoneNumber}</span>
                             <CopyButton text={line.displayPhoneNumber} />
                           </div>
                         </td>
@@ -1063,7 +1063,7 @@ export default function WhatsAppIntegrationPage() {
                         <td style={{ padding: "10px 14px", whiteSpace: "nowrap" }}>
                           {line.isLinked ? (
                             <button onClick={() => setTestLine(line)}
-                              style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.25)", color: "#25D366", cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
+                              style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.25)", color: "#25D366", cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}>
                               <WaIcon size={12} /> Chat
                             </button>
                           ) : (
@@ -1078,8 +1078,8 @@ export default function WhatsAppIntegrationPage() {
                               <input autoFocus value={aliasInput} onChange={(e) => setAliasInput(e.target.value)}
                                 onKeyDown={(e) => { if (e.key === "Enter") handleAliasSave(line.id); if (e.key === "Escape") setEditingAlias(null); }}
                                 placeholder={t.aliasPlaceholder}
-                                style={{ flex: 1, padding: "4px 8px", borderRadius: 5, fontSize: 11, background: "rgba(255,255,255,0.06)", border: "1px solid rgba(59,130,246,0.3)", color: "var(--foreground)", outline: "none", fontFamily: "inherit", minWidth: 0 }} />
-                              <button onClick={() => handleAliasSave(line.id)} style={{ background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 5, color: "var(--cyan)", cursor: "pointer", padding: "4px 6px", display: "flex", alignItems: "center" }}><Check size={11} /></button>
+                                style={{ flex: 1, padding: "4px 8px", borderRadius: 5, fontSize: 11, background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.3)", color: "var(--foreground)", outline: "none", fontFamily: "inherit", minWidth: 0 }} />
+                              <button onClick={() => handleAliasSave(line.id)} style={{ background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 5, color: "var(--cyan)", cursor: "pointer", padding: "4px 6px", display: "flex", alignItems: "center" }}><Check size={11} /></button>
                             </div>
                           ) : (
                             <button onClick={() => { setEditingAlias(line.id); setAliasInput(line.alias || line.verifiedName || ""); }}
@@ -1117,7 +1117,7 @@ export default function WhatsAppIntegrationPage() {
                             {/* Link / Unlink */}
                             {!line.isLinked ? (
                               <button onClick={() => handleLink(line.id, null)}
-                                style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "rgba(37,211,102,0.08)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
+                                style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600, background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.2)", color: "#25D366", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>
                                 <Plus size={10} /> {t.linkBtn}
                               </button>
                             ) : null}

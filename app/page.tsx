@@ -172,7 +172,7 @@ export default function Home() {
 
   return (
     <ReactLenis root options={{ lerp: 0.05, duration: 1.5, smoothWheel: true }}>
-    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "#060606", color: "#f5f5f7" }}>
+    <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", background: "var(--background)", color: "var(--foreground)" }}>
 
       {/* JSON-LD */}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
@@ -311,14 +311,14 @@ export default function Home() {
         background: "rgba(10, 10, 10, 0.6)",
         backdropFilter: "blur(24px)",
         WebkitBackdropFilter: "blur(24px)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        border: "1px solid var(--border)",
         borderRadius: 999,
         transition: "all 0.4s",
       }}>
         <div style={{ padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
             <SodareLogo size="sm" animated={false} showText={false} />
-            <span style={{ fontSize: 20, fontWeight: 700, color: "#fff", letterSpacing: "-0.04em" }}>Sodare</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.04em" }}>Sodare</span>
           </Link>
           <nav className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 40 }}>
             {[["#problema", "Problema"], ["#solucion", "Solución"], ["#comparar", "Comparar"]].map(([href, label]) => (
@@ -329,8 +329,8 @@ export default function Home() {
              <Link href="/login" aria-label="Acceder a Sodare" style={{
                 padding: "8px 24px", borderRadius: 980,
                 background: "linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))",
-                color: "#fff",
-                border: "1px solid rgba(255,255,255,0.1)",
+                color: "var(--foreground)",
+                border: "1px solid var(--border)",
                 fontSize: 14, fontWeight: 500,
                 textDecoration: "none", transition: "all 0.25s",
               }}
@@ -343,7 +343,7 @@ export default function Home() {
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d={mobileMenu ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
           </button>
         </div>
-        <div className={`apple-mobile-menu ${mobileMenu ? "open" : ""}`} style={{ background: "#060606", borderBottom: "1px solid rgba(255,255,255,0.05)", borderRadius: "0 0 24px 24px" }}>
+        <div className={`apple-mobile-menu ${mobileMenu ? "open" : ""}`} style={{ background: "var(--background)", border: "1px solid var(--hairline)", borderRadius: "0 0 24px 24px" }}>
           {[["#problema", "Problema"], ["#solucion", "Solución"], ["#comparar", "Comparar"]].map(([href, label]) => (
             <a key={href} href={href} onClick={() => setMobileMenu(false)}>{label}</a>
           ))}
@@ -407,8 +407,8 @@ export default function Home() {
           style={{
             display: "flex", alignItems: "center", gap: 12,
             padding: "8px 24px", borderRadius: 980, 
-            border: `1px solid rgba(255, 255, 255, 0.1)`,
-            fontSize: 13, fontWeight: 500, color: "#fff", marginBottom: 32, letterSpacing: "0.02em"
+            border: "1px solid var(--border)",
+            fontSize: 13, fontWeight: 500, color: "var(--foreground)", marginBottom: 32, letterSpacing: "0.02em"
           }}
         >
           <span style={{ opacity: 0.4 }}>{"{"}</span>
@@ -437,7 +437,7 @@ export default function Home() {
           style={{
             fontSize: "clamp(16px, 2vw, 20px)",
             fontWeight: 400,
-            color: "rgba(255,255,255,0.6)",
+            color: "var(--text-muted)",
             lineHeight: 1.6,
             maxWidth: 680,
             marginBottom: 48,
@@ -455,8 +455,8 @@ export default function Home() {
           <Link href="/login" className="col-pill col-pill-primary" aria-label="Contacto / Registro">
             Contactar Ventas
           </Link>
-          <div style={{ display: "flex", alignItems: "center", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 12, padding: "4px 4px 4px 16px" }}>
-            <input type="email" placeholder="Ingresa tu email" style={{ background: "transparent", border: "none", color: "#fff", outline: "none", width: 200, fontSize: 15 }} />
+          <div style={{ display: "flex", alignItems: "center", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 12, padding: "4px 4px 4px 16px" }}>
+            <input type="email" placeholder="Ingresa tu email" style={{ background: "transparent", border: "none", color: "var(--foreground)", outline: "none", width: 200, fontSize: 15 }} />
             <Link href="/login" className="col-pill col-pill-secondary" style={{ padding: "10px 24px", fontSize: 14 }}>
               Solicitar Demo
             </Link>
@@ -479,8 +479,8 @@ export default function Home() {
             initial={{ opacity: 0, y: 60 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1, delay: 1.9, ease: "easeOut" }}
           style={{ 
             width: "100%", maxWidth: 1100, height: 600, 
-            background: "#0a0a0a",
-            border: "1px solid rgba(255,255,255,0.1)",
+            background: "var(--background)",
+            border: "1px solid var(--border)",
             borderBottom: "none",
             borderRadius: "24px 24px 0 0",
             position: "relative",
@@ -490,12 +490,12 @@ export default function Home() {
           }}
         >
           {/* Sidebar */}
-          <div style={{ width: 240, borderRight: "1px solid rgba(255,255,255,0.05)", padding: 24, display: "flex", flexDirection: "column" }}>
+          <div style={{ width: 240, border: "1px solid var(--hairline)", padding: 24, display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 48 }}>
               <div style={{ width: 24, height: 24, background: `linear-gradient(180deg, ${GRADIENT_START}, ${ACCENT_COLOR})`, borderRadius: 6 }} />
-              <div style={{ fontSize: 18, fontWeight: 600, color: "#fff" }}>Sodare</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)" }}>Sodare</div>
             </div>
-            <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Navegación</div>
+            <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 16 }}>Navegación</div>
             {[
               { icon: <Target size={16}/>, label: "Dashboard", active: true },
               { icon: <Globe size={16}/>, label: "Campañas", active: false },
@@ -515,13 +515,13 @@ export default function Home() {
           {/* Main Area */}
           <div style={{ flex: 1, padding: 32, display: "flex", flexDirection: "column", gap: 24, background: "radial-gradient(circle at bottom right, rgba(59,130,246, 0.1), transparent 50%)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-               <h3 style={{ fontSize: 24, fontWeight: 600, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
+               <h3 style={{ fontSize: 24, fontWeight: 600, color: "var(--foreground)", display: "flex", alignItems: "center", gap: 8 }}>
                  Resumen de Campañas 
                  <Activity size={24} color={ACCENT_COLOR} />
                </h3>
                <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}><Users size={16} color="#fff"/></div>
-                 <div style={{ padding: "8px 16px", borderRadius: 999, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "#fff", fontSize: 14 }}>Exportar</div>
+                 <div style={{ width: 40, height: 40, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center" }}><Users size={16} color="#fff"/></div>
+                 <div style={{ padding: "8px 16px", borderRadius: 999, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: 14 }}>Exportar</div>
                </div>
             </div>
             {/* Top Cards */}
@@ -537,20 +537,20 @@ export default function Home() {
                   border: c.glow ? `1px solid rgba(59,130,246, 0.3)` : "1px solid rgba(255,255,255,0.05)",
                   boxShadow: c.glow ? "0 10px 30px rgba(59,130,246, 0.1)" : "none"
                 }}>
-                  <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ fontSize: 13, color: "var(--text-muted)", marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: c.glow ? ACCENT_COLOR : "rgba(255,255,255,0.2)" }} />
                     {c.title}
                   </div>
-                  <div style={{ fontSize: 32, fontWeight: 700, color: "#fff" }}>{c.val}</div>
-                  <div style={{ width: "100%", height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, marginTop: 16, overflow: "hidden" }}>
+                  <div style={{ fontSize: 32, fontWeight: 700, color: "var(--foreground)" }}>{c.val}</div>
+                  <div style={{ width: "100%", height: 4, background: "var(--surface-hover)", borderRadius: 2, marginTop: 16, overflow: "hidden" }}>
                      <div style={{ height: "100%", width: "70%", background: c.glow ? ACCENT_COLOR : "#fff" }} />
                   </div>
                 </div>
               ))}
             </div>
             {/* Chart Area */}
-            <div style={{ flex: 1, borderRadius: 16, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", padding: 24, display: "flex", flexDirection: "column" }}>
-              <div style={{ fontSize: 16, fontWeight: 600, color: "#fff", marginBottom: 24 }}>Rendimiento Multicanal</div>
+            <div style={{ flex: 1, borderRadius: 16, background: "var(--surface)", border: "1px solid var(--hairline)", padding: 24, display: "flex", flexDirection: "column" }}>
+              <div style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", marginBottom: 24 }}>Rendimiento Multicanal</div>
               <div style={{ flex: 1, display: "flex", alignItems: "flex-end", gap: 16, padding: "0 24px" }}>
                  {[40, 60, 45, 80, 55, 90, 70].map((h, i) => (
                    <div key={i} className={`mockup-chart-bar ${i === 5 ? "active" : ""}`} style={{ height: `${h}%` }} />
@@ -570,8 +570,7 @@ export default function Home() {
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "center", gap: 48,
             padding: "32px 0",
-            borderTop: "1px solid rgba(255,255,255,0.05)",
-            borderBottom: "1px solid rgba(255,255,255,0.05)",
+            border: "1px solid var(--hairline)",
             flexWrap: "wrap",
           }}>
             {[
@@ -580,8 +579,8 @@ export default function Home() {
               { icon: <Activity style={{ width: 18, height: 18 }} />, text: "99.9% uptime" },
               { icon: <Globe style={{ width: 18, height: 18 }} />, text: "Soporte en español" },
             ].map((item, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 500, color: "rgba(255,255,255,0.5)" }}>
-                <span style={{ color: "rgba(255,255,255,0.7)", display: "flex" }}>{item.icon}</span>{item.text}
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, fontSize: 14, fontWeight: 500, color: "var(--text-muted)" }}>
+                <span style={{ color: "var(--foreground)", display: "flex" }}>{item.icon}</span>{item.text}
               </div>
             ))}
           </div>
@@ -594,7 +593,7 @@ export default function Home() {
       <section id="problema" style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(59,130,246, 0.1)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+             <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
               El Problema
              </div>
           </div>
@@ -617,12 +616,12 @@ export default function Home() {
                 <div className="col-glow-bg" style={{ top: 0, right: 0, width: 150, height: 150, opacity: 0.1 }} />
                 <div style={{ position: "relative", zIndex: 1 }}>
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 8, marginBottom: 16 }}>
-                    <span style={{ fontSize: "clamp(48px, 6vw, 64px)", fontWeight: 700, color: "#fff", letterSpacing: "-0.04em", lineHeight: 1 }}>
+                    <span style={{ fontSize: "clamp(48px, 6vw, 64px)", fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.04em", lineHeight: 1 }}>
                       {p.stat}
                     </span>
                     <span style={{ fontSize: 16, fontWeight: 500, color: ACCENT_COLOR }}>{p.unit}</span>
                   </div>
-                  <p style={{ fontSize: 16, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>{p.desc}</p>
+                  <p style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.6 }}>{p.desc}</p>
                 </div>
               </SpotlightCard>
             </Reveal>
@@ -643,7 +642,7 @@ export default function Home() {
         <div style={{ maxWidth: 1200, margin: "0 auto", position: "relative", zIndex: 2 }}>
           <Reveal>
             <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-               <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(59,130,246, 0.1)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+               <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
                 La Solución
                </div>
             </div>
@@ -653,7 +652,7 @@ export default function Home() {
             }}>
               Una plataforma.<br/>Todos tus canales.
             </h2>
-            <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", textAlign: "center", maxWidth: 600, margin: "0 auto 80px", lineHeight: 1.6 }}>
+            <p style={{ fontSize: 18, color: "var(--text-muted)", textAlign: "center", maxWidth: 600, margin: "0 auto 80px", lineHeight: 1.6 }}>
               Sodare reemplaza 5 herramientas separadas con una sola experiencia diseñada para agencias de alto rendimiento.
             </p>
           </Reveal>
@@ -670,17 +669,17 @@ export default function Home() {
                       border: "1px solid rgba(59,130,246, 0.2)",
                       boxShadow: "0 10px 20px rgba(59,130,246, 0.1)",
                       display: "flex", alignItems: "center", justifyContent: "center",
-                      marginBottom: 24, color: "#fff",
+                      marginBottom: 24, color: "var(--foreground)",
                     }}>
                       {f.icon}
                     </div>
                     <p style={{ fontSize: 12, fontWeight: 600, color: ACCENT_COLOR, marginBottom: 8, letterSpacing: "0.05em", textTransform: "uppercase" }}>
                       {f.codename}
                     </p>
-                    <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 12, letterSpacing: "-0.02em", color: "#fff" }}>
+                    <h3 style={{ fontSize: 28, fontWeight: 600, marginBottom: 12, letterSpacing: "-0.02em", color: "var(--foreground)" }}>
                       {f.title}
                     </h3>
-                    <p style={{ fontSize: 16, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, maxWidth: 400 }}>
+                    <p style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 400 }}>
                       {f.desc}
                     </p>
                   </div>
@@ -701,7 +700,7 @@ export default function Home() {
       <section style={{ position: "relative", zIndex: 1, padding: "120px 24px", maxWidth: 1200, margin: "0 auto", width: "100%" }}>
         <Reveal>
           <div style={{ display: "flex", alignItems: "center", gap: 8, justifyContent: "center", marginBottom: 16 }}>
-             <div style={{ padding: "6px 16px", borderRadius: 980, background: "rgba(59,130,246, 0.1)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
+             <div style={{ padding: "6px 16px", borderRadius: 980, background: "var(--cyan-dim)", border: `1px solid rgba(59,130,246, 0.2)`, color: ACCENT_COLOR, fontSize: 13, fontWeight: 600 }}>
               Cómo Funciona
              </div>
           </div>
@@ -731,16 +730,16 @@ export default function Home() {
                 <div style={{ position: "relative", zIndex: 1, paddingTop: 40 }}>
                   <div style={{
                     width: 64, height: 64, borderRadius: 20,
-                    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)",
+                    background: "var(--surface)", border: "1px solid var(--border)",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    marginBottom: 24, color: "#fff",
+                    marginBottom: 24, color: "var(--foreground)",
                   }}>
                     {s.icon}
                   </div>
-                  <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16, color: "#fff", letterSpacing: "-0.02em" }}>
+                  <h3 style={{ fontSize: 24, fontWeight: 600, marginBottom: 16, color: "var(--foreground)", letterSpacing: "-0.02em" }}>
                     {s.title}
                   </h3>
-                  <p style={{ fontSize: 16, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>
+                  <p style={{ fontSize: 16, color: "var(--text-muted)", lineHeight: 1.6 }}>
                     {s.desc}
                   </p>
                 </div>
@@ -753,7 +752,7 @@ export default function Home() {
       {/* ═══════════════════════════════════════════════════════
          STATS
          ═══════════════════════════════════════════════════════ */}
-      <section style={{ position: "relative", zIndex: 1, padding: "120px 24px", borderTop: "1px solid rgba(255,255,255,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.01)" }}>
+      <section style={{ position: "relative", zIndex: 1, padding: "120px 24px", border: "1px solid var(--hairline)", background: "var(--surface)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto" }}>
           <div className="col-stats-grid" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 32, textAlign: "center" }}>
             {[
@@ -770,7 +769,7 @@ export default function Home() {
                 }}>
                   {s.refP.value}
                 </div>
-                <div style={{ fontSize: 15, fontWeight: 500, color: "rgba(255,255,255,0.5)", letterSpacing: "0.05em", textTransform: "uppercase" }}>
+                <div style={{ fontSize: 15, fontWeight: 500, color: "var(--text-muted)", letterSpacing: "0.05em", textTransform: "uppercase" }}>
                   {s.label}
                 </div>
               </div>
@@ -795,25 +794,25 @@ export default function Home() {
           }}>
             Tu marketing merece<br/>un centro de mando.
           </h2>
-          <p style={{ fontSize: 18, color: "rgba(255,255,255,0.6)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 48px" }}>
+          <p style={{ fontSize: 18, color: "var(--text-muted)", lineHeight: 1.6, maxWidth: 500, margin: "0 auto 48px" }}>
             Únete a los equipos que ya dejaron de saltar entre pestañas y empezaron a ver resultados reales.
           </p>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
             <Link href="/login" className="col-pill col-pill-primary" aria-label="Crear cuenta gratis en Sodare" style={{ padding: "18px 40px", fontSize: 18 }}>
               Crear cuenta gratis
             </Link>
-            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>Sin tarjeta · Cancela cuando quieras</p>
+            <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Sin tarjeta · Cancela cuando quieras</p>
           </div>
         </Reveal>
       </section>
 
       {/* ═══ FOOTER ═══ */}
-      <footer style={{ position: "relative", zIndex: 1, borderTop: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.01)" }}>
+      <footer style={{ position: "relative", zIndex: 1, border: "1px solid var(--hairline)", background: "var(--surface)" }}>
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 40px" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 48, flexWrap: "wrap" }}>
             <div style={{ maxWidth: 300 }}>
               <SodareLogo size="sm" animated={false} />
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginTop: 16, lineHeight: 1.6 }}>
+              <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 16, lineHeight: 1.6 }}>
                 Plataforma de inteligencia multicanal para agencias y anunciantes en México y LATAM.
               </p>
             </div>
@@ -831,11 +830,11 @@ export default function Home() {
           </div>
           <div className="col-footer-bottom" style={{
             marginTop: 64, paddingTop: 24,
-            borderTop: "1px solid rgba(255,255,255,0.05)",
+            border: "1px solid var(--hairline)",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
           }}>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)" }}>© {new Date().getFullYear()} Sodare. Todos los derechos reservados.</span>
-            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
+            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>© {new Date().getFullYear()} Sodare. Todos los derechos reservados.</span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
               Hecho en México <MapPin size={14} />
             </span>
           </div>
@@ -853,10 +852,10 @@ export default function Home() {
 function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
-      <h4 style={{ fontSize: 14, fontWeight: 600, color: "#fff", marginBottom: 16, letterSpacing: "0.02em" }}>{title}</h4>
+      <h4 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", marginBottom: 16, letterSpacing: "0.02em" }}>{title}</h4>
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {links.map(l => (
-          <Link key={l.href} href={l.href} style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", textDecoration: "none", transition: "color 0.2s" }}
+          <Link key={l.href} href={l.href} style={{ fontSize: 14, color: "var(--text-muted)", textDecoration: "none", transition: "color 0.2s" }}
             onMouseEnter={e => (e.currentTarget.style.color = "#fff")}
             onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
           >{l.label}</Link>

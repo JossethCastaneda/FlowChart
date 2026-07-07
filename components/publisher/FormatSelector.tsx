@@ -47,7 +47,7 @@ export function FormatSelector({ value, onChange }: Props) {
                 fontWeight: isActive ? 600 : 500,
                 cursor: "pointer",
                 transition: "all 0.2s",
-                fontFamily: "Inter, sans-serif",
+                fontFamily: "var(--font-sans)",
               }}
             >
               <Icon style={{ width: 15, height: 15 }} />
@@ -67,11 +67,11 @@ export function FormatSelector({ value, onChange }: Props) {
                 fontSize: 10,
                 padding: "2px 8px",
                 borderRadius: 10,
-                background: "rgba(59,130,246,0.1)",
+                background: "var(--cyan-dim)",
                 color: "var(--cyan)",
                 border: "1px solid rgba(59,130,246,0.2)",
                 fontWeight: 500,
-                fontFamily: "Inter, sans-serif",
+                fontFamily: "var(--font-sans)",
               }}
             >
               {badge}

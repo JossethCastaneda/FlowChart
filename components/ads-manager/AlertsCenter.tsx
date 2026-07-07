@@ -106,7 +106,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
               style={{
                 display: "flex", alignItems: "flex-start", gap: "8px",
                 padding: "8px 14px",
-                borderTop: `1px solid rgba(255,255,255,0.03)`,
+                border: "1px solid var(--hairline)",
                 background: cfg.bgColor,
               }}
             >
@@ -117,7 +117,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
                 <div style={{ fontSize: "10px", fontWeight: 700, color: cfg.textColor, marginBottom: "2px" }}>
                   {alert.title}
                 </div>
-                <div style={{ fontSize: "10px", color: "rgba(255,255,255,0.6)", lineHeight: "1.4" }}>
+                <div style={{ fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.4" }}>
                   {alert.message}
                 </div>
               </div>
@@ -145,7 +145,7 @@ export function AlertsCenter({ alerts }: AlertsCenterProps) {
           style={{
             padding: "6px 14px", textAlign: "center",
             fontSize: "9px", color: "var(--text-muted)", cursor: "pointer",
-            borderTop: "1px solid rgba(255,255,255,0.03)",
+            border: "1px solid var(--hairline)",
           }}
         >
           Ver {visible.length - 3} alertas más...

@@ -164,7 +164,7 @@ export default function MetaAdsPage() {
               background: "#0081FB",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 4px 12px rgba(0,129,251,0.3)",
-              color: "white",
+              color: "var(--foreground)",
             }}>
               <MetaIcon />
             </div>

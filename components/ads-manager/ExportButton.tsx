@@ -161,7 +161,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
           display: "flex", alignItems: "center", gap: "5px",
           padding: "6px 10px", fontSize: "11px", fontWeight: 600,
           background: "var(--row-hover)", border: "1px solid var(--hairline)",
-          borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
+          borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
           transition: "all 0.15s",
         }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--cyan)"; e.currentTarget.style.color = "white"; }}

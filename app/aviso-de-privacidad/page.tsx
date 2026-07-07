@@ -18,26 +18,26 @@ export default function AvisoDePrivacidad() {
       <div style={{
         maxWidth: "800px",
         width: "100%",
-        background: "rgba(255, 255, 255, 0.02)",
-        border: "1px solid rgba(255, 255, 255, 0.06)",
+        background: "var(--surface)",
+        border: "1px solid var(--hairline)",
         borderRadius: "16px",
         padding: "40px",
         boxShadow: "0 20px 40px rgba(0, 0, 0, 0.3)",
         backdropFilter: "blur(12px)",
       }}>
         {/* Header */}
-        <div style={{ borderBottom: "1px solid rgba(255, 255, 255, 0.08)", paddingBottom: "24px", marginBottom: "32px" }}>
+        <div style={{ border: "1px solid var(--border)", paddingBottom: "24px", marginBottom: "32px" }}>
           <h1 style={{
             fontFamily: "var(--font-display)",
             fontSize: "28px",
             fontWeight: 700,
-            color: "#ffffff",
+            color: "var(--foreground)",
             letterSpacing: "0.05em",
             marginBottom: "8px",
           }}>
             Aviso de Privacidad
           </h1>
-          <p style={{ fontSize: "14px", color: "rgba(148, 163, 184, 0.6)" }}>
+          <p style={{ fontSize: "14px", color: "var(--text-secondary)" }}>
             Última actualización: 2 de junio de 2026
           </p>
         </div>
@@ -51,7 +51,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "#ffffff", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
               1. Datos que Recopilamos
             </h2>
             <p style={{ marginBottom: "8px" }}>
@@ -65,7 +65,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "#ffffff", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
               2. Uso de la Información
             </h2>
             <p style={{ marginBottom: "8px" }}>
@@ -80,7 +80,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "#ffffff", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
               3. Protección de tus Datos
             </h2>
             <p>
@@ -89,7 +89,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "#ffffff", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
               4. Eliminación de Datos del Usuario (Instrucciones de Eliminación)
             </h2>
             <p style={{ marginBottom: "12px" }}>
@@ -110,7 +110,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "#ffffff", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
               5. Uso de datos de Google (Divulgación de Uso Limitado)
             </h2>
             <p style={{ marginBottom: "12px" }}>
@@ -148,7 +148,7 @@ export default function AvisoDePrivacidad() {
           </section>
 
           <section>
-            <h2 style={{ fontSize: "18px", color: "#ffffff", fontWeight: 600, marginBottom: "12px" }}>
+            <h2 style={{ fontSize: "18px", color: "var(--foreground)", fontWeight: 600, marginBottom: "12px" }}>
               6. Contacto
             </h2>
             <p>
@@ -161,14 +161,14 @@ export default function AvisoDePrivacidad() {
         </div>
 
         {/* Footer */}
-        <div style={{ marginTop: "40px", paddingTop: "24px", borderTop: "1px solid rgba(255, 255, 255, 0.08)", textAlign: "center" }}>
+        <div style={{ marginTop: "40px", paddingTop: "24px", border: "1px solid var(--border)", textAlign: "center" }}>
           <Link href="/" style={{
             display: "inline-block",
             padding: "10px 24px",
-            background: "rgba(255, 255, 255, 0.05)",
-            border: "1px solid rgba(255, 255, 255, 0.1)",
+            background: "var(--surface-hover)",
+            border: "1px solid var(--border)",
             borderRadius: "8px",
-            color: "#ffffff",
+            color: "var(--foreground)",
             fontSize: "14px",
             textDecoration: "none",
             transition: "all 0.2s ease",

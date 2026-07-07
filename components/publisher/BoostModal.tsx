@@ -155,13 +155,13 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
         {/* ── Post Preview ── */}
         <div style={{
           display: "flex", gap: 10, padding: "12px 20px",
-          borderBottom: "1px solid rgba(255,255,255,0.06)",
-          background: "rgba(255,255,255,0.02)",
+          border: "1px solid var(--hairline)",
+          background: "var(--surface)",
         }}>
           {(post.mediaUrls?.[0] || post.mediaUrl) && (
             <div style={{
               width: 44, height: 44, borderRadius: 6, overflow: "hidden",
-              flexShrink: 0, background: "#000",
+              flexShrink: 0, background: "var(--background)",
             }}>
               <img
                 src={post.mediaUrls?.[0] || post.mediaUrl || ""}
@@ -212,7 +212,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                 style={{
                   flex: 1, background: "transparent", border: "none", outline: "none",
                   color: "var(--foreground)", fontSize: 16, fontWeight: 600,
-                  fontFamily: "Inter, sans-serif",
+                  fontFamily: "var(--font-sans)",
                 }}
               />
               <span style={{ fontSize: 12, color: "var(--text-muted)", fontWeight: 500 }}>MXN / día</span>
@@ -337,7 +337,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                 width: "100%", padding: "8px 12px", borderRadius: 8,
                 background: "var(--surface-hover)",
                 border: "1px solid var(--hairline)",
-                color: "var(--foreground)", fontSize: 13, fontFamily: "Inter, sans-serif",
+                color: "var(--foreground)", fontSize: 13, fontFamily: "var(--font-sans)",
                 outline: "none",
               }}
               onFocus={(e) => { e.currentTarget.style.borderColor = "rgba(224,168,60,0.4)"; }}
@@ -366,8 +366,8 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
         {/* ── Footer ── */}
         <div style={{
           display: "flex", gap: 8, padding: "14px 20px",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
-          background: "rgba(255,255,255,0.02)",
+          border: "1px solid var(--hairline)",
+          background: "var(--surface)",
           justifyContent: "flex-end",
         }}>
           <button
@@ -375,7 +375,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
             disabled={loading}
             style={{
               padding: "8px 18px", borderRadius: 8, fontSize: 12, fontWeight: 500,
-              background: "rgba(255,255,255,0.06)", border: "1px solid var(--hairline)",
+              background: "var(--surface-hover)", border: "1px solid var(--hairline)",
               color: "var(--text-secondary)", cursor: loading ? "not-allowed" : "pointer",
               transition: "all 0.15s",
             }}
@@ -392,7 +392,7 @@ export function BoostModal({ post, onClose, onSuccess }: BoostModalProps) {
                 ? "rgba(224,168,60,0.2)"
                 : "linear-gradient(135deg, var(--amber), var(--amber))",
               border: "none",
-              color: "#fff", cursor: loading ? "not-allowed" : "pointer",
+              color: "var(--foreground)", cursor: loading ? "not-allowed" : "pointer",
               boxShadow: loading ? "none" : "0 4px 16px rgba(224,168,60,0.25)",
               transition: "all 0.2s",
               opacity: loading ? 0.7 : 1,

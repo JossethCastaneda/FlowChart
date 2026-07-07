@@ -431,7 +431,7 @@ export function WhatsAppConnectCard() {
     return (
       <div style={{
         height: 120, borderRadius: 8,
-        background: "rgba(148,163,184,0.04)",
+        background: "var(--border-neutral)",
         display: "flex", alignItems: "center", justifyContent: "center"
       }}>
         <Loader2 style={{ width: 20, height: 20, color: "var(--text-muted)", animation: "int-spin 1s linear infinite" }} />
@@ -448,8 +448,8 @@ export function WhatsAppConnectCard() {
           justifyContent: "space-between",
           alignItems: "center",
           padding: "12px 16px",
-          background: "rgba(255, 255, 255, 0.02)",
-          border: "1px solid rgba(255, 255, 255, 0.06)",
+          background: "var(--surface)",
+          border: "1px solid var(--hairline)",
           borderRadius: "10px",
           gap: 12,
         }}>
@@ -465,8 +465,8 @@ export function WhatsAppConnectCard() {
               onClick={handleConnect}
               disabled={connecting}
               style={{
-                background: "rgba(255, 255, 255, 0.05)",
-                border: "1px solid rgba(255, 255, 255, 0.08)",
+                background: "var(--surface-hover)",
+                border: "1px solid var(--border)",
                 borderRadius: "6px",
                 color: "var(--foreground)",
                 fontSize: "10px",
@@ -486,7 +486,7 @@ export function WhatsAppConnectCard() {
               onClick={handleDisconnect}
               disabled={disconnecting}
               style={{
-                background: "rgba(229,72,77, 0.08)",
+                background: "var(--red-dim)",
                 border: "1px solid rgba(229,72,77, 0.2)",
                 borderRadius: "6px",
                 color: "var(--red)",
@@ -536,7 +536,7 @@ export function WhatsAppConnectCard() {
           {linesError && (
             <div style={{
               padding: "10px 14px",
-              background: "rgba(229,72,77, 0.05)",
+              background: "var(--red-dim)",
               border: "1px solid rgba(229,72,77, 0.15)",
               borderRadius: "8px",
               color: "var(--red)",
@@ -550,8 +550,8 @@ export function WhatsAppConnectCard() {
             <div style={{
               padding: "24px",
               textAlign: "center",
-              background: "rgba(255,255,255,0.01)",
-              border: "1px dashed rgba(255,255,255,0.06)",
+              background: "var(--surface)",
+              border: "1px dashed var(--border)",
               borderRadius: "8px",
               color: "var(--text-muted)",
               fontSize: "11px",
@@ -637,7 +637,7 @@ export function WhatsAppConnectCard() {
                               setTestRecipient("");
                             }}
                             style={{
-                              background: "rgba(59,130,246, 0.08)",
+                              background: "var(--cyan-dim)",
                               border: "1px solid rgba(59,130,246, 0.2)",
                               borderRadius: "6px",
                               color: "var(--cyan)",
@@ -691,7 +691,7 @@ export function WhatsAppConnectCard() {
                         <button
                           onClick={() => handleLinkLine(line.id, null)}
                           style={{
-                            background: "rgba(37, 211, 102, 0.08)",
+                            background: "var(--emerald-dim)",
                             border: "1px solid rgba(37, 211, 102, 0.2)",
                             borderRadius: "6px",
                             color: "#25D366",
@@ -715,15 +715,15 @@ export function WhatsAppConnectCard() {
                       alignItems: "center",
                       gap: 8,
                       paddingTop: 8,
-                      borderTop: "1px solid rgba(255, 255, 255, 0.04)",
+                      border: "1px solid var(--hairline)",
                     }}>
                       <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>Proyecto:</span>
                       <select
                         value={line.projectId || ""}
                         onChange={(e) => handleLinkLine(line.id, e.target.value || null)}
                         style={{
-                          background: "rgba(15, 23, 42, 0.5)",
-                          border: "1px solid rgba(255, 255, 255, 0.06)",
+                          background: "var(--surface)",
+                          border: "1px solid var(--hairline)",
                           borderRadius: "4px",
                           color: "var(--foreground)",
                           fontSize: "10px",
@@ -756,7 +756,7 @@ export function WhatsAppConnectCard() {
           <div style={{
             padding: 16,
             borderRadius: 10,
-            background: "rgba(59,130,246, 0.02)",
+            background: "var(--cyan-dim)",
             border: "1px solid rgba(59,130,246, 0.12)",
             display: "flex",
             flexDirection: "column",
@@ -791,8 +791,8 @@ export function WhatsAppConnectCard() {
                     padding: "6px 10px",
                     borderRadius: "6px",
                     fontSize: "11px",
-                    background: "rgba(255, 255, 255, 0.04)",
-                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                    background: "var(--surface)",
+                    border: "1px solid var(--border)",
                     color: "var(--foreground)",
                     outline: "none",
                     fontFamily: "inherit",
@@ -836,7 +836,7 @@ export function WhatsAppConnectCard() {
                 type="submit"
                 disabled={sendingTest || !testRecipient.trim()}
                 style={{
-                  background: "rgba(59,130,246, 0.12)",
+                  background: "var(--cyan-dim)",
                   border: "1px solid rgba(59,130,246, 0.25)",
                   borderRadius: "6px",
                   color: "var(--cyan)",
@@ -940,7 +940,7 @@ export function WhatsAppConnectCard() {
             title="Desconectar WhatsApp Business"
             style={{
               padding: "5px 10px", borderRadius: 6, flexShrink: 0,
-              background: "rgba(229,72,77,0.06)",
+              background: "var(--red-dim)",
               border: "1px solid rgba(229,72,77,0.18)",
               color: "var(--red)", fontSize: 10, fontWeight: 600,
               cursor: disconnecting ? "wait" : "pointer",
@@ -963,7 +963,7 @@ export function WhatsAppConnectCard() {
           padding: "8px 14px 10px 54px",
           fontSize: 10, color: "var(--red)",
           borderTop: "1px solid rgba(229,72,77,0.1)",
-          background: "rgba(229,72,77,0.03)",
+          background: "var(--red-dim)",
         }}>
           {error}
         </div>

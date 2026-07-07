@@ -109,7 +109,7 @@ function ChannelIcons({ channels }: { channels: string[] }) {
         return (
           <span key={ch} title={ch} style={{
             width: 22, height: 22, borderRadius: 2,
-            background: "rgba(148,163,184,0.1)", border: "1px solid rgba(148,163,184,0.2)",
+            background: "var(--border-neutral)", border: "1px solid var(--border)",
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <Globe size={11} color="var(--text-secondary)" />
@@ -180,7 +180,7 @@ export default function DeploymentHistoryPage() {
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "14px 20px", borderBottom: "1px solid rgba(59,130,246,0.1)",
-        background: "rgba(5,8,18,0.6)", backdropFilter: "blur(20px)",
+        background: "var(--surface)", backdropFilter: "blur(20px)",
         gap: 16,
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -213,7 +213,7 @@ export default function DeploymentHistoryPage() {
               style={{
                 paddingLeft: 28, paddingRight: 12, paddingTop: 6, paddingBottom: 6,
                 fontSize: 11, color: "var(--text-secondary)", width: 200,
-                background: "rgba(8,12,24,0.6)", border: "1px solid rgba(148,163,184,0.16)",
+                background: "var(--surface)", border: "1px solid var(--border)",
                 borderRadius: 3,
               }}
             />
@@ -228,7 +228,7 @@ export default function DeploymentHistoryPage() {
               style={{
                 paddingLeft: 26, paddingRight: 22, paddingTop: 6, paddingBottom: 6,
                 fontSize: 11, color: "var(--text-secondary)", cursor: "pointer",
-                background: "rgba(8,12,24,0.6)", border: "1px solid rgba(148,163,184,0.16)",
+                background: "var(--surface)", border: "1px solid var(--border)",
                 borderRadius: 3, appearance: "none",
               }}
             >
@@ -248,7 +248,7 @@ export default function DeploymentHistoryPage() {
               style={{
                 paddingLeft: 26, paddingRight: 22, paddingTop: 6, paddingBottom: 6,
                 fontSize: 11, color: "var(--text-secondary)", cursor: "pointer",
-                background: "rgba(8,12,24,0.6)", border: "1px solid rgba(148,163,184,0.16)",
+                background: "var(--surface)", border: "1px solid var(--border)",
                 borderRadius: 3, appearance: "none",
               }}
             >
@@ -262,7 +262,7 @@ export default function DeploymentHistoryPage() {
           {/* Status count pills */}
           <div style={{
             display: "flex", alignItems: "center", gap: 0,
-            background: "rgba(8,12,24,0.6)", border: "1px solid rgba(148,163,184,0.16)",
+            background: "var(--surface)", border: "1px solid var(--border)",
             borderRadius: 3, overflow: "hidden", padding: "4px 10px",
             fontSize: 11, color: "var(--text-secondary)", fontWeight: 600,
           }}>
@@ -276,7 +276,7 @@ export default function DeploymentHistoryPage() {
             onClick={() => fetchPosts(true)}
             style={{
               width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(8,12,24,0.6)", border: "1px solid rgba(148,163,184,0.16)",
+              background: "var(--surface)", border: "1px solid var(--border)",
               borderRadius: 3, cursor: "pointer",
             }}
           >
@@ -292,7 +292,7 @@ export default function DeploymentHistoryPage() {
         gap: 0,
         padding: "8px 20px",
         borderBottom: "1px solid rgba(59,130,246,0.08)",
-        background: "rgba(59,130,246,0.02)",
+        background: "var(--cyan-dim)",
       }}>
         {["Contenido", "Canales", "Formato", "Estado", "Página", "Publicado", "ID"].map(h => (
           <span key={h} style={{
@@ -308,7 +308,7 @@ export default function DeploymentHistoryPage() {
           <div style={{ padding: 40, textAlign: "center" }}>
             {[...Array(8)].map((_, i) => (
               <div key={i} style={{
-                height: 48, background: "rgba(148,163,184,0.05)", borderRadius: 2,
+                height: 48, background: "var(--border-neutral)", borderRadius: 2,
                 marginBottom: 1, animation: "pulse 1.5s ease-in-out infinite",
                 animationDelay: `${i * 0.1}s`,
               }} />
@@ -332,7 +332,7 @@ export default function DeploymentHistoryPage() {
                   gridTemplateColumns: "2fr 90px 100px 130px 120px 110px 100px",
                   gap: 0,
                   padding: "12px 20px",
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  border: "1px solid var(--hairline)",
                   cursor: "pointer",
                   transition: "all 0.15s ease",
                   background: expandedId === post.id
@@ -387,7 +387,7 @@ export default function DeploymentHistoryPage() {
                 {/* Page */}
                 <div style={{ display: "flex", alignItems: "center", minWidth: 0 }}>
                   <span style={{
-                    fontSize: 11, color: "var(--text-secondary)", fontFamily: "monospace",
+                    fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)",
                     overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                   }}>
                     {post.pageName || "—"}
@@ -404,7 +404,7 @@ export default function DeploymentHistoryPage() {
                 {/* ID */}
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                   <GitBranch size={10} color="var(--text-secondary)" />
-                  <span style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "monospace" }}>
+                  <span style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>
                     {post.id.slice(0, 8)}
                   </span>
                 </div>
@@ -415,7 +415,7 @@ export default function DeploymentHistoryPage() {
                 <div style={{
                   padding: "12px 20px 16px 22px",
                   borderBottom: "1px solid rgba(59,130,246,0.08)",
-                  background: "rgba(0,0,0,0.25)",
+                  background: "var(--surface-hover)",
                   display: "grid",
                   gridTemplateColumns: "1fr 1fr 1fr",
                   gap: 16,
@@ -439,7 +439,7 @@ export default function DeploymentHistoryPage() {
                       ].map(({ label, value }) => (
                         <div key={label} style={{ display: "flex", gap: 8 }}>
                           <span style={{ fontSize: 10, color: "var(--text-secondary)", width: 80, flexShrink: 0 }}>{label}</span>
-                          <span style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "monospace", wordBreak: "break-all" }}>{value}</span>
+                          <span style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", wordBreak: "break-all" }}>{value}</span>
                         </div>
                       ))}
                     </div>
@@ -450,7 +450,7 @@ export default function DeploymentHistoryPage() {
                     {post.error ? (
                       <>
                         <p style={{ fontSize: 9, color: "var(--red)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: 6 }}>ERROR</p>
-                        <p style={{ fontSize: 11, color: "var(--red)", lineHeight: 1.5, background: "rgba(229,72,77,0.08)", padding: "8px 10px", borderRadius: 3, border: "1px solid rgba(229,72,77,0.2)" }}>
+                        <p style={{ fontSize: 11, color: "var(--red)", lineHeight: 1.5, background: "var(--red-dim)", padding: "8px 10px", borderRadius: 3, border: "1px solid rgba(229,72,77,0.2)" }}>
                           {post.error}
                         </p>
                       </>
@@ -460,7 +460,7 @@ export default function DeploymentHistoryPage() {
                         {Object.entries(post.externalIds).map(([platform, id]) => (
                           <div key={platform} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 5 }}>
                             <span style={{ fontSize: 10, color: "var(--text-muted)", width: 70, flexShrink: 0, textTransform: "capitalize" }}>{platform}</span>
-                            <span style={{ fontSize: 10, fontFamily: "monospace", color: "var(--cyan)" }}>{id}</span>
+                            <span style={{ fontSize: 10, fontFamily: "var(--font-mono)", color: "var(--cyan)" }}>{id}</span>
                             <ExternalLink size={10} color="var(--cyan)" style={{ cursor: "pointer" }} />
                           </div>
                         ))}
@@ -475,7 +475,7 @@ export default function DeploymentHistoryPage() {
                         {post.mediaUrls.slice(0, 4).map((url, i) => (
                           <div key={i} style={{
                             width: 48, height: 48, borderRadius: 3, overflow: "hidden",
-                            border: "1px solid rgba(148,163,184,0.16)", background: "#000",
+                            border: "1px solid var(--border)", background: "var(--background)",
                           }}>
                             <img src={url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                           </div>
@@ -483,7 +483,7 @@ export default function DeploymentHistoryPage() {
                         {post.mediaUrls.length > 4 && (
                           <div style={{
                             width: 48, height: 48, borderRadius: 3,
-                            background: "rgba(148,163,184,0.08)", border: "1px solid rgba(148,163,184,0.16)",
+                            background: "var(--border-neutral)", border: "1px solid var(--border)",
                             display: "flex", alignItems: "center", justifyContent: "center",
                             fontSize: 11, color: "var(--text-muted)",
                           }}>
@@ -504,7 +504,7 @@ export default function DeploymentHistoryPage() {
       <div style={{
         display: "flex", alignItems: "center", gap: 20, padding: "10px 20px",
         borderTop: "1px solid rgba(59,130,246,0.08)",
-        background: "rgba(5,8,18,0.6)", backdropFilter: "blur(10px)",
+        background: "var(--surface)", backdropFilter: "blur(10px)",
         flexShrink: 0,
       }}>
         {[

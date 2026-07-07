@@ -87,21 +87,21 @@ export default function OutcomeRulesPage() {
         <div style={{ display: "grid", gridTemplateColumns: "1fr 2fr", gap: "24px" }}>
           
           {/* Creador de Reglas */}
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "24px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "white", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "24px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "var(--foreground)", marginBottom: "16px", display: "flex", alignItems: "center", gap: "8px" }}>
               <Plus className="w-4 h-4 text-purple-400" /> Añadir Regla
             </h3>
 
-            <div className="space-y-4 text-sm text-slate-300">
+            <div className="space-y-4 text-sm text-[var(--text-secondary)]">
               <div>
                 <label className="block mb-1 text-xs">Nombre de la Regla</label>
-                <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ej: Abandono por Fallback" className="w-full bg-black/20 border border-white/10 rounded px-3 py-2 text-white outline-none focus:border-purple-500" />
+                <input type="text" value={newName} onChange={e => setNewName(e.target.value)} placeholder="Ej: Abandono por Fallback" className="w-full bg-[var(--surface-hover)] border border-[var(--border)] rounded px-3 py-2 text-[var(--foreground)] outline-none focus:border-purple-500" />
               </div>
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="block mb-1 text-xs">Campo</label>
-                  <select value={newField} onChange={e => setNewField(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded px-2 py-2 text-white outline-none">
+                  <select value={newField} onChange={e => setNewField(e.target.value)} className="w-full bg-[var(--surface-hover)] border border-[var(--border)] rounded px-2 py-2 text-[var(--foreground)] outline-none">
                     <option value="handoff">Handoff</option>
                     <option value="fallback">Fallback (Count)</option>
                     <option value="csatScore">CSAT Score</option>
@@ -111,7 +111,7 @@ export default function OutcomeRulesPage() {
                 </div>
                 <div>
                   <label className="block mb-1 text-xs">Operador</label>
-                  <select value={newOperator} onChange={e => setNewOperator(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded px-2 py-2 text-white outline-none">
+                  <select value={newOperator} onChange={e => setNewOperator(e.target.value)} className="w-full bg-[var(--surface-hover)] border border-[var(--border)] rounded px-2 py-2 text-[var(--foreground)] outline-none">
                     <option value="eq">Igual a (=)</option>
                     <option value="gt">Mayor a (&gt;)</option>
                     <option value="lt">Menor a (&lt;)</option>
@@ -119,16 +119,16 @@ export default function OutcomeRulesPage() {
                 </div>
                 <div>
                   <label className="block mb-1 text-xs">Valor</label>
-                  <input type="text" value={newValue} onChange={e => setNewValue(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded px-2 py-2 text-white outline-none" />
+                  <input type="text" value={newValue} onChange={e => setNewValue(e.target.value)} className="w-full bg-[var(--surface-hover)] border border-[var(--border)] rounded px-2 py-2 text-[var(--foreground)] outline-none" />
                 </div>
               </div>
 
-              <div className="pt-2 border-t border-white/5 mt-4">
-                <p className="text-xs text-slate-400 mb-2">Si se cumple, clasificar como:</p>
+              <div className="pt-2 border-t border-[var(--hairline)] mt-4">
+                <p className="text-xs text-[var(--text-secondary)] mb-2">Si se cumple, clasificar como:</p>
                 <div className="grid grid-cols-2 gap-2">
                   <div>
                     <label className="block mb-1 text-xs">Resultado (Outcome)</label>
-                    <select value={newOutcome} onChange={e => setNewOutcome(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded px-2 py-2 text-white outline-none">
+                    <select value={newOutcome} onChange={e => setNewOutcome(e.target.value)} className="w-full bg-[var(--surface-hover)] border border-[var(--border)] rounded px-2 py-2 text-[var(--foreground)] outline-none">
                       <option value="resolved">Resuelto</option>
                       <option value="transferred">Transferido</option>
                       <option value="abandoned">Abandonado</option>
@@ -137,7 +137,7 @@ export default function OutcomeRulesPage() {
                   </div>
                   <div>
                     <label className="block mb-1 text-xs">Atendido Por</label>
-                    <select value={newResolvedBy} onChange={e => setNewResolvedBy(e.target.value)} className="w-full bg-black/20 border border-white/10 rounded px-2 py-2 text-white outline-none">
+                    <select value={newResolvedBy} onChange={e => setNewResolvedBy(e.target.value)} className="w-full bg-[var(--surface-hover)] border border-[var(--border)] rounded px-2 py-2 text-[var(--foreground)] outline-none">
                       <option value="bot">Bot</option>
                       <option value="agent">Humano</option>
                       <option value="mixed">Mixto</option>
@@ -146,35 +146,35 @@ export default function OutcomeRulesPage() {
                 </div>
               </div>
 
-              <button onClick={handleCreate} disabled={!newName} className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 px-4 rounded flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
+              <button onClick={handleCreate} disabled={!newName} className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-[var(--foreground)] font-bold py-2 px-4 rounded flex items-center justify-center gap-2 transition-colors disabled:opacity-50">
                 <Save className="w-4 h-4" /> Guardar Regla
               </button>
             </div>
           </div>
 
           {/* Lista de Reglas Activas */}
-          <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "12px", padding: "24px" }}>
-            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "white", marginBottom: "16px" }}>Reglas Activas</h3>
+          <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px", padding: "24px" }}>
+            <h3 style={{ fontSize: "16px", fontWeight: 700, color: "var(--foreground)", marginBottom: "16px" }}>Reglas Activas</h3>
             
             {loading ? (
-              <p className="text-slate-400 text-sm">Cargando reglas...</p>
+              <p className="text-[var(--text-secondary)] text-sm">Cargando reglas...</p>
             ) : rules.length === 0 ? (
-              <div className="text-center p-8 border border-dashed border-white/10 rounded-lg">
-                <AlertCircle className="w-8 h-8 text-slate-500 mx-auto mb-2" />
-                <p className="text-sm text-slate-400">No tienes reglas personalizadas.</p>
-                <p className="text-xs text-slate-500">Se usará el motor de clasificación por defecto.</p>
+              <div className="text-center p-8 border border-dashed border-[var(--border)] rounded-lg">
+                <AlertCircle className="w-8 h-8 text-[var(--text-muted)] mx-auto mb-2" />
+                <p className="text-sm text-[var(--text-secondary)]">No tienes reglas personalizadas.</p>
+                <p className="text-xs text-[var(--text-muted)]">Se usará el motor de clasificación por defecto.</p>
               </div>
             ) : (
               <div className="space-y-3">
                 {rules.map(r => {
                   const conditions = typeof r.conditions === 'string' ? JSON.parse(r.conditions) : r.conditions;
                   return (
-                    <div key={r.id} className="p-3 bg-white/5 border border-white/10 rounded-lg flex items-center justify-between">
+                    <div key={r.id} className="p-3 bg-[var(--surface-hover)] border border-[var(--border)] rounded-lg flex items-center justify-between">
                       <div>
-                        <h4 className="text-white text-sm font-bold">{r.name}</h4>
+                        <h4 className="text-[var(--foreground)] text-sm font-bold">{r.name}</h4>
                         <div className="flex gap-2 mt-1">
                           {conditions.map((c: any, i: number) => (
-                            <span key={i} className="text-[10px] uppercase bg-black/30 px-2 py-1 rounded text-slate-300">
+                            <span key={i} className="text-[10px] uppercase bg-[var(--surface-hover)] px-2 py-1 rounded text-[var(--text-secondary)]">
                               IF {c.field} {c.operator} {String(c.value)}
                             </span>
                           ))}

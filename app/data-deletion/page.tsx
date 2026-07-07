@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useSearchParams } from "next/navigation";
 import { Suspense } from "react";
@@ -19,8 +19,8 @@ function DeletionContent() {
       <div style={{
         maxWidth: 480,
         width: "100%",
-        background: "rgba(255,255,255,0.04)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        background: "var(--surface)",
+        border: "1px solid var(--hairline)",
         borderRadius: 12,
         padding: "40px 32px",
         textAlign: "center",
@@ -39,20 +39,20 @@ function DeletionContent() {
           fontFamily: "var(--font-display)",
           fontSize: 18,
           fontWeight: 700,
-          color: "white",
+          color: "var(--foreground)",
           letterSpacing: "0.05em",
           marginBottom: 12,
         }}>
           Solicitud de Eliminación de Datos
         </h1>
-        <p style={{ fontSize: 14, color: "rgba(148,163,184,0.7)", lineHeight: 1.6, marginBottom: 24 }}>
+        <p style={{ fontSize: 14, color: "var(--text-secondary)", lineHeight: 1.6, marginBottom: 24 }}>
           Tu solicitud de eliminación de datos ha sido recibida y está siendo procesada.
           Todos los datos asociados a tu cuenta de Facebook/Meta serán eliminados de nuestros sistemas.
         </p>
         {code && (
           <div style={{
             background: "rgba(0,0,0,0.3)",
-            border: "1px solid rgba(255,255,255,0.06)",
+            border: "1px solid var(--hairline)",
             borderRadius: 8,
             padding: "16px",
             marginBottom: 24,
@@ -60,7 +60,7 @@ function DeletionContent() {
             <p style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 6, textTransform: "uppercase", letterSpacing: "0.1em" }}>
               Código de confirmación
             </p>
-            <p style={{ fontSize: 14, color: "var(--cyan)", fontFamily: "monospace", fontWeight: 600, wordBreak: "break-all" }}>
+            <p style={{ fontSize: 14, color: "var(--cyan)", fontFamily: "var(--font-mono)", fontWeight: 600, wordBreak: "break-all" }}>
               {code}
             </p>
           </div>

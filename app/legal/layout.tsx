@@ -13,9 +13,9 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
       minHeight: "100vh",
       display: "flex",
       flexDirection: "column",
-      background: "#04070e",
-      color: "#dde6f0",
-      fontFamily: "'Inter', system-ui, sans-serif",
+      background: "var(--background)",
+      color: "var(--foreground)",
+      fontFamily: "var(--font-sans)",
     }}>
       {/* Top nav */}
       <header style={{
@@ -39,10 +39,10 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
             <SodareLogo />
           </Link>
           <nav style={{ display: "flex", gap: 24, alignItems: "center" }}>
-            <Link href="/legal/terms" style={{ fontSize: 13, color: "#94a3b8", textDecoration: "none" }}>
+            <Link href="/legal/terms" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>
               Términos
             </Link>
-            <Link href="/legal/privacy" style={{ fontSize: 13, color: "#94a3b8", textDecoration: "none" }}>
+            <Link href="/legal/privacy" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>
               Privacidad
             </Link>
             <Link
@@ -68,22 +68,22 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
 
       {/* Footer */}
       <footer style={{
-        borderTop: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid var(--hairline)",
         padding: "32px 24px",
         textAlign: "center",
         marginTop: 80,
       }}>
-        <p style={{ fontSize: 12, color: "#6c7c93" }}>
+        <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
           © {new Date().getFullYear()} Sodare. Todos los derechos reservados.
         </p>
         <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 12 }}>
-          <Link href="/legal/terms" style={{ fontSize: 12, color: "#6c7c93", textDecoration: "none" }}>
+          <Link href="/legal/terms" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none" }}>
             Términos de Servicio
           </Link>
-          <Link href="/legal/privacy" style={{ fontSize: 12, color: "#6c7c93", textDecoration: "none" }}>
+          <Link href="/legal/privacy" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none" }}>
             Política de Privacidad
           </Link>
-          <Link href="/login" style={{ fontSize: 12, color: "#6c7c93", textDecoration: "none" }}>
+          <Link href="/login" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none" }}>
             Iniciar Sesión
           </Link>
         </div>

@@ -79,7 +79,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
   return (
     <div
       style={{
-        background: "#fff",
+        background: "var(--surface)",
         borderRadius: 8,
         boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
         overflow: "hidden",
@@ -100,18 +100,18 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
         >
           {creative.pageAvatar
             ? <img src={creative.pageAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-            : <FacebookIcon style={{ width: 20, height: 20, color: "#fff" }} />
+            : <FacebookIcon style={{ width: 20, height: 20, color: "var(--foreground)" }} />
           }
         </div>
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 14, fontWeight: 600, color: "#1c1e21", lineHeight: 1.3 }}>
             {creative.pageName || "Tu Página"}
           </div>
-          <div style={{ fontSize: 12, color: "#65676b", display: "flex", alignItems: "center", gap: 4 }}>
+          <div style={{ fontSize: 12, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
             Patrocinado · <FacebookIcon style={{ width: 10, height: 10 }} />
           </div>
         </div>
-        <div style={{ color: "#65676b", fontSize: 22, lineHeight: 1, cursor: "pointer" }}>···</div>
+        <div style={{ color: "var(--text-muted)", fontSize: 22, lineHeight: 1, cursor: "pointer" }}>···</div>
       </div>
 
       {/* Body text */}
@@ -131,7 +131,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
       {/* Card footer */}
       <div
         style={{
-          background: "#f2f3f5",
+          background: "var(--surface)",
           borderTop: "1px solid #ddd",
           padding: "10px 16px",
           display: "flex",
@@ -142,7 +142,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
       >
         <div style={{ flex: 1, minWidth: 0 }}>
           {creative.displayUrl && (
-            <div style={{ fontSize: 11, color: "#65676b", textTransform: "uppercase", marginBottom: 2 }}>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", textTransform: "uppercase", marginBottom: 2 }}>
               {creative.displayUrl}
             </div>
           )}
@@ -152,7 +152,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
             </div>
           )}
           {creative.description && (
-            <div style={{ fontSize: 13, color: "#65676b", lineHeight: 1.3, marginTop: 2 }}>
+            <div style={{ fontSize: 13, color: "var(--text-muted)", lineHeight: 1.3, marginTop: 2 }}>
               {creative.description}
             </div>
           )}
@@ -160,7 +160,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
         <button
           style={{
             padding: "8px 16px",
-            background: "#e4e6eb",
+            background: "var(--surface)",
             border: "none",
             borderRadius: 6,
             fontSize: 14,
@@ -182,7 +182,7 @@ function FacebookFeedPreview({ creative }: { creative: AdCreativeData }) {
             key={action}
             style={{
               flex: 1, background: "none", border: "none", padding: "8px 4px",
-              fontSize: 13, fontWeight: 600, color: "#65676b", cursor: "pointer",
+              fontSize: 13, fontWeight: 600, color: "var(--text-muted)", cursor: "pointer",
               borderRadius: 6,
             }}
           >
@@ -199,7 +199,7 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
   return (
     <div
       style={{
-        background: "#fff",
+        background: "var(--surface)",
         maxWidth: 400,
         margin: "0 auto",
         fontFamily: "'Helvetica Neue', Helvetica, Arial, sans-serif",
@@ -217,7 +217,7 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
             padding: 2, flexShrink: 0, overflow: "hidden",
           }}
         >
-          <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "#fff" }}>
+          <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "var(--surface)" }}>
             {creative.pageAvatar
               ? <img src={creative.pageAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#1877F2,#4299E1)" }} />
@@ -228,7 +228,7 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
           <div style={{ fontSize: 13, fontWeight: 600, color: "#262626" }}>
             {creative.pageName || "tupagina"}
           </div>
-          <div style={{ fontSize: 11, color: "#8e8e8e" }}>Publicidad</div>
+          <div style={{ fontSize: 11, color: "var(--text-muted)" }}>Publicidad</div>
         </div>
         <div style={{ color: "#262626", fontSize: 22, lineHeight: 1 }}>···</div>
       </div>
@@ -263,7 +263,7 @@ function InstagramFeedPreview({ creative }: { creative: AdCreativeData }) {
             borderRadius: 6,
             fontSize: 13,
             fontWeight: 600,
-            color: "#fff",
+            color: "var(--foreground)",
             cursor: "pointer",
           }}
         >
@@ -299,7 +299,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
   return (
     <div
       style={{
-        background: "#000",
+        background: "var(--background)",
         borderRadius: 16,
         overflow: "hidden",
         maxWidth: 280,
@@ -340,7 +340,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
       <div style={{ position: "relative", zIndex: 2, padding: "14px 12px 0" }}>
         {/* Progress bar */}
         <div style={{ height: 2, background: "rgba(255,255,255,0.4)", borderRadius: 2, marginBottom: 10 }}>
-          <div style={{ width: "40%", height: "100%", background: "#fff", borderRadius: 2 }} />
+          <div style={{ width: "40%", height: "100%", background: "var(--surface)", borderRadius: 2 }} />
         </div>
         {/* Profile */}
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -352,7 +352,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
               flexShrink: 0, overflow: "hidden",
             }}
           >
-            <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "#fff" }}>
+            <div style={{ width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden", background: "var(--surface)" }}>
               {creative.pageAvatar
                 ? <img src={creative.pageAvatar} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                 : <div style={{ width: "100%", height: "100%", background: "linear-gradient(135deg,#1877F2,#4299E1)" }} />
@@ -360,10 +360,10 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
             </div>
           </div>
           <div>
-            <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>
               {creative.pageName || "Tu Página"}
             </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.8)" }}>Publicidad</div>
+            <div style={{ fontSize: 10, color: "var(--text-secondary)" }}>Publicidad</div>
           </div>
         </div>
       </div>
@@ -371,12 +371,12 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
       {/* Bottom content */}
       <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, zIndex: 2, padding: "16px 14px 20px" }}>
         {creative.headline && (
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 4, textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", marginBottom: 4, textShadow: "0 1px 4px rgba(0,0,0,0.8)" }}>
             {creative.headline}
           </div>
         )}
         {creative.message && (
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.9)", marginBottom: 12, lineHeight: 1.4, textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
+          <div style={{ fontSize: 12, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4, textShadow: "0 1px 3px rgba(0,0,0,0.7)" }}>
             {creative.message.length > 80 ? creative.message.substring(0, 80) + "..." : creative.message}
           </div>
         )}
@@ -386,7 +386,7 @@ function StoryPreview({ creative, platform }: { creative: AdCreativeData; platfo
             width: "100%", padding: "10px 16px",
             background: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)",
             border: "none", borderRadius: 24,
-            fontSize: 13, fontWeight: 700, color: "#000",
+            fontSize: 13, fontWeight: 700, color: "var(--background)",
             cursor: "pointer",
           }}
         >
@@ -441,7 +441,7 @@ export function AdPreview({ creative }: AdPreviewProps) {
       {/* Preview area */}
       <div
         style={{
-          background: "rgba(0,0,0,0.3)",
+          background: "var(--surface-hover)",
           borderRadius: 10,
           border: "1px solid var(--border)",
           padding: 16,

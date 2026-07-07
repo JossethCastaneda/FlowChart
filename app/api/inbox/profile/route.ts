@@ -59,7 +59,8 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ error: "Not found", details: profileData }, { status: 404 });
-  } catch (err) {
-    return NextResponse.json({ error: "Server error" }, { status: 500 });
+  } catch (err: any) {
+    require("fs").writeFileSync("profile_debug_error.json", JSON.stringify({ error: err.message, stack: err.stack }), "utf8");
+    return NextResponse.json({ error: "Server error", message: err.message }, { status: 500 });
   }
 }

@@ -57,7 +57,7 @@ export function ClientPortalsManager({ workspaceId }: { workspaceId: string }) {
   };
 
   if (loading) {
-    return <div className="p-8 text-center text-slate-500"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
+    return <div className="p-8 text-center text-[var(--text-muted)]"><Loader2 className="w-6 h-6 animate-spin mx-auto" /></div>;
   }
 
   return (
@@ -67,22 +67,22 @@ export function ClientPortalsManager({ workspaceId }: { workspaceId: string }) {
           <Globe className="w-5 h-5 text-[var(--cyan)]" /> Portal de Clientes
         </span>
       </div>
-      <p className="text-[13px] text-slate-400 mb-6 max-w-2xl">
+      <p className="text-[13px] text-[var(--text-secondary)] mb-6 max-w-2xl">
         Genera enlaces públicos mágicos para compartir el progreso de los proyectos con tus clientes. 
         Ellos no necesitarán iniciar sesión para ver una pantalla de inicio personalizada y de solo lectura.
       </p>
 
       <div className="flex flex-col gap-3">
         {projects.length === 0 && (
-          <div className="text-center p-8 bg-white/5 rounded-xl border border-white/5">
-            <p className="text-slate-400 text-sm">No hay proyectos activos en este workspace.</p>
+          <div className="text-center p-8 bg-[var(--surface-hover)] rounded-xl border border-[var(--hairline)]">
+            <p className="text-[var(--text-secondary)] text-sm">No hay proyectos activos en este workspace.</p>
           </div>
         )}
         
         {projects.map((project) => (
-          <div key={project.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-white/5 border border-white/5 rounded-xl gap-4">
+          <div key={project.id} className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-[var(--surface-hover)] border border-[var(--hairline)] rounded-xl gap-4">
             <div>
-              <h3 className="font-medium text-slate-200 text-[14px]">{project.name}</h3>
+              <h3 className="font-medium text-[var(--text-secondary)] text-[14px]">{project.name}</h3>
               {project.publicToken ? (
                 <div className="flex items-center gap-2 mt-1.5">
                   <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
@@ -90,8 +90,8 @@ export function ClientPortalsManager({ workspaceId }: { workspaceId: string }) {
                 </div>
               ) : (
                 <div className="flex items-center gap-2 mt-1.5">
-                  <span className="w-2 h-2 rounded-full bg-slate-600"></span>
-                  <span className="text-[11px] text-slate-500">Privado</span>
+                  <span className="w-2 h-2 rounded-full bg-[var(--surface-hover)]"></span>
+                  <span className="text-[11px] text-[var(--text-muted)]">Privado</span>
                 </div>
               )}
             </div>
@@ -100,13 +100,13 @@ export function ClientPortalsManager({ workspaceId }: { workspaceId: string }) {
               {project.publicToken ? (
                 <>
                   <Link href={`/public/p/${project.publicToken}`} target="_blank" className="btn-secondary !p-2 shrink-0" title="Ver portal">
-                    <ArrowUpRight className="w-4 h-4 text-slate-400" />
+                    <ArrowUpRight className="w-4 h-4 text-[var(--text-secondary)]" />
                   </Link>
                   <button onClick={() => copyToClipboard(project.publicToken!)} className="btn-secondary !p-2 shrink-0" title="Copiar enlace">
-                    <Copy className="w-4 h-4 text-slate-400" />
+                    <Copy className="w-4 h-4 text-[var(--text-secondary)]" />
                   </button>
                   <button onClick={() => handleAction(project.id, "generate")} disabled={loadingAction === project.id} className="btn-secondary !p-2 shrink-0" title="Regenerar enlace (Revocará el actual)">
-                    {loadingAction === project.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 text-slate-400" />}
+                    {loadingAction === project.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4 text-[var(--text-secondary)]" />}
                   </button>
                   <button onClick={() => handleAction(project.id, "revoke")} disabled={loadingAction === project.id} className="btn-secondary !px-3 shrink-0" title="Revocar acceso">
                     <span className="text-[11px] font-medium" style={{ color: "var(--red)" }}>Revocar</span>

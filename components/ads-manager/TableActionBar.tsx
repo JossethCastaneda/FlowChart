@@ -81,18 +81,18 @@ export function TableActionBar({
   const buttonStyle: React.CSSProperties = {
     display: "flex", alignItems: "center", gap: "4px", padding: "4px 8px",
     background: "transparent", border: "1px solid var(--border)", borderRadius: "4px",
-    color: "rgba(255,255,255,0.9)", fontSize: "10px", fontWeight: 500, cursor: "pointer", transition: "all 0.1s",
+    color: "var(--foreground)", fontSize: "10px", fontWeight: 500, cursor: "pointer", transition: "all 0.1s",
   };
 
   const disabledButtonStyle: React.CSSProperties = {
-    ...buttonStyle, color: "rgba(148,163,184,0.55)", cursor: "not-allowed", borderColor: "rgba(148,163,184,0.12)",
+    ...buttonStyle, color: "var(--text-secondary)", cursor: "not-allowed", bordercolor: "var(--text-secondary)",
   };
 
   const iconButtonStyle: React.CSSProperties = { ...buttonStyle, padding: "4px 6px" };
 
   const menuStyle: React.CSSProperties = {
     position: "absolute", top: "100%", left: 0, marginTop: "4px",
-    background: "rgba(15, 23, 42, 0.98)", backdropFilter: "blur(10px)",
+    background: "var(--surface)", backdropFilter: "blur(10px)",
     border: "1px solid var(--border-strong)", borderRadius: "6px",
     padding: "6px 0", minWidth: "240px", zIndex: 100,
     boxShadow: "0 10px 30px rgba(0,0,0,0.5)",
@@ -147,19 +147,19 @@ export function TableActionBar({
             <div style={menuStyle}>
               <button style={menuItemStyle(!hasSelection)} onClick={() => handleMenuItem(onDuplicateQuick)}>
                 <span>Duplicar rápidamente</span>
-                <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px" }}>Ctrl + D</span>
+                <span style={{ color: "var(--text-secondary)", fontSize: "11px" }}>Ctrl + D</span>
               </button>
               <div style={menuDividerStyle} />
               <button style={menuItemStyle(!hasSelection)} onClick={() => handleMenuItem(onCopy)}>
                 <span>Copiar</span>
-                <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px" }}>Ctrl + C</span>
+                <span style={{ color: "var(--text-secondary)", fontSize: "11px" }}>Ctrl + C</span>
               </button>
               <button style={menuItemStyle(clipboardCount === 0)} onClick={() => handleMenuItem(onPaste, false)}>
                 <span>Pegar {clipboardCount > 0 ? `(${clipboardCount})` : ""}</span>
-                <span style={{ color: "rgba(255,255,255,0.6)", fontSize: "11px" }}>Ctrl + V</span>
+                <span style={{ color: "var(--text-secondary)", fontSize: "11px" }}>Ctrl + V</span>
               </button>
               <button style={menuItemStyle(false)} onClick={() => handleMenuItem(onShowClipboard, false)}>
-                Ver elementos copiados {clipboardCount > 0 && <span style={{ background: "rgba(59,130,246,0.15)", color: "var(--cyan)", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 700 }}>{clipboardCount}</span>}
+                Ver elementos copiados {clipboardCount > 0 && <span style={{ background: "var(--cyan-dim)", color: "var(--cyan)", padding: "1px 6px", borderRadius: "8px", fontSize: "10px", fontWeight: 700 }}>{clipboardCount}</span>}
               </button>
             </div>
           )}
@@ -243,7 +243,7 @@ export function TableActionBar({
                 {exportSub && (
                   <div style={{
                     position: "absolute", top: 0, left: "100%", marginLeft: "4px",
-                    background: "rgba(15,23,42,0.98)", backdropFilter: "blur(10px)",
+                    background: "var(--surface)", backdropFilter: "blur(10px)",
                     border: "1px solid var(--border-strong)", borderRadius: "6px",
                     padding: "6px 0", minWidth: "180px", zIndex: 101,
                     boxShadow: "0 10px 30px rgba(0,0,0,0.5)",

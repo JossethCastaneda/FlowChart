@@ -214,7 +214,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
           <div style={{ display: "flex", gap: "14px", alignItems: "center", marginBottom: "16px" }}>
             <ScoreGauge score={analysis.score} status={analysis.status} />
             <div style={{ flex: 1 }}>
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.8)", lineHeight: "1.5", marginBottom: "6px" }}>
+              <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "6px" }}>
                 {analysis.summary}
               </div>
             </div>
@@ -228,9 +228,9 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
               </div>
               {analysis.problems.map((p, i) => (
                 <div key={i} style={{
-                  fontSize: "10px", color: "rgba(255,255,255,0.7)", lineHeight: "1.5",
+                  fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
                   padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
-                  background: "rgba(229,72,77,0.06)", borderLeft: "2px solid rgba(229,72,77,0.3)",
+                  background: "var(--red-dim)", borderLeft: "2px solid rgba(229,72,77,0.3)",
                 }}>
                   {p}
                 </div>
@@ -245,7 +245,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
             </div>
             {analysis.opportunities.map((o, i) => (
               <div key={i} style={{
-                fontSize: "10px", color: "rgba(255,255,255,0.7)", lineHeight: "1.5",
+                fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
                 padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
                 background: "rgba(52,211,153,0.06)", borderLeft: "2px solid rgba(52,211,153,0.3)",
               }}>
@@ -261,7 +261,7 @@ export function AIAnalysisPanel({ item, level }: AIAnalysisPanelProps) {
             </div>
             {analysis.actions.map((a, i) => (
               <div key={i} style={{
-                fontSize: "10px", color: "rgba(255,255,255,0.7)", lineHeight: "1.5",
+                fontSize: "10px", color: "var(--text-secondary)", lineHeight: "1.5",
                 padding: "6px 8px", marginBottom: "4px", borderRadius: "4px",
                 background: "rgba(251,191,36,0.06)", borderLeft: "2px solid rgba(251,191,36,0.3)",
               }}>

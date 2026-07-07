@@ -45,7 +45,7 @@ export function PlatformContentTabs({
           display: "flex",
           gap: 6,
           padding: "10px 20px",
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          border: "1px solid var(--hairline)",
         }}
       >
         <button
@@ -65,7 +65,7 @@ export function PlatformContentTabs({
             fontWeight: 500,
             cursor: "pointer",
             transition: "all 0.2s",
-            fontFamily: "Inter, sans-serif",
+            fontFamily: "var(--font-sans)",
           }}
         >
           ✏️ Mismo texto
@@ -87,7 +87,7 @@ export function PlatformContentTabs({
             fontWeight: 500,
             cursor: "pointer",
             transition: "all 0.2s",
-            fontFamily: "Inter, sans-serif",
+            fontFamily: "var(--font-sans)",
           }}
         >
           🔀 Por plataforma
@@ -101,7 +101,7 @@ export function PlatformContentTabs({
           <div
             style={{
               display: "flex",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              border: "1px solid var(--hairline)",
               padding: "0 20px",
             }}
           >
@@ -124,7 +124,7 @@ export function PlatformContentTabs({
                 fontWeight: activePlatform === "facebook" ? 600 : 500,
                 cursor: "pointer",
                 transition: "all 0.2s",
-                fontFamily: "Inter, sans-serif",
+                fontFamily: "var(--font-sans)",
               }}
             >
               📘 Facebook
@@ -148,7 +148,7 @@ export function PlatformContentTabs({
                 fontWeight: activePlatform === "instagram" ? 600 : 500,
                 cursor: "pointer",
                 transition: "all 0.2s",
-                fontFamily: "Inter, sans-serif",
+                fontFamily: "var(--font-sans)",
               }}
             >
               📷 Instagram
@@ -177,7 +177,7 @@ export function PlatformContentTabs({
                 color: "var(--foreground)",
                 fontSize: 14,
                 lineHeight: 1.6,
-                fontFamily: "Inter, sans-serif",
+                fontFamily: "var(--font-sans)",
               }}
             />
           </div>
@@ -210,7 +210,7 @@ export function PlatformContentTabs({
                 width: 40,
                 height: 4,
                 borderRadius: 2,
-                background: "rgba(255,255,255,0.06)",
+                background: "var(--surface-hover)",
                 overflow: "hidden",
               }}
             >

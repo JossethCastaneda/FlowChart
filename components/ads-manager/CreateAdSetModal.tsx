@@ -19,7 +19,7 @@ const SUPPORTED: Record<string, string> = {
 };
 
 const inp: React.CSSProperties = {
-  width: "100%", padding: "9px 12px", background: "rgba(0,0,0,0.25)",
+  width: "100%", padding: "9px 12px", background: "var(--surface-hover)",
   border: "1px solid var(--hairline)", borderRadius: 6, color: "var(--foreground)",
   fontSize: 13, outline: "none", fontFamily: "inherit",
 };
@@ -84,8 +84,8 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
 
   return (
     <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)", backdropFilter: "blur(6px)" }}>
-      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, background: "rgba(8,12,24,0.98)", border: "1px solid rgba(139,141,242,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", border: "1px solid var(--hairline)" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
             <Layers style={{ width: 16, height: 16, color: "var(--purple)" }} /> Crear conjunto de anuncios
           </span>
@@ -183,15 +183,15 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           </div>
 
           {error && (
-            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.2)" }}>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", padding: "8px 12px", borderRadius: 6, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)" }}>
               <AlertTriangle style={{ width: 14, height: 14, color: "var(--red)", flexShrink: 0 }} />
               <span style={{ fontSize: 12, color: "var(--red)" }}>{error}</span>
             </div>
           )}
         </div>
 
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 22px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid rgba(148,163,184,0.25)", color: "var(--text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>Cancelar</button>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 22px", border: "1px solid var(--hairline)" }}>
+          <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>Cancelar</button>
           <button onClick={submit} disabled={saving || !objSupported || !name.trim()} className="btn-primary" style={{ padding: "9px 22px", opacity: saving || !objSupported || !name.trim() ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 7 }}>
             {saving ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <PauseCircle style={{ width: 14, height: 14 }} />}
             Crear en pausa

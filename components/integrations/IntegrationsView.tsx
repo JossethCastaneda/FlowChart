@@ -83,11 +83,11 @@ function TokenModal({ provider, label, isConnected, onClose, onSuccess, onDiscon
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
           {isConnected && onDisconnect ? (
-            <button onClick={onDisconnect} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit" }}>Desconectar</button>
+            <button onClick={onDisconnect} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit" }}>Desconectar</button>
           ) : (
             <button onClick={onClose} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "transparent", border: "1px solid var(--hairline)", color: "var(--text-muted)", cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
           )}
-          <button onClick={save} disabled={!token.trim() || saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)", cursor: !token.trim() || saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: !token.trim() || saving ? 0.6 : 1 }}>
+          <button onClick={save} disabled={!token.trim() || saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)", cursor: !token.trim() || saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: !token.trim() || saving ? 0.6 : 1 }}>
             {saving && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
             Guardar y conectar
           </button>

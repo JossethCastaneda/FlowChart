@@ -1061,9 +1061,9 @@ function AdsManagerContent() {
         display: "inline-flex",
         padding: "3px",
         borderRadius: "8px",
-        background: "rgba(15, 23, 42, 0.4)",
+        background: "var(--surface)",
         backdropFilter: "blur(12px)",
-        border: "1px solid rgba(255, 255, 255, 0.06)",
+        border: "1px solid var(--hairline)",
         gap: 4
       }}>
         <button
@@ -1116,11 +1116,11 @@ function AdsManagerContent() {
       <div className="space-y-6" style={{ padding: isEmbedded ? "0" : "24px 28px" }}>
         {renderHeader()}
         <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
-          <Radar className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.65)" }} />
+          <Radar className="w-10 h-10 mx-auto mb-4" style={{ color: "var(--text-secondary)" }} />
           <p style={{ fontFamily: "var(--font-display)", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
             Conexión Google Ads requerida
           </p>
-          <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.65)", marginBottom: "20px" }}>
+          <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>
             Conecta tu cuenta de Google para acceder a campañas, grupos de anuncios y métricas en tiempo real.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, alignItems: "center" }}>
@@ -1198,7 +1198,7 @@ function AdsManagerContent() {
               <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)", margin: 0, lineHeight: 1.3 }}>
                 Conecta Meta Ads Manager
               </p>
-              <p style={{ fontSize: "11px", color: "rgba(148,163,184,0.8)", margin: "3px 0 0", lineHeight: 1.4 }}>
+              <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "3px 0 0", lineHeight: 1.4 }}>
                 Vincula tu cuenta de Meta Ads para ver campañas, conjuntos y anuncios en tiempo real.
               </p>
             </div>
@@ -1208,7 +1208,7 @@ function AdsManagerContent() {
                 display: "inline-flex", alignItems: "center", gap: "8px",
                 padding: "10px 20px",
                 background: "linear-gradient(135deg, var(--purple), var(--purple))",
-                color: "#fff",
+                color: "var(--foreground)",
                 fontSize: "12px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" as const,
                 borderRadius: "8px", cursor: "pointer", textDecoration: "none",
                 whiteSpace: "nowrap",
@@ -1245,11 +1245,11 @@ function AdsManagerContent() {
 
 
         <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
-          <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "rgba(148,163,184,0.65)" }} />
+          <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "var(--text-secondary)" }} />
           <p style={{ fontFamily: "var(--font-display)", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
             Conexión Meta Ads requerida
           </p>
-          <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.65)", marginBottom: "20px" }}>
+          <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>
             Conecta tu cuenta de Meta Ads Manager para acceder a campañas, conjuntos de anuncios y métricas en tiempo real.
           </p>
         </div>
@@ -1291,7 +1291,7 @@ function AdsManagerContent() {
           <div style={{
             display: "flex", alignItems: "center", gap: 8,
             padding: "8px 14px", borderRadius: 8, fontSize: 12, fontWeight: 600,
-            background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+            background: "var(--surface)", border: "1px solid var(--border)",
             color: "var(--foreground)"
           }}>
             <GoogleIcon />
@@ -1318,8 +1318,8 @@ function AdsManagerContent() {
               style={{
                 display: "flex", alignItems: "center", gap: "6px",
                 padding: "8px 12px", borderRadius: "6px",
-                background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-                color: "white", fontSize: "12px", cursor: isSyncing ? "wait" : "pointer",
+                background: "var(--surface-hover)", border: "1px solid var(--border)",
+                color: "var(--foreground)", fontSize: "12px", cursor: isSyncing ? "wait" : "pointer",
                 transition: "all 0.2s"
               }}
               onMouseEnter={e => { if(!isSyncing) e.currentTarget.style.background = "rgba(255,255,255,0.1)" }}
@@ -1359,14 +1359,14 @@ function AdsManagerContent() {
             alignItems: "center",
             gap: "6px",
             padding: "5px 10px",
-            background: "rgba(0,0,0,0.3)",
+            background: "var(--surface-hover)",
             border: "1px solid var(--border)",
             borderRadius: "4px",
             flex: 1,
             minWidth: "160px",
           }}
         >
-          <Search className="w-3.5 h-3.5 text-slate-500" />
+          <Search className="w-3.5 h-3.5 text-[var(--text-muted)]" />
           <input
             type="text"
             placeholder={platform === "google" ? "Buscar por nombre o ID de campaña Google Ads..." : "Buscar por nombre o ID de campaña..."}
@@ -1375,7 +1375,7 @@ function AdsManagerContent() {
             style={{
               background: "none",
               border: "none",
-              color: "white",
+              color: "var(--foreground)",
               fontSize: "11px",
               outline: "none",
               width: "100%",
@@ -1391,10 +1391,10 @@ function AdsManagerContent() {
             style={{
               display: "flex", alignItems: "center", gap: "5px",
               padding: "5px 10px",
-              background: "rgba(10,15,30,0.6)",
+              background: "var(--surface)",
               border: "1px solid var(--border)",
               borderRadius: "4px",
-              color: "white", fontSize: "10px", fontWeight: 600, cursor: "pointer",
+              color: "var(--foreground)", fontSize: "10px", fontWeight: 600, cursor: "pointer",
             }}
           >
             <RefreshCw className={`w-3 h-3 ${loadingData ? "animate-spin" : ""}`} />
@@ -1434,7 +1434,7 @@ function AdsManagerContent() {
           gap: 10,
           padding: "2px 2px 0",
         }}>
-          <div style={{ display: "inline-flex", padding: 3, borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+          <div style={{ display: "inline-flex", padding: 3, borderRadius: 8, background: "var(--surface)", border: "1px solid var(--border)" }}>
             {([
               ["health", "Salud ejecutiva"],
               ["expert", "Tabla experta"],
@@ -1475,7 +1475,7 @@ function AdsManagerContent() {
         level={activeLevel}
       />
       {error && (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "rgba(229,72,77,0.1)", border: "1px solid var(--red-dim)", borderRadius: "4px", color: "var(--red)", fontSize: "10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px", background: "var(--red-dim)", border: "1px solid var(--red-dim)", borderRadius: "4px", color: "var(--red)", fontSize: "10px" }}>
           <AlertCircle className="w-3.5 h-3.5 flex-shrink-0" />
           <span>{error}</span>
         </div>

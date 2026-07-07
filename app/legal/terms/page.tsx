@@ -27,7 +27,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       }}>
         {title}
       </h2>
-      <div style={{ fontSize: 14, lineHeight: 1.8, color: "#94a3b8" }}>
+      <div style={{ fontSize: 14, lineHeight: 1.8, color: "var(--text-muted)" }}>
         {children}
       </div>
     </section>
@@ -58,7 +58,7 @@ export default function TermsPage() {
       <div style={{ marginBottom: 56 }}>
         <div style={{
           display: "inline-block",
-          background: "rgba(59,130,246,0.08)",
+          background: "var(--cyan-dim)",
           border: "1px solid rgba(59,130,246,0.2)",
           borderRadius: 6,
           padding: "4px 14px",
@@ -75,24 +75,24 @@ export default function TermsPage() {
           fontFamily: "var(--font-display)",
           fontSize: "clamp(24px, 4vw, 36px)",
           fontWeight: 700,
-          color: "#dde6f0",
+          color: "var(--foreground)",
           letterSpacing: "0.04em",
           marginBottom: 12,
           lineHeight: 1.2,
         }}>
           Términos de Servicio
         </h1>
-        <p style={{ fontSize: 14, color: "#6c7c93" }}>
-          Última actualización: <strong style={{ color: "#94a3b8" }}>{LAST_UPDATED}</strong>
+        <p style={{ fontSize: 14, color: "var(--text-muted)" }}>
+          Última actualización: <strong style={{ color: "var(--text-muted)" }}>{LAST_UPDATED}</strong>
         </p>
         <div style={{
           marginTop: 24,
           padding: "16px 20px",
-          background: "rgba(59,130,246,0.04)",
+          background: "var(--cyan-dim)",
           border: "1px solid rgba(59,130,246,0.12)",
           borderRadius: 8,
           fontSize: 13,
-          color: "#94a3b8",
+          color: "var(--text-muted)",
           lineHeight: 1.6,
         }}>
           Al acceder y utilizar la plataforma Sodare, usted acepta los presentes Términos de Servicio en su totalidad.
@@ -187,13 +187,13 @@ export default function TermsPage() {
 
       <Section title="7. Propiedad Intelectual">
         <P>
-          <strong style={{ color: "#dde6f0" }}>Propiedad de Sodare:</strong> La Plataforma, incluyendo su código fuente, diseño, logotipos, marcas, interfaces y documentación, son propiedad exclusiva de Sodare y están protegidos por las leyes de propiedad intelectual aplicables.
+          <strong style={{ color: "var(--foreground)" }}>Propiedad de Sodare:</strong> La Plataforma, incluyendo su código fuente, diseño, logotipos, marcas, interfaces y documentación, son propiedad exclusiva de Sodare y están protegidos por las leyes de propiedad intelectual aplicables.
         </P>
         <P>
-          <strong style={{ color: "#dde6f0" }}>Licencia de uso:</strong> Sodare otorga al Usuario una licencia limitada, no exclusiva, no transferible y revocable para utilizar la Plataforma de conformidad con estos Términos.
+          <strong style={{ color: "var(--foreground)" }}>Licencia de uso:</strong> Sodare otorga al Usuario una licencia limitada, no exclusiva, no transferible y revocable para utilizar la Plataforma de conformidad con estos Términos.
         </P>
         <P>
-          <strong style={{ color: "#dde6f0" }}>Contenido del Usuario:</strong> El Usuario retiene todos los derechos sobre el contenido que publique o cargue en la Plataforma. Al utilizarla, el Usuario otorga a Sodare una licencia para procesar, almacenar y transmitir dicho contenido en la medida necesaria para prestar el servicio.
+          <strong style={{ color: "var(--foreground)" }}>Contenido del Usuario:</strong> El Usuario retiene todos los derechos sobre el contenido que publique o cargue en la Plataforma. Al utilizarla, el Usuario otorga a Sodare una licencia para procesar, almacenar y transmitir dicho contenido en la medida necesaria para prestar el servicio.
         </P>
       </Section>
 
@@ -266,20 +266,20 @@ export default function TermsPage() {
           Para cualquier consulta relacionada con estos Términos de Servicio, puede contactarnos en:
         </P>
         <div style={{
-          background: "rgba(59,130,246,0.04)",
+          background: "var(--cyan-dim)",
           border: "1px solid rgba(59,130,246,0.12)",
           borderRadius: 8,
           padding: "16px 20px",
           fontSize: 13,
         }}>
-          <p style={{ margin: "0 0 4px", color: "#dde6f0", fontWeight: 600 }}>{COMPANY}</p>
-          <p style={{ margin: "0 0 4px", color: "#94a3b8" }}>
+          <p style={{ margin: "0 0 4px", color: "var(--foreground)", fontWeight: 600 }}>{COMPANY}</p>
+          <p style={{ margin: "0 0 4px", color: "var(--text-muted)" }}>
             Correo electrónico:{" "}
             <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#5b9bff", textDecoration: "none" }}>
               {CONTACT_EMAIL}
             </a>
           </p>
-          <p style={{ margin: 0, color: "#94a3b8" }}>
+          <p style={{ margin: 0, color: "var(--text-muted)" }}>
             Sitio web:{" "}
             <a href={WEBSITE} style={{ color: "#5b9bff", textDecoration: "none" }}>
               {WEBSITE}

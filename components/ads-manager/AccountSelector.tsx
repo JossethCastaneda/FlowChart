@@ -90,7 +90,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
           {selectedAccountId === "all" ? `Todas las cuentas (${accounts.length})` : selectedAccount ? selectedAccount.name.split(" — ")[0] : "Seleccionar Cuenta"}
         </span>
         <div style={{
-           background: "rgba(255,255,255,0.1)", color: "var(--foreground)", padding: "2px 8px", 
+           background: "var(--surface-hover)", color: "var(--foreground)", padding: "2px 8px", 
            borderRadius: "12px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em"
         }}>
            {accounts.length}
@@ -110,18 +110,18 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
             transition={{ duration: 0.2, ease: "easeOut" }}
             style={{
               position: "absolute", top: "100%", left: 0, marginTop: "8px",
-              background: "rgba(10, 15, 30, 0.85)", backdropFilter: "blur(24px)",
-              border: "1px solid rgba(255, 255, 255, 0.12)", borderRadius: "14px",
+              background: "var(--surface)", backdropFilter: "blur(24px)",
+              border: "1px solid var(--border)", borderRadius: "14px",
               boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset",
               zIndex: 70, width: "750px", display: "flex", flexDirection: "column",
               color: "var(--foreground)", overflow: "hidden"
             }}
           >
             {/* Top Search Bar */}
-            <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(255, 255, 255, 0.08)", background: "rgba(0,0,0,0.2)" }}>
+            <div style={{ padding: "16px 20px", border: "1px solid var(--border)", background: "var(--surface-hover)" }}>
               <div style={{
                 display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px",
-                background: "rgba(255, 255, 255, 0.04)", border: "1px solid rgba(255, 255, 255, 0.1)",
+                background: "var(--surface)", border: "1px solid var(--border)",
                 borderRadius: "8px", transition: "all 0.2s"
               }}>
                 <HoloIcon icon={Search} variant="cyan" isActive={true} className="w-4 h-4" />
@@ -135,8 +135,8 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                   }}
                 />
                 <div style={{ display: "flex", gap: "4px" }}>
-                  <span style={{ fontSize: "10px", color: "var(--text-muted)", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.05)" }}>⌘</span>
-                  <span style={{ fontSize: "10px", color: "var(--text-muted)", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: "4px", border: "1px solid rgba(255,255,255,0.05)" }}>K</span>
+                  <span style={{ fontSize: "10px", color: "var(--text-muted)", background: "var(--surface-hover)", padding: "2px 6px", borderRadius: "4px", border: "1px solid var(--hairline)" }}>⌘</span>
+                  <span style={{ fontSize: "10px", color: "var(--text-muted)", background: "var(--surface-hover)", padding: "2px 6px", borderRadius: "4px", border: "1px solid var(--hairline)" }}>K</span>
                 </div>
               </div>
             </div>
@@ -145,10 +145,10 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
             <div style={{ display: "flex", height: "480px" }}>
               
               {/* Left Sidebar: Portfolios */}
-              <div style={{ width: "280px", borderRight: "1px solid rgba(255, 255, 255, 0.08)", display: "flex", flexDirection: "column", background: "rgba(0,0,0,0.15)" }}>
+              <div style={{ width: "280px", border: "1px solid var(--border)", display: "flex", flexDirection: "column", background: "var(--surface-hover)" }}>
                 <div style={{ padding: "20px", fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", display: "flex", alignItems: "center", justifyContent: "space-between", color: "var(--text-muted)" }}>
                   Portfolios
-                  <div style={{ background: "rgba(255,255,255,0.1)", color: "var(--foreground)", borderRadius: "50%", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", cursor: "help" }}>?</div>
+                  <div style={{ background: "var(--surface-hover)", color: "var(--foreground)", borderRadius: "50%", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", cursor: "help" }}>?</div>
                 </div>
                 
                 <div style={{ overflowY: "auto", flex: 1, padding: "0 12px" }} className="custom-scrollbar">
@@ -189,7 +189,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                 <div style={{ padding: "16px", borderTop: "1px solid var(--hairline)" }}>
                   <motion.button 
                     whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.08)" }} whileTap={{ scale: 0.98 }}
-                    style={{ width: "100%", padding: "10px", background: "var(--row-hover)", border: "1px solid var(--hairline)", borderRadius: "8px", fontSize: "12px", fontWeight: 700, color: "rgba(255,255,255,0.9)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                    style={{ width: "100%", padding: "10px", background: "var(--row-hover)", border: "1px solid var(--hairline)", borderRadius: "8px", fontSize: "12px", fontWeight: 700, color: "var(--foreground)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
                   >
                     + Nuevo Portfolio
                   </motion.button>
@@ -197,7 +197,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
               </div>
 
               {/* Right Content: Accounts */}
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "rgba(10, 15, 30, 0.4)" }}>
+              <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--surface)" }}>
                 <div style={{ padding: "24px 28px 16px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
                   <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                     <h3 style={{ fontSize: "20px", fontWeight: 800, margin: 0, color: "var(--foreground)", letterSpacing: "-0.02em" }}>{selectedPortfolio}</h3>
@@ -208,7 +208,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                   </motion.button>
                 </div>
                 
-                <div style={{ padding: "0 28px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid rgba(255,255,255,0.05)", marginBottom: "16px" }}>
+                <div style={{ padding: "0 28px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid var(--hairline)", marginBottom: "16px" }}>
                   <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--foreground)" }}>
                     {displayedAccounts.length} {displayedAccounts.length === 1 ? 'cuenta encontrada' : 'cuentas encontradas'}
                   </span>
@@ -269,7 +269,7 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                               boxShadow: isSelected ? "0 4px 20px rgba(59,130,246, 0.15)" : "none"
                             }}
                           >
-                            <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid rgba(255,255,255,0.05)" }}>
+                            <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid var(--hairline)" }}>
                               <HoloIcon icon={CreditCard} variant="pink" isActive={isSelected} className="w-5 h-5" />
                             </div>
                             <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "4px" }}>

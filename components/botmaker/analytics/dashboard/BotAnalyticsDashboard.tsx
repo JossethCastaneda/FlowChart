@@ -172,20 +172,20 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
   const hiddenWidgets = Object.values(WIDGETS).filter((w) => !layout.some((c) => c.id === w.id));
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "#030508", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100%", background: "var(--background)", overflow: "hidden" }}>
       {/* ── Toolbar ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(4,7,18,0.9)", flexShrink: 0, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 18px", border: "1px solid var(--hairline)", background: "rgba(4,7,18,0.9)", flexShrink: 0, flexWrap: "wrap" }}>
         {!embedded && (
           <>
-            <Link href="/dashboard/botmaker" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "rgba(148,163,184,0.5)", textDecoration: "none" }}>
+            <Link href="/dashboard/botmaker" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--text-secondary)", textDecoration: "none" }}>
               <ArrowLeft style={{ width: 12, height: 12 }} /> Botmaker
             </Link>
-            <span style={{ color: "rgba(255,255,255,0.15)" }}>›</span>
+            <span style={{ color: "var(--border-strong)" }}>›</span>
           </>
         )}
         <LayoutGrid style={{ width: 15, height: 15, color: P }} />
-        <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{embedded ? "Métricas del Bot · Portabilidad" : "Portabilidad · Cambios de compañía"}</span>
-        {data && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>· {data.kpis.sessions.toLocaleString("es-MX")} conversaciones</span>}
+        <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-secondary)" }}>{embedded ? "Métricas del Bot · Portabilidad" : "Portabilidad · Cambios de compañía"}</span>
+        {data && <span style={{ fontSize: 11, color: "var(--border-strong)" }}>· {data.kpis.sessions.toLocaleString("es-MX")} conversaciones</span>}
 
         <div style={{ flex: 1 }} />
 
@@ -197,7 +197,7 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
 
         {/* Channel filter */}
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <Filter style={{ width: 13, height: 13, color: "rgba(255,255,255,0.4)" }} />
+          <Filter style={{ width: 13, height: 13, color: "var(--text-muted)" }} />
           <select value={channelId} onChange={(e) => setChannelId(e.target.value)} style={selStyle}>
             <option value="">{projectId ? "Todos los canales del proyecto" : "Todos los bots / canales"}</option>
             {(data?.channelOptions || []).map((c) => <option key={c.id} value={c.id}>{c.name || c.id}</option>)}
@@ -225,15 +225,15 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
               {(["Hoy", "7 días", "30 días"] as Period[]).map((p) => (
                 <button key={p} onClick={() => { setPeriod(p); setPeriodOpen(false); }} style={dropItem(period === p)}>{p}</button>
               ))}
-              <div style={{ borderTop: "1px solid rgba(255,255,255,0.08)", marginTop: 6, paddingTop: 8 }}>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", marginBottom: 6, paddingLeft: 4 }}>RANGO PERSONALIZADO</div>
+              <div style={{ border: "1px solid var(--border)", marginTop: 6, paddingTop: 8 }}>
+                <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: 6, paddingLeft: 4 }}>RANGO PERSONALIZADO</div>
                 <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
                   <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} style={dateInput} />
-                  <span style={{ color: "rgba(255,255,255,0.3)" }}>→</span>
+                  <span style={{ color: "var(--border-strong)" }}>→</span>
                   <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} style={dateInput} />
                 </div>
                 {customFrom && customTo && (
-                  <button onClick={() => { setPeriod("custom"); setPeriodOpen(false); }} style={{ marginTop: 8, width: "100%", padding: "6px 0", background: P, border: "none", borderRadius: 8, color: "#fff", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Aplicar</button>
+                  <button onClick={() => { setPeriod("custom"); setPeriodOpen(false); }} style={{ marginTop: 8, width: "100%", padding: "6px 0", background: P, border: "none", borderRadius: 8, color: "var(--foreground)", fontSize: 11, fontWeight: 700, cursor: "pointer" }}>Aplicar</button>
                 )}
               </div>
             </div>
@@ -254,15 +254,15 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
 
       {/* ── Edit palette ── */}
       {editing && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 18px", background: "rgba(155,123,232,0.05)", borderBottom: "1px solid rgba(255,255,255,0.05)", flexShrink: 0, flexWrap: "wrap" }}>
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>Arrastra por el encabezado · redimensiona desde la esquina.</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 18px", background: "rgba(155,123,232,0.05)", border: "1px solid var(--hairline)", flexShrink: 0, flexWrap: "wrap" }}>
+          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Arrastra por el encabezado · redimensiona desde la esquina.</span>
           {hiddenWidgets.map((w) => (
-            <button key={w.id} onClick={() => addWidget(w.id)} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 14, color: "rgba(255,255,255,0.7)", fontSize: 10.5, fontWeight: 600, cursor: "pointer" }}>
+            <button key={w.id} onClick={() => addWidget(w.id)} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 14, color: "var(--text-secondary)", fontSize: 10.5, fontWeight: 600, cursor: "pointer" }}>
               <Plus style={{ width: 11, height: 11 }} /> {w.title.split(" · ")[0]}
             </button>
           ))}
           <div style={{ flex: 1 }} />
-          <button onClick={resetLayout} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 14, color: "var(--red)", fontSize: 10.5, fontWeight: 600, cursor: "pointer" }}>
+          <button onClick={resetLayout} style={{ display: "flex", alignItems: "center", gap: 4, padding: "4px 10px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.3)", borderRadius: 14, color: "var(--red)", fontSize: 10.5, fontWeight: 600, cursor: "pointer" }}>
             <RotateCcw style={{ width: 11, height: 11 }} /> Restablecer
           </button>
         </div>
@@ -273,11 +273,11 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
         {loading && !data && (
           <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: 80 }}>
             <Loader2 className="animate-spin" style={{ width: 20, height: 20, color: P }} />
-            <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Analizando comportamiento del bot…</span>
+            <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Analizando comportamiento del bot…</span>
           </div>
         )}
         {error && !loading && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: 24, color: "var(--red)", fontSize: 13, background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.25)", borderRadius: 12 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: 24, color: "var(--red)", fontSize: 13, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.25)", borderRadius: 12 }}>
             <AlertCircle style={{ width: 18, height: 18 }} /> {error}
           </div>
         )}
@@ -315,16 +315,16 @@ export default function BotAnalyticsDashboard({ projectId, embedded = false }: B
 // ── styles ───────────────────────────────────────────────────────────────────
 const pillStyle: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
-  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)",
-  borderRadius: 20, color: "rgba(255,255,255,0.7)", fontSize: 11, fontWeight: 600, cursor: "pointer", outline: "none",
+  background: "var(--surface-hover)", border: "1px solid var(--border)",
+  borderRadius: 20, color: "var(--text-secondary)", fontSize: 11, fontWeight: 600, cursor: "pointer", outline: "none",
 };
 const selStyle: React.CSSProperties = {
-  background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.12)", color: "#fff",
+  background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--foreground)",
   padding: "5px 10px", borderRadius: 8, fontSize: 11, outline: "none", maxWidth: 220,
 };
 const dropdownStyle: React.CSSProperties = {
   position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 100, background: "var(--background)",
-  border: "1px solid rgba(255,255,255,0.12)", borderRadius: 12, padding: 8, minWidth: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+  border: "1px solid var(--border)", borderRadius: 12, padding: 8, minWidth: 200, boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
 };
 const dropItem = (active: boolean): React.CSSProperties => ({
   display: "block", width: "100%", textAlign: "left", padding: "8px 12px",
@@ -332,6 +332,6 @@ const dropItem = (active: boolean): React.CSSProperties => ({
   color: active ? "var(--purple)" : "rgba(255,255,255,0.6)", fontSize: 12, fontWeight: 600, cursor: "pointer", outline: "none",
 });
 const dateInput: React.CSSProperties = {
-  background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
-  color: "rgba(255,255,255,0.7)", fontSize: 11, padding: "4px 8px", outline: "none", colorScheme: "dark", width: "100%",
+  background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 6,
+  color: "var(--text-secondary)", fontSize: 11, padding: "4px 8px", outline: "none", colorScheme: "dark", width: "100%",
 };

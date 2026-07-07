@@ -30,14 +30,14 @@ function MeterRow({ label, used, limit, isUnlimited, loading }: MeterRowProps) {
   return (
     <div style={{ marginBottom: "18px" }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
-        <span style={{ fontSize: "12px", color: "rgba(148,163,184,0.9)", fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 500 }}>{label}</span>
         <span style={{ fontSize: "11px", color: exceeded ? "#e2445c" : warning ? "#fdab3d" : "rgba(148,163,184,0.7)", fontWeight: 600 }}>
           {loading ? "—" : isUnlimited ? `${used} / ∞` : `${used} / ${limit}`}
         </span>
       </div>
       {!isUnlimited && (
         <div style={{
-          height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "4px", overflow: "hidden",
+          height: "4px", background: "var(--surface-hover)", borderRadius: "4px", overflow: "hidden",
         }}>
           <div style={{
             height: "100%",
@@ -80,7 +80,7 @@ export function PlanUsageMeter({ onUpgrade }: PlanUsageMeterProps) {
 
   return (
     <div style={{
-      background: "rgba(255,255,255,0.02)",
+      background: "var(--surface)",
       border: hasAnyExceeded ? "1px solid rgba(226,68,92,0.3)" : "1px solid rgba(255,255,255,0.06)",
       borderRadius: "12px",
       padding: "20px 24px",
@@ -93,7 +93,7 @@ export function PlanUsageMeter({ onUpgrade }: PlanUsageMeterProps) {
           </p>
           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
             <span style={{
-              fontSize: "18px", fontWeight: 700, color: "white",
+              fontSize: "18px", fontWeight: 700, color: "var(--foreground)",
             }}>
               {PLAN_LABELS[plan] ?? "Gratis"}
             </span>
@@ -121,7 +121,7 @@ export function PlanUsageMeter({ onUpgrade }: PlanUsageMeterProps) {
                 : "linear-gradient(135deg, #5b9bff, #0081fb)",
               border: "none",
               borderRadius: "8px",
-              color: "white",
+              color: "var(--foreground)",
               fontSize: "12px",
               fontWeight: 700,
               cursor: "pointer",

@@ -50,7 +50,7 @@ function PacingBar({ pct, color }: { pct: number; color: string }) {
   const [w, setW] = useState(0);
   useEffect(() => { const t = setTimeout(() => setW(Math.min(100, pct)), 80); return () => clearTimeout(t); }, [pct]);
   return (
-    <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 99, overflow: "hidden" }}>
+    <div style={{ height: 3, background: "var(--surface-hover)", borderRadius: 99, overflow: "hidden" }}>
       <div style={{ height: "100%", width: `${w}%`, background: color, borderRadius: 99, transition: "width 1.1s cubic-bezier(0.16, 1, 0.3, 1)", boxShadow: `0 0 6px ${color}80` }} />
     </div>
   );
@@ -147,7 +147,7 @@ function ProjectCard({ pc }: { pc: any }) {
         {/* Header */}
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "16px 18px 12px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 0 }}>
-            <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
               <Activity style={{ width: 11, height: 11, color: "var(--cyan)" }} />
             </div>
             <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{pc.alias}</span>
@@ -389,7 +389,7 @@ export default function ResumenPage() {
                 <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 8px var(--emerald)" }} />
                 <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--emerald)" }}>En línea</span>
               </div>
-              <h1 style={{ fontFamily: "'Inter', sans-serif", fontSize: 24, fontWeight: 800, color: "var(--foreground)", margin: 0, lineHeight: 1.2 }}>
+              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 800, color: "var(--foreground)", margin: 0, lineHeight: 1.2 }}>
                 {timeLabel}, <span style={{ color: "var(--cyan)" }}>{d.workspace?.name || "Workspace"}</span>
               </h1>
               <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "6px 0 0", lineHeight: 1.5 }}>
@@ -457,7 +457,7 @@ export default function ResumenPage() {
                 Salud de Proyectos Activos
               </span>
               {insightsLoading && (
-                <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 8px", background: "rgba(59,130,246,0.08)", borderRadius: 99, border: "1px solid rgba(59,130,246,0.2)" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "2px 8px", background: "var(--cyan-dim)", borderRadius: 99, border: "1px solid rgba(59,130,246,0.2)" }}>
                   <Loader2 style={{ width: 10, height: 10, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
                   <span style={{ fontSize: 9, color: "var(--cyan)", fontWeight: 600 }}>Cargando</span>
                 </div>

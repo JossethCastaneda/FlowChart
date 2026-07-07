@@ -313,7 +313,7 @@ function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, 
   const subtaskPct = subtaskTotal > 0 ? Math.round((subtaskDone / subtaskTotal) * 100) : 0;
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "3vh 16px", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "3vh 16px", background: "var(--panel-bg)", backdropFilter: "blur(8px)" }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 700, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: "1px solid var(--border)" }}>
@@ -552,7 +552,7 @@ function CreateModal({ onClose, onSave, members }: { onClose: () => void; onSave
   const submit = async () => { if (!form.title.trim()) return; setSaving(true); await onSave({ ...form, dueDate: form.dueDate || null }); setSaving(false); };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)", backdropFilter: "blur(8px)" }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>NUEVA TAREA</span>
@@ -621,7 +621,7 @@ function RequestModal({ onClose, onSave, areas, members }: { onClose: () => void
   };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)", backdropFilter: "blur(8px)" }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: `1px solid ${area ? `${area.color}40` : "var(--border)"}`, borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: 8 }}><Send style={{ width: 14, height: 14, color: area?.color || "var(--cyan)" }} /> NUEVA SOLICITUD</span>
@@ -942,7 +942,7 @@ export default function OpsPage() {
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: myArea.color }} />
               {t.myArea} ({myArea.name})
               {pendingReviews > 0 && myArea.leadIds.includes(currentUserId) && (
-                <span style={{ background: "var(--red)", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 10, padding: "1px 6px", marginLeft: 4 }}>{pendingReviews}</span>
+                <span style={{ background: "var(--red)", color: "var(--foreground)", fontSize: 9, fontWeight: 700, borderRadius: 10, padding: "1px 6px", marginLeft: 4 }}>{pendingReviews}</span>
               )}
             </button>
           )}
@@ -1221,7 +1221,7 @@ export default function OpsPage() {
                                   onChange={(e) => patch(tsk.id, { status: e.target.value })}
                                   style={{
                                     background: STATUS_CFG[tsk.status]?.bg || "var(--text-muted)",
-                                    color: "white", fontSize: 11, fontWeight: 700,
+                                    color: "var(--foreground)", fontSize: 11, fontWeight: 700,
                                     border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer",
                                     outline: "none"
                                   }}

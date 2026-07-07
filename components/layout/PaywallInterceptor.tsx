@@ -53,31 +53,31 @@ export function PaywallInterceptor() {
   };
 
   const modalContent = (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#12151c] border border-[var(--cyan)]/20 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-[var(--panel-bg)] backdrop-blur-sm backdrop-blur-sm p-4">
+      <div className="bg-[var(--surface)] border border-[var(--cyan)]/20 shadow-2xl rounded-2xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in duration-200">
         
         {/* Header decoration */}
-        <div className="h-32 w-full relative bg-gradient-to-br from-indigo-900/40 to-[var(--cyan)]/20 flex items-center justify-center border-b border-white/5">
+        <div className="h-32 w-full relative bg-gradient-to-br from-indigo-900/40 to-[var(--cyan)]/20 flex items-center justify-center border-b border-[var(--hairline)]">
           <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-10 mix-blend-overlay"></div>
-          <div className="w-16 h-16 rounded-full bg-black/40 border border-[var(--cyan)]/30 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)]">
+          <div className="w-16 h-16 rounded-full bg-[var(--panel-bg)] backdrop-blur-sm border border-[var(--cyan)]/30 flex items-center justify-center shadow-[0_0_30px_rgba(59,130,246,0.2)]">
             <Zap className="w-8 h-8 text-[var(--cyan)]" />
           </div>
         </div>
 
         {/* Content */}
         <div className="p-6">
-          <h2 className="text-xl font-bold text-white mb-2 text-center">Límite del Plan Alcanzado</h2>
+          <h2 className="text-xl font-bold text-[var(--foreground)] mb-2 text-center">Límite del Plan Alcanzado</h2>
           
-          <p className="text-slate-300 text-sm text-center mb-6 leading-relaxed">
+          <p className="text-[var(--text-secondary)] text-sm text-center mb-6 leading-relaxed">
             {message}
           </p>
 
-          <div className="bg-black/40 border border-white/5 rounded-xl p-4 mb-6">
-            <h3 className="text-sm font-semibold text-white flex items-center gap-2 mb-2">
+          <div className="bg-[var(--panel-bg)] backdrop-blur-sm border border-[var(--hairline)] rounded-xl p-4 mb-6">
+            <h3 className="text-sm font-semibold text-[var(--foreground)] flex items-center gap-2 mb-2">
               <CreditCard className="w-4 h-4 text-emerald-400" />
               Sube de nivel tu Agencia
             </h3>
-            <ul className="text-xs text-slate-400 space-y-2">
+            <ul className="text-xs text-[var(--text-secondary)] space-y-2">
               <li className="flex gap-2 items-center">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
                 Proyectos, Miembros e Integraciones ilimitadas.
@@ -92,7 +92,7 @@ export function PaywallInterceptor() {
           <div className="flex flex-col gap-3">
             <button 
               onClick={handleUpgrade}
-              className="w-full py-3 px-4 rounded-xl font-bold text-white shadow-[0_0_20px_rgba(59,130,246,0.15)] transition-all flex items-center justify-center gap-2"
+              className="w-full py-3 px-4 rounded-xl font-bold text-[var(--foreground)] shadow-[0_0_20px_rgba(59,130,246,0.15)] transition-all flex items-center justify-center gap-2"
               style={{
                 background: "linear-gradient(135deg, var(--cyan) 0%, #005bb5 100%)",
               }}
@@ -101,7 +101,7 @@ export function PaywallInterceptor() {
             </button>
             <button 
               onClick={() => setIsOpen(false)}
-              className="w-full py-2.5 px-4 rounded-xl font-medium text-slate-400 hover:text-white hover:bg-white/5 transition-colors"
+              className="w-full py-2.5 px-4 rounded-xl font-medium text-[var(--text-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-colors"
             >
               Cerrar por ahora
             </button>

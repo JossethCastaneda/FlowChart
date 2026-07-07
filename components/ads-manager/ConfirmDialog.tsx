@@ -59,7 +59,7 @@ export function ConfirmDialog({
         onClick={onCancel}
         style={{
           position: "fixed", inset: 0, zIndex: 200,
-          background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+          background: "var(--panel-bg)", backdropFilter: "blur(8px)",
         }}
       />
       <div
@@ -86,7 +86,7 @@ export function ConfirmDialog({
             <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)", marginBottom: "6px" }}>
               {title}
             </div>
-            <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.7)", lineHeight: "1.5" }}>
+            <div style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: "1.5" }}>
               {message}
             </div>
           </div>
@@ -98,8 +98,8 @@ export function ConfirmDialog({
             disabled={loading}
             style={{
               padding: "8px 16px", fontSize: "11px", fontWeight: 600,
-              background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)",
-              borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
+              background: "var(--surface-hover)", border: "1px solid var(--hairline)",
+              borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
               transition: "all 0.15s",
             }}
           >

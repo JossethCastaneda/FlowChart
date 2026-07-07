@@ -106,7 +106,7 @@ export function GanttView({ tasks, onEditTask }: { tasks: Task[]; onEditTask: (t
                       position: "absolute", top: 8, height: 24, left: Math.max(0, left), width,
                       background: isBlocked ? "var(--amber)" : "var(--cyan)",
                       borderRadius: 4, display: "flex", alignItems: "center", padding: "0 8px",
-                      color: "#fff", fontSize: 10, fontWeight: 700, overflow: "hidden",
+                      color: "var(--foreground)", fontSize: 10, fontWeight: 700, overflow: "hidden",
                       boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
                       opacity: task.status === "Done" ? 0.5 : 1
                     }}

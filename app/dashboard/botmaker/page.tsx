@@ -579,8 +579,8 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
     }}>
       <div style={{
         width: "100%", maxWidth: 520,
-        background: "rgba(255,255,255,0.025)",
-        border: "1px solid rgba(255,255,255,0.08)",
+        background: "var(--surface-hover)",
+        border: "1px solid var(--border)",
         borderRadius: 20, overflow: "hidden",
       }}>
         {/* Top gradient banner */}
@@ -600,13 +600,13 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 8px 24px rgba(124,107,214,0.35)",
             }}>
-              <Bot style={{ width: 26, height: 26, color: "white" }} />
+              <Bot style={{ width: 26, height: 26, color: "var(--foreground)" }} />
             </div>
             <div>
-              <h1 style={{ fontSize: 22, fontWeight: 800, color: "white", margin: 0 }}>
+              <h1 style={{ fontSize: 22, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>
                 Conectar Botmaker
               </h1>
-              <p style={{ fontSize: 13, color: "rgba(148,163,184,0.65)", margin: "2px 0 0" }}>
+              <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "2px 0 0" }}>
                 API v2.0 · Acceso a todas las funciones
               </p>
             </div>
@@ -632,7 +632,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                 borderRadius: 8,
               }}>
                 <Icon style={{ width: 13, height: 13, color, flexShrink: 0 }} />
-                <span style={{ fontSize: 11, color: "rgba(148,163,184,0.8)", fontWeight: 500 }}>{label}</span>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>{label}</span>
               </div>
             ))}
           </div>
@@ -640,7 +640,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
           {/* Form */}
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)", marginBottom: 8 }}>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8 }}>
                 Access Token <span style={{ color: "var(--red)" }}>*</span>
               </label>
               <div style={{ position: "relative" }}>
@@ -653,10 +653,10 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                   onKeyDown={(e) => e.key === "Enter" && handleConnect()}
                   style={{
                     width: "100%", padding: "12px 44px 12px 14px",
-                    background: "rgba(255,255,255,0.05)",
+                    background: "var(--surface-hover)",
                     border: `1px solid ${error ? "rgba(229,72,77,0.5)" : "rgba(255,255,255,0.1)"}`,
-                    borderRadius: 10, color: "white", fontSize: 13,
-                    outline: "none", fontFamily: "monospace", boxSizing: "border-box",
+                    borderRadius: 10, color: "var(--foreground)", fontSize: 13,
+                    outline: "none", fontFamily: "var(--font-mono)", boxSizing: "border-box",
                     transition: "border-color 0.2s",
                   }}
                 />
@@ -665,20 +665,20 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                   style={{
                     position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)",
                     background: "transparent", border: "none", cursor: "pointer",
-                    color: "rgba(148,163,184,0.5)", padding: 2,
+                    color: "var(--text-secondary)", padding: 2,
                   }}
                 >
                   {showToken ? <EyeOff style={{ width: 16, height: 16 }} /> : <Eye style={{ width: 16, height: 16 }} />}
                 </button>
               </div>
-              <p style={{ fontSize: 11, color: "rgba(148,163,184,0.45)", marginTop: 6 }}>
+              <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 6 }}>
                 Encriptado con AES-256 al guardar. Nunca se expone en el cliente.
               </p>
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.75)", marginBottom: 8 }}>
-                Base URL <span style={{ color: "rgba(148,163,184,0.4)", fontWeight: 400 }}>(opcional)</span>
+              <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 8 }}>
+                Base URL <span style={{ color: "var(--text-secondary)", fontWeight: 400 }}>(opcional)</span>
               </label>
               <input
                 type="text"
@@ -687,13 +687,13 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                 placeholder="https://api.botmaker.com/v2.0 (por defecto)"
                 style={{
                   width: "100%", padding: "12px 14px",
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  borderRadius: 10, color: "white", fontSize: 13,
+                  background: "var(--surface)",
+                  border: "1px solid var(--border)",
+                  borderRadius: 10, color: "var(--foreground)", fontSize: 13,
                   outline: "none", boxSizing: "border-box",
                 }}
               />
-              <p style={{ fontSize: 11, color: "rgba(148,163,184,0.45)", marginTop: 6 }}>
+              <p style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 6 }}>
                 Déjalo vacío si usas la instancia cloud de Botmaker.
               </p>
             </div>
@@ -702,7 +702,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
             {error && (
               <div style={{
                 padding: "10px 14px",
-                background: "rgba(229,72,77,0.08)",
+                background: "var(--red-dim)",
                 border: "1px solid rgba(229,72,77,0.2)",
                 borderRadius: 8, display: "flex", gap: 8, alignItems: "flex-start",
               }}>
@@ -759,7 +759,7 @@ function SetupScreen({ onConnected }: { onConnected: () => void }) {
                 rel="noopener noreferrer"
                 style={{
                   display: "flex", alignItems: "center", gap: 6,
-                  fontSize: 11, color: "rgba(148,163,184,0.45)", textDecoration: "none",
+                  fontSize: 11, color: "var(--text-secondary)", textDecoration: "none",
                 }}
               >
                 <ExternalLink style={{ width: 11, height: 11 }} />
@@ -859,15 +859,15 @@ function EndpointForm({
           background: `${METHOD_COLORS[endpoint.method]}18`,
           border: `1px solid ${METHOD_COLORS[endpoint.method]}40`,
           fontSize: 11, fontWeight: 800, color: METHOD_COLORS[endpoint.method],
-          fontFamily: "monospace", flexShrink: 0, alignSelf: "flex-start", marginTop: 3,
+          fontFamily: "var(--font-mono)", flexShrink: 0, alignSelf: "flex-start", marginTop: 3,
           letterSpacing: "0.05em",
         }}>
           {endpoint.method}
         </div>
         <div>
-          <h2 style={{ fontSize: 20, fontWeight: 700, color: "white", margin: "0 0 5px" }}>{endpoint.label}</h2>
-          <p style={{ fontSize: 13, color: "rgba(148,163,184,0.8)", margin: "0 0 4px", lineHeight: 1.5 }}>{endpoint.description}</p>
-          <code style={{ fontSize: 11, color: "rgba(148,163,184,0.4)", fontFamily: "monospace" }}>
+          <h2 style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)", margin: "0 0 5px" }}>{endpoint.label}</h2>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "0 0 4px", lineHeight: 1.5 }}>{endpoint.description}</p>
+          <code style={{ fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>
             api.botmaker.com/v2.0{endpoint.path}
           </code>
         </div>
@@ -887,11 +887,11 @@ function EndpointForm({
       {/* Fields */}
       {endpoint.fields && endpoint.fields.length > 0 && (
         <div style={{
-          background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+          background: "var(--surface)", border: "1px solid var(--hairline)",
           borderRadius: 12, padding: "20px 20px 16px",
           display: "flex", flexDirection: "column", gap: 16,
         }}>
-          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "rgba(148,163,184,0.45)", textTransform: "uppercase", margin: 0 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: "var(--text-secondary)", textTransform: "uppercase", margin: 0 }}>
             Parámetros
           </p>
           {endpoint.fields.map((f) => {
@@ -900,11 +900,11 @@ function EndpointForm({
 
             return (
               <div key={f.key}>
-                <label style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 6, marginBottom: 7 }}>
                   {f.label}
                   {f.required && <span style={{ color: "var(--red)", fontSize: 11 }}>*</span>}
                   {f.dynamicOptions && dynamicOpts && dynamicOpts.length > 0 && (
-                    <span style={{ fontSize: 9, color: "var(--emerald)", fontWeight: 600, background: "rgba(52,183,124,0.1)", padding: "1px 5px", borderRadius: 4 }}>
+                    <span style={{ fontSize: 9, color: "var(--emerald)", fontWeight: 600, background: "var(--emerald-dim)", padding: "1px 5px", borderRadius: 4 }}>
                       PRECARGADO
                     </span>
                   )}
@@ -917,10 +917,10 @@ function EndpointForm({
                     rows={4}
                     style={{
                       width: "100%", padding: "10px 12px",
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.09)",
-                      borderRadius: 8, color: "white", fontSize: 12, outline: "none",
-                      resize: "vertical", fontFamily: "monospace", boxSizing: "border-box",
+                      background: "var(--surface)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8, color: "var(--foreground)", fontSize: 12, outline: "none",
+                      resize: "vertical", fontFamily: "var(--font-mono)", boxSizing: "border-box",
                     }}
                   />
                 ) : hasOptions ? (
@@ -930,8 +930,8 @@ function EndpointForm({
                     style={{
                       width: "100%", padding: "10px 12px",
                       background: "rgba(8,12,28,0.95)",
-                      border: "1px solid rgba(255,255,255,0.09)",
-                      borderRadius: 8, color: "white", fontSize: 13, outline: "none", boxSizing: "border-box",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8, color: "var(--foreground)", fontSize: 13, outline: "none", boxSizing: "border-box",
                     }}
                   >
                     <option value="">Seleccionar...</option>
@@ -947,14 +947,14 @@ function EndpointForm({
                     placeholder={f.placeholder || ""}
                     style={{
                       width: "100%", padding: "10px 12px",
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.09)",
-                      borderRadius: 8, color: "white", fontSize: 13, outline: "none", boxSizing: "border-box",
+                      background: "var(--surface)",
+                      border: "1px solid var(--border)",
+                      borderRadius: 8, color: "var(--foreground)", fontSize: 13, outline: "none", boxSizing: "border-box",
                     }}
                   />
                 )}
                 {f.hint && (
-                  <p style={{ fontSize: 11, color: "rgba(148,163,184,0.4)", margin: "4px 0 0" }}>{f.hint}</p>
+                  <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: "4px 0 0" }}>{f.hint}</p>
                 )}
               </div>
             );
@@ -985,7 +985,7 @@ function EndpointForm({
       {/* Result */}
       {result && (
         <div style={{
-          background: "rgba(255,255,255,0.015)",
+          background: "var(--surface-hover)",
           border: `1px solid ${result.ok ? "rgba(52,183,124,0.2)" : "rgba(229,72,77,0.2)"}`,
           borderRadius: 12, overflow: "hidden",
         }}>
@@ -993,7 +993,7 @@ function EndpointForm({
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "10px 16px",
             background: result.ok ? "rgba(52,183,124,0.05)" : "rgba(229,72,77,0.05)",
-            borderBottom: "1px solid rgba(255,255,255,0.05)",
+            border: "1px solid var(--hairline)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               {result.ok
@@ -1007,8 +1007,8 @@ function EndpointForm({
               onClick={copyResult}
               style={{
                 display: "flex", alignItems: "center", gap: 5, background: "transparent",
-                border: "1px solid rgba(255,255,255,0.1)", borderRadius: 6,
-                cursor: "pointer", color: "rgba(148,163,184,0.6)", fontSize: 11,
+                border: "1px solid var(--border)", borderRadius: 6,
+                cursor: "pointer", color: "var(--text-secondary)", fontSize: 11,
                 padding: "4px 10px", fontWeight: 500, transition: "all 0.15s",
               }}
             >
@@ -1018,7 +1018,7 @@ function EndpointForm({
           </div>
           <pre style={{
             padding: "16px 20px", margin: 0, overflow: "auto",
-            fontSize: 12, color: "var(--foreground)", fontFamily: "monospace",
+            fontSize: 12, color: "var(--foreground)", fontFamily: "var(--font-mono)",
             maxHeight: 400, lineHeight: 1.65,
           }}>
             {JSON.stringify(result.data, null, 2)}
@@ -1134,28 +1134,28 @@ function ConnectedModule({
       {/* ── Left sidebar ── */}
       <div style={{
         width: 270, flexShrink: 0, display: "flex", flexDirection: "column",
-        borderRight: "1px solid rgba(255,255,255,0.06)",
+        border: "1px solid var(--hairline)",
         background: "rgba(4,7,16,0.9)", overflowY: "auto",
       }}>
         {/* Connection header */}
-        <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+        <div style={{ padding: "16px 16px 12px", border: "1px solid var(--hairline)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
             <div style={{
               width: 34, height: 34, borderRadius: 10,
               background: "linear-gradient(135deg, var(--purple), var(--purple))",
               display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
             }}>
-              <Bot style={{ width: 17, height: 17, color: "white" }} />
+              <Bot style={{ width: 17, height: 17, color: "var(--foreground)" }} />
             </div>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: 13, fontWeight: 700, color: "white", margin: 0 }}>Botmaker API</p>
-              <p style={{ fontSize: 10, color: "rgba(148,163,184,0.45)", margin: "1px 0 0" }}>v2.0</p>
+              <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Botmaker API</p>
+              <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: "1px 0 0" }}>v2.0</p>
             </div>
             {/* Connected badge */}
             <div style={{
               display: "flex", alignItems: "center", gap: 5,
               padding: "3px 8px", borderRadius: 20,
-              background: "rgba(52,183,124,0.1)", border: "1px solid rgba(52,183,124,0.25)",
+              background: "var(--emerald-dim)", border: "1px solid rgba(52,183,124,0.25)",
             }}>
               <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 4px var(--emerald)" }} />
               <span style={{ fontSize: 9, fontWeight: 700, color: "var(--emerald)", letterSpacing: "0.05em" }}>ACTIVO</span>
@@ -1167,15 +1167,15 @@ function ConnectedModule({
             display: "flex", alignItems: "center", gap: 7,
             padding: "7px 10px", borderRadius: 7,
             background: preloadStatus === "done" ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.06)",
+            border: "1px solid var(--hairline)",
             marginBottom: 10,
           }}>
             {preloadStatus === "loading" ? (
-              <><Loader2 style={{ width: 11, height: 11, color: "rgba(148,163,184,0.4)", animation: "spin 1s linear infinite" }} />
-                <span style={{ fontSize: 10, color: "rgba(148,163,184,0.45)" }}>Cargando canales y agentes...</span></>
+              <><Loader2 style={{ width: 11, height: 11, color: "var(--text-secondary)", animation: "spin 1s linear infinite" }} />
+                <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>Cargando canales y agentes...</span></>
             ) : preloadStatus === "done" ? (
               <><Sparkles style={{ width: 11, height: 11, color: "var(--emerald)" }} />
-                <span style={{ fontSize: 10, color: "rgba(148,163,184,0.6)" }}>
+                <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>
                   {preloaded.channels.length} canales · {preloaded.agents.length} agentes
                 </span></>
             ) : (
@@ -1206,7 +1206,7 @@ function ConnectedModule({
             style={{
               width: "100%", display: "flex", alignItems: "center", gap: 7,
               padding: "8px 10px", marginBottom: 12,
-              background: "rgba(59,130,246,0.1)",
+              background: "var(--cyan-dim)",
               border: "1px solid rgba(59,130,246,0.3)", borderRadius: 7,
               color: "rgba(147,197,253,0.95)", fontSize: 11, fontWeight: 600,
               cursor: "pointer", transition: "all 0.15s",
@@ -1223,7 +1223,7 @@ function ConnectedModule({
             disabled={disconnecting}
             style={{
               width: "100%", display: "flex", alignItems: "center", gap: 7,
-              padding: "7px 10px", background: "rgba(229,72,77,0.06)",
+              padding: "7px 10px", background: "var(--red-dim)",
               border: "1px solid rgba(229,72,77,0.15)", borderRadius: 7,
               cursor: "pointer", color: "rgba(255,100,120,0.75)", fontSize: 11,
               transition: "all 0.15s",
@@ -1271,15 +1271,15 @@ function ConnectedModule({
                     {cat.label}
                   </span>
                   <span style={{
-                    fontSize: 9, color: "rgba(148,163,184,0.35)", fontWeight: 700,
-                    background: "rgba(255,255,255,0.05)", padding: "1px 5px", borderRadius: 10, marginRight: 2,
+                    fontSize: 9, color: "var(--text-secondary)", fontWeight: 700,
+                    background: "var(--surface-hover)", padding: "1px 5px", borderRadius: 10, marginRight: 2,
                   }}>
                     {cat.endpoints.length}
                   </span>
                   <div style={{
                     transform: isExpanded ? "rotate(0deg)" : "rotate(-90deg)",
                     transition: "transform 0.2s ease",
-                    color: "rgba(148,163,184,0.35)",
+                    color: "var(--text-secondary)",
                   }}>
                     <ChevronDown style={{ width: 13, height: 13 }} />
                   </div>
@@ -1307,7 +1307,7 @@ function ConnectedModule({
                           }}
                         >
                           <span style={{
-                            fontSize: 9, fontWeight: 800, fontFamily: "monospace",
+                            fontSize: 9, fontWeight: 800, fontFamily: "var(--font-mono)",
                             color: METHOD_COLORS[ep.method], minWidth: 34, letterSpacing: "0.03em",
                           }}>
                             {ep.method}
@@ -1336,8 +1336,8 @@ function ConnectedModule({
         {/* Connection info footer */}
         {connectionInfo.connectedBy && (
           <div style={{
-            padding: "10px 14px", borderTop: "1px solid rgba(255,255,255,0.05)",
-            fontSize: 10, color: "rgba(148,163,184,0.35)",
+            padding: "10px 14px", border: "1px solid var(--hairline)",
+            fontSize: 10, color: "var(--text-secondary)",
           }}>
             Conectado por {connectionInfo.connectedBy.name || connectionInfo.connectedBy.email}
             {connectionInfo.connectedAt && (
@@ -1362,7 +1362,7 @@ function ConnectedModule({
             justifyContent: "center", height: "100%", gap: 12,
           }}>
             <Bot style={{ width: 48, height: 48, color: "rgba(124,107,214,0.3)" }} />
-            <p style={{ color: "rgba(148,163,184,0.4)", fontSize: 14 }}>
+            <p style={{ color: "var(--text-secondary)", fontSize: 14 }}>
               Selecciona un endpoint del menú
             </p>
           </div>
@@ -1453,9 +1453,9 @@ export default function BotmakerPage() {
           boxShadow: "0 8px 24px rgba(124,107,214,0.3)",
           animation: "pulse 2s ease-in-out infinite",
         }}>
-          <Bot style={{ width: 26, height: 26, color: "white" }} />
+          <Bot style={{ width: 26, height: 26, color: "var(--foreground)" }} />
         </div>
-        <p style={{ color: "rgba(148,163,184,0.5)", fontSize: 13 }}>Verificando conexión...</p>
+        <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>Verificando conexión...</p>
         <style>{`
           @keyframes pulse {
             0%, 100% { box-shadow: 0 8px 24px rgba(124,107,214,0.3); transform: scale(1); }

@@ -128,13 +128,13 @@ export function PermissionsManager() {
                 display: "flex", alignItems: "center", gap: 10, cursor: "pointer",
                 transition: "background 0.2s ease-in-out"
               }}>
-              {isExpanded ? <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />}
+              {isExpanded ? <ChevronDown className="w-4 h-4 text-[var(--text-secondary)] shrink-0" /> : <ChevronRight className="w-4 h-4 text-[var(--text-secondary)] shrink-0" />}
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: area.color, flexShrink: 0 }} />
               <span style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.05em", flex: 1 }}>
                 {area.name}
               </span>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                {isDefault && <span style={{ fontSize: 10, color: "var(--text-secondary)", fontStyle: "italic", border: "1px solid rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: 4 }}>Defaults</span>}
+                {isDefault && <span style={{ fontSize: 10, color: "var(--text-secondary)", fontStyle: "italic", border: "1px solid var(--hairline)", padding: "2px 6px", borderRadius: 4 }}>Defaults</span>}
                 <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
                   {area.memberIds.length} miembros · {area.leadIds.length} líderes
                 </span>
@@ -155,7 +155,7 @@ export function PermissionsManager() {
               return (
                 <div style={{ padding: "16px", animation: "fadeIn 0.2s ease-out" }}>
                   {/* Header & Batch Actions */}
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, border: "1px solid var(--hairline)" }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.02em" }}>
                         👤 Permisos de Integrantes
@@ -187,8 +187,8 @@ export function PermissionsManager() {
                       return (
                         <div key={p.key} style={{
                           display: "flex", alignItems: "center", justifyContent: "space-between",
-                          padding: "10px 12px", borderRadius: 8, background: "rgba(255,255,255,0.02)",
-                          border: "1px solid rgba(255,255,255,0.03)",
+                          padding: "10px 12px", borderRadius: 8, background: "var(--surface)",
+                          border: "1px solid var(--hairline)",
                         }}>
                           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                             <div style={{ width: 28, height: 28, borderRadius: 6, background: checked ? "rgba(59,130,246, 0.1)" : "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -214,7 +214,7 @@ export function PermissionsManager() {
                             <span style={{
                               position: "absolute", top: 2,
                               left: checked ? 18 : 2,
-                              width: 16, height: 16, borderRadius: "50%", background: "#fff",
+                              width: 16, height: 16, borderRadius: "50%", background: "var(--surface)",
                               transition: "left 0.15s",
                             }} />
                           </button>

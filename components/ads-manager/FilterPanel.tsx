@@ -138,8 +138,8 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             <div style={{
               display: "flex", alignItems: "center", gap: "6px",
               padding: "6px 8px", marginBottom: "6px",
-              background: "rgba(0,0,0,0.3)", borderRadius: "6px",
-              border: "1px solid rgba(148,163,184,0.18)",
+              background: "var(--surface-hover)", borderRadius: "6px",
+              border: "1px solid var(--border)",
             }}>
               <Search className="w-3 h-3" style={{ color: "var(--text-muted)" }} />
               <input
@@ -170,7 +170,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
                     onClick={() => addFilter(filter)}
                     style={{
                       width: "100%", textAlign: "left", padding: "7px 10px",
-                      fontSize: "11.5px", color: "rgba(255,255,255,0.85)",
+                      fontSize: "11.5px", color: "var(--text-secondary)",
                       background: "transparent", border: "none", cursor: "pointer",
                       borderRadius: "5px", transition: "all 0.15s",
                     }}
@@ -208,7 +208,7 @@ export function FilterPanel({ activeFilters, onFiltersChange, level }: FilterPan
             onClick={() => removeFilter(idx)}
             style={{
               background: "none", border: "none",
-              color: "rgba(255,255,255,0.75)", cursor: "pointer",
+              color: "var(--text-secondary)", cursor: "pointer",
               display: "flex", alignItems: "center", padding: 0,
               transition: "color 0.15s",
             }}

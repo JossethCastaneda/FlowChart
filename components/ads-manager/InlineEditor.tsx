@@ -73,7 +73,7 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
             }}
             disabled={loading}
             style={{
-              background: "rgba(0,0,0,0.3)",
+              background: "var(--surface-hover)",
               border: "1px solid var(--cyan)",
               borderRadius: "4px",
               color: "var(--foreground)",
@@ -106,7 +106,7 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
           onClick={handleCancel}
           disabled={loading}
           style={{
-            background: "rgba(229,72,77,0.15)",
+            background: "var(--red-dim)",
             border: "1px solid rgba(229,72,77,0.3)",
             borderRadius: "4px",
             color: "var(--red)",
@@ -144,7 +144,7 @@ export function InlineEditor({ value, type = "text", prefix = "", onSave }: Inli
         {type === "number" ? Number(value).toLocaleString() : value}
       </span>
       <Edit3
-        className="w-3 h-3 text-slate-500 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="w-3 h-3 text-[var(--text-muted)] opacity-0 group-hover:opacity-100 transition-opacity"
         style={{ marginTop: "-1px" }}
       />
     </div>

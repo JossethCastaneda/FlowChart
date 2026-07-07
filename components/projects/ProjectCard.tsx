@@ -185,7 +185,7 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
                 Presupuesto
               </span>
               <span style={{
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono)",
                 fontSize: 10, color: isOver ? "var(--amber)" : "var(--text-secondary)",
               }}>
                 {spendPct != null ? `${spendPct.toFixed(0)}%` : `${fmtCurrency(totalBudget)}`}
@@ -225,7 +225,7 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
                 setMenuOpen(p.id);
               }}
               style={{
-                background: "rgba(255,255,255,0.04)", border: "1px solid var(--hairline)",
+                background: "var(--surface)", border: "1px solid var(--hairline)",
                 cursor: "pointer", color: "var(--text-muted)", padding: "5px 7px",
                 borderRadius: 7, display: "flex", alignItems: "center",
               }}

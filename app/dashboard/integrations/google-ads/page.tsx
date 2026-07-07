@@ -164,7 +164,7 @@ export default function GoogleAdsPage() {
               background: "#4285F4",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 4px 12px rgba(66,133,244,0.3)",
-              color: "white",
+              color: "var(--foreground)",
             }}>
               <GoogleAdsIcon />
             </div>

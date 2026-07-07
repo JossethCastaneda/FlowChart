@@ -69,7 +69,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
             values.map((v: string) => {
               const opt = options.find((o: any) => o.value === v);
               return (
-                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
                   {opt?.picture && <img src={opt.picture} alt="" style={{ width: 12, height: 12, borderRadius: "50%", objectFit: "cover" }} />}
                   {opt ? opt.label : v}
                   {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
@@ -94,7 +94,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(59,130,246,0.05)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "var(--cyan-dim)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => {
@@ -105,7 +105,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
                     else onChange([...values, o.value]);
                   }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(59,130,246,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.05)" : "transparent"}>
                     <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "var(--cyan)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "var(--cyan)" : "transparent" }}>
-                      {selected && <Check className="w-2 h-2 text-black" />}
+                      {selected && <Check className="w-2 h-2 text-[var(--foreground)]" />}
                     </div>
                     {o.picture && <img src={o.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
                     {o.label}
@@ -141,7 +141,7 @@ function TagsInput({ values, onChange, placeholder, ro }: { values: string[]; on
   return (
     <div className="f-input" style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", minHeight: "34px", height: "auto", cursor: ro ? "not-allowed" : "text" }}>
       {values.map((v, i) => (
-        <span key={i} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
+        <span key={i} style={{ fontSize: "10px", padding: "3px 8px", background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
           {v}
           {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={() => onChange(values.filter((_, j) => j !== i))} />}
         </span>
@@ -203,7 +203,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
             values.map((v: string) => {
               const opt = options.find((o: any) => o.id === v);
               return (
-                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
                   {opt ? opt.name : v} 
                   {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
                 </span>
@@ -227,7 +227,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(59,130,246,0.05)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "var(--cyan-dim)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => {
@@ -238,7 +238,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
                     else onChange([...values, o.id]);
                   }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(59,130,246,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.05)" : "transparent"}>
                     <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "var(--cyan)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "var(--cyan)" : "transparent" }}>
-                      {selected && <Check className="w-2 h-2 text-black" />}
+                      {selected && <Check className="w-2 h-2 text-[var(--foreground)]" />}
                     </div>
                     {o.name}
                   </div>
@@ -513,7 +513,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
       position: "fixed", inset: 0, zIndex: 9999,
       display: "flex", alignItems: "flex-start", justifyContent: "center",
       overflowY: "auto", padding: "3vh 16px",
-      background: "rgba(0,0,0,0.8)", backdropFilter: "blur(6px)",
+      background: "var(--panel-bg)", backdropFilter: "blur(8px)",
     }}>
       <div onClick={e => e.stopPropagation()} className="page-enter" style={{
         width: "640px", maxWidth: "100%",
@@ -524,7 +524,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
 
         {/* Header */}
         <div style={{ padding: "16px 24px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "white", letterSpacing: "0.1em" }}>{title}</h2>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>{title}</h2>
           <button onClick={onClose} style={{ color: "var(--text-muted)", cursor: "pointer", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-secondary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-muted)"}><X className="w-5 h-5" /></button>
         </div>
 
@@ -842,7 +842,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                     <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", color: pl.color }}>{pl.name}</span>
                   </div>
                   {!ro && (
-                    <button onClick={() => toggleChannel(ch.platformId)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.65)", fontSize: "10px" }}>
+                    <button onClick={() => toggleChannel(ch.platformId)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: "10px" }}>
                       <X className="w-3.5 h-3.5" />
                     </button>
                   )}
@@ -917,7 +917,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
               <button onClick={onClose} style={{
                 fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase",
-                padding: "8px 20px", border: "1px solid rgba(148,163,184,0.12)", color: "var(--text-muted)",
+                padding: "8px 20px", border: "1px solid var(--border)", color: "var(--text-muted)",
                 background: "transparent", cursor: "pointer", transition: "all 0.15s", borderRadius: "4px",
               }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.65)"; e.currentTarget.style.color = "var(--text-secondary)"; }}

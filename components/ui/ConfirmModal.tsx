@@ -122,7 +122,7 @@ export function ConfirmModalContainer() {
             onKeyDown={(e) => e.key === "Enter" && handleConfirm()}
             style={{
               width: "100%", padding: "10px 14px", marginBottom: 20, boxSizing: "border-box",
-              background: "rgba(59,130,246,0.03)", border: "1px solid rgba(59,130,246,0.15)",
+              background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)",
               color: "var(--foreground)", fontSize: 13, outline: "none", borderRadius: 6,
             }}
           />
@@ -132,7 +132,7 @@ export function ConfirmModalContainer() {
             onClick={handleCancel}
             style={{
               padding: "8px 16px", borderRadius: 6, fontSize: 12, fontWeight: 500,
-              background: "rgba(255,255,255,0.06)", border: "1px solid var(--hairline)",
+              background: "var(--surface-hover)", border: "1px solid var(--hairline)",
               color: "var(--text-secondary)", cursor: "pointer",
             }}
           >

@@ -9,9 +9,9 @@ const BotAnalyticsDashboard = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: 12, background: "#030508" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", gap: 12, background: "var(--background)" }}>
         <Loader2 className="animate-spin" style={{ width: 20, height: 20, color: "var(--purple)" }} />
-        <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Cargando…</span>
+        <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Cargando…</span>
       </div>
     ),
   }

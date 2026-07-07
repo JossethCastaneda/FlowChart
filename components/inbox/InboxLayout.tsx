@@ -70,18 +70,18 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
       onClick={onClick}
       onKeyDown={e => (e.key === "Enter" || e.key === " ") && onClick()}
       style={{
-        padding: "10px 14px",
+        padding: "12px 16px",
         cursor: "pointer",
-        background: isActive ? "rgba(155,123,232,0.07)" : "transparent",
-        borderLeft: isActive ? "3px solid #9b7be8" : "3px solid transparent",
-        borderBottom: "1px solid var(--hairline)",
-        display: "flex", gap: 10, alignItems: "flex-start",
-        transition: "background 0.1s, border-left-color 0.1s",
+        background: isActive ? "var(--cyan-dim, rgba(0,212,255,0.08))" : "transparent",
+        borderLeft: isActive ? "3px solid var(--cyan)" : "3px solid transparent",
+        borderBottom: "1px solid var(--glass-border)",
+        display: "flex", gap: 12, alignItems: "flex-start",
+        transition: "all 0.2s ease-in-out",
         outline: "none",
       }}
       onMouseOver={e => { if (!isActive) e.currentTarget.style.background = "var(--surface-hover)"; }}
       onMouseOut={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-      onFocus={e => { e.currentTarget.style.boxShadow = "inset 0 0 0 2px #9b7be8"; }}
+      onFocus={e => { e.currentTarget.style.boxShadow = "inset 0 0 0 2px var(--cyan)"; }}
       onBlur={e => { e.currentTarget.style.boxShadow = "none"; }}
     >
       {/* Avatar + Platform badge */}
@@ -113,8 +113,9 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
         {conv.unread && (
           <div style={{
             position: "absolute", top: 0, left: 0,
-            width: 9, height: 9, borderRadius: "50%",
-            background: "#9b7be8", border: "2px solid var(--background)",
+            width: 10, height: 10, borderRadius: "50%",
+            background: "var(--cyan)", border: "2px solid var(--background)",
+            boxShadow: "0 0 6px var(--cyan)",
           }} aria-hidden="true" />
         )}
       </div>
@@ -133,7 +134,7 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
             dateTime={conv.lastMessageTime.toISOString()}
             style={{
               fontSize: 10, flexShrink: 0, marginLeft: 4,
-              color: conv.unread ? "#9b7be8" : "var(--text-muted)",
+              color: conv.unread ? "var(--cyan)" : "var(--text-muted)",
               fontWeight: conv.unread ? 600 : 400,
             }}
           >
@@ -274,7 +275,7 @@ function EmptyChat({ hasAnyConnection, onConnect }: { hasAnyConnection: boolean;
         </p>
       </div>
       {!hasAnyConnection && (
-        <button onClick={onConnect} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 8, background: "var(--primary)", color: "white", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
+        <button onClick={onConnect} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 8, background: "var(--primary)", color: "var(--foreground)", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
           <Plus style={{ width: 14, height: 14 }} />
           Conectar cuenta
         </button>
@@ -403,7 +404,7 @@ export function InboxLayout() {
         {/* LEFT: Conversation List */}
         <div
           className={`w-full md:w-[300px] md:min-w-[300px] flex-col ${selected && !isDesktop ? "hidden" : "flex"}`}
-          style={{ borderRight: "1px solid var(--hairline)", background: "var(--surface)", overflow: "hidden" }}
+          style={{ borderRight: "1px solid var(--hairline)", background: "transparent", overflow: "hidden" }}
           role="navigation" aria-label="Conversaciones"
         >
           {/* Page selector */}
@@ -486,7 +487,7 @@ export function InboxLayout() {
                 );
               })()}
               {queueMenuOpen && (
-                <div role="listbox" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 195, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 10, zIndex: 50, overflow: "hidden", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+                <div role="listbox" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 195, background: "var(--panel-bg)", backdropFilter: "blur(12px)", border: "1px solid var(--glass-border)", borderRadius: 10, zIndex: 50, overflow: "hidden", boxShadow: "var(--shadow-hard)" }}>
                   {QUEUE_TABS.map(tab => {
                     const count = conversations.filter(c => {
                       if (tab.key === "all") return true;
@@ -527,7 +528,7 @@ export function InboxLayout() {
                 {searchQuery && <button onClick={() => setSearchQuery("")} style={{ fontSize: 11, color: "var(--primary)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>Limpiar búsqueda</button>}
                 {!hasAnyConnection && !searchQuery && (
                   <button onClick={() => openConnectPopup("community", handleConnectSuccess)}
-                    style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 7, background: "var(--primary)", color: "white", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "inherit" }}>
+                    style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 7, background: "var(--primary)", color: "var(--foreground)", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "inherit" }}>
                     <Plus style={{ width: 11, height: 11 }} />
                     Conectar cuenta
                   </button>
@@ -569,7 +570,7 @@ export function InboxLayout() {
         {showProfile && selected && (
           <div
             className="absolute inset-y-0 right-0 z-20 w-[280px] md:static md:w-[280px] md:min-w-[280px] shadow-2xl md:shadow-none flex flex-col"
-            style={{ background: "var(--surface)", borderLeft: "1px solid var(--hairline)", overflow: "hidden" }}
+            style={{ background: "transparent", borderLeft: "1px solid var(--glass-border)", overflow: "hidden" }}
             role="complementary" aria-label="Perfil del contacto"
           >
             <ContactProfile conversation={selected} onAssign={(member) => handleAssign(selected, member)} onAddTag={(tag) => handleAddTag(selected, tag)} onRemoveTag={(tag) => handleRemoveTag(selected, tag)} onClose={toggleProfile} />
@@ -578,10 +579,10 @@ export function InboxLayout() {
       </div>
 
       {connectToast && (
-        <div role="alert" aria-live="polite" style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--green)", color: "white", padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", zIndex: 999, display: "flex", alignItems: "center", gap: 8 }}>
+        <div role="alert" aria-live="polite" style={{ position: "fixed", bottom: 24, left: "50%", transform: "translateX(-50%)", background: "var(--green)", color: "var(--foreground)", padding: "10px 18px", borderRadius: 10, fontSize: 13, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.4)", zIndex: 999, display: "flex", alignItems: "center", gap: 8 }}>
           <CheckCircle2 style={{ width: 15, height: 15 }} />
           {connectToast}
-          <button onClick={() => setConnectToast(null)} aria-label="Cerrar" style={{ background: "none", border: "none", color: "white", cursor: "pointer", padding: 2, display: "flex" }}>
+          <button onClick={() => setConnectToast(null)} aria-label="Cerrar" style={{ background: "none", border: "none", color: "var(--foreground)", cursor: "pointer", padding: 2, display: "flex" }}>
             <X style={{ width: 13, height: 13 }} />
           </button>
         </div>

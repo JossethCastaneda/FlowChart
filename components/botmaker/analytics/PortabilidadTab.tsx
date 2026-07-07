@@ -107,9 +107,9 @@ function kpiCard(label: string, value: string | number, sub?: string, accent = P
       flexDirection: "column",
       gap: 4,
     }}>
-      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
+      <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500, textTransform: "uppercase", letterSpacing: "0.05em" }}>{label}</span>
       <span style={{ fontSize: 24, fontWeight: 700, color: accent, lineHeight: 1.2 }}>{value}</span>
-      {sub && <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{sub}</span>}
+      {sub && <span style={{ fontSize: 11, color: "var(--border-strong)" }}>{sub}</span>}
     </div>
   );
 }
@@ -118,7 +118,7 @@ function sectionHeader(title: string, icon: React.ReactNode) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, marginTop: 8 }}>
       <span style={{ color: PURPLE }}>{icon}</span>
-      <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)", letterSpacing: "0.02em" }}>{title}</span>
+      <span style={{ fontSize: 13, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.02em" }}>{title}</span>
     </div>
   );
 }
@@ -126,10 +126,10 @@ function sectionHeader(title: string, icon: React.ReactNode) {
 function pctBar(value: number, color = GREEN) {
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-      <div style={{ flex: 1, height: 6, background: "rgba(255,255,255,0.08)", borderRadius: 3, overflow: "hidden" }}>
+      <div style={{ flex: 1, height: 6, background: "var(--surface-hover)", borderRadius: 3, overflow: "hidden" }}>
         <div style={{ width: `${Math.min(value, 100)}%`, height: "100%", background: color, borderRadius: 3, transition: "width 0.4s ease" }} />
       </div>
-      <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", minWidth: 40, textAlign: "right" }}>{value.toFixed(1)}%</span>
+      <span style={{ fontSize: 11, color: "var(--text-secondary)", minWidth: 40, textAlign: "right" }}>{value.toFixed(1)}%</span>
     </div>
   );
 }
@@ -283,7 +283,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
     return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 60, gap: 12 }}>
         <Loader2 className="animate-spin" style={{ width: 20, height: 20, color: PURPLE }} />
-        <span style={{ color: "rgba(255,255,255,0.5)", fontSize: 13 }}>Cargando datos de portabilidad...</span>
+        <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Cargando datos de portabilidad...</span>
       </div>
     );
   }
@@ -294,7 +294,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
       <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Smartphone style={{ width: 16, height: 16, color: PURPLE }} />
-          <span style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Portabilidad / Cambio de Compañía</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "var(--text-secondary)" }}>Portabilidad / Cambio de Compañía</span>
         </div>
         <div style={{ flex: 1 }} />
         <button
@@ -348,7 +348,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
                 { label: "Conversión global", val: overview.rates.overallConversion },
               ].map(({ label, val }) => (
                 <div key={label} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{label}</span>
+                  <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{label}</span>
                   {pctBar(val, val > 70 ? GREEN : val > 40 ? AMBER : RED)}
                 </div>
               ))}
@@ -379,8 +379,8 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
                     return (
                       <div key={k} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
-                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", textTransform: "capitalize" }}>{k}</span>
-                          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{v.toLocaleString()}</span>
+                          <span style={{ fontSize: 11, color: "var(--text-secondary)", textTransform: "capitalize" }}>{k}</span>
+                          <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{v.toLocaleString()}</span>
                         </div>
                         {pctBar((v / total) * 100, CYAN)}
                       </div>
@@ -397,11 +397,11 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
               {sectionHeader("Top Errores Intelix", <AlertTriangle style={{ width: 14, height: 14 }} />)}
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {overview.topIntelixErrors.map((e, i) => (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "rgba(229,72,77,0.05)", border: "1px solid rgba(229,72,77,0.1)", borderRadius: 8 }}>
+                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.1)", borderRadius: 8 }}>
                     <span style={{ fontSize: 11, fontWeight: 700, color: RED, minWidth: 24 }}>#{i + 1}</span>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{e.code ?? "UNKNOWN"}</div>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{e.message}</div>
+                      <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 600 }}>{e.code ?? "UNKNOWN"}</div>
+                      <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{e.message}</div>
                     </div>
                     <span style={{ fontSize: 13, fontWeight: 700, color: RED }}>{e.count}</span>
                   </div>
@@ -430,11 +430,11 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
                 const color = s.retention > 70 ? GREEN : s.retention > 40 ? AMBER : RED;
                 return (
                   <div key={s.step} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", minWidth: 16, textAlign: "right" }}>{s.step}</span>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", minWidth: 180 }}>{s.name}</span>
-                    <div style={{ flex: 1, height: 22, background: "rgba(255,255,255,0.05)", borderRadius: 4, position: "relative", overflow: "hidden" }}>
+                    <span style={{ fontSize: 10, color: "var(--border-strong)", minWidth: 16, textAlign: "right" }}>{s.step}</span>
+                    <span style={{ fontSize: 11, color: "var(--text-secondary)", minWidth: 180 }}>{s.name}</span>
+                    <div style={{ flex: 1, height: 22, background: "var(--surface-hover)", borderRadius: 4, position: "relative", overflow: "hidden" }}>
                       <div style={{ width: barWidth, height: "100%", background: `${color}40`, borderRadius: 4, transition: "width 0.5s ease" }} />
-                      <span style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "rgba(255,255,255,0.8)", fontWeight: 600 }}>
+                      <span style={{ position: "absolute", left: 8, top: "50%", transform: "translateY(-50%)", fontSize: 10, color: "var(--text-secondary)", fontWeight: 600 }}>
                         {s.count.toLocaleString()}
                       </span>
                     </div>
@@ -482,11 +482,11 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
                 {sectionHeader("Top Códigos de Rechazo", <Shield style={{ width: 14, height: 14 }} />)}
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {intelix.topErrors.slice(0, 10).map((e, i) => (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "rgba(229,72,77,0.05)", border: "1px solid rgba(229,72,77,0.1)", borderRadius: 8 }}>
+                    <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.1)", borderRadius: 8 }}>
                       <span style={{ fontSize: 10, color: RED, fontWeight: 700, minWidth: 16 }}>#{i + 1}</span>
                       <div style={{ flex: 1 }}>
-                        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{e.code ?? "DESCONOCIDO"}</div>
-                        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{e.message ?? "Sin descripción"}</div>
+                        <div style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 600 }}>{e.code ?? "DESCONOCIDO"}</div>
+                        <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{e.message ?? "Sin descripción"}</div>
                       </div>
                       <span style={{ fontSize: 13, fontWeight: 700, color: RED }}>{e.count}</span>
                     </div>
@@ -495,7 +495,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
               </div>
             </>
           ) : (
-            <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+            <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 13 }}>
               Sin datos de Intelix para este período
             </div>
           )}
@@ -519,11 +519,11 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
                   {sectionHeader("Inconsistencias OCR", <AlertTriangle style={{ width: 14, height: 14 }} />)}
                   <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
                     <div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>NIP detectado pero no guardado en variable</div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>NIP detectado pero no guardado en variable</div>
                       <span style={{ fontSize: 22, fontWeight: 700, color: RED }}>{ocr.inconsistencies.nipDetectedNotSaved}</span>
                     </div>
                     <div>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", marginBottom: 4 }}>Fecha detectada pero no guardada en variable</div>
+                      <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>Fecha detectada pero no guardada en variable</div>
                       <span style={{ fontSize: 22, fontWeight: 700, color: AMBER }}>{ocr.inconsistencies.dateDetectedNotSaved}</span>
                     </div>
                   </div>
@@ -533,8 +533,8 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
                   {sectionHeader("Errores Frecuentes", <XCircle style={{ width: 14, height: 14 }} />)}
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     {ocr.topErrors.slice(0, 5).map((e, i) => (
-                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", flex: 1 }}>{e.error ?? "Error desconocido"}</span>
+                      <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", border: "1px solid var(--hairline)" }}>
+                        <span style={{ fontSize: 11, color: "var(--text-muted)", flex: 1 }}>{e.error ?? "Error desconocido"}</span>
                         <span style={{ fontSize: 12, fontWeight: 600, color: RED }}>{e.count}</span>
                       </div>
                     ))}
@@ -543,7 +543,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
               </div>
             </>
           ) : (
-            <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+            <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 13 }}>
               Sin datos de OCR para este período
             </div>
           )}
@@ -571,8 +571,8 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
                       return (
                         <div key={k} style={{ display: "flex", flexDirection: "column", gap: 3 }}>
                           <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>{k}</span>
-                            <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{v.toLocaleString()}</span>
+                            <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{k}</span>
+                            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{v.toLocaleString()}</span>
                           </div>
                           {pctBar((v / total) * 100, CYAN)}
                         </div>
@@ -586,8 +586,8 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
                     {sectionHeader("Top Posts por Conversión", <Target style={{ width: 14, height: 14 }} />)}
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {zapier.topIgPosts.slice(0, 8).map((p, i) => (
-                        <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-                          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", flex: 1, fontFamily: "monospace" }}>{p.igPostId ?? "—"}</span>
+                        <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "4px 0", border: "1px solid var(--hairline)" }}>
+                          <span style={{ fontSize: 10, color: "var(--text-muted)", flex: 1, fontFamily: "var(--font-mono)" }}>{p.igPostId ?? "—"}</span>
                           <span style={{ fontSize: 12, fontWeight: 700, color: GREEN }}>{p.conversions}</span>
                         </div>
                       ))}
@@ -597,7 +597,7 @@ export default function PortabilidadTab({ from, to, botId, channelId }: Props) {
               </div>
             </>
           ) : (
-            <div style={{ textAlign: "center", padding: 40, color: "rgba(255,255,255,0.4)", fontSize: 13 }}>
+            <div style={{ textAlign: "center", padding: 40, color: "var(--text-muted)", fontSize: 13 }}>
               Sin datos de Zapier para este período
             </div>
           )}
