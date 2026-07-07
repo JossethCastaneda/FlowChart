@@ -7,6 +7,8 @@ import { useSearchParams } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
+import { ConnectPlatformDropdown } from "@/components/projects/ConnectPlatformDropdown";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Orbi } from "@/components/ui/Orbi";
 import { KpiCard } from "@/components/ui/KpiCard";
@@ -462,9 +464,12 @@ function ProyectosContent() {
         description="Gestiona tus proyectos de clientes, campañas y presupuestos."
         icon={<FolderKanban className="w-6 h-6" style={{ color: "var(--emerald)" }} />}
         action={
-          <button className="btn-primary" onClick={() => { setEditingId(null); setModalMode("create"); }} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <Plus className="w-4 h-4" /> Nuevo Proyecto
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <ConnectPlatformDropdown />
+            <button className="btn-primary" onClick={() => { setEditingId(null); setModalMode("create"); }} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <Plus className="w-4 h-4" /> Nuevo Proyecto
+            </button>
+          </div>
         }
       />
 
@@ -507,87 +512,6 @@ function ProyectosContent() {
         <KpiCard color="amber" icon={<DollarSign className="w-4 h-4" />} value={`$${totalBudget.toLocaleString()}`} label="Budget Total" />
       </div>
 
-      {/* ── META ADS CONNECTION PANEL ── */}
-      {adsConnected === false ? (
-        <div style={{
-          position: "relative",
-          display: "flex", alignItems: "center", gap: "16px",
-          padding: "16px 20px",
-          background: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(155,123,232,0.06) 50%, rgba(236,72,153,0.08) 100%)",
-          border: "1px solid rgba(155,123,232,0.2)",
-          borderRadius: "12px",
-          overflow: "hidden",
-        }}>
-          {/* Animated gradient accent line */}
-          <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-            background: "linear-gradient(90deg, var(--purple), var(--purple), var(--red), var(--purple))",
-            backgroundSize: "200% 100%",
-            animation: "shimmer 3s linear infinite",
-          }} />
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            width: "40px", height: "40px", borderRadius: "10px", flexShrink: 0,
-            background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(155,123,232,0.2))",
-            boxShadow: "0 0 20px rgba(155,123,232,0.15)",
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
-            </svg>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)", margin: 0, lineHeight: 1.3 }}>
-              Conecta Meta Ads Manager
-            </p>
-            <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "3px 0 0", lineHeight: 1.4 }}>
-              Vincula tus cuentas publicitarias para gestionar campañas y presupuestos en tiempo real.
-            </p>
-          </div>
-          <a
-            href="/api/connect/ads"
-            className="ads-connect-btn"
-            style={{
-              display: "inline-flex", alignItems: "center", gap: "8px",
-              padding: "10px 20px",
-              background: "linear-gradient(135deg, var(--purple), var(--purple))",
-              color: "var(--foreground)",
-              fontSize: "12px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" as const,
-              borderRadius: "8px", cursor: "pointer", textDecoration: "none",
-              whiteSpace: "nowrap",
-              boxShadow: "0 4px 15px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.15)",
-              border: "none",
-              transition: "all 0.3s ease",
-              position: "relative",
-              overflow: "hidden",
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget;
-              el.style.transform = "translateY(-1px)";
-              el.style.boxShadow = "0 6px 20px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.2)";
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget;
-              el.style.transform = "translateY(0)";
-              el.style.boxShadow = "0 4px 15px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.15)";
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            Conectar
-          </a>
-          <style>{`
-            @keyframes shimmer {
-              0% { background-position: 200% 0; }
-              100% { background-position: -200% 0; }
-            }
-          `}</style>
-        </div>
-      ) : null}
 
 
       {/* Projects Grid */}
