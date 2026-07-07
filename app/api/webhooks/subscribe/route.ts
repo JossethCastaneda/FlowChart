@@ -41,6 +41,20 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Scopes realmente otorgados al token: los campos de webhook se filtran
+    // por ellos (subscribed_apps es todo-o-nada; ver lib/meta-webhooks.ts).
+    let grantedScopes: string[] | undefined;
+    try {
+      const permsRes = await metaFetch(metaUrl("me/permissions", {}), token);
+      const permsData = await permsRes.json();
+      if (permsRes.ok && Array.isArray(permsData?.data)) {
+        grantedScopes = permsData.data
+          .filter((p: { status?: string }) => p.status === "granted")
+          .map((p: { permission?: string }) => p.permission)
+          .filter(Boolean);
+      }
+    } catch { /* sin scopes → subscribePages usa todos los campos + reintento mínimo */ }
+
     // ─── Subscribe each page (and its linked IG) to webhook fields ───
     // Lógica compartida con el callback de conexión (lib/meta-webhooks.ts):
     // página + IG se suscriben en un solo POST para no sobrescribir campos.
@@ -50,7 +64,7 @@ export async function POST(request: NextRequest) {
       accessToken: page.access_token,
       instagramId: page.instagram_business_account?.id ?? null,
     }));
-    results.push(...(await subscribePages(subscribablePages, META_VERSION)));
+    results.push(...(await subscribePages(subscribablePages, META_VERSION, grantedScopes)));
 
     // ─── Get current webhook verification status ───
     const callbackUrl = `${getCallbackUrl()}/api/webhooks/meta`;
