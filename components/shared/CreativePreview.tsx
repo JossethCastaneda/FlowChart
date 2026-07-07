@@ -213,18 +213,20 @@ export const CreativeCard = ({
       onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.25)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "none"; }}
     >
-      {/* Media area — auto-size based on content */}
-      <div style={{ position: "relative", width: "100%", background: "var(--panel-bg)", backdropFilter: "blur(8px)", overflow: "hidden" }}>
+      {/* Media area — fixed aspect ratio for consistency */}
+      <div style={{ position: "relative", width: "100%", aspectRatio: "4 / 5", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
         {ad.format === "video" ? (
-          <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} compact />
-        ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
-          <CarouselViewer items={ad.carouselItems} compact />
-        ) : hasMedia ? (
-          <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "auto", display: "block" }} />
-        ) : (
-          <div style={{ width: "100%", aspectRatio: "1 / 1", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Eye style={{ width: 24, height: 24, color: "var(--text-muted)" }} />
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} compact />
           </div>
+        ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <CarouselViewer items={ad.carouselItems} compact />
+          </div>
+        ) : hasMedia ? (
+          <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+        ) : (
+          <Eye style={{ width: 24, height: 24, color: "var(--text-muted)" }} />
         )}
         <FormatBadge format={ad.format} />
         {/* Preview hint */}
