@@ -43,15 +43,15 @@ model Session {
 }
 
 model User {
-  id             String    @id @default(cuid())
-  name           String?
-  email          String?   @unique
-  emailVerified  DateTime?
-  image          String?
-  password       String?   // null para usuarios OAuth (Facebook/Google)
-  whatsappPhone  String?   // número personal para notificaciones WA (ej. "5215512345678")
-  accounts       Account[]
-  sessions       Session[]
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  password      String? // null para usuarios OAuth (Facebook/Google)
+  whatsappPhone String? // número personal para notificaciones WA (ej. "5215512345678")
+  accounts      Account[]
+  sessions      Session[]
 
   // Relations
   workspaces    WorkspaceMember[]
@@ -86,28 +86,29 @@ model Workspace {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  members             WorkspaceMember[]
-  projects            Project[]
-  invites             WorkspaceInvite[]
-  tasks               Task[]
-  briefs              Brief[]
-  posts               ScheduledPost[]
-  integrations        Integration[]
-  conversations       InboxConversation[]
-  streamBoards        StreamBoard[]
-  trackedKeywords     TrackedKeyword[]
-  settings            WorkspaceSettings?
-  waPhoneSources      WaPhoneSource[]
-  metaAnalyticsCache  MetaAnalyticsCache[]
-  mediaAssets         MediaAsset[]
-  drafts              DraftPost[]
-  transmissions       Transmission[]
-  auditLogs           AuditLog[]
-  objectives          Objective[]
-  ariaDatasets        AriaDataset[]
-  centurionModels     CenturionModel[]
-  mmmWeeklySpend      MmmWeeklySpend[]
-  reports             Report[]
+  members            WorkspaceMember[]
+  projects           Project[]
+  invites            WorkspaceInvite[]
+  tasks              Task[]
+  briefs             Brief[]
+  posts              ScheduledPost[]
+  integrations       Integration[]
+  conversations      InboxConversation[]
+  streamBoards       StreamBoard[]
+  trackedKeywords    TrackedKeyword[]
+  settings           WorkspaceSettings?
+  waPhoneSources     WaPhoneSource[]
+  metaAnalyticsCache MetaAnalyticsCache[]
+  mediaAssets        MediaAsset[]
+  drafts             DraftPost[]
+  transmissions      Transmission[]
+  auditLogs          AuditLog[]
+  objectives         Objective[]
+  ariaDatasets       AriaDataset[]
+  centurionModels    CenturionModel[]
+  mmmWeeklySpend     MmmWeeklySpend[]
+  reports            Report[]
+  aiUsages           AiUsage[]
 }
 
 // ------------------------------------------------------
@@ -135,7 +136,6 @@ model WorkspaceSettings {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 }
-
 
 model WorkspaceMember {
   id             String   @id @default(cuid())
@@ -219,7 +219,7 @@ model Project {
   /// Recursos de Google vinculados a este proyecto (por proyecto, no por workspace).
   /// Estructura: { adsCustomerId, ga4PropertyId, gtmAccountId, gtmContainerId }
   /// Permite que cada proyecto del cliente use sus propias cuentas de Google.
-  googleSources      Json?           @default("{}")
+  googleSources     Json?           @default("{}")
   ariaDatasets      AriaDataset[]
   reports           Report[]
 }
@@ -1029,7 +1029,7 @@ model AnalyticsKpiTarget {
   clientId          String?
   channelConfigId   String?
   kpiKey            String
-  period            String?  // e.g. "2026-07". null = global/default target
+  period            String? // e.g. "2026-07". null = global/default target
   targetValue       Float?
   warningThreshold  Float?
   criticalThreshold Float?
@@ -1403,43 +1403,43 @@ model AriaDataset {
   verticalName String?
   targetType   String   @default("PROJECT") // "PROJECT", "CLIENT", "VERTICAL"
   name         String
-  source       String   // e.g. "csv", "google_sheets", "hubspot", "auto"
+  source       String // e.g. "csv", "google_sheets", "hubspot", "auto"
   status       String   @default("uploaded") // uploaded, processing, ready, awaiting_data, baseline, error
   rowCount     Int      @default(0)
   // Ingesta robusta: fuente cruda en Vercel Blob + metadatos de parsing detectados.
   rawFileUrl   String?
-  delimiter    String?  // delimitador detectado (",", ";", "\t")
-  encoding     String?  // "utf-8" | "windows-1252"
+  delimiter    String? // delimitador detectado (",", ";", "\t")
+  encoding     String? // "utf-8" | "windows-1252"
   columnCount  Int?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
-  project   Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  workspace Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project   Project?            @relation(fields: [projectId], references: [id], onDelete: SetNull)
   columns   AriaDatasetColumn[]
   rows      AriaDatasetRow[]
   models    AriaModel[]
 
-  @@index([workspaceId])
-  @@index([projectId])
-  @@index([clientName])
-  @@index([verticalName])
   // Idempotencia del flujo auto: un único dataset CLIENT/VERTICAL/PROJECT por scope.
   // (En Postgres los NULL son distintos, así que filas PROJECT con client/vertical
   //  nulos no colisionan entre sí — la dedup aplica solo cuando el campo está seteado.)
   @@unique([workspaceId, targetType, clientName], name: "aria_scope_client")
   @@unique([workspaceId, targetType, verticalName], name: "aria_scope_vertical")
   @@unique([workspaceId, targetType, projectId], name: "aria_scope_project")
+  @@index([workspaceId])
+  @@index([projectId])
+  @@index([clientName])
+  @@index([verticalName])
 }
 
 // Substrato de entrenamiento: una fila persistida por registro del dataset.
 // `data` es el mapa columna→valor (string crudo); el motor lo transforma a features.
 model AriaDatasetRow {
-  id          String   @id @default(cuid())
-  datasetId   String
-  rowIndex    Int
-  data        Json
-  createdAt   DateTime @default(now())
+  id        String   @id @default(cuid())
+  datasetId String
+  rowIndex  Int
+  data      Json
+  createdAt DateTime @default(now())
 
   dataset AriaDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
 
@@ -1451,7 +1451,7 @@ model AriaDatasetColumn {
   id            String  @id @default(cuid())
   datasetId     String
   name          String
-  dataType      String  // "string", "number", "boolean", "date"
+  dataType      String // "string", "number", "boolean", "date"
   nullCount     Int     @default(0)
   isTarget      Boolean @default(false)
   isFeature     Boolean @default(true)
@@ -1468,22 +1468,22 @@ model AriaDatasetColumn {
 }
 
 model AriaModel {
-  id          String   @id @default(cuid())
-  datasetId   String
-  name        String
-  algorithm   String   // e.g. "logistic_regression", "scorecard_woe", "heuristic_baseline"
-  status      String   @default("training") // training, ready, baseline, failed
-  accuracy    Float?
-  precision   Float?
-  recall      Float?
-  auc         Float?
-  baseRate    Float?   // tasa base de conversión del set de entrenamiento
-  params      Json?    // artefacto entrenado: pesos, bias, encoders, normalización, umbrales
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(cuid())
+  datasetId String
+  name      String
+  algorithm String // e.g. "logistic_regression", "scorecard_woe", "heuristic_baseline"
+  status    String   @default("training") // training, ready, baseline, failed
+  accuracy  Float?
+  precision Float?
+  recall    Float?
+  auc       Float?
+  baseRate  Float? // tasa base de conversión del set de entrenamiento
+  params    Json? // artefacto entrenado: pesos, bias, encoders, normalización, umbrales
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  dataset AriaDataset @relation(fields: [datasetId], references: [id], onDelete: Cascade)
-  runs    AriaModelRun[]
+  dataset     AriaDataset      @relation(fields: [datasetId], references: [id], onDelete: Cascade)
+  runs        AriaModelRun[]
   predictions AriaPrediction[]
 
   @@index([datasetId])
@@ -1492,8 +1492,8 @@ model AriaModel {
 model AriaModelRun {
   id        String   @id @default(cuid())
   modelId   String
-  status    String   // running, success, failed
-  metrics   Json?    // detailed metrics/logs
+  status    String // running, success, failed
+  metrics   Json? // detailed metrics/logs
   createdAt DateTime @default(now())
 
   model AriaModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
@@ -1504,11 +1504,11 @@ model AriaModelRun {
 model AriaPrediction {
   id          String   @id @default(cuid())
   modelId     String
-  recordId    String   // identifier for the row/lead
-  score       Float    // 0 to 100
-  probability Float    // 0.0 to 1.0
-  priority    String   // "High", "Medium", "Low"
-  insights    Json?    // factors influencing the score
+  recordId    String // identifier for the row/lead
+  score       Float // 0 to 100
+  probability Float // 0.0 to 1.0
+  priority    String // "High", "Medium", "Low"
+  insights    Json? // factors influencing the score
   createdAt   DateTime @default(now())
 
   model AriaModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
@@ -1520,18 +1520,19 @@ model AriaPrediction {
 // CENTURION (Marketing Mix Modeling)
 // ------------------------------------------------------
 model CenturionModel {
-  id           String   @id @default(cuid())
+  id           String    @id @default(cuid())
   workspaceId  String
   clientName   String
   verticalName String?
-  engine       String   @default("FastMMM") // "FastMMM" o "BayesMMM"
-  config       Json     // Guarda canales, rows, coeficientes y NRMSE
-  metrics      Json?    // NRMSE, R2, wMAPE
+  engine       String    @default("FastMMM") // "FastMMM" o "BayesMMM"
+  config       Json // Guarda canales, rows, coeficientes y NRMSE
+  metrics      Json? // NRMSE, R2, wMAPE
   lastIngestAt DateTime? // Última ingesta automática exitosa
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
   @@index([workspaceId, clientName])
 }
 
@@ -1544,15 +1545,15 @@ model CenturionModel {
 model MmmWeeklySpend {
   id          String   @id @default(cuid())
   workspaceId String
-  clientName  String   // Project.client scope
-  week        String   // ISO week: "2026-W26"
-  channel     String   // "meta" | "google" | "tiktok" | etc.
-  spend       Float    // Spend en moneda de la cuenta
-  outcome     Float?   // Conversión auto-importada (purchases/leads value)
+  clientName  String // Project.client scope
+  week        String // ISO week: "2026-W26"
+  channel     String // "meta" | "google" | "tiktok" | etc.
+  spend       Float // Spend en moneda de la cuenta
+  outcome     Float? // Conversión auto-importada (purchases/leads value)
   source      String   @default("auto") // "auto" | "manual"
   syncedAt    DateTime @default(now())
 
-  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
   @@unique([workspaceId, clientName, week, channel])
   @@index([workspaceId, clientName])
@@ -1562,20 +1563,20 @@ model MmmWeeklySpend {
 // REPORTES (White-Label Reports)
 // ------------------------------------------------------
 model Report {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   workspaceId String
   projectId   String
   title       String
-  slug        String   @unique  // URL pública: /reportes/{slug}
+  slug        String    @unique // URL pública: /reportes/{slug}
   dateFrom    DateTime
   dateTo      DateTime
-  data        Json     // Snapshot inmutable: KPIs, timeSeries, topCreatives, pacing
-  settings    Json?    // White-label: logo, colors, footer text
-  status      String   @default("active") // active, expired, archived
+  data        Json // Snapshot inmutable: KPIs, timeSeries, topCreatives, pacing
+  settings    Json? // White-label: logo, colors, footer text
+  status      String    @default("active") // active, expired, archived
   expiresAt   DateTime?
   createdById String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
@@ -1584,4 +1585,22 @@ model Report {
   @@index([workspaceId])
   @@index([projectId])
   @@index([slug])
+}
+
+// ------------------------------------------------------
+// AI METERING
+// ------------------------------------------------------
+model AiUsage {
+  id          String   @id @default(cuid())
+  workspaceId String
+  route       String // e.g. "/api/agents/orchestrate", "GridIA"
+  model       String // e.g. "gemini-2.5-flash"
+  tokensIn    Int      @default(0)
+  tokensOut   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+
+  @@index([workspaceId])
+  @@index([createdAt])
 }

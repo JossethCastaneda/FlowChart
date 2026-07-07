@@ -15,6 +15,7 @@ import { getWorkspaceAiProvider, hasAnyProvider, normalizeUpstreamError } from "
 import { orchestrate } from "@/lib/ai/agents/core";
 import { buildModuleTasks, synthesisAgent, synthesisInput } from "@/lib/ai/agents/sodare-agents";
 import { logger } from "@/lib/logger";
+import { checkAiLimit, recordAiUsage } from "@/lib/ai/metering";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -27,6 +28,11 @@ export const POST = withWorkspace(async (req, ctx) => {
 
   if (!hasAnyProvider()) {
     return apiError("IA no configurada en el servidor.", "SERVER_CONFIG", 503);
+  }
+
+  const aiLimit = await checkAiLimit(ctx.workspaceId);
+  if (!aiLimit.allowed) {
+    return apiError(aiLimit.message, "PLAN_LIMIT", 402);
   }
 
   try {
@@ -45,6 +51,18 @@ export const POST = withWorkspace(async (req, ctx) => {
       model: final.model,
       subagentes: outcomes.map((o) => ({ agente: o.agentKey, ok: o.ok })),
     });
+
+    // Record usage for synthesis agent
+    if (final.usage) {
+      await recordAiUsage(ctx.workspaceId, "/api/agents/orchestrate", final.model, final.usage.promptTokens, final.usage.completionTokens);
+    }
+    
+    // Record usage for subagents
+    for (const outcome of outcomes) {
+      if (outcome.ok && outcome.usage) {
+        await recordAiUsage(ctx.workspaceId, `/api/agents/orchestrate/${outcome.agentKey}`, final.model, outcome.usage.promptTokens, outcome.usage.completionTokens);
+      }
+    }
 
     return apiSuccess({
       plan: final.data,

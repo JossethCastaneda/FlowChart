@@ -11,7 +11,10 @@
  * sistema: Aria Copilot (chat), Aria Insights, GridIA (parrillas multimodales) y
  * cualquier módulo nuevo que use la capa `lib/ai`.
  *
- * Precios: USD por 1M de tokens (referenciales, tarifa pública del proveedor).
+ * cualquier módulo nuevo que use la capa `lib/ai`.
+ *
+ * Precios: USD por 1M de tokens (Costo referencial basado en tarifas públicas del 
+ * proveedor, actualizadas a Jun 2026).
  */
 
 import type { ProviderId } from "./types";
@@ -47,6 +50,8 @@ export interface CatalogProvider {
   /** Cómo conectarla si aún no tiene API key. */
   envVar: string;
 }
+
+export const DEFAULT_MODEL = "gemini-2.5-flash";
 
 export const AI_CATALOG: CatalogProvider[] = [
   {

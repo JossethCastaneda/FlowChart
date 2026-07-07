@@ -6,6 +6,8 @@ import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { mapMetaError } from "@/lib/meta-errors";
 
+export const dynamic = "force-dynamic";
+
 // In-memory page token cache (per-process, resets on cold start).
 let _pageTokenCache: { tokens: Record<string, string>; ts: number } | null = null;
 const CACHE_TTL = 5 * 60 * 1000;

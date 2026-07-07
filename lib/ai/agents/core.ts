@@ -40,6 +40,11 @@ export interface AgentRunResult<T> {
   data: T;
   model: string;
   provider: string;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
 }
 
 /** Ejecuta un agente con la IA inyectada y devuelve su salida validada. */
@@ -66,6 +71,7 @@ export async function runAgent<T>(
     data: result.data,
     model: result.model,
     provider: result.provider,
+    usage: result.usage,
   };
 }
 
@@ -80,6 +86,11 @@ export interface SubagentOutcome<T> {
   ok: boolean;
   data?: T;
   error?: string;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
 }
 
 /**
@@ -94,7 +105,13 @@ export async function runSubagents<T>(
   return settled.map((s, i) => {
     const def = tasks[i].def;
     if (s.status === "fulfilled") {
-      return { agentKey: def.key, agentName: def.name, ok: true, data: s.value.data };
+      return { 
+        agentKey: def.key, 
+        agentName: def.name, 
+        ok: true, 
+        data: s.value.data,
+        usage: s.value.usage
+      };
     }
     const message = s.reason instanceof Error ? s.reason.message : String(s.reason);
     logger.warn("[AGENTS] subagente falló", { agent: def.key, error: message });

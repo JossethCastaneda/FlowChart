@@ -31,7 +31,7 @@ export function useInboxData() {
   const fetchConversations = useCallback(async (silent = false) => {
     if (!silent) setIsRefreshing(true);
     try {
-      const res = await fetch("/api/inbox/conversations");
+      const res = await fetch(`/api/inbox/conversations?_t=${Date.now()}`);
       if (res.ok) {
         const data = await res.json();
         if (data.conversations?.length > 0) {
@@ -50,7 +50,7 @@ export function useInboxData() {
           
           const prefetchers = mapped.slice(0, 3).map(conv => {
             const pageId = (conv as any)._pageId;
-            return fetch(`/api/inbox/messages?conversationId=${conv.id}&pageId=${pageId || ""}`)
+            return fetch(`/api/inbox/messages?conversationId=${conv.id}&pageId=${pageId || ""}&_t=${Date.now()}`)
               .then(r => r.ok ? r.json() : null)
               .then(d => ({ id: conv.id, messages: d?.messages?.map((m: any) => ({ id: m.id, text: m.text, incoming: m.incoming, timestamp: new Date(m.timestamp) })) || null }))
               .catch(() => ({ id: conv.id, messages: null }));
@@ -74,7 +74,7 @@ export function useInboxData() {
     const conv = conversationsRef.current.find(c => c.id === id);
     if (!conv) return;
     const pageId = (conv as any)?._pageId;
-    fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}`)
+    fetch(`/api/inbox/messages?conversationId=${id}&pageId=${pageId || ""}&_t=${Date.now()}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.messages?.length) {
@@ -106,7 +106,7 @@ export function useInboxData() {
 
     const connect = () => {
       if (stopped) return;
-      try { es = new EventSource("/api/inbox/stream"); } catch { startFallback(); return; }
+      try { es = new EventSource(`/api/inbox/stream?_t=${Date.now()}`); } catch { startFallback(); return; }
       es.addEventListener("ready", () => { stopFallback(); });
       es.addEventListener("change", onChange);
       es.onerror = () => {
