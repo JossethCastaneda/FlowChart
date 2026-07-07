@@ -208,24 +208,46 @@ function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnec
           </div>
         )}
       </div>
-      <button style={{
-        display: "flex", alignItems: "center", gap: 8,
-        padding: "8px 16px", borderRadius: 24,
-        background: "transparent",
-        border: "1px solid var(--primary)",
-        color: "var(--primary)",
-        fontSize: 13, fontWeight: 600,
-        cursor: "pointer",
-        fontFamily: "inherit",
-        transition: "background 0.2s"
-      }}
-      onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
-      onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-      onClick={onConnect}
-      >
-        <FacebookIcon size={20} />
-        Conectar Facebook
-      </button>
+      {page ? (
+        <button style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "8px 16px", borderRadius: 24,
+          background: "transparent",
+          border: "1px solid var(--red)",
+          color: "var(--red)",
+          fontSize: 13, fontWeight: 600,
+          cursor: disconnecting ? "not-allowed" : "pointer",
+          fontFamily: "inherit",
+          transition: "background 0.2s",
+          opacity: disconnecting ? 0.5 : 1
+        }}
+        onMouseEnter={e => !disconnecting && (e.currentTarget.style.background = "var(--surface-hover)")}
+        onMouseLeave={e => !disconnecting && (e.currentTarget.style.background = "transparent")}
+        onClick={onDisconnect}
+        disabled={disconnecting}
+        >
+          {disconnecting ? "Desconectando..." : "Desconectar"}
+        </button>
+      ) : (
+        <button style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "8px 16px", borderRadius: 24,
+          background: "transparent",
+          border: "1px solid var(--primary)",
+          color: "var(--primary)",
+          fontSize: 13, fontWeight: 600,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          transition: "background 0.2s"
+        }}
+        onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+        onClick={onConnect}
+        >
+          <FacebookIcon size={20} />
+          Conectar Facebook
+        </button>
+      )}
     </div>
   );
 }
@@ -343,7 +365,7 @@ export function InboxLayout() {
     if (disconnecting) return;
     setDisconnecting(true);
     try {
-      const res = await fetch("/api/connect/disconnect", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ module: "community" }) });
+      const res = await fetch("/api/connect/disconnect", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider: "community" }) });
       if (res.ok) fetchConnectionStatus();
     } catch { /* ignore */ }
     setDisconnecting(false);
