@@ -420,16 +420,12 @@ export const authOptions: NextAuthOptions = {
           });
         }
 
-        // 5. If no email match, try matching by name for Facebook users without email
-        if (!existingUser && !incomingEmail && user.name && account.provider === "facebook") {
-          const byName = await prisma.user.findMany({
-            where: { name: user.name },
-          });
-          if (byName.length === 1) {
-            existingUser = byName[0];
-            console.log(`[AUTH signIn] Facebook user without email matched by name: ${user.name} → ${existingUser.id}`);
-          }
-        }
+        // SEGURIDAD: NO vincular por coincidencia de nombre. Un login de
+        // Facebook sin email cuyo nombre coincida con un usuario existente
+        // permitiría apropiarse de esa cuenta (crear un perfil FB homónimo
+        // ocultando el email). Sin email verificable → usuario nuevo; la
+        // vinculación a una cuenta existente se hace desde Perfil con sesión
+        // activa (flujo "Vincular", paso 3 arriba).
 
         if (existingUser) {
           // Link the OAuth account to the existing user
