@@ -3,6 +3,8 @@ export interface Message {
     text: string;
     incoming: boolean;
     timestamp: Date;
+    status?: "sending" | "sent" | "error";
+    errorText?: string;
 }
 
 export interface PostComment {

@@ -4,6 +4,7 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { mapMetaError } from "@/lib/meta-errors";
 
 // In-memory page token cache (per-process, resets on cold start).
 let _pageTokenCache: { tokens: Record<string, string>; ts: number } | null = null;
@@ -192,7 +193,8 @@ export async function POST(request: NextRequest) {
     });
     if (!sendRes.ok) {
       const errData = await sendRes.json().catch(() => ({}));
-      return NextResponse.json({ error: errData?.error?.message || "Failed to send" }, { status: 500 });
+      const parsedError = mapMetaError(errData?.error || errData);
+      return NextResponse.json({ error: parsedError.user_message || errData?.error?.message || "Failed to send" }, { status: 500 });
     }
     const sendData = await sendRes.json();
 

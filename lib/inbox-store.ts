@@ -16,7 +16,7 @@
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
-export type InboxPlatform = "facebook_messenger" | "instagram_dm";
+export type InboxPlatform = "facebook_messenger" | "instagram_dm" | "facebook_comment" | "instagram_comment" | "whatsapp";
 
 /** Resuelve el workspace dueño de un activo Meta (página / cuenta IG) para rutear el inbox. */
 export async function resolveWorkspaceForMetaAsset(
@@ -100,6 +100,8 @@ export interface InboundMessageInput {
   timestampMs: number;
   /** "user" (entrante) | "page" (eco/saliente). */
   sender?: "user" | "page";
+  /** Override for conversation ID (e.g. post ID for comments). Defaults to contactId */
+  conversationExternalId?: string;
 }
 
 /**
@@ -113,8 +115,10 @@ export async function persistInboundMessage(m: InboundMessageInput): Promise<str
     const isUser = (m.sender ?? "user") === "user";
     const preview = (m.text || "").slice(0, 255);
 
+    const convExternalId = m.conversationExternalId || m.contactId;
+
     const conversation = await prisma.inboxConversation.upsert({
-      where: { workspaceId_externalId: { workspaceId: m.workspaceId, externalId: m.contactId } },
+      where: { workspaceId_externalId: { workspaceId: m.workspaceId, externalId: convExternalId } },
       update: {
         platform: m.platform,
         pageId: m.pageId,
@@ -129,9 +133,9 @@ export async function persistInboundMessage(m: InboundMessageInput): Promise<str
       create: {
         workspaceId: m.workspaceId,
         platform: m.platform,
-        externalId: m.contactId,
+        externalId: convExternalId,
         pageId: m.pageId,
-        igId: m.platform === "instagram_dm" ? m.pageId : null,
+        igId: m.platform === "instagram_dm" || m.platform === "instagram_comment" ? m.pageId : null,
         contactName: m.contactName ?? m.contactId,
         contactAvatar: m.contactAvatar ?? null,
         lastMessage: preview,

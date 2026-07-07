@@ -497,11 +497,14 @@ export function ChatView({
             <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
               <MessageCircle style={{ width: 14, height: 14 }} />
             </button>
-            <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
-              <Clock style={{ width: 14, height: 14 }} />
-            </button>
-            <button style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 4 }}>
-              <MoreHorizontal style={{ width: 14, height: 14 }} />
+            <button 
+              onClick={onClose}
+              style={{ background: "transparent", border: "1px solid var(--hairline)", color: conversation.closed ? "#10b981" : "var(--text-secondary)", cursor: "pointer", padding: "6px 12px", borderRadius: "16px", fontSize: "11px", fontWeight: 600, display: "flex", alignItems: "center", gap: 6, transition: "background 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              <CheckCircle2 style={{ width: 14, height: 14 }} />
+              {conversation.closed ? "REABRIR" : "CERRAR"}
             </button>
             <button
               onClick={onToggleProfile}
@@ -516,9 +519,6 @@ export function ChatView({
         <div style={{ display: "flex", gap: 16 }}>
           <div style={{ padding: "8px 0", borderBottom: "2px solid var(--cyan)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
             Chat
-          </div>
-          <div style={{ padding: "8px 0", color: "var(--text-muted)", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
-            Respuestas rápidas
           </div>
         </div>
       </div>
@@ -586,6 +586,12 @@ export function ChatView({
                       {msg.text}
                     </p>
                   </div>
+                  {/* Message Status */}
+                  {!msg.incoming && msg.status && (
+                    <div style={{ fontSize: 9, color: msg.status === "error" ? "var(--red)" : "var(--text-muted)", marginTop: 4, textAlign: "right", fontWeight: 500 }}>
+                      {msg.status === "sending" ? "Enviando..." : msg.status === "error" ? (msg.errorText || "Error al enviar") : ""}
+                    </div>
+                  )}
                   {/* Mock quick reply buttons under bot messages */}
                   {!msg.incoming && (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8, justifyContent: "flex-end" }}>
@@ -756,7 +762,7 @@ export function ChatView({
 
           {/* Quick like */}
           <button
-            onClick={() => onSend("??")}
+            onClick={() => onSend("👍")}
             style={{
               width: 32, height: 32,
               display: "flex", alignItems: "center", justifyContent: "center",

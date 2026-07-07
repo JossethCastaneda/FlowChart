@@ -23,6 +23,14 @@ export const MetaIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) =>
   </svg>
 );
 
+// ─── Facebook ─────────────────────────────────────────────────────────────
+export const FacebookIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={style} {...props}>
+    <circle cx="12" cy="12" r="12" fill="#1877F2" />
+    <path d="M16.67 15.5l.48-3.1h-2.97v-2.01c0-.85.41-1.67 1.74-1.67h1.35V6.1s-1.22-.21-2.39-.21c-2.44 0-4.04 1.48-4.04 4.15V12.4H8v3.1h2.84V23h3.34v-7.5h2.49z" fill="white" />
+  </svg>
+);
+
 // ─── Google Ads (Official Tri-color logo) ────────────────────────────────────
 export const GoogleAdsIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) => (
   <svg
