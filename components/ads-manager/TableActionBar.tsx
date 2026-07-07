@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Plus, Copy, Edit2, Trash2, Tag, MoreHorizontal, ChevronDown, Download, Upload, Maximize2, FlaskConical, Play, Pause, Type, Search, DollarSign, Gauge, Settings, FileSpreadsheet, FileText, Table2 } from "lucide-react";
 
 export interface TableActionBarProps {
@@ -85,7 +85,7 @@ export function TableActionBar({
   };
 
   const disabledButtonStyle: React.CSSProperties = {
-    ...buttonStyle, color: "var(--text-secondary)", cursor: "not-allowed", bordercolor: "var(--text-secondary)",
+    ...buttonStyle, color: "var(--text-secondary)", cursor: "not-allowed", borderColor: "var(--text-secondary)",
   };
 
   const iconButtonStyle: React.CSSProperties = { ...buttonStyle, padding: "4px 6px" };
