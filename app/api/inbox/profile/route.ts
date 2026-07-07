@@ -29,13 +29,15 @@ export async function GET(request: NextRequest) {
     const page = (pagesData.data || []).find((p: any) => p.id === pageId);
     if (page?.access_token) pageToken = page.access_token;
 
-    // Fetch profile
+    // Fetch profile (Messenger API uses first_name/last_name, IG uses name)
     const cleanUserId = userId.replace("igc_", "").replace("fbc_", "");
-    const profileUrl = `https://graph.facebook.com/${cleanUserId}?fields=name,profile_pic&access_token=${pageToken}`;
+    const profileUrl = `https://graph.facebook.com/${cleanUserId}?fields=name,first_name,last_name,profile_pic&access_token=${pageToken}`;
     const profileRes = await fetch(profileUrl);
     const profileData = await profileRes.json();
 
-    if (profileData.name || profileData.profile_pic) {
+    const fullName = profileData.name || [profileData.first_name, profileData.last_name].filter(Boolean).join(" ") || null;
+
+    if (fullName || profileData.profile_pic) {
       // Update DB so we don't have to fetch this again
       await prisma.inboxConversation.updateMany({
         where: {
@@ -44,19 +46,19 @@ export async function GET(request: NextRequest) {
           pageId
         },
         data: {
-          contactName: profileData.name || undefined,
+          contactName: fullName || undefined,
           contactAvatar: profileData.profile_pic || undefined,
         }
       });
       
       return NextResponse.json({
         id: userId,
-        name: profileData.name || null,
+        name: fullName,
         picture: profileData.profile_pic || null
       });
     }
 
-    return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json({ error: "Not found", details: profileData }, { status: 404 });
   } catch (err) {
     return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
