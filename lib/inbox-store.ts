@@ -73,12 +73,35 @@ export async function resolveWorkspaceForMetaAsset(
     });
   }
 
+  // 4. Fallback: Integration credentials (en caso de que sync-assets fallara o se retrasara)
+  try {
+    const metaIntegrations = await prisma.integration.findMany({
+      where: { provider: { startsWith: "meta" } },
+      select: { workspaceId: true, credentials: true }
+    });
+    for (const integ of metaIntegrations) {
+      const creds = integ.credentials as any;
+      if (!creds?.pages || !Array.isArray(creds.pages)) continue;
+      
+      const found = creds.pages.some((p: any) => {
+        if (kind === "page") return p.id === externalId || p.id === normalized;
+        return p.instagramId === externalId || p.instagramId === normalized;
+      });
+      
+      if (found) return integ.workspaceId;
+    }
+  } catch (err) {
+    logger.warn("[INBOX-STORE] Integration credentials fallback failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
   // Si llegamos aquí, no pudimos resolver el workspace → el mensaje se descartará.
   logger.warn("[INBOX-STORE] resolveWorkspaceForMetaAsset: no workspace found", {
     externalId,
     kind,
-    hint: "La página/cuenta IG no está en IntegrationAssetCache, MetaSource ni MetaChannel. "
-        + "Verifica que el módulo 'community' esté conectado y que sync-assets haya corrido.",
+    hint: "La página/cuenta IG no está en IntegrationAssetCache, MetaSource, MetaChannel ni Integration credentials. "
+        + "Verifica que la página esté conectada correctamente.",
   });
 
   return null;

@@ -239,15 +239,27 @@ export default function Home() {
           background: #f0f0f0; transform: translateY(-2px); 
         }
 
+        /* Noise Background */
+        .noise-bg {
+          position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.035; mix-blend-mode: overlay;
+          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
         .col-card { 
-          background: linear-gradient(145deg, rgba(255,255,255,0.04), rgba(255,255,255,0.01));
-          border: 1px solid rgba(255,255,255,0.1);
+          background: rgba(15, 15, 15, 0.4);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
+          border: 1px solid rgba(255,255,255,0.06);
           border-radius: 24px; 
           overflow: hidden; 
           transition: all 0.4s cubic-bezier(0.25,1,0.5,1); 
           position: relative;
         }
-        .col-card:hover { transform: translateY(-6px); box-shadow: 0 12px 40px rgba(0,0,0,0.5); border-color: rgba(59,130,246, 0.4); }
+        .col-card:hover { 
+          transform: translateY(-4px) scale(1.01); 
+          box-shadow: 0 20px 40px -10px rgba(0,0,0,0.5), 0 0 20px rgba(59,130,246, 0.1); 
+          border-color: rgba(59,130,246, 0.3); 
+        }
 
         .col-nav-link { font-size: 14px; font-weight: 500; color: rgba(255,255,255,0.6); text-decoration: none; transition: color 0.25s; }
         .col-nav-link:hover { color: #fff; }
@@ -344,6 +356,7 @@ export default function Home() {
       </header>
 
       <main style={{ position: "relative", zIndex: 1 }}>
+        <div className="noise-bg" />
 
       {/* ═══════════════════════════════════════════════════════
          HERO
@@ -600,7 +613,7 @@ export default function Home() {
             { stat: "0%", unit: "visibilidad", desc: "del ROI real de tus campañas y conversiones finales." },
           ].map((p, i) => (
             <Reveal key={i} delay={i * 0.15}>
-              <div className="col-card" style={{ padding: "48px 32px", height: "100%" }}>
+              <SpotlightCard style={{ padding: "48px 32px", height: "100%" }}>
                 <div className="col-glow-bg" style={{ top: 0, right: 0, width: 150, height: 150, opacity: 0.1 }} />
                 <div style={{ position: "relative", zIndex: 1 }}>
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 8, marginBottom: 16 }}>
@@ -611,7 +624,7 @@ export default function Home() {
                   </div>
                   <p style={{ fontSize: 16, color: "rgba(255,255,255,0.6)", lineHeight: 1.6 }}>{p.desc}</p>
                 </div>
-              </div>
+              </SpotlightCard>
             </Reveal>
           ))}
         </div>
@@ -649,7 +662,7 @@ export default function Home() {
           <div className="col-features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
             {FEATURES.map((f, i) => (
               <Reveal key={i} delay={i * 0.1} className={i === 0 || i === 3 ? "col-span-2" : "col-span-1"} style={{ gridColumn: (i === 0 || i === 3) ? "span 2" : "span 1" }}>
-                <div className="col-card" style={{ padding: "40px 32px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+                <SpotlightCard style={{ padding: "40px 32px", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
                   <div>
                     <div style={{
                       width: 56, height: 56, borderRadius: 16,
@@ -675,7 +688,7 @@ export default function Home() {
                   <div style={{ position: "absolute", bottom: -20, right: -20, opacity: 0.05, transform: "scale(2)", color: ACCENT_COLOR }}>
                      {f.icon}
                   </div>
-                </div>
+                </SpotlightCard>
               </Reveal>
             ))}
           </div>
@@ -848,6 +861,44 @@ function FooterCol({ title, links }: { title: string; links: { label: string; hr
             onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.5)")}
           >{l.label}</Link>
         ))}
+      </div>
+    </div>
+  );
+}
+
+function SpotlightCard({ children, className = "", style = {} }: { children: React.ReactNode, className?: string, style?: React.CSSProperties }) {
+  const divRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [opacity, setOpacity] = useState(0);
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!divRef.current) return;
+    const rect = divRef.current.getBoundingClientRect();
+    setPosition({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+  };
+
+  return (
+    <div
+      ref={divRef}
+      onMouseMove={handleMouseMove}
+      onMouseEnter={() => setOpacity(1)}
+      onMouseLeave={() => setOpacity(0)}
+      className={`col-card ${className}`}
+      style={style}
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          opacity,
+          background: `radial-gradient(400px circle at ${position.x}px ${position.y}px, rgba(59,130,246,0.12), transparent 40%)`,
+          transition: "opacity 0.3s ease",
+          pointerEvents: "none",
+          zIndex: 0,
+        }}
+      />
+      <div style={{ position: "relative", zIndex: 1, height: "100%" }}>
+        {children}
       </div>
     </div>
   );

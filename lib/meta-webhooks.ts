@@ -37,6 +37,62 @@ export const INSTAGRAM_WEBHOOK_FIELDS = [
   "story_insights", // Story insights
 ];
 
+/**
+ * Scope de usuario que exige Meta para suscribir cada campo. La llamada a
+ * `subscribed_apps` es TODO-O-NADA: si UN campo no está permitido, Meta
+ * rechaza la suscripción completa (visto en producción: 0/32 páginas
+ * suscritas porque el token de community no tiene pages_manage_metadata y
+ * pedíamos `feed` — y de paso se perdía `messages`, que sí está permitido).
+ * Por eso los campos se filtran por los scopes realmente otorgados.
+ */
+const PAGE_FIELD_SCOPES: Record<string, string> = {
+  messages: "pages_messaging",
+  messaging_postbacks: "pages_messaging",
+  messaging_optins: "pages_messaging",
+  messaging_referrals: "pages_messaging",
+  message_deliveries: "pages_messaging",
+  message_reads: "pages_messaging",
+  feed: "pages_manage_metadata",
+  mention: "pages_manage_metadata",
+  ratings: "pages_manage_metadata",
+  leadgen: "leads_retrieval",
+};
+
+const INSTAGRAM_FIELD_SCOPES: Record<string, string> = {
+  messages: "instagram_manage_messages",
+  messaging_postbacks: "instagram_manage_messages",
+  comments: "instagram_manage_comments",
+  mentions: "instagram_manage_comments",
+  live_comments: "instagram_manage_comments",
+  story_insights: "instagram_manage_insights",
+};
+
+/** Núcleo mínimo para el inbox en tiempo real: DMs siempre primero. */
+const CORE_MESSAGING_FIELDS = ["messages", "messaging_postbacks"];
+
+/**
+ * Filtra los campos de webhook según los scopes otorgados. Sin lista de
+ * scopes (callers legacy) se devuelven todos los campos — el reintento con
+ * el núcleo mínimo cubre ese caso si Meta rechaza.
+ */
+export function allowedWebhookFields(
+  grantedScopes: string[] | undefined,
+  withInstagram: boolean,
+): string[] {
+  const all = withInstagram
+    ? [...new Set([...PAGE_WEBHOOK_FIELDS, ...INSTAGRAM_WEBHOOK_FIELDS])]
+    : PAGE_WEBHOOK_FIELDS;
+  if (!grantedScopes || grantedScopes.length === 0) return all;
+  const granted = new Set(grantedScopes);
+  return all.filter((f) => {
+    const pageScope = PAGE_FIELD_SCOPES[f];
+    const igScope = withInstagram ? INSTAGRAM_FIELD_SCOPES[f] : undefined;
+    // Basta con que UNO de los scopes que habilitan el campo esté otorgado
+    // (ej. "messages" entra con pages_messaging O instagram_manage_messages).
+    return (pageScope && granted.has(pageScope)) || (igScope && granted.has(igScope));
+  });
+}
+
 export interface SubscribablePage {
   id: string;
   name?: string;
