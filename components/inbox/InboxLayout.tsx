@@ -344,8 +344,9 @@ export function InboxLayout() {
         setConnectionStatus(data.modules);
         const pages: ConnectedPage[] = [];
         const seen = new Set<string>();
-        Object.values(data.modules).forEach((mod: any) => {
-          (mod.pages || []).forEach((p: any) => {
+        const communityMod = data.modules.community;
+        if (communityMod && communityMod.connected) {
+          (communityMod.pages || []).forEach((p: any) => {
             if (seen.has(p.id)) return;
             seen.add(p.id);
             pages.push({ id: p.id, name: p.name || "Página", picture: p.picture || null, platform: "facebook" });
@@ -357,7 +358,7 @@ export function InboxLayout() {
               }
             }
           });
-        });
+        }
         setConnectedPages(pages);
       }).catch(() => {});
   }, []);
