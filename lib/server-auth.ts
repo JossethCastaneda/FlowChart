@@ -45,12 +45,17 @@ const MODULE_PROVIDER_MAP: Record<string, string> = {
 /**
  * Get the Meta access token for the current workspace.
  *
- * Priority:
- *   1. Module-specific Integration (e.g. meta_analytics, meta_community)
- *   2. Generic "meta" Integration (workspace-level token)
- *   3. JWT accessToken (user-level — fallback for owner who just connected)
+ * MODELO ESTRICTO POR MÓDULO: cada módulo usa EXCLUSIVAMENTE el token de la
+ * cuenta vinculada en su propio botón de conexión (Integration meta_<module>).
+ * Si el módulo no está conectado se devuelve null — NUNCA se cae al token de
+ * otro módulo ni al genérico "meta", para que la cuenta de cada sección sea
+ * independiente y no se crucen activos entre botones.
  *
- * @param module - Optional module name to prefer the module-specific token
+ * El genérico "meta" solo aplica cuando NO se pasa módulo (plumbing a nivel
+ * workspace, p. ej. suscripción de webhooks vía el alias "webhook").
+ * El token de login (JWT) jamás se usa para activos.
+ *
+ * @param module - Nombre del módulo; resuelve su Integration dedicada.
  */
 export async function getMetaAccessToken(
   request: Request | NextRequest,
@@ -83,14 +88,15 @@ export async function getMetaAccessToken(
           }
         }
 
-        // Si se pidió un módulo específico del publisher, NO permitimos fallback al genérico "meta"
-        // para respetar estrictamente los accesos de la cuenta vinculada en ese botón.
-        if (module === "publisher_facebook" || module === "publisher_instagram") {
-          return null;
-        }
+        // Modo estricto para TODOS los módulos: si el módulo no tiene su propia
+        // Integration conectada, NO caemos al genérico "meta" (sería usar la
+        // cuenta vinculada en OTRO botón). El caller debe pedir conectar la
+        // sección en Integraciones. Excepción natural: alias que mapean a
+        // "meta" explícitamente (p. ej. "webhook") ya se resolvieron arriba.
+        return null;
       }
 
-      // 2. Try generic "meta" Integration (shared token)
+      // 2. Sin módulo: token genérico "meta" (plumbing a nivel workspace)
       const integration = await prisma.integration.findUnique({
         where: {
           workspaceId_provider_userId: { workspaceId, provider: "meta", userId: "workspace" },

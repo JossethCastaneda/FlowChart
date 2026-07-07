@@ -34,8 +34,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
     }
 
-    let token = await getMetaAccessToken(req, "ads");
-    if (!token) token = await getMetaAccessToken(req);
+    // Estricto: solo la cuenta vinculada en el botón de Meta Ads.
+    const token = await getMetaAccessToken(req, "ads");
     if (!token) {
       return NextResponse.json(
         { error: "No hay token Meta. Ve a Integraciones y conecta tu cuenta de Ads." },

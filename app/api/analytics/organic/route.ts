@@ -143,11 +143,10 @@ export async function GET(request: NextRequest) {
     // Authorization: Bearer CRON_SECRET... NO. Enviaremos x-meta-token.
   }
   
+  // Estricto: solo la cuenta vinculada en el botón de Analytics (x-meta-token
+  // es para cron/workflows que pasan el token de la integración explícitamente).
   token = request.headers.get("x-meta-token") || await getMetaAccessToken(request, "analytics");
-  if (!token) token = await getMetaAccessToken(request, "social");
-  if (!token) token = await getMetaAccessToken(request, "publisher_facebook");
-  if (!token) token = await getMetaAccessToken(request);
-  if (!token) return NextResponse.json({ error: "No hay token Meta. Conecta tu cuenta en Integraciones." }, { status: 401 });
+  if (!token) return NextResponse.json({ error: "No hay token Meta. Conecta Analytics en Integraciones." }, { status: 401 });
 
   try {
     // Parse period / date range from query

@@ -54,13 +54,11 @@ export async function GET(request: NextRequest) {
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
-  let token = await getMetaAccessToken(request, "analytics");
-  if (!token) token = await getMetaAccessToken(request, "social");
-  if (!token) token = await getMetaAccessToken(request, "publisher_facebook");
-  if (!token) token = await getMetaAccessToken(request);
+  // Estricto: solo la cuenta vinculada en el botón de Analytics.
+  const token = await getMetaAccessToken(request, "analytics");
   if (!token) {
     return NextResponse.json(
-      { error: "No hay token Meta. Conecta tu cuenta en Integraciones." },
+      { error: "No hay token Meta. Conecta Analytics en Integraciones." },
       { status: 401 }
     );
   }

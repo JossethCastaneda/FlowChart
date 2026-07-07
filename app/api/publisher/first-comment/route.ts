@@ -21,12 +21,12 @@ const META_V = process.env.META_API_VERSION || "v25.0";
  *   pageToken: string  — Encrypted page access token
  */
 export const POST = withWorkspace(async (req: NextRequest, ctx) => {
-  // Comentario en IG → usar la cuenta conectada del propio módulo Publisher
-  // (independiente). El genérico "meta" es solo último recurso.
-  let token = await getMetaAccessToken(req, "publisher_instagram");
-  if (!token) token = await getMetaAccessToken(req, "publisher_facebook");
+  // Comentario en IG → estricto: solo la cuenta vinculada en el botón de
+  // Publisher Instagram (el token de Publisher Facebook puede ser OTRA cuenta
+  // y Graph rechazaría la acción sobre este media).
+  const token = await getMetaAccessToken(req, "publisher_instagram");
   if (!token) {
-    return apiError("No hay token Meta. Ve a Integraciones y conecta tu cuenta.", "UNAUTHORIZED", 401);
+    return apiError("No hay token Meta. Conecta Publisher Instagram en Integraciones.", "UNAUTHORIZED", 401);
   }
 
   const _validate = await validateBody(req, z.object({

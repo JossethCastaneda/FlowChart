@@ -33,10 +33,11 @@ export async function GET(request: NextRequest) {
 
     for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community"]) {
 
-      // Para módulos del publisher, no hacemos fallback al genérico "meta"
-      const isPublisherMod = mod === "publisher_facebook" || mod === "publisher_instagram";
-      const integration = integrations.find((i) => i.provider === `meta_${mod}`)
-        || (!isPublisherMod ? integrations.find((i) => i.provider === "meta") : undefined);
+      // Modo estricto: cada módulo reporta SOLO su propia Integration
+      // (meta_<mod>). Sin fallback al genérico "meta" — mostrar "conectado"
+      // heredado de otro botón engaña a la UI mientras getMetaAccessToken
+      // (también estricto) devuelve null.
+      const integration = integrations.find((i) => i.provider === `meta_${mod}`);
       const creds = integration?.credentials as any;
 
       // Detect token expiry

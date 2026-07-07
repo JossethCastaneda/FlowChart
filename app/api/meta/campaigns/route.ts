@@ -7,9 +7,8 @@ import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
-  // Token with multi-module fallback
-  let accessToken = await getMetaAccessToken(req, "ads");
-  if (!accessToken) accessToken = await getMetaAccessToken(req);
+  // Estricto: solo la cuenta vinculada en el botón de Meta Ads.
+  const accessToken = await getMetaAccessToken(req, "ads");
   if (!accessToken) {
     return NextResponse.json({ error: "No hay token Meta. Conecta tu cuenta en Integraciones." }, { status: 401 });
   }

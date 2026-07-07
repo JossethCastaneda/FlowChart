@@ -33,13 +33,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "No workspace activo" }, { status: 400 });
     }
 
-    let token = await getMetaAccessToken(req, "analytics");
-    if (!token) token = await getMetaAccessToken(req, "social");
-    if (!token) token = await getMetaAccessToken(req, "publisher_facebook");
-    if (!token) token = await getMetaAccessToken(req);
+    // Estricto: solo la cuenta vinculada en el botón de Analytics.
+    const token = await getMetaAccessToken(req, "analytics");
     if (!token) {
       return NextResponse.json(
-        { error: "No hay token Meta. Ve a Integraciones y conecta tu cuenta." },
+        { error: "No hay token Meta. Conecta Analytics en Integraciones." },
         { status: 401 }
       );
     }

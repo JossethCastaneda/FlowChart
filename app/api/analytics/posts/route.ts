@@ -67,12 +67,10 @@ export async function GET(request: NextRequest) {
 
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
-  // BUG 1 FIX — Token fallback multi-módulo
-  let token = request.headers.get("x-meta-token") || await getMetaAccessToken(request, "analytics");
-  if (!token) token = await getMetaAccessToken(request, "social");
-  if (!token) token = await getMetaAccessToken(request, "publisher_facebook");
-  if (!token) token = await getMetaAccessToken(request);
-  if (!token) return NextResponse.json({ error: "No hay token Meta. Conecta tu cuenta en Integraciones." }, { status: 401 });
+  // Estricto: solo la cuenta vinculada en el botón de Analytics (x-meta-token
+  // es para cron/workflows que pasan el token de la integración explícitamente).
+  const token = request.headers.get("x-meta-token") || await getMetaAccessToken(request, "analytics");
+  if (!token) return NextResponse.json({ error: "No hay token Meta. Conecta Analytics en Integraciones." }, { status: 401 });
 
   try {
     const pageIdsParam = request.nextUrl.searchParams.get("pageIds");

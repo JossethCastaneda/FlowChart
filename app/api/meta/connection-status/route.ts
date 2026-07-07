@@ -37,7 +37,8 @@ const CACHE_TTL_MS = 90 * 1000; // 90 seconds
  * GET /api/meta/connection-status?module=ads
  *
  * Validates the active workspace Meta integration for a given module.
- * Module-specific token is checked first, then the generic meta token as fallback.
+ * Modo estricto: solo se evalúa la Integration del módulo (cuenta vinculada en
+ * su propio botón); el genérico "meta" únicamente al consultar module=meta.
  * Results are cached for 90s to avoid redundant Graph API calls per request.
  */
 export const GET = withWorkspace(async (req: NextRequest, ctx) => {
@@ -71,7 +72,9 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
     }),
   ]);
 
-  const integration = moduleIntegration || genericIntegration;
+  // Modo estricto: el estado de un módulo solo refleja SU Integration.
+  // El genérico "meta" únicamente cuando se consulta el provider "meta" en sí.
+  const integration = provider === "meta" ? genericIntegration : moduleIntegration;
   const providerUsed = integration?.provider || null;
 
   if (!integration?.connected || !integration.credentials) {
