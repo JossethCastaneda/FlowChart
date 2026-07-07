@@ -419,9 +419,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="h-screen overflow-hidden flex" style={{ background: "var(--background)" }}>
-      {/* Animated galaxy background */}
-      {theme !== 'claro' && <GalaxyBackground />}
-      <div className="dashboard-grid" />
 
       {/* Hover trigger zone — always active on desktop */}
       <div
