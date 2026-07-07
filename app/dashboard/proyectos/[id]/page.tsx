@@ -1159,13 +1159,13 @@ background: "var(--surface)", border: "1px solid var(--border)",
           });
 
           const getColor2 = (val: number) => {
-            if (maxVal === 0 || val === 0) return "rgba(255,255,255,0.05)";
+            if (maxVal === 0 || val === 0) return "var(--row-hover)";
             const intensity = val / maxVal;
             if (intensity > 0.75) return heatMetric === "spend" ? "rgba(251,191,36,0.7)" : "rgba(0,200,117,0.6)";
             if (intensity > 0.5)  return heatMetric === "spend" ? "rgba(251,191,36,0.45)" : "rgba(0,200,117,0.35)";
             if (intensity > 0.25) return heatMetric === "spend" ? "rgba(251,191,36,0.25)" : "rgba(59,130,246,0.25)";
             if (intensity > 0.1)  return heatMetric === "spend" ? "rgba(251,191,36,0.12)" : "rgba(59,130,246,0.12)";
-            return "rgba(255,255,255,0.1)";
+            return "var(--border-neutral)";
           };
 
           // Today's date string for highlighting
@@ -1224,7 +1224,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                             padding: "3px 10px", fontSize: 10,
                             color: isToday ? "var(--cyan)" : isWeekend ? "rgba(59,130,246,0.45)" : "var(--text-secondary)",
                             fontWeight: isToday ? 800 : 600, whiteSpace: "nowrap",
-                            borderRight: isToday ? "2px solid rgba(59,130,246,0.35)" : "1px solid rgba(255,255,255,0.03)",
+                            borderRight: isToday ? "2px solid rgba(59,130,246,0.35)" : "1px solid var(--hairline)",
                           }}>
                             {isToday ? "● " : ""}{dateLabel}
                           </td>
@@ -1242,7 +1242,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                                   background: getColor2(val),
                                   borderRadius: 3,
                                   display: "flex", alignItems: "center", justifyContent: "center",
-                                  fontSize: 9, color: val > 0 ? "rgba(255,255,255,0.9)" : "transparent",
+                                  fontSize: 9, color: val > 0 ? "var(--foreground)" : "transparent",
                                   fontWeight: 700,
                                   cursor: "default",
                                   transition: "transform 0.1s",
@@ -1287,7 +1287,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               {/* Legend */}
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end" }}>
                 <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Menor actividad</span>
-                {["rgba(255,255,255,0.05)", "rgba(255,255,255,0.1)", "rgba(59,130,246,0.12)", "rgba(59,130,246,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
+                {["var(--row-hover)", "var(--border-neutral)", "rgba(59,130,246,0.12)", "rgba(59,130,246,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
                   <div key={i} style={{ width: 16, height: 12, borderRadius: 3, background: c }} />
                 ))}
                 <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Mayor actividad</span>
