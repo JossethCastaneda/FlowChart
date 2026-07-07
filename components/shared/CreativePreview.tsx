@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
@@ -77,8 +77,8 @@ const VideoPlayer = ({
   if (!src) {
     // No playable video source from Meta — show poster (contain) with a clear notice.
     return (
-      <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <img src={poster} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }} />
+      <div style={{ position: "relative", width: "100%" }}>
+        <img src={poster} alt="" style={{ width: "100%", height: "auto", display: "block", background: "#000" }} />
         <div style={{
           position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: 6,
           alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.35)",
@@ -91,10 +91,10 @@ const VideoPlayer = ({
   }
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }} onClick={toggle}>
+    <div style={{ position: "relative", width: "100%" }} onClick={toggle}>
       <video
         ref={ref} src={src} poster={poster} muted={muted} loop playsInline
-        style={{ width: "100%", height: "100%", objectFit: "contain", cursor: "pointer", background: "#000" }}
+        style={{ width: "100%", height: "auto", display: "block", cursor: "pointer", background: "#000" }}
       />
       {/* Play/Pause overlay */}
       {!playing && (
@@ -134,10 +134,10 @@ const CarouselViewer = ({
   if (!items.length) return null;
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+    <div style={{ position: "relative", width: "100%" }}>
       <img
         src={items[idx].imageUrl} alt={items[idx].title}
-        style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.2s" }}
+        style={{ width: "100%", height: "auto", display: "block", transition: "opacity 0.2s" }}
       />
       {/* Nav arrows */}
       {items.length > 1 && (
@@ -214,15 +214,15 @@ export const CreativeCard = ({
       onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "none"; }}
     >
       {/* Media area — auto-size based on content */}
-      <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "rgba(0,0,0,0.4)", overflow: "hidden" }}>
+      <div style={{ position: "relative", width: "100%", background: "rgba(0,0,0,0.4)", overflow: "hidden" }}>
         {ad.format === "video" ? (
           <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} compact />
         ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
           <CarouselViewer items={ad.carouselItems} compact />
         ) : hasMedia ? (
-          <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "auto", display: "block" }} />
         ) : (
-          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: "100%", aspectRatio: "1 / 1", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <Eye style={{ width: 24, height: 24, color: "var(--text-muted)" }} />
           </div>
         )}

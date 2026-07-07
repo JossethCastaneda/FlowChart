@@ -1817,7 +1817,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--emerald)" }} />Top 3 Mejores Anuncios</h3>
                   <p style={subStyle}>Menor costo por resultado — clic para ver preview</p>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {best.length > 0 ? best.map((ad) => (
                       <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
                     )) : <NoData msg="Sin anuncios con resultados" />}
@@ -1827,7 +1827,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--red)" }} />Top 3 Peores Anuncios</h3>
                   <p style={subStyle}>Mayor gasto sin resultados o CPR más alto</p>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {worstByEfficiency.length > 0 ? worstByEfficiency.map((ad) => (
                       <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
                     )) : <NoData msg="Sin datos" />}
