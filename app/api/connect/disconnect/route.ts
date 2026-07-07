@@ -63,6 +63,18 @@ export async function POST(request: NextRequest) {
         await prisma.integrationAssetCache.deleteMany({
           where: { workspaceId, assetType: { in: ["page", "ig_account"] } }
         }).catch(() => {});
+        
+        // Limpiar páginas del provider global "meta" (legacy) para remover accesos
+        const metaGlobal = await prisma.integration.findFirst({
+          where: { workspaceId, provider: "meta" }
+        });
+        if (metaGlobal) {
+          const c = (metaGlobal.credentials as any) || {};
+          await prisma.integration.update({
+            where: { id: metaGlobal.id },
+            data: { credentials: { ...c, pages: [], pageSettings: {} } }
+          });
+        }
       }
       
       return NextResponse.json({ success: true, scope: provider, removed: result.count });

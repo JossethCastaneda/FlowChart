@@ -338,7 +338,9 @@ model Task {
   assigneeId   String? // robust userId
   priority     String    @default("P2") // P0, P1, P2, P3
   status       String    @default("Backlog") // Backlog, WIP, Review, Done
+  startDate    DateTime?
   dueDate      DateTime?
+  estimate     Float? // hours or story points
   tags         String[]
   order        Int       @default(0)
   attachments  Json      @default("[]") // [{name, url, type, size, uploadedAt}]
@@ -359,6 +361,8 @@ model Task {
   keyResult  KeyResult?     @relation(fields: [keyResultId], references: [id], onDelete: SetNull)
   parent     Task?          @relation("SubTasks", fields: [parentId], references: [id], onDelete: Cascade)
   children   Task[]         @relation("SubTasks")
+  blockedBy  Task[]         @relation("TaskDependencies")
+  blocks     Task[]         @relation("TaskDependencies")
   comments   TaskComment[]
   activities TaskActivity[]
 

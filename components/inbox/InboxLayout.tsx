@@ -167,12 +167,13 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
 // ═══════════════════════════════════════════════════════════════
 // CONNECTED BANNER & EMPTY CHAT
 // ═══════════════════════════════════════════════════════════════
-function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnect, isConnected }: {
+function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnect, isConnected, userProfile }: {
   connectedPages: ConnectedPage[];
   onDisconnect: () => void;
   disconnecting: boolean;
   onConnect: () => void;
   isConnected: boolean;
+  userProfile?: { id: string; name: string | null; picture: string | null } | null;
 }) {
   const page = connectedPages[0];
   return (
@@ -184,33 +185,29 @@ function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnec
       flexShrink: 0,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        {page ? (
-          <>
-            {page.picture ? (
-              <img 
-                src={page.picture} 
-                alt={page.name} 
-                style={{ width: 44, height: 44, borderRadius: "50%", objectFit: "cover", border: "1px solid var(--hairline)" }} 
-              />
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          <span style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)" }}>Bandeja de Entrada</span>
+          <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
+            {isConnected ? "Gestionando mensajes de Meta" : "Ninguna cuenta conectada"}
+          </span>
+        </div>
+      </div>
+      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+        {isConnected && userProfile && (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 16, borderRight: "1px solid var(--hairline)" }}>
+            {userProfile.picture ? (
+              <img src={userProfile.picture} alt={userProfile.name || "Usuario"} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} />
             ) : (
-              <div style={{ width: 44, height: 44, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 600, color: "var(--text-secondary)" }}>
-                {getInitials(page.name)}
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600 }}>
+                {getInitials(userProfile.name || "Usuario")}
               </div>
             )}
-            <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-              <span style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)" }}>{page.name}</span>
-              <span style={{ fontSize: 13, color: "var(--text-muted)" }}>@{page.name.toLowerCase().replace(/\s+/g, '')}</span>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{userProfile.name || "Usuario"}</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Conectado</span>
             </div>
-          </>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-            <span style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)" }}>Bandeja de Entrada</span>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
-              {isConnected ? "Sincronizando cuentas..." : "Ninguna cuenta conectada"}
-            </span>
           </div>
         )}
-      </div>
       {isConnected ? (
         <button style={{
           display: "flex", alignItems: "center", gap: 8,
@@ -251,6 +248,7 @@ function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnec
           Conectar Facebook
         </button>
       )}
+      </div>
     </div>
   );
 }
@@ -300,6 +298,7 @@ export function InboxLayout() {
   
   const [isDesktop, setIsDesktop] = useState(true);
   const queueRef = useRef<HTMLDivElement>(null);
+  const [userProfile, setUserProfile] = useState<{ id: string; name: string | null; picture: string | null } | null>(null);
 
   const {
     conversations, selectedId, initialFetchDone, isRefreshing,
@@ -342,6 +341,8 @@ export function InboxLayout() {
       .then(data => {
         if (!data?.modules) return;
         setConnectionStatus(data.modules);
+        if (data.userProfile) setUserProfile(data.userProfile);
+        else if (data.modules.community?.userProfile) setUserProfile(data.modules.community.userProfile);
         const pages: ConnectedPage[] = [];
         const seen = new Set<string>();
         const communityMod = data.modules.community;
@@ -394,6 +395,7 @@ export function InboxLayout() {
         disconnecting={disconnecting} 
         onConnect={() => openConnectPopup("community", handleConnectSuccess)} 
         isConnected={connectionStatus["community"]?.connected || false}
+        userProfile={userProfile}
       />
 
       {/* 3-PANEL LAYOUT — always visible */}

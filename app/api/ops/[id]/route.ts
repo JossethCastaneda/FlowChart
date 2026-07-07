@@ -21,6 +21,9 @@ const PatchTaskSchema = z.object({
   order: z.number().int().optional(),
   parentId: z.string().nullable().optional(),
   attachments: z.array(z.unknown()).optional(),
+  startDate: z.string().datetime({ offset: true }).nullable().optional(),
+  estimate: z.number().nullable().optional(),
+  blockedByIds: z.array(z.string()).optional(),
 });
 
 // PATCH /api/ops/[id] — update a task
@@ -35,7 +38,7 @@ export const PATCH = withAuth(async (req, ctx) => {
 
   const result = await validateBody(req, PatchTaskSchema);
   if (!result.ok) return result.response;
-  let { title, description, assignee, assigneeId, priority, status, dueDate, tags, order, parentId, attachments } = result.data;
+  let { title, description, assignee, assigneeId, priority, status, dueDate, tags, order, parentId, attachments, startDate, estimate, blockedByIds } = result.data;
 
   // ── Permission check ──
   const [settings, member] = await Promise.all([
@@ -94,6 +97,9 @@ export const PATCH = withAuth(async (req, ctx) => {
       ...(priority !== undefined && { priority }),
       ...(status !== undefined && { status }),
       ...(dueDate !== undefined && { dueDate: dueDate ? new Date(dueDate) : null }),
+      ...(startDate !== undefined && { startDate: startDate ? new Date(startDate) : null }),
+      ...(estimate !== undefined && { estimate }),
+      ...(blockedByIds !== undefined && { blockedBy: { set: blockedByIds.map((id: string) => ({ id })) } }),
       ...(tags !== undefined && { tags: { set: tags } }),
       ...(order !== undefined && { order }),
       // parentId must use Prisma's set: syntax for nullable relations
@@ -103,7 +109,7 @@ export const PATCH = withAuth(async (req, ctx) => {
       ...(status === "Done" && task.status !== "Done" && { closedAt: new Date() }),
       ...(status !== undefined && status !== "Done" && task.status === "Done" && { closedAt: null }),
     } as Parameters<typeof prisma.task.update>[0]["data"],
-    include: { children: true },
+    include: { children: true, blockedBy: true, blocks: true },
   });
 
   // Log activity for meaningful field changes

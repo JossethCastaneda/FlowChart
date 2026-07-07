@@ -25,6 +25,9 @@ const CreateTaskSchema = z.object({
   parentId: z.string().nullable().optional(),
   targetAreaId: z.string().nullable().optional(),
   requestType: z.string().nullable().optional(),
+  startDate: z.string().datetime({ offset: true }).nullable().optional(),
+  estimate: z.number().nullable().optional(),
+  blockedByIds: z.array(z.string()).default([]),
 });
 
 // GET /api/ops — list top-level tasks + workspace members
@@ -65,7 +68,10 @@ export const GET = withWorkspace(async (_req, ctx) => {
       include: {
         children: {
           orderBy: [{ order: "asc" }, { createdAt: "asc" }],
+          include: { blockedBy: { select: { id: true } }, blocks: { select: { id: true } } },
         },
+        blockedBy: { select: { id: true } },
+        blocks: { select: { id: true } },
       },
       orderBy: [{ order: "asc" }, { createdAt: "desc" }],
       // Safety cap — prevents loading the entire table if a workspace
@@ -104,6 +110,7 @@ export const POST = withWorkspace(async (req, ctx) => {
   const {
     title, description, assignee, assigneeId, priority, status,
     projectId, dueDate, tags, parentId, targetAreaId, requestType,
+    startDate, estimate, blockedByIds,
   } = result.data;
 
   // ── Permission check ──
@@ -208,8 +215,15 @@ export const POST = withWorkspace(async (req, ctx) => {
       requestType: requestType || null,
       requesterId: targetAreaId ? userId : null,
       createdBy: userId,
+      startDate: startDate ? new Date(startDate) : null,
+      estimate: estimate || null,
+      ...(blockedByIds.length > 0 && {
+        blockedBy: {
+          connect: blockedByIds.map((id: string) => ({ id }))
+        }
+      })
     },
-    include: { children: true },
+    include: { children: true, blockedBy: true, blocks: true },
   });
 
   logger.info("Task created", {

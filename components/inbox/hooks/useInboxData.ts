@@ -61,6 +61,37 @@ export function useInboxData() {
               return r?.messages ? { ...c, messages: r.messages } : c;
             }));
           });
+
+          // Fetch missing profiles for Meta conversations (where name is just a numeric ID)
+          const profileFetchers = mapped.filter(c => 
+            (c.platform === "fb_messenger" || c.platform === "instagram_dm" || c.platform === "ig_dm") && 
+            /^\d+$/.test(c.contactName)
+          ).map(conv => {
+            const pageId = (conv as any)._pageId;
+            return fetch(`/api/inbox/profile?userId=${conv.contactId}&pageId=${pageId || ""}`)
+              .then(r => r.ok ? r.json() : null)
+              .then(d => {
+                if (d && d.name) {
+                  return { id: conv.id, name: d.name, picture: d.picture };
+                }
+                return null;
+              }).catch(() => null);
+          });
+
+          if (profileFetchers.length > 0) {
+            Promise.all(profileFetchers).then(results => {
+              const validProfiles = results.filter(Boolean);
+              if (validProfiles.length > 0) {
+                setConversations(prev => prev.map(c => {
+                  const p = validProfiles.find((x: any) => x.id === c.id);
+                  if (p) {
+                    return { ...c, contactName: p.name, contactAvatar: p.picture || c.contactAvatar };
+                  }
+                  return c;
+                }));
+              }
+            });
+          }
         }
       }
     } catch { /* silent */ }
