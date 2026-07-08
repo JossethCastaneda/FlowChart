@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Link2, ChevronDown, Monitor, Smartphone, Video } from "lucide-react";
+import { Link2, ChevronDown } from "lucide-react";
+import { MetaIcon, GoogleAdsIcon, TikTokIcon } from "@/components/ui/PlatformIcons";
 
 export function ConnectPlatformDropdown() {
   const [open, setOpen] = useState(false);
@@ -18,9 +19,9 @@ export function ConnectPlatformDropdown() {
   }, []);
 
   const platforms = [
-    { name: "Meta Ads", icon: <Monitor className="w-4 h-4 text-[#0668E1]" />, href: "/api/connect/ads", desc: "Facebook & Instagram Ads" },
-    { name: "Google Ads", icon: <Monitor className="w-4 h-4 text-[#Fbbc05]" />, href: "/dashboard/integrations/google-ads", desc: "Search, Display & YouTube" },
-    { name: "TikTok Ads", icon: <Smartphone className="w-4 h-4 text-white" />, href: "/dashboard/integrations/tiktok", desc: "TikTok Ads Manager" }
+    { name: "Meta Ads", icon: <MetaIcon className="w-5 h-5 text-[#0668E1]" />, href: "/api/connect/ads", desc: "Facebook & Instagram Ads" },
+    { name: "Google Ads", icon: <GoogleAdsIcon className="w-5 h-5 text-[#Fbbc05]" />, href: "/dashboard/integrations/google-ads", desc: "Search, Display & YouTube" },
+    { name: "TikTok Ads", icon: <TikTokIcon className="w-5 h-5 text-white" />, href: "/dashboard/integrations/tiktok", desc: "TikTok Ads Manager" }
   ];
 
   return (
