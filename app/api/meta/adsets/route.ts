@@ -67,7 +67,7 @@ export async function GET(req: NextRequest) {
     const adsets = adsetsJson.data || [];
 
     // 2. Fetch insights
-    const insightsFields = "adset_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,video_p25_watched_actions,video_p100_watched_actions,video_3_sec_watched_actions,video_thruplay_watched_actions,outbound_clicks";
+    const insightsFields = "adset_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,video_p25_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions,outbound_clicks";
     const insightsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?${timeRange.replace(/^&/, '')}&level=adset&fields=${insightsFields}&limit=100`;
     
     const insightsRes = await metaFetch(insightsUrl, token);
@@ -98,7 +98,7 @@ export async function GET(req: NextRequest) {
           purchase_roas: insight.purchase_roas || [],
           video_p25_watched_actions: insight.video_p25_watched_actions || [],
           video_p100_watched_actions: insight.video_p100_watched_actions || [],
-          video_3_sec_watched_actions: insight.video_3_sec_watched_actions || [],
+          video_3_sec_watched_actions: (insight.actions || []).filter((a: any) => a.action_type === "video_view"),
           video_thruplay_watched_actions: insight.video_thruplay_watched_actions || [],
           outbound_clicks: insight.outbound_clicks || [],
         }
