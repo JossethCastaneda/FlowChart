@@ -366,75 +366,7 @@ export default function ResumenPage() {
   return (
     <div className="page-enter" style={{ display: "flex", flexDirection: "column", gap: 24 }}>
 
-      {/* ── HERO HEADER ── */}
-      <div style={{
-        background: "var(--surface)",
-        border: "1px solid var(--border)",
-        borderRadius: 20,
-        padding: "24px 28px",
-        position: "relative",
-        overflow: "hidden",
-      }}>
-        {/* Decorative glow blobs */}
-        <div style={{ position: "absolute", top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: "var(--cyan)", opacity: 0.03, filter: "blur(50px)", pointerEvents: "none" }} />
-        <div style={{ position: "absolute", bottom: -30, left: 100, width: 140, height: 140, borderRadius: "50%", background: "var(--purple)", opacity: 0.04, filter: "blur(40px)", pointerEvents: "none" }} />
-        {/* Subtle grid overlay */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: "linear-gradient(var(--hairline) 1px, transparent 1px), linear-gradient(90deg, var(--hairline) 1px, transparent 1px)", backgroundSize: "40px 40px", maskImage: "radial-gradient(ellipse 80% 80% at 50% 50%, black 0%, transparent 100%)", pointerEvents: "none", opacity: 0.5 }} />
 
-        <div style={{ position: "relative", display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Top row */}
-          <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", flexWrap: "wrap", gap: 12 }}>
-            <div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-                <div style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 8px var(--emerald)" }} />
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--emerald)" }}>En línea</span>
-              </div>
-              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 24, fontWeight: 800, color: "var(--foreground)", margin: 0, lineHeight: 1.2 }}>
-                {timeLabel}, <span style={{ color: "var(--cyan)" }}>{d.workspace?.name || "Workspace"}</span>
-              </h1>
-              <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "6px 0 0", lineHeight: 1.5 }}>
-                Prioriza publicar, responder, revisar Ads y cerrar tareas sin navegar por todos los módulos.
-              </p>
-            </div>
-
-            {/* Quick nav pills */}
-            <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-              <QuickPill label="Planner" href="/dashboard/publisher" icon={BarChart3} color="var(--amber)" />
-              <QuickPill label="Inbox" href="/dashboard/inbox" icon={Inbox} color="var(--purple)" />
-              <QuickPill label="Ads" href="/dashboard/ads-manager" icon={Megaphone} color="var(--cyan)" />
-              <QuickPill label="Integraciones" href="/dashboard/integrations" icon={Link2} color="var(--emerald)" />
-            </div>
-          </div>
-
-          {/* Mini stats strip */}
-          {activeProjects.length > 0 && (
-            <div style={{ display: "flex", gap: 20, paddingTop: 12, borderTop: "1px solid var(--hairline)", flexWrap: "wrap" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <ShieldCheck style={{ width: 13, height: 13, color: "var(--emerald)" }} />
-                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}><strong style={{ color: "var(--emerald)" }}>{healthyCount}</strong> saludables</span>
-              </div>
-              {warningCount > 0 && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Clock style={{ width: 13, height: 13, color: "var(--amber)" }} />
-                  <span style={{ fontSize: 11, color: "var(--text-secondary)" }}><strong style={{ color: "var(--amber)" }}>{warningCount}</strong> en precaución</span>
-                </div>
-              )}
-              {dangerCount > 0 && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <AlertCircle style={{ width: 13, height: 13, color: "var(--red)" }} />
-                  <span style={{ fontSize: 11, color: "var(--text-secondary)" }}><strong style={{ color: "var(--red)" }}>{dangerCount}</strong> en riesgo</span>
-                </div>
-              )}
-              {d.integrations.connected > 0 && (
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  <Plug style={{ width: 13, height: 13, color: "var(--cyan)" }} />
-                  <span style={{ fontSize: 11, color: "var(--text-secondary)" }}><strong style={{ color: "var(--cyan)" }}>{d.integrations.connected}</strong> integración{d.integrations.connected > 1 ? "es" : ""} activa{d.integrations.connected > 1 ? "s" : ""}</span>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* ── KPI GRID ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>

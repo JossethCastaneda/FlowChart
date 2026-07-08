@@ -214,25 +214,14 @@ export default function BriefingPage() {
       <div className="page-enter" style={{ display: "flex", flexDirection: "column", gap: 0 }}>
 
         {/* ── Page Header ── */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <BrainCircuit style={{ width: 18, height: 18, color: "var(--purple)" }} />
-            </div>
-            <div>
-              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
-                Briefs <span style={{ color: "var(--purple)" }}>IA</span>
-              </h1>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", margin: 0, marginTop: 2, textTransform: "uppercase" }}>Powered by Gemini 2.5 Flash</p>
-            </div>
-          </div>
-          {gridData && !isLoading && (
+        {gridData && !isLoading && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple)", display: "inline-block", animation: "pulse 2s ease-in-out infinite" }} />
               <span style={{ fontSize: 9, fontWeight: 700, color: "var(--purple)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Brief generado</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* ── Setup Form ── */}
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 18, marginBottom: 16 }}>

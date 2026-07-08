@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback } from "react";
 import {
@@ -178,30 +178,11 @@ export default function DeploymentHistoryPage() {
 
       {/* ── TOP BAR ── */}
       <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
+        display: "flex", alignItems: "center", justifyContent: "flex-end",
         padding: "14px 20px", borderBottom: "1px solid rgba(59,130,246,0.1)",
         background: "var(--surface)", 
         gap: 16,
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{
-            width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-            background: "var(--surface)", border: "1px solid rgba(224,168,60,0.3)",
-          }}>
-            <Activity size={16} color="var(--amber)" />
-          </div>
-          <div>
-            <h1 style={{
-              fontFamily: "var(--font-display)", fontSize: 13, fontWeight: 700,
-              letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--foreground)", margin: 0,
-            }}>Historial de Publicaciones</h1>
-            <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0, marginTop: 2 }}>
-              {stats.total} publicaciones — {stats.published} exitosas
-            </p>
-          </div>
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           {/* Search */}
           <div style={{ position: "relative" }}>
             <Search size={12} color="var(--text-muted)" style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
@@ -282,7 +263,6 @@ export default function DeploymentHistoryPage() {
           >
             <RefreshCw size={12} color="var(--text-muted)" style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
           </button>
-        </div>
       </div>
 
       {/* ── TABLE HEADER ── */}

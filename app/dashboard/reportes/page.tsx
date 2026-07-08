@@ -68,20 +68,7 @@ export default function ReportesPage() {
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }} className="page-enter">
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--surface)", border: "1px solid rgba(224,96,126,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <FileText style={{ width: 18, height: 18, color: "#e0607e" }} />
-          </div>
-          <div>
-            <h1 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
-              Reportes
-            </h1>
-            <p style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", margin: 0, marginTop: 2, textTransform: "uppercase" }}>
-              Informes white-label para clientes
-            </p>
-          </div>
-        </div>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
         <Link href="/dashboard/proyectos" style={{
           display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px",
           background: "var(--surface)", border: "1px solid rgba(224,96,126,0.25)",
