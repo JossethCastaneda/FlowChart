@@ -1092,16 +1092,36 @@ background: "var(--surface)", border: "1px solid var(--border)",
             // Only stitch if this date has NO late activity (6-23) but DOES have early activity (0-5)
             // AND the early hours are in the range 0-5 (typical UTC-6 overflow)
             if (lateActivity.length === 0 && earlyActivity.length > 0) {
-              console.debug(`[Heatmap] Stitching TZ overflow: ${dateStr} hours [${earlyActivity.join(',')}] → prev date ${prev} as hours [${earlyActivity.map(h => h + 18).join(',')}]`);
-              earlyActivity.forEach(h => {
+              const currentHour = new Date().getHours();
+              const isPrevToday = prev === todayStr;
+
+              // Filter early hours to only those whose target hour has already occurred if the target day is today
+              const stitchableHours = earlyActivity.filter(h => {
                 const targetH = h + 18;
-                dateMap[prev][targetH].impressions += hours[h].impressions;
-                dateMap[prev][targetH].spend       += hours[h].spend;
-                dateMap[prev][targetH].clicks      += hours[h].clicks;
-                dateMap[prev][targetH].results     += hours[h].results;
+                return !isPrevToday || targetH <= currentHour;
               });
-              // Mark this date for removal from display (all its data moved)
-              datesToRemove.add(dateStr);
+
+              if (stitchableHours.length > 0) {
+                console.debug(`[Heatmap] Stitching TZ overflow: ${dateStr} hours [${stitchableHours.join(',')}] → prev date ${prev} as hours [${stitchableHours.map(h => h + 18).join(',')}]`);
+                stitchableHours.forEach(h => {
+                  const targetH = h + 18;
+                  dateMap[prev][targetH].impressions += hours[h].impressions;
+                  dateMap[prev][targetH].spend       += hours[h].spend;
+                  dateMap[prev][targetH].clicks      += hours[h].clicks;
+                  dateMap[prev][targetH].results     += hours[h].results;
+
+                  // Clear them from original day
+                  hours[h] = { impressions: 0, spend: 0, clicks: 0, results: 0 };
+                });
+
+                // Only remove the date if all early hours with data were stitched
+                const remainingEarly = [0, 1, 2, 3, 4, 5].some(
+                  h => hours[h].spend > 0 || hours[h].results > 0 || hours[h].impressions > 0
+                );
+                if (!remainingEarly) {
+                  datesToRemove.add(dateStr);
+                }
+              }
             }
           });
 
