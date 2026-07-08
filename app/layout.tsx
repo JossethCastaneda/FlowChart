@@ -123,11 +123,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" className={`${inter.variable} ${jbMono.variable} ${orbitron.variable} ${spaceGrotesk.variable} ${sora.variable}`} suppressHydrationWarning>
       <head>
       </head>
       <body
-        className={`${inter.variable} ${jbMono.variable} ${orbitron.variable} ${spaceGrotesk.variable} ${sora.variable} antialiased`}
+        className="antialiased"
         suppressHydrationWarning
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem themes={["light", "dark", "azul"]}>

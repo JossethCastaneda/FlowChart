@@ -239,16 +239,10 @@ export default function Home() {
           background: #f0f0f0; transform: translateY(-2px); 
         }
 
-        /* Noise Background */
-        .noise-bg {
-          position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: 0.035; mix-blend-mode: overlay;
-          background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-        }
+
 
         .col-card { 
           background: rgba(15, 15, 15, 0.4);
-          
-          -webkit-
           border: 1px solid rgba(255,255,255,0.06);
           border-radius: 24px; 
           overflow: hidden; 
@@ -356,7 +350,6 @@ export default function Home() {
       </header>
 
       <main style={{ position: "relative", zIndex: 1 }}>
-        <div className="noise-bg" />
 
       {/* ═══════════════════════════════════════════════════════
          HERO
@@ -452,12 +445,12 @@ export default function Home() {
           initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 1.7, ease: "easeOut" }}
           style={{ display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap", justifyContent: "center", position: "relative", zIndex: 10, marginBottom: 80 }}
         >
-          <Link href="/login" className="col-pill col-pill-primary" aria-label="Contacto / Registro">
+          <Link href="/login" className="col-pill col-pill-primary" aria-label="Contacto / Registro" style={{ height: 56, padding: "0 32px", borderRadius: 14 }}>
             Contactar Ventas
           </Link>
-          <div style={{ display: "flex", alignItems: "center", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 12, padding: "4px 4px 4px 16px" }}>
-            <input type="email" placeholder="Ingresa tu email" style={{ background: "transparent", border: "none", color: "var(--foreground)", outline: "none", width: 200, fontSize: 15 }} />
-            <Link href="/login" className="col-pill col-pill-secondary" style={{ padding: "10px 24px", fontSize: 14 }}>
+          <div style={{ display: "flex", alignItems: "center", background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 14, padding: "4px 4px 4px 20px", height: 56, boxSizing: "border-box" }}>
+            <input type="email" placeholder="Ingresa tu email" style={{ background: "transparent", border: "none", color: "var(--foreground)", outline: "none", width: 220, fontSize: 16 }} />
+            <Link href="/login" className="col-pill col-pill-secondary" style={{ padding: "0 24px", fontSize: 15, height: "100%", borderRadius: 10 }}>
               Solicitar Demo
             </Link>
           </div>
