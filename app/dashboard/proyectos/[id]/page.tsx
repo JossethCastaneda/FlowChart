@@ -8,11 +8,12 @@ import {
   Users, Palette, Settings, ChevronDown, ChevronUp, AlertTriangle,
   Layers, Monitor, Smartphone, Globe, PieChart as PieIcon,
   HeartPulse, RefreshCw, MousePointer, Shield,
-  Tag, Building, MapPin, Link
+  Tag, Building, MapPin, Link, ShieldCheck
 } from "lucide-react";
 import { normalizeIntegrationProvider } from "@/lib/analytics/project-scope";
 import { GoogleSourcesPanel } from "@/components/projects/GoogleSourcesPanel";
 import { GoogleAdsDashboard } from "@/components/projects/GoogleAdsDashboard";
+import { UserReliabilityModule } from "@/components/analytics/UserReliabilityModule";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ComposedChart, Line, PieChart, Pie, Cell, Legend, BarChart, Bar, ReferenceLine
@@ -216,7 +217,7 @@ export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config"|"trafico"|"historial">("resumen");
+  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config"|"trafico"|"historial"|"confiabilidad">("resumen");
   const [activePlatform, setActivePlatform] = useState("");
   const [insights, setInsights] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -654,6 +655,7 @@ export default function ProjectDashboardPage() {
             <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
             <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
             <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
+            <TabButton active={activeTab === "confiabilidad"} label="Confiabilidad" icon={<ShieldCheck style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("confiabilidad")} />
             <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
 
             {!!project.website && (
@@ -803,6 +805,19 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </table>
             </div>
           </div>
+        </ErrorBoundary>
+      )}
+
+      {/* ═══ TAB: CONFIABILIDAD ═══ */}
+      {activeTab === "confiabilidad" && activePlatform === "meta" && (
+        <ErrorBoundary name="Tab Confiabilidad">
+          <UserReliabilityModule 
+             adAccountId={selectedAccountId === "all" ? (ch?.adAccounts?.[0] || "") : selectedAccountId}
+             dateStart={dateStart} 
+             dateEnd={dateEnd}
+             goal={ch?.goal || "Conversaciones"}
+             cprTarget={ch?.cpr ? parseBudget(ch.cpr) : 0}
+          />
         </ErrorBoundary>
       )}
 
