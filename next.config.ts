@@ -1,4 +1,5 @@
 import { withWorkflow } from "workflow/next";
+import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -89,4 +90,31 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withWorkflow(nextConfig);
+const workflowConfig = withWorkflow(nextConfig);
+
+export default withSentryConfig(workflowConfig, {
+  // Sentry organization and project from environment
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Auth token for source map uploads (set in Vercel env, not in repo)
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+
+  // Upload source maps for readable stack traces in Sentry
+  // Source maps are deleted after upload — not served publicly
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+
+  // Tunnel Sentry requests through /monitoring to bypass ad-blockers
+  tunnelRoute: "/monitoring",
+
+  // Suppress Sentry build output in CI
+  silent: !process.env.CI,
+
+  // Smaller client bundle — disable Sentry logger in production
+  disableLogger: true,
+
+  // Don't open Sentry in browser after build
+  telemetry: false,
+});

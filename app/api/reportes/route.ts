@@ -69,6 +69,12 @@ export const POST = withWorkspace(async (req: NextRequest, ctx: WorkspaceContext
     ...((settings as ReportSettings) || {}),
   };
 
+  // Default expiration: 90 days from now (never null in new reports)
+  const DEFAULT_EXPIRY_DAYS = 90;
+  const expiresAt = body.expiresAt
+    ? new Date(body.expiresAt)
+    : new Date(Date.now() + DEFAULT_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
+
   // Create report
   const report = await prisma.report.create({
     data: {
@@ -81,6 +87,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx: WorkspaceContext
       data: snapshot as any,
       settings: reportSettings as any,
       createdById: ctx.userId,
+      expiresAt,
     },
   });
 
