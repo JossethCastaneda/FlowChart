@@ -16,7 +16,7 @@ export interface NavGroup {
   items: ModuleDef[];
 }
 
-const ORDER: GroupKey[] = ["operacion", "contenido", "crecimiento", "automatizacion", "sistema"];
+const ORDER: GroupKey[] = ["operacion", "contenido", "crecimiento", "sistema"];
 
 export const NAV_GROUPS: NavGroup[] = ORDER.map((g) => ({
   title: GROUP_LABELS[g],

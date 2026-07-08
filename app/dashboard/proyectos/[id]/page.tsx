@@ -21,7 +21,7 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import { CreativeCard, CreativeLightbox } from "@/components/shared/CreativePreview";
 import { useInsightsStore } from "@/stores/insightsStore";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
-import BotAnalyticsDashboard from "@/components/botmaker/analytics/dashboard/BotAnalyticsDashboard";
+
 import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 import { ChartTheme } from "@/components/ui/charts/ChartTheme";
 import { CustomTooltip } from "@/components/ui/charts/CustomTooltip";
@@ -216,7 +216,7 @@ export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config"|"resultados"|"trafico"|"historial">("resumen");
+  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config"|"trafico"|"historial">("resumen");
   const [activePlatform, setActivePlatform] = useState("");
   const [insights, setInsights] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -655,9 +655,7 @@ export default function ProjectDashboardPage() {
             <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
             <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
             <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
-            {(!!project.crmIntegrationIds?.length || !!project.crmIntegrationId || !!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
-              <TabButton active={activeTab === "resultados"} label="Resultados Bot" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
-            )}
+
             {!!project.website && (
               <TabButton active={activeTab === "trafico"} label="Tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
             )}
@@ -2436,14 +2434,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
       )}
 
 
-      {/* ═══ TAB: ANÁLISIS DE RESULTADOS (Métricas del Bot, acotado al proyecto) ═══ */}
-      {activeTab === "resultados" && (
-        <ErrorBoundary name="Tab Análisis de Resultados">
-          <div style={{ height: "calc(100vh - 180px)", margin: "8px 0 0", borderRadius: 8, overflow: "hidden", border: "1px solid var(--hairline)" }}>
-            <BotAnalyticsDashboard projectId={project.id} embedded />
-          </div>
-        </ErrorBoundary>
-      )}
+
 
       {/* ═══ TAB: ANÁLISIS DE TRÁFICO (GA4) ═══ */}
       {activeTab === "trafico" && (
@@ -2568,56 +2559,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   </div>
                 </div>
               </div>
-              <div>
-                <p style={labelStyle}>Plataforma del bot (Análisis de Resultados)</p>
-                {(() => {
-                  const CRM_PROVIDERS = ["botmaker", "cari", "custom_crm", "hubspot"];
-                  // Solo botmaker/cari/cari_ai alimentan Análisis de Resultados; el resto
-                  // (custom_crm/hubspot) se conserva pero se marca como NO compatible.
-                  const crmLabel = (p: string) => {
-                    const base = p === "botmaker" ? "Botmaker" : p === "cari" ? "Cari AI" : p === "custom_crm" ? "CRM Custom (vía API)" : p;
-                    return normalizeIntegrationProvider(p) ? base : `${base} — no compatible con Análisis de Resultados`;
-                  };
-                  const crmOptions = activeIntegrations.filter(i => CRM_PROVIDERS.includes(i.provider));
-                  // Una sola plataforma de bot por proyecto: el análisis ahora se acota a
-                  // los canales de Botmaker del proyecto, así que la multi-selección dejó
-                  // de tener sentido. Se conserva crmIntegrationIds (1 elemento) por compat.
-                  const selectedId = (editForm.crmIntegrationIds && editForm.crmIntegrationIds[0])
-                    || editForm.crmIntegrationId || "";
-                  if (isEditing) {
-                    return (
-                      <>
-                        <select
-                          value={selectedId}
-                          onChange={e => {
-                            const sel = e.target.value;
-                            const intg = activeIntegrations.find(a => a.id === sel);
-                            setEditForm(prev => ({
-                              ...prev,
-                              crmIntegrationId: sel || null,
-                              crmIntegrationIds: sel ? [sel] : [],
-                              crmType: intg ? intg.provider : null,
-                            }));
-                          }}
-                          style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.15)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer", appearance: "auto" }}
-                        >
-                          <option value="">Ninguna</option>
-                          {crmOptions.map(i => <option key={i.id} value={i.id}>{crmLabel(i.provider)}</option>)}
-                        </select>
-                        {crmOptions.length === 0 && <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>Conecta Botmaker o Cari AI en Integraciones primero.</p>}
-                      </>
-                    );
-                  }
-                  const currentId = (project.crmIntegrationIds && project.crmIntegrationIds[0])
-                    || project.crmIntegrationId || "";
-                  const cur = currentId ? activeIntegrations.find(a => a.id === currentId) : null;
-                  return (
-                    <p style={{ fontSize: 13, color: currentId ? "var(--cyan)" : "var(--foreground)" }}>
-                      {currentId ? (cur ? crmLabel(cur.provider) : "Conectado") : "—"}
-                    </p>
-                  );
-                })()}
-              </div>
+
             </div>
           </div>
 

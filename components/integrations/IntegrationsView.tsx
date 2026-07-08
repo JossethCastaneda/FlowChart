@@ -181,19 +181,7 @@ const ALL_CHANNELS: ChannelDef[] = [
   },
   { provider: "linkedin_ads", name: "LinkedIn Ads", description: "Sponsored Content y Lead Gen Forms.", Icon: LinkedInIcon, iconBg: "#0A66C2", comingSoon: true },
   { provider: "x_ads", name: "X (Twitter)", description: "Promoted Tweets, Trends y audiencias.", Icon: XIcon, iconBg: "#14171A", comingSoon: true },
-  // CRM
-  {
-    provider: "botmaker", name: "BotMaker",
-    description: "Chatbots, WhatsApp API y analítica de conversaciones.",
-    Icon: BotmakerIcon, iconBg: "#1E40AF",
-    badges: [{ label: "CRM", color: "var(--purple)" }],
-  },
-  {
-    provider: "cari", name: "Cari AI",
-    description: "Report API: conversaciones y agentes en tiempo real.",
-    Icon: CariAIIcon, iconBg: "#0B7A5C",
-    badges: [{ label: "AI", color: "var(--emerald)" }],
-  },
+
   {
     provider: "custom_crm", name: "CRM Custom",
     description: "Conecta tu propio CRM vía API endpoint personalizado.",
