@@ -69,7 +69,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
             values.map((v: string) => {
               const opt = options.find((o: any) => o.value === v);
               return (
-                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
                   {opt?.picture && <img src={opt.picture} alt="" style={{ width: 12, height: 12, borderRadius: "50%", objectFit: "cover" }} />}
                   {opt ? opt.label : v}
                   {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
@@ -81,7 +81,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
       </div>
       {open && !ro && !disabled && createPortal(
-        <div id={`portal-${id}`} style={{ position: "absolute", top: coords.top + 4, left: coords.left, width: coords.width, zIndex: 99999, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", boxShadow: "0 8px 30px rgba(0,0,0,0.5)", borderRadius: 8 }}>
+        <div id={`portal-${id}`} style={{ position: "absolute", top: coords.top + 4, left: coords.left, width: coords.width, zIndex: 99999, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", boxShadow: "0 8px 30px rgba(0,0,0,0.5)", borderRadius: 8 }}>
           <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input
               type="text"
@@ -94,7 +94,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(59,130,246,0.05)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "var(--cyan-dim)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => {
@@ -105,7 +105,7 @@ function CustomMultiSelectPictures({ values, options, onChange, placeholder, dis
                     else onChange([...values, o.value]);
                   }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(59,130,246,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.05)" : "transparent"}>
                     <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "var(--cyan)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "var(--cyan)" : "transparent" }}>
-                      {selected && <Check className="w-2 h-2 text-black" />}
+                      {selected && <Check className="w-2 h-2 text-[var(--foreground)]" />}
                     </div>
                     {o.picture && <img src={o.picture} alt="" style={{ width: 16, height: 16, borderRadius: "50%", objectFit: "cover" }} />}
                     {o.label}
@@ -141,7 +141,7 @@ function TagsInput({ values, onChange, placeholder, ro }: { values: string[]; on
   return (
     <div className="f-input" style={{ display: "flex", alignItems: "center", gap: "4px", flexWrap: "wrap", minHeight: "34px", height: "auto", cursor: ro ? "not-allowed" : "text" }}>
       {values.map((v, i) => (
-        <span key={i} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(37,211,102,0.1)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
+        <span key={i} style={{ fontSize: "10px", padding: "3px 8px", background: "var(--emerald-dim)", border: "1px solid rgba(37,211,102,0.3)", color: "#25D366", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px", whiteSpace: "nowrap" }}>
           {v}
           {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={() => onChange(values.filter((_, j) => j !== i))} />}
         </span>
@@ -203,7 +203,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
             values.map((v: string) => {
               const opt = options.find((o: any) => o.id === v);
               return (
-                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
+                <span key={v} style={{ fontSize: "10px", padding: "3px 8px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", borderRadius: "3px", display: "flex", alignItems: "center", gap: "4px" }}>
                   {opt ? opt.name : v} 
                   {!ro && <X className="w-2 h-2" style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); onChange(values.filter((x: string) => x !== v)); }} />}
                 </span>
@@ -214,7 +214,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, flexShrink: 0 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input 
               type="text" 
@@ -227,7 +227,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(59,130,246,0.05)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "var(--cyan-dim)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => {
@@ -238,7 +238,7 @@ function CustomMultiSelect({ values, options, onChange, placeholder, disabled, r
                     else onChange([...values, o.id]);
                   }} style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: selected ? "var(--cyan)" : "var(--foreground)", background: selected ? "rgba(59,130,246,0.05)" : "transparent" }} onMouseEnter={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.1)" : "rgba(255,255,255,0.1)"} onMouseLeave={e => e.currentTarget.style.background = selected ? "rgba(59,130,246,0.05)" : "transparent"}>
                     <div style={{ width: 12, height: 12, border: `1px solid ${selected ? "var(--cyan)" : "var(--border)"}`, display: "flex", alignItems: "center", justifyContent: "center", background: selected ? "var(--cyan)" : "transparent" }}>
-                      {selected && <Check className="w-2 h-2 text-black" />}
+                      {selected && <Check className="w-2 h-2 text-[var(--foreground)]" />}
                     </div>
                     {o.name}
                   </div>
@@ -289,7 +289,7 @@ function CustomCreatableSelect({ value, options, onChange, placeholder, disabled
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5, marginRight: "10px", cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); setOpen(!open); }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           {filtered.map((o: any) => (
             <div key={o.value} onClick={() => { onChange(o.value); setSearch(o.value); setOpen(false); }} 
                  style={{ padding: "8px 10px", display: "flex", alignItems: "center", gap: "8px", cursor: "pointer", fontSize: "11px", color: "var(--foreground)" }} 
@@ -330,54 +330,17 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
 
   useEffect(() => { setMounted(true); }, []);
 
-  // Integraciones ANALÍTICAS reales del workspace (provider → botmaker | cari_ai).
-  // No incluye custom_crm/hubspot: no son compatibles con Análisis de Resultados.
-  const analyticsIntegrations = activeIntegrations.filter((i) => normalizeIntegrationProvider(i.provider) !== null);
-
-  // Plataforma analítica seleccionada → canales de bot que ofrece el formulario.
-  // Sin plataforma elegida se muestran los comunes (WhatsApp + Web Chat).
-  const isGooglePlatform = form.crmType === "google" && !(form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds.length));
-  // "No aplica": el usuario eligió explícitamente NO asociar plataforma de bot.
-  const isNoBot = form.crmType === "no_aplica";
-  const selectedBotProvider = (() => {
-    if (isNoBot) return null;
-    if (isGooglePlatform) return "google";
-    const selId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
-    const intg = analyticsIntegrations.find((i) => i.id === selId);
-    return intg ? normalizeIntegrationProvider(intg.provider) : null;
-  })();
-  const botChannels = selectedBotProvider
-    ? BOT_PLATFORM_CHANNELS[selectedBotProvider] ?? ["whatsapp", "webchat"]
-    : (["whatsapp", "webchat"] as BotChannel[]);
-  const showWhatsapp = botChannels.includes("whatsapp");
-  const showWebchat = botChannels.includes("webchat");
-  // Instagram/Facebook del bot: manuales y SOLO para Botmaker (Cari no los reporta).
-  const showInstagram = botChannels.includes("instagram");
-  const showFacebook = botChannels.includes("facebook");
-
-  // Autollenado de canales del bot desde Botmaker: cuando la plataforma es
-  // Botmaker, traemos sus canales REALES (números de WhatsApp, webchats, IG, FB)
-  // para elegirlos con un clic en vez de teclearlos. Cari no expone listado de
-  // canales, así que ahí se mantiene la captura manual.
-  type ChanOpt = { label: string; value: string };
-  const [botChannelsAvail, setBotChannelsAvail] = useState<{ whatsapp: ChanOpt[]; webchat: ChanOpt[]; instagram: ChanOpt[]; facebook: ChanOpt[] } | null>(null);
-  const [loadingChannels, setLoadingChannels] = useState(false);
-  useEffect(() => {
-    if (mode === "view" || selectedBotProvider !== "botmaker") { setBotChannelsAvail(null); return; }
-    let cancelled = false;
-    setLoadingChannels(true);
-    fetch("/api/integrations/botmaker/channels")
-      .then((r) => r.json())
-      .then((j) => { if (!cancelled && j?.success) setBotChannelsAvail(j.data.channels); })
-      .catch(() => { /* best-effort */ })
-      .finally(() => { if (!cancelled) setLoadingChannels(false); });
-    return () => { cancelled = true; };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedBotProvider, mode]);
-
-  const totalAvail = botChannelsAvail
-    ? botChannelsAvail.whatsapp.length + botChannelsAvail.webchat.length + botChannelsAvail.instagram.length + botChannelsAvail.facebook.length
-    : 0;
+  const analyticsIntegrations: any[] = [];
+  const isGooglePlatform = false;
+  const isNoBot = true;
+  const selectedBotProvider = null;
+  const showWhatsapp = false;
+  const showWebchat = false;
+  const showInstagram = false;
+  const showFacebook = false;
+  const botChannelsAvail = null;
+  const loadingChannels = false;
+  const totalAvail = 0;
   // El botón "Autollenar" ya no se usa porque ahora los canales se eligen en 
   // listas desplegables (CustomMultiSelectPictures) directamente.
 
@@ -479,32 +442,18 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
   const progressive = mode === "create";
   const filled = (...vals: unknown[]) => vals.some((v) => (Array.isArray(v) ? v.length > 0 : Boolean(v)));
   const aliasFilled = Boolean(form.alias && form.alias.trim());
-  const botSelectionId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
-  // El usuario tomó una decisión sobre la plataforma del bot (incluye "No aplica").
-  const botChoiceMade = Boolean(botSelectionId) || isGooglePlatform || isNoBot;
-  // El flujo arranca al nombrar el proyecto; lo siguiente se revela tras elegir
-  // plataforma del bot. `aliasFilled` evita que el auto-seleccionar de plataforma
-  // (cuando hay 1 sola integración) revele secciones antes de tiempo.
+  const botChoiceMade = true;
   const flowStarted = aliasFilled && botChoiceMade;
-
-  // Captura MANUAL de canales (TagsInput) en vez de multi-select: Cari nunca lista
-  // canales, y Botmaker cuando su API no devolvió ninguno (para no bloquear el alta).
-  const manualBotChannels =
-    selectedBotProvider === "cari_ai" ||
-    (selectedBotProvider === "botmaker" && !loadingChannels && totalAvail === 0);
-  const hasBotChannelUI = !isNoBot && (showWhatsapp || showWebchat || showInstagram || showFacebook);
-  const anyBotChannelSelected = filled(form.whatsapp, form.webchat, form.instagram, form.fanpage);
-  // Revelado SECUENCIAL: cada sección se habilita al completar la anterior, no todas
-  // de golpe. El paso de canales del bot se "resuelve" al elegir/teclear ≥1 canal
-  // (o si no hay UI de canales — p. ej. "No aplica"). El fallback manual asegura que
-  // siempre se pueda completar aunque la API de Botmaker no traiga canales.
-  const botStepDone = flowStarted && (!hasBotChannelUI || anyBotChannelSelected);
+  const manualBotChannels = true;
+  const hasBotChannelUI = false;
+  const anyBotChannelSelected = false;
+  const botStepDone = true;
   const reveal = {
     identityRest: !progressive || aliasFilled,
-    botPlatform: !progressive || aliasFilled,
-    botChannels: (!progressive || flowStarted) && hasBotChannelUI,
-    redes: !progressive || botStepDone || filled(form.fanpage, form.instagram, form.website),
-    adChannels: !progressive || botStepDone || form.channels.length > 0,
+    botPlatform: false,
+    botChannels: false,
+    redes: !progressive || filled(form.fanpage, form.instagram, form.website),
+    adChannels: !progressive || form.channels.length > 0,
     audiencia: !progressive || form.channels.length > 0 || filled(form.persona, form.geo, form.dateStart, form.dateEnd),
   };
 
@@ -513,7 +462,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
       position: "fixed", inset: 0, zIndex: 9999,
       display: "flex", alignItems: "flex-start", justifyContent: "center",
       overflowY: "auto", padding: "3vh 16px",
-      background: "rgba(0,0,0,0.8)", backdropFilter: "blur(6px)",
+      background: "var(--panel-bg)", 
     }}>
       <div onClick={e => e.stopPropagation()} className="page-enter" style={{
         width: "640px", maxWidth: "100%",
@@ -524,7 +473,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
 
         {/* Header */}
         <div style={{ padding: "16px 24px 12px", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid var(--border)" }}>
-          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "white", letterSpacing: "0.1em" }}>{title}</h2>
+          <h2 style={{ fontFamily: "var(--font-display)", fontSize: "13px", fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>{title}</h2>
           <button onClick={onClose} style={{ color: "var(--text-muted)", cursor: "pointer", background: "none", border: "none", transition: "color 0.15s" }} onMouseEnter={e => e.currentTarget.style.color = "var(--text-secondary)"} onMouseLeave={e => e.currentTarget.style.color = "var(--text-muted)"}><X className="w-5 h-5" /></button>
         </div>
 
@@ -559,204 +508,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                 ro={ro}
               />
             } />
-            <Field l="Plataforma Analítica (Bot)" el={
-              (() => {
-                const selectedId = form.crmIntegrationId || (form.crmIntegrationIds && form.crmIntegrationIds[0]) || "";
-                const selectValue = isNoBot ? NO_BOT_PLATFORM : isGooglePlatform ? GOOGLE_PLATFORM : selectedId;
-                const hasChannel = (form.whatsapp?.length || 0) > 0 || (form.instagram?.length || 0) > 0 || (form.fanpage?.length || 0) > 0;
-                // "No aplica" es una elección válida → no advertir. Solo "Ninguna" (sin elegir) con un canal cargado dispara la alerta.
-                const showNeedsBotWarning = hasChannel && !selectValue;
-                return (
-                  <div>
-                    <select
-                      value={selectValue}
-                      onChange={e => {
-                        const sel = e.target.value;
-                        if (sel === GOOGLE_PLATFORM) {
-                          // Google no es una Integration: se marca por crmType y
-                          // su analítica vive en la pestaña "Análisis de Tráfico".
-                          setForm(prev => ({ ...prev, crmIntegrationId: null, crmIntegrationIds: [], crmType: "google", botFlowType: null }));
-                          return;
-                        }
-                        if (sel === NO_BOT_PLATFORM) {
-                          // No aplica: el proyecto no envía a ninguna plataforma de bot.
-                          setForm(prev => ({ ...prev, crmIntegrationId: null, crmIntegrationIds: [], crmType: "no_aplica", botFlowType: null }));
-                          return;
-                        }
-                        const intg = analyticsIntegrations.find(i => i.id === sel);
-                        setForm(prev => ({
-                          ...prev,
-                          crmIntegrationId: sel || null,
-                          crmIntegrationIds: sel ? [sel] : [],
-                          crmType: intg ? intg.provider : null,
-                        }));
-                      }}
-                      disabled={ro}
-                      className="f-input" style={{ appearance: "auto" }}
-                    >
-                      <option value="">Ninguna</option>
-                      <option value={NO_BOT_PLATFORM}>No aplica (sin bot)</option>
-                      {analyticsIntegrations.map(i => {
-                        const norm = normalizeIntegrationProvider(i.provider) as string;
-                        return (
-                          <option key={i.id} value={i.id}>
-                            {PROVIDER_LABELS[norm] || (norm === "cari_ai" ? "Cari AI" : norm === "botmaker" ? "Botmaker" : i.provider)}
-                          </option>
-                        );
-                      })}
-                      <option value={GOOGLE_PLATFORM}>Google (Web Chat + Landing)</option>
-                    </select>
-                    {!ro && analyticsIntegrations.length === 0 && !isNoBot && (
-                      <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
-                        Conecta Cari AI o Botmaker en Integraciones, o elige "No aplica" si este proyecto no usa bot.
-                      </p>
-                    )}
-                    {!ro && analyticsIntegrations.length > 1 && !selectedId && !isNoBot && (
-                      <p style={{ fontSize: 10, color: "var(--text-secondary)", marginTop: 4 }}>
-                        Selecciona la plataforma del bot (Cari AI o Botmaker) para este proyecto.
-                      </p>
-                    )}
-                    {!ro && isNoBot && (
-                      <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
-                        Sin Análisis de Resultados conversacional. El proyecto seguirá midiendo Ads y redes.
-                      </p>
-                    )}
-                    {!ro && showNeedsBotWarning && (
-                      <p style={{ fontSize: 10, color: "var(--amber)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                        <AlertTriangle style={{ width: 11, height: 11 }} />
-                        El número configura el canal, pero necesitas asociar Cari AI o Botmaker para ver métricas.
-                      </p>
-                    )}
-                  </div>
-                );
-              })()
-            } />
           </Row>
-          )}
-
-          {/* ── Canales del Bot ── (solo si hay plataforma de bot elegida) */}
-          {reveal.botChannels && (
-          <>
-          <Sec icon={<Globe className="w-3 h-3" />} text="Canales del Bot" />
-          <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: "0 0 10px" }}>
-            Los canales que elijas aquí definen el <b style={{ color: "var(--cyan)" }}>Análisis de Resultados</b> del proyecto:
-            el dashboard se acota automáticamente a estos canales (FB, IG, WhatsApp).
-          </p>
-          {selectedBotProvider === "cari_ai" && (
-            <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: "0 0 10px" }}>
-              Cari AI no expone un listado de canales en su API: ingresa el número de WhatsApp y/o el ID del web chat manualmente.
-            </p>
-          )}
-          {/* Tipo de flujo del bot (metodología BAIT): define el orden del Funnel 2
-              por bot en Análisis de Resultados. Solo aplica a Botmaker. */}
-          {selectedBotProvider === "botmaker" && (
-            <Row>
-              <Field l="Tipo de flujo (bot)" el={
-                <select
-                  value={form.botFlowType || ""}
-                  disabled={ro}
-                  className="f-select" style={{ appearance: "auto" }}
-                  onChange={(e) => setForm(prev => ({ ...prev, botFlowType: e.target.value || null }))}
-                >
-                  <option value="">Auto (inferir del flujo)</option>
-                  <option value="prepago">Prepago (número → NIP → nombre)</option>
-                  <option value="pospago_alineado">Pospago alineado</option>
-                  <option value="pospago_simplificado">Pospago simplificado</option>
-                  <option value="google_bait">Google Bait Pospago</option>
-                </select>
-              } />
-            </Row>
-          )}
-          {/* Canales del bot: solo los que ofrece la Plataforma Analítica elegida.
-              WhatsApp + Web Chat para Cari/Botmaker; Instagram + Facebook del bot
-              solo para Botmaker. Para Botmaker se AUTOLLENAN desde su API (números,
-              webchats, IG, FB); Cari no expone listado → captura manual. */}
-          {selectedBotProvider === "botmaker" && (showWhatsapp || showWebchat || showInstagram || showFacebook) && totalAvail === 0 && !loadingChannels && (
-            <p style={{ fontSize: 10, color: "var(--amber)", margin: "2px 0 6px" }}>
-              No se detectaron canales en esta cuenta de Botmaker (revisa tu panel). Mientras tanto, ingrésalos manualmente abajo.
-            </p>
-          )}
-          {(showWhatsapp || showWebchat) && (
-            <Row>
-              {showWhatsapp && <Field l="WhatsApp" el={
-                manualBotChannels ? (
-                  <TagsInput
-                    values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
-                    onChange={(vals) => setForm(prev => ({ ...prev, whatsapp: vals }))}
-                    placeholder="+52 55 1234 5678 (Enter para agregar)"
-                    ro={ro}
-                  />
-                ) : (
-                  <CustomMultiSelectPictures
-                    values={Array.isArray(form.whatsapp) ? form.whatsapp : form.whatsapp ? [form.whatsapp] : []}
-                    options={botChannelsAvail?.whatsapp || []}
-                    onChange={(vals: string[]) => setForm(prev => ({ ...prev, whatsapp: vals }))}
-                    placeholder={loadingChannels ? "Cargando canales..." : "Seleccionar WhatsApp..."}
-                    ro={ro || loadingChannels}
-                  />
-                )
-              } />}
-              {showWebchat && <Field l="Web Chat (ID del widget)" el={
-                manualBotChannels ? (
-                  <TagsInput
-                    values={Array.isArray(form.webchat) ? form.webchat : form.webchat ? [form.webchat] : []}
-                    onChange={(vals) => setForm(prev => ({ ...prev, webchat: vals }))}
-                    placeholder="ID del web chat (Enter para agregar)"
-                    ro={ro}
-                  />
-                ) : (
-                  <CustomMultiSelectPictures
-                    values={Array.isArray(form.webchat) ? form.webchat : form.webchat ? [form.webchat] : []}
-                    options={botChannelsAvail?.webchat || []}
-                    onChange={(vals: string[]) => setForm(prev => ({ ...prev, webchat: vals }))}
-                    placeholder={loadingChannels ? "Cargando canales..." : "Seleccionar Web Chat..."}
-                    ro={ro || loadingChannels}
-                  />
-                )
-              } />}
-            </Row>
-          )}
-          {(showInstagram || showFacebook) && (
-            <Row>
-              {showInstagram && <Field l="Instagram del bot" el={
-                manualBotChannels ? (
-                  <TagsInput
-                    values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
-                    onChange={(vals) => setForm(prev => ({ ...prev, instagram: vals }))}
-                    placeholder="@usuario de Instagram (Enter para agregar)"
-                    ro={ro}
-                  />
-                ) : (
-                  <CustomMultiSelectPictures
-                    values={Array.isArray(form.instagram) ? form.instagram : form.instagram ? [form.instagram] : []}
-                    options={botChannelsAvail?.instagram || []}
-                    onChange={(vals: string[]) => setForm(prev => ({ ...prev, instagram: vals }))}
-                    placeholder={loadingChannels ? "Cargando canales..." : "Seleccionar Instagram..."}
-                    ro={ro || loadingChannels}
-                  />
-                )
-              } />}
-              {showFacebook && <Field l="Página de Facebook del bot" el={
-                manualBotChannels ? (
-                  <TagsInput
-                    values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
-                    onChange={(vals) => setForm(prev => ({ ...prev, fanpage: vals }))}
-                    placeholder="Página de Facebook (Enter para agregar)"
-                    ro={ro}
-                  />
-                ) : (
-                  <CustomMultiSelectPictures
-                    values={Array.isArray(form.fanpage) ? form.fanpage : form.fanpage ? [form.fanpage] : []}
-                    options={botChannelsAvail?.facebook || []}
-                    onChange={(vals: string[]) => setForm(prev => ({ ...prev, fanpage: vals }))}
-                    placeholder={loadingChannels ? "Cargando canales..." : "Seleccionar Página de Facebook..."}
-                    ro={ro || loadingChannels}
-                  />
-                )
-              } />}
-            </Row>
-          )}
-          </>
           )}
 
           {/* ── Redes Sociales (Meta) ── */}
@@ -842,7 +594,7 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
                     <span style={{ fontFamily: "var(--font-display)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.12em", color: pl.color }}>{pl.name}</span>
                   </div>
                   {!ro && (
-                    <button onClick={() => toggleChannel(ch.platformId)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(148,163,184,0.65)", fontSize: "10px" }}>
+                    <button onClick={() => toggleChannel(ch.platformId)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", fontSize: "10px" }}>
                       <X className="w-3.5 h-3.5" />
                     </button>
                   )}
@@ -917,14 +669,14 @@ export function ProjectModal({ mode, initial, adAccountsByPlatform, metaPages, a
             <div style={{ display: "flex", justifyContent: "flex-end", gap: "10px", marginTop: "16px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
               <button onClick={onClose} style={{
                 fontSize: "10px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase",
-                padding: "8px 20px", border: "1px solid rgba(148,163,184,0.12)", color: "var(--text-muted)",
+                padding: "8px 20px", border: "1px solid var(--border)", color: "var(--text-muted)",
                 background: "transparent", cursor: "pointer", transition: "all 0.15s", borderRadius: "4px",
               }}
                 onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.65)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
                 onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(148,163,184,0.12)"; e.currentTarget.style.color = "var(--text-muted)"; }}
               >Cancelar</button>
               <button onClick={handleSubmit} className="btn-primary" style={{
-                padding: "8px 24px", background: "rgba(52,183,124,0.08)",
+                padding: "8px 24px", background: "var(--surface)",
                 borderColor: "rgba(52,183,124,0.35)", color: "var(--emerald)",
               }}>{mode === "create" ? "Crear Proyecto" : "Guardar"}</button>
             </div>

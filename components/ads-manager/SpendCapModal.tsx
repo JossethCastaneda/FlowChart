@@ -26,10 +26,10 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "var(--panel-bg)",  }} />
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
-        width: "420px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
+        width: "420px", maxWidth: "90vw", background: "var(--surface)", 
         border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
@@ -43,7 +43,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
         </div>
 
         <div style={{ padding: "16px 20px" }}>
-          <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "16px", padding: "10px 12px", background: "rgba(59,130,246,0.03)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: "6px" }}>
+          <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: "1.5", marginBottom: "16px", padding: "10px 12px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: "6px" }}>
             El límite de gasto es el máximo que esta campaña puede gastar en total, independientemente del presupuesto diario. Una vez alcanzado, la campaña se pausa automáticamente.
           </div>
 
@@ -76,8 +76,8 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
                   onChange={(e) => setAmount(e.target.value)}
                   placeholder="0.00"
                   style={{
-                    width: "100%", padding: "10px 12px 10px 24px", fontSize: "14px", background: "rgba(0,0,0,0.3)",
-                    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
+                    width: "100%", padding: "10px 12px 10px 24px", fontSize: "14px", background: "var(--surface-hover)",
+                    border: "1px solid var(--border)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
                   }}
                 />
               </div>
@@ -92,7 +92,7 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
             {items.map((item) => {
               const currentCap = item.spend_cap ? parseFloat(item.spend_cap) / 100 : 0;
               return (
-                <div key={item.id} style={{ fontSize: "10px", color: "rgba(255,255,255,0.6)", padding: "4px 0", display: "flex", justifyContent: "space-between" }}>
+                <div key={item.id} style={{ fontSize: "10px", color: "var(--text-secondary)", padding: "4px 0", display: "flex", justifyContent: "space-between" }}>
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{item.name}</span>
                   <span style={{ color: "var(--text-muted)", flexShrink: 0, marginLeft: "8px" }}>
                     actual: {currentCap > 0 ? `$${currentCap.toFixed(2)}` : "sin límite"}
@@ -104,13 +104,13 @@ export function SpendCapModal({ items, onClose, onApply }: SpendCapModalProps) {
         </div>
 
         <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer" }}>
             Cancelar
           </button>
           <button onClick={handleApply} disabled={loading || (!noLimit && !amount)} style={{
             padding: "7px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px",
             cursor: (!noLimit && !amount) ? "not-allowed" : "pointer",
-            background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)",
+            background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)",
             opacity: loading ? 0.5 : 1,
           }}>
             {loading ? "Guardando..." : "Guardar"}

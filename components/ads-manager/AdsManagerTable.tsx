@@ -434,7 +434,7 @@ export function AdsManagerTable({
   return (
     <div
       style={{
-        background: "rgba(8,12,24,0.4)",
+        background: "var(--surface)",
         border: "1px solid var(--border)",
         borderRadius: "8px",
         width: "100%",
@@ -671,7 +671,7 @@ export function AdsManagerTable({
                             if (!thumbUrl) return (
                               <div style={{
                                 width: 44, height: 44, minWidth: 44, borderRadius: 6,
-                                background: "rgba(30,40,60,0.8)",
+                                background: "var(--surface)",
                                 border: "1px solid rgba(100,120,150,0.15)",
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 fontSize: 8, color: "var(--text-muted)",
@@ -729,7 +729,7 @@ export function AdsManagerTable({
                                   style={{
                                     display: "flex", alignItems: "center", justifyContent: "center",
                                     width: 20, height: 20,
-                                    background: "rgba(0,129,251,0.12)",
+                                    background: "var(--surface)",
                                     border: "1px solid rgba(59,130,246,0.2)",
                                     borderRadius: 4,
                                     cursor: "pointer",
@@ -746,7 +746,7 @@ export function AdsManagerTable({
                               )}
                             </div>
                             <span style={{ fontSize: 9, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 4 }}>
-                              {row._accountName && <span style={{ padding: "1px 4px", fontSize: 8, background: "rgba(0,129,251,0.1)", color: "rgba(59,130,246,0.7)", borderRadius: 2, fontWeight: 600 }}>{row._accountName}</span>}
+                              {row._accountName && <span style={{ padding: "1px 4px", fontSize: 8, background: "var(--surface)", color: "rgba(59,130,246,0.7)", borderRadius: 2, fontWeight: 600 }}>{row._accountName}</span>}
                               ID: {row.id}{" "}
                               <a
                                 href={`https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${row.campaign_id || row.id}`}
@@ -885,7 +885,7 @@ export function AdsManagerTable({
                           <span style={{
                             display: "inline-flex", alignItems: "center", gap: 3,
                             fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
-                            background: "rgba(155,123,232,0.15)", color: "var(--purple)",
+                            background: "var(--surface)", color: "var(--purple)",
                             border: "1px solid rgba(155,123,232,0.25)",
                           }}>
                             <Zap className="w-3 h-3" /> ADV+
@@ -1015,7 +1015,7 @@ export function AdsManagerTable({
                       : bd.device_platform || bd.country || bd.region || bd.dma || bd.date_start || bd.hourly_stats_aggregated_by_audience_time_zone || bd.impression_device || bd.image_asset?.name || bd.body_asset?.text?.substring(0, 40) || bd.title_asset?.text || `Row ${bdIdx + 1}`;
                     const bdBg = "rgba(4,12,28,1)";
                     return (
-                      <tr key={`${row.id}-bd-${bdIdx}`} style={{ background: "rgba(59,130,246,0.02)" }}>
+                      <tr key={`${row.id}-bd-${bdIdx}`} style={{ background: "var(--cyan-dim)" }}>
                         <td style={tdFrozen(L_CHECK, CHECKBOX_W, bdBg, false)} />
                         <td style={tdFrozen(L_STATUS, STATUS_W, bdBg, false)} />
                         {showName && (

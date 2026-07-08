@@ -173,8 +173,8 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
   };
 
   const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "8px 12px", fontSize: "12px", background: "rgba(0,0,0,0.3)",
-    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
+    width: "100%", padding: "8px 12px", fontSize: "12px", background: "var(--surface-hover)",
+    border: "1px solid var(--border)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
   };
 
   const selectStyle: React.CSSProperties = { ...inputStyle, appearance: "none" as const, paddingRight: "28px" };
@@ -183,10 +183,10 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "var(--panel-bg)",  }} />
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
-        width: "560px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
+        width: "560px", maxWidth: "90vw", background: "var(--surface)", 
         border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
@@ -292,9 +292,9 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
 
           {step === 4 && (
             <>
-              <div style={{ background: "rgba(59,130,246,0.03)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: "8px", padding: "14px" }}>
+              <div style={{ background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.08)", borderRadius: "8px", padding: "14px" }}>
                 <div style={{ fontSize: "11px", color: "var(--foreground)", fontWeight: 700, marginBottom: "10px" }}>Resumen de la regla</div>
-                <div style={{ fontSize: "11px", color: "rgba(148,163,184,0.7)", lineHeight: "1.8" }}>
+                <div style={{ fontSize: "11px", color: "var(--text-secondary)", lineHeight: "1.8" }}>
                   <div><strong style={{ color: "var(--foreground)" }}>Nombre:</strong> {name || "—"}</div>
                   <div><strong style={{ color: "var(--foreground)" }}>Aplica a:</strong> {entityType === "CAMPAIGN" ? "Campañas" : entityType === "ADSET" ? "Conjuntos" : "Anuncios"}</div>
                   <div><strong style={{ color: "var(--foreground)" }}>Frecuencia:</strong> {FREQUENCIES.find((f) => f.value === frequency)?.label}</div>
@@ -327,14 +327,14 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
         <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "space-between" }}>
           <button
             onClick={() => step > 1 ? setStep(step - 1) : onClose()}
-            style={{ display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}
+            style={{ display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer" }}
           >
             <ChevronLeft className="w-3 h-3" /> {step > 1 ? "Atrás" : "Cancelar"}
           </button>
           {step < 4 ? (
             <button
               onClick={() => setStep(step + 1)}
-              style={{ display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer" }}
+              style={{ display: "flex", alignItems: "center", gap: "4px", padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer" }}
             >
               Siguiente <ChevronRight className="w-3 h-3" />
             </button>
@@ -342,7 +342,7 @@ export function RulesBuilderModal({ adAccountId, onClose, onCreated }: RulesBuil
             <button
               onClick={handleCreate}
               disabled={loading}
-              style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer", opacity: loading ? 0.5 : 1 }}
+              style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer", opacity: loading ? 0.5 : 1 }}
             >
               {loading ? "Creando..." : "Crear regla"}
             </button>

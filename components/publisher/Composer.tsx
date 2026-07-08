@@ -640,7 +640,7 @@ export function Composer() {
                 <button onClick={() => setShowAccountPicker(!showAccountPicker)} style={{
                   display: "flex", alignItems: "center", gap: 6,
                   padding: "6px 12px", borderRadius: 20,
-                  background: "rgba(255,255,255,0.09)", border: "1px dashed rgba(255,255,255,0.15)",
+                  background: "var(--surface-hover)", border: "1px dashed var(--border)",
                   color: "var(--text-secondary)", fontSize: 12, cursor: "pointer",
                   transition: "all 0.15s",
                 }}>
@@ -665,7 +665,7 @@ export function Composer() {
                   }}>
                     {/* Header */}
                     <div style={{
-                      padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+                      padding: "12px 16px", border: "1px solid var(--hairline)",
                       display: "flex", justifyContent: "space-between", alignItems: "center",
                     }}>
                       <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>Seleccionar cuentas</span>
@@ -697,7 +697,7 @@ export function Composer() {
                             <button key={target.key} onClick={() => toggleTarget(target)} style={{
                               display: "flex", alignItems: "center", gap: 10, width: "100%",
                               padding: "10px 16px", background: isSelected ? "rgba(24,119,242,0.08)" : "transparent",
-                              border: "none", borderBottom: "1px solid rgba(255,255,255,0.03)",
+                              border: "1px solid var(--hairline)",
                               color: "var(--foreground)", fontSize: 13, cursor: "pointer", textAlign: "left",
                               transition: "background 0.15s",
                             }}>
@@ -713,7 +713,7 @@ export function Composer() {
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 transition: "all 0.15s",
                               }}>
-                                {isSelected && <Check style={{ width: 13, height: 13, color: "#fff" }} />}
+                                {isSelected && <Check style={{ width: 13, height: 13, color: "var(--foreground)" }} />}
                               </div>
                             </button>
                           );
@@ -739,7 +739,7 @@ export function Composer() {
                             <button key={target.key} onClick={() => toggleTarget(target)} style={{
                               display: "flex", alignItems: "center", gap: 10, width: "100%",
                               padding: "10px 16px", background: isSelected ? "rgba(225,48,108,0.08)" : "transparent",
-                              border: "none", borderBottom: "1px solid rgba(255,255,255,0.03)",
+                              border: "1px solid var(--hairline)",
                               color: "var(--foreground)", fontSize: 13, cursor: "pointer", textAlign: "left",
                               transition: "background 0.15s",
                             }}>
@@ -758,7 +758,7 @@ export function Composer() {
                                 display: "flex", alignItems: "center", justifyContent: "center",
                                 transition: "all 0.15s",
                               }}>
-                                {isSelected && <Check style={{ width: 13, height: 13, color: "#fff" }} />}
+                                {isSelected && <Check style={{ width: 13, height: 13, color: "var(--foreground)" }} />}
                               </div>
                             </button>
                           );
@@ -778,11 +778,11 @@ export function Composer() {
                     </div>
 
                     {/* Done button */}
-                    <div style={{ padding: "10px 16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                    <div style={{ padding: "10px 16px", border: "1px solid var(--hairline)" }}>
                       <button onClick={() => setShowAccountPicker(false)} style={{
                         width: "100%", padding: "8px 0", borderRadius: 8,
                         background: "linear-gradient(135deg, var(--cyan), var(--cyan))", border: "none",
-                        color: "#fff", fontSize: 13, fontWeight: 600, cursor: "pointer",
+                        color: "var(--foreground)", fontSize: 13, fontWeight: 600, cursor: "pointer",
                       }}>
                         Aprobar Selección ({selectedTargets.length})
                       </button>
@@ -795,8 +795,8 @@ export function Composer() {
 
           {/* ── Format Selector (Post / Reel / Story / Carousel) ── */}
           <div style={{
-            padding: "10px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(255,255,255,0.02)",
+            padding: "10px 20px", border: "1px solid var(--hairline)",
+            background: "var(--surface)",
           }}>
             <FormatSelector value={format} onChange={setFormat} />
           </div>
@@ -821,7 +821,7 @@ export function Composer() {
                 flex: 1, width: "100%", background: "transparent",
                 border: "none", outline: "none", resize: "none",
                 padding: "16px 20px", color: "var(--foreground)", fontSize: 14,
-                lineHeight: 1.6, fontFamily: "Inter, sans-serif",
+                lineHeight: 1.6, fontFamily: "var(--font-sans)",
                 minHeight: 160,
               }}
             />
@@ -833,7 +833,7 @@ export function Composer() {
                   <span key={tag} style={{
                     display: "flex", alignItems: "center", gap: 4,
                     padding: "3px 10px", borderRadius: 20,
-                    background: "rgba(139,141,242,0.15)", border: "1px solid rgba(139,141,242,0.3)",
+                    background: "var(--surface)", border: "1px solid rgba(139,141,242,0.3)",
                     color: "var(--purple)", fontSize: 12, fontWeight: 500,
                   }}>
                     #{tag}
@@ -863,8 +863,8 @@ export function Composer() {
                     )}
                     <button onClick={() => removeMedia(i)} style={{
                       position: "absolute", top: 3, right: 3, width: 20, height: 20,
-                      borderRadius: "50%", background: "rgba(0,0,0,0.75)", border: "none",
-                      color: "#fff", cursor: "pointer", display: "flex",
+                      borderRadius: "50%", background: "var(--panel-bg)", border: "none",
+                      color: "var(--foreground)", cursor: "pointer", display: "flex",
                       alignItems: "center", justifyContent: "center", padding: 0,
                     }}>
                       <X style={{ width: 11, height: 11 }} />
@@ -874,7 +874,7 @@ export function Composer() {
                 {uploading && (
                   <div style={{
                     width: 72, height: 72, borderRadius: 10,
-                    border: "1px dashed rgba(255,255,255,0.15)",
+                    border: "1px dashed var(--border)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                   }}>
                     <Loader2 style={{ width: 20, height: 20, color: "var(--cyan)", animation: "spin 1s linear infinite" }} />
@@ -910,7 +910,7 @@ export function Composer() {
                   title="Subir imagen o video"
                   style={{
                     padding: "6px 10px", borderRadius: 6,
-                    background: "rgba(255,255,255,0.09)", border: "1px solid var(--hairline)",
+                    background: "var(--surface-hover)", border: "1px solid var(--hairline)",
                     color: "var(--text-secondary)", cursor: uploading ? "not-allowed" : "pointer",
                     display: "flex", alignItems: "center", gap: 4, fontSize: 12,
                     transition: "all 0.15s",
@@ -928,7 +928,7 @@ export function Composer() {
                     placeholder="hashtag"
                     style={{
                       width: 100, background: "transparent", border: "none", outline: "none",
-                      color: "var(--purple)", fontSize: 12, fontFamily: "Inter, sans-serif",
+                      color: "var(--purple)", fontSize: 12, fontFamily: "var(--font-sans)",
                     }}
                   />
                   {hashtagInput.trim() && (
@@ -950,7 +950,7 @@ export function Composer() {
                 }}>
                   {charCount.toLocaleString()} / {charLimit.toLocaleString()}
                 </span>
-                <div style={{ width: 40, height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                <div style={{ width: 40, height: 4, borderRadius: 2, background: "var(--surface-hover)", overflow: "hidden" }}>
                   <div style={{
                     width: `${charPercent}%`, height: "100%", borderRadius: 2,
                     background: isOverLimit ? "var(--red)" : isNearLimit ? "var(--amber)" : "var(--cyan)",
@@ -986,8 +986,8 @@ export function Composer() {
           {/* ── Schedule + Action bar ───────────────────────── */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
-            padding: "12px 20px", borderTop: "1px solid rgba(255,255,255,0.06)",
-            background: "rgba(255,255,255,0.025)", flexWrap: "wrap", gap: 10,
+            padding: "12px 20px", border: "1px solid var(--hairline)",
+            background: "var(--surface-hover)", flexWrap: "wrap", gap: 10,
           }}>
             {/* Left: schedule */}
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -999,7 +999,7 @@ export function Composer() {
                 style={{
                   maxWidth: 200, padding: "6px 10px", borderRadius: 6,
                   background: "var(--row-hover)", border: "1px solid var(--hairline)",
-                  color: "var(--foreground)", fontSize: 12, fontFamily: "Inter, sans-serif",
+                  color: "var(--foreground)", fontSize: 12, fontFamily: "var(--font-sans)",
                   outline: "none", colorScheme: "dark",
                 }}
               />
@@ -1016,7 +1016,7 @@ export function Composer() {
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={saveDraft} disabled={anyLoading} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 16px",
-                borderRadius: 8, background: "rgba(255,255,255,0.09)",
+                borderRadius: 8, background: "var(--surface-hover)",
                 border: "1px solid var(--hairline)", color: "var(--foreground)",
                 fontSize: 12, fontWeight: 500,
                 cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? 0.5 : 1,
@@ -1043,7 +1043,7 @@ export function Composer() {
               <button onClick={publishNow} disabled={anyLoading} style={{
                 display: "flex", alignItems: "center", gap: 6, padding: "8px 20px",
                 borderRadius: 8, background: "linear-gradient(135deg, var(--cyan), var(--cyan))",
-                border: "none", color: "#fff", fontSize: 13, fontWeight: 600,
+                border: "none", color: "var(--foreground)", fontSize: 13, fontWeight: 600,
                 cursor: anyLoading ? "not-allowed" : "pointer", opacity: anyLoading ? 0.6 : 1,
                 boxShadow: "0 4px 16px rgba(0,180,216,0.2)", transition: "all 0.2s",
               }}>
@@ -1064,7 +1064,7 @@ export function Composer() {
             <div style={{
               padding: "12px 16px",
               borderBottom: "1px solid rgba(0,200,117,0.15)",
-              background: "rgba(0,200,117,0.04)",
+              background: "var(--surface)",
             }}>
               {/* Facebook connected */}
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: socialInstagramAccounts.length > 0 ? 6 : 0 }}>
@@ -1084,7 +1084,7 @@ export function Composer() {
                 <button
                   onClick={() => openConnectPopup("publisher_facebook", loadSocialStatus)}
                   style={{
-                    background: "none", border: "1px solid rgba(148,163,184,0.22)", borderRadius: 4,
+                    background: "none", border: "1px solid var(--border)", borderRadius: 4,
                     color: "var(--text-muted)", fontSize: 9, padding: "2px 7px", cursor: "pointer",
                   }}
                 >
@@ -1119,7 +1119,7 @@ export function Composer() {
             <div style={{
               padding: "12px 16px",
               borderBottom: "1px solid rgba(251,191,36,0.2)",
-              background: "rgba(251,191,36,0.05)",
+              background: "var(--surface)",
               display: "flex", alignItems: "center", gap: 10,
             }}>
               <AlertCircle style={{ width: 16, height: 16, color: "var(--amber)", flexShrink: 0 }} />
@@ -1137,18 +1137,18 @@ export function Composer() {
                   display: "flex", alignItems: "center", gap: 5,
                   padding: "6px 12px", borderRadius: 7, flexShrink: 0,
                   background: "linear-gradient(135deg, #1877f2, var(--cyan))",
-                  border: "none", color: "#fff", fontSize: 11, fontWeight: 600, cursor: "pointer",
+                  border: "none", color: "var(--foreground)", fontSize: 11, fontWeight: 600, cursor: "pointer",
                   boxShadow: "0 2px 8px rgba(24,119,242,0.3)",
                 }}
               >
                 <svg viewBox="0 0 24 24" width="12" height="12" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>
-                Conectar Facebook
+                Conectar Facebook e Instagram
               </button>
             </div>
           ) : null /* null = loading, show nothing */}
           {/* Preview header */}
           <div style={{
-            padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)",
+            padding: "14px 20px", border: "1px solid var(--hairline)",
             display: "flex", alignItems: "center", gap: 8,
           }}>
             <Smartphone style={{ width: 15, height: 15, color: "var(--text-muted)" }} />
@@ -1157,14 +1157,14 @@ export function Composer() {
             </span>
             <span style={{
               fontSize: 10, fontWeight: 600, color: "var(--cyan)",
-              background: "rgba(59,130,246,0.1)", padding: "2px 8px", borderRadius: 10,
+              background: "var(--cyan-dim)", padding: "2px 8px", borderRadius: 10,
               border: "1px solid rgba(59,130,246,0.2)", textTransform: "uppercase", letterSpacing: 0.5,
             }}>
               {format}
             </span>
             <span style={{
               marginLeft: "auto", fontSize: 11, color: "var(--text-secondary)",
-              background: "rgba(255,255,255,0.09)", padding: "3px 8px", borderRadius: 4,
+              background: "var(--surface-hover)", padding: "3px 8px", borderRadius: 4,
             }}>
               {selectedTargets.length} {selectedTargets.length === 1 ? "cuenta" : "cuentas"}
             </span>
@@ -1179,7 +1179,7 @@ export function Composer() {
               }}>
                 <div style={{
                   width: 48, height: 48, borderRadius: 12,
-                  background: "rgba(255,255,255,0.09)",
+                  background: "var(--surface-hover)",
                   display: "flex", alignItems: "center", justifyContent: "center",
                 }}>
                   <Globe style={{ width: 22, height: 22, color: "var(--text-secondary)" }} />

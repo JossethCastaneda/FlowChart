@@ -140,7 +140,7 @@ export function PostPreview({
     border: "1px solid var(--hairline)",
     borderRadius: 12,
     overflow: "hidden",
-    fontFamily: "Inter, -apple-system, Arial, sans-serif",
+    fontFamily: "var(--font-sans)",
     color: platform === "instagram" ? "#fff" : "var(--foreground)",
   };
 
@@ -171,7 +171,7 @@ export function PostPreview({
           </div>
         )}
         {/* Actions */}
-        <div style={{ display: "flex", borderTop: "1px solid rgba(255,255,255,0.06)", padding: "8px 4px" }}>
+        <div style={{ display: "flex", border: "1px solid var(--hairline)", padding: "8px 4px" }}>
           {[
             { icon: <Heart style={{ width: 15, height: 15 }} />, label: "Me gusta" },
             { icon: <MessageCircle style={{ width: 15, height: 15 }} />, label: "Comentar" },
@@ -237,9 +237,9 @@ export function PostPreview({
           </div>
           {/* First comment */}
           {firstComment && (
-            <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ marginTop: 10, paddingTop: 8, border: "1px solid var(--hairline)" }}>
               <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--foreground)" }}>
-                <span style={{ fontWeight: 600, marginRight: 6, color: "#fff" }}>@{username}</span>
+                <span style={{ fontWeight: 600, marginRight: 6, color: "var(--foreground)" }}>@{username}</span>
                 {firstComment}
               </div>
             </div>
@@ -302,14 +302,14 @@ export function PostPreview({
               width: 56,
               height: 56,
               borderRadius: "50%",
-              background: "rgba(0,0,0,0.55)",
+              background: "var(--panel-bg)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              backdropFilter: "blur(4px)",
+              
             }}
           >
-            <Play style={{ width: 26, height: 26, color: "#fff", marginLeft: 3 }} />
+            <Play style={{ width: 26, height: 26, color: "var(--foreground)", marginLeft: 3 }} />
           </div>
 
           {/* Bottom gradient + caption */}
@@ -329,12 +329,12 @@ export function PostPreview({
                 alt=""
                 style={{ width: 28, height: 28, borderRadius: "50%", objectFit: "cover", border: "2px solid rgba(255,255,255,0.3)" }}
               />
-              <span style={{ fontSize: 12, fontWeight: 600, color: "#fff" }}>{displayName}</span>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{displayName}</span>
             </div>
             <div
               style={{
                 fontSize: 12,
-                color: "rgba(255,255,255,0.85)",
+                color: "var(--text-secondary)",
                 lineHeight: 1.4,
                 display: "-webkit-box",
                 WebkitLineClamp: 3,
@@ -368,7 +368,7 @@ export function PostPreview({
                   gap: 3,
                 }}
               >
-                <Icon style={{ width: 22, height: 22, color: "#fff" }} />
+                <Icon style={{ width: 22, height: 22, color: "var(--foreground)" }} />
               </div>
             ))}
           </div>
@@ -472,13 +472,13 @@ export function PostPreview({
               style={{
                 fontSize: 12,
                 fontWeight: 600,
-                color: "#fff",
+                color: "var(--foreground)",
                 textShadow: "0 1px 4px rgba(0,0,0,0.6)",
               }}
             >
               {displayName}
             </span>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>hace 1h</span>
+            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>hace 1h</span>
           </div>
         </div>
       </div>
@@ -527,13 +527,13 @@ export function PostPreview({
                 width: 28,
                 height: 28,
                 borderRadius: "50%",
-                background: "rgba(0,0,0,0.55)",
+                background: "var(--panel-bg)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <ChevronLeft style={{ width: 16, height: 16, color: "#fff" }} />
+              <ChevronLeft style={{ width: 16, height: 16, color: "var(--foreground)" }} />
             </div>
           )}
           {/* Right chevron */}
@@ -547,13 +547,13 @@ export function PostPreview({
                 width: 28,
                 height: 28,
                 borderRadius: "50%",
-                background: "rgba(0,0,0,0.55)",
+                background: "var(--panel-bg)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
               }}
             >
-              <ChevronRight style={{ width: 16, height: 16, color: "#fff" }} />
+              <ChevronRight style={{ width: 16, height: 16, color: "var(--foreground)" }} />
             </div>
           )}
           {/* Item counter badge */}
@@ -563,12 +563,12 @@ export function PostPreview({
                 position: "absolute",
                 top: 10,
                 right: 10,
-                background: "rgba(0,0,0,0.65)",
+                background: "var(--panel-bg)",
                 borderRadius: 12,
                 padding: "3px 9px",
                 fontSize: 11,
                 fontWeight: 600,
-                color: "#fff",
+                color: "var(--foreground)",
               }}
             >
               1/{itemCount}
@@ -609,9 +609,9 @@ export function PostPreview({
           </div>
           {/* First comment */}
           {firstComment && (
-            <div style={{ marginTop: 10, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ marginTop: 10, paddingTop: 8, border: "1px solid var(--hairline)" }}>
               <div style={{ fontSize: 13, lineHeight: 1.5, color: "var(--foreground)" }}>
-                <span style={{ fontWeight: 600, marginRight: 6, color: "#fff" }}>@{username}</span>
+                <span style={{ fontWeight: 600, marginRight: 6, color: "var(--foreground)" }}>@{username}</span>
                 {firstComment}
               </div>
             </div>

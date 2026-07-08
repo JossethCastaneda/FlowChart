@@ -4,6 +4,8 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
+export const dynamic = "force-dynamic";
+
 /**
  * GET /api/inbox/conversations
  *
@@ -63,7 +65,11 @@ export async function GET(request: NextRequest) {
         contactAvatar: c.contactAvatar || null,
         lastMessage: c.lastMessage || "",
         lastMessageAt: c.lastMessageAt || c.updatedAt,
+        createdAt: c.createdAt,
         unread: c.unread,
+        status: c.status,
+        assignedTo: c.assignedTo,
+        tags: c.tags,
         channelSource: isWa ? "whatsapp" : c.platform.startsWith("instagram") ? "instagram_app" : "facebook_app",
       };
     });

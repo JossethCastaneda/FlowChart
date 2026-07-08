@@ -133,20 +133,20 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
       </p>
 
       {/* Require lead review — global */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3 md:p-4 rounded-lg bg-white/5 border border-white/5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-3 md:p-4 rounded-lg bg-[var(--surface-hover)] border border-[var(--hairline)]">
         <div>
-          <div className="text-[13px] text-slate-200 font-medium">Revisión por líder obligatoria</div>
-          <div className="text-[11px] text-slate-500 mt-0.5">Las tareas deben pasar por revisión de un líder antes de cerrarse.</div>
+          <div className="text-[13px] text-[var(--text-secondary)] font-medium">Revisión por líder obligatoria</div>
+          <div className="text-[11px] text-[var(--text-muted)] mt-0.5">Las tareas deben pasar por revisión de un líder antes de cerrarse.</div>
         </div>
         <button onClick={() => { if (canEdit) { setRequireLeadReview((v) => !v); mark(); } }} disabled={!canEdit} role="switch" aria-checked={requireLeadReview} aria-label="Revisión por líder obligatoria"
           className="w-10 h-5.5 rounded-full shrink-0 relative transition-colors duration-200"
           style={{ background: requireLeadReview ? "var(--cyan)" : "rgba(255,255,255,0.1)", cursor: canEdit ? "pointer" : "default" }}>
-          <span className="absolute top-0.5 w-4.5 h-4.5 rounded-full bg-white transition-all duration-200" style={{ left: requireLeadReview ? 20 : 2 }} />
+          <span className="absolute top-0.5 w-4.5 h-4.5 rounded-full bg-[var(--surface)] transition-all duration-200" style={{ left: requireLeadReview ? 20 : 2 }} />
         </button>
       </div>
 
       {areas.length === 0 && (
-        <div style={{ textAlign: "center", padding: 28, border: "1px dashed rgba(255,255,255,0.1)", borderRadius: 8 }}>
+        <div style={{ textAlign: "center", padding: 28, border: "1px dashed var(--border)", borderRadius: 8 }}>
           <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 12 }}>Aún no hay áreas configuradas.</p>
           {canEdit && (
             <div style={{ display: "flex", gap: 8, justifyContent: "center", flexWrap: "wrap" }}>
@@ -177,23 +177,23 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                       <span key={c} style={{ width: 10, height: 10, borderRadius: "50%", background: c, border: area.color === c ? "2px solid #fff" : "2px solid transparent", display: "inline-block" }} />
                     ))}
                   </div>
-                  <span className="flex-1 text-[13px] font-semibold text-slate-200 uppercase tracking-widest truncate">{area.name}</span>
+                  <span className="flex-1 text-[13px] font-semibold text-[var(--text-secondary)] uppercase tracking-widest truncate">{area.name}</span>
                 </div>
 
                 <div className="flex items-center gap-2 ml-6 sm:ml-0 w-full sm:w-auto overflow-x-auto scrollbar-hide pb-1 sm:pb-0 shrink-0">
                   {/* Collapsed summary chips */}
                   {!isOpen && (
                     <div className="flex items-center gap-2 shrink-0">
-                      <span className="text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded-full whitespace-nowrap">{area.memberIds.length} miembros</span>
-                      <span className="text-[10px] text-slate-500 bg-white/5 px-2 py-0.5 rounded-full whitespace-nowrap">{area.requestTypes.length} tipos</span>
-                      <span className="text-[10px] text-slate-500 whitespace-nowrap">SLA {area.slaHours}h</span>
+                      <span className="text-[10px] text-[var(--text-muted)] bg-[var(--surface-hover)] px-2 py-0.5 rounded-full whitespace-nowrap">{area.memberIds.length} miembros</span>
+                      <span className="text-[10px] text-[var(--text-muted)] bg-[var(--surface-hover)] px-2 py-0.5 rounded-full whitespace-nowrap">{area.requestTypes.length} tipos</span>
+                      <span className="text-[10px] text-[var(--text-muted)] whitespace-nowrap">SLA {area.slaHours}h</span>
                     </div>
                   )}
                   {isOpen && (
-                    <label className="text-[11px] text-slate-500 flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                    <label className="text-[11px] text-[var(--text-muted)] flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
                       SLA
                       <input type="number" min={1} value={area.slaHours} onChange={(e) => patchArea(area.id, { slaHours: Number(e.target.value) || 1 })} disabled={!canEdit}
-                        className="w-[52px] bg-black/20 border border-white/10 rounded text-slate-200 text-xs px-1.5 py-0.5 outline-none" /> h
+                        className="w-[52px] bg-[var(--surface-hover)] border border-[var(--border)] rounded text-[var(--text-secondary)] text-xs px-1.5 py-0.5 outline-none" /> h
                     </label>
                   )}
                   {canEdit && <button onClick={(e) => { e.stopPropagation(); removeArea(area.id); }} className="bg-transparent border-none cursor-pointer hover:opacity-100 opacity-60 ml-auto sm:ml-2" title="Eliminar área"><Trash2 className="w-4 h-4" /></button>}
@@ -202,11 +202,11 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
 
               {/* ── Expanded content (internal scroll) ── */}
               {isOpen && (
-                <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 14, borderTop: "1px solid rgba(255,255,255,0.05)", animation: "fadeIn 0.2s ease-out", maxHeight: 340, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.06) transparent" }}>
+                <div style={{ padding: "0 14px 14px", display: "flex", flexDirection: "column", gap: 14, border: "1px solid var(--hairline)", animation: "fadeIn 0.2s ease-out", maxHeight: 340, overflowY: "auto", scrollbarWidth: "thin", scrollbarColor: "rgba(255,255,255,0.06) transparent" }}>
                   {/* Name edit */}
                   <div style={{ paddingTop: 10 }}>
                     <input value={area.name} onChange={(e) => patchArea(area.id, { name: e.target.value })} disabled={!canEdit} aria-label="Nombre del área"
-                      style={{ width: "100%", background: "rgba(0,0,0,0.2)", border: "1px solid var(--hairline)", borderRadius: 6, outline: "none", color: "var(--foreground)", fontSize: 14, fontWeight: 600, padding: "8px 10px" }} />
+                      style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, outline: "none", color: "var(--foreground)", fontSize: 14, fontWeight: 600, padding: "8px 10px" }} />
                   </div>
 
                   {/* Members + leads */}
@@ -247,15 +247,15 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
                     <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 8 }}>Tipos de solicitud</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                       {area.requestTypes.map((t) => (
-                        <div key={t.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 p-2 sm:p-0 bg-white/5 sm:bg-transparent rounded-md border border-white/5 sm:border-none">
+                        <div key={t.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2 sm:gap-3 p-2 sm:p-0 bg-[var(--surface-hover)] sm:bg-transparent rounded-md border border-[var(--hairline)] sm:border-none">
                           <input value={t.name} onChange={(e) => patchType(area.id, t.id, { name: e.target.value })} disabled={!canEdit} aria-label="Nombre del tipo de solicitud"
-                            className="flex-1 min-w-[120px] bg-black/20 border border-white/10 rounded text-slate-200 text-xs px-2 py-1.5 outline-none" />
-                          <label className="text-[11px] text-slate-500 flex items-center gap-1.5 shrink-0">
+                            className="flex-1 min-w-[120px] bg-[var(--surface-hover)] border border-[var(--border)] rounded text-[var(--text-secondary)] text-xs px-2 py-1.5 outline-none" />
+                          <label className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5 shrink-0">
                             SLA
                             <input type="number" min={1} value={t.slaHours} onChange={(e) => patchType(area.id, t.id, { slaHours: Number(e.target.value) || 1 })} disabled={!canEdit}
-                              className="w-[52px] bg-black/20 border border-white/10 rounded text-slate-200 text-xs px-1.5 py-1 outline-none" /> h
+                              className="w-[52px] bg-[var(--surface-hover)] border border-[var(--border)] rounded text-[var(--text-secondary)] text-xs px-1.5 py-1 outline-none" /> h
                           </label>
-                          {canEdit && <button onClick={() => removeType(area.id, t.id)} className="bg-transparent border-none cursor-pointer text-slate-500 hover:opacity-100 shrink-0"><X className="w-4 h-4" /></button>}
+                          {canEdit && <button onClick={() => removeType(area.id, t.id)} className="bg-transparent border-none cursor-pointer text-[var(--text-muted)] hover:opacity-100 shrink-0"><X className="w-4 h-4" /></button>}
                         </div>
                       ))}
                       {canEdit && <button onClick={() => addType(area.id)} style={{ alignSelf: "flex-start", display: "inline-flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--cyan)", background: "none", border: "none", cursor: "pointer", padding: 0 }}><Plus style={{ width: 12, height: 12 }} /> Tipo de solicitud</button>}

@@ -7,7 +7,7 @@ export default function NotFound() {
       minHeight: "100vh",
       display: "flex", flexDirection: "column" as const,
       alignItems: "center", justifyContent: "center",
-      background: "#000", color: "#f5f5f7",
+      background: "var(--background)", color: "var(--foreground)",
       padding: "24px",
       textAlign: "center" as const,
     }}>
@@ -27,17 +27,17 @@ export default function NotFound() {
         404
       </h1>
 
-      <p style={{ fontSize: 21, fontWeight: 600, marginBottom: 8, color: "#f5f5f7" }}>
+      <p style={{ fontSize: 21, fontWeight: 600, marginBottom: 8, color: "var(--foreground)" }}>
         Página no encontrada
       </p>
-      <p style={{ fontSize: 17, color: "#86868b", marginBottom: 40, maxWidth: 400, lineHeight: 1.5 }}>
+      <p style={{ fontSize: 17, color: "var(--text-muted)", marginBottom: 40, maxWidth: 400, lineHeight: 1.5 }}>
         La página que buscas no existe o fue movida a otra dirección.
       </p>
 
       <Link href="/" style={{
         display: "inline-flex", alignItems: "center", gap: 8,
         padding: "16px 32px", borderRadius: 980,
-        background: "var(--cyan)", color: "#000",
+        background: "var(--cyan)", color: "var(--background)",
         fontSize: 17, fontWeight: 600,
         textDecoration: "none", transition: "all 0.3s",
       }}>

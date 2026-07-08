@@ -181,7 +181,7 @@ function OnboardingContent() {
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleCreateWorkspace()}
                 placeholder="Ej: Agencia Matrix / Mi Empresa"
-                style={{ width: "100%", padding: "12px 16px", background: "rgba(59,130,246,0.03)", border: "1px solid rgba(59,130,246,0.2)", color: "white", fontSize: "15px", outline: "none", boxSizing: "border-box", borderRadius: "6px" }}
+                style={{ width: "100%", padding: "12px 16px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: "15px", outline: "none", boxSizing: "border-box", borderRadius: "6px" }}
                 autoFocus
               />
               {error && <p style={{ fontSize: "12px", color: "var(--red)", marginTop: "8px" }}>{error}</p>}
@@ -192,7 +192,7 @@ function OnboardingContent() {
             </button>
             
             {isNewWorkspace && (
-              <button onClick={() => router.back()} style={{ width: "100%", marginTop: "16px", padding: "10px", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "var(--text-muted)", cursor: "pointer", fontSize: "13px", borderRadius: "6px" }}>
+              <button onClick={() => router.back()} style={{ width: "100%", marginTop: "16px", padding: "10px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-muted)", cursor: "pointer", fontSize: "13px", borderRadius: "6px" }}>
                 Cancelar
               </button>
             )}

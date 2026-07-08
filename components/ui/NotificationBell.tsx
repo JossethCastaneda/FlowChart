@@ -152,7 +152,7 @@ export function NotificationBell() {
           <span style={{
             position: "absolute", top: 0, right: 0, minWidth: 16, height: 16,
             background: "var(--red)", borderRadius: 8, fontSize: 9, fontWeight: 700,
-            color: "#fff", display: "flex", alignItems: "center", justifyContent: "center",
+            color: "var(--foreground)", display: "flex", alignItems: "center", justifyContent: "center",
             padding: "0 4px", boxShadow: "0 0 8px rgba(226,68,92,0.5)",
             animation: "status-pulse 2s infinite",
           }}>
@@ -189,7 +189,7 @@ export function NotificationBell() {
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "14px 18px", borderBottom: "1px solid rgba(59,130,246,0.08)",
-            background: "rgba(59,130,246,0.03)", flexShrink: 0,
+            background: "var(--cyan-dim)", flexShrink: 0,
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
               <Bell style={{ width: 14, height: 14, color: "var(--cyan)" }} />
@@ -199,7 +199,7 @@ export function NotificationBell() {
               }}>NOTIFICACIONES</span>
               {unreadCount > 0 && (
                 <span style={{
-                  fontSize: 9, fontWeight: 700, color: "#fff", background: "var(--red)",
+                  fontSize: 9, fontWeight: 700, color: "var(--foreground)", background: "var(--red)",
                   borderRadius: 8, padding: "1px 6px", minWidth: 16, textAlign: "center",
                 }}>{unreadCount}</span>
               )}
@@ -228,7 +228,7 @@ export function NotificationBell() {
             {notifications.length === 0 ? (
               <div style={{ padding: "40px 16px", textAlign: "center" }}>
                 <Bell style={{ width: 28, height: 28, color: "rgba(100,116,139,0.4)", margin: "0 auto 10px" }} />
-                <p style={{ fontSize: 12, color: "rgba(148,163,184,0.5)", margin: 0 }}>Sin notificaciones</p>
+                <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>Sin notificaciones</p>
               </div>
             ) : (
               notifications.slice(0, 20).map(n => {
@@ -237,7 +237,7 @@ export function NotificationBell() {
                 return (
                   <div key={n.id} onClick={() => handleClick(n)} style={{
                     display: "flex", gap: 12, padding: "12px 18px", cursor: n.link ? "pointer" : "default",
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    border: "1px solid var(--hairline)",
                     background: n.read ? "transparent" : "rgba(59,130,246,0.04)",
                     transition: "background 0.15s",
                   }}

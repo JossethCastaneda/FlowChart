@@ -1,11 +1,63 @@
-import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, UserPlus, Tag, Clock, MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark, CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Plus, Filter, Heart, Share2 } from "lucide-react";
+﻿import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, UserPlus, Tag, Clock, MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark, CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Plus, Filter, Heart, Share2 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message, PostComment, PostData, Conversation, ConnectedPage, Platform, ChannelFilter, QueueFilter } from "./types";
+import { useHeaderStore } from "@/lib/header-store";
 import { relativeTime, formatTime, formatDate, getPlatformConfig, getInitials } from "./utils";
 import { SAVED_REPLIES } from "./utils";
 import { TEAM_MEMBERS } from "./utils";
 import { PlatformIcon } from "./InboxLayout";
+
+// Reusable Avatar component with error fallback
+export function Avatar({
+  src,
+  name,
+  size = 42,
+  color = "var(--cyan)",
+}: {
+  src?: string | null;
+  name: string;
+  size?: number;
+  color?: string;
+}) {
+  const [error, setError] = useState(false);
+  
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  const initials = getInitials(name || "Usuario");
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt={name || "Usuario"}
+        role="presentation"
+        style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover" }}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div style={{
+      width: size,
+      height: size,
+      borderRadius: "50%",
+      background: `var(--surface-hover)`,
+      border: `1px solid var(--hairline)`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: Math.max(10, Math.floor(size * 0.35)),
+      fontWeight: 700,
+      color: color,
+    }}>
+      {initials || "U"}
+    </div>
+  );
+}
 
 export function PageSelector({
       pages,
@@ -19,6 +71,7 @@ export function PageSelector({
     const [open, setOpen] = useState(false);
     const [search, setSearch] = useState("");
     const ref = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
@@ -64,7 +117,7 @@ export function PageSelector({
         ) : (
           <div style={{
             width: 28, height: 28, borderRadius: "50%",
-            background: "rgba(155,123,232,0.1)",
+            background: "var(--surface)",
             display: "flex", alignItems: "center", justifyContent: "center",
             flexShrink: 0,
           }}>
@@ -95,12 +148,12 @@ export function PageSelector({
       {open && (
         <div style={{
           position: "absolute", top: "calc(100% + 4px)", left: 0, right: 0,
-          background: "var(--panel-bg)",
-          border: "1px solid var(--hairline)",
-          borderRadius: 10, zIndex: 50,
-          boxShadow: "0 8px 32px rgba(0,0,0,0.6)",
+          background: "var(--panel-bg)", 
+          border: "1px solid var(--glass-border)", borderRadius: 12,
+          boxShadow: "var(--shadow-hard)",
           maxHeight: 360, display: "flex", flexDirection: "column",
           overflow: "hidden",
+          zIndex: 9999,
         }}>
           {/* Search */}
           <div style={{ padding: "8px 10px", borderBottom: "1px solid var(--hairline)" }}>
@@ -142,7 +195,7 @@ export function PageSelector({
             >
               <div style={{
                 width: 32, height: 32, borderRadius: "50%",
-                background: "rgba(155,123,232,0.1)",
+                background: "var(--surface)",
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}>
                 <Globe style={{ width: 15, height: 15, color: "var(--purple)" }} />
@@ -264,7 +317,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
         display: "flex", alignItems: "center", gap: 10,
       }}>
         {onBack && (
-          <button onClick={onBack} className="md:hidden text-slate-400 hover:text-white mr-2">
+          <button onClick={onBack} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--foreground)] mr-2">
             <ChevronLeft style={{ width: 20, height: 20 }} />
           </button>
         )}
@@ -301,7 +354,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           <div style={{
             width: "100%",
             borderBottom: "1px solid var(--hairline)",
-            background: "rgba(0,0,0,0.4)",
+            background: "var(--panel-bg)", 
             display: "flex", alignItems: "center", justifyContent: "center",
           }}>
             <img
@@ -394,7 +447,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                   ) : (
                     <div style={{
                       width: 32, height: 32, borderRadius: "50%",
-                      background: "rgba(155,123,232,0.1)",
+                      background: "var(--surface)",
                       display: "flex", alignItems: "center", justifyContent: "center",
                       fontSize: 11, fontWeight: 700, color: "var(--purple)",
                     }}>
@@ -411,7 +464,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                       {new Date(comment.timestamp).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </span>
                   </div>
-                  <p style={{ fontSize: 12, color: "rgba(255,255,255,0.65)", margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
                     {comment.text}
                   </p>
                   {comment.likes > 0 && (
@@ -446,6 +499,20 @@ export function ChatView({
           onBack?: () => void;
         }) {
     const [input, setInput] = useState("");
+    const { setBreadcrumbs } = useHeaderStore();
+
+    useEffect(() => {
+      let displayName = conversation.contactName || conversation.id;
+      if (/^\d+$/.test(displayName)) {
+        displayName = "Usuario Anonimizado";
+      }
+      setBreadcrumbs([
+        { label: "Conversaciones", onClick: onBack },
+        { label: "Chats", onClick: onBack },
+        { label: displayName }
+      ]);
+      return () => setBreadcrumbs([]);
+    }, [conversation.id, conversation.contactName, onBack, setBreadcrumbs]);
     const [showReplies, setShowReplies] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const pc = getPlatformConfig(conversation.platform);
@@ -470,55 +537,44 @@ export function ChatView({
     <>
       {/* --- Chat Header --- */}
       <div style={{
-        padding: "10px 16px 0",
-        borderBottom: "1px solid var(--hairline)",
+        padding: "16px",
+        borderBottom: "1px solid var(--glass-border)",
         display: "flex", flexDirection: "column", gap: 10,
-        flexShrink: 0, background: "var(--background)",
+        flexShrink: 0, background: "transparent",
       }}>
-        {/* Top Row: Breadcrumbs and Actions */}
+        {/* Top Row: User Info */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: "var(--text-muted)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--text-muted)" }}>
             {onBack && (
-              <button onClick={onBack} className="md:hidden text-slate-400 hover:text-white mr-1" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                <ChevronLeft style={{ width: 14, height: 14 }} />
+              <button onClick={onBack} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--foreground)] mr-1" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                <ChevronLeft style={{ width: 18, height: 18 }} />
               </button>
             )}
-            <span style={{ color: "var(--cyan)", cursor: "pointer" }}>Conversaciones</span>
-            <ChevronRight style={{ width: 10, height: 10 }} />
-            <span style={{ color: "var(--cyan)", cursor: "pointer" }}>Chats</span>
-            <ChevronRight style={{ width: 10, height: 10 }} />
-            <span style={{ color: "var(--foreground)", fontWeight: 500 }}>{conversation.contactName}</span>
+            
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <Avatar src={conversation.contactAvatar} name={conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")} size={36} color={pc.color} />
+              <span style={{ color: "var(--foreground)", fontWeight: 600, fontSize: 16 }}>
+                {conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")}
+              </span>
+            </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
-              <Globe style={{ width: 14, height: 14 }} />
-            </button>
-            <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
-              <MessageCircle style={{ width: 14, height: 14 }} />
-            </button>
-            <button style={{ background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
-              <Clock style={{ width: 14, height: 14 }} />
-            </button>
-            <button style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer", padding: 4 }}>
-              <MoreHorizontal style={{ width: 14, height: 14 }} />
+            <button 
+              onClick={onClose}
+              style={{ background: "transparent", border: "1px solid var(--glass-border)", color: conversation.closed ? "var(--emerald)" : "var(--text-secondary)", cursor: "pointer", padding: "6px 12px", borderRadius: "16px", fontSize: "11px", fontWeight: 600, display: "flex", alignItems: "center", gap: 6, transition: "background 0.2s" }}
+              onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
+              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+            >
+              <CheckCircle2 style={{ width: 14, height: 14 }} />
+              {conversation.closed ? "REABRIR" : "CERRAR"}
             </button>
             <button
               onClick={onToggleProfile}
               style={{ background: "none", border: "none", color: showProfile ? "var(--cyan)" : "var(--text-secondary)", cursor: "pointer", padding: 4 }}
             >
-              <ChevronRight style={{ width: 14, height: 14, transform: showProfile ? "rotate(180deg)" : "none" }} />
+              <ChevronRight style={{ width: 16, height: 16, transform: showProfile ? "rotate(180deg)" : "none" }} />
             </button>
-          </div>
-        </div>
-
-        {/* Tabs Row */}
-        <div style={{ display: "flex", gap: 16 }}>
-          <div style={{ padding: "8px 0", borderBottom: "2px solid var(--cyan)", color: "var(--cyan)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
-            Chat
-          </div>
-          <div style={{ padding: "8px 0", color: "var(--text-muted)", fontSize: 12, fontWeight: 500, cursor: "pointer" }}>
-            Respuestas rápidas
           </div>
         </div>
       </div>
@@ -586,6 +642,12 @@ export function ChatView({
                       {msg.text}
                     </p>
                   </div>
+                  {/* Message Status */}
+                  {!msg.incoming && msg.status && (
+                    <div style={{ fontSize: 9, color: msg.status === "error" ? "var(--red)" : "var(--text-muted)", marginTop: 4, textAlign: "right", fontWeight: 500 }}>
+                      {msg.status === "sending" ? "Enviando..." : msg.status === "error" ? (msg.errorText || "Error al enviar") : ""}
+                    </div>
+                  )}
                   {/* Mock quick reply buttons under bot messages */}
                   {!msg.incoming && (
                     <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8, justifyContent: "flex-end" }}>
@@ -648,7 +710,7 @@ export function ChatView({
                 onClick={() => { setInput(reply); setShowReplies(false); }}
                 style={{
                   padding: "5px 10px", fontSize: 11,
-                  color: "rgba(255,255,255,0.6)",
+                  color: "var(--text-secondary)",
                   background: "var(--surface-hover)",
                   border: "1px solid var(--hairline)",
                   borderRadius: 16, cursor: "pointer",
@@ -756,7 +818,7 @@ export function ChatView({
 
           {/* Quick like */}
           <button
-            onClick={() => onSend("??")}
+            onClick={() => onSend("👍")}
             style={{
               width: 32, height: 32,
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -815,91 +877,217 @@ export function ProfileSection({ title, defaultOpen = true, children }: {
     );
 }
 
+
 export function ContactProfile({
-      conversation, onAssign, onAddTag, onRemoveTag, onClose,
+      conversation, onAssign, onAddTag, onRemoveTag, onAddNote, onDeleteNote, onClose,
     }: {
           conversation: Conversation;
           onAssign: (member: string) => void;
           onAddTag: (tag: string) => void;
           onRemoveTag: (tag: string) => void;
+          onAddNote: (content: string) => Promise<any>;
+          onDeleteNote: (noteId: string) => void;
           onClose: () => void;
         }) {
     const [newTag, setNewTag] = useState("");
     const [showAssign, setShowAssign] = useState(false);
+    const [noteText, setNoteText] = useState("");
+    const [savingNote, setSavingNote] = useState(false);
+    const assignRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const handler = (e: MouseEvent) => {
+        if (assignRef.current && !assignRef.current.contains(e.target as Node)) {
+          setShowAssign(false);
+        }
+      };
+      document.addEventListener("mousedown", handler);
+      return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
     const pc = getPlatformConfig(conversation.platform);
     const incomingCount = conversation.messages.filter(m => m.incoming).length;
     const outgoingCount = conversation.messages.filter(m => !m.incoming).length;
+
+    const displayName = conversation.contactName && /^\d+$/.test(conversation.contactName)
+      ? "Usuario Anonimizado"
+      : (conversation.contactName || "Usuario");
+
+    const platformLabel: Record<string, string> = {
+      fb_messenger: "Facebook Messenger",
+      ig_dm: "Instagram DM",
+      instagram_dm: "Instagram DM",
+      ig_comment: "Comentario Instagram",
+      instagram_comment: "Comentario Instagram",
+      fb_comment: "Comentario Facebook",
+      whatsapp: "WhatsApp",
+    };
+
+    const handleSaveNote = async () => {
+      if (!noteText.trim()) return;
+      setSavingNote(true);
+      await onAddNote(noteText.trim());
+      setNoteText("");
+      setSavingNote(false);
+    };
+
+    const fmtDate = (iso: string) => {
+      const d = new Date(iso);
+      return d.toLocaleString("es-MX", { day: "2-digit", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit" });
+    };
+
     return (
     <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-      {/* Profile Header — Avatar + Name */}
-      <div style={{
-        padding: "20px 16px 16px",
-        borderBottom: "1px solid var(--hairline)",
-        flexShrink: 0,
-        position: "relative",
-      }}>
-        {/* Edit profile icon */}
-        <button style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+      {/* Profile Header */}
+      <div style={{ padding: "20px 16px 16px", borderBottom: "1px solid var(--hairline)", flexShrink: 0, position: "relative" }}>
+        <button onClick={onClose} style={{ position: "absolute", top: 16, right: 16, background: "none", border: "none", color: "var(--cyan)", cursor: "pointer", padding: 4 }}>
+          <X style={{ width: 14, height: 14 }} />
         </button>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-          <div style={{
-            width: 60, height: 60, borderRadius: "50%",
-            background: `linear-gradient(135deg, ${pc.color}25, ${pc.color}08)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 10px", fontSize: 20, fontWeight: 700, color: pc.color,
-            position: "relative",
-          }}>
-            {getInitials(conversation.contactName)}
+          <div style={{ margin: "0 auto 10px", position: "relative" }}>
+            <Avatar src={conversation.contactAvatar} name={displayName} size={60} color={pc.color} />
+            <div style={{ position: "absolute", bottom: 0, right: 0, background: "var(--surface)", borderRadius: "50%", padding: 2, border: "1px solid var(--hairline)" }}>
+              <PlatformIcon platform={conversation.platform} size={12} />
+            </div>
           </div>
+
           <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 4px" }}>Datos del contacto</p>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 0 4px" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 0 2px" }}>
             <User style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
-            <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>
-              {conversation.contactName}
-            </h3>
+            <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{displayName}</h3>
+          </div>
+
+          <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "0 0 4px", display: "flex", alignItems: "center", gap: 4, justifyContent: "center" }}>
+            <PlatformIcon platform={conversation.platform} size={10} />
+            {platformLabel[conversation.platform] || conversation.platform}
+            {conversation.pageName && <><span style={{ opacity: 0.4 }}>·</span><span style={{ color: "var(--text-secondary)" }}>{conversation.pageName}</span></>}
+          </p>
+
+          <span style={{
+            fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 10, marginBottom: 8,
+            background: conversation.closed ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)",
+            color: conversation.closed ? "#ef4444" : "#10b981",
+            border: `1px solid ${conversation.closed ? "rgba(239,68,68,0.2)" : "rgba(16,185,129,0.2)"}`,
+            letterSpacing: "0.08em",
+          }}>
+            {conversation.closed ? "CERRADO" : "ACTIVO"}
+          </span>
+
+          {/* Activity mini-stats */}
+          {(incomingCount + outgoingCount) > 0 && (
+            <div style={{ display: "flex", gap: 6, width: "100%" }}>
+              {[
+                { label: "Recibidos", value: incomingCount, color: "var(--cyan)" },
+                { label: "Enviados", value: outgoingCount, color: "#8b5cf6" },
+                ...(conversation.createdAt ? [{ label: "Inicio", value: new Date(conversation.createdAt).toLocaleDateString("es-MX", { day: "2-digit", month: "short" }), color: "#f59e0b" as string }] : []),
+              ].map((s, i) => (
+                <div key={i} style={{ flex: 1, background: "var(--surface-hover)", borderRadius: 8, padding: "6px 4px", border: "1px solid var(--hairline)", textAlign: "center" }}>
+                  <p style={{ fontSize: typeof s.value === "number" ? 16 : 10, fontWeight: 800, color: s.color, margin: 0, lineHeight: 1 }}>{s.value}</p>
+                  <p style={{ fontSize: 8, color: "var(--text-muted)", margin: "2px 0 0", letterSpacing: "0.05em", textTransform: "uppercase" }}>{s.label}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Assignment */}
+          <div ref={assignRef} style={{ marginTop: 10, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%", position: "relative" }}>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: conversation.assignedTo ? "var(--green)" : "var(--yellow)" }} />
+              <span>{conversation.assignedTo ? `Asignado: ${conversation.assignedTo}` : "Sin asignar"}</span>
+            </div>
+            <button onClick={() => setShowAssign(!showAssign)}
+              style={{ background: "transparent", border: "1px solid var(--glass-border)", color: "var(--cyan)", fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "inherit" }}>
+              <span>Cambiar asignación</span>
+              <ChevronDown style={{ width: 10, height: 10 }} />
+            </button>
+            {showAssign && (
+              <div style={{ position: "absolute", top: "105%", left: "50%", transform: "translateX(-50%)", background: "var(--panel-bg)", border: "1px solid var(--glass-border)", borderRadius: 8, boxShadow: "var(--shadow-hard)", zIndex: 9999, minWidth: 140, overflow: "hidden" }}>
+                {TEAM_MEMBERS.map(member => (
+                  <button key={member} onClick={() => { onAssign(member); setShowAssign(false); }}
+                    style={{ width: "100%", padding: "8px 12px", border: "none", borderBottom: "1px solid var(--hairline)", background: (conversation.assignedTo === member || (!conversation.assignedTo && member === "Sin asignar")) ? "var(--surface-hover)" : "transparent", color: "var(--text-secondary)", fontSize: 11, textAlign: "left", cursor: "pointer", fontFamily: "inherit" }}>
+                    {member}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Scrollable Sections */}
       <div style={{ flex: 1, overflowY: "auto" }}>
+
+        {/* NOTAS */}
         <ProfileSection title="Notas">
-          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>Sin notas agregadas.</p>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <textarea
+              value={noteText} onChange={e => setNoteText(e.target.value)}
+              placeholder="Nota interna (Ctrl+Enter para guardar)..."
+              rows={2}
+              onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) handleSaveNote(); }}
+              style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 8, padding: "6px 8px", fontSize: 11, color: "var(--foreground)", fontFamily: "inherit", resize: "vertical", outline: "none", boxSizing: "border-box" }}
+            />
+            <button onClick={handleSaveNote} disabled={!noteText.trim() || savingNote}
+              style={{ alignSelf: "flex-end", padding: "4px 12px", borderRadius: 8, background: "var(--cyan)", color: "#000", fontSize: 10, fontWeight: 700, border: "none", cursor: "pointer", opacity: (!noteText.trim() || savingNote) ? 0.5 : 1 }}>
+              {savingNote ? "Guardando..." : "Guardar nota"}
+            </button>
+            {conversation.notes.length === 0
+              ? <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>Sin notas agregadas.</p>
+              : conversation.notes.map(note => (
+                <div key={note.id} style={{ background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.15)", borderRadius: 8, padding: "8px 10px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 4 }}>
+                    <div>
+                      <span style={{ fontSize: 10, fontWeight: 600, color: "var(--amber)" }}>{note.author.name}</span>
+                      <span style={{ fontSize: 9, color: "var(--text-muted)", marginLeft: 6 }}>{fmtDate(note.createdAt)}</span>
+                    </div>
+                    <button onClick={() => onDeleteNote(note.id)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 0 }}>
+                      <X style={{ width: 10, height: 10 }} />
+                    </button>
+                  </div>
+                  <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0, whiteSpace: "pre-wrap" }}>{note.content}</p>
+                </div>
+              ))
+            }
+          </div>
         </ProfileSection>
 
+        {/* ETIQUETAS */}
         <ProfileSection title="Etiquetas">
           <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
             {conversation.tags.map(tag => (
-              <span key={tag} style={{
-                display: "inline-flex", alignItems: "center", gap: 4,
-                fontSize: 10, color: "var(--cyan)", padding: "3px 8px",
-                background: "rgba(0, 178, 255, 0.08)",
-                border: "1px solid rgba(0, 178, 255, 0.15)", borderRadius: 12,
-              }}>
+              <span key={tag} style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 10, color: "var(--cyan)", padding: "3px 8px", background: "var(--surface)", border: "1px solid rgba(0,178,255,0.15)", borderRadius: 12 }}>
                 {tag}
                 <X style={{ width: 10, height: 10, cursor: "pointer", opacity: 0.5 }} onClick={() => onRemoveTag(tag)} />
               </span>
             ))}
             {conversation.tags.length === 0 && <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Sin etiquetas.</span>}
           </div>
+          <div style={{ display: "flex", gap: 4, marginTop: 6 }}>
+            <input value={newTag} onChange={e => setNewTag(e.target.value)} placeholder="Nueva etiqueta..."
+              style={{ flex: 1, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, padding: "4px 8px", fontSize: 11, color: "var(--foreground)", fontFamily: "inherit", outline: "none" }}
+              onKeyDown={e => { if (e.key === "Enter" && newTag.trim()) { onAddTag(newTag.trim()); setNewTag(""); }}}
+            />
+            <button onClick={() => { if (newTag.trim()) { onAddTag(newTag.trim()); setNewTag(""); }}}
+              style={{ padding: "4px 10px", borderRadius: 6, background: "var(--surface)", border: "1px solid var(--hairline)", color: "var(--text-secondary)", fontSize: 10, cursor: "pointer" }}>+</button>
+          </div>
         </ProfileSection>
 
-        <ProfileSection title="Variables">
+        {/* CANAL (datos dinámicos) */}
+        <ProfileSection title="Canal">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[
-              { label: "Chatbot", value: "Bot Prepago OCR", icon: true },
-              { label: "Canal", value: "Facebook Messenger (Navega Max)", icon: true },
-              { label: "Locale", value: "es_LA" },
-              { label: "Flow State", value: "Inicio" },
-              { label: "NIP ERROR CODE", value: "OK_000" },
-              { label: "Zapier Success", value: "true" },
+              { label: "Plataforma", value: platformLabel[conversation.platform] || conversation.platform, hasIcon: true },
+              { label: "Página / Canal", value: conversation.pageName || conversation.pageId || "—" },
+              { label: "ID de Contacto", value: conversation.contactId || "—" },
+              { label: "Estado", value: conversation.closed ? "Cerrado" : "Abierto" },
+              ...(conversation.createdAt ? [{ label: "Primer contacto", value: fmtDate(conversation.createdAt) }] : []),
+              { label: "Último mensaje", value: fmtDate(conversation.lastMessageTime.toISOString()) },
             ].map((v, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>{v.label}</span>
                 <span style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 4 }}>
-                  {v.icon && <PlatformIcon platform={conversation.platform} size={12} />}
+                  {(v as any).hasIcon && <PlatformIcon platform={conversation.platform} size={12} />}
                   {v.value}
                 </span>
               </div>
@@ -907,28 +1095,11 @@ export function ContactProfile({
           </div>
         </ProfileSection>
 
-        <ProfileSection title="DATOS" defaultOpen={false}>
-          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>No hay datos adicionales.</p>
-        </ProfileSection>
-
-        <ProfileSection title="Intelix" defaultOpen={false}>
-          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>Información de Intelix.</p>
-        </ProfileSection>
-
-        <ProfileSection title="Nacimiento" defaultOpen={false}>
-          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>DD/MM/AAAA</p>
-        </ProfileSection>
-
-        <ProfileSection title="NIP" defaultOpen={false}>
-          <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>****</p>
-        </ProfileSection>
-
-        {/* These sections act as links in the image */}
+        {/* Mensajes destacados / Multimedia */}
         <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>Mensajes destacados</span>
           <ChevronRight style={{ width: 14, height: 14, color: "var(--text-muted)" }} />
         </div>
-        
         <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}>
           <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>Multimedia y documentos</span>
           <ChevronRight style={{ width: 14, height: 14, color: "var(--text-muted)" }} />

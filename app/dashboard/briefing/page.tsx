@@ -214,25 +214,14 @@ export default function BriefingPage() {
       <div className="page-enter" style={{ display: "flex", flexDirection: "column", gap: 0 }}>
 
         {/* ── Page Header ── */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(139,141,242,0.1)", border: "1px solid rgba(139,141,242,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <BrainCircuit style={{ width: 18, height: 18, color: "var(--purple)" }} />
-            </div>
-            <div>
-              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
-                Briefs <span style={{ color: "var(--purple)" }}>IA</span>
-              </h1>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", margin: 0, marginTop: 2, textTransform: "uppercase" }}>Powered by Gemini 2.5 Flash</p>
-            </div>
-          </div>
-          {gridData && !isLoading && (
-            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "rgba(139,141,242,0.07)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 6 }}>
+        {gridData && !isLoading && (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "4px 12px", background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 6 }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--purple)", display: "inline-block", animation: "pulse 2s ease-in-out infinite" }} />
               <span style={{ fontSize: 9, fontWeight: 700, color: "var(--purple)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Brief generado</span>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* ── Setup Form ── */}
         <div style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, padding: 18, marginBottom: 16 }}>
@@ -267,7 +256,7 @@ export default function BriefingPage() {
         {/* ── Empty state ── */}
         {!gridData && !isLoading && !error && (
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "48px 24px", gap: 14, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(139,141,242,0.08)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <BrainCircuit style={{ width: 24, height: 24, color: "var(--purple)" }} />
             </div>
             <div style={{ textAlign: "center" }}>
@@ -373,7 +362,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                   onMouseLeave={e => e.currentTarget.style.background = ""}
                 >
                   {/* Día */}
-                  <td style={{ ...tdS, fontWeight: 700, color: "var(--cyan)", textAlign: "center", fontSize: 12, fontFamily: "'JetBrains Mono', monospace" }}>{post.dia}</td>
+                  <td style={{ ...tdS, fontWeight: 700, color: "var(--cyan)", textAlign: "center", fontSize: 12, fontFamily: "var(--font-mono)" }}>{post.dia}</td>
                   {/* Idea */}
                   <td style={tdS}><textarea style={editInput} value={post.ideaPrincipal} onChange={e => updatePost(i, "ideaPrincipal", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Idea..." /></td>
                   {/* Etapa */}
@@ -394,7 +383,7 @@ function EditableGrid({ gridData, updatePost }: { gridData: ContentGridData; upd
                     }}>{post.formatoArte}</span>
                   </td>
                   {/* Prompt MJ */}
-                  <td style={tdS}><textarea style={{ ...editInput, color: "var(--text-secondary)", fontFamily: "'JetBrains Mono', monospace", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
+                  <td style={tdS}><textarea style={{ ...editInput, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", fontSize: 8 }} value={post.masterPromptMidjourney} onChange={e => updatePost(i, "masterPromptMidjourney", e.target.value)} onFocus={e => e.target.style.borderColor = "var(--border-strong)"} onBlur={e => e.target.style.borderColor = "transparent"} placeholder="Prompt MJ..." /></td>
                   {/* Video Details */}
                   <td style={tdS}>
                     {post.videoDetails ? (

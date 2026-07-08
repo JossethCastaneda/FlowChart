@@ -69,10 +69,10 @@ export interface ReportSettings {
 
 /**
  * Genera un slug único para el reporte público.
- * Formato: 8 chars alfanuméricos (nanoid).
+ * Formato: 21 chars alfanuméricos (nanoid) ≈ 126 bits de entropía.
  */
 export function generateReportSlug(): string {
-  return nanoid(8);
+  return nanoid(21);
 }
 
 /**

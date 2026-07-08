@@ -235,8 +235,8 @@ async function processWebhookEvents(body: any, object: string) {
           if (field === "feed") {
             const item = value?.item; // "post", "comment", "reaction", "share"
             const verb = value?.verb; // "add", "edited", "remove"
-
             if (item === "comment" && verb === "add") {
+
               await createAlert({
                 type: "page_comment",
                 severity: "info",
@@ -245,7 +245,23 @@ async function processWebhookEvents(body: any, object: string) {
                 meta: { pageId: entryId, postId: value.post_id, commentId: value.comment_id, from: value.from, time },
                 channel: "facebook",
               });
-            }
+              
+              const workspaceId = await resolveWorkspaceForMetaAsset(entryId, "page");
+              if (workspaceId) {
+                await persistInboundMessage({
+                  workspaceId,
+                  platform: "facebook_comment",
+                  pageId: entryId,
+                  contactId: value.from?.id || `anon_${time}`,
+                  contactName: value.from?.name || "Usuario",
+                  conversationExternalId: value.post_id,
+                  mid: value.comment_id,
+                  text: value.message || "🖼️ [Multimedia]",
+                  timestampMs: value.created_time ? value.created_time * 1000 : time * 1000,
+                  sender: value.from?.id === entryId ? "page" : "user",
+                });
+              }
+              }
 
             if (item === "reaction" && verb === "add") {
               await createAlert({
@@ -402,6 +418,22 @@ async function processWebhookEvents(body: any, object: string) {
               meta: { igAccountId: entryId, mediaId: value?.media?.id, commentId: value?.id, from: value?.from, time },
               channel: "instagram",
             });
+            
+            const workspaceId = await resolveWorkspaceForMetaAsset(entryId, "ig_account");
+            if (workspaceId) {
+              await persistInboundMessage({
+                workspaceId,
+                platform: "instagram_comment",
+                pageId: entryId,
+                contactId: value?.from?.id || `anon_${time}`,
+                contactName: value?.from?.username || "Usuario",
+                conversationExternalId: value?.media?.id || value?.media_id,
+                mid: value?.id,
+                text: value?.text || "🖼️ [Multimedia]",
+                timestampMs: time * 1000,
+                sender: value?.from?.id === entryId ? "page" : "user",
+              });
+            }
           }
 
           // Mentions in IG posts/stories

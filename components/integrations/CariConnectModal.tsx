@@ -22,7 +22,7 @@ const FIELDS: { key: string; label: string; required?: boolean; hint: string }[]
 
 const inputStyle: React.CSSProperties = {
   width: "100%", padding: "8px 12px", borderRadius: 8, fontSize: 11,
-  fontFamily: "monospace", background: "rgba(255,255,255,0.05)",
+  fontFamily: "var(--font-mono)", background: "var(--surface-hover)",
   border: "1px solid var(--hairline)", color: "var(--foreground)",
   outline: "none", boxSizing: "border-box",
 };
@@ -61,7 +61,7 @@ export function CariConnectModal({ onClose, onSuccess }: { onClose: () => void; 
 
   return (
     <div
-      style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
+      style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--panel-bg)",  display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}
       onClick={onClose}
     >
       <div

@@ -27,8 +27,8 @@ function StatCard({ icon: Icon, label, value, color }: { icon: React.ElementType
     <div style={{
       padding: "20px 22px",
       borderRadius: 14,
-      background: "rgba(255,255,255,0.02)",
-      border: "1px solid rgba(255,255,255,0.08)",
+      background: "var(--surface)",
+      border: "1px solid var(--border)",
       display: "flex",
       alignItems: "center",
       gap: 14,
@@ -102,9 +102,9 @@ export default function TikTokIntegrationPage() {
       <div style={{
         padding: "28px 32px",
         borderRadius: 18,
-        background: "rgba(10,15,28,0.72)",
+        background: "var(--surface)",
         border: `1px solid ${status?.connected ? "rgba(105,201,208,0.25)" : "rgba(255,255,255,0.08)"}`,
-        backdropFilter: "blur(20px)",
+        
         position: "relative",
         overflow: "hidden",
       }}>
@@ -159,7 +159,7 @@ export default function TikTokIntegrationPage() {
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
             <button
               onClick={loadStatus}
-              style={{ padding: "9px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)", color: "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}
+              style={{ padding: "9px 16px", borderRadius: 8, fontSize: 12, fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--text-secondary)", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontFamily: "inherit" }}
             >
               <RefreshCw size={12} />
               {lang === "es" ? "Refrescar" : "Refresh"}
@@ -168,14 +168,14 @@ export default function TikTokIntegrationPage() {
               <button
                 onClick={handleDisconnect}
                 disabled={disconnecting}
-                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "rgba(229,72,77,0.08)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit", opacity: disconnecting ? 0.6 : 1 }}
+                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit", opacity: disconnecting ? 0.6 : 1 }}
               >
                 {disconnecting ? "..." : (lang === "es" ? "Desconectar" : "Disconnect")}
               </button>
             ) : (
               <button
                 onClick={handleConnect}
-                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg,${TK_CYAN},${TK_RED})`, border: "none", color: "white", cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 14px rgba(105,201,208,0.4)`, display: "flex", alignItems: "center", gap: 6 }}
+                style={{ padding: "9px 20px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: `linear-gradient(135deg,${TK_CYAN},${TK_RED})`, border: "none", color: "var(--foreground)", cursor: "pointer", fontFamily: "inherit", boxShadow: `0 4px 14px rgba(105,201,208,0.4)`, display: "flex", alignItems: "center", gap: 6 }}
               >
                 <Zap size={12} />
                 {lang === "es" ? "Conectar TikTok Ads" : "Connect TikTok Ads"}
@@ -210,8 +210,8 @@ export default function TikTokIntegrationPage() {
       <div style={{
         padding: "24px 28px",
         borderRadius: 14,
-        background: "rgba(255,255,255,0.01)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        background: "var(--surface)",
+        border: "1px solid var(--hairline)",
       }}>
         <h3 style={{ fontFamily: "var(--font-display)", fontSize: 12, fontWeight: 700, color: TK_CYAN, letterSpacing: "0.1em", textTransform: "uppercase", margin: "0 0 16px" }}>
           {lang === "es" ? "¿Cómo funciona?" : "How does it work?"}

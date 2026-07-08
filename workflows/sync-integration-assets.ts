@@ -220,14 +220,20 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
     const campaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/campaigns?filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED"]}]&fields=${campaignsFields}&limit=50`;
     const campaigns = await fetchPaginated(campaignsUrl, token);
 
-    const insightsCampaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?date_preset=${datePreset}&level=campaign&fields=campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_3_sec_watched_actions,video_thruplay_watched_actions,outbound_clicks&limit=50`;
+    const insightsCampaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?date_preset=${datePreset}&level=campaign&fields=campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions,outbound_clicks&limit=50`;
     const insightsCamp = await fetchPaginated(insightsCampaignsUrl, token);
     
     const insightsMapC = new Map(insightsCamp.map((item: any) => [item.campaign_id, item]));
-    const mergedCampaigns = campaigns.map((campaign: any) => ({
-      ...campaign,
-      insights: insightsMapC.get(campaign.id) || {}
-    }));
+    const mergedCampaigns = campaigns.map((campaign: any) => {
+      const insight = insightsMapC.get(campaign.id) || {};
+      return {
+        ...campaign,
+        insights: {
+          ...insight,
+          video_3_sec_watched_actions: (insight.actions || []).filter((a: any) => a.action_type === "video_view")
+        }
+      };
+    });
 
     await prisma.metaAdsCache.upsert({
       where: { adAccountId_level_dateRange: { adAccountId, level: "campaigns", dateRange: cacheKey } },
@@ -240,14 +246,20 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
     const adsetsUrl = `https://graph.facebook.com/${version}/${adAccountId}/adsets?filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED"]}]&fields=${adsetsFields}&limit=50`;
     const adsets = await fetchPaginated(adsetsUrl, token);
 
-    const insightsAdsetsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?date_preset=${datePreset}&level=adset&fields=adset_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_3_sec_watched_actions,video_thruplay_watched_actions,outbound_clicks&limit=50`;
+    const insightsAdsetsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?date_preset=${datePreset}&level=adset&fields=adset_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions,outbound_clicks&limit=50`;
     const insightsAdset = await fetchPaginated(insightsAdsetsUrl, token);
 
     const insightsMapS = new Map(insightsAdset.map((item: any) => [item.adset_id, item]));
-    const mergedAdsets = adsets.map((adset: any) => ({
-      ...adset,
-      insights: insightsMapS.get(adset.id) || {}
-    }));
+    const mergedAdsets = adsets.map((adset: any) => {
+      const insight = insightsMapS.get(adset.id) || {};
+      return {
+        ...adset,
+        insights: {
+          ...insight,
+          video_3_sec_watched_actions: (insight.actions || []).filter((a: any) => a.action_type === "video_view")
+        }
+      };
+    });
 
     await prisma.metaAdsCache.upsert({
       where: { adAccountId_level_dateRange: { adAccountId, level: "adsets", dateRange: cacheKey } },
@@ -261,14 +273,20 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
     const adsUrl = `https://graph.facebook.com/${version}/${adAccountId}/ads?filtering=[{"field":"effective_status","operator":"IN","value":["ACTIVE","PAUSED"]}]&fields=${adsFields}&limit=50`;
     const ads = await fetchPaginated(adsUrl, token);
 
-    const insightsAdsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?date_preset=${datePreset}&level=ad&fields=ad_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_3_sec_watched_actions,video_thruplay_watched_actions,outbound_clicks&limit=50`;
+    const insightsAdsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?date_preset=${datePreset}&level=ad&fields=ad_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions,outbound_clicks&limit=50`;
     const insightsAd = await fetchPaginated(insightsAdsUrl, token);
 
     const insightsMapA = new Map(insightsAd.map((item: any) => [item.ad_id, item]));
-    const mergedAds = ads.map((ad: any) => ({
-      ...ad,
-      insights: insightsMapA.get(ad.id) || {}
-    }));
+    const mergedAds = ads.map((ad: any) => {
+      const insight = insightsMapA.get(ad.id) || {};
+      return {
+        ...ad,
+        insights: {
+          ...insight,
+          video_3_sec_watched_actions: (insight.actions || []).filter((a: any) => a.action_type === "video_view")
+        }
+      };
+    });
 
     await prisma.metaAdsCache.upsert({
       where: { adAccountId_level_dateRange: { adAccountId, level: "ads", dateRange: cacheKey } },

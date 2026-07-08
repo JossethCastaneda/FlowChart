@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   try {
     // Rate limit: 5 attempts per 15 minutes per IP
     const ip = getClientIP(req);
-    const { ok } = rateLimit(`reset:${ip}`, 5, 15 * 60 * 1000);
+    const { ok } = await rateLimit(`reset:${ip}`, 5, 15 * 60 * 1000);
     if (!ok) {
       return NextResponse.json(
         { error: "Demasiados intentos. Intenta en 15 minutos." },

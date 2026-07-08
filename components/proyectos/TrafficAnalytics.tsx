@@ -96,7 +96,7 @@ export function TrafficAnalytics({ project }: { project: Project }) {
   return (
     <div className="space-y-4">
       {/* Connect GA4 banner */}
-      <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 8, background: "rgba(66,133,244,0.06)", border: "1px solid rgba(66,133,244,0.2)", flexWrap: "wrap" }}>
+      <div style={{ display: "flex", gap: 10, alignItems: "center", justifyContent: "space-between", padding: "12px 16px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(66,133,244,0.2)", flexWrap: "wrap" }}>
         <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
           <Plug style={{ width: 16, height: 16, color: "#4285F4", flexShrink: 0 }} />
           <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>
@@ -120,9 +120,9 @@ export function TrafficAnalytics({ project }: { project: Project }) {
               const m = TRAFFIC_METRICS.find((x) => x.id === id); if (!m) return null;
               const shown = !hidden.includes(id);
               return (
-                <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 6, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div key={id} style={{ display: "flex", alignItems: "center", gap: 10, padding: "8px 12px", borderRadius: 6, background: "var(--surface)", border: "1px solid var(--hairline)" }}>
                   <button onClick={() => toggle(id)} style={{ width: 18, height: 18, borderRadius: 4, flexShrink: 0, border: shown ? "none" : "1.5px solid rgba(255,255,255,0.25)", background: shown ? "#4285F4" : "transparent", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
-                    {shown && <Check style={{ width: 12, height: 12, color: "#fff" }} />}
+                    {shown && <Check style={{ width: 12, height: 12, color: "var(--foreground)" }} />}
                   </button>
                   <span style={{ flex: 1, fontSize: 13, color: shown ? "var(--foreground)" : "var(--text-muted)" }}>{m.label}</span>
                   <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>#{i + 1}</span>

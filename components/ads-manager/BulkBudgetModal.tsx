@@ -46,16 +46,16 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
   };
 
   const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "8px 12px", fontSize: "13px", background: "rgba(0,0,0,0.3)",
-    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
+    width: "100%", padding: "8px 12px", fontSize: "13px", background: "var(--surface-hover)",
+    border: "1px solid var(--border)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
   };
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "var(--panel-bg)",  }} />
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
-        width: "480px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
+        width: "480px", maxWidth: "90vw", background: "var(--surface)", 
         border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
@@ -136,7 +136,7 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
             {preview.map((p) => (
               <div key={p.id} style={{
                 display: "flex", alignItems: "center", gap: "8px", padding: "6px 10px",
-                borderBottom: "1px solid rgba(255,255,255,0.03)", opacity: p.excluded ? 0.3 : 1,
+                border: "1px solid var(--hairline)", opacity: p.excluded ? 0.3 : 1,
               }}>
                 <input
                   type="checkbox"
@@ -163,12 +163,12 @@ export function BulkBudgetModal({ items, onClose, onApply }: BulkBudgetModalProp
         </div>
 
         <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer" }}>
             Cancelar
           </button>
           <button onClick={handleApply} disabled={loading} style={{
             padding: "7px 14px", fontSize: "11px", fontWeight: 600, borderRadius: "6px", cursor: "pointer",
-            background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)", opacity: loading ? 0.5 : 1,
+            background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)", opacity: loading ? 0.5 : 1,
           }}>
             {loading ? "Guardando..." : "Guardar presupuesto"}
           </button>

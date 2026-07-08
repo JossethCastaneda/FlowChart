@@ -86,7 +86,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
         style={{
           display: "flex", alignItems: "center", gap: 6,
           padding: "6px 12px", borderRadius: 8,
-          background: "rgba(255,255,255,0.09)",
+          background: "var(--surface-hover)",
           border: "1px solid var(--hairline)",
           color: "var(--foreground)", fontSize: 12, cursor: "pointer",
           transition: "all 0.2s",
@@ -107,7 +107,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
         <div style={{
           position: "absolute", top: "calc(100% + 4px)", left: 0,
           minWidth: 280, borderRadius: 10, overflow: "hidden",
-          background: "rgba(15,15,30,0.98)",
+          background: "var(--surface)",
           border: "1px solid var(--hairline)",
           boxShadow: "0 10px 40px rgba(0,0,0,0.5)",
           zIndex: 100,
@@ -119,8 +119,8 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
               style={{
                 display: "flex", alignItems: "center", gap: 8,
                 width: "100%", padding: "10px 14px",
-                borderBottom: "1px solid rgba(255,255,255,0.06)",
-                background: "none", border: "none", cursor: "pointer",
+                border: "1px solid var(--hairline)",
+                background: "none", cursor: "pointer",
                 color: "var(--text-secondary)", fontSize: 11,
               }}
             >
@@ -185,7 +185,7 @@ export function PageSelector({ module, onSelectionChange, multiSelect = true }: 
                 ) : (
                   <div style={{
                     width: 24, height: 24, borderRadius: "50%",
-                    background: "rgba(59,130,246,0.1)",
+                    background: "var(--cyan-dim)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 10, fontWeight: 600, color: "var(--cyan)",
                     flexShrink: 0,

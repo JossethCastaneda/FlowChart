@@ -13,7 +13,7 @@ export function BrandingManager() {
 
   const inp: React.CSSProperties = {
     padding: "8px 12px",
-    background: "rgba(59,130,246,0.03)",
+    background: "var(--cyan-dim)",
     border: "1px solid rgba(59,130,246,0.1)",
     color: "var(--foreground)",
     fontSize: "13px",
@@ -75,7 +75,7 @@ export function BrandingManager() {
   }
 
   if (loading) {
-    return <div className="animate-pulse h-20 bg-slate-800/50 rounded-lg"></div>;
+    return <div className="animate-pulse h-20 bg-[var(--surface-hover)]/50 rounded-lg"></div>;
   }
 
   return (
@@ -86,13 +86,13 @@ export function BrandingManager() {
         </span>
       </div>
       
-      <p className="text-xs text-slate-500 mb-4">
+      <p className="text-xs text-[var(--text-muted)] mb-4">
         Personaliza la apariencia de la plataforma para los enlaces mágicos compartidos con tus clientes.
       </p>
 
       <div className="flex flex-col gap-4">
         <div>
-          <label className="text-[11px] text-slate-500 block mb-1.5 flex items-center gap-1">
+          <label className="text-[11px] text-[var(--text-muted)] block mb-1.5 flex items-center gap-1">
             <ImageIcon className="w-3 h-3" /> URL del Logo
           </label>
           <input
@@ -105,7 +105,7 @@ export function BrandingManager() {
         </div>
 
         <div>
-          <label className="text-[11px] text-slate-500 block mb-1.5 flex items-center gap-1">
+          <label className="text-[11px] text-[var(--text-muted)] block mb-1.5 flex items-center gap-1">
             <Palette className="w-3 h-3" /> Color de Acento (HEX)
           </label>
           <div className="flex gap-2">
@@ -113,7 +113,7 @@ export function BrandingManager() {
               type="color"
               value={accentColor}
               onChange={(e) => setAccentColor(e.target.value)}
-              className="w-10 h-10 p-1 bg-transparent border border-white/10 rounded cursor-pointer"
+              className="w-10 h-10 p-1 bg-transparent border border-[var(--border)] rounded cursor-pointer"
             />
             <input
               type="text"

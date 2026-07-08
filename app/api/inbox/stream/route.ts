@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { ensureWebhookSubscriptions } from "@/lib/ensure-webhook-subscriptions";
 
 /**
  * GET /api/inbox/stream — tiempo real del inbox vía Server-Sent Events.
@@ -33,6 +34,12 @@ export async function GET(request: NextRequest) {
   if (!jwt?.sub) return new Response("No auth", { status: 401 });
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return new Response("No workspace", { status: 400 });
+
+  // Auto-reparación: al abrir el inbox, asegura que las páginas estén suscritas
+  // a los webhooks (idempotente y auto-guardada por 6h). Repara conexiones cuya
+  // suscripción falló en su momento — sin esto, "conectado" pero sin tiempo real.
+  // Fire-and-forget: nunca bloquea ni tumba el stream.
+  ensureWebhookSubscriptions(workspaceId).catch(() => {});
 
   const encoder = new TextEncoder();
 

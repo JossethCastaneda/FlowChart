@@ -207,16 +207,16 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
   };
 
   const inputStyle: React.CSSProperties = {
-    width: "100%", padding: "8px 12px", fontSize: "12px", background: "rgba(0,0,0,0.3)",
-    border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
+    width: "100%", padding: "8px 12px", fontSize: "12px", background: "var(--surface-hover)",
+    border: "1px solid var(--border)", borderRadius: "6px", color: "var(--foreground)", outline: "none",
   };
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 200, background: "var(--panel-bg)",  }} />
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 201,
-        width: "520px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
+        width: "520px", maxWidth: "90vw", background: "var(--surface)", 
         border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
@@ -248,7 +248,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
                 style={{
                   border: "2px dashed rgba(59,130,246,0.15)", borderRadius: "10px", padding: "32px 20px",
                   textAlign: "center", cursor: "pointer", transition: "all 0.2s",
-                  background: "rgba(59,130,246,0.02)",
+                  background: "var(--cyan-dim)",
                 }}
                 onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.35)"; e.currentTarget.style.background = "rgba(59,130,246,0.04)"; }}
                 onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.15)"; e.currentTarget.style.background = "rgba(59,130,246,0.02)"; }}
@@ -266,7 +266,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
               {/* Download template */}
               <button onClick={handleDownloadTemplate} style={{
                 display: "flex", alignItems: "center", gap: "6px", margin: "12px auto 0", padding: "6px 12px",
-                fontSize: "10px", fontWeight: 600, color: "var(--cyan)", background: "rgba(59,130,246,0.05)",
+                fontSize: "10px", fontWeight: 600, color: "var(--cyan)", background: "var(--cyan-dim)",
                 border: "1px solid rgba(59,130,246,0.1)", borderRadius: "6px", cursor: "pointer",
               }}>
                 <Download className="w-3 h-3" /> Descargar plantilla .xlsx
@@ -274,7 +274,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
 
               {/* Errors */}
               {errors.length > 0 && (
-                <div style={{ marginTop: "12px", padding: "10px", background: "rgba(229,72,77,0.05)", borderRadius: "6px", border: "1px solid rgba(229,72,77,0.15)" }}>
+                <div style={{ marginTop: "12px", padding: "10px", background: "var(--red-dim)", borderRadius: "6px", border: "1px solid rgba(229,72,77,0.15)" }}>
                   {errors.map((err, i) => (
                     <div key={i} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "10px", color: "var(--red)", marginBottom: "2px" }}>
                       <AlertCircle className="w-3 h-3" style={{ flexShrink: 0 }} /> {err}
@@ -293,7 +293,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
               <div style={{ maxHeight: "200px", overflowY: "auto", borderRadius: "6px", border: "1px solid var(--border)" }} className="custom-scrollbar">
                 <table style={{ width: "100%", fontSize: "10px", borderCollapse: "collapse" }}>
                   <thead>
-                    <tr style={{ background: "rgba(59,130,246,0.05)" }}>
+                    <tr style={{ background: "var(--cyan-dim)" }}>
                       <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--cyan)", fontWeight: 700 }}>#</th>
                       <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--cyan)", fontWeight: 700 }}>Nombre</th>
                       <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--cyan)", fontWeight: 700 }}>Estado</th>
@@ -302,7 +302,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
                   </thead>
                   <tbody>
                     {parsedRows.slice(0, 20).map((row, i) => (
-                      <tr key={i} style={{ borderTop: "1px solid rgba(255,255,255,0.03)" }}>
+                      <tr key={i} style={{ border: "1px solid var(--hairline)" }}>
                         <td style={{ padding: "4px 8px", color: "var(--text-muted)" }}>{i + 1}</td>
                         <td style={{ padding: "4px 8px", color: "var(--foreground)" }}>{row.name}</td>
                         <td style={{ padding: "4px 8px", color: row.status === "ACTIVE" ? "var(--emerald)" : "var(--text-muted)" }}>{row.status || "PAUSED"}</td>
@@ -334,11 +334,11 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
               <div style={{ fontSize: "14px", color: "var(--foreground)", fontWeight: 700, marginBottom: "6px" }}>
                 Importación completada
               </div>
-              <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.7)", marginBottom: "12px" }}>
+              <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>
                 ✅ {importResults.success} exitosas · {importResults.failed > 0 ? `❌ ${importResults.failed} fallidas` : "0 errores"}
               </div>
               {importResults.errors.length > 0 && (
-                <div style={{ textAlign: "left", maxHeight: "120px", overflowY: "auto", padding: "8px", background: "rgba(229,72,77,0.05)", borderRadius: "6px", fontSize: "9px", color: "var(--red)" }}>
+                <div style={{ textAlign: "left", maxHeight: "120px", overflowY: "auto", padding: "8px", background: "var(--red-dim)", borderRadius: "6px", fontSize: "9px", color: "var(--red)" }}>
                   {importResults.errors.map((err, i) => <div key={i} style={{ marginBottom: "2px" }}>• {err}</div>)}
                 </div>
               )}
@@ -349,22 +349,22 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
         {/* Footer */}
         <div style={{ display: "flex", gap: "8px", padding: "12px 20px", borderTop: "1px solid var(--border)", justifyContent: "flex-end" }}>
           {step === 1 && (
-            <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+            <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer" }}>
               Cancelar
             </button>
           )}
           {step === 2 && (
             <>
-              <button onClick={() => { setStep(1); setFile(null); setParsedRows([]); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+              <button onClick={() => { setStep(1); setFile(null); setParsedRows([]); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer" }}>
                 Atrás
               </button>
-              <button onClick={handleImport} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer" }}>
+              <button onClick={handleImport} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer" }}>
                 Importar {parsedRows.length} {levelLabel}
               </button>
             </>
           )}
           {step === 4 && (
-            <button onClick={() => { onImported(); onClose(); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer" }}>
+            <button onClick={() => { onImported(); onClose(); }} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", borderRadius: "6px", color: "var(--cyan)", cursor: "pointer" }}>
               Cerrar y actualizar
             </button>
           )}

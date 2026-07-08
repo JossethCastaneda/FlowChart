@@ -397,7 +397,7 @@ export async function GET(request: NextRequest) {
     // eventos (comentarios, DMs, ad_review, leadgen). Se ejecuta en paralelo y
     // nunca bloquea el éxito de la conexión: un fallo solo se loguea/audita.
     try {
-      const subResults = await subscribePages(rawPages, META_API_VERSION);
+      const subResults = await subscribePages(rawPages, META_API_VERSION, userScopes);
       const { subscribed, failed } = logSubscriptionResults(subResults, {
         route: "api/connect/callback",
         module,

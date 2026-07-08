@@ -117,7 +117,7 @@ export function CustomTooltip({
             {/* Value in JetBrains Mono */}
             <span
               style={{
-                fontFamily: "'JetBrains Mono', monospace",
+                fontFamily: "var(--font-mono)",
                 fontSize: 12,
                 fontWeight: 500,
                 color: "var(--foreground)",

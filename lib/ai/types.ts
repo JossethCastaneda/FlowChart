@@ -39,6 +39,11 @@ export interface CompleteResult {
   text: string;
   model: string;
   provider: ProviderId;
+  usage?: {
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+  };
 }
 
 /**

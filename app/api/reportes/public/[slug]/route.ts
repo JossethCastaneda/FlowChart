@@ -1,10 +1,29 @@
 /* ════════════════════════════════════════════════════════════
    GET /api/reportes/public/[slug] — Vista pública sin auth
    Devuelve los datos del reporte si es activo y no expirado.
+   Seguridad:
+   - X-Robots-Tag: noindex para evitar indexación de links compartidos
+   - Solo se devuelven campos seguros del snapshot (no report.data completo)
    ════════════════════════════════════════════════════════════ */
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+
+/** Campos del snapshot que se exponen en la vista pública. */
+const PUBLIC_DATA_FIELDS = [
+  "summary", "timeSeries", "creatives", "projectMeta", "channels",
+  "dateFrom", "dateTo", "generatedAt",
+] as const;
+
+function pickPublicData(data: unknown): Record<string, unknown> {
+  if (!data || typeof data !== "object") return {};
+  const d = data as Record<string, unknown>;
+  const out: Record<string, unknown> = {};
+  for (const field of PUBLIC_DATA_FIELDS) {
+    if (field in d) out[field] = d[field];
+  }
+  return out;
+}
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ slug: string }> }) {
   try {
@@ -30,21 +49,28 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
       return NextResponse.json({ success: false, error: "Reporte no disponible" }, { status: 403 });
     }
 
-    // Return data without workspace details (public view)
-    return NextResponse.json({
+    // Return allowlisted data only (never dump report.data raw)
+    const response = NextResponse.json({
       success: true,
       data: {
         title: report.title,
         dateFrom: report.dateFrom,
         dateTo: report.dateTo,
-        data: report.data,
+        data: pickPublicData(report.data),
         settings: report.settings,
         project: report.project,
         createdAt: report.createdAt,
+        expiresAt: report.expiresAt,
       },
     });
-  } catch (e: any) {
+
+    // Prevent search engines from indexing shared report links
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+
+    return response;
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "Error interno";
     console.error("[API reportes/public GET]", e);
-    return NextResponse.json({ success: false, error: e.message }, { status: 500 });
+    return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

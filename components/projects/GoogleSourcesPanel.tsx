@@ -172,7 +172,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
     return (
       <div style={{
         padding: "20px 24px", borderRadius: 10,
-        background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.2)",
+        background: "var(--surface)", border: "1px solid rgba(251,191,36,0.2)",
         display: "flex", gap: 14, alignItems: "flex-start",
       }}>
         <AlertCircle size={18} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
@@ -189,7 +189,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
               display: "inline-flex", alignItems: "center", gap: 6,
               fontSize: 11, fontWeight: 600, color: "var(--cyan)",
               padding: "6px 14px", borderRadius: 6,
-              background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)",
+              background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)",
               textDecoration: "none",
             }}
           >
@@ -210,7 +210,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
           <button
             onClick={() => { setActiveSection(null); setErrorMsg(null); setSelectedGtmAccount(null); setGtmContainers([]); }}
-            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, padding: "4px 8px", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
+            style={{ background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 6, padding: "4px 8px", cursor: "pointer", color: "var(--text-secondary)", display: "flex", alignItems: "center" }}
           >
             <ChevronLeft size={14} />
           </button>
@@ -234,7 +234,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
             return (
               <div style={{
                 padding: "16px 18px", borderRadius: 10, marginBottom: 16,
-                background: "rgba(251,191,36,0.05)", border: "1px solid rgba(251,191,36,0.25)",
+                background: "var(--surface)", border: "1px solid rgba(251,191,36,0.25)",
                 display: "flex", gap: 14, alignItems: "flex-start",
               }}>
                 <AlertCircle size={16} style={{ color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
@@ -251,7 +251,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                       display: "inline-flex", alignItems: "center", gap: 6,
                       fontSize: 11, fontWeight: 600, color: "#4285F4",
                       padding: "6px 14px", borderRadius: 6, textDecoration: "none",
-                      background: "rgba(66,133,244,0.08)", border: "1px solid rgba(66,133,244,0.25)",
+                      background: "var(--surface)", border: "1px solid rgba(66,133,244,0.25)",
                     }}
                   >
                     <ExternalLink size={11} /> Reconectar {scopeInfo.label}
@@ -271,7 +271,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
         {loadingResources ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[...Array(3)].map((_, i) => (
-              <div key={i} style={{ height: 60, borderRadius: 8, background: "rgba(255,255,255,0.03)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
+              <div key={i} style={{ height: 60, borderRadius: 8, background: "var(--surface)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
             ))}
           </div>
         ) : (
@@ -290,12 +290,12 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                       background: isCurrent ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.02)",
                       border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(255,255,255,0.06)"}`,
                     }}>
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(66,133,244,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4285F4", flexShrink: 0 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "#4285F4", flexShrink: 0 }}>
                         <Database size={13} />
                       </div>
                       <div style={{ flex: 1 }}>
                         <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{account.name}</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "monospace" }}>ID: {account.id}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>ID: {account.id}</p>
                       </div>
                       <button
                         onClick={() => saveSource({ adsCustomerId: account.id }, `Cuenta de Ads vinculada: ${account.name}`)}
@@ -332,12 +332,12 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                       background: isCurrent ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.02)",
                       border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(255,255,255,0.06)"}`,
                     }}>
-                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(251,191,36,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
+                      <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
                         <BarChart2 size={13} />
                       </div>
                       <div style={{ flex: 1 }}>
                         <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{prop.displayName}</p>
-                        <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "monospace" }}>{prop.name}</p>
+                        <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>{prop.name}</p>
                       </div>
                       <button
                         onClick={() => saveSource({ ga4PropertyId: prop.id }, `Propiedad de GA4 vinculada: ${prop.displayName}`)}
@@ -369,17 +369,17 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                   <div key={acct.accountId} style={{
                     display: "flex", alignItems: "center", gap: 12,
                     padding: "12px 14px", borderRadius: 8, marginBottom: 8,
-                    background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+                    background: "var(--surface)", border: "1px solid var(--hairline)",
                     cursor: "pointer",
                   }}
                     onClick={() => loadGtmContainers(acct.accountId)}
                   >
-                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
+                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
                       <Settings size={13} />
                     </div>
                     <div style={{ flex: 1 }}>
                       <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{acct.name}</p>
-                      <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "monospace" }}>ID: {acct.accountId}</p>
+                      <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>ID: {acct.accountId}</p>
                     </div>
                     <ChevronRight size={14} style={{ color: "var(--text-muted)" }} />
                   </div>
@@ -407,12 +407,12 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
                         background: isCurrent ? "rgba(52,183,124,0.05)" : "rgba(255,255,255,0.02)",
                         border: `1px solid ${isCurrent ? "rgba(52,183,124,0.3)" : "rgba(255,255,255,0.06)"}`,
                       }}>
-                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "rgba(16,185,129,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
+                        <div style={{ width: 30, height: 30, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--emerald)", flexShrink: 0 }}>
                           <Box size={13} />
                         </div>
                         <div style={{ flex: 1 }}>
                           <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{cont.name}</p>
-                          <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "monospace" }}>{cont.publicId} (ID: {cont.containerId})</p>
+                          <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>{cont.publicId} (ID: {cont.containerId})</p>
                         </div>
                         <button
                           onClick={() => saveSource(
@@ -450,7 +450,7 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } } @keyframes fadeIn { from { opacity:0; transform:translateY(4px); } to { opacity:1; transform:none; } }`}</style>
 
       {successMsg && (
-        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "rgba(52,183,124,0.08)", border: "1px solid rgba(52,183,124,0.3)", color: "var(--emerald)", fontSize: 12, marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(52,183,124,0.3)", color: "var(--emerald)", fontSize: 12, marginBottom: 16 }}>
           <CheckCircle2 size={13} /> {successMsg}
         </div>
       )}
@@ -550,13 +550,13 @@ function ResourceRow({
           }} />
           <p style={{ margin: 0, fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{label}</p>
           {configured && (
-            <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--emerald)", background: "rgba(52,183,124,0.1)", padding: "1px 6px", borderRadius: 4 }}>
+            <span style={{ fontSize: 9, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", color: "var(--emerald)", background: "var(--emerald-dim)", padding: "1px 6px", borderRadius: 4 }}>
               VINCULADO
             </span>
           )}
         </div>
         {configuredValue ? (
-          <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "monospace", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{configuredValue}</p>
+          <p style={{ margin: 0, fontSize: 11, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{configuredValue}</p>
         ) : (
           <p style={{ margin: 0, fontSize: 11, color: "var(--text-muted)" }}>Sin configurar — Click para vincular</p>
         )}
@@ -565,7 +565,7 @@ function ResourceRow({
         {configured && (
           <button
             onClick={onClear}
-            style={{ background: "none", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 6, padding: "5px 10px", cursor: "pointer", color: "var(--text-muted)", fontSize: 11 }}
+            style={{ background: "none", border: "1px solid var(--border)", borderRadius: 6, padding: "5px 10px", cursor: "pointer", color: "var(--text-muted)", fontSize: 11 }}
           >
             Quitar
           </button>
@@ -573,7 +573,7 @@ function ResourceRow({
         <button
           onClick={onConfigure}
           style={{
-            background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)",
+            background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)",
             borderRadius: 6, padding: "5px 12px", cursor: "pointer", color: "var(--cyan)",
             fontSize: 11, fontWeight: 600, display: "flex", alignItems: "center", gap: 5,
           }}

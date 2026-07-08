@@ -77,7 +77,7 @@ export function WorkspaceSwitcher() {
           alignItems: "center",
           gap: "8px",
           padding: "8px 10px",
-          background: "rgba(59,130,246,0.04)",
+          background: "var(--cyan-dim)",
           border: "1px solid rgba(59,130,246,0.1)",
           cursor: switching ? "wait" : "pointer",
           color: "var(--foreground)",
@@ -132,7 +132,7 @@ export function WorkspaceSwitcher() {
           zIndex: 200,
           background: "var(--panel-bg)",
           border: "1px solid rgba(59,130,246,0.15)",
-          backdropFilter: "blur(20px)",
+          
           marginTop: "4px",
           maxHeight: "300px",
           overflowY: "auto",
@@ -229,7 +229,7 @@ export function WorkspaceSwitcher() {
           >
             <div style={{
               width: 24, height: 24,
-              background: "rgba(59,130,246,0.05)",
+              background: "var(--cyan-dim)",
               border: "1px dashed rgba(59,130,246,0.2)",
               display: "flex", alignItems: "center",
               justifyContent: "center",

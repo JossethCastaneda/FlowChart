@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from "next";
-import { Inter_Tight, JetBrains_Mono } from "next/font/google";
+import { Inter_Tight, JetBrains_Mono, Orbitron, Space_Grotesk, Sora } from "next/font/google";
 import "./globals.css";
 import "@/styles/animations.css";
 import { ClientMainWrapper } from "@/components/layout/ClientMainWrapper";
 import { AuthProvider } from "@/components/layout/AuthProvider";
 import { QueryProvider } from "@/components/layout/QueryProvider";
-import { SpeedInsights } from "@vercel/speed-insights/next";
-import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
+// import { SpeedInsights } from "@vercel/speed-insights/next";
+// import { GoogleTagManager, GoogleAnalytics } from "@next/third-parties/google";
 import { ToastContainer } from "@/components/ui/Toast";
 import { ConfirmModalContainer } from "@/components/ui/ConfirmModal";
 import { PermissionsProvider } from "@/components/layout/PermissionsContext";
@@ -15,6 +15,7 @@ import { LanguageProvider } from "@/components/layout/LanguageContext";
 import { SodareBrandDefs } from "@/components/ui/SodareBrandDefs";
 import { PopupCloseHandler } from "@/components/layout/PopupCloseHandler";
 import { PaywallInterceptor } from "@/components/layout/PaywallInterceptor";
+import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 // Solo inyectar los tags si el ID tiene el formato real (GTM-XXXX / G-XXXX);
 // así un placeholder en Vercel no genera scripts rotos en producción.
@@ -24,10 +25,13 @@ const GTM_ID = rawGtmId?.startsWith("GTM-") ? rawGtmId : undefined;
 const GA4_ID = rawGa4Id?.startsWith("G-") ? rawGa4Id : undefined;
 
 const inter = Inter_Tight({ subsets: ["latin"], variable: "--font-inter" });
-const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500"], variable: "--font-jbmono" });
+const jbMono = JetBrains_Mono({ subsets: ["latin"], weight: ["400", "500", "600"], variable: "--font-jbmono" });
+const orbitron = Orbitron({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-orbitron" });
+const spaceGrotesk = Space_Grotesk({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-space" });
+const sora = Sora({ subsets: ["latin"], weight: ["400", "500", "600", "700"], variable: "--font-sora" });
 
 export const viewport: Viewport = {
-  themeColor: "#0b0d12",
+  themeColor: "var(--background)",
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
@@ -35,8 +39,20 @@ export const viewport: Viewport = {
   viewportFit: "cover",
 };
 
+const safeUrl = (url: string | undefined): URL => {
+  if (!url) return new URL("https://sodare.xyz");
+  const cleaned = url.replace(/^"|"$/g, "").trim();
+  if (!cleaned) return new URL("https://sodare.xyz");
+  if (!cleaned.startsWith("http")) return new URL(`http://${cleaned}`);
+  try {
+    return new URL(cleaned);
+  } catch {
+    return new URL("https://sodare.xyz");
+  }
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "https://sodare.xyz"),
+  metadataBase: safeUrl(process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL),
   title: {
     default: "Sodare — Plataforma de Marketing Multicanal para Agencias | LATAM",
     template: "%s | Sodare",
@@ -107,17 +123,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es" className={`${inter.variable} ${jbMono.variable} ${orbitron.variable} ${spaceGrotesk.variable} ${sora.variable}`} suppressHydrationWarning>
       <head>
-        {/* Aplica el tema guardado antes del primer paint (evita FOUC) */}
-        <script
-          id="theme-script"
-          dangerouslySetInnerHTML={{
-            __html: `try{var t=localStorage.getItem("sodare:theme");if(t==="claro")document.documentElement.classList.add("theme-claro");else if(t==="azul_medianoche")document.documentElement.classList.add("theme-azul-medianoche");}catch(e){}`,
-          }}
-        />
       </head>
-      <body className={`${inter.variable} ${jbMono.variable} font-sans antialiased`}>
+      <body
+        className="antialiased"
+        suppressHydrationWarning
+      >
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem themes={["light", "dark", "azul"]}>
         <SodareBrandDefs />
         <AuthProvider>
           <LanguageProvider>
@@ -132,9 +145,10 @@ export default function RootLayout({
             </PermissionsProvider>
           </LanguageProvider>
         </AuthProvider>
-        <SpeedInsights />
+        {/* <SpeedInsights />
         {GTM_ID && <GoogleTagManager gtmId={GTM_ID} />}
-        {GA4_ID && <GoogleAnalytics gaId={GA4_ID} />}
+        {GA4_ID && <GoogleAnalytics gaId={GA4_ID} />} */}
+        </ThemeProvider>
       </body>
     </html>
   );

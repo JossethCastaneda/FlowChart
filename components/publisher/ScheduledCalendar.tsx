@@ -337,7 +337,7 @@ export function ScheduledCalendar() {
       >
         {/* Media thumb */}
         {media && (
-          <div style={{ width: 56, height: 56, borderRadius: 6, overflow: "hidden", flexShrink: 0, background: "#000" }}>
+          <div style={{ width: 56, height: 56, borderRadius: 6, overflow: "hidden", flexShrink: 0, background: "var(--background)" }}>
             <img src={media} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
         )}
@@ -349,7 +349,7 @@ export function ScheduledCalendar() {
             {boostResults[post.id] && (
               <span style={{
                 fontSize: 9, fontWeight: 600, color: "var(--amber)",
-                background: "rgba(224,168,60,0.1)",
+                background: "var(--surface)",
                 border: "1px solid rgba(224,168,60,0.3)",
                 borderRadius: 4, padding: "2px 6px",
                 display: "inline-flex", alignItems: "center", gap: 3,
@@ -365,7 +365,7 @@ export function ScheduledCalendar() {
                 {avatarUrl ? (
                   <img src={avatarUrl} alt="" style={{ width: 14, height: 14, borderRadius: "50%", objectFit: "cover" }} />
                 ) : (
-                  <div style={{ width: 14, height: 14, borderRadius: "50%", background: "rgba(255,255,255,0.1)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: "#fff" }}>
+                  <div style={{ width: 14, height: 14, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8, fontWeight: 700, color: "var(--foreground)" }}>
                     {post.pageName.charAt(0)}
                   </div>
                 )}
@@ -427,7 +427,7 @@ export function ScheduledCalendar() {
 
   const actionBtnStyle: React.CSSProperties = {
     display: "flex", alignItems: "center", justifyContent: "center",
-    width: 28, height: 28, borderRadius: 4, border: "1px solid rgba(255,255,255,0.06)",
+    width: 28, height: 28, borderRadius: 4, border: "1px solid var(--hairline)",
     background: "var(--row-hover)", color: "var(--text-secondary)", cursor: "pointer", transition: "all 0.15s",
   };
 
@@ -464,12 +464,12 @@ export function ScheduledCalendar() {
       {/* Header row */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h3 style={{ fontSize: 18, fontWeight: 700, color: "#fff", margin: 0 }}>Calendario de Publicaciones</h3>
+          <h3 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: 0 }}>Calendario de Publicaciones</h3>
           <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: "4px 0 0" }}>{posts.length} publicaciones en total</p>
         </div>
 
         {/* View toggle */}
-        <div style={{ display: "flex", gap: 4, background: "var(--row-hover)", borderRadius: 8, padding: 3, border: "1px solid rgba(255,255,255,0.06)" }}>
+        <div style={{ display: "flex", gap: 4, background: "var(--row-hover)", borderRadius: 8, padding: 3, border: "1px solid var(--hairline)" }}>
           <button onClick={() => setView("month")} style={{
             display: "flex", alignItems: "center", gap: 6, padding: "6px 14px", borderRadius: 6,
             border: "none", cursor: "pointer", fontSize: 12, fontWeight: 500,
@@ -506,9 +506,9 @@ export function ScheduledCalendar() {
 
       {/* ── MONTH VIEW ────────────────────────────────────── */}
       {!loading && view === "month" && (
-        <div style={{ background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, overflow: "hidden" }}>
+        <div style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 10, overflow: "hidden" }}>
           {/* Month nav */}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 16px", border: "1px solid var(--hairline)" }}>
             <button onClick={() => setCurrentMonth(new Date(year, month - 1, 1))} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-secondary)", display: "flex", padding: 4 }}>
               <ChevronLeft style={{ width: 18, height: 18 }} />
             </button>
@@ -557,7 +557,7 @@ export function ScheduledCalendar() {
                   }}
                   style={{
                     minHeight: 80, padding: "4px 6px", cursor: "pointer",
-                    borderBottom: "1px solid rgba(255,255,255,0.03)",
+                    border: "1px solid var(--hairline)",
                     borderRight: (idx + 1) % 7 !== 0 ? "1px solid rgba(255,255,255,0.03)" : "none",
                     background: dragOverDay === key ? "rgba(59,130,246,0.08)" : isSelected ? "rgba(59,130,246,0.04)" : isToday ? "rgba(59,130,246,0.02)" : "transparent",
                     outline: dragOverDay === key ? "2px dashed rgba(59,130,246,0.6)" : "none",
@@ -613,7 +613,7 @@ export function ScheduledCalendar() {
 
           {/* Selected day detail */}
           {selectedDay && postsByDate[selectedDay] && (
-            <div style={{ padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.06)", background: "rgba(59,130,246,0.02)" }}>
+            <div style={{ padding: "12px 16px", border: "1px solid var(--hairline)", background: "var(--cyan-dim)" }}>
               <h4 style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 10 }}>
                 Publicaciones del {fmtDate(new Date(selectedDay + "T12:00:00"))}
               </h4>
@@ -621,7 +621,7 @@ export function ScheduledCalendar() {
             </div>
           )}
           {selectedDay && !postsByDate[selectedDay] && (
-            <div style={{ padding: "20px 16px", borderTop: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
+            <div style={{ padding: "20px 16px", border: "1px solid var(--hairline)", textAlign: "center" }}>
               <p style={{ fontSize: 12, color: "var(--text-muted)" }}>Sin publicaciones para este día</p>
             </div>
           )}

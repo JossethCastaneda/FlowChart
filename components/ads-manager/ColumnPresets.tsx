@@ -101,7 +101,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
           display: "flex", alignItems: "center", gap: "5px",
           padding: "6px 10px", fontSize: "11px", fontWeight: 600,
           background: "var(--row-hover)", border: "1px solid var(--hairline)",
-          borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
+          borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
           transition: "all 0.15s",
         }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--cyan)"; e.currentTarget.style.color = "white"; }}
@@ -113,7 +113,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
       {showMenu && (
         <div style={{
           position: "absolute", top: "100%", right: 0, marginTop: "6px",
-          background: "rgba(10,18,35,0.97)", backdropFilter: "blur(12px)",
+          background: "var(--surface)", 
           border: "1px solid rgba(59,130,246,0.15)", borderRadius: "10px",
           padding: "6px", zIndex: 100, minWidth: "220px",
           boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7)",
@@ -128,7 +128,7 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                 onClick={() => { onApply(preset.columns); setShowMenu(false); }}
                 style={{
                   flex: 1, textAlign: "left", padding: "7px 10px", fontSize: "11px",
-                  color: "rgba(255,255,255,0.85)", background: "transparent",
+                  color: "var(--text-secondary)", background: "transparent",
                   border: "none", cursor: "pointer", borderRadius: "5px",
                   transition: "all 0.15s",
                 }}
@@ -162,14 +162,14 @@ export function ColumnPresets({ currentColumns, onApply }: ColumnPresetsProps) {
                   placeholder="Nombre del preset..."
                   autoFocus
                   style={{
-                    flex: 1, background: "rgba(0,0,0,0.3)", border: "1px solid rgba(148,163,184,0.18)",
+                    flex: 1, background: "var(--surface-hover)", border: "1px solid var(--border)",
                     borderRadius: "4px", padding: "4px 8px", fontSize: "10px", color: "var(--foreground)", outline: "none",
                   }}
                 />
                 <button
                   onClick={savePreset}
                   style={{
-                    background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.25)",
+                    background: "var(--surface)", border: "1px solid rgba(52,211,153,0.25)",
                     borderRadius: "4px", color: "var(--emerald)", cursor: "pointer", padding: "4px 6px",
                   }}
                 >

@@ -3,6 +3,8 @@ export interface Message {
     text: string;
     incoming: boolean;
     timestamp: Date;
+    status?: "sending" | "sent" | "error";
+    errorText?: string;
 }
 
 export interface PostComment {
@@ -26,10 +28,18 @@ export interface PostData {
     comments: PostComment[];
 }
 
+export interface Note {
+  id: string;
+  content: string;
+  createdAt: string;
+  author: { id: string; name: string; image: string | null };
+}
+
 export interface Conversation {
     id: string;
     contactName: string;
     contactAvatar?: string | null;
+    contactId?: string | null;
     platform: Platform;
     lastMessage: string;
     lastMessageTime: Date;
@@ -38,11 +48,14 @@ export interface Conversation {
     assignedTo: string | null;
     tags: string[];
     messages: Message[];
+    notes: Note[];
     _postData?: PostData | null;
     pageId?: string;
-    contactId?: string | null;
+    pageName?: string | null;
     /** Which app/source provided this conversation */
     channelSource?: "facebook_app" | "instagram_app" | "whatsapp" | "db";
+    /** ISO string of when conversation was first created */
+    createdAt?: string;
 }
 
 export interface ConnectedPage {

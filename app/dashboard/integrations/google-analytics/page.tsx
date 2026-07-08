@@ -145,7 +145,7 @@ export default function GoogleAnalyticsPage() {
           display: "flex", alignItems: "center", justifyContent: "space-between",
           padding: "20px 28px 16px",
           borderBottom: "1px solid var(--border)",
-          background: "var(--surface)", backdropFilter: "blur(20px)",
+          background: "var(--surface)", 
           position: "sticky", top: 0, zIndex: 10,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
@@ -164,7 +164,7 @@ export default function GoogleAnalyticsPage() {
               background: "var(--amber)",
               display: "flex", alignItems: "center", justifyContent: "center",
               boxShadow: "0 4px 12px rgba(251,191,36,0.3)",
-              color: "white",
+              color: "var(--foreground)",
             }}>
               <GA4Icon />
             </div>
@@ -230,14 +230,14 @@ export default function GoogleAnalyticsPage() {
 
           {!loading && !connected && !error && (
             <div style={{ textAlign: "center", padding: "60px 20px" }}>
-              <div style={{ width: 52, height: 52, borderRadius: 14, background: "rgba(251,191,36,0.1)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--amber)" }}>
+              <div style={{ width: 52, height: 52, borderRadius: 14, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 16px", color: "var(--amber)" }}>
                 <GA4Icon />
               </div>
               <p style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: "0 0 6px" }}>{t.notConnected}</p>
               <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: "0 0 20px" }}>{t.connectPrompt}</p>
               <button
                 onClick={handleReconnect}
-                style={{ padding: "10px 20px", borderRadius: 8, background: "rgba(251,191,36,0.1)", border: "1px solid rgba(251,191,36,0.3)", color: "var(--amber)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
+                style={{ padding: "10px 20px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.3)", color: "var(--amber)", fontSize: 12, fontWeight: 600, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 6 }}
               >
                 <Plus size={13} /> {t.connectBtn}
               </button>
@@ -263,7 +263,7 @@ export default function GoogleAnalyticsPage() {
 
               {properties.map(property => (
                 <div key={property.id} className="adaccount-row" data-selected={currentSelectedId === property.id}>
-                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "rgba(251,191,36,0.1)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--amber)", flexShrink: 0 }}>
                     <Database size={14} />
                   </div>
                   <div style={{ flex: 1 }}>

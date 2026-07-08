@@ -82,8 +82,8 @@ export function Orbi({ state = "idle", scale = 1, className = "", style }: OrbiP
           <div style={{ position: "absolute", left: 4, top: 86, width: 18, height: 34, borderRadius: 9, background: "linear-gradient(#101c3a,#050b18)", border: "2px solid var(--orbi-edge)", boxShadow: "0 0 12px rgba(0,0,0,0.18)" }} />
           <div style={{ position: "absolute", left: 154, top: 86, width: 18, height: 34, borderRadius: 9, background: "linear-gradient(#101c3a,#050b18)", border: "2px solid var(--orbi-edge)", boxShadow: "0 0 12px rgba(0,0,0,0.18)" }} />
           <div style={{ position: "absolute", left: 18, top: 40, width: 140, height: 122, borderRadius: 48, background: "linear-gradient(160deg,#13243f,#060d1c)", border: "2.5px solid var(--orbi-edge)", boxShadow: "0 0 26px var(--orbi-shadow),inset 0 2px 0 rgba(255,255,255,0.12),inset 0 -10px 24px rgba(0,0,0,0.5)" }} />
-          <div style={{ position: "absolute", left: 44, top: 50, width: 88, height: 12, borderRadius: 7, background: "rgba(255,255,255,0.05)" }} />
-          <div style={{ position: "absolute", left: 38, top: 64, width: 100, height: 62, borderRadius: 31, background: "#02060f", border: "1.5px solid var(--orbi-edge)", boxShadow: "inset 0 0 18px rgba(0,0,0,0.8)", overflow: "hidden" }}>
+          <div style={{ position: "absolute", left: 44, top: 50, width: 88, height: 12, borderRadius: 7, background: "var(--surface-hover)" }} />
+          <div style={{ position: "absolute", left: 38, top: 64, width: 100, height: 62, borderRadius: 31, background: "var(--background)", border: "1.5px solid var(--orbi-edge)", boxShadow: "inset 0 0 18px rgba(0,0,0,0.8)", overflow: "hidden" }}>
             <div style={{ position: "absolute", left: "50%", top: "50%", width: 78, height: 78, margin: "-39px 0 0 -39px", borderRadius: "50%", background: "radial-gradient(circle,var(--orbi-shadow),transparent 65%)", animation: "orbi-glow 3s ease-in-out infinite" }} />
             <div style={{ position: "absolute", left: "50%", top: "50%", width: 42, height: 42, margin: "-21px 0 0 -21px", animation: "orbi-blink 5.5s ease-in-out infinite" }}>
               <div style={{ width: "100%", height: "100%", animation: "orbi-look 7s ease-in-out infinite" }}>
@@ -93,7 +93,7 @@ export function Orbi({ state = "idle", scale = 1, className = "", style }: OrbiP
             </div>
           </div>
           <div style={{ position: "absolute", left: 78, top: 131, width: 20, height: 22, clipPath: "polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)", background: "linear-gradient(135deg,var(--orbi-accent),#2563eb)", boxShadow: "0 0 10px var(--orbi-shadow)" }} />
-          <div style={{ position: "absolute", left: 80.5, top: 134, width: 15, height: 16, clipPath: "polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)", background: "#060f1e" }} />
+          <div style={{ position: "absolute", left: 80.5, top: 134, width: 15, height: 16, clipPath: "polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%)", background: "var(--background)" }} />
           <div style={{ position: "absolute", left: 85, top: 139, width: 6, height: 6, borderRadius: "50%", background: "var(--orbi-accent)", boxShadow: "0 0 6px var(--orbi-accent)", animation: "orbi-pulse 2s ease-in-out infinite" }} />
         </div>
       </div>

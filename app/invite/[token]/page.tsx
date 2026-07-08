@@ -168,23 +168,23 @@ export default function InvitePage() {
 
   // ── Estilos ──
   const page: React.CSSProperties = {
-    minHeight: "100vh", background: "#030508",
+    minHeight: "100vh", background: "var(--background)",
     display: "flex", alignItems: "center", justifyContent: "center",
   };
   const card: React.CSSProperties = {
     width: "100%", maxWidth: "420px", margin: "0 16px", padding: "40px",
-    background: "rgba(8,12,24,0.85)",
+    background: "var(--surface)",
     border: "1px solid rgba(59,130,246,0.15)",
-    backdropFilter: "blur(20px)",
+    
   };
   const orbitron: React.CSSProperties = {
     fontFamily: "var(--font-display)",
   };
   const inputStyle: React.CSSProperties = {
     width: "100%", padding: "10px 14px",
-    background: "rgba(59,130,246,0.03)",
+    background: "var(--cyan-dim)",
     border: "1px solid rgba(59,130,246,0.15)",
-    color: "white", fontSize: "13px", outline: "none",
+    color: "var(--foreground)", fontSize: "13px", outline: "none",
     boxSizing: "border-box" as const,
   };
 
@@ -208,7 +208,7 @@ export default function InvitePage() {
             letterSpacing: "0.15em", marginBottom: "8px" }}>
             INVITACIÓN INVÁLIDA
           </p>
-          <p style={{ fontSize: "13px", color: "rgba(148,163,184,0.6)" }}>
+          <p style={{ fontSize: "13px", color: "var(--text-secondary)" }}>
             {error}
           </p>
         </div>
@@ -228,7 +228,7 @@ export default function InvitePage() {
             ¡BIENVENIDO AL EQUIPO!
           </p>
           <p style={{ fontSize: "12px",
-            color: "rgba(148,163,184,0.75)", marginTop: "8px" }}>
+            color: "var(--text-secondary)", marginTop: "8px" }}>
             Redirigiendo al Command Center...
           </p>
         </div>
@@ -260,7 +260,7 @@ export default function InvitePage() {
         {/* Info del workspace */}
         <div style={{ display: "flex", alignItems: "center",
           gap: "10px", marginBottom: "20px", padding: "14px",
-          background: "rgba(59,130,246,0.04)",
+          background: "var(--cyan-dim)",
           border: "1px solid rgba(59,130,246,0.1)" }}>
           <Users style={{ width: 20, height: 20,
             color: "var(--cyan)", flexShrink: 0 }} />
@@ -270,18 +270,18 @@ export default function InvitePage() {
               {invite?.workspace?.name}
             </p>
             <p style={{ fontSize: "11px",
-              color: "rgba(148,163,184,0.75)", marginTop: "2px" }}>
+              color: "var(--text-secondary)", marginTop: "2px" }}>
               Rol asignado: {invite?.role}
             </p>
           </div>
         </div>
 
         <p style={{ fontSize: "13px",
-          color: "rgba(148,163,184,0.7)", marginBottom: "6px" }}>
+          color: "var(--text-secondary)", marginBottom: "6px" }}>
           Fuiste invitado a unirte a este workspace.
         </p>
         <p style={{ fontSize: "12px",
-          color: "rgba(148,163,184,0.65)", marginBottom: "24px" }}>
+          color: "var(--text-secondary)", marginBottom: "24px" }}>
           Enviado a: {invite?.email}
         </p>
 
@@ -289,7 +289,7 @@ export default function InvitePage() {
         {error && (
           <p style={{ fontSize: "12px", color: "var(--red)",
             marginBottom: "16px", padding: "8px 12px",
-            background: "rgba(229,72,77,0.05)",
+            background: "var(--red-dim)",
             border: "1px solid rgba(229,72,77,0.15)" }}>
             {error}
           </p>
@@ -303,9 +303,9 @@ export default function InvitePage() {
               onClick={() => signIn("google",
                 { callbackUrl: `/invite/${token}` })}
               style={{ width: "100%", padding: "13px",
-                background: "rgba(59,130,246,0.08)",
+                background: "var(--cyan-dim)",
                 border: "1px solid rgba(59,130,246,0.3)",
-                color: "white", cursor: "pointer",
+                color: "var(--foreground)", cursor: "pointer",
                 ...orbitron, fontSize: "11px",
                 letterSpacing: "0.15em" }}>
               CONTINUAR CON GOOGLE
@@ -316,7 +316,7 @@ export default function InvitePage() {
               style={{ width: "100%", padding: "11px",
                 background: "transparent",
                 border: "1px solid rgba(59,130,246,0.1)",
-                color: "rgba(148,163,184,0.6)",
+                color: "var(--text-secondary)",
                 cursor: "pointer", fontSize: "13px" }}>
               Continuar con Facebook
             </button>
@@ -325,12 +325,12 @@ export default function InvitePage() {
             <div style={{ display: "flex", alignItems: "center",
               gap: "8px", margin: "4px 0" }}>
               <span style={{ flex: 1, height: "1px",
-                background: "rgba(59,130,246,0.1)" }} />
+                background: "var(--cyan-dim)" }} />
               <span style={{ fontSize: "10px",
-                color: "rgba(148,163,184,0.65)",
+                color: "var(--text-secondary)",
                 ...orbitron, letterSpacing: "0.1em" }}>O</span>
               <span style={{ flex: 1, height: "1px",
-                background: "rgba(59,130,246,0.1)" }} />
+                background: "var(--cyan-dim)" }} />
             </div>
 
             {!showRegister ? (
@@ -339,7 +339,7 @@ export default function InvitePage() {
                 style={{ width: "100%", padding: "12px",
                   background: "transparent",
                   border: "1px solid rgba(59,130,246,0.1)",
-                  color: "rgba(148,163,184,0.6)",
+                  color: "var(--text-secondary)",
                   cursor: "pointer", fontSize: "13px" }}>
                 Crear cuenta con email
               </button>
@@ -353,7 +353,7 @@ export default function InvitePage() {
                 <input type="email" value={invite?.email || ""}
                   disabled
                   style={{ ...inputStyle,
-                    color: "rgba(148,163,184,0.75)",
+                    color: "var(--text-secondary)",
                     borderColor: "rgba(59,130,246,0.1)" }} />
                 <input type="password"
                   placeholder="Contraseña (mín. 8 caracteres)"
@@ -377,7 +377,7 @@ export default function InvitePage() {
                   onClick={handleRegisterAndAccept}
                   disabled={regLoading}
                   style={{ width: "100%", padding: "12px",
-                    background: "rgba(59,130,246,0.1)",
+                    background: "var(--cyan-dim)",
                     border: "1px solid rgba(59,130,246,0.3)",
                     color: regLoading
                       ? "rgba(148,163,184,0.7)" : "white",
@@ -398,7 +398,7 @@ export default function InvitePage() {
             onClick={handleAccept}
             disabled={accepting}
             style={{ width: "100%", padding: "13px",
-              background: "rgba(59,130,246,0.08)",
+              background: "var(--cyan-dim)",
               border: "1px solid rgba(59,130,246,0.3)",
               color: accepting
                 ? "rgba(148,163,184,0.7)" : "white",
@@ -421,13 +421,13 @@ function Logo() {
       gap: "12px", marginBottom: "32px" }}>
       <div style={{ width: 38, height: 38,
         display: "flex", alignItems: "center",
-        justifyContent: "center", background: "#000",
+        justifyContent: "center", background: "var(--background)",
         border: "1px solid rgba(59,130,246,0.4)",
         boxShadow: "0 0 12px rgba(59,130,246,0.2)" }}>
         <Zap style={{ width: 20, height: 20, color: "var(--cyan)" }} />
       </div>
       <span style={{ fontFamily: "var(--font-display)",
-        fontSize: "18px", fontWeight: 700, color: "white",
+        fontSize: "18px", fontWeight: 700, color: "var(--foreground)",
         letterSpacing: "0.2em" }}>
         SODARE
       </span>

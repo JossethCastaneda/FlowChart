@@ -154,10 +154,10 @@ function TabResumen({ model, channels, rows }: { model: MmmModel | null; channel
             {/* Stacked bar */}
             <div style={{ height: 28, borderRadius: 8, overflow: "hidden", display: "flex", marginBottom: 12 }}>
               <div style={{ width: `${(1 - model.incrementalShare) * 100}%`, background: "#64748b", transition: "width 0.5s", display: "flex", alignItems: "center", paddingLeft: 8 }}>
-                <span style={{ fontSize: 10, color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>Base {fmtPct(1 - model.incrementalShare)}</span>
+                <span style={{ fontSize: 10, color: "var(--foreground)", fontWeight: 700, whiteSpace: "nowrap" }}>Base {fmtPct(1 - model.incrementalShare)}</span>
               </div>
               <div style={{ flex: 1, background: VIOLET, transition: "width 0.5s", display: "flex", alignItems: "center", justifyContent: "flex-end", paddingRight: 8 }}>
-                <span style={{ fontSize: 10, color: "#fff", fontWeight: 700, whiteSpace: "nowrap" }}>Publicidad {fmtPct(model.incrementalShare)}</span>
+                <span style={{ fontSize: 10, color: "var(--foreground)", fontWeight: 700, whiteSpace: "nowrap" }}>Publicidad {fmtPct(model.incrementalShare)}</span>
               </div>
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
@@ -797,14 +797,6 @@ export default function MediaMixPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 26px 0", gap: 12, flexWrap: "wrap" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <button onClick={() => router.back()} style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--border)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--text-secondary)" }}><ArrowLeft size={15} /></button>
-            <div style={{ width: 42, height: 42, borderRadius: 12, background: VIOLET_LIGHT, border: `1px solid ${VIOLET_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 18px rgba(139,141,242,0.2)" }}><PieChartIcon size={20} color={VIOLET} /></div>
-            <div>
-              <h1 style={{ fontSize: 19, fontWeight: 800, color: "var(--foreground)", margin: 0 }}>Centurion MMM</h1>
-              <p style={{ fontSize: 11, color: "var(--text-secondary)", margin: 0 }}>
-                {model ? `NRMSE ${(model.nrmse * 100).toFixed(1)}% \u00b7 ${model.weekCount} sem \u00b7 ${channels.filter(c => c.enabled).length} canales` : "Centurion \u00b7 Marketing Mix Modeling SaaS"}
-                {saveBadge && <span style={{ color: saveBadge.color, marginLeft: 8 }}>· {saveBadge.text}</span>}
-              </p>
-            </div>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {/* Selector de Vertical (filtro) + Cliente — datos reales del workspace */}

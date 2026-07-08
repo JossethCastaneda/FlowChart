@@ -15,7 +15,7 @@ export type ModuleKey =
   | "aprobaciones" | "reportes" | "biblioteca" | "datos" | "competidores" | "linkinbio" | "roles" | "api" | "aria";
 
 export type GroupKey =
-  | "operacion" | "contenido" | "crecimiento" | "automatizacion" | "sistema";
+  | "operacion" | "contenido" | "crecimiento" | "sistema";
 
 export interface SubModule {
   label: string;   // pestaña dentro del módulo
@@ -44,7 +44,6 @@ export const MODULES: ModuleDef[] = [
   { key: "clientes",    label: "Clientes", code: "Cartera",  route: "/dashboard/proyectos", color: "var(--mod-clientes)", icon: "folder-kanban",  tagline: "Tus cuentas, en órbita",      group: "operacion",
     tabs: [
       { label: "Resumen",                route: "" },
-      { label: "Análisis de Resultados", route: "/analisis-resultados" },
       { label: "Configuración",          route: "/configuracion" },
     ] },
   { key: "inbox",       label: "Inbox",    code: "Señal",    route: "/dashboard/inbox",    color: "var(--mod-inbox)",    icon: "messages-square", tagline: "Cada mensaje, un solo canal", group: "operacion" },
@@ -59,13 +58,7 @@ export const MODULES: ModuleDef[] = [
     ] },
 
   // ── CRECIMIENTO — pauta y monitoreo ──
-  { key: "anuncios",    label: "Anuncios",     code: "Impulso",    route: "/dashboard/ads-manager",  color: "var(--mod-anuncios)", icon: "megaphone",   tagline: "Empuje para tus campañas",       group: "crecimiento",
-    tabs: [
-      { label: "Campañas",                route: "" },
-      { label: "Análisis de Resultados",  route: "/analisis-resultados" },
-      { label: "Reglas",                  route: "/analisis-resultados/reglas" },
-      { label: "Configuración",           route: "/analisis-resultados/configuracion" },
-    ] },
+  { key: "anuncios",    label: "Anuncios",     code: "Impulso",    route: "/dashboard/ads-manager",  color: "var(--mod-anuncios)", icon: "megaphone",   tagline: "Empuje para tus campañas",       group: "crecimiento" },
   { key: "mmm",         label: "Centurion MMM",    code: "Convergencia", route: "/dashboard/centurion",   color: "var(--mod-mmm)",      icon: "pie-chart",   tagline: "Marketing Mix Modeling SaaS",      group: "crecimiento",
     tabs: [
       { label: "Resumen",     route: "" },
@@ -85,12 +78,7 @@ export const MODULES: ModuleDef[] = [
     ] },
   { key: "reportes",    label: "Reportes",     code: "Bitácora",  route: "/dashboard/reportes",    color: "var(--mod-reportes)", icon: "file-text",   tagline: "Informes white-label para el cliente", group: "crecimiento" },
 
-  // ── AUTOMATIZACIÓN — los bots (Métricas es pestaña, no ítem de menú) ──
-  { key: "chatbots",    label: "Chatbots", code: "Piloto", route: "/dashboard/botmaker", color: "var(--mod-chatbots)", icon: "bot", tagline: "Tu copiloto automático", group: "automatizacion",
-    tabs: [
-      { label: "Constructor",      route: "" },
-      { label: "Métricas de bots", route: "/analytics" }, // ✦ Telemetría
-    ] },
+
 
   // ── SISTEMA — ajuste, no trabajo diario (pie del sidebar, en gris) ──
   { key: "integraciones", label: "Integraciones", code: "Enlaces", route: "/dashboard/integrations", color: "var(--text-muted)", icon: "plug", tagline: "Conecta tus cuentas", group: "sistema",
@@ -115,7 +103,6 @@ export const GROUP_LABELS: Record<GroupKey, string> = {
   operacion:      "Operación",
   contenido:      "Contenido",
   crecimiento:    "Crecimiento",
-  automatizacion: "Automatización",
   sistema:        "Sistema",
 };
 

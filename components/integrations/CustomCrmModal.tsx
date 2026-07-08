@@ -67,7 +67,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
     <div
       style={{
         position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+        background: "var(--panel-bg)", 
         display: "flex", alignItems: "center", justifyContent: "center",
       }}
       onClick={onClose}
@@ -104,7 +104,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               onChange={e => setForm({ ...form, apiUrl: e.target.value })}
               style={{
                 width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 13,
-                background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)",
+                background: "var(--surface-hover)", border: "1px solid var(--hairline)",
                 color: "var(--foreground)", outline: "none"
               }}
             />
@@ -121,8 +121,8 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               onChange={e => setForm({ ...form, token: e.target.value })}
               style={{
                 width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 13,
-                background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)",
-                color: "var(--foreground)", outline: "none", fontFamily: "monospace"
+                background: "var(--surface-hover)", border: "1px solid var(--hairline)",
+                color: "var(--foreground)", outline: "none", fontFamily: "var(--font-mono)"
               }}
             />
           </div>
@@ -138,8 +138,8 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
               onChange={e => setForm({ ...form, refreshToken: e.target.value })}
               style={{
                 width: "100%", padding: "10px 12px", borderRadius: 8, fontSize: 13,
-                background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)",
-                color: "var(--foreground)", outline: "none", fontFamily: "monospace"
+                background: "var(--surface-hover)", border: "1px solid var(--hairline)",
+                color: "var(--foreground)", outline: "none", fontFamily: "var(--font-mono)"
               }}
             />
           </div>
@@ -162,7 +162,7 @@ export function CustomCrmModal({ onClose, onSuccess }: CustomCrmModalProps) {
             disabled={testing || !form.apiUrl || !form.token}
             style={{
               padding: "10px 16px", borderRadius: 6, fontSize: 12, fontWeight: 600,
-              background: "rgba(255,255,255,0.05)", border: "1px solid var(--hairline)",
+              background: "var(--surface-hover)", border: "1px solid var(--hairline)",
               color: "var(--foreground)", cursor: testing || !form.apiUrl || !form.token ? "not-allowed" : "pointer",
               display: "flex", alignItems: "center", gap: 6,
             }}

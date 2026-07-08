@@ -13,6 +13,7 @@
  * cifras tabulares. Sin emojis ni iconografía decorativa.
  */
 import { PageHeader } from "@/components/ui/PageHeader";
+import { HScroller } from "@/components/ui/HScroller";
 import { useCallback, useEffect, useState } from "react";
 
 interface CatalogModel {
@@ -88,6 +89,10 @@ export default function AgentesPage() {
   const [saving, setSaving] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
 
+  const [orchestrating, setOrchestrating] = useState(false);
+  const [orchestratorResult, setOrchestratorResult] = useState<any>(null);
+  const [orchestratorError, setOrchestratorError] = useState<string | null>(null);
+
   // Recarga por clave: el efecto sincroniza con la API (sistema externo) y solo
   // transiciona el estado en continuaciones async, con flag de cancelación.
   const [reloadKey, setReloadKey] = useState(0);
@@ -142,12 +147,130 @@ export default function AgentesPage() {
     }
   };
 
+  const triggerOrchestrator = async () => {
+    setOrchestrating(true);
+    setOrchestratorResult(null);
+    setOrchestratorError(null);
+    try {
+      const res = await fetch("/api/agents/orchestrate", { method: "POST" });
+      const j = await res.json();
+      if (!res.ok || !j?.success) {
+        setOrchestratorError(j?.error ?? "Error al orquestar agentes.");
+      } else {
+        setOrchestratorResult(j.data);
+      }
+    } catch {
+      setOrchestratorError("Error de conexión.");
+    } finally {
+      setOrchestrating(false);
+    }
+  };
+
   return (
     <div className="p-4 sm:p-6 flex flex-col gap-6">
       <PageHeader
         title="Agentes"
-        description="El núcleo de IA de Sodare. Contrata un modelo y la inteligencia entra en juego en todos y cada uno de los módulos de la plataforma."
+        description="El núcleo de IA de Sodare. Activa un modelo y la inteligencia entra en juego en todos los módulos de la plataforma."
       />
+
+      {/* SECCIÓN: ORQUESTADOR */}
+      <section
+        className="rounded-xl p-5 sm:p-6 mb-2 flex flex-col gap-4"
+        style={{
+          background: "var(--surface)",
+          border: "1px solid var(--border-neutral)",
+          position: "relative",
+          overflow: "hidden"
+        }}
+      >
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, var(--cyan), var(--blue))" }} />
+        
+        <div>
+          <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", margin: "0 0 4px" }}>Plan de Acción</h2>
+          <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, maxWidth: 600 }}>
+            Dispara el orquestador backend. Este proceso ejecuta 5 subagentes en paralelo que analizan tu workspace (crecimiento, proyectos, operaciones, publicaciones e inbox) y sintetiza los hallazgos en un plan priorizado.
+          </p>
+        </div>
+
+        <div>
+          <button
+            onClick={triggerOrchestrator}
+            disabled={orchestrating || !data?.explicit && !data?.activeProviderId}
+            className="px-4 py-2 rounded-md text-sm font-semibold transition"
+            style={{
+              background: orchestrating ? "var(--surface-hover)" : "var(--foreground)",
+              color: orchestrating ? "var(--text-muted)" : "var(--background)",
+              cursor: orchestrating ? "default" : "pointer",
+            }}
+          >
+            {orchestrating ? "Analizando workspace..." : "Analizar mi workspace"}
+          </button>
+        </div>
+
+        {orchestratorError && (
+          <div style={{ padding: "10px 14px", borderRadius: 8, fontSize: 13, color: "var(--red)", background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.3)" }}>
+            {orchestratorError}
+          </div>
+        )}
+
+        {orchestratorResult && (
+          <div className="mt-2 flex flex-col gap-4">
+            <div style={{ padding: 16, background: "var(--background)", borderRadius: 8, border: "1px solid var(--border)" }}>
+              <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8, color: "var(--foreground)" }}>Síntesis del Plan ({orchestratorResult.model})</h3>
+              <div style={{ fontSize: 13, lineHeight: 1.6, color: "var(--text-secondary)", whiteSpace: "pre-wrap" }}>
+                {orchestratorResult.plan.summary}
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {orchestratorResult.agentes.map((ag: any) => (
+                <div key={ag.key} style={{ padding: 12, background: "var(--background)", borderRadius: 8, border: `1px solid ${ag.ok ? "var(--border)" : "var(--red-dim)"}` }}>
+                  <div className="flex justify-between items-center mb-2">
+                    <span style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)" }}>{ag.nombre}</span>
+                    <span style={{ fontSize: 10, padding: "2px 6px", borderRadius: 4, background: ag.ok ? "var(--emerald-dim)" : "var(--red-dim)", color: ag.ok ? "var(--emerald)" : "var(--red)" }}>
+                      {ag.ok ? "OK" : "Error"}
+                    </span>
+                  </div>
+                  {ag.ok && ag.hallazgos ? (
+                    <div className="mt-3 flex flex-col gap-3">
+                      <div>
+                        <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Hallazgos</h4>
+                        <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "var(--text-secondary)", listStyleType: "circle" }}>
+                          {ag.hallazgos.hallazgos?.map((h: string, i: number) => (
+                            <li key={i} style={{ marginBottom: 3 }}>{h}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      {ag.hallazgos.recomendaciones?.length > 0 && (
+                        <div>
+                          <h4 style={{ fontSize: 11, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 4 }}>Recomendaciones</h4>
+                          <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12, color: "var(--text-muted)", listStyleType: "circle" }}>
+                            {ag.hallazgos.recomendaciones.map((r: string, i: number) => (
+                              <li key={i} style={{ marginBottom: 3 }}>{r}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      <div style={{ marginTop: 2, display: "flex", gap: 6, alignItems: "center" }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, color: "var(--text-muted)", textTransform: "uppercase" }}>Prioridad:</span>
+                        <span style={{ 
+                          fontSize: 10, padding: "2px 6px", borderRadius: 4, fontWeight: 700,
+                          background: ag.hallazgos.prioridad === "alta" ? "var(--red-dim)" : ag.hallazgos.prioridad === "media" ? "var(--amber-dim)" : "var(--blue-dim)",
+                          color: ag.hallazgos.prioridad === "alta" ? "var(--red)" : ag.hallazgos.prioridad === "media" ? "var(--amber)" : "var(--blue)"
+                        }}>
+                          {ag.hallazgos.prioridad}
+                        </span>
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ fontSize: 11, color: "var(--red)", marginTop: 8 }}>Falló el análisis.</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
 
       {saveError && (
         <div
@@ -216,12 +339,12 @@ export default function AgentesPage() {
                     color: p.configured ? "var(--emerald)" : "var(--text-muted)",
                   }}
                 >
-                  {p.configured ? "Conectada" : `Sin conexión · ${p.envVar}`}
+                  {p.configured ? "Conectada" : `No disponible`}
                 </span>
               </div>
 
               {/* Fila deslizable: una card por modelo */}
-              <div className="flex gap-4 overflow-x-auto pb-3 snap-x snap-mandatory" style={{ scrollbarWidth: "thin" }}>
+              <HScroller ariaLabel={`Modelos de ${p.label}`}>
                 {p.models.map((m) => {
                   const isActive = data.explicit && data.activeModel === m.id;
                   const isRecommended = p.recommendedModel === m.id;
@@ -261,7 +384,10 @@ export default function AgentesPage() {
                                   fontWeight: 700,
                                   letterSpacing: "0.08em",
                                   textTransform: "uppercase",
-                                  color: "var(--text-muted)",
+                                  color: "var(--background)",
+                                  background: "var(--foreground)",
+                                  padding: "2px 6px",
+                                  borderRadius: 4
                                 }}
                               >
                                 Recomendado
@@ -322,9 +448,9 @@ export default function AgentesPage() {
                             disabled={!p.configured || !data.canManage || isActive || busy}
                             title={
                               !p.configured
-                                ? `Conecta ${p.envVar} para habilitar este modelo`
+                                ? `Este modelo no está disponible`
                                 : !data.canManage
-                                  ? "Solo administradores pueden contratar modelos"
+                                  ? "Solo administradores pueden activar modelos"
                                   : undefined
                             }
                             className="w-full py-2 rounded-md text-sm font-semibold transition disabled:cursor-not-allowed"
@@ -336,14 +462,14 @@ export default function AgentesPage() {
                               cursor: !p.configured || !data.canManage || isActive ? "default" : "pointer",
                             }}
                           >
-                            {busy ? "Activando..." : isActive ? "Activo en el workspace" : "Contratar"}
+                            {busy ? "Activando..." : isActive ? "Activo" : "Activar"}
                           </button>
                         </div>
                       </div>
                     </article>
                   );
                 })}
-              </div>
+              </HScroller>
             </section>
           );
         })}

@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import React, { useState } from "react";
 import Link from "next/link";
@@ -25,8 +25,8 @@ export function PublisherTabs() {
           overflowX: "auto",
           padding: 3,
           borderRadius: 10,
-          background: "rgba(255,255,255,0.025)",
-          border: "1px solid rgba(255,255,255,0.06)",
+          background: "var(--surface-hover)",
+          border: "1px solid var(--hairline)",
         }}
       >
         {TABS.map((tab) => {
@@ -43,9 +43,9 @@ export function PublisherTabs() {
                 gap: 7,
                 padding: "9px 16px",
                 borderRadius: 8,
-                background: isActive ? "rgba(255,255,255,0.1)" : "transparent",
+                background: isActive ? "var(--surface-hover)" : "transparent",
                 border: "none",
-                color: isActive ? "white" : "var(--text-muted)",
+                color: isActive ? "var(--foreground)" : "var(--text-muted)",
                 fontSize: 12,
                 fontWeight: isActive ? 700 : 600,
                 cursor: "pointer",
@@ -131,7 +131,7 @@ function PlannerOverview() {
         gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))",
         gap: 1,
         overflow: "hidden",
-        background: "rgba(255,255,255,0.06)",
+        background: "var(--surface-hover)",
       }}
     >
       {[
@@ -139,7 +139,7 @@ function PlannerOverview() {
         ["Mejor horario", "Usa Analytics para elegir ventanas antes de programar."],
         ["Estado Meta", "Valida permisos en Integraciones si falta algun canal."],
       ].map(([title, text]) => (
-        <div key={title} style={{ padding: 14, background: "rgba(5,8,18,0.96)" }}>
+        <div key={title} style={{ padding: 14, background: "var(--bg-raised)" }}>
           <div style={{ fontSize: 12, fontWeight: 800, color: "var(--foreground)" }}>{title}</div>
           <div style={{ marginTop: 5, fontSize: 11, lineHeight: 1.45, color: "var(--text-secondary)" }}>{text}</div>
         </div>

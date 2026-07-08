@@ -44,8 +44,20 @@ describe("authOptions configuration", () => {
     );
 
     it("matches existing legacy user by Facebook ID when no Account record exists and email is null", async () => {
-      // 1. Mock Graph API response
+      // 1. Mock debug_token response
       mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({
+          data: {
+            is_valid: true,
+            app_id: process.env.FACEBOOK_CLIENT_ID || "ci-only-dummy-fb-id",
+          },
+        }),
+      });
+
+      // 1b. Mock Graph API /me response
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
         status: 200,
         json: async () => ({
           id: "758431820460507",

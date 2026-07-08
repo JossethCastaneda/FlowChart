@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
 import {
@@ -48,7 +48,7 @@ const FormatBadge = ({ format }: { format: string }) => {
       position: "absolute", top: 8, right: 8, padding: "2px 8px",
       fontSize: 9, fontWeight: 700, background: c.bg, color: c.text,
       borderRadius: 4, letterSpacing: "0.05em", textTransform: "uppercase",
-      backdropFilter: "blur(4px)", zIndex: 2,
+       zIndex: 2,
     }}>{label}</span>
   );
 };
@@ -77,30 +77,30 @@ const VideoPlayer = ({
   if (!src) {
     // No playable video source from Meta — show poster (contain) with a clear notice.
     return (
-      <div style={{ position: "relative", width: "100%", height: "100%" }}>
-        <img src={poster} alt="" style={{ width: "100%", height: "100%", objectFit: "contain", background: "#000" }} />
+      <div style={{ position: "relative", width: "100%" }}>
+        <img src={poster} alt="" style={{ width: "100%", height: "auto", display: "block", background: "var(--background)" }} />
         <div style={{
           position: "absolute", inset: 0, display: "flex", flexDirection: "column", gap: 6,
-          alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.35)",
+          alignItems: "center", justifyContent: "center", background: "var(--surface-hover)",
         }}>
           <Play style={{ width: compact ? 22 : 36, height: compact ? 22 : 36, color: "var(--foreground)", fill: "white", opacity: 0.45 }} />
-          {!compact && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.7)" }}>Vista previa de video no disponible</span>}
+          {!compact && <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>Vista previa de video no disponible</span>}
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }} onClick={toggle}>
+    <div style={{ position: "relative", width: "100%" }} onClick={toggle}>
       <video
         ref={ref} src={src} poster={poster} muted={muted} loop playsInline
-        style={{ width: "100%", height: "100%", objectFit: "contain", cursor: "pointer", background: "#000" }}
+        style={{ width: "100%", height: "auto", display: "block", cursor: "pointer", background: "var(--background)" }}
       />
       {/* Play/Pause overlay */}
       {!playing && (
         <div style={{
           position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-          background: "rgba(0,0,0,0.25)", cursor: "pointer",
+          background: "var(--surface-hover)", cursor: "pointer",
         }}>
           <Play style={{ width: compact ? 28 : 48, height: compact ? 28 : 48, color: "var(--foreground)", fill: "white", opacity: 0.9 }} />
         </div>
@@ -112,7 +112,7 @@ const VideoPlayer = ({
         <button
           onClick={() => { setMuted(!muted); if (ref.current) ref.current.muted = !muted; }}
           style={{
-            background: "rgba(0,0,0,0.5)", border: "none", borderRadius: 4, padding: 4,
+            background: "var(--panel-bg)",  border: "none", borderRadius: 4, padding: 4,
             cursor: "pointer", display: "flex", alignItems: "center",
           }}
         >
@@ -134,10 +134,10 @@ const CarouselViewer = ({
   if (!items.length) return null;
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "100%" }}>
+    <div style={{ position: "relative", width: "100%" }}>
       <img
         src={items[idx].imageUrl} alt={items[idx].title}
-        style={{ width: "100%", height: "100%", objectFit: "cover", transition: "opacity 0.2s" }}
+        style={{ width: "100%", height: "auto", display: "block", transition: "opacity 0.2s" }}
       />
       {/* Nav arrows */}
       {items.length > 1 && (
@@ -185,7 +185,7 @@ const CarouselViewer = ({
       {!compact && items[idx].title && (
         <div style={{
           position: "absolute", bottom: 28, left: 8, right: 8,
-          background: "rgba(0,0,0,0.6)", borderRadius: 4, padding: "4px 8px", zIndex: 2,
+          background: "var(--panel-bg)",  borderRadius: 4, padding: "4px 8px", zIndex: 2,
         }}>
           <p style={{ fontSize: 10, color: "var(--foreground)", fontWeight: 600 }}>{items[idx].title}</p>
         </div>
@@ -206,31 +206,33 @@ export const CreativeCard = ({
     <div
       onClick={onPreview}
       style={{
-        background: "rgba(255,255,255,0.025)", border: "1px solid var(--hairline)",
+        background: "var(--surface-hover)", border: "1px solid var(--hairline)",
         borderRadius: 8, overflow: "hidden", cursor: "pointer",
         transition: "border-color 0.2s, transform 0.15s",
       }}
       onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(59,130,246,0.25)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
       onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; e.currentTarget.style.transform = "none"; }}
     >
-      {/* Media area — auto-size based on content */}
-      <div style={{ position: "relative", width: "100%", aspectRatio: "1 / 1", background: "rgba(0,0,0,0.4)", overflow: "hidden" }}>
+      {/* Media area — fixed aspect ratio for consistency */}
+      <div style={{ position: "relative", width: "100%", aspectRatio: "4 / 5", background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", overflow: "hidden" }}>
         {ad.format === "video" ? (
-          <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} compact />
-        ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
-          <CarouselViewer items={ad.carouselItems} compact />
-        ) : hasMedia ? (
-          <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-        ) : (
           <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Eye style={{ width: 24, height: 24, color: "var(--text-muted)" }} />
+            <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} compact />
           </div>
+        ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
+          <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <CarouselViewer items={ad.carouselItems} compact />
+          </div>
+        ) : hasMedia ? (
+          <img src={ad.thumbnailUrl} alt={ad.adName} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+        ) : (
+          <Eye style={{ width: 24, height: 24, color: "var(--text-muted)" }} />
         )}
         <FormatBadge format={ad.format} />
         {/* Preview hint */}
         <div style={{
           position: "absolute", bottom: 8, left: 8, padding: "3px 8px",
-          background: "rgba(0,0,0,0.5)", borderRadius: 4, fontSize: 9, color: "rgba(255,255,255,0.7)",
+          background: "var(--panel-bg)",  borderRadius: 4, fontSize: 9, color: "var(--text-secondary)",
           opacity: 0, transition: "opacity 0.2s", pointerEvents: "none",
         }} className="preview-hint">
           <Eye style={{ width: 10, height: 10, display: "inline", verticalAlign: "middle", marginRight: 4 }} />
@@ -284,8 +286,8 @@ export const CreativeLightbox = ({
     <div
       onClick={onClose}
       style={{
-        position: "fixed", inset: 0, background: "rgba(0,0,0,0.85)",
-        backdropFilter: "blur(8px)", zIndex: 9999,
+        position: "fixed", inset: 0, background: "var(--overlay-dark)",
+         zIndex: 9999,
         display: "flex", alignItems: "center", justifyContent: "center",
         padding: 20, animation: "fadeIn 0.2s ease",
       }}
@@ -306,7 +308,7 @@ export const CreativeLightbox = ({
         <div style={{ flex: 1, padding: "16px 16px", display: "flex", flexDirection: "column" }}>
           {/* Close */}
           <button onClick={onClose} style={{
-            position: "absolute", top: 12, right: 12, background: "rgba(255,255,255,0.1)",
+            position: "absolute", top: 12, right: 12, background: "var(--surface-hover)",
             border: "1px solid var(--hairline)", borderRadius: 6, width: 32, height: 32,
             cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 10
           }}>
@@ -319,13 +321,13 @@ export const CreativeLightbox = ({
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
               <span style={{ width: 7, height: 7, borderRadius: "50%", background: statusColor }} />
               <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{statusLabel}</span>
-              <span style={{ fontSize: 10, color: "rgba(148,163,184,0.55)", fontFamily: "monospace", marginLeft: 8 }}>ID: {ad.adId}</span>
+              <span style={{ fontSize: 10, color: "var(--text-secondary)", fontFamily: "var(--font-mono)", marginLeft: 8 }}>ID: {ad.adId}</span>
             </div>
           </div>
 
           {/* ── Ad Preview (Feed simulation) moved to the top ── */}
           <div style={{
-            background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)",
+            background: "var(--surface-hover)", border: "1px solid var(--hairline)",
             borderRadius: 8, overflow: "hidden", marginBottom: 20, flexShrink: 0
           }}>
             <div style={{ padding: "10px 12px", borderBottom: "1px solid var(--hairline)" }}>
@@ -340,7 +342,7 @@ export const CreativeLightbox = ({
                 )}
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{pageName || ad.title || ad.adName}</p>
-                  <p style={{ fontSize: 10, color: "rgba(148,163,184,0.7)" }}>Publicidad · 🌐</p>
+                  <p style={{ fontSize: 10, color: "var(--text-secondary)" }}>Publicidad · 🌐</p>
                 </div>
               </div>
             </div>
@@ -355,9 +357,9 @@ export const CreativeLightbox = ({
             )}
 
             {/* Preview image/video — single media surface, capped height */}
-            <div style={{ width: "100%", background: "#000", overflow: "hidden", position: "relative" }}>
+            <div style={{ width: "100%", background: "var(--background)", overflow: "hidden", position: "relative" }}>
               {ad.format === "video" ? (
-                <div style={{ width: "100%", height: "min(56vh, 480px)", position: "relative", background: "#000" }}>
+                <div style={{ width: "100%", height: "min(56vh, 480px)", position: "relative", background: "var(--background)" }}>
                   <VideoPlayer src={ad.videoUrl || ""} poster={ad.thumbnailUrl} autoPlay={!!ad.videoUrl} />
                 </div>
               ) : ad.format === "carousel" && ad.carouselItems && ad.carouselItems.length > 0 ? (
@@ -378,7 +380,7 @@ export const CreativeLightbox = ({
               {ad.cta && (
                 <span style={{
                   padding: "6px 14px", fontSize: 11, fontWeight: 700,
-                  background: "rgba(0,129,251,0.12)", color: "#0081FB",
+                  background: "var(--surface)", color: "#0081FB",
                   borderRadius: 4, textTransform: "uppercase", whiteSpace: "nowrap", marginLeft: 12,
                 }}>{ad.cta}</span>
               )}
@@ -401,7 +403,7 @@ export const CreativeLightbox = ({
               { label: "Inversión", value: fmtMXN(ad.spend), color: "var(--amber)" },
               { label: "Resultados", value: String(ad.results), color: "var(--emerald)" },
               { label: cprLabel, value: ad.cprVal === Infinity ? "—" : fmtMXN(ad.cprVal), color: ad.cprVal === Infinity ? "var(--red)" : cprTarget > 0 && ad.cprVal > cprTarget ? "var(--red)" : "var(--cyan)" },
-              { label: "CTR", value: `${ad.ctr.toFixed(2)}%`, color: "rgba(148,163,184,0.7)" },
+              { label: "CTR", value: `${ad.ctr.toFixed(2)}%`, color: "var(--text-secondary)" },
             ].map(m => (
               <div key={m.label} style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, padding: "8px 10px" }}>
                 <p style={{ fontSize: 8, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: 2 }}>{m.label}</p>

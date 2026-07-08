@@ -7,6 +7,8 @@ import { useSearchParams } from "next/navigation";
 import { signOut } from "next-auth/react";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
+import { ConnectPlatformDropdown } from "@/components/projects/ConnectPlatformDropdown";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Orbi } from "@/components/ui/Orbi";
 import { KpiCard } from "@/components/ui/KpiCard";
@@ -170,7 +172,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
         {!ro && <ChevronDown className="w-3 h-3" style={{ opacity: 0.5 }} />}
       </div>
       {open && !ro && !disabled && (
-        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)", backdropFilter: "blur(10px)", maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
+        <div style={{ position: "absolute", top: "100%", left: 0, right: 0, zIndex: 100, background: "var(--panel-bg)", border: "1px solid rgba(59,130,246,0.2)",  maxHeight: "200px", overflowY: "auto", marginTop: "4px" }}>
           <div style={{ padding: "8px", position: "sticky", top: 0, background: "var(--panel-bg)", zIndex: 10 }}>
             <input 
               type="text" 
@@ -183,7 +185,7 @@ function CustomSelect({ value, options, onChange, placeholder, disabled, ro }: a
           </div>
           {Object.entries(grouped).map(([portfolio, items]) => (
             <div key={portfolio}>
-              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "rgba(59,130,246,0.05)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
+              <div style={{ padding: "4px 10px", fontSize: "10px", fontWeight: 700, color: "var(--cyan)", textTransform: "uppercase", letterSpacing: "0.1em", background: "var(--cyan-dim)", borderTop: "1px solid rgba(59,130,246,0.1)", borderBottom: "1px solid rgba(59,130,246,0.1)" }}>
                 {portfolio}
               </div>
               {items.map((o: any) => (
@@ -462,9 +464,12 @@ function ProyectosContent() {
         description="Gestiona tus proyectos de clientes, campañas y presupuestos."
         icon={<FolderKanban className="w-6 h-6" style={{ color: "var(--emerald)" }} />}
         action={
-          <button className="btn-primary" onClick={() => { setEditingId(null); setModalMode("create"); }} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-            <Plus className="w-4 h-4" /> Nuevo Proyecto
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <ConnectPlatformDropdown />
+            <button className="btn-primary" onClick={() => { setEditingId(null); setModalMode("create"); }} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+              <Plus className="w-4 h-4" /> Nuevo Proyecto
+            </button>
+          </div>
         }
       />
 
@@ -489,13 +494,13 @@ function ProyectosContent() {
       {fetchError && (
         <div style={{
           padding: "12px 16px", borderRadius: "8px", fontSize: "13px", fontWeight: 600,
-          background: "rgba(251,191,36,0.12)", color: "var(--amber)",
+          background: "var(--surface)", color: "var(--amber)",
           border: "1px solid rgba(251,191,36,0.35)",
           display: "flex", alignItems: "center", gap: "10px"
         }}>
           <AlertTriangle className="w-4 h-4" style={{ flexShrink: 0 }} />
           <span style={{ flex: 1 }}>{fetchError}</span>
-          <button onClick={() => { setFetchError(null); loadProjects(); }} style={{ background: "rgba(251,191,36,0.2)", border: "1px solid rgba(251,191,36,0.4)", color: "inherit", cursor: "pointer", padding: "4px 12px", borderRadius: "4px", fontSize: "12px", fontWeight: 600 }}>Reintentar</button>
+          <button onClick={() => { setFetchError(null); loadProjects(); }} style={{ background: "var(--surface)", border: "1px solid rgba(251,191,36,0.4)", color: "inherit", cursor: "pointer", padding: "4px 12px", borderRadius: "4px", fontSize: "12px", fontWeight: 600 }}>Reintentar</button>
           <button onClick={() => setFetchError(null)} style={{ background: "none", border: "none", color: "inherit", cursor: "pointer", opacity: 0.8 }}><X className="w-4 h-4" /></button>
         </div>
       )}
@@ -507,87 +512,6 @@ function ProyectosContent() {
         <KpiCard color="amber" icon={<DollarSign className="w-4 h-4" />} value={`$${totalBudget.toLocaleString()}`} label="Budget Total" />
       </div>
 
-      {/* ── META ADS CONNECTION PANEL ── */}
-      {adsConnected === false ? (
-        <div style={{
-          position: "relative",
-          display: "flex", alignItems: "center", gap: "16px",
-          padding: "16px 20px",
-          background: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(155,123,232,0.06) 50%, rgba(236,72,153,0.08) 100%)",
-          border: "1px solid rgba(155,123,232,0.2)",
-          borderRadius: "12px",
-          overflow: "hidden",
-        }}>
-          {/* Animated gradient accent line */}
-          <div style={{
-            position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-            background: "linear-gradient(90deg, var(--purple), var(--purple), var(--red), var(--purple))",
-            backgroundSize: "200% 100%",
-            animation: "shimmer 3s linear infinite",
-          }} />
-          <div style={{
-            display: "flex", alignItems: "center", justifyContent: "center",
-            width: "40px", height: "40px", borderRadius: "10px", flexShrink: 0,
-            background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(155,123,232,0.2))",
-            boxShadow: "0 0 20px rgba(155,123,232,0.15)",
-          }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 2L2 7l10 5 10-5-10-5z" />
-              <path d="M2 17l10 5 10-5" />
-              <path d="M2 12l10 5 10-5" />
-            </svg>
-          </div>
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)", margin: 0, lineHeight: 1.3 }}>
-              Conecta Meta Ads Manager
-            </p>
-            <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "3px 0 0", lineHeight: 1.4 }}>
-              Vincula tus cuentas publicitarias para gestionar campañas y presupuestos en tiempo real.
-            </p>
-          </div>
-          <a
-            href="/api/connect/ads"
-            className="ads-connect-btn"
-            style={{
-              display: "inline-flex", alignItems: "center", gap: "8px",
-              padding: "10px 20px",
-              background: "linear-gradient(135deg, var(--purple), var(--purple))",
-              color: "#fff",
-              fontSize: "12px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" as const,
-              borderRadius: "8px", cursor: "pointer", textDecoration: "none",
-              whiteSpace: "nowrap",
-              boxShadow: "0 4px 15px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.15)",
-              border: "none",
-              transition: "all 0.3s ease",
-              position: "relative",
-              overflow: "hidden",
-            }}
-            onMouseEnter={(e) => {
-              const el = e.currentTarget;
-              el.style.transform = "translateY(-1px)";
-              el.style.boxShadow = "0 6px 20px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.2)";
-            }}
-            onMouseLeave={(e) => {
-              const el = e.currentTarget;
-              el.style.transform = "translateY(0)";
-              el.style.boxShadow = "0 4px 15px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.15)";
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
-            Conectar
-          </a>
-          <style>{`
-            @keyframes shimmer {
-              0% { background-position: 200% 0; }
-              100% { background-position: -200% 0; }
-            }
-          `}</style>
-        </div>
-      ) : null}
 
 
       {/* Projects Grid */}
@@ -694,15 +618,15 @@ function ProyectosContent() {
       {menuOpen && createPortal(
         <>
           <div style={{ position: "fixed", inset: 0, zIndex: 9990 }} onClick={() => setMenuOpen(null)} />
-          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "rgba(5,8,18,0.98)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0", backdropFilter: "blur(12px)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
+          <div style={{ position: "fixed", top: menuPos.top, right: menuPos.right, zIndex: 9991, background: "var(--surface)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: "6px", minWidth: "180px", padding: "4px 0",  boxShadow: "0 8px 32px rgba(0,0,0,0.5)" }}>
             <MenuBtn icon={<Eye className="w-3.5 h-3.5" />} text="Abrir Dashboard" onClick={() => { router.push(`/dashboard/proyectos/${menuOpen}`); setMenuOpen(null); }} />
             <MenuBtn icon={<Edit3 className="w-3.5 h-3.5" />} text="Editar Proyecto" onClick={() => { setEditingId(menuOpen); setModalMode("edit"); setMenuOpen(null); }} />
-            <div style={{ height: "1px", background: "rgba(255,255,255,0.09)", margin: "4px 0" }} />
+            <div style={{ height: "1px", background: "var(--surface-hover)", margin: "4px 0" }} />
             {STATUSES.filter(s => s !== projects.find(pp => pp.id === menuOpen)?.status).map(s => (
               <MenuBtn key={s} icon={<div style={{ width: 6, height: 6, borderRadius: "50%", background: s === "EN VUELO" ? "var(--emerald)" : s === "EN ÓRBITA" ? "var(--amber)" : s === "Completado" ? "var(--cyan)" : "var(--text-muted)" }} />}
                 text={`Cambiar a ${s}`} onClick={() => handleStatusChange(menuOpen, s)} />
             ))}
-            <div style={{ height: "1px", background: "rgba(255,255,255,0.09)", margin: "4px 0" }} />
+            <div style={{ height: "1px", background: "var(--surface-hover)", margin: "4px 0" }} />
             <MenuBtn icon={<Trash2 className="w-3.5 h-3.5" />} text="Eliminar" onClick={() => { setDeleteConfirm(menuOpen); setMenuOpen(null); }} danger />
           </div>
         </>,
@@ -711,20 +635,20 @@ function ProyectosContent() {
 
       {/* Delete Confirmation Dialog */}
       {deleteConfirm && createPortal(
-        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(4px)" }}
+        <div style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", background: "var(--panel-bg)",  }}
           onClick={() => setDeleteConfirm(null)}
         >
-          <div onClick={e => e.stopPropagation()} style={{ background: "rgba(5,8,18,0.98)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: "var(--surface)", border: "1px solid rgba(226,68,92,0.25)", borderRadius: 8, padding: 24, maxWidth: 400, width: "90%" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
               <AlertTriangle style={{ width: 20, height: 20, color: "var(--red)" }} />
-              <h3 style={{ fontSize: 14, fontWeight: 700, color: "white" }}>Eliminar Proyecto</h3>
+              <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>Eliminar Proyecto</h3>
             </div>
             <p style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 20, lineHeight: 1.6 }}>
-              ¿Estás seguro de que deseas eliminar <strong style={{ color: "white" }}>{projects.find(p => p.id === deleteConfirm)?.alias || "este proyecto"}</strong>? Esta acción no se puede deshacer. Se eliminarán todos los canales, configuraciones y datos asociados.
+              ¿Estás seguro de que deseas eliminar <strong style={{ color: "var(--foreground)" }}>{projects.find(p => p.id === deleteConfirm)?.alias || "este proyecto"}</strong>? Esta acción no se puede deshacer. Se eliminarán todos los canales, configuraciones y datos asociados.
             </p>
             <div style={{ display: "flex", justifyContent: "flex-end", gap: 10 }}>
-              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(148,163,184,0.22)", color: "var(--text-secondary)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
-              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "var(--red)", background: "rgba(226,68,92,0.08)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
+              <button onClick={() => setDeleteConfirm(null)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid var(--border)", color: "var(--text-secondary)", background: "transparent", cursor: "pointer", borderRadius: 4 }}>Cancelar</button>
+              <button onClick={() => handleDelete(deleteConfirm)} style={{ fontSize: 11, fontWeight: 600, padding: "8px 20px", border: "1px solid rgba(226,68,92,0.4)", color: "var(--red)", background: "var(--surface)", cursor: "pointer", borderRadius: 4 }}>Sí, eliminar</button>
             </div>
           </div>
         </div>,

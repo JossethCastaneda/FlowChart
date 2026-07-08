@@ -10,6 +10,8 @@ import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { WhatsAppPhonePrompt } from "@/components/ui/WhatsAppPhonePrompt";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
+import { useHeaderStore } from "@/lib/header-store";
+import { useTheme } from "next-themes";
 import {
   LayoutDashboard,
   Users,
@@ -191,6 +193,33 @@ const getTranslatedNavItemName = (name: string, lang: 'es' | 'en') => {
   return map[name] || name;
 };
 
+const BREADCRUMB_MAP: Record<string, { es: string; en: string }> = {
+  dashboard: { es: "Inicio", en: "Home" },
+  proyectos: { es: "Clientes", en: "Clients" },
+  resumen: { es: "Resumen", en: "Overview" },
+  botmaker: { es: "Botmaker", en: "Botmaker" },
+  analytics: { es: "Analítica", en: "Analytics" },
+  portabilidad: { es: "Portabilidad", en: "Portability" },
+  briefing: { es: "Briefing", en: "Briefing" },
+  centurion: { es: "Centurion", en: "Centurion" },
+  crecimiento: { es: "Crecimiento", en: "Growth" },
+  studio: { es: "AI Studio", en: "AI Studio" },
+  scores: { es: "Scoreboard", en: "Scoreboard" },
+  "data-hub": { es: "Data Hub", en: "Data Hub" },
+  gridia: { es: "GridIA", en: "GridIA" },
+  historial: { es: "Historial", en: "History" },
+  inbox: { es: "Inbox 2.0", en: "Inbox 2.0" },
+  integrations: { es: "Integraciones", en: "Integrations" },
+  ops: { es: "Ops", en: "Ops" },
+  publisher: { es: "Publicador", en: "Publisher" },
+  reportes: { es: "Reportes", en: "Reports" },
+  settings: { es: "Configuración", en: "Settings" },
+  streams: { es: "Streams", en: "Streams" },
+  "analisis-resultados": { es: "Análisis de Resultados", en: "Performance Analysis" },
+  configuracion: { es: "Configuración", en: "Settings" },
+  reglas: { es: "Reglas", en: "Rules" },
+};
+
 /** Width of the invisible hover-trigger zone at the left edge */
 const HOVER_TRIGGER_WIDTH = 20;
 /** Delay (ms) before the sidebar auto-hides after mouse leaves */
@@ -201,6 +230,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   // "sidebarPinned" persists across sessions — sidebar stays open without hover
   const [sidebarPinned, setSidebarPinned] = useState(false);
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  const { lang, setLang } = useLanguage();
   const currentModule = MODULES.find(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
 
   // Load pinned preference on mount
@@ -230,6 +261,11 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: session } = useSession();
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [session?.user?.image]);
 
   useEffect(() => {
     setMounted(true);
@@ -257,6 +293,63 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   }, []);
 
   // ── Auto show/hide on hover ──
+  const { breadcrumbs } = useHeaderStore();
+
+  const [projectNames, setProjectNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!pathname) return;
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments[1] === "proyectos" && segments[2]) {
+      const projectId = segments[2];
+      if (!projectNames[projectId]) {
+        fetch(`/api/projects/${projectId}`)
+          .then((r) => r.json())
+          .then((res) => {
+            if (res?.success && res?.data?.name) {
+              setProjectNames((prev) => ({
+                ...prev,
+                [projectId]: res.data.name,
+              }));
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, [pathname, projectNames]);
+
+  const computedBreadcrumbs = React.useMemo(() => {
+    if (!pathname) return [];
+    const segments = pathname.split("/").filter(Boolean);
+    const list: { label: string; href?: string }[] = [];
+
+    let currentHref = "";
+    segments.forEach((seg, index) => {
+      if (seg === "dashboard") {
+        list.push({
+          label: lang === "es" ? BREADCRUMB_MAP.dashboard.es : BREADCRUMB_MAP.dashboard.en,
+          href: "/dashboard/resumen"
+        });
+        currentHref = "/dashboard";
+      } else if (index === 2 && segments[1] === "proyectos") {
+        currentHref += `/${seg}`;
+        const name = projectNames[seg] || (lang === "es" ? "Proyecto" : "Project");
+        list.push({ label: name, href: currentHref });
+      } else {
+        currentHref += `/${seg}`;
+        const mapped = BREADCRUMB_MAP[seg];
+        if (mapped) {
+          list.push({ label: lang === "es" ? mapped.es : mapped.en, href: currentHref });
+        } else {
+          const label = seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, " ");
+          list.push({ label, href: currentHref });
+        }
+      }
+    });
+
+    return list;
+  }, [pathname, projectNames, lang]);
+
   // Show sidebar when mouse enters the left-edge trigger zone with 150ms debounce
   const handleMouseEnterTrigger = useCallback(() => {
     if (hideTimerRef.current) {
@@ -332,30 +425,10 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const [theme, setTheme] = useState<'original' | 'claro' | 'azul_medianoche'>('original');
-  const { lang, setLang } = useLanguage();
   const [activePanel, setActivePanel] = useState<'main' | 'lang' | 'theme'>('main');
 
-  useEffect(() => {
-    // Load saved theme
-    const savedTheme = localStorage.getItem("sodare:theme") as 'original' | 'claro' | 'azul_medianoche' | null;
-    if (savedTheme) {
-      setTheme(savedTheme);
-      applyTheme(savedTheme);
-    }
-  }, []);
-
-  const applyTheme = (t: 'original' | 'claro' | 'azul_medianoche') => {
-    const root = document.documentElement;
-    root.classList.remove('theme-claro', 'theme-azul-medianoche');
-    if (t === 'claro') root.classList.add('theme-claro');
-    if (t === 'azul_medianoche') root.classList.add('theme-azul-medianoche');
-  };
-
-  const changeTheme = (t: 'original' | 'claro' | 'azul_medianoche') => {
+  const changeTheme = (t: string) => {
     setTheme(t);
-    applyTheme(t);
-    localStorage.setItem("sodare:theme", t);
     setActivePanel('main');
     showToast("success", lang === 'es' ? `Tema cambiado` : `Theme changed`);
   };
@@ -433,9 +506,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="h-screen overflow-hidden flex" style={{ background: "var(--background)" }}>
-      {/* Animated galaxy background */}
-      {theme !== 'claro' && <GalaxyBackground />}
-      <div className="dashboard-grid" />
 
       {/* Hover trigger zone — always active on desktop */}
       <div
@@ -456,7 +526,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 z-40 bg-[var(--panel-bg)]   lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -525,7 +595,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           {NAV_GROUPS.map((group) => {
             const isCollapsed = collapsedGroups[group.key];
             return (
-              <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-white/5" : "mt-2"}>
+              <div key={group.key} className={group.key === "sistema" ? "mt-4 pt-4 border-t border-[var(--hairline)]" : "mt-2"}>
                 <div 
                   className="px-2 pb-2 flex items-center justify-between cursor-pointer group/nav"
                   onClick={() => setCollapsedGroups(prev => ({ ...prev, [group.key]: !prev[group.key] }))}
@@ -538,10 +608,10 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     textTransform: "uppercase",
                     color: group.key === "sistema" ? "var(--text-muted)" : "var(--text-muted)",
                     transition: "color 0.2s"
-                  }} className="group-hover/nav:text-white">
+                  }} className="group-hover/nav:text-[var(--foreground)]">
                     {group.title}
                   </span>
-                  <ChevronDown className={`w-3 h-3 text-slate-500 transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
+                  <ChevronDown className={`w-3 h-3 text-[var(--text-muted)] transition-transform duration-200 ${isCollapsed ? "-rotate-90" : ""}`} />
                 </div>
                 
                 <div style={{
@@ -596,6 +666,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           style={{
             background: "var(--topbar-bg)",
             borderBottom: "1px solid var(--border)",
+            
+            
           }}
         >
           <div className="flex items-center gap-3">
@@ -665,13 +737,64 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           </button>
 
           {/* Module Title / Breadcrumbs */}
-          {currentModule && (
-            <div className="flex-1 ml-4 hidden md:flex items-center gap-2 overflow-hidden" style={{ fontSize: 13 }}>
-              <span style={{ fontWeight: 600, color: currentModule.color, whiteSpace: "nowrap" }}>
-                {currentModule.label === "Inbox" ? "Inbox 2.0" : currentModule.label}
-              </span>
-            </div>
-          )}
+          <div className="flex-1 ml-4 hidden md:flex items-center gap-2 overflow-hidden" style={{ fontSize: 13 }}>
+            {breadcrumbs.length > 0 ? (
+              // If there are store override breadcrumbs (e.g. from Inbox)
+              breadcrumbs.map((crumb, idx) => (
+                <React.Fragment key={idx}>
+                  {idx > 0 && <span style={{ color: "var(--text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
+                  <span
+                    onClick={crumb.onClick}
+                    className={crumb.onClick ? "hover:text-[var(--foreground)] transition-colors" : ""}
+                    style={{
+                      color: crumb.onClick ? 'var(--text-secondary)' : 'var(--foreground)',
+                      cursor: crumb.onClick ? 'pointer' : 'default',
+                      fontWeight: idx === breadcrumbs.length - 1 ? 600 : 500
+                    }}
+                  >
+                    {crumb.label}
+                  </span>
+                </React.Fragment>
+              ))
+            ) : (
+              // Dynamically computed breadcrumbs from URL
+              computedBreadcrumbs.map((crumb, idx) => {
+                const isLast = idx === computedBreadcrumbs.length - 1;
+                // Use currentModule color if this crumb matches currentModule label/route
+                const color = (idx === 1 && currentModule) ? currentModule.color : undefined;
+                
+                return (
+                  <React.Fragment key={idx}>
+                    {idx > 0 && <span style={{ color: "var(--text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
+                    {isLast ? (
+                      <span
+                        style={{
+                          color: color || 'var(--foreground)',
+                          fontWeight: 600,
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        {crumb.label}
+                      </span>
+                    ) : (
+                      <Link
+                        href={crumb.href || "#"}
+                        className="hover:text-[var(--foreground)] transition-colors"
+                        style={{
+                          color: color || 'var(--text-secondary)',
+                          fontWeight: 500,
+                          whiteSpace: "nowrap",
+                          cursor: "pointer"
+                        }}
+                      >
+                        {crumb.label}
+                      </Link>
+                    )}
+                  </React.Fragment>
+                );
+              })
+            )}
+          </div>
 
           {/* Right side quick actions */}
           <div className="flex items-center gap-5 ml-auto">
@@ -695,17 +818,17 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
               style={{ background: "transparent", border: "none" }}
             >
               <div style={{ position: "relative" }}>
-                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-white/10" style={{ background: "linear-gradient(135deg,var(--cyan),#2563eb)" }}>
-                  {session?.user?.image ? (
+                <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-[var(--border)]" style={{ background: "linear-gradient(135deg,var(--cyan),#2563eb)" }}>
+                  {session?.user?.image && !avatarError ? (
                     <img
                       src={session.user.image}
                       alt=""
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      onError={() => { setAvatarError(true); }}
                     />
                   ) : null}
-                  {(!session?.user?.image) && (
-                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-white">
+                  {(!session?.user?.image || avatarError) && (
+                    <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--foreground)]">
                       {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                     </div>
                   )}
@@ -741,7 +864,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   right: 0,
                   width: 280,
                   background: "var(--panel-bg)",
-                  backdropFilter: "blur(20px)",
+                  
                   border: "1px solid var(--border)",
                   borderRadius: 12,
                   boxShadow: "0 10px 40px var(--overlay-dark)",
@@ -755,17 +878,17 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                   <>
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
-                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-white/10" style={{ background: "linear-gradient(135deg,#2563eb,var(--purple))", flexShrink: 0 }}>
-                          {session?.user?.image ? (
+                      <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-[var(--border)]" style={{ background: "linear-gradient(135deg,#2563eb,var(--purple))", flexShrink: 0 }}>
+                          {session?.user?.image && !avatarError ? (
                             <img
                               src={session.user.image}
                               alt=""
                               style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                              onError={() => { setAvatarError(true); }}
                             />
                           ) : null}
-                          {(!session?.user?.image) && (
-                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-white">
+                          {(!session?.user?.image || avatarError) && (
+                            <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[var(--foreground)]">
                               {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                             </div>
                           )}
@@ -806,7 +929,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                                 cursor: "pointer",
                               }}
                             >
-                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "rgba(0,200,117,0.15)" }}>
+                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--surface)" }}>
                                 <Icon className="w-3.5 h-3.5 text-[var(--emerald)]" />
                               </div>
                               <span style={{ fontSize: 12, color: isSelected ? ("var(--foreground)") : ("var(--text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
@@ -834,7 +957,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                                 cursor: "pointer",
                               }}
                             >
-                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "rgba(253,171,61,0.15)", flexShrink: 0 }}>
+                              <div className="w-[24px] h-[24px] rounded-full flex items-center justify-center" style={{ background: "var(--surface)", flexShrink: 0 }}>
                                 <Icon className="w-3.5 h-3.5 text-[var(--amber)]" />
                               </div>
                               <span style={{ fontSize: 12, color: isSelected ? ("var(--foreground)") : ("var(--text-secondary)"), fontWeight: isSelected ? 600 : 400 }}>
@@ -932,28 +1055,28 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     <p style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", marginBottom: 12 }}>{t.aparienciaTitulo}</p>
                     <div className="space-y-1">
                       <button
-                        onClick={() => changeTheme('original')}
+                        onClick={() => changeTheme('dark')}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
                         style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoOscuro}</span>
-                        {theme === 'original' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
+                        {theme === 'dark' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
-                        onClick={() => changeTheme('claro')}
+                        onClick={() => changeTheme('light')}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
                         style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoClaro}</span>
-                        {theme === 'claro' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
+                        {theme === 'light' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                       <button
-                        onClick={() => changeTheme('azul_medianoche')}
+                        onClick={() => changeTheme('azul')}
                         className="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-[var(--surface-hover)] text-left text-xs transition-colors"
                         style={{ background: "none", border: "none", color: "var(--text-secondary)", cursor: "pointer" }}
                       >
                         <span>{t.modoAzul}</span>
-                        {theme === 'azul_medianoche' && <Check className="w-4 h-4 text-[var(--emerald)]" />}
+                        {theme === 'azul' && <HoloIcon icon={Check} variant="cyan" isActive={true} className="w-3 h-3" />}
                       </button>
                     </div>
                   </div>

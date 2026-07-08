@@ -109,7 +109,7 @@ export default function DataHub() {
           <button 
             disabled={!file || uploading}
             onClick={handleUpload}
-            className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-semibold disabled:opacity-50 transition"
+            className="w-full mt-4 bg-blue-600 hover:bg-blue-700 text-[var(--foreground)] py-3 rounded-md font-semibold disabled:opacity-50 transition"
           >
             {uploading ? "Procesando..." : "Subir y Analizar"}
           </button>

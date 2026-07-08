@@ -125,7 +125,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
         onClick={onClose}
         style={{
           position: "fixed", inset: 0, zIndex: 80,
-          background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)",
+          background: "var(--panel-bg)", 
         }}
       />
 
@@ -134,7 +134,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
         style={{
           position: "fixed", top: 0, right: 0, bottom: 0,
           width: "440px", maxWidth: "100vw", zIndex: 90,
-          background: "rgba(6,10,22,0.98)", backdropFilter: "blur(16px)",
+          background: "var(--surface)", 
           borderLeft: "1px solid rgba(59,130,246,0.12)",
           display: "flex", flexDirection: "column",
           animation: "slideInRight 0.25s ease-out",
@@ -144,7 +144,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
         {/* -- Header -- */}
         <div style={{
           padding: "20px", borderBottom: "1px solid var(--border)",
-          background: "rgba(4,8,18,0.8)",
+          background: "var(--surface)",
         }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: "12px" }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -171,7 +171,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 {advPlus && (
                   <span style={{
                     fontSize: "8px", fontWeight: 700, padding: "2px 6px", borderRadius: 4,
-                    background: "rgba(155,123,232,0.15)", color: "var(--purple)",
+                    background: "var(--surface)", color: "var(--purple)",
                   }}>
                     ? ADV+
                   </span>
@@ -192,7 +192,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
             <button
               onClick={onClose}
               style={{
-                background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)",
+                background: "var(--surface-hover)", border: "1px solid var(--hairline)",
                 borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
                 width: "28px", height: "28px", display: "flex", alignItems: "center", justifyContent: "center",
                 transition: "all 0.15s",
@@ -225,7 +225,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
               style={{
                 display: "flex", alignItems: "center", gap: "4px", padding: "5px 10px",
                 fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
-                background: "rgba(0,129,251,0.1)", border: "1px solid rgba(0,129,251,0.25)",
+                background: "var(--surface)", border: "1px solid rgba(0,129,251,0.25)",
                 color: "var(--cyan)",
               }}
             >
@@ -239,7 +239,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                 display: "flex", alignItems: "center", gap: "4px", padding: "5px 10px",
                 fontSize: "10px", fontWeight: 600, borderRadius: "5px", cursor: "pointer",
                 background: "var(--row-hover)", border: "1px solid var(--hairline)",
-                color: "rgba(148,163,184,0.7)", textDecoration: "none",
+                color: "var(--text-secondary)", textDecoration: "none",
               }}
             >
               <ExternalLink className="w-3 h-3" /> Meta
@@ -260,7 +260,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
               <div key={i} style={{
                 padding: "14px", borderRadius: "8px",
                 background: "var(--surface-hover)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                border: "1px solid var(--hairline)",
               }}>
                 <div style={{ fontSize: "9px", color: "var(--text-muted)", marginBottom: "6px", letterSpacing: "0.05em", fontWeight: 600 }}>
                   {kpi.icon} {kpi.label}
@@ -286,14 +286,14 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
             ].map((m, i) => (
               <div key={i} style={{
                 padding: "10px", borderRadius: "6px",
-                background: "rgba(255,255,255,0.015)",
+                background: "var(--surface-hover)",
                 border: "1px solid var(--hairline)",
                 textAlign: "center",
               }}>
                 <div style={{ fontSize: "8px", color: "var(--text-muted)", marginBottom: "3px", fontWeight: 600, letterSpacing: "0.04em" }}>
                   {m.label}
                 </div>
-                <div style={{ fontSize: "13px", fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>
+                <div style={{ fontSize: "13px", fontWeight: 700, color: "var(--text-secondary)" }}>
                   {m.value}
                 </div>
               </div>
@@ -303,7 +303,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
           {/* -- Chart section -- */}
           <div style={{
             marginBottom: "20px", padding: "16px", borderRadius: "8px",
-            background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)",
+            background: "var(--surface-hover)", border: "1px solid var(--hairline)",
           }}>
             {/* Breakdown tabs */}
             <div style={{ display: "flex", gap: "4px", marginBottom: "12px" }}>
@@ -376,7 +376,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                       />
                       <Tooltip
                         contentStyle={{
-                          background: "rgba(6,10,22,0.95)", border: "1px solid rgba(59,130,246,0.15)",
+                          background: "var(--surface)", border: "1px solid rgba(59,130,246,0.15)",
                           borderRadius: "6px", fontSize: "10px", color: "var(--foreground)",
                         }}
                       />
@@ -408,7 +408,7 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                   <div style={{ maxHeight: 200, overflowY: "auto" }} className="custom-scrollbar">
                     <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "10px" }}>
                       <thead>
-                        <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                        <tr style={{ border: "1px solid var(--hairline)" }}>
                           <th style={{ padding: "6px 8px", textAlign: "left", color: "var(--text-muted)", fontWeight: 700 }}>Segmento</th>
                           <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-muted)", fontWeight: 700 }}>Gasto</th>
                           <th style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-muted)", fontWeight: 700 }}>Clics</th>
@@ -423,11 +423,11 @@ export function CampaignDrawer({ item, level, onClose, onEdit, onUpdateStatus }:
                             ? row.publisher_platform || "?"
                             : row.impression_device || "?";
                           return (
-                            <tr key={idx} style={{ borderBottom: "1px solid rgba(255,255,255,0.03)" }}>
-                              <td style={{ padding: "6px 8px", color: "rgba(255,255,255,0.8)" }}>{segLabel}</td>
+                            <tr key={idx} style={{ border: "1px solid var(--hairline)" }}>
+                              <td style={{ padding: "6px 8px", color: "var(--text-secondary)" }}>{segLabel}</td>
                               <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--cyan)" }}>{fmt$(row.spend)}</td>
-                              <td style={{ padding: "6px 8px", textAlign: "right", color: "rgba(255,255,255,0.7)" }}>{fmtNum(row.clicks)}</td>
-                              <td style={{ padding: "6px 8px", textAlign: "right", color: "rgba(255,255,255,0.7)" }}>{fmtPct(row.ctr)}</td>
+                              <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-secondary)" }}>{fmtNum(row.clicks)}</td>
+                              <td style={{ padding: "6px 8px", textAlign: "right", color: "var(--text-secondary)" }}>{fmtPct(row.ctr)}</td>
                             </tr>
                           );
                         })}

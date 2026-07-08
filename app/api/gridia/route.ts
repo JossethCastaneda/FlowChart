@@ -214,7 +214,7 @@ Your output must be professional, strategic, and ready for a high-performance ma
 export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   // Rate limit — 10 requests per minute per user
   const ip = getClientIP(req);
-  const { ok } = rateLimit(`gridia:${ctx.userId}:${ip}`, 10, 60_000);
+  const { ok } = await rateLimit(`gridia:${ctx.userId}:${ip}`, 10, 60_000);
   if (!ok) {
     return apiError("Demasiadas solicitudes. Intenta en un momento.", "RATE_LIMITED", 429);
   }

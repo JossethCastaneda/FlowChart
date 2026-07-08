@@ -142,13 +142,14 @@ export default function LoginPage() {
     // FB SDK
     const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID;
     if (!APP_ID) return () => { isActive = false; };
+    const w = window as any;
     const initSdk = () => {
-      window.FB!.init({ appId: APP_ID, cookie: true, xfbml: false, version: process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0" });
-      window.FB!.AppEvents.logPageView();
+      w.FB!.init({ appId: APP_ID, cookie: true, xfbml: false, version: process.env.NEXT_PUBLIC_META_API_VERSION || "v22.0" });
+      w.FB!.AppEvents.logPageView();
     };
-    if (window.FB) initSdk();
+    if (w.FB) initSdk();
     else {
-      window.fbAsyncInit = initSdk;
+      w.fbAsyncInit = initSdk;
       if (!document.getElementById("facebook-jssdk")) {
         const js = document.createElement("script");
         js.id = "facebook-jssdk"; js.src = "https://connect.facebook.net/en_US/sdk.js"; js.async = true;
@@ -343,8 +344,8 @@ export default function LoginPage() {
           max-width: 400px;
           /* glass-panel base */
           background: var(--surface);
-          backdrop-filter: blur(24px) saturate(1.4);
-          -webkit-backdrop-filter: blur(24px) saturate(1.4);
+           saturate(1.4);
+          -webkit- saturate(1.4);
           border: 1px solid var(--border);
           border-radius: 16px;
           overflow: hidden;
@@ -615,7 +616,7 @@ export default function LoginPage() {
           background: var(--surface);
           border: 1px solid var(--border);
           border-radius: 100px;
-          backdrop-filter: blur(12px);
+          
         }
         .login-lang-btn {
           padding: 5px 12px;

@@ -68,10 +68,10 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
 
   return (
     <>
-      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)" }} />
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 100, background: "var(--panel-bg)",  }} />
       <div style={{
         position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", zIndex: 101,
-        width: "600px", maxWidth: "90vw", background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
+        width: "600px", maxWidth: "90vw", background: "var(--surface)", 
         border: "1px solid rgba(59,130,246,0.15)", borderRadius: "12px", overflow: "hidden",
         boxShadow: "0 20px 60px -12px rgba(0,0,0,0.7)",
       }}>
@@ -81,7 +81,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
             <Zap className="w-4 h-4" style={{ color: "var(--cyan)" }} />
             Administrar reglas automáticas
             {rules.length > 0 && (
-              <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 6px", borderRadius: "8px", background: "rgba(59,130,246,0.15)", color: "var(--cyan)" }}>
+              <span style={{ fontSize: "9px", fontWeight: 700, padding: "1px 6px", borderRadius: "8px", background: "var(--cyan-dim)", color: "var(--cyan)" }}>
                 {rules.length}
               </span>
             )}
@@ -108,7 +108,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
             </div>
           ) : rules.length === 0 ? (
             <div style={{ textAlign: "center", padding: "40px 20px" }}>
-              <Zap className="w-8 h-8" style={{ color: "rgba(148,163,184,0.22)", margin: "0 auto 12px" }} />
+              <Zap className="w-8 h-8" style={{ color: "var(--text-secondary)", margin: "0 auto 12px" }} />
               <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>No hay reglas automáticas</div>
               <div style={{ fontSize: "10px", color: "var(--text-muted)", marginTop: "4px" }}>Crea una regla desde el menú "Más"</div>
             </div>
@@ -120,7 +120,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
               return (
                 <div key={rule.id} style={{
                   display: "flex", alignItems: "center", gap: "10px", padding: "10px 20px",
-                  borderBottom: "1px solid rgba(255,255,255,0.03)",
+                  border: "1px solid var(--hairline)",
                   opacity: actionLoading === rule.id ? 0.5 : 1,
                 }}>
                   {/* Toggle */}
@@ -152,7 +152,7 @@ export function RulesManagerModal({ adAccountId, onClose }: RulesManagerModalPro
 
         {/* Footer */}
         <div style={{ padding: "12px 20px", borderTop: "1px solid var(--border)", display: "flex", justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer" }}>
+          <button onClick={onClose} style={{ padding: "7px 14px", fontSize: "11px", fontWeight: 600, background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer" }}>
             Cerrar
           </button>
         </div>

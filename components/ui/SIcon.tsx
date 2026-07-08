@@ -1,15 +1,15 @@
-/**
- * SIcon — Sodare Standard Icon Wrapper
- * Brand Guide §03: Lucide · strokeWidth 1.75 · sizes 18px (nav) / 20px (content)
+ï»¿/**
+ * SIcon - Sodare Standard Icon Wrapper
+ * Brand Guide: Lucide - strokeWidth 1.75 - sizes 18px (nav) / 20px (content)
  *
  * Usage:
- *   import { SIcon } from '@/components/ui/SIcon'
- *   import { LayoutDashboard } from 'lucide-react'
+ *   import { SIcon } from "@/components/ui/SIcon"
+ *   import { LayoutDashboard } from "lucide-react"
  *   <SIcon icon={LayoutDashboard} />           // 18px, strokeWidth 1.75
  *   <SIcon icon={LayoutDashboard} size={20} /> // 20px en contenido
  */
 
-import { type LucideIcon } from 'lucide-react'
+import { type LucideIcon } from "lucide-react"
 
 interface SIconProps {
   icon: LucideIcon
@@ -38,3 +38,4 @@ export function SIcon({
     />
   )
 }
+

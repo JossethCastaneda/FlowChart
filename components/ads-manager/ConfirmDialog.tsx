@@ -59,7 +59,7 @@ export function ConfirmDialog({
         onClick={onCancel}
         style={{
           position: "fixed", inset: 0, zIndex: 200,
-          background: "rgba(0,0,0,0.6)", backdropFilter: "blur(4px)",
+          background: "var(--panel-bg)", 
         }}
       />
       <div
@@ -67,7 +67,7 @@ export function ConfirmDialog({
           position: "fixed", top: "50%", left: "50%",
           transform: "translate(-50%, -50%)", zIndex: 201,
           width: "380px", maxWidth: "90vw",
-          background: "rgba(8,14,28,0.98)", backdropFilter: "blur(16px)",
+          background: "var(--surface)", 
           border: `1px solid ${v.border}`, borderRadius: "12px",
           padding: "24px",
           boxShadow: `0 20px 60px -12px rgba(0,0,0,0.7), 0 0 20px ${v.bg}`,
@@ -86,7 +86,7 @@ export function ConfirmDialog({
             <div style={{ fontSize: "14px", fontWeight: 700, color: "var(--foreground)", marginBottom: "6px" }}>
               {title}
             </div>
-            <div style={{ fontSize: "12px", color: "rgba(148,163,184,0.7)", lineHeight: "1.5" }}>
+            <div style={{ fontSize: "12px", color: "var(--text-secondary)", lineHeight: "1.5" }}>
               {message}
             </div>
           </div>
@@ -98,8 +98,8 @@ export function ConfirmDialog({
             disabled={loading}
             style={{
               padding: "8px 16px", fontSize: "11px", fontWeight: 600,
-              background: "rgba(255,255,255,0.1)", border: "1px solid var(--hairline)",
-              borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
+              background: "var(--surface-hover)", border: "1px solid var(--hairline)",
+              borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
               transition: "all 0.15s",
             }}
           >

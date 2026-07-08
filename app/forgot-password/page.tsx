@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 import { useState } from "react";
 import { SodareLogo } from "@/components/ui/SodareLogo";
 
@@ -47,7 +47,7 @@ export default function ForgotPasswordPage() {
 
   const containerStyle: React.CSSProperties = {
     minHeight: "100vh",
-    background: "#030508",
+    background: "var(--background)",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
@@ -55,20 +55,19 @@ export default function ForgotPasswordPage() {
   };
 
   const cardStyle: React.CSSProperties = {
-    background: "rgba(15, 23, 42, 0.6)",
+    background: "var(--surface)", 
     border: "1px solid rgba(91,155,255, 0.1)",
     borderRadius: "16px",
     padding: "40px",
     maxWidth: "440px",
     width: "100%",
-    backdropFilter: "blur(20px)",
   };
 
   const inputStyle: React.CSSProperties = {
     width: "100%",
     padding: "12px 16px",
-    background: "rgba(15, 23, 42, 0.8)",
-    border: "1px solid rgba(100, 116, 139, 0.3)",
+    background: "var(--surface)", 
+    border: "1px solid var(--border-strong)",
     borderRadius: "8px",
     color: "var(--foreground)",
     fontSize: "14px",
@@ -107,7 +106,7 @@ export default function ForgotPasswordPage() {
                 Usa el siguiente enlace para restablecer la contraseña:
               </p>
               <div style={{
-                background: "rgba(91,155,255, 0.05)",
+                background: "var(--surface)",
                 border: "1px solid rgba(91,155,255, 0.2)",
                 borderRadius: "8px",
                 padding: "16px",

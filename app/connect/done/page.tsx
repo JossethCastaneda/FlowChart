@@ -32,7 +32,7 @@ function ConnectDone() {
   return (
     <div style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
-      background: "var(--background)", color: "var(--foreground)", fontFamily: "sans-serif", flexDirection: "column", gap: 12,
+      background: "var(--background)", color: "var(--foreground)", fontFamily: "var(--font-sans)", flexDirection: "column", gap: 12,
     }}>
       <div style={{ width: 32, height: 32, border: "3px solid var(--cyan)", borderTopColor: "transparent", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
       <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Cerrando…</p>

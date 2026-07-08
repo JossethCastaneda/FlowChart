@@ -303,7 +303,7 @@ export default function DateRangePicker({
       {showDatePicker && (
         <div style={{
           position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 9999,
-          background: "var(--surface)", border: "1px solid rgba(148,163,184,0.22)", borderRadius: "12px",
+          background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px",
           boxShadow: "0 25px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(148,163,184,0.05)",
           display: "flex", flexDirection: "column", overflow: "hidden"
         }}>
@@ -312,7 +312,7 @@ export default function DateRangePicker({
 
             {/* -- LEFT: Presets -- */}
             <div style={{
-              width: "170px", borderRight: "1px solid rgba(148,163,184,0.18)",
+              width: "170px", border: "1px solid var(--border-neutral)",
               overflowY: "auto", maxHeight: "400px",
               padding: "8px 0"
             }}>
@@ -359,8 +359,8 @@ export default function DateRangePicker({
                 <button
                   onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() - 1, 1))}
                   style={{
-                    background: "none", border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px",
-                    padding: "4px", cursor: "pointer", color: "rgba(255,255,255,0.7)", display: "flex",
+                    background: "none", border: "1px solid var(--border)", borderRadius: "6px",
+                    padding: "4px", cursor: "pointer", color: "var(--text-secondary)", display: "flex",
                     transition: "all 0.15s"
                   }}
                 >
@@ -379,8 +379,8 @@ export default function DateRangePicker({
                 <button
                   onClick={() => setCalMonth(new Date(calMonth.getFullYear(), calMonth.getMonth() + 1, 1))}
                   style={{
-                    background: "none", border: "1px solid rgba(148,163,184,0.22)", borderRadius: "6px",
-                    padding: "4px", cursor: "pointer", color: "rgba(255,255,255,0.7)", display: "flex",
+                    background: "none", border: "1px solid var(--border)", borderRadius: "6px",
+                    padding: "4px", cursor: "pointer", color: "var(--text-secondary)", display: "flex",
                     transition: "all 0.15s"
                   }}
                 >
@@ -420,11 +420,11 @@ export default function DateRangePicker({
               <div style={{
                 display: "flex", alignItems: "center", gap: "12px",
                 marginTop: "16px", paddingTop: "12px",
-                borderTop: "1px solid rgba(148,163,184,0.18)"
+                border: "1px solid var(--border-neutral)"
               }}>
                 <div style={{
                   display: "flex", alignItems: "center", gap: "8px",
-                  background: "rgba(10,15,30,0.5)", border: "1px solid rgba(148,163,184,0.18)",
+                  background: "var(--surface)", border: "1px solid var(--border)",
                   borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "var(--text-secondary)",
                   flex: 1
                 }}>
@@ -433,7 +433,7 @@ export default function DateRangePicker({
                 <span style={{ color: "var(--text-muted)", fontSize: "11px" }}>–</span>
                 <div style={{
                   display: "flex", alignItems: "center", gap: "8px",
-                  background: "rgba(10,15,30,0.5)", border: "1px solid rgba(148,163,184,0.18)",
+                  background: "var(--surface)", border: "1px solid var(--border)",
                   borderRadius: "6px", padding: "6px 12px", fontSize: "11px", color: "var(--text-secondary)",
                   flex: 1
                 }}>
@@ -447,8 +447,8 @@ export default function DateRangePicker({
           <div style={{
             display: "flex", justifyContent: "space-between", alignItems: "center",
             padding: "12px 20px",
-            borderTop: "1px solid rgba(148,163,184,0.18)",
-            background: "rgba(10,15,30,0.3)"
+            border: "1px solid var(--border-neutral)",
+            background: "var(--surface)"
           }}>
             <span style={{ fontSize: "10px", color: "var(--text-muted)" }}>
               Las fechas se muestran en la Hora de Ciudad de México (Centro)
@@ -458,8 +458,8 @@ export default function DateRangePicker({
                 onClick={handleCancel}
                 style={{
                   padding: "7px 20px", fontSize: "12px", fontWeight: 500, borderRadius: "6px",
-                  background: "transparent", border: "1px solid rgba(148,163,184,0.65)",
-                  color: "rgba(255,255,255,0.7)", cursor: "pointer", transition: "all 0.15s"
+                  background: "transparent", border: "1px solid var(--border)",
+                  color: "var(--text-secondary)", cursor: "pointer", transition: "all 0.15s"
                 }}
               >
                 Cancelar

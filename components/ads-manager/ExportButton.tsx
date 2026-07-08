@@ -161,7 +161,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
           display: "flex", alignItems: "center", gap: "5px",
           padding: "6px 10px", fontSize: "11px", fontWeight: 600,
           background: "var(--row-hover)", border: "1px solid var(--hairline)",
-          borderRadius: "6px", color: "rgba(148,163,184,0.7)", cursor: "pointer",
+          borderRadius: "6px", color: "var(--text-secondary)", cursor: "pointer",
           transition: "all 0.15s",
         }}
         onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--cyan)"; e.currentTarget.style.color = "white"; }}
@@ -173,7 +173,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
       {showMenu && (
         <div style={{
           position: "absolute", top: "100%", right: 0, marginTop: "6px",
-          background: "rgba(10,18,35,0.97)", backdropFilter: "blur(12px)",
+          background: "var(--surface)", 
           border: "1px solid rgba(59,130,246,0.15)", borderRadius: "8px",
           padding: "4px", zIndex: 100, minWidth: "160px",
           boxShadow: "0 12px 40px -8px rgba(0,0,0,0.7)",

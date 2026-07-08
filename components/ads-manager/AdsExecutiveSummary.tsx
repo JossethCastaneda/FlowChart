@@ -177,7 +177,7 @@ export function AdsExecutiveSummary({
       </div>
 
       {error && (
-        <div style={{ display: "flex", gap: 10, padding: 12, borderRadius: 8, border: "1px solid rgba(229,72,77,0.25)", background: "rgba(229,72,77,0.08)", color: "var(--red)", fontSize: 12 }}>
+        <div style={{ display: "flex", gap: 10, padding: 12, borderRadius: 8, border: "1px solid rgba(229,72,77,0.25)", background: "var(--red-dim)", color: "var(--red)", fontSize: 12 }}>
           <ShieldAlert style={{ width: 16, height: 16, flexShrink: 0 }} />
           <span>{error}</span>
         </div>
@@ -213,7 +213,7 @@ export function AdsExecutiveSummary({
               </div>
             ) : (
               warnings.map((warning) => (
-                <div key={warning.title} style={{ display: "flex", gap: 10, padding: 10, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div key={warning.title} style={{ display: "flex", gap: 10, padding: 10, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--border)" }}>
                   <AlertTriangle
                     style={{
                       width: 16,
@@ -245,7 +245,7 @@ export function AdsExecutiveSummary({
               ["Anuncios", ads.length],
               ["Alertas", warnings.length],
             ].map(([label, value]) => (
-              <div key={label} style={{ padding: 10, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.07)" }}>
+              <div key={label} style={{ padding: 10, borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--border)" }}>
                 <div style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em" }}>{label}</div>
                 <div style={{ marginTop: 5, fontSize: 20, color: "var(--foreground)", fontWeight: 800 }}>{value}</div>
               </div>

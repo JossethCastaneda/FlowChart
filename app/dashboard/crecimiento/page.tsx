@@ -57,18 +57,7 @@ export default function CrecimientoInsights() {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 24 }} className="page-enter">
 
-      {/* ── Page Header ── */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, paddingBottom: 16, borderBottom: "1px solid var(--hairline)" }}>
-        <div style={{ width: 36, height: 36, borderRadius: 10, background: "var(--purple-dim)", border: "1px solid rgba(139,141,242,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <BrainCircuit style={{ width: 18, height: 18, color: "var(--purple)" }} />
-        </div>
-        <div>
-          <h1 style={{ fontFamily: "var(--font-display)", fontSize: 14, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.08em", margin: 0 }}>
-            Aria <span style={{ color: "var(--purple)" }}>IA</span>
-          </h1>
-          <p style={{ fontSize: 9, color: "var(--text-muted)", letterSpacing: "0.06em", margin: 0, marginTop: 2, textTransform: "uppercase" }}>Métricas globales · Modelos predictivos</p>
-        </div>
-      </div>
+
 
       {/* ── KPI Grid ── */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>

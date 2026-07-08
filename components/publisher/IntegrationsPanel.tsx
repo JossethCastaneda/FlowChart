@@ -132,7 +132,7 @@ export function IntegrationsPanel() {
         {[...Array(5)].map((_, i) => (
           <div key={i} style={{
             height: 52, borderRadius: 8,
-            background: "rgba(148,163,184,0.04)",
+            background: "var(--border-neutral)",
             animation: "fade-pulse 1.4s ease-in-out infinite",
             animationDelay: `${i * 0.1}s`,
           }} />
@@ -148,8 +148,8 @@ export function IntegrationsPanel() {
       <div style={{
         display: "flex", alignItems: "center", justifyContent: "space-between",
         padding: "10px 14px", borderRadius: 8,
-        background: "rgba(255,255,255,0.02)",
-        border: "1px solid rgba(255,255,255,0.06)",
+        background: "var(--surface)",
+        border: "1px solid var(--hairline)",
       }}>
         <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
           Meta Integrations
@@ -221,7 +221,7 @@ export function IntegrationsPanel() {
                     {expiring && (
                       <span style={{
                         fontSize: 8, padding: "1px 5px", borderRadius: 2,
-                        background: "rgba(224,168,60,0.1)", color: "var(--amber)",
+                        background: "var(--surface)", color: "var(--amber)",
                         border: "1px solid rgba(224,168,60,0.2)", fontWeight: 700,
                       }}>
                         ⚠ exp. {st?.daysUntilExpiry}d
@@ -290,7 +290,7 @@ export function IntegrationsPanel() {
                     title={`Desconectar ${mod.label}`}
                     style={{
                       padding: "5px 10px", borderRadius: 6, flexShrink: 0,
-                      background: "rgba(229,72,77,0.06)",
+                      background: "var(--red-dim)",
                       border: "1px solid rgba(229,72,77,0.18)",
                       color: "var(--red)", fontSize: 10, fontWeight: 600,
                       cursor: disconnecting === mod.key ? "wait" : "pointer",
@@ -334,8 +334,8 @@ export function IntegrationsPanel() {
                     <div key={page.id} style={{
                       display: "flex", alignItems: "center", gap: 8,
                       padding: "5px 10px", borderRadius: 6,
-                      background: "rgba(255,255,255,0.02)",
-                      border: "1px solid rgba(255,255,255,0.05)",
+                      background: "var(--surface)",
+                      border: "1px solid var(--hairline)",
                     }}>
                       <div style={{
                         width: 20, height: 20, borderRadius: "50%", overflow: "hidden",
@@ -365,7 +365,7 @@ export function IntegrationsPanel() {
       <div style={{ marginTop: 4 }}>
         <div style={{
           fontSize: 9, fontWeight: 800, letterSpacing: "0.18em", textTransform: "uppercase",
-          color: "rgba(148,163,184,0.4)", padding: "0 2px 6px",
+          color: "var(--text-secondary)", padding: "0 2px 6px",
         }}>WhatsApp</div>
         <WhatsAppConnectCard />
       </div>
@@ -378,7 +378,7 @@ export function IntegrationsPanel() {
         confirmUnlink ? (
           <div style={{
             display: "flex", alignItems: "center", gap: 12, padding: "11px 14px",
-            borderRadius: 8, border: "1px solid rgba(229,72,77,0.25)", background: "rgba(229,72,77,0.05)",
+            borderRadius: 8, border: "1px solid rgba(229,72,77,0.25)", background: "var(--red-dim)",
           }}>
             <AlertTriangle style={{ width: 15, height: 15, color: "var(--red)", flexShrink: 0 }} />
             <div style={{ flex: 1, fontSize: 11, color: "var(--red)" }}>
@@ -400,7 +400,7 @@ export function IntegrationsPanel() {
               disabled={disconnecting === "all"}
               style={{
                 padding: "5px 12px", borderRadius: 6, flexShrink: 0,
-                background: "rgba(229,72,77,0.9)", border: "none", color: "#fff",
+                background: "var(--red-dim)", border: "none", color: "var(--foreground)",
                 fontSize: 10, fontWeight: 700, cursor: disconnecting === "all" ? "wait" : "pointer",
                 display: "flex", alignItems: "center", gap: 5, fontFamily: "inherit",
               }}

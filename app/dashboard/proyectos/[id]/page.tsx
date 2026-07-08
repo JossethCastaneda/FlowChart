@@ -8,11 +8,12 @@ import {
   Users, Palette, Settings, ChevronDown, ChevronUp, AlertTriangle,
   Layers, Monitor, Smartphone, Globe, PieChart as PieIcon,
   HeartPulse, RefreshCw, MousePointer, Shield,
-  Tag, Building, MapPin, Link
+  Tag, Building, MapPin, Link, ShieldCheck
 } from "lucide-react";
 import { normalizeIntegrationProvider } from "@/lib/analytics/project-scope";
 import { GoogleSourcesPanel } from "@/components/projects/GoogleSourcesPanel";
 import { GoogleAdsDashboard } from "@/components/projects/GoogleAdsDashboard";
+import { UserReliabilityModule } from "@/components/analytics/UserReliabilityModule";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ComposedChart, Line, PieChart, Pie, Cell, Legend, BarChart, Bar, ReferenceLine
@@ -21,7 +22,7 @@ import DateRangePicker from "@/components/ui/DateRangePicker";
 import { CreativeCard, CreativeLightbox } from "@/components/shared/CreativePreview";
 import { useInsightsStore } from "@/stores/insightsStore";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
-import BotAnalyticsDashboard from "@/components/botmaker/analytics/dashboard/BotAnalyticsDashboard";
+
 import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 import { ChartTheme } from "@/components/ui/charts/ChartTheme";
 import { CustomTooltip } from "@/components/ui/charts/CustomTooltip";
@@ -119,7 +120,7 @@ const panelStyle: React.CSSProperties = {
 const labelStyle: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 };
 const headingStyle: React.CSSProperties = { fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.03em", marginBottom: 4 };
 const subStyle: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", marginBottom: 12, lineHeight: 1.5 };
-const tooltipStyle = { backgroundColor: "var(--surface)", border: "1px solid var(--border-strong)", borderLeft: "3px solid var(--cyan)", borderRadius: 8, fontSize: 12, color: "white", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" };
+const tooltipStyle = { backgroundColor: "var(--surface)", border: "1px solid var(--border-strong)", borderLeft: "3px solid var(--cyan)", borderRadius: 8, fontSize: 12, color: "var(--foreground)", boxShadow: "0 8px 32px rgba(0,0,0,0.5)" };
 const CHART_COLORS = ["var(--cyan)", "var(--emerald)", "var(--amber)", "var(--red)", "var(--purple)", "#5b9bff", "#bc5fb2", "#45aec2"];
 
 function KpiBox({ title, value, sub, icon, color, progress }: any) {
@@ -140,14 +141,14 @@ function KpiBox({ title, value, sub, icon, color, progress }: any) {
         <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "var(--text-muted)" }}>{title}</span>
       </div>
       {/* Value */}
-      <div style={{ fontSize: 22, fontWeight: 700, color: "white", marginBottom: 3, fontFamily: "var(--font-display)", lineHeight: 1 }}>{value}</div>
-      <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: progress !== undefined ? 10 : 0, fontFamily: "'JetBrains Mono', monospace" }}>{sub}</div>
+      <div style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", marginBottom: 3, fontFamily: "var(--font-display)", lineHeight: 1 }}>{value}</div>
+      <div style={{ fontSize: 10, color: "var(--text-muted)", marginBottom: progress !== undefined ? 10 : 0, fontFamily: "var(--font-mono)" }}>{sub}</div>
       {/* Progress bar */}
       {progress !== undefined && (
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
             <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase" }}>PROGRESO</span>
-            <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "'JetBrains Mono', monospace", color: isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c }}>{progress.toFixed(0)}%</span>
+            <span style={{ fontSize: 10, fontWeight: 700, fontFamily: "var(--font-mono)", color: isOverBudget ? "var(--red)" : progressPct && progressPct > 75 ? "var(--emerald)" : c }}>{progress.toFixed(0)}%</span>
           </div>
           <div className="progress-track">
             <div className={`progress-bar${isOverBudget ? " over-budget" : ""}`} style={{ width: `${Math.min(progress, 100)}%`, background: `linear-gradient(90deg, ${progressColor}, ${progressColor}cc)` }} />
@@ -163,7 +164,7 @@ function NoData({ msg = "Sin datos disponibles" }: { msg?: string }) {
 }
 
 function LoadingOverlay() {
-  return <div style={{ position: "absolute", inset: 0, background: "rgba(10,15,30,0.6)", backdropFilter: "blur(4px)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid var(--border-strong)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
+  return <div style={{ position: "absolute", inset: 0, background: "var(--surface)",  display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 10, borderRadius: "inherit" }}><div style={{ width: 30, height: 30, border: "3px solid var(--border-strong)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 1s linear infinite" }} /><span style={{ marginTop: 10, fontSize: 11, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase" }}>Sincronizando Meta...</span></div>;
 }
 
 function TabButton({ active, label, icon, onClick }: { active: boolean; label: string; icon: React.ReactNode; onClick: () => void }) {
@@ -216,7 +217,7 @@ export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
   const [project, setProject] = useState<Project | null>(null);
-  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config"|"resultados"|"trafico"|"historial">("resumen");
+  const [activeTab, setActiveTab] = useState<"resumen"|"gasto"|"audiencia"|"creativos"|"salud"|"ads"|"config"|"trafico"|"historial"|"confiabilidad">("resumen");
   const [activePlatform, setActivePlatform] = useState("");
   const [insights, setInsights] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -576,7 +577,7 @@ export default function ProjectDashboardPage() {
         position: "relative", zIndex: 999,
         display: "flex", alignItems: "flex-start", justifyContent: "space-between",
         flexWrap: "wrap", gap: 12,
-        background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+        background: "var(--surface)", border: "1px solid var(--hairline)",
         borderRadius: 14, padding: "14px 18px",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -584,7 +585,7 @@ export default function ProjectDashboardPage() {
             onClick={() => router.push("/dashboard/proyectos")}
             style={{
               width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.09)",
+              background: "var(--surface-hover)", border: "1px solid var(--border)",
               borderRadius: 8, color: "var(--text-secondary)", cursor: "pointer",
               transition: "all 0.15s", flexShrink: 0,
             }}
@@ -599,7 +600,7 @@ export default function ProjectDashboardPage() {
               {(project.status === "EN VUELO" || project.status === "Activo") && (
                 <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 10px rgba(52,183,124,0.8)", animation: "status-pulse 2s infinite", display: "inline-block", flexShrink: 0 }} />
               )}
-              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 21, fontWeight: 700, color: "white", letterSpacing: "0.04em", lineHeight: 1 }}>{project.alias}</h1>
+              <h1 style={{ fontFamily: "var(--font-display)", fontSize: 21, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.04em", lineHeight: 1 }}>{project.alias}</h1>
               <span className={`badge badge-${STATUS_COLORS[project.status] || "muted"}`}>{project.status}</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
@@ -654,10 +655,9 @@ export default function ProjectDashboardPage() {
             <TabButton active={activeTab === "audiencia"} label="Audiencia" icon={<Users style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("audiencia")} />
             <TabButton active={activeTab === "creativos"} label="Creativos" icon={<Palette style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("creativos")} />
             <TabButton active={activeTab === "salud"} label="Salud" icon={<HeartPulse style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("salud")} />
+            <TabButton active={activeTab === "confiabilidad"} label="Confiabilidad" icon={<ShieldCheck style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("confiabilidad")} />
             <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
-            {(!!project.crmIntegrationIds?.length || !!project.crmIntegrationId || !!project.whatsapp?.length || !!project.instagram?.length || !!project.fanpage?.length) && (
-              <TabButton active={activeTab === "resultados"} label="Resultados Bot" icon={<BarChart2 style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("resultados")} />
-            )}
+
             {!!project.website && (
               <TabButton active={activeTab === "trafico"} label="Tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
             )}
@@ -685,7 +685,7 @@ export default function ProjectDashboardPage() {
           })}
           {ch?.adAccounts && ch.adAccounts.length > 1 && (
             <select value={selectedAccountId} onChange={e => { setSelectedAccountId(e.target.value); setBreakdownData({}); }} style={{
-background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)",
+background: "var(--surface)", border: "1px solid var(--border)",
               color: "var(--foreground)", fontSize: 11, padding: "6px 24px 6px 12px",
               borderRadius: 20, cursor: "pointer", appearance: "none", fontWeight: 600,
             }}>
@@ -709,16 +709,16 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             
             {/* Disclaimer si el rango no es grande */}
             {datePreset !== "this_year" && datePreset !== "all_time" && (
-              <div style={{ padding: "10px 14px", background: "rgba(59,130,246,0.05)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 6, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ padding: "10px 14px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 6, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
                 <Activity style={{ width: 16, height: 16, color: "var(--cyan)" }} />
-                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.7)" }}>Para ver un historial completo, cambia el filtro de fechas a <strong>"Este Año"</strong>.</span>
+                <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Para ver un historial completo, cambia el filtro de fechas a <strong>"Este Año"</strong>.</span>
               </div>
             )}
 
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", textAlign: "left", borderCollapse: "collapse", fontSize: 12 }}>
                 <thead>
-                  <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.1)" }}>
+                  <tr style={{ border: "1px solid var(--border)" }}>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Mes</th>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Real</th>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Meta</th>
@@ -788,8 +788,8 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                       }
 
                       return (
-                        <tr key={monthKey} style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                          <td style={{ padding: "12px 14px", color: "white", fontWeight: 600 }}>{monthKey}</td>
+                        <tr key={monthKey} style={{ border: "1px solid var(--hairline)" }}>
+                          <td style={{ padding: "12px 14px", color: "var(--foreground)", fontWeight: 600 }}>{monthKey}</td>
                           <td style={{ padding: "12px 14px", color: data.spend > mBudgetMonthly ? "var(--red)" : "white" }}>{fmtMXN0(data.spend)}</td>
                           <td style={{ padding: "12px 14px", color: "var(--text-muted)" }}>{fmtMXN0(mBudgetMonthly)}</td>
                           <td style={{ padding: "12px 14px", color: actualCpa > mCpr * 1.1 ? "var(--red)" : "white" }}>{fmtMXN(actualCpa)}</td>
@@ -805,6 +805,19 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               </table>
             </div>
           </div>
+        </ErrorBoundary>
+      )}
+
+      {/* ═══ TAB: CONFIABILIDAD ═══ */}
+      {activeTab === "confiabilidad" && activePlatform === "meta" && (
+        <ErrorBoundary name="Tab Confiabilidad">
+          <UserReliabilityModule 
+             adAccountId={selectedAccountId === "all" ? (ch?.adAccounts?.[0] || "") : selectedAccountId}
+             dateStart={dateStart} 
+             dateEnd={dateEnd}
+             goal={ch?.goal || "Conversaciones"}
+             cprTarget={ch?.cpr ? parseBudget(ch.cpr) : 0}
+          />
         </ErrorBoundary>
       )}
 
@@ -843,8 +856,8 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   { label: "Cumplimiento", value: goalNum > 0 ? pct(goalCompletion) : "—", sub: `${daysRemaining} días restantes`, color: goalCompletion >= 100 ? "var(--emerald)" : "white", accentColor: goalCompletion >= 100 ? "rgba(0,200,117,0.35)" : "rgba(255,255,255,0.1)" },
                 ].map((item, i) => (
                   <div key={i} style={{
-                    background: "rgba(255,255,255,0.025)", borderRadius: 10,
-                    border: "1px solid rgba(255,255,255,0.07)", padding: "12px 14px",
+                    background: "var(--surface-hover)", borderRadius: 10,
+                    border: "1px solid var(--border)", padding: "12px 14px",
                     borderTop: `2px solid ${item.accentColor}`, position: "relative", overflow: "hidden",
                   }}>
                     <p style={{ ...labelStyle, marginBottom: 6 }}>{item.label}</p>
@@ -859,7 +872,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em" }}>PROGRESO DEL MES</span>
                     <span style={{ fontSize: 9, fontWeight: 700, color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)" }}>{pct(Math.min(goalCompletion, 100))}</span>
                   </div>
-                  <div style={{ height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 3, overflow: "hidden" }}>
+                  <div style={{ height: 6, background: "var(--surface-hover)", borderRadius: 3, overflow: "hidden" }}>
                     <div style={{ height: "100%", width: `${Math.min(goalCompletion, 100)}%`, background: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)", borderRadius: 3, transition: "width 0.5s", boxShadow: `0 0 8px ${trackStatus === "on-track" ? "rgba(0,200,117,0.5)" : "rgba(253,171,61,0.5)"}` }} />
                   </div>
                 </div>
@@ -886,9 +899,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     {timeSeriesData.length > 0 ? (
                       <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                        <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
-                        <YAxis yAxisId="left" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
-                        <YAxis yAxisId="right" orientation="right" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+                        <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "var(--font-mono)" }} />
+                        <YAxis yAxisId="left" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} tick={{ fontFamily: "var(--font-mono)" }} />
+                        <YAxis yAxisId="right" orientation="right" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tick={{ fontFamily: "var(--font-mono)" }} />
                         <Tooltip content={<CustomTooltip formatter={(name, v) => name === "spend" || name === "Inversión" ? [fmtMXN(Number(v)), "Inversión"] : [String(v), "Resultados"]} />} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
                         <Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#colorCyanArea)" dot={false} />
                         <Bar yAxisId="right" dataKey="results" name="Resultados" fill="url(#colorEmeraldBar)" radius={[4, 4, 0, 0]} barSize={7} />
@@ -914,9 +927,9 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     {timeSeriesData.length > 0 ? (
                       <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                        <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
-                        <YAxis yAxisId="l" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
-                        <YAxis yAxisId="r" orientation="right" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} tick={{ fontFamily: "'JetBrains Mono', monospace" }} />
+                        <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "var(--font-mono)" }} />
+                        <YAxis yAxisId="l" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} tick={{ fontFamily: "var(--font-mono)" }} />
+                        <YAxis yAxisId="r" orientation="right" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} tick={{ fontFamily: "var(--font-mono)" }} />
                         <Tooltip content={<CustomTooltip formatter={(name, v) => name === "ctr" || name === "CTR (%)" ? [`${Number(v).toFixed(2)}%`, "CTR"] : [fmtMXN(Number(v)), "CPC"]} />} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
                         <Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#colorCyanArea)" dot={false} />
                         <Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="var(--amber)" strokeWidth={2} dot={{ r: 3, fill: "var(--surface)", stroke: "var(--amber)", strokeWidth: 2 }} activeDot={{ r: 5, fill: "var(--amber)" }} />
@@ -945,18 +958,18 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <div key={acc} style={{
                   display: "flex", alignItems: "center", gap: 10,
                   padding: "10px 12px", marginBottom: 6, borderRadius: 10,
-                  background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)",
+                  background: "var(--surface-hover)", border: "1px solid var(--border)",
                   transition: "background 0.15s", cursor: "default",
                 }}
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.025)")}
                 >
                   <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #1877F2, #0A4FBD)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: 12, fontWeight: 900, color: "white", fontFamily: "serif" }}>f</span>
+                    <span style={{ fontSize: 12, fontWeight: 900, color: "var(--foreground)", fontFamily: "serif" }}>f</span>
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ fontSize: 12, color: "var(--foreground)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{accountNames[acc] || "Ad Account"}</p>
-                    <p style={{ fontSize: 9, color: "var(--text-muted)", fontFamily: "monospace" }}>{acc}</p>
+                    <p style={{ fontSize: 9, color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{acc}</p>
                   </div>
                   <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 6px rgba(0,200,117,0.6)", flexShrink: 0 }} />
                 </div>
@@ -971,7 +984,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             {/* Presupuesto Diario */}
             <div style={panelStyle}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <div className="icon-container icon-container-sm" style={{ background: "rgba(224,168,60,0.1)", borderColor: "rgba(224,168,60,0.2)", color: "var(--amber)" }}>
+                <div className="icon-container icon-container-sm" style={{ background: "var(--surface)", borderColor: "rgba(224,168,60,0.2)", color: "var(--amber)" }}>
                   <DollarSign style={{ width: 14, height: 14, color: "var(--amber)" }} />
                 </div>
                 <div>
@@ -980,11 +993,11 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-                <div style={{ padding: "10px 12px", background: "rgba(59,130,246,0.05)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: 10 }}>
+                <div style={{ padding: "10px 12px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: 10 }}>
                   <p style={{ ...labelStyle, marginBottom: 4 }}>Diario ideal</p>
                   <p style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)", fontFamily: "var(--font-display)" }}>{fmtMXN(bk.daily)}</p>
                 </div>
-                <div style={{ padding: "10px 12px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10 }}>
+                <div style={{ padding: "10px 12px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10 }}>
                   <p style={{ ...labelStyle, marginBottom: 4 }}>Semanal ideal</p>
                   <p style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>{fmtMXN(bk.weekly)}</p>
                 </div>
@@ -1092,16 +1105,36 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             // Only stitch if this date has NO late activity (6-23) but DOES have early activity (0-5)
             // AND the early hours are in the range 0-5 (typical UTC-6 overflow)
             if (lateActivity.length === 0 && earlyActivity.length > 0) {
-              console.debug(`[Heatmap] Stitching TZ overflow: ${dateStr} hours [${earlyActivity.join(',')}] → prev date ${prev} as hours [${earlyActivity.map(h => h + 18).join(',')}]`);
-              earlyActivity.forEach(h => {
+              const currentHour = new Date().getHours();
+              const isPrevToday = prev === todayStr;
+
+              // Filter early hours to only those whose target hour has already occurred if the target day is today
+              const stitchableHours = earlyActivity.filter(h => {
                 const targetH = h + 18;
-                dateMap[prev][targetH].impressions += hours[h].impressions;
-                dateMap[prev][targetH].spend       += hours[h].spend;
-                dateMap[prev][targetH].clicks      += hours[h].clicks;
-                dateMap[prev][targetH].results     += hours[h].results;
+                return !isPrevToday || targetH <= currentHour;
               });
-              // Mark this date for removal from display (all its data moved)
-              datesToRemove.add(dateStr);
+
+              if (stitchableHours.length > 0) {
+                console.debug(`[Heatmap] Stitching TZ overflow: ${dateStr} hours [${stitchableHours.join(',')}] → prev date ${prev} as hours [${stitchableHours.map(h => h + 18).join(',')}]`);
+                stitchableHours.forEach(h => {
+                  const targetH = h + 18;
+                  dateMap[prev][targetH].impressions += hours[h].impressions;
+                  dateMap[prev][targetH].spend       += hours[h].spend;
+                  dateMap[prev][targetH].clicks      += hours[h].clicks;
+                  dateMap[prev][targetH].results     += hours[h].results;
+
+                  // Clear them from original day
+                  hours[h] = { impressions: 0, spend: 0, clicks: 0, results: 0 };
+                });
+
+                // Only remove the date if all early hours with data were stitched
+                const remainingEarly = [0, 1, 2, 3, 4, 5].some(
+                  h => hours[h].spend > 0 || hours[h].results > 0 || hours[h].impressions > 0
+                );
+                if (!remainingEarly) {
+                  datesToRemove.add(dateStr);
+                }
+              }
             }
           });
 
@@ -1159,13 +1192,13 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
           });
 
           const getColor2 = (val: number) => {
-            if (maxVal === 0 || val === 0) return "rgba(255,255,255,0.05)";
+            if (maxVal === 0 || val === 0) return "var(--row-hover)";
             const intensity = val / maxVal;
             if (intensity > 0.75) return heatMetric === "spend" ? "rgba(251,191,36,0.7)" : "rgba(0,200,117,0.6)";
             if (intensity > 0.5)  return heatMetric === "spend" ? "rgba(251,191,36,0.45)" : "rgba(0,200,117,0.35)";
             if (intensity > 0.25) return heatMetric === "spend" ? "rgba(251,191,36,0.25)" : "rgba(59,130,246,0.25)";
             if (intensity > 0.1)  return heatMetric === "spend" ? "rgba(251,191,36,0.12)" : "rgba(59,130,246,0.12)";
-            return "rgba(255,255,255,0.1)";
+            return "var(--border-neutral)";
           };
 
           // Today's date string for highlighting
@@ -1179,7 +1212,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   <p style={subStyle}>Hover para ver detalle · Horas en zona horaria de la audiencia</p>
                 </div>
                 {/* Metric switcher */}
-                <div style={{ display: "flex", gap: 3, background: "rgba(255,255,255,0.05)", borderRadius: 8, padding: "3px" }}>
+                <div style={{ display: "flex", gap: 3, background: "var(--surface-hover)", borderRadius: 8, padding: "3px" }}>
                   {heatMetrics.map(m => (
                     <button
                       key={m.key}
@@ -1201,13 +1234,13 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 740 }}>
                   <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
                     <tr>
-                      <th style={{ padding: "5px 10px", fontSize: 9, color: "var(--text-muted)", textAlign: "left", fontWeight: 700, width: 76, background: "rgba(8,12,24,0.97)", letterSpacing: "0.06em" }}>FECHA</th>
+                      <th style={{ padding: "5px 10px", fontSize: 9, color: "var(--text-muted)", textAlign: "left", fontWeight: 700, width: 76, background: "var(--surface)", letterSpacing: "0.06em" }}>FECHA</th>
                       {HOURS.map(h => (
-                        <th key={h} style={{ padding: "5px 2px", fontSize: 9, color: "var(--text-muted)", textAlign: "center", fontWeight: 600, minWidth: 28, background: "rgba(8,12,24,0.97)" }}>
+                        <th key={h} style={{ padding: "5px 2px", fontSize: 9, color: "var(--text-muted)", textAlign: "center", fontWeight: 600, minWidth: 28, background: "var(--surface)" }}>
                           {h.toString().padStart(2, "0")}
                         </th>
                       ))}
-                      <th style={{ padding: "5px 8px", fontSize: 9, color: "rgba(59,130,246,0.6)", textAlign: "right", fontWeight: 700, minWidth: 52, background: "rgba(8,12,24,0.97)", letterSpacing: "0.06em" }}>TOTAL</th>
+                      <th style={{ padding: "5px 8px", fontSize: 9, color: "rgba(59,130,246,0.6)", textAlign: "right", fontWeight: 700, minWidth: 52, background: "var(--surface)", letterSpacing: "0.06em" }}>TOTAL</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1224,7 +1257,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                             padding: "3px 10px", fontSize: 10,
                             color: isToday ? "var(--cyan)" : isWeekend ? "rgba(59,130,246,0.45)" : "var(--text-secondary)",
                             fontWeight: isToday ? 800 : 600, whiteSpace: "nowrap",
-                            borderRight: isToday ? "2px solid rgba(59,130,246,0.35)" : "1px solid rgba(255,255,255,0.03)",
+                            borderRight: isToday ? "2px solid rgba(59,130,246,0.35)" : "1px solid var(--hairline)",
                           }}>
                             {isToday ? "● " : ""}{dateLabel}
                           </td>
@@ -1242,7 +1275,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                                   background: getColor2(val),
                                   borderRadius: 3,
                                   display: "flex", alignItems: "center", justifyContent: "center",
-                                  fontSize: 9, color: val > 0 ? "rgba(255,255,255,0.9)" : "transparent",
+                                  fontSize: 9, color: val > 0 ? "var(--foreground)" : "transparent",
                                   fontWeight: 700,
                                   cursor: "default",
                                   transition: "transform 0.1s",
@@ -1267,7 +1300,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   </tbody>
                   {/* Column totals footer */}
                   <tfoot style={{ position: "sticky", bottom: 0 }}>
-                    <tr style={{ borderTop: "1px solid rgba(255,255,255,0.08)", background: "rgba(8,12,24,0.97)" }}>
+                    <tr style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
                       <td style={{ padding: "5px 10px", fontSize: 9, color: "rgba(59,130,246,0.6)", fontWeight: 700, letterSpacing: "0.08em" }}>TOTAL</td>
                       {HOURS.map(h => {
                         const colTotal = sortedDates.reduce((sum, dateStr) => sum + getVal(dateMap[dateStr][h]), 0);
@@ -1287,7 +1320,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               {/* Legend */}
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end" }}>
                 <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Menor actividad</span>
-                {["rgba(255,255,255,0.05)", "rgba(255,255,255,0.1)", "rgba(59,130,246,0.12)", "rgba(59,130,246,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
+                {["var(--row-hover)", "var(--border-neutral)", "rgba(59,130,246,0.12)", "rgba(59,130,246,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
                   <div key={i} style={{ width: 16, height: 12, borderRadius: 3, background: c }} />
                 ))}
                 <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Mayor actividad</span>
@@ -1307,7 +1340,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             {/* Presupuesto mensual */}
             <div style={{ ...panelStyle, borderTop: "2px solid rgba(251,191,36,0.5)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(251,191,36,0.12)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <DollarSign style={{ width: 12, height: 12, color: "var(--amber)" }} />
                 </div>
                 <p style={labelStyle}>Presupuesto {bk.label}</p>
@@ -1318,7 +1351,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             {/* Diario ideal */}
             <div style={{ ...panelStyle, borderTop: "2px solid rgba(59,130,246,0.5)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(59,130,246,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--cyan-dim)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Target style={{ width: 12, height: 12, color: "var(--cyan)" }} />
                 </div>
                 <p style={labelStyle}>Diario ideal</p>
@@ -1338,7 +1371,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN0(idealSpendToday)} ideal</p>
               {/* mini progress bar */}
               {idealSpendToday > 0 && (
-                <div style={{ marginTop: 8, height: 3, background: "rgba(255,255,255,0.07)", borderRadius: 2, overflow: "hidden" }}>
+                <div style={{ marginTop: 8, height: 3, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
                   <div style={{ height: "100%", width: `${Math.min((totalSpend / idealSpendToday) * 100, 100)}%`, background: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", borderRadius: 2 }} />
                 </div>
               )}
@@ -1346,12 +1379,12 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             {/* Restante */}
             <div style={{ ...panelStyle, borderTop: "2px solid rgba(139,141,242,0.5)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: "rgba(139,141,242,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <TrendingDown style={{ width: 12, height: 12, color: "var(--purple)" }} />
                 </div>
                 <p style={labelStyle}>Restante</p>
               </div>
-              <p style={{ fontSize: 22, fontWeight: 700, color: "white", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p>
               <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{budgetNum > 0 ? `${pct(Math.min((totalSpend / budgetNum) * 100, 100))} utilizado` : "Sin presupuesto configurado"}</p>
             </div>
           </div>
@@ -1387,11 +1420,11 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 const projCPL = projectedResults > 0 ? projectedSpend / projectedResults : 0;
                 const desvioCPL = cprTarget > 0 ? ((totCPL / cprTarget) - 1) * 100 : 0;
 
-                const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "var(--foreground)", borderBottom: "1px solid rgba(255,255,255,0.03)", whiteSpace: "nowrap" };
-                const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 700, fontSize: 10, background: "var(--cyan)", borderBottom: "none" };
-                const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "white", fontWeight: 600, fontSize: 9, background: "rgba(0,120,255,0.5)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
-                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 600, color: "rgba(255,255,255,0.9)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "rgba(15,23,42,0.95)", borderRight: "1px solid rgba(255,255,255,0.1)", zIndex: 2 };
-                const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "rgba(30,41,59,0.95)", borderRight: "1px solid rgba(255,255,255,0.05)", position: "sticky" as const, left: 0, zIndex: 2 };
+                const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "var(--foreground)", border: "1px solid var(--hairline)", whiteSpace: "nowrap" };
+                const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "var(--foreground)", fontWeight: 700, fontSize: 10, background: "var(--cyan)", borderBottom: "none" };
+                const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "var(--foreground)", fontWeight: 600, fontSize: 9, background: "var(--surface)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
+                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 600, color: "var(--foreground)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "var(--surface)", border: "1px solid var(--border)", zIndex: 2 };
+                const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "var(--surface-hover)", border: "1px solid var(--hairline)", position: "sticky" as const, left: 0, zIndex: 2 };
 
                 const metricRows = [
                   { label: "Presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "var(--foreground)" },
@@ -1400,8 +1433,8 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   { label: goalLabel(ch?.goal), total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "var(--emerald)" },
                   { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map((c: any) => goalBreakdown.daily > 0 ? pct((c.results / goalBreakdown.daily) * 100) : "—"), color: "#c084fc" },
                   { label: CPR_MAP[ch?.goal || ""] || "CPR", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "var(--cyan)" },
-                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Objetivo`, total: cprTarget > 0 ? fmtMXN(cprTarget) : "—", values: cols.map(() => cprTarget > 0 ? fmtMXN(cprTarget) : "—"), color: "rgba(255,255,255,0.85)" },
-                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(1)}%`; }), color: "rgba(255,255,255,0.85)" },
+                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Objetivo`, total: cprTarget > 0 ? fmtMXN(cprTarget) : "—", values: cols.map(() => cprTarget > 0 ? fmtMXN(cprTarget) : "—"), color: "var(--text-secondary)" },
+                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(1)}%`; }), color: "var(--text-secondary)" },
                 ];
 
                 return (
@@ -1409,8 +1442,8 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     {/* Day names header */}
                     <thead>
                       <tr>
-                        <th style={{ ...totalCellStyle, background: "rgba(30,41,59,0.95)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 10, color: "rgba(255,255,255,0.9)" }}>AL DÍA</th>
-                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 10, color: "rgba(255,255,255,0.9)" }}>FECHA</th>
+                        <th style={{ ...totalCellStyle, background: "var(--surface-hover)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 10, color: "var(--foreground)" }}>AL DÍA</th>
+                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 10, color: "var(--foreground)" }}>FECHA</th>
                         {cols.map((c: any, i: number) => <th key={i} style={headerCellStyle}>{c.dayName}</th>)}
                       </tr>
                       {/* Date numbers row */}
@@ -1423,7 +1456,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     <tbody>
                       {/* Campaign name row */}
                       <tr>
-                        <td colSpan={2 + cols.length} style={{ padding: "8px 12px", fontWeight: 700, fontSize: 11, color: "var(--cyan)", background: "rgba(59,130,246,0.04)", borderBottom: "1px solid rgba(59,130,246,0.1)", letterSpacing: "0.05em" }}>
+                        <td colSpan={2 + cols.length} style={{ padding: "8px 12px", fontWeight: 700, fontSize: 11, color: "var(--cyan)", background: "var(--cyan-dim)", borderBottom: "1px solid rgba(59,130,246,0.1)", letterSpacing: "0.05em" }}>
                           {project.alias?.toUpperCase() || "PROYECTO"}
                         </td>
                       </tr>
@@ -1475,11 +1508,11 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             borderLeft: "3px solid var(--cyan)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Users style={{ width: 20, height: 20, color: "var(--cyan)" }} />
               </div>
               <div style={{ flex: 1 }}>
-                <h3 style={{ fontSize: 16, fontWeight: 700, color: "white", marginBottom: 3 }}>
+                <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", marginBottom: 3 }}>
                   ¿A quién estás llegando?
                 </h3>
                 <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
@@ -1493,7 +1526,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                   { label: "Dispositivo", color: "var(--purple)" },
                   { label: "Plataforma", color: "var(--emerald)" },
                 ].map((chip, i) => (
-                  <div key={i} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 9, fontWeight: 700, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: chip.color, letterSpacing: "0.06em" }}>
+                  <div key={i} style={{ padding: "3px 10px", borderRadius: 20, fontSize: 9, fontWeight: 700, background: "var(--surface-hover)", border: "1px solid var(--border)", color: chip.color, letterSpacing: "0.06em" }}>
                     {chip.label}
                   </div>
                 ))}
@@ -1515,8 +1548,8 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     <div style={{ height: "100%", display: "flex", flexDirection: "column", gap: 8, padding: "8px 0" }}>
                       {[70, 90, 55, 80, 65, 45].map((w, i) => (
                         <div key={i} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                          <div style={{ width: 36, height: 14, borderRadius: 4, background: "rgba(255,255,255,0.06)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
-                          <div style={{ height: 24, borderRadius: 4, background: "rgba(59,130,246,0.08)", flex: 1, maxWidth: `${w}%`, animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
+                          <div style={{ width: 36, height: 14, borderRadius: 4, background: "var(--surface-hover)", animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
+                          <div style={{ height: 24, borderRadius: 4, background: "var(--cyan-dim)", flex: 1, maxWidth: `${w}%`, animation: "pulse 1.5s ease-in-out infinite", animationDelay: `${i * 0.1}s` }} />
                         </div>
                       ))}
                       <p style={{ textAlign: "center", color: "var(--text-muted)", fontSize: 11, marginTop: 8 }}>Cargando datos de audiencia...</p>
@@ -1781,7 +1814,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
 
           {/* Section header */}
           <div style={{ ...panelStyle, padding: "14px 18px", background: "linear-gradient(135deg, rgba(162,93,220,0.06), rgba(253,171,61,0.04))" }}>
-            <h3 style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 4 }}>
+            <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 4 }}>
               <Palette style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#9b7be8" }} />
               Análisis de Creativos
             </h3>
@@ -1817,7 +1850,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--emerald)" }} />Top 3 Mejores Anuncios</h3>
                   <p style={subStyle}>Menor costo por resultado — clic para ver preview</p>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {best.length > 0 ? best.map((ad) => (
                       <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
                     )) : <NoData msg="Sin anuncios con resultados" />}
@@ -1827,7 +1860,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--red)" }} />Top 3 Peores Anuncios</h3>
                   <p style={subStyle}>Mayor gasto sin resultados o CPR más alto</p>
-                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {worstByEfficiency.length > 0 ? worstByEfficiency.map((ad) => (
                       <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
                     )) : <NoData msg="Sin datos" />}
@@ -1845,7 +1878,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               <div style={{ overflowX: "auto", marginTop: 10 }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
                   <thead>
-                    <tr style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                    <tr style={{ border: "1px solid var(--hairline)" }}>
                       <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>#</th>
                       <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Anuncio</th>
                       <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Estado</th>
@@ -1863,7 +1896,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                       const cprVal = results > 0 ? ad.spend / results : 0;
                       const ctrVal = ad.ctr || (ad.clicks > 0 && ad.impressions > 0 ? (ad.clicks / ad.impressions) * 100 : 0);
                       return (
-                        <tr key={ad.adId || i} style={{ borderBottom: "1px solid rgba(255,255,255,0.025)", transition: "background 0.15s", cursor: "pointer" }}
+                        <tr key={ad.adId || i} style={{ border: "1px solid var(--border)", transition: "background 0.15s", cursor: "pointer" }}
                           onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
                           onMouseLeave={e => e.currentTarget.style.background = "transparent"}
                           onClick={() => { const ra2 = findResultAction(ad.actions, ch?.goal); setPreviewAd({ ...ad, results, cprVal, ctrVal }); }}>
@@ -1873,10 +1906,10 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                               <div style={{ width: 40, height: 40, borderRadius: 4, overflow: "hidden", flexShrink: 0, background: "var(--surface-hover)", position: "relative" }}>
                                 {ad.thumbnailUrl
                                   ? <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                                  : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "rgba(148,163,184,0.15)" }} /></div>
+                                  : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "var(--text-secondary)" }} /></div>
                                 }
-                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(162,93,220,0.8)", color: "white", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
-                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "rgba(253,171,61,0.8)", color: "white", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>⟡</span>}
+                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
+                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>⟡</span>}
                               </div>
                               <span style={{ color: "var(--foreground)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
                             </div>
@@ -1950,7 +1983,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     ? <NoData msg="Cargando..." />
                     : data.length > 0
                       ? data.map((d, i) => (
-                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", borderBottom: "1px solid rgba(255,255,255,0.025)" }}>
+                          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", border: "1px solid var(--border)" }}>
                             <span style={{ width: 22, height: 22, borderRadius: 4, background: `${CHART_COLORS[i]}20`, color: CHART_COLORS[i], display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
                             <div style={{ flex: 1, minWidth: 0 }}>
                               <p style={{ fontSize: 12, color: "var(--foreground)", lineHeight: 1.4, wordBreak: "break-word" }} title={d.text}>
@@ -2027,7 +2060,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     formatStats[fmt].count++;
                   });
                   return Object.entries(formatStats).map(([fmt, s]) => (
-                    <div key={fmt} style={{ background: "rgba(0,0,0,0.2)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, padding: "10px 12px" }}>
+                    <div key={fmt} style={{ background: "var(--surface-hover)", border: "1px solid var(--hairline)", borderRadius: 6, padding: "10px 12px" }}>
                       <p style={{ fontSize: 10, color: "var(--text-secondary)", textTransform: "uppercase", marginBottom: 4 }}>{fmt}</p>
                       <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
                         <span style={{ color: "var(--amber)" }}>{fmtMXN(s.spend)}</span>
@@ -2082,7 +2115,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
             borderTop: "2px solid rgba(253,171,61,0.3)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(253,171,61,0.15)", border: "1px solid rgba(253,171,61,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 32, height: 32, borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(253,171,61,0.3)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
               </div>
               <div>
@@ -2099,25 +2132,25 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     border: "1px solid rgba(253,171,61,0.2)", borderRadius: 12, padding: 18,
                     position: "relative", overflow: "hidden",
                   }}>
-                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(253,171,61,0.08)" }} />
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(253,171,61,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🏆</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🏆</div>
                       <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
                     </div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "rgba(253,171,61,0.1)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
-                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: 12 }}>Sin datos de campaña</div>;
+                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>Sin datos de campaña</div>;
               })()}
               {(() => {
                 const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
@@ -2127,25 +2160,25 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     border: "1px solid rgba(139,141,242,0.2)", borderRadius: 12, padding: 18,
                     position: "relative", overflow: "hidden",
                   }}>
-                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "rgba(139,141,242,0.08)" }} />
+                    <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "rgba(139,141,242,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🥇</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🥇</div>
                       <p style={{ fontSize: 9, color: "var(--purple)", fontWeight: 800, letterSpacing: "0.12em" }}>ADSET GANADOR</p>
                     </div>
-                    <p style={{ fontSize: 13, fontWeight: 700, color: "white", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
+                    <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-                      <div style={{ padding: "4px 10px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(0,200,117,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>Resultados: </span><span style={{ color: "var(--emerald)", fontWeight: 700 }}>{top.results}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
-                      <div style={{ padding: "4px 10px", background: "rgba(139,141,242,0.1)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 20, fontSize: 10 }}>
+                      <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 20, fontSize: 10 }}>
                         <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
-                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed rgba(255,255,255,0.08)", borderRadius: 12 }}>Sin datos de adset</div>;
+                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>Sin datos de adset</div>;
               })()}
             </div>
           </div>
@@ -2262,7 +2295,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                       <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>Estado general de la campaña</p>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
                          <div style={{ width: 12, height: 12, borderRadius: "50%", background: healthColor, boxShadow: `0 0 10px ${healthColor}` }} />
-                         <span style={{ fontSize: 16, fontWeight: 700, color: "white", textTransform: "uppercase" }}>{healthLabel}</span>
+                         <span style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase" }}>{healthLabel}</span>
                       </div>
                     </div>
                     
@@ -2287,14 +2320,14 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                          <span style={{ fontSize: 12, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em" }}>Eficiencia General (Costo por Resultado)</span>
                        </div>
                        <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-                          <span style={{ fontSize: 42, fontWeight: 800, color: "white", fontFamily: "var(--font-display)" }}>{indicators[0].value}</span>
-                          <span style={{ fontSize: 14, color: "rgba(255,255,255,0.7)" }}>{indicators[0].bench}</span>
+                          <span style={{ fontSize: 42, fontWeight: 800, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>{indicators[0].value}</span>
+                          <span style={{ fontSize: 14, color: "var(--text-secondary)" }}>{indicators[0].bench}</span>
                        </div>
                     </div>
                     <div style={{ zIndex: 2, textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                       <span style={{ fontSize: 10, color: "rgba(255,255,255,0.6)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Score de Eficiencia</span>
+                       <span style={{ fontSize: 10, color: "var(--text-secondary)", textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Score de Eficiencia</span>
                        <span style={{ fontSize: 32, fontWeight: 800, color: indicators[0].color, fontFamily: "var(--font-display)" }}>{indicators[0].score}</span>
-                       <div style={{ width: 100, height: 4, background: "rgba(255,255,255,0.1)", borderRadius: 2, marginTop: 8, overflow: "hidden" }}>
+                       <div style={{ width: 100, height: 4, background: "var(--surface-hover)", borderRadius: 2, marginTop: 8, overflow: "hidden" }}>
                           <div style={{ height: "100%", width: `${indicators[0].score}%`, background: indicators[0].color, borderRadius: 2 }} />
                        </div>
                     </div>
@@ -2317,15 +2350,15 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                             {step.icon}
                           </div>
                         </div>
-                        <p style={{ fontSize: 13, fontWeight: 600, color: "white", marginBottom: 4 }}>{step.name}</p>
-                        <div style={{ fontSize: 24, fontWeight: 700, color: "white", fontFamily: "var(--font-display)", marginBottom: 8 }}>
+                        <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 4 }}>{step.name}</p>
+                        <div style={{ fontSize: 24, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)", marginBottom: 8 }}>
                           {step.value}
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
                           <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{step.bench}</span>
                           <span style={{ fontSize: 13, fontWeight: 700, color: step.color, fontFamily: "var(--font-display)" }}>{step.score}</span>
                         </div>
-                        <div style={{ height: 4, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
+                        <div style={{ height: 4, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden", marginBottom: 10 }}>
                           <div style={{ height: "100%", width: `${step.score}%`, background: step.color, borderRadius: 2 }} />
                         </div>
                         <p style={{ fontSize: 10, color: "var(--text-muted)", lineHeight: 1.4 }}>{step.desc}</p>
@@ -2403,7 +2436,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               style={{
                 width: "100%",
                 flex: 1,
-                border: "1px solid rgba(255, 255, 255, 0.06)",
+                border: "1px solid var(--hairline)",
                 borderRadius: 8,
                 background: "var(--background)",
               }}
@@ -2416,14 +2449,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
       )}
 
 
-      {/* ═══ TAB: ANÁLISIS DE RESULTADOS (Métricas del Bot, acotado al proyecto) ═══ */}
-      {activeTab === "resultados" && (
-        <ErrorBoundary name="Tab Análisis de Resultados">
-          <div style={{ height: "calc(100vh - 180px)", margin: "8px 0 0", borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <BotAnalyticsDashboard projectId={project.id} embedded />
-          </div>
-        </ErrorBoundary>
-      )}
+
 
       {/* ═══ TAB: ANÁLISIS DE TRÁFICO (GA4) ═══ */}
       {activeTab === "trafico" && (
@@ -2440,7 +2466,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
           {/* ── Google Sources Panel ── */}
           <div style={{ ...panelStyle, gridColumn: "1 / -1" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-              <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(66,133,244,0.1)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <svg viewBox="0 0 24 24" width={14} height={14} fill="#4285F4"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
               </div>
               <div>
@@ -2454,7 +2480,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
           <div style={panelStyle}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                <div style={{ width: 30, height: 30, borderRadius: 8, background: "rgba(59,130,246,0.1)", border: "1px solid rgba(59,130,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Settings style={{ width: 14, height: 14, color: "var(--cyan)" }} />
                 </div>
                 <h3 style={headingStyle}>Información General</h3>
@@ -2462,7 +2488,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               {!isEditing ? (
                 <button onClick={() => setIsEditing(true)} style={{
                   display: "flex", alignItems: "center", gap: 6, padding: "6px 14px",
-                  background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)",
+                  background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)",
                   color: "var(--cyan)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600,
                   transition: "all 0.15s",
                 }}>
@@ -2470,10 +2496,10 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 </button>
               ) : (
                 <div style={{ display: "flex", gap: 8 }}>
-                  <button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "rgba(226,68,92,0.08)", border: "1px solid rgba(226,68,92,0.2)", color: "var(--red)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
+                  <button onClick={() => { setIsEditing(false); setEditForm(project); }} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 12px", background: "var(--surface)", border: "1px solid rgba(226,68,92,0.2)", color: "var(--red)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 600 }}>
                     <X style={{ width: 12, height: 12 }} /> Cancelar
                   </button>
-                  <button onClick={saveChanges} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 14px", background: "rgba(0,200,117,0.1)", border: "1px solid rgba(0,200,117,0.2)", color: "var(--emerald)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
+                  <button onClick={saveChanges} style={{ display: "flex", alignItems: "center", gap: 4, padding: "6px 14px", background: "var(--surface)", border: "1px solid rgba(0,200,117,0.2)", color: "var(--emerald)", cursor: "pointer", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
                     <Save style={{ width: 12, height: 12 }} /> Guardar
                   </button>
                 </div>
@@ -2491,18 +2517,18 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 <div key={f.key} style={{
                   display: "flex", alignItems: isEditing ? "flex-start" : "center", gap: 12,
                   padding: "10px 12px", borderRadius: 8, transition: "background 0.15s",
-                  borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  border: "1px solid var(--hairline)",
                 }}
                 onMouseEnter={e => !isEditing && (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
                 >
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
                     {f.icon}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <p style={{ ...labelStyle, marginBottom: 2 }}>{f.label}</p>
                     {isEditing ? (
-                      <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.2)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 6, outline: "none" }} />
+                      <input value={(editForm as any)[f.key] || ""} onChange={e => setEditForm({ ...editForm, [f.key]: e.target.value })} style={{ width: "100%", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 6, outline: "none" }} />
                     ) : (
                       <p style={{ fontSize: 13, color: (project as any)[f.key] ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: (project as any)[f.key] ? "normal" : "italic" }}>
                         {(project as any)[f.key] || "Sin configurar"}
@@ -2512,14 +2538,14 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                 </div>
               ))}
               {/* Estado */}
-              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-                <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 8, border: "1px solid var(--hairline)" }}>
+                <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
                   <Activity style={{ width: 12, height: 12 }} />
                 </div>
                 <div style={{ flex: 1 }}>
                   <p style={{ ...labelStyle, marginBottom: 2 }}>Estado</p>
                   {isEditing ? (
-                    <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.2)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 6, cursor: "pointer" }}>
+                    <select value={editForm.status || project.status} onChange={e => setEditForm({ ...editForm, status: e.target.value as any })} style={{ width: "100%", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 6, cursor: "pointer" }}>
                       <option value="Activo">Activo</option><option value="Pausado">Pausado</option><option value="Draft">Draft</option><option value="Completado">Completado</option>
                     </select>
                   ) : (
@@ -2530,74 +2556,25 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               {/* Fechas */}
               <div className="grid grid-cols-2 gap-3" style={{ padding: "10px 0" }}>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)", marginLeft: 12 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)", marginLeft: 12 }}>
                     <Calendar style={{ width: 12, height: 12 }} />
                   </div>
                   <div>
                     <p style={labelStyle}>Fecha Inicio</p>
-                    {isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateStart ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: project.dateStart ? "normal" : "italic" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                    {isEditing ? <input type="date" value={editForm.dateStart || ""} onChange={e => setEditForm({ ...editForm, dateStart: e.target.value })} style={{ width: "100%", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateStart ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: project.dateStart ? "normal" : "italic" }}>{project.dateStart ? new Date(project.dateStart).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
                   </div>
                 </div>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 6, background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, color: "var(--text-muted)" }}>
                     <Calendar style={{ width: 12, height: 12 }} />
                   </div>
                   <div>
                     <p style={labelStyle}>Fecha Fin</p>
-                    {isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateEnd ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: project.dateEnd ? "normal" : "italic" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
+                    {isEditing ? <input type="date" value={editForm.dateEnd || ""} onChange={e => setEditForm({ ...editForm, dateEnd: e.target.value })} style={{ width: "100%", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--foreground)", fontSize: 11, padding: "6px", borderRadius: 6 }} /> : <p style={{ fontSize: 12, color: project.dateEnd ? "var(--foreground)" : "rgba(108,124,147,0.5)", fontStyle: project.dateEnd ? "normal" : "italic" }}>{project.dateEnd ? new Date(project.dateEnd).toLocaleDateString("es-MX") : "Sin fecha"}</p>}
                   </div>
                 </div>
               </div>
-              <div>
-                <p style={labelStyle}>Plataforma del bot (Análisis de Resultados)</p>
-                {(() => {
-                  const CRM_PROVIDERS = ["botmaker", "cari", "custom_crm", "hubspot"];
-                  // Solo botmaker/cari/cari_ai alimentan Análisis de Resultados; el resto
-                  // (custom_crm/hubspot) se conserva pero se marca como NO compatible.
-                  const crmLabel = (p: string) => {
-                    const base = p === "botmaker" ? "Botmaker" : p === "cari" ? "Cari AI" : p === "custom_crm" ? "CRM Custom (vía API)" : p;
-                    return normalizeIntegrationProvider(p) ? base : `${base} — no compatible con Análisis de Resultados`;
-                  };
-                  const crmOptions = activeIntegrations.filter(i => CRM_PROVIDERS.includes(i.provider));
-                  // Una sola plataforma de bot por proyecto: el análisis ahora se acota a
-                  // los canales de Botmaker del proyecto, así que la multi-selección dejó
-                  // de tener sentido. Se conserva crmIntegrationIds (1 elemento) por compat.
-                  const selectedId = (editForm.crmIntegrationIds && editForm.crmIntegrationIds[0])
-                    || editForm.crmIntegrationId || "";
-                  if (isEditing) {
-                    return (
-                      <>
-                        <select
-                          value={selectedId}
-                          onChange={e => {
-                            const sel = e.target.value;
-                            const intg = activeIntegrations.find(a => a.id === sel);
-                            setEditForm(prev => ({
-                              ...prev,
-                              crmIntegrationId: sel || null,
-                              crmIntegrationIds: sel ? [sel] : [],
-                              crmType: intg ? intg.provider : null,
-                            }));
-                          }}
-                          style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: "pointer", appearance: "auto" }}
-                        >
-                          <option value="">Ninguna</option>
-                          {crmOptions.map(i => <option key={i.id} value={i.id}>{crmLabel(i.provider)}</option>)}
-                        </select>
-                        {crmOptions.length === 0 && <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>Conecta Botmaker o Cari AI en Integraciones primero.</p>}
-                      </>
-                    );
-                  }
-                  const currentId = (project.crmIntegrationIds && project.crmIntegrationIds[0])
-                    || project.crmIntegrationId || "";
-                  const cur = currentId ? activeIntegrations.find(a => a.id === currentId) : null;
-                  return (
-                    <p style={{ fontSize: 13, color: currentId ? "var(--cyan)" : "var(--foreground)" }}>
-                      {currentId ? (cur ? crmLabel(cur.provider) : "Conectado") : "—"}
-                    </p>
-                  );
-                })()}
-              </div>
+
             </div>
           </div>
 
@@ -2611,7 +2588,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
               <select 
                 value={editingMonth} 
                 onChange={e => setEditingMonth(e.target.value)}
-                style={{ background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", fontSize: 11, padding: "4px 8px", borderRadius: 4, cursor: "pointer", outline: "none" }}
+                style={{ background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", color: "var(--cyan)", fontSize: 11, padding: "4px 8px", borderRadius: 4, cursor: "pointer", outline: "none" }}
               >
                 <option value="global">Meta Global (Por Defecto)</option>
                 <option value="2026-05">Mayo 2026</option>
@@ -2638,14 +2615,14 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
 
               const bk2 = getBudgetBreakdown(parseBudget(currentBudget), c.period);
               return (
-                <div key={i} style={{ padding: 16, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)", borderRadius: 6, marginBottom: 8, borderLeft: `3px solid ${pl.color}` }}>
+                <div key={i} style={{ padding: 16, background: "var(--surface)", border: "1px solid var(--hairline)", borderRadius: 6, marginBottom: 8, borderLeft: `3px solid ${pl.color}` }}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <div style={{ width: 8, height: 8, borderRadius: "50%", background: pl.color }} />
-                      <span style={{ fontSize: 13, fontWeight: 600, color: "white" }}>{pl.name}</span>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{pl.name}</span>
                     </div>
                     {!isGlobal && isOverridden && !isEditing && (
-                      <span style={{ fontSize: 10, background: "rgba(59,130,246,0.1)", color: "var(--cyan)", padding: "2px 6px", borderRadius: 4 }}>Meta Mensual Activa</span>
+                      <span style={{ fontSize: 10, background: "var(--cyan-dim)", color: "var(--cyan)", padding: "2px 6px", borderRadius: 4 }}>Meta Mensual Activa</span>
                     )}
                   </div>
                   {isEditing ? (
@@ -2661,11 +2638,11 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                             ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
                           }
                           setEditForm({ ...editForm, channels: ch2 });
-                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.15)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
+                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.15)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
                       </div>
                       <div>
                         <p style={labelStyle}>Período {isGlobal ? "" : "(Global)"}</p>
-                        <select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} disabled={!isGlobal} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: isGlobal ? "pointer" : "not-allowed", opacity: isGlobal ? 1 : 0.6 }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select>
+                        <select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} disabled={!isGlobal} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: isGlobal ? "pointer" : "not-allowed", opacity: isGlobal ? 1 : 0.6 }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select>
                       </div>
                       <div>
                         <p style={labelStyle}>Objetivo</p>
@@ -2678,7 +2655,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                             ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
                           }
                           setEditForm({ ...editForm, channels: ch2 });
-                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
+                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
                       </div>
                       <div>
                         <p style={labelStyle}>CPR Meta</p>
@@ -2691,7 +2668,7 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                             ch2[i] = { ...ch2[i], monthlyOverrides: overrides };
                           }
                           setEditForm({ ...editForm, channels: ch2 });
-                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(255,255,255,0.06)", color: "white", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
+                        }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
                       </div>
                       {!isGlobal && (
                         <div className="col-span-2 flex justify-end">
@@ -2707,12 +2684,12 @@ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)"
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "white", fontWeight: 600 }}>{currentBudget || "—"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Período:</span> <span style={{ color: "white" }}>{c.period || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{currentBudget || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Período:</span> <span style={{ color: "var(--foreground)" }}>{c.period || "—"}</span></div>
                       <div><span style={{ color: "var(--text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "—"}</span></div>
                       <div><span style={{ color: "var(--text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "—"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Diario ideal:</span> <span style={{ color: "white" }}>{fmtMXN(bk2.daily)}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Cuentas:</span> <span style={{ color: "white" }}>{c.adAccounts?.length || 0}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Diario ideal:</span> <span style={{ color: "var(--foreground)" }}>{fmtMXN(bk2.daily)}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Cuentas:</span> <span style={{ color: "var(--foreground)" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>
                   )}
                 </div>

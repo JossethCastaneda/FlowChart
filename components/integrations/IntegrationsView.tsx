@@ -69,7 +69,7 @@ function TokenModal({ provider, label, isConnected, onClose, onSuccess, onDiscon
     }
   };
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--overlay-dark)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
+    <div style={{ position: "fixed", inset: 0, zIndex: 1000, background: "var(--overlay-dark)",  display: "flex", alignItems: "center", justifyContent: "center" }} onClick={onClose}>
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 400, borderRadius: 14, background: "var(--background)", border: "1px solid var(--hairline)", padding: 24 }}>
         <p style={{ fontSize: 15, fontWeight: 700, color: "var(--foreground)", margin: "0 0 6px" }}>Conectar {label}</p>
         <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 16px" }}>Ingresa el token de acceso de tu cuenta</p>
@@ -83,11 +83,11 @@ function TokenModal({ provider, label, isConnected, onClose, onSuccess, onDiscon
         )}
         <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
           {isConnected && onDisconnect ? (
-            <button onClick={onDisconnect} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit" }}>Desconectar</button>
+            <button onClick={onDisconnect} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)", color: "var(--red)", cursor: "pointer", fontFamily: "inherit" }}>Desconectar</button>
           ) : (
             <button onClick={onClose} style={{ flex: 1, padding: "9px", borderRadius: 8, fontSize: 12, background: "transparent", border: "1px solid var(--hairline)", color: "var(--text-muted)", cursor: "pointer", fontFamily: "inherit" }}>Cancelar</button>
           )}
-          <button onClick={save} disabled={!token.trim() || saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)", cursor: !token.trim() || saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: !token.trim() || saving ? 0.6 : 1 }}>
+          <button onClick={save} disabled={!token.trim() || saving} style={{ flex: 2, padding: "9px", borderRadius: 8, fontSize: 12, fontWeight: 700, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.25)", color: "var(--cyan)", cursor: !token.trim() || saving ? "not-allowed" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontFamily: "inherit", opacity: !token.trim() || saving ? 0.6 : 1 }}>
             {saving && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
             Guardar y conectar
           </button>
@@ -181,19 +181,7 @@ const ALL_CHANNELS: ChannelDef[] = [
   },
   { provider: "linkedin_ads", name: "LinkedIn Ads", description: "Sponsored Content y Lead Gen Forms.", Icon: LinkedInIcon, iconBg: "#0A66C2", comingSoon: true },
   { provider: "x_ads", name: "X (Twitter)", description: "Promoted Tweets, Trends y audiencias.", Icon: XIcon, iconBg: "#14171A", comingSoon: true },
-  // CRM
-  {
-    provider: "botmaker", name: "BotMaker",
-    description: "Chatbots, WhatsApp API y analítica de conversaciones.",
-    Icon: BotmakerIcon, iconBg: "#1E40AF",
-    badges: [{ label: "CRM", color: "var(--purple)" }],
-  },
-  {
-    provider: "cari", name: "Cari AI",
-    description: "Report API: conversaciones y agentes en tiempo real.",
-    Icon: CariAIIcon, iconBg: "#0B7A5C",
-    badges: [{ label: "AI", color: "var(--emerald)" }],
-  },
+
   {
     provider: "custom_crm", name: "CRM Custom",
     description: "Conecta tu propio CRM vía API endpoint personalizado.",
@@ -370,7 +358,7 @@ export function IntegrationsView() {
                   opacity: ch.comingSoon ? 0.55 : 1,
                   position: "relative", overflow: "hidden",
                   boxShadow: connected ? "0 10px 30px rgba(16,185,129,0.1)" : "0 4px 14px rgba(0,0,0,0.06)",
-                  backdropFilter: "blur(12px)",
+                  
                 }}
               >
                 {/* top green accent when connected */}
@@ -380,7 +368,7 @@ export function IntegrationsView() {
 
                 {/* PRONTO badge */}
                 {ch.comingSoon && (
-                  <span style={{ position: "absolute", top: 10, right: 10, fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: "rgba(155,123,232,0.12)", border: "1px solid rgba(155,123,232,0.2)", color: "var(--purple)", letterSpacing: "0.08em" }}>
+                  <span style={{ position: "absolute", top: 10, right: 10, fontSize: 8, fontWeight: 800, padding: "2px 6px", borderRadius: 4, background: "var(--surface)", border: "1px solid rgba(155,123,232,0.2)", color: "var(--purple)", letterSpacing: "0.08em" }}>
                     {lang === "es" ? "PRONTO" : "SOON"}
                   </span>
                 )}

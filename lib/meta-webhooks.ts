@@ -37,6 +37,62 @@ export const INSTAGRAM_WEBHOOK_FIELDS = [
   "story_insights", // Story insights
 ];
 
+/**
+ * Scope de usuario que exige Meta para suscribir cada campo. La llamada a
+ * `subscribed_apps` es TODO-O-NADA: si UN campo no está permitido, Meta
+ * rechaza la suscripción completa (visto en producción: 0/32 páginas
+ * suscritas porque el token de community no tiene pages_manage_metadata y
+ * pedíamos `feed` — y de paso se perdía `messages`, que sí está permitido).
+ * Por eso los campos se filtran por los scopes realmente otorgados.
+ */
+const PAGE_FIELD_SCOPES: Record<string, string> = {
+  messages: "pages_messaging",
+  messaging_postbacks: "pages_messaging",
+  messaging_optins: "pages_messaging",
+  messaging_referrals: "pages_messaging",
+  message_deliveries: "pages_messaging",
+  message_reads: "pages_messaging",
+  feed: "pages_manage_metadata",
+  mention: "pages_manage_metadata",
+  ratings: "pages_manage_metadata",
+  leadgen: "leads_retrieval",
+};
+
+const INSTAGRAM_FIELD_SCOPES: Record<string, string> = {
+  messages: "instagram_manage_messages",
+  messaging_postbacks: "instagram_manage_messages",
+  comments: "instagram_manage_comments",
+  mentions: "instagram_manage_comments",
+  live_comments: "instagram_manage_comments",
+  story_insights: "instagram_manage_insights",
+};
+
+/** Núcleo mínimo para el inbox en tiempo real: DMs siempre primero. */
+const CORE_MESSAGING_FIELDS = ["messages", "messaging_postbacks"];
+
+/**
+ * Filtra los campos de webhook según los scopes otorgados. Sin lista de
+ * scopes (callers legacy) se devuelven todos los campos — el reintento con
+ * el núcleo mínimo cubre ese caso si Meta rechaza.
+ */
+export function allowedWebhookFields(
+  grantedScopes: string[] | undefined,
+  withInstagram: boolean,
+): string[] {
+  const all = withInstagram
+    ? [...new Set([...PAGE_WEBHOOK_FIELDS, ...INSTAGRAM_WEBHOOK_FIELDS])]
+    : PAGE_WEBHOOK_FIELDS;
+  if (!grantedScopes || grantedScopes.length === 0) return all;
+  const granted = new Set(grantedScopes);
+  return all.filter((f) => {
+    const pageScope = PAGE_FIELD_SCOPES[f];
+    const igScope = withInstagram ? INSTAGRAM_FIELD_SCOPES[f] : undefined;
+    // Basta con que UNO de los scopes que habilitan el campo esté otorgado
+    // (ej. "messages" entra con pages_messaging O instagram_manage_messages).
+    return (pageScope && granted.has(pageScope)) || (igScope && granted.has(igScope));
+  });
+}
+
 export interface SubscribablePage {
   id: string;
   name?: string;
@@ -52,6 +108,29 @@ export interface SubscriptionResult {
   type: "page" | "instagram";
   success: boolean;
   error?: string | null;
+  /** Campos que quedaron efectivamente suscritos (para el AuditLog). */
+  fields?: string[];
+}
+
+async function postSubscribedApps(
+  pageId: string,
+  accessToken: string,
+  version: string,
+  fields: string[],
+): Promise<{ success: boolean; error: string | null }> {
+  const res = await fetch(
+    `https://graph.facebook.com/${version}/${pageId}/subscribed_apps`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ subscribed_fields: fields.join(",") }),
+    }
+  );
+  const data = await res.json().catch(() => ({}));
+  return { success: data.success === true, error: data.error?.message ?? null };
 }
 
 /**
@@ -60,51 +139,58 @@ export interface SubscriptionResult {
  * Cuando la página tiene IG, se envían los campos de página + IG en UN solo
  * POST: un segundo POST a `subscribed_apps` sobrescribiría los `subscribed_fields`
  * del primero, así que se unifican para no perder los campos de página.
+ *
+ * Estrategia anti todo-o-nada:
+ *   1. Suscribir SOLO los campos permitidos por los scopes otorgados.
+ *   2. Si Meta aún rechaza (#200), reintentar con el núcleo mínimo de
+ *      mensajería (`messages,messaging_postbacks`) — el inbox en tiempo
+ *      real nunca debe caerse porque un campo secundario no tenga permiso.
  */
 export async function subscribePageToWebhooks(
   page: SubscribablePage,
-  version: string
+  version: string,
+  grantedScopes?: string[]
 ): Promise<SubscriptionResult> {
+  const entity = `Page: ${page.name ?? page.id}`;
   if (!page.accessToken) {
+    return { entity, id: page.id, type: "page", success: false, error: "Sin page access token" };
+  }
+
+  const fields = allowedWebhookFields(grantedScopes, !!page.instagramId);
+  if (fields.length === 0) {
     return {
-      entity: `Page: ${page.name ?? page.id}`,
-      id: page.id,
-      type: "page",
-      success: false,
-      error: "Sin page access token",
+      entity, id: page.id, type: "page", success: false,
+      error: "Ningún campo de webhook permitido por los scopes otorgados",
     };
   }
 
-  const fields = page.instagramId
-    ? [...new Set([...PAGE_WEBHOOK_FIELDS, ...INSTAGRAM_WEBHOOK_FIELDS])]
-    : PAGE_WEBHOOK_FIELDS;
-
   try {
-    const res = await fetch(
-      `https://graph.facebook.com/${version}/${page.id}/subscribed_apps`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${page.accessToken}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ subscribed_fields: fields.join(",") }),
+    const first = await postSubscribedApps(page.id, page.accessToken, version, fields);
+    if (first.success) {
+      return { entity, id: page.id, type: "page", success: true, fields };
+    }
+
+    // Reintento con el núcleo de mensajería si el set completo fue rechazado
+    // por permisos (#200) y aún no era el mínimo.
+    const core = CORE_MESSAGING_FIELDS.filter((f) => fields.includes(f));
+    const isPermissionError = (first.error ?? "").includes("(#200)");
+    if (isPermissionError && core.length > 0 && core.length < fields.length) {
+      const retry = await postSubscribedApps(page.id, page.accessToken, version, core);
+      if (retry.success) {
+        logger.warn("[META-WEBHOOKS] Suscripción parcial (solo mensajería)", {
+          pageId: page.id,
+          dropped: fields.filter((f) => !core.includes(f)),
+          error: first.error,
+        });
+        return { entity, id: page.id, type: "page", success: true, fields: core, error: first.error };
       }
-    );
-    const data = await res.json().catch(() => ({}));
-    return {
-      entity: `Page: ${page.name ?? page.id}`,
-      id: page.id,
-      type: "page",
-      success: data.success === true,
-      error: data.error?.message ?? null,
-    };
+      return { entity, id: page.id, type: "page", success: false, error: retry.error ?? first.error };
+    }
+
+    return { entity, id: page.id, type: "page", success: false, error: first.error };
   } catch (err) {
     return {
-      entity: `Page: ${page.name ?? page.id}`,
-      id: page.id,
-      type: "page",
-      success: false,
+      entity, id: page.id, type: "page", success: false,
       error: err instanceof Error ? err.message : "Error de red",
     };
   }
@@ -117,11 +203,12 @@ export async function subscribePageToWebhooks(
  */
 export async function subscribePages(
   pages: SubscribablePage[],
-  version: string
+  version: string,
+  grantedScopes?: string[]
 ): Promise<SubscriptionResult[]> {
   if (pages.length === 0) return [];
   const settled = await Promise.allSettled(
-    pages.map((p) => subscribePageToWebhooks(p, version))
+    pages.map((p) => subscribePageToWebhooks(p, version, grantedScopes))
   );
   return settled.map((r, i) =>
     r.status === "fulfilled"

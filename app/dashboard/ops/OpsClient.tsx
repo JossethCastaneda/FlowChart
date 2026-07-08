@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -13,22 +13,17 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { useSession } from "next-auth/react";
 import { parseWorkflow, findUserArea, estimateEtaHours, etaDate, getPermissions, type WorkflowConfig, type Area, type AreaPermissions } from "@/lib/workflow-config";
 import { useLanguage } from "@/components/layout/LanguageContext";
-
-/* ═══ TYPES ═══ */
-interface Member { id: string; name: string; email: string | null; image: string | null; role: string; activityStatus?: string }
-const STATUS_DOT: Record<string, string> = { disponible: "var(--emerald)", ocupado: "var(--amber)", ausente: "var(--red)", offline: "var(--text-muted)" };
+import { useTasks } from "./useTasks";
+import { useTaskFilters } from "./useTaskFilters";
+import { GanttView } from "./GanttView";
+import { CalendarView } from "./CalendarView";
+import { KanbanBoard } from "./KanbanBoard";
+import { MyTasksView } from "./MyTasksView";
+import { showToast } from "@/components/ui/Toast";
+import type { Task, Member, Attachment } from "./types";
+import { PRIO_CFG, PRIORITIES } from "./types";
 interface Comment { id: string; userId: string; userName: string; userImage: string | null; content: string; createdAt: string }
 interface Activity { id: string; userName: string; action: string; field: string | null; oldValue: string | null; newValue: string | null; createdAt: string }
-interface Attachment { name: string; url: string; type: string; size: number; uploadedAt: string }
-interface Task {
-  id: string; title: string; description: string | null; assignee: string | null; assigneeId?: string | null;
-  priority: string; status: string; dueDate: string | null; tags: string[];
-  order: number; parentId: string | null; children: Task[]; createdAt: string;
-  closedAt?: string | null;
-  attachments?: Attachment[];
-  // Cross-area request (Capa 3)
-  targetAreaId?: string | null; requestType?: string | null; requesterId?: string | null;
-}
 
 /* ═══ CONFIG ═══ */
 const STATUS_CFG: Record<string, { label: string; bg: string; c: string }> = {
@@ -37,20 +32,13 @@ const STATUS_CFG: Record<string, { label: string; bg: string; c: string }> = {
   Review:  { label: "En Review", bg: "var(--red)", c: "#fff" },
   Done:    { label: "Completado", bg: "var(--emerald)", c: "#fff" },
 };
-const PRIO_CFG: Record<string, { label: string; bg: string; c: string }> = {
-  P0: { label: "Urgente", bg: "var(--red-dim)", c: "var(--red)" },
-  P1: { label: "Alta", bg: "var(--cyan-dim)", c: "var(--cyan)" },
-  P2: { label: "Media", bg: "rgba(139,141,242,0.15)", c: "var(--purple)" },
-  P3: { label: "Baja", bg: "rgba(148,163,184,0.1)", c: "var(--text-secondary)" },
-};
 const GROUPS = [
   { key: "Backlog", label: "Backlog", color: "var(--text-secondary)" },
-  { key: "WIP", label: "En Progreso", color: "var(--amber)" },
+  { key: "WIP", label: "En Progreso", color: "var(--amber)", wipLimit: 5 },
   { key: "Review", label: "En Review", color: "var(--red)" },
   { key: "Done", label: "Completado", color: "var(--emerald)" },
 ];
 const STATUSES = Object.keys(STATUS_CFG);
-const PRIORITIES = Object.keys(PRIO_CFG);
 const TAG_PRESETS = ["Contenido", "Diseño", "Pauta", "Reportes", "Estrategia", "SEO", "CRM", "Social Media"];
 const GROUP_LABELS: Record<string, string> = { status: "Estado", assignee: "Responsable", priority: "Prioridad" };
 const ch: React.CSSProperties = { padding: "10px 12px", fontSize: 11, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.05em", textTransform: "uppercase" };
@@ -217,8 +205,8 @@ function EditableCell({ value, onSave, placeholder }: { value: string; onSave: (
 const inp: React.CSSProperties = { width: "100%", padding: "8px 12px", fontSize: 12, background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--foreground)", outline: "none", borderRadius: 4 };
 const lbl: React.CSSProperties = { fontSize: 10, fontWeight: 700, color: "var(--text-secondary)", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: 6, display: "block" };
 
-function TaskDetailModal({ task, onClose, onSave, members, onRefresh, onSubtaskCreate, onSubtaskPatch, onSubtaskDelete }: {
-  task: Task; onClose: () => void; onSave: (d: any) => void; members: Member[]; onRefresh: () => void;
+function TaskDetailModal({ task, allTasks, onClose, onSave, members, onRefresh, onSubtaskCreate, onSubtaskPatch, onSubtaskDelete }: {
+  task: Task; allTasks: Task[]; onClose: () => void; onSave: (d: any) => void; members: Member[]; onRefresh: () => void;
   onSubtaskCreate: (parentId: string, title: string) => Promise<void>;
   onSubtaskPatch: (id: string, p: any) => Promise<void>;
   onSubtaskDelete: (id: string) => Promise<void>;
@@ -229,7 +217,11 @@ function TaskDetailModal({ task, onClose, onSave, members, onRefresh, onSubtaskC
   const [form, setForm] = useState({
     title: task.title, description: task.description || "", assignee: task.assignee || "", assigneeId: task.assigneeId || "",
     priority: task.priority, status: task.status,
-    dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "", tags: task.tags || [] as string[],
+    dueDate: task.dueDate ? new Date(task.dueDate).toISOString().split("T")[0] : "", 
+    startDate: task.startDate ? new Date(task.startDate).toISOString().split("T")[0] : "",
+    estimate: task.estimate || "",
+    blockedBy: task.blockedBy?.map(b => b.id) || [],
+    tags: task.tags || [] as string[],
   });
   const [tagInput, setTagInput] = useState("");
   const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
@@ -243,7 +235,18 @@ function TaskDetailModal({ task, onClose, onSave, members, onRefresh, onSubtaskC
 
   const set = (k: string, v: any) => setForm(p => ({ ...p, [k]: v }));
   const addTag = (tg: string) => { const s = tg.trim(); if (s && !form.tags.includes(s)) set("tags", [...form.tags, s]); setTagInput(""); };
-  const submit = async () => { if (!form.title.trim()) return; setSaving(true); await onSave({ ...form, dueDate: form.dueDate || null }); setSaving(false); };
+  const submit = async () => { 
+    if (!form.title.trim()) return; 
+    setSaving(true); 
+    await onSave({ 
+      ...form, 
+      dueDate: form.dueDate || null,
+      startDate: form.startDate || null,
+      estimate: form.estimate ? Number(form.estimate) : null,
+      blockedBy: form.blockedBy.map(id => ({ id }))
+    }); 
+    setSaving(false); 
+  };
   const sl = form.dueDate ? sla(form.dueDate, form.status, lang) : null;
 
   // Load comments + activity
@@ -310,7 +313,7 @@ function TaskDetailModal({ task, onClose, onSave, members, onRefresh, onSubtaskC
   const subtaskPct = subtaskTotal > 0 ? Math.round((subtaskDone / subtaskTotal) * 100) : 0;
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "3vh 16px", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "3vh 16px", background: "var(--panel-bg)",  }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 700, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 24px", borderBottom: "1px solid var(--border)" }}>
@@ -349,7 +352,23 @@ function TaskDetailModal({ task, onClose, onSave, members, onRefresh, onSubtaskC
             </div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div><label style={lbl}>{t.status}</label><select style={{ ...inp, cursor: "pointer" }} value={form.status} onChange={e => set("status", e.target.value)}>{STATUSES.map(s => <option key={s} value={s}>{STATUS_CFG[s].label}</option>)}</select></div>
+              <div><label style={lbl}>{lang === "es" ? "Estimación (hs)" : "Estimate (hrs)"}</label><input type="number" min="0" step="0.5" style={{ ...inp }} value={form.estimate} onChange={e => set("estimate", e.target.value)} /></div>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div><label style={lbl}>{lang === "es" ? "Fecha Inicio" : "Start Date"}</label><input type="date" style={{ ...inp, cursor: "pointer" }} value={form.startDate} onChange={e => set("startDate", e.target.value)} /></div>
               <div><label style={lbl}>{t.dueDate}</label><input type="date" style={{ ...inp, cursor: "pointer" }} value={form.dueDate} onChange={e => set("dueDate", e.target.value)} /></div>
+            </div>
+            <div>
+              <label style={lbl}>{lang === "es" ? "Dependencias (Bloqueado por)" : "Dependencies (Blocked by)"}</label>
+              <select style={{ ...inp, cursor: "pointer", height: "auto" }} multiple size={3} value={form.blockedBy} onChange={e => {
+                const options = Array.from(e.target.selectedOptions, option => option.value);
+                set("blockedBy", options);
+              }}>
+                {allTasks.filter(t => t.id !== task.id && !t.parentId).map(t => (
+                  <option key={t.id} value={t.id}>{t.title}</option>
+                ))}
+              </select>
+              <span style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4, display: "block" }}>{lang === "es" ? "Mantén Ctrl/Cmd para seleccionar múltiples" : "Hold Ctrl/Cmd to select multiple"}</span>
             </div>
             {sl && sl.i !== "none" && (
               <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 14px", background: sl.bg, border: `1px solid ${sl.c}25`, borderRadius: 4 }}>
@@ -533,7 +552,7 @@ function CreateModal({ onClose, onSave, members }: { onClose: () => void; onSave
   const submit = async () => { if (!form.title.trim()) return; setSaving(true); await onSave({ ...form, dueDate: form.dueDate || null }); setSaving(false); };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)",  }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em" }}>NUEVA TAREA</span>
@@ -602,7 +621,7 @@ function RequestModal({ onClose, onSave, areas, members }: { onClose: () => void
   };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "rgba(0,0,0,0.7)", backdropFilter: "blur(6px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--panel-bg)",  }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 560, background: "var(--surface)", border: `1px solid ${area ? `${area.color}40` : "var(--border)"}`, borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", borderBottom: "1px solid var(--border)" }}>
           <span style={{ fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.1em", display: "flex", alignItems: "center", gap: 8 }}><Send style={{ width: 14, height: 14, color: area?.color || "var(--cyan)" }} /> NUEVA SOLICITUD</span>
@@ -644,57 +663,6 @@ function RequestModal({ onClose, onSave, areas, members }: { onClose: () => void
   );
 }
 
-/* ═══ KANBAN CARD ═══ */
-function KanbanCard({ task, onEdit }: { task: Task; onEdit: (t: Task) => void }) {
-  const { lang } = useLanguage();
-  const sl = sla(task.dueDate, task.status, lang);
-  const pri = PRIO_CFG[task.priority] || PRIO_CFG.P2;
-  const childDone = task.children?.filter(c => c.status === "Done").length || 0;
-  const childTotal = task.children?.length || 0;
-  return (
-    <div
-      draggable
-      onDragStart={(e) => {
-        e.dataTransfer.setData("text/plain", task.id);
-        e.dataTransfer.effectAllowed = "move";
-      }}
-      onClick={() => onEdit(task)}
-      style={{
-        background: "var(--surface)", border: "1px solid var(--border)",
-        borderRadius: 8, padding: "12px 14px", cursor: "grab", transition: "all 0.15s",
-        borderLeft: `4px solid ${pri.c}`,
-        boxShadow: "0 2px 8px rgba(0,0,0,0.1)"
-      }}
-      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--border-strong)"; e.currentTarget.style.background = "var(--surface-hover)"; }}
-      onMouseLeave={e => { e.currentTarget.style.borderColor = "var(--border)"; e.currentTarget.style.background = "var(--surface)"; }}
-    >
-      <p style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)", marginBottom: 8, lineHeight: 1.4 }}>{task.title}</p>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 4, background: pri.bg, color: pri.c, fontWeight: 700 }}>{pri.label}</span>
-        {task.assignee && <span style={{ fontSize: 10, color: "var(--text-secondary)", fontWeight: 500 }}>{task.assignee}</span>}
-        {sl.i !== "none" && <span style={{ fontSize: 9, color: sl.c, fontWeight: 700, padding: "2px 6px", borderRadius: 4, background: sl.bg }}>{sl.l}</span>}
-      </div>
-      {task.tags?.length > 0 && (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 3, marginTop: 8 }}>
-          {task.tags.map((tg, i) => <span key={i} style={{ fontSize: 8, padding: "1px 6px", background: "var(--cyan-dim)", color: "var(--cyan)", border: "1px solid var(--border)", borderRadius: 4 }}>{tg}</span>)}
-        </div>
-      )}
-      {childTotal > 0 && (
-        <div style={{ marginTop: 10 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "var(--text-secondary)", marginBottom: 4 }}>
-            <span>Subtareas</span>
-            <span style={{ fontWeight: 600 }}>{childDone}/{childTotal}</span>
-          </div>
-          <div style={{ height: 4, background: "var(--border)", borderRadius: 2, overflow: "hidden" }}>
-            <div style={{ height: "100%", width: `${(childDone / childTotal) * 100}%`, background: "var(--emerald)", borderRadius: 2, transition: "width 0.3s" }} />
-          </div>
-        </div>
-      )}
-
-    </div>
-  );
-}
-
 /* ═══ FILTER CHIP ═══ */
 function FilterChip({ label, value, active, children }: { label: string; value: string; active?: boolean; children: (close: () => void) => React.ReactNode }) {
   return (
@@ -720,9 +688,9 @@ export default function OpsPage() {
   const { lang } = useLanguage();
   const t = TRANSLATIONS[lang];
 
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [members, setMembers] = useState<Member[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { tasks, members, loading, fetchTasks: fetch_, patchTask, createTask, createSubtask, patchSubtask, deleteSubtask } = useTasks();
+  const { viewMode, setViewMode, groupBy, setGroupBy, fAssignee, setFAssignee, fPriority, setFPriority, fTag, setFTag, fArea, setFArea, viewArea, setViewArea } = useTaskFilters();
+
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
   const [showRequest, setShowRequest] = useState(false);
@@ -730,14 +698,6 @@ export default function OpsPage() {
   const [addingIn, setAddingIn] = useState<string | null>(null);
   const [addingSubIn, setAddingSubIn] = useState<string | null>(null);
   const [newTitle, setNewTitle] = useState("");
-
-  const [viewMode, setViewMode] = useState<"kanban" | "table" | "metrics" | "okrs">("kanban");
-  const [groupBy, setGroupBy] = useState<"status" | "assignee" | "priority">("status");
-  const [fAssignee, setFAssignee] = useState("");
-  const [fPriority, setFPriority] = useState("");
-  const [fTag, setFTag] = useState("");
-  const [fArea, setFArea] = useState("");
-  const [viewArea, setViewArea] = useState<string>("__all__");
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const newRef = useRef<HTMLInputElement>(null);
@@ -775,197 +735,49 @@ export default function OpsPage() {
     return area.leadIds.includes(currentUserId);
   }, [config, areaForAssignee, members, currentUserId]);
 
-  const fetch_ = useCallback(async () => {
-    try {
-      const r = await fetch("/api/ops");
-      const d = await r.json();
-      if (Array.isArray(d.data?.tasks)) setTasks(d.data.tasks);
-      if (Array.isArray(d.data?.members)) setMembers(d.data.members);
-    } catch {
-      /* silent — error will surface as empty state */
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => { fetch_(); }, [fetch_]);
-  useEffect(() => { if (addingIn) newRef.current?.focus(); }, [addingIn]);
-  useEffect(() => { if (addingSubIn) subRef.current?.focus(); }, [addingSubIn]);
   useEffect(() => { if (myArea && viewArea === "__all__") setViewArea("__mine__"); }, [myArea]);
-
-  // Restore + persist grouping/filters.
-  useEffect(() => {
-    try {
-      const r = localStorage.getItem("sodare:ops-prefs");
-      if (r) {
-        const p = JSON.parse(r);
-        if (p.groupBy) setGroupBy(p.groupBy);
-        if (p.viewMode) setViewMode(p.viewMode);
-        if (typeof p.fAssignee === "string") setFAssignee(p.fAssignee);
-        if (typeof p.fPriority === "string") setFPriority(p.fPriority);
-        if (typeof p.fTag === "string") setFTag(p.fTag);
-        if (typeof p.fArea === "string") setFArea(p.fArea);
-      }
-    } catch { /* ignore */ }
-  }, []);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem("sodare:ops-prefs", JSON.stringify({ groupBy, viewMode, fAssignee, fPriority, fTag, fArea }));
-    } catch { /* ignore */ }
-  }, [groupBy, viewMode, fAssignee, fPriority, fTag, fArea]);
 
   const createWith = async (defaults: any) => {
     if (!newTitle.trim()) return;
-    try {
-      const r = await fetch("/api/ops", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: newTitle.trim(), status: "Backlog", ...defaults })
-      });
-      const d = await r.json();
-      if (r.ok) setTasks(p => [...p, d.data]);
-    } catch {}
+    await createTask({ title: newTitle.trim(), status: "Backlog", ...defaults });
     setNewTitle("");
     setAddingIn(null);
   };
 
-  const createSubtask = async (parentId: string, title: string) => {
-    try {
-      const r = await fetch("/api/ops", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, parentId, status: "Backlog" })
-      });
-      const d = await r.json();
-      if (r.ok) {
-        setTasks(p => p.map(t => t.id === parentId ? { ...t, children: [...(t.children || []), d.data] } : t));
-        if (editTask && editTask.id === parentId) {
-          setEditTask(prev => prev ? { ...prev, children: [...(prev.children || []), d.data] } : null);
-        }
-      }
-    } catch {}
-  };
-
-  const patchSubtask = async (id: string, p: any) => {
-    try {
-      const r = await fetch(`/api/ops/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(p)
-      });
-      const d = await r.json();
-      if (r.ok) {
-        setTasks(prev => prev.map(t => {
-          if (t.children?.some(c => c.id === id)) {
-            return { ...t, children: t.children.map(c => c.id === id ? d.data : c) };
-          }
-          return t;
-        }));
-        if (editTask && editTask.children?.some(c => c.id === id)) {
-          setEditTask(prev => prev ? {
-            ...prev,
-            children: prev.children.map(c => c.id === id ? d.data : c)
-          } : null);
-        }
-      }
-    } catch {}
-  };
-
-  const deleteSubtask = async (id: string) => {
-    if (!confirm(lang === "es" ? "¿Eliminar esta subtarea?" : "Delete this subtask?")) return;
-    try {
-      const r = await fetch(`/api/ops/${id}`, { method: "DELETE" });
-      if (r.ok) {
-        setTasks(prev => prev.map(t => {
-          if (t.children?.some(c => c.id === id)) {
-            return { ...t, children: t.children.filter(c => c.id !== id) };
-          }
-          return t;
-        }));
-        if (editTask && editTask.children?.some(c => c.id === id)) {
-          setEditTask(prev => prev ? {
-            ...prev,
-            children: prev.children.filter(c => c.id !== id)
-          } : null);
-        }
-      }
-    } catch {}
-  };
-
   const fullCreate = async (data: any) => {
-    try {
-      const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-      const d = await r.json();
-      if (r.ok) { setTasks(p => [...p, d.data]); setShowCreate(false); }
-    } catch {}
+    await createTask(data);
+    setShowCreate(false);
   };
 
   const createRequest = async (data: any) => {
-    try {
-      const r = await fetch("/api/ops", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-      const d = await r.json();
-      if (r.ok) { setTasks(p => [...p, d.data]); setShowRequest(false); }
-      else { alert(d.error || (lang === "es" ? "Error al enviar solicitud" : "Error sending request")); }
-    } catch (e: any) {
-      alert(lang === "es" ? "Error de red al enviar solicitud" : "Network error sending request");
-    }
+    await createTask(data);
+    setShowRequest(false);
   };
 
   const fullUpdate = async (data: any) => {
     if (!editTask) return;
     if (data.status === "Done" && !canCloseTask(editTask)) {
-      alert(lang === "es" ? "Esta tarea requiere la aprobación de un líder del área antes de cerrarse." : "This task requires approval from an area leader before closing.");
+      showToast("error", lang === "es" ? "Esta tarea requiere la aprobación de un líder del área antes de cerrarse." : "This task requires approval from an area leader before closing.");
       return;
     }
-    try {
-      const r = await fetch(`/api/ops/${editTask.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-      const d = await r.json();
-      if (r.ok) {
-        setTasks(p => p.map(t => t.id === editTask.id ? d.data : t));
-        setEditTask(null);
-      }
-    } catch {}
+    await patchTask(editTask.id, data);
+    setEditTask(null);
   };
 
   const patch = async (id: string, p: any) => {
     if (p.status === "Done") {
       const tsk = tasks.find(x => x.id === id) || tasks.flatMap(x => x.children || []).find(c => c.id === id);
       if (tsk && !canCloseTask(tsk)) {
-        alert(lang === "es" ? "Esta tarea requiere la aprobación de un líder del área antes de cerrarse." : "This task requires approval from an area leader before closing.");
+        showToast("error", lang === "es" ? "Esta tarea requiere la aprobación de un líder del área antes de cerrarse." : "This task requires approval from an area leader before closing.");
         return;
       }
     }
-    setTasks(prev => prev.map(t => t.id === id ? { ...t, ...p } : t));
-    try {
-      const r = await fetch(`/api/ops/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(p) });
-      if (r.status === 403) {
-        const d = await r.json().catch(() => ({}));
-        alert(d.error || (lang === "es" ? "No tienes permisos para editar esta tarea." : "You do not have permission to edit this task."));
-        fetch_();
-      } else if (!r.ok) {
-        fetch_();
-      }
-    } catch {
-      fetch_();
-    }
+    await patchTask(id, p);
   };
 
   const del = async (id: string) => {
     if (!confirm(lang === "es" ? "¿Eliminar esta tarea?" : "Delete this task?")) return;
-    setTasks(p => p.filter(t => t.id !== id));
-    try {
-      const r = await fetch(`/api/ops/${id}`, { method: "DELETE" });
-      if (r.status === 403) {
-        const d = await r.json().catch(() => ({}));
-        alert(d.error || (lang === "es" ? "No tienes permisos para eliminar esta tarea." : "You do not have permission to delete this task."));
-        fetch_();
-      } else if (!r.ok) {
-        fetch_();
-      }
-    } catch {
-      fetch_();
-    }
+    await deleteSubtask(id); // useTasks handles optimistic delete and fallback
   };
 
   const cnt = (s: string) => tasks.filter(t => t.status === s).length;
@@ -1005,7 +817,7 @@ export default function OpsPage() {
     if (groupBy === "priority") {
       return PRIORITIES.map(p => ({ key: p, label: PRIO_CFG[p].label, color: PRIO_CFG[p].c, match: (t: Task) => t.priority === p, createDefaults: { priority: p } }));
     }
-    return GROUPS.map(g => ({ key: g.key, label: g.label, color: g.color, match: (t: Task) => t.status === g.key, createDefaults: { status: g.key } }));
+    return GROUPS.map(g => ({ key: g.key, label: g.label, color: g.color, wipLimit: g.wipLimit, match: (t: Task) => t.status === g.key, createDefaults: { status: g.key } }));
   }, [groupBy, filtered, lang]);
 
   const allTags = useMemo(() => Array.from(new Set([...TAG_PRESETS, ...tasks.flatMap(t => t.tags || [])])).sort(), [tasks]);
@@ -1066,11 +878,14 @@ export default function OpsPage() {
 
   const memberLoadStats = useMemo(() => {
     return members.map(m => {
-      const activeTasks = tasks.filter(t => t.assignee === m.name && t.status !== "Done").length;
+      const activeTasksList = tasks.filter(t => t.assignee === m.name && t.status !== "Done");
+      const activeTasks = activeTasksList.length;
+      const activeEstimate = activeTasksList.reduce((acc, t) => acc + (t.estimate || 0), 0);
       const okrStatus = activeTasks <= 5 ? "success" : "danger";
       return {
         member: m,
         activeTasks,
+        activeEstimate,
         okrStatus
       };
     }).sort((a, b) => b.activeTasks - a.activeTasks);
@@ -1127,7 +942,7 @@ export default function OpsPage() {
               <span style={{ width: 8, height: 8, borderRadius: "50%", background: myArea.color }} />
               {t.myArea} ({myArea.name})
               {pendingReviews > 0 && myArea.leadIds.includes(currentUserId) && (
-                <span style={{ background: "var(--red)", color: "#fff", fontSize: 9, fontWeight: 700, borderRadius: 10, padding: "1px 6px", marginLeft: 4 }}>{pendingReviews}</span>
+                <span style={{ background: "var(--red)", color: "var(--foreground)", fontSize: 9, fontWeight: 700, borderRadius: 10, padding: "1px 6px", marginLeft: 4 }}>{pendingReviews}</span>
               )}
             </button>
           )}
@@ -1202,6 +1017,45 @@ export default function OpsPage() {
             <TrendingUp style={{ width: 14, height: 14 }} />
             <span className="hidden sm:inline">{lang === "es" ? "Estrategia (OKRs)" : "Strategy (OKRs)"}</span>
           </button>
+          <button
+            onClick={() => setViewMode("gantt")}
+            style={{
+              display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
+              borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: "pointer", border: "none",
+              background: viewMode === "gantt" ? "var(--surface-hover)" : "transparent",
+              color: viewMode === "gantt" ? "var(--cyan)" : "var(--text-secondary)",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <Clock size={14} />
+            {lang === "es" ? "Gantt" : "Timeline"}
+          </button>
+          <button
+            onClick={() => setViewMode("calendar")}
+            style={{
+              display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
+              borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: "pointer", border: "none",
+              background: viewMode === "calendar" ? "var(--surface-hover)" : "transparent",
+              color: viewMode === "calendar" ? "var(--cyan)" : "var(--text-secondary)",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <CalendarIcon size={14} />
+            {lang === "es" ? "Calendario" : "Calendar"}
+          </button>
+          <button
+            onClick={() => setViewMode("my-tasks")}
+            style={{
+              display: "flex", alignItems: "center", gap: 6, padding: "6px 12px",
+              borderRadius: 6, fontSize: 13, fontWeight: 500, cursor: "pointer", border: "none",
+              background: viewMode === "my-tasks" ? "var(--surface-hover)" : "transparent",
+              color: viewMode === "my-tasks" ? "var(--cyan)" : "var(--text-secondary)",
+              transition: "all 0.2s ease"
+            }}
+          >
+            <CheckSquare size={14} />
+            {lang === "es" ? "Mis Tareas" : "My Tasks"}
+          </button>
         </div>
       </div>
 
@@ -1262,55 +1116,16 @@ export default function OpsPage() {
 
       {/* KANBAN VIEW */}
       {!loading && viewMode === "kanban" && (
-        <div style={{ display: "grid", gridTemplateColumns: `repeat(${dynamicGroups.length}, 1fr)`, gap: 12, minHeight: 400, overflowX: "auto", paddingBottom: 16 }}>
-          {dynamicGroups.map(g => {
-            const gt = filtered.filter(g.match);
-            return (
-              <div
-                key={g.key}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.currentTarget.style.background = "var(--surface-hover)";
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  e.currentTarget.style.background = "var(--surface)";
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  e.currentTarget.style.background = "var(--surface)";
-                  const taskId = e.dataTransfer.getData("text/plain");
-                  if (taskId) patch(taskId, g.createDefaults);
-                }}
-                style={{ background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, borderTop: `4px solid ${g.color}`, display: "flex", flexDirection: "column", minWidth: 280, padding: 6 }}
-              >
-                <div style={{ padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                    <span style={{ fontSize: 13, fontWeight: 700, color: g.color }}>{g.label}</span>
-                    <span style={{ fontSize: 10, color: "var(--text-muted)", background: "var(--border)", padding: "1px 6px", borderRadius: 8 }}>{gt.length}</span>
-                  </div>
-                  {myPerms.canAccessOps && (
-                    <button onClick={() => { setAddingIn(g.key); setNewTitle(""); }} aria-label="Agregar tarea" style={{ background: "none", border: "none", cursor: "pointer", color: "var(--text-muted)", padding: 2 }} onMouseEnter={e => e.currentTarget.style.color = g.color} onMouseLeave={e => e.currentTarget.style.color = "var(--text-muted)"}>
-                      <Plus style={{ width: 14, height: 14 }} />
-                    </button>
-                  )}
-                </div>
-                <div style={{ padding: "0 10px 10px", display: "flex", flexDirection: "column", gap: 10, flex: 1, overflowY: "auto" }}>
-                  {gt.map(tsk => <KanbanCard key={tsk.id} task={tsk} onEdit={setEditTask} />)}
-                  {addingIn === g.key && (
-                    <input
-                      ref={newRef} value={newTitle} onChange={e => setNewTitle(e.target.value)}
-                      onKeyDown={e => { if (e.key === "Enter") createWith(g.createDefaults); if (e.key === "Escape") { setAddingIn(null); setNewTitle(""); } }}
-                      onBlur={() => { if (newTitle.trim()) createWith(g.createDefaults); else { setAddingIn(null); setNewTitle(""); } }}
-                      placeholder={lang === "es" ? "Nombre..." : "Name..."}
-                      style={{ background: "var(--surface-hover)", border: "1px solid var(--border)", borderRadius: 6, padding: "8px 10px", color: "var(--foreground)", fontSize: 12, outline: "none" }}
-                    />
-                  )}
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <KanbanBoard 
+          tasks={filtered} 
+          dynamicGroups={dynamicGroups} 
+          myPerms={myPerms} 
+          lang={lang} 
+          onTaskClick={setEditTask} 
+          onTaskUpdate={patch} 
+          onCreateTask={fullCreate} 
+          groupBy={groupBy} 
+        />
       )}
 
       {/* TABLE/SPREADSHEET VIEW (Monday.com style) */}
@@ -1361,7 +1176,7 @@ export default function OpsPage() {
                   <div style={{ overflowX: "auto" }}>
                     <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 700 }}>
                       <thead>
-                        <tr style={{ borderBottom: "1px solid var(--border)", background: "rgba(0,0,0,0.02)" }}>
+                        <tr style={{ borderBottom: "1px solid var(--border)", background: "var(--surface)" }}>
                           <th style={{ ...ch, textAlign: "left", width: "35%" }}>{t.taskTitle}</th>
                           <th style={{ ...ch, textAlign: "left" }}>{t.assignee}</th>
                           <th style={{ ...ch, textAlign: "center" }}>{t.status}</th>
@@ -1406,7 +1221,7 @@ export default function OpsPage() {
                                   onChange={(e) => patch(tsk.id, { status: e.target.value })}
                                   style={{
                                     background: STATUS_CFG[tsk.status]?.bg || "var(--text-muted)",
-                                    color: "white", fontSize: 11, fontWeight: 700,
+                                    color: "var(--foreground)", fontSize: 11, fontWeight: 700,
                                     border: "none", borderRadius: 4, padding: "4px 8px", cursor: "pointer",
                                     outline: "none"
                                   }}
@@ -1619,8 +1434,13 @@ export default function OpsPage() {
                     </div>
                     <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                       <span style={{ fontSize: 12, fontWeight: 700, color: stat.okrStatus === "success" ? "var(--foreground)" : "var(--red)" }}>
-                        {stat.activeTasks}
+                        {stat.activeTasks} {lang === "es" ? "tareas" : "tasks"}
                       </span>
+                      {stat.activeEstimate > 0 && (
+                        <span style={{ fontSize: 11, fontWeight: 600, color: "var(--cyan)", background: "var(--cyan-dim)", padding: "2px 6px", borderRadius: 4 }}>
+                          {stat.activeEstimate} pts
+                        </span>
+                      )}
                       <span style={{
                         fontSize: 9, fontWeight: 700, padding: "1px 6px", borderRadius: 4,
                         background: stat.okrStatus === "success" ? "rgba(52,183,124,0.1)" : "rgba(229,72,77,0.1)",
@@ -1643,6 +1463,7 @@ export default function OpsPage() {
       {editTask && (
         <TaskDetailModal
           task={editTask}
+          allTasks={tasks}
           onClose={() => setEditTask(null)}
           onSave={fullUpdate}
           members={members}
@@ -1655,21 +1476,41 @@ export default function OpsPage() {
 
       {/* STRATEGY OKRS VIEW */}
       {!loading && viewMode === "okrs" && (
-        <div style={{ padding: 20 }} className="glass-panel">
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-            <TrendingUp style={{ width: 20, height: 20, color: "var(--cyan)" }} />
-            <h2 style={{ fontSize: 18, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>
+        <div style={{ padding: "24px 0", maxWidth: 1000, margin: "0 auto", animation: "fadeIn 0.3s ease" }}>
+          {/* OKR headers... */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 24 }}>
+            <Target size={24} style={{ color: "var(--cyan)" }} />
+            <h2 style={{ fontSize: 20, fontWeight: 700, margin: 0, color: "var(--foreground)" }}>
               {lang === "es" ? "Estrategia Trimestral (OKRs)" : "Quarterly Strategy (OKRs)"}
             </h2>
           </div>
-          <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 24, lineHeight: 1.5 }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: 14, marginBottom: 32 }}>
             {lang === "es" 
-              ? "Aquí podrás visualizar los Objetivos y Resultados Clave (OKRs) de tu equipo y cómo las tareas operativas aportan a su cumplimiento. Esta funcionalidad está en fase beta y pronto se integrará completamente con tus tareas."
-              : "Here you can visualize your team's Objectives and Key Results (OKRs) and how operational tasks contribute to their achievement. This feature is in beta and will soon be fully integrated with your tasks."}
+              ? "Objetivos clave vinculados directamente a tareas de alto impacto. El progreso se calcula en base a las tareas marcadas como Done." 
+              : "Key objectives tied directly to high-impact tasks. Progress is calculated based on tasks marked as Done."}
           </p>
-          <div style={{ padding: 24, background: "rgba(255,255,255,0.02)", border: "1px dashed var(--border)", borderRadius: 8, textAlign: "center" }}>
              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>[Modulo de OKRs en construcción]</span>
-          </div>
+        </div>
+      )}
+
+      {/* GANTT VIEW */}
+      {!loading && viewMode === "gantt" && (
+        <div style={{ marginTop: 16 }}>
+          <GanttView tasks={filtered} onEditTask={setEditTask} />
+        </div>
+      )}
+
+      {/* CALENDAR VIEW */}
+      {!loading && viewMode === "calendar" && (
+        <div style={{ height: "calc(100vh - 180px)", animation: "fadeIn 0.3s ease", padding: "16px 0" }}>
+          <CalendarView tasks={filtered} members={members} lang={lang} onTaskClick={t => setEditTask(t)} />
+        </div>
+      )}
+
+      {/* MY TASKS VIEW */}
+      {!loading && viewMode === "my-tasks" && (
+        <div style={{ height: "calc(100vh - 180px)", animation: "fadeIn 0.3s ease", padding: "16px 0" }}>
+          <MyTasksView tasks={tasks} members={members} lang={lang} onTaskClick={t => setEditTask(t)} currentUser={session?.user} />
         </div>
       )}
     </div>

@@ -175,7 +175,7 @@ export function MetaConnectionHealthCenter() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              background: "rgba(0,129,251,0.12)",
+              background: "var(--surface)",
               border: "1px solid rgba(0,129,251,0.24)",
               color: "var(--cyan)",
               flexShrink: 0,
@@ -220,7 +220,7 @@ export function MetaConnectionHealthCenter() {
           display: "grid",
           gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
           gap: 1,
-          background: "rgba(255,255,255,0.06)",
+          background: "var(--surface-hover)",
         }}
       >
         {MODULES.map((module) => {
@@ -230,7 +230,7 @@ export function MetaConnectionHealthCenter() {
           const Icon = module.icon;
 
           return (
-            <div key={module.key} style={{ padding: 16, background: "rgba(5,8,18,0.96)" }}>
+            <div key={module.key} style={{ padding: 16, background: "var(--bg-raised)" }}>
               <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
                 <div
                   style={{

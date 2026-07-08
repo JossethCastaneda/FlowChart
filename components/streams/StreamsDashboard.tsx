@@ -8,6 +8,7 @@ import {
   ExternalLink, Search, Check
 } from "lucide-react";
 import { useLanguage } from "@/components/layout/LanguageContext";
+import { HScroller } from "@/components/ui/HScroller";
 
 /* Column type definitions */
 const STREAM_TYPES = [
@@ -380,7 +381,7 @@ export function StreamsDashboard() {
                   onClick={(e) => { e.stopPropagation(); deleteBoard(board.id); }}
                   style={{
                     position: "absolute", top: -4, right: -4, width: 16, height: 16,
-                    borderRadius: "50%", background: "rgba(226,68,92,0.15)", border: "1px solid rgba(226,68,92,0.25)",
+                    borderRadius: "50%", background: "var(--surface)", border: "1px solid rgba(226,68,92,0.25)",
                     color: "var(--red)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
                     fontSize: 10,
                   }}
@@ -507,10 +508,8 @@ export function StreamsDashboard() {
       )}
 
       {/* Columns grid with horizontal layout */}
-      <div style={{
-        display: "flex", gap: 16, overflowX: "auto", paddingBottom: 16,
-        minHeight: "calc(100vh - 280px)",
-      }}>
+      {/* snap desactivado: las columnas se reordenan con drag & drop y el snap pelea con el gesto */}
+      <HScroller ariaLabel="Columnas del tablero" snap={false} railStyle={{ minHeight: "calc(100vh - 280px)", paddingBottom: 16 }}>
         {activeBoard?.columns?.map((col) => (
           <div
             key={col.id}
@@ -534,7 +533,7 @@ export function StreamsDashboard() {
             />
           </div>
         ))}
-      </div>
+      </HScroller>
 
       {/* Modal Detail View */}
       {selectedPost && (
@@ -826,7 +825,7 @@ function StreamColumnView({ col, availablePages, onRemove, onUpdateConfig, onPos
                 )}
 
                 {post.image && (
-                  <div style={{ width: "100%", height: 120, borderRadius: 6, overflow: "hidden", marginTop: 4, background: "rgba(0,0,0,0.2)" }}>
+                  <div style={{ width: "100%", height: 120, borderRadius: 6, overflow: "hidden", marginTop: 4, background: "var(--surface-hover)" }}>
                     <img src={post.image} alt="Media" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                 )}
@@ -919,7 +918,7 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
   };
 
   return createPortal(
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "rgba(0,0,0,0.75)", backdropFilter: "blur(4px)" }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, background: "var(--panel-bg)",  }}>
       <div onClick={e => e.stopPropagation()} style={{ width: "100%", maxWidth: 500, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 12, boxShadow: "0 10px 40px rgba(0,0,0,0.5)", overflow: "hidden" }}>
         {/* Header */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 18px", borderBottom: "1px solid var(--border)" }}>
@@ -959,7 +958,7 @@ function PostDetailModal({ post, onClose }: { post: StreamPost; onClose: () => v
 
           {/* Full Media Image */}
           {post.image && (
-            <div style={{ width: "100%", borderRadius: 8, overflow: "hidden", background: "rgba(0,0,0,0.1)", border: "1px solid var(--border)" }}>
+            <div style={{ width: "100%", borderRadius: 8, overflow: "hidden", background: "var(--surface-hover)", border: "1px solid var(--border)" }}>
               <img src={post.image} alt="Full Post Media" style={{ width: "100%", height: "auto", maxHeight: 260, objectFit: "contain" }} />
             </div>
           )}

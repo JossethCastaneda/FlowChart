@@ -225,7 +225,7 @@ export function GoogleHubCenter() {
   if (loading) {
     return (
       <div className="glass-panel" style={{ padding: "24px", display: "flex", justifyContent: "center" }}>
-        <Loader2 className="animate-spin text-slate-500" />
+        <Loader2 className="animate-spin text-[var(--text-muted)]" />
       </div>
     );
   }
@@ -238,7 +238,7 @@ export function GoogleHubCenter() {
       <div style={{
         display: "flex", alignItems: "center", gap: 12,
         padding: "16px 20px", borderBottom: "1px solid var(--hairline)",
-        background: "rgba(66, 133, 244, 0.05)",
+        background: "var(--surface)",
       }}>
         <div style={{
           width: 36, height: 36, borderRadius: 8, background: "#185ABC",
@@ -263,7 +263,7 @@ export function GoogleHubCenter() {
             disabled={connectingModule === "disconnecting"}
             style={{
               padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-              background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.2)",
+              background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)",
               color: "var(--red)", cursor: "pointer", transition: "all 0.15s",
               display: "flex", alignItems: "center", gap: 6,
             }}
@@ -323,13 +323,13 @@ export function GoogleHubCenter() {
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
                     <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>{mod.label}</h3>
                     {mod.status === "stub" && (
-                      <span style={{ fontSize: 9, background: "rgba(255,255,255,0.1)", padding: "2px 6px", borderRadius: 4, color: "var(--text-secondary)" }}>
+                      <span style={{ fontSize: 9, background: "var(--surface-hover)", padding: "2px 6px", borderRadius: 4, color: "var(--text-secondary)" }}>
                         PRÓXIMAMENTE
                       </span>
                     )}
                   </div>
                   <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>{mod.description}</p>
-                  <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0, marginTop: 4, fontFamily: "monospace" }}>
+                  <p style={{ fontSize: 10, color: "var(--text-secondary)", margin: 0, marginTop: 4, fontFamily: "var(--font-mono)" }}>
                     APIs: {mod.apis.join(", ")}
                   </p>
                 </div>
@@ -374,7 +374,7 @@ export function GoogleHubCenter() {
                     disabled={isConnecting || connectingModule === "disconnecting"}
                     style={{
                       padding: "6px 14px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                      background: "rgba(56, 189, 248, 0.1)", border: "1px solid rgba(56, 189, 248, 0.2)",
+                      background: "var(--surface)", border: "1px solid rgba(56, 189, 248, 0.2)",
                       color: "var(--cyan)", cursor: "pointer", transition: "all 0.15s",
                       display: "flex", alignItems: "center", gap: 6,
                     }}
@@ -388,8 +388,8 @@ export function GoogleHubCenter() {
               {/* Resource config panel */}
               {connected && isConfiguring && (
                 <div style={{
-                  marginTop: 8, padding: "16px", background: "rgba(0,0,0,0.25)",
-                  borderRadius: 8, border: "1px solid rgba(255,255,255,0.06)",
+                  marginTop: 8, padding: "16px", background: "var(--surface-hover)",
+                  borderRadius: 8, border: "1px solid var(--hairline)",
                   display: "flex", flexDirection: "column", gap: 14
                 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -408,7 +408,7 @@ export function GoogleHubCenter() {
                       {errorMsg && (
                         <div style={{
                           display: "flex", alignItems: "center", gap: 8, padding: "8px 12px",
-                          background: "rgba(229,72,77,0.1)", border: "1px solid rgba(229,72,77,0.2)",
+                          background: "var(--red-dim)", border: "1px solid rgba(229,72,77,0.2)",
                           borderRadius: 6, color: "var(--red)", fontSize: 11
                         }}>
                           <AlertCircle size={12} />
@@ -528,7 +528,7 @@ export function GoogleHubCenter() {
                           disabled={savingResources}
                           style={{
                             padding: "6px 16px", borderRadius: 6, fontSize: 11, fontWeight: 600,
-                            background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.3)", color: "var(--emerald)",
+                            background: "var(--surface)", border: "1px solid rgba(16,185,129,0.3)", color: "var(--emerald)",
                             cursor: "pointer", display: "flex", alignItems: "center", gap: 5
                           }}
                         >
@@ -544,15 +544,15 @@ export function GoogleHubCenter() {
               {/* Display Configured values summary */}
               {connected && isConfigured && !isConfiguring && (
                 <div style={{
-                  padding: "10px 14px", background: "rgba(255,255,255,0.02)",
-                  borderRadius: 6, border: "1px solid rgba(255,255,255,0.04)",
+                  padding: "10px 14px", background: "var(--surface)",
+                  borderRadius: 6, border: "1px solid var(--hairline)",
                   fontSize: 11, color: "var(--text-muted)", display: "flex", flexDirection: "column", gap: 4
                 }}>
                   {mod.id === "page_analytics" && (
                     <>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span>Propiedad GA4 conectada:</span>
-                        <span style={{ color: "var(--text-secondary)", fontFamily: "monospace" }}>{currentConfig.ga4PropertyId}</span>
+                        <span style={{ color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>{currentConfig.ga4PropertyId}</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span>Sitio Search Console:</span>
@@ -564,18 +564,18 @@ export function GoogleHubCenter() {
                     <>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span>Cuenta GTM:</span>
-                        <span style={{ color: "var(--text-secondary)", fontFamily: "monospace" }}>{currentConfig.accountId}</span>
+                        <span style={{ color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>{currentConfig.accountId}</span>
                       </div>
                       <div style={{ display: "flex", justifyContent: "space-between" }}>
                         <span>Contenedor GTM:</span>
-                        <span style={{ color: "var(--text-secondary)", fontFamily: "monospace" }}>{currentConfig.containerId}</span>
+                        <span style={{ color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>{currentConfig.containerId}</span>
                       </div>
                     </>
                   )}
                   {mod.id === "google_ads" && (
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span>Cuenta Google Ads (Customer ID):</span>
-                      <span style={{ color: "var(--text-secondary)", fontFamily: "monospace" }}>{currentConfig.customerId}</span>
+                      <span style={{ color: "var(--text-secondary)", fontFamily: "var(--font-mono)" }}>{currentConfig.customerId}</span>
                     </div>
                   )}
                 </div>

@@ -208,10 +208,7 @@ async function handleIncomingMessage({
       from: senderPhone,
     });
 
-    // ── Auto-reply: verificar DmAutomationRule ────────────────────────────────
-    if (textBody) {
-      await tryAutoReply({ workspaceId, phoneNumberId, senderPhone, textBody });
-    }
+
   } catch (err) {
     logger.error("[WA Webhook] Error guardando mensaje", {
       workspaceId,
@@ -246,49 +243,7 @@ async function handleStatusUpdate({ workspaceId, phoneNumberId, status }: Handle
   }
 }
 
-// ─── Auto-reply via DmAutomationRule ─────────────────────────────────────────
 
-interface AutoReplyOpts {
-  workspaceId: string;
-  phoneNumberId: string;
-  senderPhone: string;
-  textBody: string;
-}
-
-async function tryAutoReply({ workspaceId, phoneNumberId, senderPhone, textBody }: AutoReplyOpts) {
-  try {
-    const rules = await prisma.dmAutomationRule.findMany({
-      where: {
-        workspaceId,
-        active: true,
-        platforms: { has: "whatsapp" },
-      },
-    });
-
-    const lower = textBody.toLowerCase();
-    const matchedRule = rules.find((r) =>
-      lower.includes(r.trigger.toLowerCase()),
-    );
-
-    if (!matchedRule) return;
-
-    const creds = await getWaCredentials(workspaceId);
-    if (!creds) {
-      logger.warn("[WA AutoReply] Sin credenciales para workspace", { workspaceId });
-      return;
-    }
-
-    await sendWaText(creds, { to: senderPhone, text: matchedRule.response });
-
-    logger.info("[WA AutoReply] Respuesta automática enviada", {
-      workspaceId,
-      rule: matchedRule.name,
-      to: senderPhone,
-    });
-  } catch (err) {
-    logger.error("[WA AutoReply] Error al enviar auto-reply", { workspaceId, error: err });
-  }
-}
 
 // ─── Extracción de contenido del mensaje ──────────────────────────────────────
 

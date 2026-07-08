@@ -49,7 +49,7 @@ export class ErrorBoundary extends Component<Props, State> {
             justifyContent: "center",
             padding: "24px",
             textAlign: "center",
-            background: "rgba(229,72,77,0.05)",
+            background: "var(--red-dim)",
             border: "1px solid rgba(229,72,77,0.2)",
             borderRadius: "12px",
             position: "relative",
@@ -64,7 +64,7 @@ export class ErrorBoundary extends Component<Props, State> {
 
           <div style={{
             width: "44px", height: "44px", borderRadius: "12px",
-            background: "rgba(229,72,77,0.1)",
+            background: "var(--red-dim)",
             border: "1px solid rgba(229,72,77,0.3)",
             display: "flex", alignItems: "center", justifyContent: "center",
             marginBottom: "12px",
@@ -90,7 +90,7 @@ export class ErrorBoundary extends Component<Props, State> {
             style={{
               display: "inline-flex", alignItems: "center", gap: "6px",
               padding: "7px 16px", borderRadius: "6px",
-              background: "rgba(229,72,77,0.1)",
+              background: "var(--red-dim)",
               border: "1px solid rgba(229,72,77,0.25)",
               color: "var(--red)", fontSize: "11px", fontWeight: 600,
               cursor: "pointer", fontFamily: "inherit",

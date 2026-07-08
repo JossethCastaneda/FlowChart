@@ -29,7 +29,7 @@ export async function GET(request: NextRequest) {
 
     const now = new Date();
 
-    const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; tokenExpiresSoon?: boolean; daysUntilExpiry?: number }> = {};
+    const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; userProfile?: any; tokenExpiresSoon?: boolean; daysUntilExpiry?: number }> = {};
 
     for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community"]) {
 
@@ -54,6 +54,7 @@ export async function GET(request: NextRequest) {
         connected: integration?.connected ?? false,
         connectedAt: integration?.connectedAt?.toISOString() || null,
         pages: (creds?.pages || []).map(({ accessToken, ...p }: any) => p),
+        userProfile: creds?.profile || null,
         tokenExpiresSoon,
         daysUntilExpiry,
       };
@@ -63,6 +64,8 @@ export async function GET(request: NextRequest) {
     const genericMeta = integrations.find((i) => i.provider === "meta");
     const genericPages = ((genericMeta?.credentials as any)?.pages || []).map(({ accessToken, ...p }: any) => p);
     const genericCreds = genericMeta?.credentials as any;
+    const metaWithProfile = integrations.find((i) => (i.credentials as any)?.profile);
+    const genericProfile = (metaWithProfile?.credentials as any)?.profile || null;
 
     // Check generic token expiry
     let genericTokenExpiresSoon = false;
@@ -101,6 +104,7 @@ export async function GET(request: NextRequest) {
         },
       },
       pages: genericPages,
+      userProfile: genericProfile,
       hasAnyConnection: integrations.some((i) => i.connected) || (waIntegration?.connected ?? false),
       tokenExpiresSoon: genericTokenExpiresSoon,
       daysUntilExpiry: genericDaysUntilExpiry,
