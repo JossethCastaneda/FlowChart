@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { Conversation, Message, Platform } from "../types";
+import { Conversation, Message, Note, Platform } from "../types";
 
 export function useInboxData() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
@@ -21,10 +21,14 @@ export function useInboxData() {
     };
     return raw.map(c => ({
       id: c.id, contactName: c.contactName || "Usuario", contactAvatar: c.contactAvatar || null,
+      contactId: c.contactId || null,
       platform: (pm[c.platform] || "fb_messenger") as Platform,
       lastMessage: c.lastMessage || "", lastMessageTime: new Date(c.lastMessageAt || Date.now()),
-      unread: c.unread || false, closed: c.status === "closed", assignedTo: c.assignedTo || null, tags: c.tags || [], messages: [],
-      pageId: c.pageId, contactId: c.contactId, _pageId: c.pageId, _pageName: c.pageName, _postData: c._postData || null,
+      unread: c.unread || false, closed: c.status === "closed", assignedTo: c.assignedTo || null,
+      tags: c.tags || [], messages: [], notes: [],
+      pageId: c.pageId, pageName: c.pageName || null,
+      createdAt: c.createdAt || null,
+      _pageId: c.pageId, _pageName: c.pageName, _postData: c._postData || null,
     }));
   }, []);
 
@@ -191,16 +195,55 @@ export function useInboxData() {
     };
   }, [fetchConversations, loadMessages]);
 
+  const loadNotes = useCallback((id: string) => {
+    fetch(`/api/inbox/notes?conversationId=${id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.notes) {
+          setConversations(prev => prev.map(c => c.id === id ? { ...c, notes: data.notes } : c));
+        }
+      }).catch(() => {});
+  }, []);
+
   const handleSelectConversation = (id: string) => {
     setSelectedId(id);
     setConversations(prev => prev.map(c => c.id === id ? { ...c, unread: false } : c));
     loadMessages(id);
+    loadNotes(id);
     
     fetch(`/api/inbox/conversations/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ unread: false })
     }).catch(() => {});
+  };
+
+  const handleAddNote = async (selected: Conversation, content: string): Promise<Note | null> => {
+    try {
+      const res = await fetch("/api/inbox/notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId: selected.id, content }),
+      });
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (data.note) {
+        setConversations(prev => prev.map(c =>
+          c.id === selected.id ? { ...c, notes: [...c.notes, data.note] } : c
+        ));
+        return data.note;
+      }
+      return null;
+    } catch { return null; }
+  };
+
+  const handleDeleteNote = async (selected: Conversation, noteId: string) => {
+    try {
+      await fetch(`/api/inbox/notes?noteId=${noteId}`, { method: "DELETE" });
+      setConversations(prev => prev.map(c =>
+        c.id === selected.id ? { ...c, notes: c.notes.filter(n => n.id !== noteId) } : c
+      ));
+    } catch { /* silent */ }
   };
 
   const handleSendMessage = async (text: string, selected: Conversation) => {
@@ -295,5 +338,7 @@ export function useInboxData() {
     handleAssign,
     handleAddTag,
     handleRemoveTag,
+    handleAddNote,
+    handleDeleteNote,
   };
 }

@@ -490,7 +490,8 @@ export function InboxLayout() {
   const {
     conversations, selectedId, initialFetchDone, isRefreshing,
     fetchConversations, handleSelectConversation, handleSendMessage,
-    handleCloseConversation, handleAssign, handleAddTag, handleRemoveTag
+    handleCloseConversation, handleAssign, handleAddTag, handleRemoveTag,
+    handleAddNote, handleDeleteNote
   } = useInboxData();
 
   const {
@@ -593,12 +594,12 @@ export function InboxLayout() {
         {/* LEFT: Conversation List */}
         <div
           className={`w-full md:w-[300px] md:min-w-[300px] flex-col ${selected && !isDesktop ? "hidden" : "flex"}`}
-          style={{ borderRight: "1px solid var(--hairline)", background: "transparent", overflow: "hidden" }}
+          style={{ borderRight: "1px solid var(--hairline)", background: "transparent", overflow: "visible", position: "relative" }}
           role="navigation" aria-label="Conversaciones"
         >
           {/* Page selector */}
           {connectedPages.length > 0 && (
-            <div style={{ padding: "8px 12px 6px", borderBottom: "1px solid var(--hairline)", flexShrink: 0 }}>
+            <div style={{ padding: "8px 12px 6px", borderBottom: "1px solid var(--hairline)", flexShrink: 0, position: "relative", zIndex: 100 }}>
               <PageSelector pages={connectedPages} selectedPage={selectedPage} onSelect={setSelectedPage} />
             </div>
           )}
@@ -676,7 +677,7 @@ export function InboxLayout() {
                 );
               })()}
               {queueMenuOpen && (
-                <div role="listbox" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 195, background: "var(--panel-bg)",  border: "1px solid var(--glass-border)", borderRadius: 10, zIndex: 50, overflow: "hidden", boxShadow: "var(--shadow-hard)" }}>
+                <div role="listbox" style={{ position: "absolute", top: "calc(100% + 4px)", right: 0, minWidth: 195, background: "var(--panel-bg)",  border: "1px solid var(--glass-border)", borderRadius: 10, zIndex: 9999, overflow: "hidden", boxShadow: "var(--shadow-hard)" }}>
                   {QUEUE_TABS.map(tab => {
                     const count = conversations.filter(c => {
                       if (tab.key === "all") return true;
@@ -776,7 +777,7 @@ export function InboxLayout() {
             style={{ background: "transparent", borderLeft: "1px solid var(--glass-border)", overflow: "hidden" }}
             role="complementary" aria-label="Perfil del contacto"
           >
-            <ContactProfile conversation={selected} onAssign={(member) => handleAssign(selected, member)} onAddTag={(tag) => handleAddTag(selected, tag)} onRemoveTag={(tag) => handleRemoveTag(selected, tag)} onClose={toggleProfile} />
+            <ContactProfile conversation={selected} onAssign={(member) => handleAssign(selected, member)} onAddTag={(tag) => handleAddTag(selected, tag)} onRemoveTag={(tag) => handleRemoveTag(selected, tag)} onAddNote={(content) => handleAddNote(selected, content)} onDeleteNote={(noteId) => handleDeleteNote(selected, noteId)} onClose={toggleProfile} />
           </div>
         )}
       </div>
