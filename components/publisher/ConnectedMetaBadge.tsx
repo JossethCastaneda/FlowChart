@@ -37,8 +37,9 @@ interface ConnectedMetaBadgeProps {
 export function ConnectedMetaBadge({
   module = "publisher_facebook",
   providers = DEFAULT_PROVIDERS,
-  connectLabel = "Conectar Facebook",
+  connectLabel,
 }: ConnectedMetaBadgeProps) {
+  const labelToUse = connectLabel || (module === "community" || module === "social" || module === "inbox" ? "Conectar Facebook e Instagram" : module.includes("instagram") ? "Conectar Instagram" : "Conectar Facebook");
   const [profile, setProfile] = useState<ConnectedProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const providersKey = providers.join(",");
@@ -141,7 +142,7 @@ export function ConnectedMetaBadge({
         }}
       >
         <MetaIcon size={14} />
-        {connectLabel}
+        {labelToUse}
       </button>
     );
   }

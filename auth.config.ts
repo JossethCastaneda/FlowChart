@@ -108,12 +108,13 @@ providers.push(
       // Throttling de fuerza bruta: por IP (global) y por IP+email (dirigido).
       const { rateLimit } = await import("@/lib/ratelimit");
       const ip =
+        (req?.headers?.["x-vercel-forwarded-for"] as string | undefined) ||
         (req?.headers?.["x-forwarded-for"] as string | undefined)
           ?.split(",")[0]
           ?.trim() || "unknown";
       const email = credentials.email.toLowerCase().trim();
-      const perIp = rateLimit(`login:ip:${ip}`, 30, 5 * 60_000);
-      const perTarget = rateLimit(`login:${ip}:${email}`, 10, 5 * 60_000);
+      const perIp = await rateLimit(`login:ip:${ip}`, 30, 5 * 60_000);
+      const perTarget = await rateLimit(`login:${ip}:${email}`, 10, 5 * 60_000);
       if (!perIp.ok || !perTarget.ok) {
         console.warn(`[AUTH] Login rate limit exceeded for ${ip}`);
         throw new Error("RATE_LIMIT_EXCEEDED");
@@ -146,11 +147,45 @@ providers.push(
         return null;
       }
       try {
-        // 1. Validar token con Meta y obtener perfil.
-        // Token SOLO por header (nunca en query string: las URLs terminan en
-        // logs de proxies/CDN) y versión de API fijada server-side.
+        const appId = process.env.FACEBOOK_CLIENT_ID;
+        const appSecret = process.env.FACEBOOK_CLIENT_SECRET;
+        if (!appId || !appSecret) {
+          console.error("[AUTH facebook-sdk] Facebook app credentials missing in env.");
+          return null;
+        }
+
+        // 1a. Validar que el token pertenece a nuestra app (debug_token)
+        const appToken = `${appId}|${appSecret}`;
+        const debugRes = await fetch(
+          `https://graph.facebook.com/${META_API_VERSION}/debug_token?input_token=${encodeURIComponent(credentials.accessToken)}`,
+          {
+            headers: { Authorization: `Bearer ${appToken}` },
+            signal: AbortSignal.timeout(6000),
+          }
+        );
+
+        if (!debugRes.ok) {
+          console.error("[AUTH facebook-sdk] debug_token API call failed.");
+          return null;
+        }
+
+        const debugData = await debugRes.json();
+        if (!debugData?.data?.is_valid || String(debugData.data.app_id) !== String(appId)) {
+          console.error("[AUTH facebook-sdk] Token invalid or not issued to our app.");
+          return null;
+        }
+
+        // Generar appsecret_proof para mayor seguridad
+        const crypto = await import("crypto");
+        const appsecretProof = crypto
+          .createHmac("sha256", appSecret)
+          .update(credentials.accessToken)
+          .digest("hex");
+
+        // 1b. Validar token con Meta y obtener perfil.
+        // Token SOLO por header (nunca en query string) y versión de API fijada server-side.
         const res = await fetch(
-          `https://graph.facebook.com/${META_API_VERSION}/me?fields=id,name,email,picture.type(large)`,
+          `https://graph.facebook.com/${META_API_VERSION}/me?fields=id,name,email,picture.type(large)&appsecret_proof=${appsecretProof}`,
           {
             headers: { Authorization: `Bearer ${credentials.accessToken}` },
             signal: AbortSignal.timeout(6000),
@@ -160,15 +195,13 @@ providers.push(
         const fbUser = await res.json();
 
         if (!fbUser?.id || fbUser.error) {
-          // Sin volcar la respuesta completa (puede traer datos del usuario):
-          // solo código/tipo del error de Meta.
+          // Sin volcar la respuesta completa: solo código/tipo del error de Meta.
           console.error(
             "[AUTH facebook-sdk] Meta validation failed.",
             "status:", res.status,
             "code:", fbUser?.error?.code ?? null,
             "subcode:", fbUser?.error?.error_subcode ?? null,
           );
-          // Códigos de throttling de Meta: 4 (app), 17 (usuario), 32 (page), 613 (custom)
           const rateLimitCodes = [4, 17, 32, 613];
           if (
             rateLimitCodes.includes(fbUser?.error?.code) ||
@@ -202,10 +235,16 @@ providers.push(
         }
 
         // 3. Si no existe cuenta, buscar por email (sin loguear el email — PII)
+        // Evitar ATO (Account Takeover) si el usuario ya tiene contraseña local
         if (!dbUser && fbUser.email) {
-          dbUser = await prisma.user.findFirst({
+          const candidate = await prisma.user.findFirst({
             where: { email: { equals: fbUser.email, mode: "insensitive" } },
-          }) ?? null;
+          });
+          if (candidate?.password) {
+            console.warn("[AUTH facebook-sdk] Email coincide con cuenta password — se rechaza auto-link");
+            return null;
+          }
+          dbUser = candidate ?? null;
         }
 
         // 4. Crear usuario si no existe

@@ -76,10 +76,10 @@ export function useInboxData() {
           }));
         });
 
-        // Fetch missing profiles for Meta conversations (where name is just a numeric ID)
+        // Fetch missing profiles for Meta conversations (where name is just a numeric ID, is default, or avatar is missing)
         const profileFetchers = mapped.filter(c =>
           (c.platform === "fb_messenger" || c.platform === "instagram_dm" || c.platform === "ig_dm") &&
-          /^\d+$/.test(c.contactName)
+          (/^\d+$/.test(c.contactName) || c.contactName === "Usuario" || !c.contactAvatar)
         ).map(conv => {
           const pageId = (conv as any)._pageId;
           return fetch(`/api/inbox/profile?userId=${conv.contactId}&pageId=${pageId || ""}`)

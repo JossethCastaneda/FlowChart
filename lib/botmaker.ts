@@ -8,11 +8,31 @@ import { decryptToken } from "@/lib/encryption";
  */
 const BASE = "https://api.botmaker.com/v2.0";
 
+const ALLOWED_BOTMAKER_HOSTS = new Set(["api.botmaker.com", "go.botmaker.com"]);
+
 /** Normalize a user-entered BotMaker base URL (adds scheme, strips trailing slash). */
 export function normalizeBotmakerBase(raw?: string | null): string {
+  const DEFAULT = "https://api.botmaker.com/v2.0";
   let b = (raw || "").trim();
-  if (!b) return BASE;
+  if (!b) return DEFAULT;
   if (!/^https?:\/\//i.test(b)) b = "https://" + b;
+  
+  // SSRF prevention: check if hostname is allowed
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(b);
+  } catch {
+    return DEFAULT;
+  }
+  
+  const hostname = parsedUrl.hostname.toLowerCase();
+  // Allow localhost ONLY in non-production environments for local testing/development
+  const isDevLocal = process.env.NODE_ENV !== "production" && (hostname === "localhost" || hostname === "127.0.0.1");
+  
+  if (!ALLOWED_BOTMAKER_HOSTS.has(hostname) && !isDevLocal) {
+    throw new Error(`[BOTMAKER] Host no permitido: ${hostname}`);
+  }
+  
   return b.replace(/\/+$/, "");
 }
 

@@ -56,13 +56,30 @@ export async function GET(request: NextRequest) {
 
     // Fetch profile (Messenger API uses first_name/last_name, IG uses name)
     const cleanUserId = userId.replace("igc_", "").replace("fbc_", "");
-    const profileUrl = `https://graph.facebook.com/${cleanUserId}?fields=name,first_name,last_name,profile_pic&access_token=${pageToken}`;
+    
+    // Determine platform from the conversation in database if possible, or fallback to igc_ prefix
+    const conv = await prisma.inboxConversation.findFirst({
+      where: { workspaceId, externalId: userId },
+      select: { platform: true }
+    });
+    const isInstagram = conv?.platform?.includes("instagram") || conv?.platform?.includes("ig_") || userId.startsWith("igc_");
+    
+    const { META_API_VERSION } = await import("@/lib/server-auth");
+    
+    let profileUrl = "";
+    if (isInstagram) {
+      profileUrl = `https://graph.facebook.com/${META_API_VERSION}/${cleanUserId}?fields=name,username,profile_picture_url&access_token=${pageToken}`;
+    } else {
+      profileUrl = `https://graph.facebook.com/${META_API_VERSION}/${cleanUserId}?fields=name,first_name,last_name,profile_pic&access_token=${pageToken}`;
+    }
+
     const profileRes = await fetch(profileUrl);
     const profileData = await profileRes.json();
 
-    const fullName = profileData.name || [profileData.first_name, profileData.last_name].filter(Boolean).join(" ") || null;
+    const fullName = profileData.name || [profileData.first_name, profileData.last_name].filter(Boolean).join(" ") || profileData.username || null;
+    const picture = isInstagram ? profileData.profile_picture_url : profileData.profile_pic;
 
-    if (fullName || profileData.profile_pic) {
+    if (fullName || picture) {
       // Update DB so we don't have to fetch this again
       await prisma.inboxConversation.updateMany({
         where: {
@@ -72,14 +89,14 @@ export async function GET(request: NextRequest) {
         },
         data: {
           contactName: fullName || undefined,
-          contactAvatar: profileData.profile_pic || undefined,
+          contactAvatar: picture || undefined,
         }
       });
       
       return NextResponse.json({
         id: userId,
         name: fullName,
-        picture: profileData.profile_pic || null
+        picture: picture || null
       });
     }
 

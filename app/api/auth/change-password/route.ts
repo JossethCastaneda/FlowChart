@@ -22,7 +22,7 @@ const ChangePasswordSchema = z.object({
 export const POST = withAuth(async (req: NextRequest, ctx) => {
   // Rate limit by IP
   const ip = getClientIP(req);
-  const { ok } = rateLimit(`change-password:${ip}`, 5, 15 * 60 * 1000);
+  const { ok } = await rateLimit(`change-password:${ip}`, 5, 15 * 60 * 1000);
   if (!ok) {
     return apiError("Demasiados intentos. Intenta en 15 minutos.", "RATE_LIMITED", 429);
   }

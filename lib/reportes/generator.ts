@@ -72,7 +72,7 @@ export interface ReportSettings {
  * Formato: 8 chars alfanuméricos (nanoid).
  */
 export function generateReportSlug(): string {
-  return nanoid(8);
+  return nanoid(21);
 }
 
 /**

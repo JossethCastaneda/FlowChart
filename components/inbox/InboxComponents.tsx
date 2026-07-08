@@ -8,6 +8,57 @@ import { SAVED_REPLIES } from "./utils";
 import { TEAM_MEMBERS } from "./utils";
 import { PlatformIcon } from "./InboxLayout";
 
+// Reusable Avatar component with error fallback
+export function Avatar({
+  src,
+  name,
+  size = 42,
+  color = "var(--cyan)",
+}: {
+  src?: string | null;
+  name: string;
+  size?: number;
+  color?: string;
+}) {
+  const [error, setError] = useState(false);
+  
+  useEffect(() => {
+    setError(false);
+  }, [src]);
+
+  const initials = getInitials(name || "Usuario");
+
+  if (src && !error) {
+    return (
+      <img
+        src={src}
+        alt={name || "Usuario"}
+        role="presentation"
+        style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover" }}
+        onError={() => setError(true)}
+      />
+    );
+  }
+
+  return (
+    <div style={{
+      width: size,
+      height: size,
+      borderRadius: "50%",
+      background: `var(--surface-hover)`,
+      border: `1px solid var(--hairline)`,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      fontSize: Math.max(10, Math.floor(size * 0.35)),
+      fontWeight: 700,
+      color: color,
+    }}>
+      {initials || "U"}
+    </div>
+  );
+}
+
 export function PageSelector({
       pages,
       selectedPage,
@@ -500,13 +551,7 @@ export function ChatView({
             )}
             
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              {conversation.contactAvatar ? (
-                <img src={conversation.contactAvatar} alt={conversation.contactName} style={{ width: 36, height: 36, borderRadius: "50%", objectFit: "cover" }} />
-              ) : (
-                <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>
-                  {conversation.contactName && !/^\d+$/.test(conversation.contactName) ? conversation.contactName.charAt(0).toUpperCase() : "U"}
-                </div>
-              )}
+              <Avatar src={conversation.contactAvatar} name={conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")} size={36} color={pc.color} />
               <span style={{ color: "var(--foreground)", fontWeight: 600, fontSize: 16 }}>
                 {conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")}
               </span>
@@ -842,6 +887,18 @@ export function ContactProfile({
         }) {
     const [newTag, setNewTag] = useState("");
     const [showAssign, setShowAssign] = useState(false);
+    const assignRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+      const handler = (e: MouseEvent) => {
+        if (assignRef.current && !assignRef.current.contains(e.target as Node)) {
+          setShowAssign(false);
+        }
+      };
+      document.addEventListener("mousedown", handler);
+      return () => document.removeEventListener("mousedown", handler);
+    }, []);
+
     const pc = getPlatformConfig(conversation.platform);
     const incomingCount = conversation.messages.filter(m => m.incoming).length;
     const outgoingCount = conversation.messages.filter(m => !m.incoming).length;
@@ -860,21 +917,62 @@ export function ContactProfile({
         </button>
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
-          <div style={{
-            width: 60, height: 60, borderRadius: "50%",
-            background: `linear-gradient(135deg, ${pc.color}25, ${pc.color}08)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            margin: "0 auto 10px", fontSize: 20, fontWeight: 700, color: pc.color,
-            position: "relative",
-          }}>
-            {getInitials(conversation.contactName)}
+          <div style={{ margin: "0 auto 10px", position: "relative" }}>
+            <Avatar src={conversation.contactAvatar} name={conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")} size={60} color={pc.color} />
           </div>
           <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 4px" }}>Datos del contacto</p>
           <div style={{ display: "flex", alignItems: "center", gap: 6, margin: "0 0 4px" }}>
             <User style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
             <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)", margin: 0 }}>
-              {conversation.contactName}
+              {conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")}
             </h3>
+          </div>
+          
+          {/* Assignment UI */}
+          <div ref={assignRef} style={{ marginTop: 8, display: "flex", flexDirection: "column", alignItems: "center", gap: 4, width: "100%", position: "relative" }}>
+            <div style={{ fontSize: 11, color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: conversation.assignedTo ? "var(--green)" : "var(--yellow)" }} />
+              <span>{conversation.assignedTo ? `Asignado a: ${conversation.assignedTo}` : "Sin asignar"}</span>
+            </div>
+            
+            <div>
+              <button 
+                onClick={() => setShowAssign(!showAssign)}
+                style={{
+                  background: "transparent", border: "1px solid var(--glass-border)", color: "var(--cyan)",
+                  fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 12, cursor: "pointer",
+                  display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "inherit"
+                }}
+              >
+                <span>Cambiar asignación</span>
+                <ChevronDown style={{ width: 10, height: 10 }} />
+              </button>
+              
+              {showAssign && (
+                <div style={{
+                  position: "absolute", top: "105%", left: "50%", transform: "translateX(-50%)",
+                  background: "var(--panel-bg)", border: "1px solid var(--glass-border)", borderRadius: 8,
+                  boxShadow: "var(--shadow-hard)", zIndex: 90, minWidth: 140, overflow: "hidden"
+                }}>
+                  {TEAM_MEMBERS.map(member => (
+                    <button
+                      key={member}
+                      onClick={() => {
+                        onAssign(member);
+                        setShowAssign(false);
+                      }}
+                      style={{
+                        width: "100%", padding: "8px 12px", border: "none", borderBottom: "1px solid var(--hairline)",
+                        background: (conversation.assignedTo === member || (!conversation.assignedTo && member === "Sin asignar")) ? "var(--surface-hover)" : "transparent",
+                        color: "var(--text-secondary)", fontSize: 11, textAlign: "left", cursor: "pointer", fontFamily: "inherit"
+                      }}
+                    >
+                      {member}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

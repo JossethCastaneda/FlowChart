@@ -193,6 +193,33 @@ const getTranslatedNavItemName = (name: string, lang: 'es' | 'en') => {
   return map[name] || name;
 };
 
+const BREADCRUMB_MAP: Record<string, { es: string; en: string }> = {
+  dashboard: { es: "Inicio", en: "Home" },
+  proyectos: { es: "Clientes", en: "Clients" },
+  resumen: { es: "Resumen", en: "Overview" },
+  botmaker: { es: "Botmaker", en: "Botmaker" },
+  analytics: { es: "Analítica", en: "Analytics" },
+  portabilidad: { es: "Portabilidad", en: "Portability" },
+  briefing: { es: "Briefing", en: "Briefing" },
+  centurion: { es: "Centurion", en: "Centurion" },
+  crecimiento: { es: "Crecimiento", en: "Growth" },
+  studio: { es: "AI Studio", en: "AI Studio" },
+  scores: { es: "Scoreboard", en: "Scoreboard" },
+  "data-hub": { es: "Data Hub", en: "Data Hub" },
+  gridia: { es: "GridIA", en: "GridIA" },
+  historial: { es: "Historial", en: "History" },
+  inbox: { es: "Inbox 2.0", en: "Inbox 2.0" },
+  integrations: { es: "Integraciones", en: "Integrations" },
+  ops: { es: "Ops", en: "Ops" },
+  publisher: { es: "Publicador", en: "Publisher" },
+  reportes: { es: "Reportes", en: "Reports" },
+  settings: { es: "Configuración", en: "Settings" },
+  streams: { es: "Streams", en: "Streams" },
+  "analisis-resultados": { es: "Análisis de Resultados", en: "Performance Analysis" },
+  configuracion: { es: "Configuración", en: "Settings" },
+  reglas: { es: "Reglas", en: "Rules" },
+};
+
 /** Width of the invisible hover-trigger zone at the left edge */
 const HOVER_TRIGGER_WIDTH = 20;
 /** Delay (ms) before the sidebar auto-hides after mouse leaves */
@@ -203,6 +230,8 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   // "sidebarPinned" persists across sessions — sidebar stays open without hover
   const [sidebarPinned, setSidebarPinned] = useState(false);
   const pathname = usePathname();
+  const { theme, setTheme } = useTheme();
+  const { lang, setLang } = useLanguage();
   const currentModule = MODULES.find(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
 
   // Load pinned preference on mount
@@ -232,6 +261,11 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const showTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const { data: session } = useSession();
+  const [avatarError, setAvatarError] = useState(false);
+
+  useEffect(() => {
+    setAvatarError(false);
+  }, [session?.user?.image]);
 
   useEffect(() => {
     setMounted(true);
@@ -260,6 +294,61 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   // ── Auto show/hide on hover ──
   const { breadcrumbs } = useHeaderStore();
+
+  const [projectNames, setProjectNames] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (!pathname) return;
+    const segments = pathname.split("/").filter(Boolean);
+    if (segments[1] === "proyectos" && segments[2]) {
+      const projectId = segments[2];
+      if (!projectNames[projectId]) {
+        fetch(`/api/projects/${projectId}`)
+          .then((r) => r.json())
+          .then((res) => {
+            if (res?.success && res?.data?.name) {
+              setProjectNames((prev) => ({
+                ...prev,
+                [projectId]: res.data.name,
+              }));
+            }
+          })
+          .catch(() => {});
+      }
+    }
+  }, [pathname, projectNames]);
+
+  const computedBreadcrumbs = React.useMemo(() => {
+    if (!pathname) return [];
+    const segments = pathname.split("/").filter(Boolean);
+    const list: { label: string; href?: string }[] = [];
+
+    let currentHref = "";
+    segments.forEach((seg, index) => {
+      if (seg === "dashboard") {
+        list.push({
+          label: lang === "es" ? BREADCRUMB_MAP.dashboard.es : BREADCRUMB_MAP.dashboard.en,
+          href: "/dashboard/resumen"
+        });
+        currentHref = "/dashboard";
+      } else if (index === 2 && segments[1] === "proyectos") {
+        currentHref += `/${seg}`;
+        const name = projectNames[seg] || (lang === "es" ? "Proyecto" : "Project");
+        list.push({ label: name, href: currentHref });
+      } else {
+        currentHref += `/${seg}`;
+        const mapped = BREADCRUMB_MAP[seg];
+        if (mapped) {
+          list.push({ label: lang === "es" ? mapped.es : mapped.en, href: currentHref });
+        } else {
+          const label = seg.charAt(0).toUpperCase() + seg.slice(1).replace(/-/g, " ");
+          list.push({ label, href: currentHref });
+        }
+      }
+    });
+
+    return list;
+  }, [pathname, projectNames, lang]);
 
   // Show sidebar when mouse enters the left-edge trigger zone with 150ms debounce
   const handleMouseEnterTrigger = useCallback(() => {
@@ -336,8 +425,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
 
-  const { theme, setTheme } = useTheme();
-  const { lang, setLang } = useLanguage();
   const [activePanel, setActivePanel] = useState<'main' | 'lang' | 'theme'>('main');
 
   const changeTheme = (t: string) => {
@@ -650,14 +737,12 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           </button>
 
           {/* Module Title / Breadcrumbs */}
-          {currentModule && (
-            <div className="flex-1 ml-4 hidden md:flex items-center gap-2 overflow-hidden" style={{ fontSize: 13 }}>
-              <span style={{ fontWeight: 600, color: currentModule.color, whiteSpace: "nowrap" }}>
-                {currentModule.label === "Inbox" ? "Inbox 2.0" : currentModule.label}
-              </span>
-              {breadcrumbs.length > 0 && breadcrumbs.map((crumb, idx) => (
+          <div className="flex-1 ml-4 hidden md:flex items-center gap-2 overflow-hidden" style={{ fontSize: 13 }}>
+            {breadcrumbs.length > 0 ? (
+              // If there are store override breadcrumbs (e.g. from Inbox)
+              breadcrumbs.map((crumb, idx) => (
                 <React.Fragment key={idx}>
-                  <span style={{ color: "var(--text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>
+                  {idx > 0 && <span style={{ color: "var(--text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
                   <span
                     onClick={crumb.onClick}
                     className={crumb.onClick ? "hover:text-[var(--foreground)] transition-colors" : ""}
@@ -670,9 +755,46 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     {crumb.label}
                   </span>
                 </React.Fragment>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              // Dynamically computed breadcrumbs from URL
+              computedBreadcrumbs.map((crumb, idx) => {
+                const isLast = idx === computedBreadcrumbs.length - 1;
+                // Use currentModule color if this crumb matches currentModule label/route
+                const color = (idx === 1 && currentModule) ? currentModule.color : undefined;
+                
+                return (
+                  <React.Fragment key={idx}>
+                    {idx > 0 && <span style={{ color: "var(--text-muted)", fontSize: 13, margin: "0 2px" }}>/</span>}
+                    {isLast ? (
+                      <span
+                        style={{
+                          color: color || 'var(--foreground)',
+                          fontWeight: 600,
+                          whiteSpace: "nowrap"
+                        }}
+                      >
+                        {crumb.label}
+                      </span>
+                    ) : (
+                      <Link
+                        href={crumb.href || "#"}
+                        className="hover:text-[var(--foreground)] transition-colors"
+                        style={{
+                          color: color || 'var(--text-secondary)',
+                          fontWeight: 500,
+                          whiteSpace: "nowrap",
+                          cursor: "pointer"
+                        }}
+                      >
+                        {crumb.label}
+                      </Link>
+                    )}
+                  </React.Fragment>
+                );
+              })
+            )}
+          </div>
 
           {/* Right side quick actions */}
           <div className="flex items-center gap-5 ml-auto">
@@ -697,15 +819,15 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             >
               <div style={{ position: "relative" }}>
                 <div className="w-[32px] h-[32px] rounded-full overflow-hidden border border-[var(--border)]" style={{ background: "linear-gradient(135deg,var(--cyan),#2563eb)" }}>
-                  {session?.user?.image ? (
+                  {session?.user?.image && !avatarError ? (
                     <img
                       src={session.user.image}
                       alt=""
                       style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                      onError={() => { setAvatarError(true); }}
                     />
                   ) : null}
-                  {(!session?.user?.image) && (
+                  {(!session?.user?.image || avatarError) && (
                     <div className="w-full h-full flex items-center justify-center text-xs font-bold text-[var(--foreground)]">
                       {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                     </div>
@@ -757,15 +879,15 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
                     {/* User Header */}
                     <div className="px-5 pb-4 flex items-center gap-3">
                       <div className="w-[48px] h-[48px] rounded-full overflow-hidden border-2 border-[var(--border)]" style={{ background: "linear-gradient(135deg,#2563eb,var(--purple))", flexShrink: 0 }}>
-                          {session?.user?.image ? (
+                          {session?.user?.image && !avatarError ? (
                             <img
                               src={session.user.image}
                               alt=""
                               style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                              onError={() => { setAvatarError(true); }}
                             />
                           ) : null}
-                          {(!session?.user?.image) && (
+                          {(!session?.user?.image || avatarError) && (
                             <div className="w-full h-full flex items-center justify-center text-sm font-bold text-[var(--foreground)]">
                               {session?.user?.name?.charAt(0).toUpperCase() || "C"}
                             </div>

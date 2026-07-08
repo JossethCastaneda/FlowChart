@@ -14,7 +14,7 @@ import {
   ConnectedPage, Platform, ChannelFilter, QueueFilter,
 } from "./types";
 import { relativeTime, getPlatformConfig, getInitials } from "./utils";
-import { PageSelector, PostView, ChatView, ContactProfile } from "./InboxComponents";
+import { PageSelector, PostView, ChatView, ContactProfile, Avatar } from "./InboxComponents";
 import { MessengerIcon, FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/ui/AppIcons";
 import { useInboxData } from "./hooks/useInboxData";
 import { useInboxFilters } from "./hooks/useInboxFilters";
@@ -86,21 +86,7 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
     >
       {/* Avatar + Platform badge */}
       <div style={{ position: "relative", flexShrink: 0 }}>
-        {conv.contactAvatar ? (
-          <img src={conv.contactAvatar} alt="" role="presentation"
-            style={{ width: 42, height: 42, borderRadius: "50%", objectFit: "cover" }}
-          />
-        ) : (
-          <div style={{
-            width: 42, height: 42, borderRadius: "50%",
-            background: `var(--surface-hover)`,
-            border: `1px solid var(--hairline)`,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 14, fontWeight: 700, color: pc.color,
-          }}>
-            {getInitials(conv.contactName)}
-          </div>
-        )}
+        <Avatar src={conv.contactAvatar} name={conv.contactName} size={42} color={pc.color} />
         <div style={{
           position: "absolute", bottom: -3, right: -3,
           width: 19, height: 19, borderRadius: "50%",
@@ -166,17 +152,180 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
 }
 
 // ═══════════════════════════════════════════════════════════════
-// CONNECTED BANNER & EMPTY CHAT
+// CONNECT DROPDOWN
 // ═══════════════════════════════════════════════════════════════
-function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnect, isConnected, userProfile }: {
+function ConnectDropdown({
+  onConnectMeta,
+  onConnectWhatsApp,
+  buttonStyle,
+  buttonText = "Conectar cuenta",
+  showPlusIcon = false,
+  showMetaIcon = false,
+}: {
+  onConnectMeta: () => void;
+  onConnectWhatsApp: () => void;
+  buttonStyle?: React.CSSProperties;
+  buttonText?: string;
+  showPlusIcon?: boolean;
+  showMetaIcon?: boolean;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  return (
+    <div ref={containerRef} style={{ position: "relative", display: "inline-block" }}>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          cursor: "pointer",
+          fontFamily: "inherit",
+          transition: "all 0.2s ease-in-out",
+          ...buttonStyle,
+        }}
+        onMouseEnter={(e) => {
+          if (buttonStyle?.background === "transparent") {
+            e.currentTarget.style.background = "var(--surface-hover)";
+          } else {
+            e.currentTarget.style.filter = "brightness(1.15)";
+          }
+        }}
+        onMouseLeave={(e) => {
+          if (buttonStyle?.background === "transparent") {
+            e.currentTarget.style.background = "transparent";
+          } else {
+            e.currentTarget.style.filter = "none";
+          }
+        }}
+      >
+        {showPlusIcon && <Plus style={{ width: 14, height: 14 }} />}
+        {showMetaIcon && <FacebookIcon size={20} />}
+        <span>{buttonText}</span>
+        <ChevronDown style={{ width: 12, height: 12, opacity: 0.7, transform: isOpen ? "rotate(180deg)" : "rotate(0)", transition: "transform 0.2s" }} />
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: "absolute",
+            top: "calc(100% + 6px)",
+            right: 0,
+            width: 250,
+            background: "var(--panel-bg)",
+            backdropFilter: "blur(12px)",
+            border: "1px solid var(--glass-border)",
+            borderRadius: 12,
+            boxShadow: "0 10px 30px rgba(0,0,0,0.3)",
+            padding: "8px 0",
+            zIndex: 100,
+            display: "flex",
+            flexDirection: "column",
+          }}
+        >
+          <div style={{ padding: "6px 14px 4px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.05em" }}>
+            Selecciona plataforma
+          </div>
+          
+          <button
+            onClick={() => {
+              onConnectMeta();
+              setIsOpen(false);
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 14px",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--foreground)",
+              fontFamily: "inherit",
+              fontSize: 13,
+              textAlign: "left",
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <div style={{ display: "flex", gap: 3, alignItems: "center" }}>
+              <FacebookIcon size={18} />
+              <InstagramIcon size={18} />
+            </div>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontWeight: 600 }}>Meta Suite</span>
+              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Facebook & Instagram DMs</span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => {
+              onConnectWhatsApp();
+              setIsOpen(false);
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              padding: "10px 14px",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--foreground)",
+              fontFamily: "inherit",
+              fontSize: 13,
+              textAlign: "left",
+              transition: "background 0.2s",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <WhatsAppIcon size={18} />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontWeight: 600 }}>WhatsApp Business</span>
+              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Mensajería directa oficial</span>
+            </div>
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════════
+function ConnectedBanner({
+  connectedPages,
+  onDisconnect,
+  disconnecting,
+  onConnectMeta,
+  onConnectWhatsApp,
+  isMetaConnected,
+  isWaConnected,
+  userProfile,
+  waNumber,
+}: {
   connectedPages: ConnectedPage[];
   onDisconnect: () => void;
   disconnecting: boolean;
-  onConnect: () => void;
-  isConnected: boolean;
+  onConnectMeta: () => void;
+  onConnectWhatsApp: () => void;
+  isMetaConnected: boolean;
+  isWaConnected: boolean;
   userProfile?: { id: string; name: string | null; picture: string | null } | null;
+  waNumber?: string | null;
 }) {
-  const page = connectedPages[0];
   return (
     <div role="status" aria-label="Cuenta conectada" style={{
       display: "flex", alignItems: "center", justifyContent: "space-between",
@@ -186,75 +335,103 @@ function ConnectedBanner({ connectedPages, onDisconnect, disconnecting, onConnec
       flexShrink: 0,
     }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-          <span style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)" }}>Bandeja de Entrada</span>
-          <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
-            {isConnected ? "Gestionando mensajes de Meta" : "Ninguna cuenta conectada"}
-          </span>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          <span style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", lineHeight: 1.2 }}>Bandeja de Entrada</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            {isMetaConnected ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.25)", color: "#3b82f6", padding: "3px 10px", borderRadius: 12, fontWeight: 600 }}>
+                <FacebookIcon size={12} /> Meta Conectado
+              </span>
+            ) : null}
+            {isWaConnected ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, background: "rgba(52,183,124,0.12)", border: "1px solid rgba(52,183,124,0.25)", color: "#10b981", padding: "3px 10px", borderRadius: 12, fontWeight: 600 }}>
+                <WhatsAppIcon size={12} /> WhatsApp Conectado {waNumber ? `(${waNumber})` : ""}
+              </span>
+            ) : null}
+            {!isMetaConnected && !isWaConnected ? (
+              <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
+                Ninguna cuenta conectada
+              </span>
+            ) : null}
+          </div>
         </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        {isConnected && userProfile && (
+        {isMetaConnected && userProfile && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 16, borderRight: "1px solid var(--hairline)" }}>
-            {userProfile.picture ? (
-              <img src={userProfile.picture} alt={userProfile.name || "Usuario"} style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }} />
-            ) : (
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 600 }}>
-                {getInitials(userProfile.name || "Usuario")}
-              </div>
-            )}
+            <Avatar src={userProfile.picture} name={userProfile.name || "Usuario"} size={32} color="var(--purple)" />
             <div style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{userProfile.name || "Usuario"}</span>
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Conectado</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Perfil Meta</span>
             </div>
           </div>
         )}
-      {isConnected ? (
-        <button style={{
-          display: "flex", alignItems: "center", gap: 8,
-          padding: "8px 16px", borderRadius: 24,
-          background: "transparent",
-          border: "1px solid var(--red)",
-          color: "var(--red)",
-          fontSize: 13, fontWeight: 600,
-          cursor: disconnecting ? "not-allowed" : "pointer",
-          fontFamily: "inherit",
-          transition: "background 0.2s",
-          opacity: disconnecting ? 0.5 : 1
-        }}
-        onMouseEnter={e => !disconnecting && (e.currentTarget.style.background = "var(--surface-hover)")}
-        onMouseLeave={e => !disconnecting && (e.currentTarget.style.background = "transparent")}
-        onClick={onDisconnect}
-        disabled={disconnecting}
-        >
-          {disconnecting ? "Cerrando sesión..." : "Cerrar sesión"}
-        </button>
-      ) : (
-        <button style={{
-          display: "flex", alignItems: "center", gap: 8,
-          padding: "8px 16px", borderRadius: 24,
-          background: "transparent",
-          border: "1px solid var(--primary)",
-          color: "var(--primary)",
-          fontSize: 13, fontWeight: 600,
-          cursor: "pointer",
-          fontFamily: "inherit",
-          transition: "background 0.2s"
-        }}
-        onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
-        onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-        onClick={onConnect}
-        >
-          <FacebookIcon size={20} />
-          Conectar Facebook
-        </button>
-      )}
+        
+        {(isMetaConnected || isWaConnected) ? (
+          <div style={{ display: "flex", gap: 8 }}>
+            <ConnectDropdown
+              onConnectMeta={onConnectMeta}
+              onConnectWhatsApp={onConnectWhatsApp}
+              buttonText="Conectar más"
+              buttonStyle={{
+                padding: "8px 16px", borderRadius: 24,
+                background: "transparent",
+                border: "1px solid var(--primary)",
+                color: "var(--primary)",
+                fontSize: 13, fontWeight: 600,
+              }}
+              showPlusIcon={true}
+            />
+            {isMetaConnected && (
+              <button style={{
+                display: "flex", alignItems: "center", gap: 8,
+                padding: "8px 16px", borderRadius: 24,
+                background: "transparent",
+                border: "1px solid var(--red)",
+                color: "var(--red)",
+                fontSize: 13, fontWeight: 600,
+                cursor: disconnecting ? "not-allowed" : "pointer",
+                fontFamily: "inherit",
+                transition: "background 0.2s",
+                opacity: disconnecting ? 0.5 : 1
+              }}
+              onMouseEnter={e => !disconnecting && (e.currentTarget.style.background = "rgba(239,68,68,0.08)")}
+              onMouseLeave={e => !disconnecting && (e.currentTarget.style.background = "transparent")}
+              onClick={onDisconnect}
+              disabled={disconnecting}
+              >
+                {disconnecting ? "Cerrando sesión Meta..." : "Cerrar sesión Meta"}
+              </button>
+            )}
+          </div>
+        ) : (
+          <ConnectDropdown
+            onConnectMeta={onConnectMeta}
+            onConnectWhatsApp={onConnectWhatsApp}
+            buttonText="Conectar cuenta"
+            buttonStyle={{
+              padding: "8px 16px", borderRadius: 24,
+              background: "transparent",
+              border: "1px solid var(--primary)",
+              color: "var(--primary)",
+              fontSize: 13, fontWeight: 600,
+            }}
+          />
+        )}
       </div>
     </div>
   );
 }
 
-function EmptyChat({ hasAnyConnection, onConnect }: { hasAnyConnection: boolean; onConnect: () => void }) {
+function EmptyChat({
+  hasAnyConnection,
+  onConnectMeta,
+  onConnectWhatsApp,
+}: {
+  hasAnyConnection: boolean;
+  onConnectMeta: () => void;
+  onConnectWhatsApp: () => void;
+}) {
   return (
     <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 14, padding: 48, textAlign: "center" }} role="status">
       <div style={{ width: 60, height: 60, borderRadius: 14, background: "var(--surface-hover)", border: `1px solid var(--hairline)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -275,10 +452,19 @@ function EmptyChat({ hasAnyConnection, onConnect }: { hasAnyConnection: boolean;
         </p>
       </div>
       {!hasAnyConnection && (
-        <button onClick={onConnect} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "9px 18px", borderRadius: 8, background: "var(--primary)", color: "var(--foreground)", border: "none", cursor: "pointer", fontSize: 13, fontWeight: 600, fontFamily: "inherit" }}>
-          <Plus style={{ width: 14, height: 14 }} />
-          Conectar cuenta
-        </button>
+        <ConnectDropdown
+          onConnectMeta={onConnectMeta}
+          onConnectWhatsApp={onConnectWhatsApp}
+          buttonText="Conectar cuenta"
+          showPlusIcon={true}
+          buttonStyle={{
+            padding: "9px 18px", borderRadius: 8,
+            background: "var(--primary)",
+            color: "var(--foreground)",
+            border: "none",
+            fontSize: 13, fontWeight: 600,
+          }}
+        />
       )}
     </div>
   );
@@ -293,7 +479,7 @@ export function InboxLayout() {
   
   const [showProfile, setShowProfile] = useState(false);
   const [connectedPages, setConnectedPages] = useState<ConnectedPage[]>([]);
-  const [connectionStatus, setConnectionStatus] = useState<Record<string, { connected: boolean; connectedAt: string | null; pages: any[] }>>({});
+  const [connectionStatus, setConnectionStatus] = useState<Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; phoneNumber?: string | null }>>({});
   const [disconnecting, setDisconnecting] = useState(false);
   const [connectToast, setConnectToast] = useState<string | null>(null);
   
@@ -394,9 +580,12 @@ export function InboxLayout() {
         connectedPages={connectedPages} 
         onDisconnect={handleDisconnect} 
         disconnecting={disconnecting} 
-        onConnect={() => openConnectPopup("community", handleConnectSuccess)} 
-        isConnected={connectionStatus["community"]?.connected || false}
+        onConnectMeta={() => openConnectPopup("community", handleConnectSuccess)} 
+        onConnectWhatsApp={() => window.location.href = "/dashboard/integrations/whatsapp"} 
+        isMetaConnected={connectionStatus["community"]?.connected || false}
+        isWaConnected={connectionStatus["whatsapp_business"]?.connected || false}
         userProfile={userProfile}
+        waNumber={connectionStatus["whatsapp_business"]?.phoneNumber}
       />
 
       {/* 3-PANEL LAYOUT — always visible */}
@@ -527,11 +716,21 @@ export function InboxLayout() {
                 </p>
                 {searchQuery && <button onClick={() => setSearchQuery("")} style={{ fontSize: 11, color: "var(--primary)", background: "none", border: "none", cursor: "pointer", padding: 0, textDecoration: "underline" }}>Limpiar búsqueda</button>}
                 {!hasAnyConnection && !searchQuery && (
-                  <button onClick={() => openConnectPopup("community", handleConnectSuccess)}
-                    style={{ marginTop: 10, display: "inline-flex", alignItems: "center", gap: 5, padding: "7px 14px", borderRadius: 7, background: "var(--primary)", color: "var(--foreground)", border: "none", cursor: "pointer", fontSize: 11, fontWeight: 600, fontFamily: "inherit" }}>
-                    <Plus style={{ width: 11, height: 11 }} />
-                    Conectar cuenta
-                  </button>
+                  <div style={{ marginTop: 10 }}>
+                    <ConnectDropdown
+                      onConnectMeta={() => openConnectPopup("community", handleConnectSuccess)}
+                      onConnectWhatsApp={() => window.location.href = "/dashboard/integrations/whatsapp"}
+                      buttonText="Conectar cuenta"
+                      showPlusIcon={true}
+                      buttonStyle={{
+                        padding: "7px 14px", borderRadius: 7,
+                        background: "var(--primary)",
+                        color: "var(--foreground)",
+                        border: "none",
+                        fontSize: 11, fontWeight: 600,
+                      }}
+                    />
+                  </div>
                 )}
               </div>
             ) : (
@@ -557,7 +756,11 @@ export function InboxLayout() {
             </div>
           }>
             {!selected ? (
-              <EmptyChat hasAnyConnection={hasAnyConnection} onConnect={() => openConnectPopup("community", handleConnectSuccess)} />
+              <EmptyChat
+                hasAnyConnection={hasAnyConnection}
+                onConnectMeta={() => openConnectPopup("community", handleConnectSuccess)}
+                onConnectWhatsApp={() => window.location.href = "/dashboard/integrations/whatsapp"}
+              />
             ) : selected.platform === "fb_comment" || selected.platform === "ig_comment" || selected.platform === "instagram_comment" ? (
               <PostView conversation={selected} onBack={() => handleSelectConversation("")} />
             ) : (

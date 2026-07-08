@@ -23,7 +23,7 @@ export const maxDuration = 60;
 export const POST = withWorkspace(async (req, ctx) => {
   // Orquestar dispara 6 llamadas LLM: límite bajo por usuario.
   const ip = getClientIP(req);
-  const rl = rateLimit(`agents-orchestrate:${ctx.userId}:${ip}`, 3, 60_000);
+  const rl = await rateLimit(`agents-orchestrate:${ctx.userId}:${ip}`, 3, 60_000);
   if (!rl.ok) return apiError("Demasiadas solicitudes. Espera un momento.", "RATE_LIMITED", 429);
 
   if (!hasAnyProvider()) {

@@ -1608,3 +1608,12 @@ model AiUsage {
   @@index([workspaceId])
   @@index([createdAt])
 }
+
+// ------------------------------------------------------
+// RATE LIMITING
+// ------------------------------------------------------
+model RateLimit {
+  key       String   @id
+  count     Int
+  resetAt   DateTime
+}
