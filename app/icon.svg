@@ -1,4 +1,37 @@
-<svg viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <polygon points="32,2 58,17 58,47 32,62 6,47 6,17" fill="#030a14" stroke="#00f0ff" stroke-width="2"/>
-  <path d="M 24 20 L 40 20 L 40 24 L 28 24 L 28 29 L 40 29 L 40 44 L 24 44 L 24 40 L 36 40 L 36 33 L 24 33 Z" fill="#00f0ff"/>
+<svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#06b6d4"/>
+    </linearGradient>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#1d4ed8"/>
+    </linearGradient>
+    <linearGradient id="ag" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#38bdf8"/>
+    </linearGradient>
+  </defs>
+  <!-- Z exterior cyan -->
+  <path d="M 32 38 L 110 28 L 112 42 L 38 50 Z" fill="url(#cg)" opacity="0.95"/>
+  <path d="M 38 50 L 112 42 L 88 118 L 68 122 Z" fill="url(#cg)" opacity="0.85"/>
+  <path d="M 26 138 Q 22 152 32 158 Q 42 164 52 156 L 88 118 L 68 122 Z" fill="url(#cg)" opacity="0.95"/>
+  <path d="M 68 122 L 88 118 L 118 148 L 96 154 Z" fill="url(#cg)" opacity="0.95"/>
+  <path d="M 26 138 L 96 154 L 118 148 L 42 130 Z" fill="url(#cg)" opacity="0.9"/>
+  <!-- Z interior azul -->
+  <path d="M 48 62 L 98 54 L 100 64 L 54 70 Z" fill="url(#bg)"/>
+  <path d="M 54 70 L 100 64 L 84 108 L 68 112 Z" fill="url(#bg)"/>
+  <path d="M 44 122 L 68 112 L 84 108 L 102 128 L 80 134 L 58 124 Z" fill="url(#bg)"/>
+  <!-- Flecha diagonal -->
+  <path d="M 36 158 L 148 36" stroke="url(#ag)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 148 36 L 130 42" stroke="url(#ag)" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 148 36 L 142 54" stroke="url(#ag)" stroke-width="8" stroke-linecap="round"/>
+  <!-- Grafo de red -->
+  <line x1="139" y1="39" x2="163" y2="50" stroke="#3b82f6" stroke-width="2.5" opacity="0.85"/>
+  <line x1="163" y1="50" x2="147" y2="64" stroke="#3b82f6" stroke-width="2.5" opacity="0.85"/>
+  <line x1="147" y1="64" x2="139" y2="39" stroke="#3b82f6" stroke-width="2.5" opacity="0.85"/>
+  <circle cx="139" cy="39" r="5" fill="#22d3ee"/>
+  <circle cx="163" cy="50" r="5" fill="#22d3ee"/>
+  <circle cx="147" cy="64" r="5" fill="#22d3ee"/>
 </svg>
