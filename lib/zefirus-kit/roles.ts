@@ -1,5 +1,5 @@
 /* ════════════════════════════════════════════════════════════
-   SODARE · PUESTOS, ROLES Y RESPONSABILIDADES POR ÁREA
+   ZEFIRUS · PUESTOS, ROLES Y RESPONSABILIDADES POR ÁREA
    Taxonomía de la agencia de marketing digital. Es la base del
    ruteo AUTOMÁTICO SIN IA: una solicitud de tipo X se asigna a la
    persona disponible cuyo PUESTO sabe ejecutar X (menor carga), y

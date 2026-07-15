@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { useSession } from "next-auth/react";
 import { X, MessageCircle, Phone, Check, ChevronRight, Bell } from "lucide-react";
 
-const DISMISSED_KEY = "sodare:wa-phone-prompt-dismissed";
+const DISMISSED_KEY = "zefirus:wa-phone-prompt-dismissed";
 const SNOOZE_DAYS = 3;
 
 function isSnoozed(): boolean {

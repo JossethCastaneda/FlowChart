@@ -1,5 +1,5 @@
 /**
- * CustomTooltip — Sodare premium chart tooltip
+ * CustomTooltip — Zefirus premium chart tooltip
  * Sólido (sin blur), JetBrains Mono para valores, acento cyan izquierdo
  */
 

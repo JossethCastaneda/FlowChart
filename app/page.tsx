@@ -29,7 +29,7 @@ import {
 } from "lucide-react";
 
 /* ═══════════════════════════════════════════════════════
-   SODARE · Landing Page — Collabora-Inspired Theme
+   ZEFIRUS · Landing Page — Collabora-Inspired Theme
    Dark obsidian background, cyan glows, glassmorphism,
    metallic typography, and smooth scrolling.
    ═══════════════════════════════════════════════════════ */
@@ -116,11 +116,11 @@ function AnimatedText({ text, delayOffset = 0 }: { text: string, delayOffset?: n
 }
 
 // ── Constants ──────────────────────────────────────────
-const ACCENT_COLOR = "#5b9bff"; // Sodare Cyan
+const ACCENT_COLOR = "#5b9bff"; // Zefirus Cyan
 const GRADIENT_START = "#0284c7"; // Darker blue for gradient
 
 const FEATURES = [
-  { icon: <Target style={{ width: 24, height: 24 }} />, title: "Anuncios", codename: "Impulso", desc: "Meta, TikTok y Google Ads en una sola pantalla. Pausa, optimiza y escala campañas sin salir de Sodare." },
+  { icon: <Target style={{ width: 24, height: 24 }} />, title: "Anuncios", codename: "Impulso", desc: "Meta, TikTok y Google Ads en una sola pantalla. Pausa, optimiza y escala campañas sin salir de Zefirus." },
   { icon: <BarChart3 style={{ width: 24, height: 24 }} />, title: "Resumen", codename: "Pulso", desc: "El pulso de tu operación en tiempo real. Dashboards que tu cliente entiende, con datos de todas tus cuentas." },
   { icon: <MessageSquare style={{ width: 24, height: 24 }} />, title: "Inbox", codename: "Señal", desc: "WhatsApp, Instagram DM y Messenger en un solo lugar. Nunca pierdas un lead por no responder a tiempo." },
   { icon: <Sparkles style={{ width: 24, height: 24 }} />, title: "Briefs IA", codename: "Nova", desc: "Genera parrillas de contenido, copies y briefings en segundos. Personaliza tono, formato y canal." },
@@ -151,8 +151,8 @@ export default function Home() {
     "@graph": [
       {
         "@type": "SoftwareApplication",
-        "name": "Sodare",
-        "url": "https://sodare.xyz",
+        "name": "Zefirus",
+        "url": "https://zefirus.xyz",
         "applicationCategory": "BusinessApplication",
         "operatingSystem": "Web",
         "description": "Plataforma de marketing multicanal que unifica campañas de Meta Ads, TikTok Ads, Google Ads, inbox de WhatsApp y reportes de ROI para agencias en LATAM.",
@@ -161,10 +161,10 @@ export default function Home() {
       },
       {
         "@type": "Organization",
-        "name": "Sodare",
-        "url": "https://sodare.xyz",
-        "logo": "https://sodare.xyz/sodare-logo-1024.jpg",
-        "contactPoint": { "@type": "ContactPoint", "email": "soporte@sodare.xyz", "contactType": "customer service", "availableLanguage": ["Spanish"] },
+        "name": "Zefirus",
+        "url": "https://zefirus.xyz",
+        "logo": "https://zefirus.xyz/zefirus-logo-1024.jpg",
+        "contactPoint": { "@type": "ContactPoint", "email": "soporte@zefirus.xyz", "contactType": "customer service", "availableLanguage": ["Spanish"] },
         "sameAs": []
       }
     ]
@@ -312,7 +312,7 @@ export default function Home() {
         <div style={{ padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
             <ZefirusLogo size="sm" animated={false} showText={false} />
-            <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.04em" }}>Sodare</span>
+            <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.04em" }}>Zefirus</span>
           </Link>
           <nav className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 40 }}>
             {[["#problema", "Problema"], ["#solucion", "Solución"], ["#comparar", "Comparar"]].map(([href, label]) => (
@@ -320,7 +320,7 @@ export default function Home() {
             ))}
           </nav>
           <div className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 16 }}>
-             <Link href="/login" aria-label="Acceder a Sodare" style={{
+             <Link href="/login" aria-label="Acceder a Zefirus" style={{
                 padding: "8px 24px", borderRadius: 980,
                 background: "linear-gradient(180deg, rgba(255,255,255,0.1), rgba(255,255,255,0.02))",
                 color: "var(--foreground)",
@@ -436,7 +436,7 @@ export default function Home() {
             marginBottom: 48,
           }}
         >
-          Sodare unifica tus campañas de Meta, TikTok y Google Ads,
+          Zefirus unifica tus campañas de Meta, TikTok y Google Ads,
           tu inbox de WhatsApp y tus reportes de ROI en una plataforma diseñada para equipos de alto rendimiento.
         </motion.p>
 
@@ -486,7 +486,7 @@ export default function Home() {
           <div style={{ width: 240, border: "1px solid var(--hairline)", padding: 24, display: "flex", flexDirection: "column" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 48 }}>
               <div style={{ width: 24, height: 24, background: `linear-gradient(180deg, ${GRADIENT_START}, ${ACCENT_COLOR})`, borderRadius: 6 }} />
-              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)" }}>Sodare</div>
+              <div style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)" }}>Zefirus</div>
             </div>
             <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-muted)", marginBottom: 16 }}>Navegación</div>
             {[
@@ -646,7 +646,7 @@ export default function Home() {
               Una plataforma.<br/>Todos tus canales.
             </h2>
             <p style={{ fontSize: 18, color: "var(--text-muted)", textAlign: "center", maxWidth: 600, margin: "0 auto 80px", lineHeight: 1.6 }}>
-              Sodare reemplaza 5 herramientas separadas con una sola experiencia diseñada para agencias de alto rendimiento.
+              Zefirus reemplaza 5 herramientas separadas con una sola experiencia diseñada para agencias de alto rendimiento.
             </p>
           </Reveal>
 
@@ -791,7 +791,7 @@ export default function Home() {
             Únete a los equipos que ya dejaron de saltar entre pestañas y empezaron a ver resultados reales.
           </p>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-            <Link href="/login" className="col-pill col-pill-primary" aria-label="Crear cuenta gratis en Sodare" style={{ padding: "18px 40px", fontSize: 18 }}>
+            <Link href="/login" className="col-pill col-pill-primary" aria-label="Crear cuenta gratis en Zefirus" style={{ padding: "18px 40px", fontSize: 18 }}>
               Crear cuenta gratis
             </Link>
             <p style={{ fontSize: 14, color: "var(--text-muted)" }}>Sin tarjeta · Cancela cuando quieras</p>
@@ -817,7 +817,7 @@ export default function Home() {
               ]} />
               <FooterCol title="Producto" links={[
                 { label: "Iniciar Sesión", href: "/login" },
-                { label: "Contacto", href: "mailto:soporte@sodare.xyz" },
+                { label: "Contacto", href: "mailto:soporte@zefirus.xyz" },
               ]} />
             </div>
           </div>
@@ -826,7 +826,7 @@ export default function Home() {
             border: "1px solid var(--hairline)",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
           }}>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>© {new Date().getFullYear()} Sodare. Todos los derechos reservados.</span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>© {new Date().getFullYear()} Zefirus. Todos los derechos reservados.</span>
             <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
               Hecho en México <MapPin size={14} />
             </span>

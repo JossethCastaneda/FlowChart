@@ -98,7 +98,7 @@ function detectFormat(creative: any, detail: any): "video" | "image" | "carousel
   // 2. asset_feed_spec has videos array → DCO video
   if (Array.isArray(feed.videos) && feed.videos.length > 0) return "video";
 
-  // 3. Name-based detection (reliable for Mexican agencies like SODARE)
+  // 3. Name-based detection (reliable for Mexican agencies like ZEFIRUS)
   if (adName.includes("video") || adName.includes("reel")) return "video";
 
   // 4. Carousel detection

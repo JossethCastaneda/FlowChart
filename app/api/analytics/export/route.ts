@@ -99,7 +99,7 @@ export const GET = withWorkspace(async (req, ctx) => {
   }
   if (format === "xlsx") {
     const wb = new ExcelJS.Workbook();
-    wb.creator = "Sodare";
+    wb.creator = "Zefirus";
     const ws = wb.addWorksheet(type === "kpis" ? "KPIs" : "Conversaciones");
     if (rows.length) {
       const headers = Object.keys(rows[0]);

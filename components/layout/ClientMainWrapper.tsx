@@ -49,8 +49,8 @@ import { useLanguage } from "@/components/layout/LanguageContext";
 
 import { HoloIcon } from "@/components/ui/HoloIcon";
 
-import { NAV_GROUPS } from "@/lib/sodare-kit/nav-items";
-import { MODULES } from "@/lib/sodare-kit/modules";
+import { NAV_GROUPS } from "@/lib/zefirus-kit/nav-items";
+import { MODULES } from "@/lib/zefirus-kit/modules";
 import {
   Activity,
   MessagesSquare,
@@ -237,7 +237,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   // Load pinned preference on mount
   useEffect(() => {
     try {
-      const saved = localStorage.getItem("sodare:sidebar-pinned");
+      const saved = localStorage.getItem("zefirus:sidebar-pinned");
       if (saved === "true") {
         setSidebarPinned(true);
         setSidebarOpen(true);
@@ -396,7 +396,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const toggleSidebarPin = useCallback(() => {
     setSidebarPinned(prev => {
       const next = !prev;
-      try { localStorage.setItem("sodare:sidebar-pinned", String(next)); } catch {}
+      try { localStorage.setItem("zefirus:sidebar-pinned", String(next)); } catch {}
       if (!next) setSidebarOpen(false);
       return next;
     });
@@ -435,7 +435,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
   const changeLang = (l: 'es' | 'en') => {
     setLang(l);
-    localStorage.setItem("sodare:lang", l);
+    localStorage.setItem("zefirus:lang", l);
     setActivePanel('main');
     showToast("success", l === 'es' ? `Idioma cambiado a Español` : `Language changed to English`);
   };
@@ -448,7 +448,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
       .then(d => { 
         if (d.activityStatus) {
           setActivityStatus(d.activityStatus); 
-          const local = localStorage.getItem("sodare:sub-status");
+          const local = localStorage.getItem("zefirus:sub-status");
           const matched = STATUS_OPTIONS.find(s => s.key === local);
           if (matched && matched.dbStatus === d.activityStatus) {
             setSubStatus(matched.key);
@@ -474,7 +474,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
 
     setSubStatus(statusKey);
     setActivityStatus(opt.dbStatus);
-    localStorage.setItem("sodare:sub-status", statusKey);
+    localStorage.setItem("zefirus:sub-status", statusKey);
     setUserMenuOpen(false);
 
     try { 

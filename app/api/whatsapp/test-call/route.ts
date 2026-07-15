@@ -82,7 +82,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       // Intentar enviar un mensaje de texto plano
       result = await sendWaText(lineCreds, {
         to: recipient,
-        text: "Llamada de prueba de Sodare para la revisión del permiso whatsapp_business_messaging.",
+        text: "Llamada de prueba de Zefirus para la revisión del permiso whatsapp_business_messaging.",
       });
     }
 

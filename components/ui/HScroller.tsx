@@ -1,6 +1,6 @@
 "use client";
 /**
- * HScroller — deslizable horizontal de marca (Sodare Ink).
+ * HScroller — deslizable horizontal de marca (Zefirus Ink).
  *
  * Reemplaza los `overflow-x-auto` genéricos (sin affordance de scroll) por un
  * carrusel con:

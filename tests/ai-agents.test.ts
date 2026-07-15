@@ -11,7 +11,7 @@ vi.mock("@/lib/prisma", () => ({ default: {} }));
 import { z } from "zod";
 import type { LLMProvider } from "@/lib/ai/types";
 import { runAgent, runSubagents, orchestrate, type AgentDef } from "@/lib/ai/agents/core";
-import { synthesisInput, ModuleFindingsZod, type ModuleFindings } from "@/lib/ai/agents/sodare-agents";
+import { synthesisInput, ModuleFindingsZod, type ModuleFindings } from "@/lib/ai/agents/zefirus-agents";
 
 const EchoZod = z.object({ eco: z.string() });
 

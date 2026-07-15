@@ -70,7 +70,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `sodare_${level}_${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `zefirus_${level}_${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
     setShowMenu(false);
@@ -142,7 +142,7 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `sodare_${level}_${new Date().toISOString().split("T")[0]}.xlsx`;
+        a.download = `zefirus_${level}_${new Date().toISOString().split("T")[0]}.xlsx`;
         a.click();
         URL.revokeObjectURL(url);
       });

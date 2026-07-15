@@ -124,7 +124,7 @@ export const POST = withWorkspace(async (req, ctx) => {
     const ok = await sendInviteEmail({
       to: email,
       inviterName: inviter?.name || "Un administrador",
-      workspaceName: workspace?.name || "Sodare",
+      workspaceName: workspace?.name || "Zefirus",
       role,
       inviteUrl,
     });

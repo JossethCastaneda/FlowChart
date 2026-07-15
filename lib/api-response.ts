@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { logger } from "@/lib/logger";
 
 /**
- * Standardized API response helpers for Sodare.
+ * Standardized API response helpers for Zefirus.
  * Use these in all API routes for consistent error/success formatting.
  */
 

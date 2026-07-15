@@ -29,7 +29,7 @@ export async function GET(_req: NextRequest) {
     "__Secure-next-auth.pkce.code_verifier",
     "__Secure-next-auth.state",
     // Possibly set by our old config (just in case)
-    "sodare_active_workspace",
+    "zefirus_active_workspace",
   ];
 
   for (const name of cookieNames) {

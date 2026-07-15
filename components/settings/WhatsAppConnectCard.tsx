@@ -192,7 +192,7 @@ export function WhatsAppConnectCard() {
   };
 
   const handleUnlinkLine = async (phoneNumberId: string) => {
-    if (!confirm("¿Desvincular esta línea de Sodare? Dejará de recibir y enviar mensajes.")) return;
+    if (!confirm("¿Desvincular esta línea de Zefirus? Dejará de recibir y enviar mensajes.")) return;
     try {
       const res = await fetch("/api/whatsapp/phone-numbers", {
         method: "DELETE",

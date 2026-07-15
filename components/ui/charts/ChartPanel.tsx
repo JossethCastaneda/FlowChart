@@ -1,5 +1,5 @@
 ﻿/**
- * ChartPanel — Sodare standard chart wrapper
+ * ChartPanel — Zefirus standard chart wrapper
  * Encapsulates header (title + actions), body, loading and empty states.
  *
  * Usage:

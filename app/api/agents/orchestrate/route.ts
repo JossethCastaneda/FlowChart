@@ -13,7 +13,7 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 import { rateLimit, getClientIP } from "@/lib/ratelimit";
 import { getWorkspaceAiProvider, hasAnyProvider, normalizeUpstreamError } from "@/lib/ai";
 import { orchestrate } from "@/lib/ai/agents/core";
-import { buildModuleTasks, synthesisAgent, synthesisInput } from "@/lib/ai/agents/sodare-agents";
+import { buildModuleTasks, synthesisAgent, synthesisInput } from "@/lib/ai/agents/zefirus-agents";
 import { logger } from "@/lib/logger";
 import { checkAiLimit, recordAiUsage } from "@/lib/ai/metering";
 

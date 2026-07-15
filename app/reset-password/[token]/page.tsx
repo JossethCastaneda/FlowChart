@@ -118,7 +118,7 @@ export default function ResetPasswordPage() {
           textAlign: "center",
           letterSpacing: "2px",
         }}>
-          ⚡ SODARE
+          ⚡ ZEFIRUS
         </h1>
         <p style={{
           color: "var(--text-secondary)",

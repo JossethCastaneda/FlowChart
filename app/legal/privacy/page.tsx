@@ -2,14 +2,14 @@ import React from "react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Política de Privacidad — Sodare",
-  description: "Política de privacidad y protección de datos de la plataforma Sodare. Conoce cómo recopilamos, usamos y protegemos tu información.",
+  title: "Política de Privacidad — Zefirus",
+  description: "Política de privacidad y protección de datos de la plataforma Zefirus. Conoce cómo recopilamos, usamos y protegemos tu información.",
 };
 
 const LAST_UPDATED = "25 de junio de 2025";
-const COMPANY = "Sodare";
-const CONTACT_EMAIL = "privacy@sodare.com";
-const WEBSITE = "https://sodare.com";
+const COMPANY = "Zefirus";
+const CONTACT_EMAIL = "privacy@zefirus.com";
+const WEBSITE = "https://zefirus.com";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -109,7 +109,7 @@ export default function PrivacyPage() {
           color: "var(--text-muted)",
           lineHeight: 1.6,
         }}>
-          En Sodare nos comprometemos a proteger tu privacidad. Esta política explica cómo recopilamos, usamos, almacenamos
+          En Zefirus nos comprometemos a proteger tu privacidad. Esta política explica cómo recopilamos, usamos, almacenamos
           y protegemos tu información cuando utilizas nuestra plataforma de marketing multicanal.
         </div>
       </div>
@@ -212,7 +212,7 @@ export default function PrivacyPage() {
 
       <Section title="5. Integraciones y Plataformas de Terceros">
         <P>
-          Sodare actúa como procesador de datos en nombre del Usuario cuando gestiona datos a través de las siguientes integraciones:
+          Zefirus actúa como procesador de datos en nombre del Usuario cuando gestiona datos a través de las siguientes integraciones:
         </P>
         <Ul items={[
           "Meta (Facebook e Instagram): acceso a cuentas publicitarias, páginas, conversaciones de Messenger e Instagram.",
@@ -222,19 +222,19 @@ export default function PrivacyPage() {
           "Otras plataformas conectadas por el Usuario.",
         ]} />
         <P>
-          El uso de datos obtenidos de estas plataformas se rige por las políticas de privacidad de cada una de ellas y por los permisos que el Usuario otorgue expresamente. Sodare no vende ni comparte estos datos con terceros no autorizados.
+          El uso de datos obtenidos de estas plataformas se rige por las políticas de privacidad de cada una de ellas y por los permisos que el Usuario otorgue expresamente. Zefirus no vende ni comparte estos datos con terceros no autorizados.
         </P>
       </Section>
 
       <Section title="6. Compartición de Datos con Terceros">
         <P>
-          Sodare puede compartir tus datos con terceros únicamente en los siguientes casos:
+          Zefirus puede compartir tus datos con terceros únicamente en los siguientes casos:
         </P>
         <Ul items={[
           "Proveedores de servicios: empresas que nos ayudan a operar la Plataforma (almacenamiento en la nube, procesamiento de pagos, análisis), sujetas a acuerdos de procesamiento de datos.",
           "Plataformas integradas: cuando el Usuario lo autoriza expresamente al conectar una integración.",
           "Requisitos legales: cuando estamos obligados por ley, orden judicial o autoridad competente.",
-          "Protección de derechos: cuando sea necesario para proteger los derechos, seguridad o propiedad de Sodare o sus usuarios.",
+          "Protección de derechos: cuando sea necesario para proteger los derechos, seguridad o propiedad de Zefirus o sus usuarios.",
           "Transacciones corporativas: en caso de fusión, adquisición o venta de activos, con las salvaguardas adecuadas.",
         ]} />
         <P>
@@ -244,7 +244,7 @@ export default function PrivacyPage() {
 
       <Section title="7. Transferencias Internacionales de Datos">
         <P>
-          Sodare puede transferir datos a proveedores situados fuera de tu país de residencia. Cuando realizamos transferencias internacionales, implementamos las salvaguardas adecuadas, tales como:
+          Zefirus puede transferir datos a proveedores situados fuera de tu país de residencia. Cuando realizamos transferencias internacionales, implementamos las salvaguardas adecuadas, tales como:
         </P>
         <Ul items={[
           "Cláusulas Contractuales Tipo (CCT / SCCs) aprobadas por la Comisión Europea.",
@@ -344,8 +344,8 @@ export default function PrivacyPage() {
           </p>
           <p style={{ margin: "0 0 4px", color: "var(--text-muted)" }}>
             Para asuntos generales:{" "}
-            <a href="mailto:legal@sodare.com" style={{ color: "var(--c-success)", textDecoration: "none" }}>
-              legal@sodare.com
+            <a href="mailto:legal@zefirus.com" style={{ color: "var(--c-success)", textDecoration: "none" }}>
+              legal@zefirus.com
             </a>
           </p>
           <p style={{ margin: 0, color: "var(--text-muted)" }}>

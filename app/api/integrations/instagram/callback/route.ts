@@ -8,7 +8,7 @@ import { logger } from "@/lib/logger";
 import { Prisma } from "@prisma/client";
 import prisma from "@/lib/prisma";
 
-const FRONTEND_URL = env.NEXT_PUBLIC_APP_URL || "https://sodare.xyz";
+const FRONTEND_URL = env.NEXT_PUBLIC_APP_URL || "https://zefirus.xyz";
 const redirect = (error?: string) =>
   NextResponse.redirect(`${FRONTEND_URL}/connect/done?module=instagram${error ? `&error=${error}` : ""}`);
 

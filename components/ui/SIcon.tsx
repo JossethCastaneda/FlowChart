@@ -1,5 +1,5 @@
 ﻿/**
- * SIcon - Sodare Standard Icon Wrapper
+ * SIcon - Zefirus Standard Icon Wrapper
  * Brand Guide: Lucide - strokeWidth 1.75 - sizes 18px (nav) / 20px (content)
  *
  * Usage:

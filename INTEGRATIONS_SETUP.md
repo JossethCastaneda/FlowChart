@@ -1,6 +1,6 @@
 # Integrations Setup Guide
 
-Guía para configurar cada plataforma publicitaria en Sodare. El framework OAuth genérico (`/api/oauth/[provider]/start` → `/callback`) maneja la conexión; solo necesitas crear la app de desarrollador y agregar las variables en Vercel.
+Guía para configurar cada plataforma publicitaria en Zefirus. El framework OAuth genérico (`/api/oauth/[provider]/start` → `/callback`) maneja la conexión; solo necesitas crear la app de desarrollador y agregar las variables en Vercel.
 
 > **Nota importante**: Los scopes de **GESTIÓN** (crear/pausar campañas) requieren **app review** por cada plataforma. Los scopes de **LECTURA** generalmente no.
 
@@ -42,16 +42,16 @@ Tokens se cifran con **AES-256-GCM** vía `lib/encryption.ts` y se almacenan **p
 **Authorized redirect URIs** (regístralas EXACTAS, sin espacios ni slash final):
 
 ```
-https://sodare.xyz/api/oauth/google/callback
-https://dev.sodare.xyz/api/oauth/google/callback
+https://zefirus.xyz/api/oauth/google/callback
+https://dev.zefirus.xyz/api/oauth/google/callback
 http://localhost:3000/api/oauth/google/callback
 ```
 
 **Authorized JavaScript origins:**
 
 ```
-https://sodare.xyz
-https://dev.sodare.xyz
+https://zefirus.xyz
+https://dev.zefirus.xyz
 http://localhost:3000
 ```
 
@@ -65,8 +65,8 @@ http://localhost:3000
 > ⚠️ **NEXTAUTH_URL sin espacios:** el `redirect_uri` se deriva de `NEXTAUTH_URL`.
 > Si esa variable tiene un espacio al inicio/fin en Vercel, Google lo recibe como
 > `%20` y rechaza con `redirect_uri_mismatch`. El código ya lo sanea
-> (`lib/app-url.ts`), pero igual debe estar limpia: `https://sodare.xyz` en
-> Production y `https://dev.sodare.xyz` en Preview.
+> (`lib/app-url.ts`), pero igual debe estar limpia: `https://zefirus.xyz` en
+> Production y `https://dev.zefirus.xyz` en Preview.
 
 ---
 
@@ -166,7 +166,7 @@ A diferencia de los demás módulos de Meta (que usan OAuth con `config_id`), Wh
    - URL: `https://TU_DOMINIO/api/webhooks/whatsapp`
    - Verify Token: el valor de `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
    - Suscribir al campo: `messages`
-5. Conectar desde el Dashboard de Sodare → Integraciones → WhatsApp Business, o via API:
+5. Conectar desde el Dashboard de Zefirus → Integraciones → WhatsApp Business, o via API:
    ```bash
    curl -X POST https://TU_DOMINIO/api/connect/whatsapp \
      -H "Cookie: next-auth.session-token=..." \

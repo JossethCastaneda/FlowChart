@@ -23,7 +23,7 @@ const PATTERNS: { name: string; regex: RegExp }[] = [
   // Fallback hardcodeado de IDs de app/config de Meta (|| "15-16 dígitos")
   { name: "Fallback de config/app ID de Meta", regex: /\|\|\s*["']\d{15,16}["']/ },
   // Verify token conocido del webhook
-  { name: "Verify token hardcodeado", regex: /sodare_webhook_verify/ },
+  { name: "Verify token hardcodeado", regex: /zefirus_webhook_verify/ },
 ];
 
 function* walk(dir: string): Generator<string> {

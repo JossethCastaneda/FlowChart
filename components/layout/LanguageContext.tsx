@@ -16,13 +16,13 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [lang, setLangState] = useState<Language>("es");
 
   useEffect(() => {
-    const saved = localStorage.getItem("sodare:lang") as Language | null;
+    const saved = localStorage.getItem("zefirus:lang") as Language | null;
     if (saved) setLangState(saved);
   }, []);
 
   const setLang = (l: Language) => {
     setLangState(l);
-    localStorage.setItem("sodare:lang", l);
+    localStorage.setItem("zefirus:lang", l);
     showToast("success", l === "es" ? "Idioma cambiado a Español" : "Language changed to English");
   };
 

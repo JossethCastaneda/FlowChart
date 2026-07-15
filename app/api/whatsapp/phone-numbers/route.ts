@@ -4,10 +4,10 @@
  * GET — Obtiene todas las líneas de WhatsApp de la WABA del workspace,
  *       cruzadas con la base de datos para saber si están enlazadas y a qué proyectos.
  *
- * POST — Enlaza una línea de WhatsApp (WaPhoneSource) a Sodare, opcionalmente
+ * POST — Enlaza una línea de WhatsApp (WaPhoneSource) a Zefirus, opcionalmente
  *        asociándola a un proyecto.
  *
- * DELETE — Desvincula una línea de WhatsApp de Sodare (borra WaPhoneSource).
+ * DELETE — Desvincula una línea de WhatsApp de Zefirus (borra WaPhoneSource).
  */
 
 import { NextRequest } from "next/server";

@@ -2,14 +2,14 @@ import React from "react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Términos de Servicio — Sodare",
-  description: "Términos y condiciones de uso de la plataforma Sodare. Centro de mando de marketing multicanal para agencias y marcas.",
+  title: "Términos de Servicio — Zefirus",
+  description: "Términos y condiciones de uso de la plataforma Zefirus. Centro de mando de marketing multicanal para agencias y marcas.",
 };
 
 const LAST_UPDATED = "25 de junio de 2025";
-const COMPANY = "Sodare";
-const CONTACT_EMAIL = "legal@sodare.com";
-const WEBSITE = "https://sodare.com";
+const COMPANY = "Zefirus";
+const CONTACT_EMAIL = "legal@zefirus.com";
+const WEBSITE = "https://zefirus.com";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -95,7 +95,7 @@ export default function TermsPage() {
           color: "var(--text-muted)",
           lineHeight: 1.6,
         }}>
-          Al acceder y utilizar la plataforma Sodare, usted acepta los presentes Términos de Servicio en su totalidad.
+          Al acceder y utilizar la plataforma Zefirus, usted acepta los presentes Términos de Servicio en su totalidad.
           Si no está de acuerdo con estos términos, no debe utilizar nuestros servicios.
         </div>
       </div>
@@ -104,11 +104,11 @@ export default function TermsPage() {
       <Section title="1. Definiciones">
         <P>Para los efectos de estos Términos de Servicio, se entiende por:</P>
         <Ul items={[
-          "«Plataforma»: el software y servicios en línea proporcionados por Sodare, incluyendo el dashboard de gestión, las integraciones con plataformas de terceros y todas las funcionalidades asociadas.",
+          "«Plataforma»: el software y servicios en línea proporcionados por Zefirus, incluyendo el dashboard de gestión, las integraciones con plataformas de terceros y todas las funcionalidades asociadas.",
           "«Usuario»: toda persona natural o jurídica que acceda y utilice la Plataforma.",
           "«Workspace»: el entorno de trabajo de un equipo u organización dentro de la Plataforma.",
           "«Datos del Usuario»: toda información, contenido y material que el Usuario cargue, publique o procese a través de la Plataforma.",
-          "«Servicio»: el conjunto de funcionalidades ofrecidas por Sodare, incluidas gestión de campañas, análisis de conversaciones, automatización de marketing y publicación de contenido.",
+          "«Servicio»: el conjunto de funcionalidades ofrecidas por Zefirus, incluidas gestión de campañas, análisis de conversaciones, automatización de marketing y publicación de contenido.",
         ]} />
       </Section>
 
@@ -126,7 +126,7 @@ export default function TermsPage() {
 
       <Section title="3. Descripción del Servicio">
         <P>
-          Sodare es una plataforma SaaS de inteligencia de marketing multicanal que permite a agencias y marcas:
+          Zefirus es una plataforma SaaS de inteligencia de marketing multicanal que permite a agencias y marcas:
         </P>
         <Ul items={[
           "Gestionar y publicar contenido en redes sociales (Meta, TikTok, WhatsApp, Google y otras).",
@@ -137,7 +137,7 @@ export default function TermsPage() {
           "Administrar proyectos, equipos y permisos de trabajo.",
         ]} />
         <P>
-          Sodare se reserva el derecho de modificar, suspender o discontinuar cualquier funcionalidad de la Plataforma en cualquier momento, con o sin previo aviso.
+          Zefirus se reserva el derecho de modificar, suspender o discontinuar cualquier funcionalidad de la Plataforma en cualquier momento, con o sin previo aviso.
         </P>
       </Section>
 
@@ -148,11 +148,11 @@ export default function TermsPage() {
         <Ul items={[
           "Mantener la confidencialidad de sus credenciales de acceso.",
           "Todas las actividades realizadas bajo su cuenta.",
-          "Notificar inmediatamente a Sodare cualquier uso no autorizado de su cuenta.",
+          "Notificar inmediatamente a Zefirus cualquier uso no autorizado de su cuenta.",
           "No compartir su cuenta con terceros no autorizados.",
         ]} />
         <P>
-          Sodare se reserva el derecho de suspender o cancelar cuentas que violen estos términos o que se utilicen de manera fraudulenta.
+          Zefirus se reserva el derecho de suspender o cancelar cuentas que violen estos términos o que se utilicen de manera fraudulenta.
         </P>
       </Section>
 
@@ -168,18 +168,18 @@ export default function TermsPage() {
           "Realizar ingeniería inversa, descompilar o desensamblar cualquier parte de la Plataforma.",
           "Utilizar bots, scrapers u otros medios automatizados no autorizados para acceder a la Plataforma.",
           "Infringir las políticas de uso de las plataformas de terceros integradas (Meta, TikTok, Google, WhatsApp, etc.).",
-          "Revender, sublicenciar o transferir el acceso a la Plataforma sin autorización expresa de Sodare.",
+          "Revender, sublicenciar o transferir el acceso a la Plataforma sin autorización expresa de Zefirus.",
         ]} />
       </Section>
 
       <Section title="6. Integraciones con Plataformas de Terceros">
         <P>
-          Sodare se integra con plataformas de terceros como Meta (Facebook, Instagram), TikTok, WhatsApp Business, Google Ads y otras. Al conectar estas integraciones:
+          Zefirus se integra con plataformas de terceros como Meta (Facebook, Instagram), TikTok, WhatsApp Business, Google Ads y otras. Al conectar estas integraciones:
         </P>
         <Ul items={[
-          "El Usuario autoriza a Sodare a acceder y gestionar los datos y funcionalidades de dichas plataformas en su nombre.",
+          "El Usuario autoriza a Zefirus a acceder y gestionar los datos y funcionalidades de dichas plataformas en su nombre.",
           "El Usuario declara que cumple con los Términos de Servicio y Políticas de uso de cada plataforma de terceros.",
-          "Sodare no es responsable de cambios, interrupciones o decisiones en las APIs de plataformas de terceros.",
+          "Zefirus no es responsable de cambios, interrupciones o decisiones en las APIs de plataformas de terceros.",
           "El acceso a las integraciones puede depender de aprobaciones por parte de las plataformas de terceros.",
           "El uso de datos obtenidos a través de estas integraciones debe cumplir con las políticas de cada plataforma.",
         ]} />
@@ -187,13 +187,13 @@ export default function TermsPage() {
 
       <Section title="7. Propiedad Intelectual">
         <P>
-          <strong style={{ color: "var(--foreground)" }}>Propiedad de Sodare:</strong> La Plataforma, incluyendo su código fuente, diseño, logotipos, marcas, interfaces y documentación, son propiedad exclusiva de Sodare y están protegidos por las leyes de propiedad intelectual aplicables.
+          <strong style={{ color: "var(--foreground)" }}>Propiedad de Zefirus:</strong> La Plataforma, incluyendo su código fuente, diseño, logotipos, marcas, interfaces y documentación, son propiedad exclusiva de Zefirus y están protegidos por las leyes de propiedad intelectual aplicables.
         </P>
         <P>
-          <strong style={{ color: "var(--foreground)" }}>Licencia de uso:</strong> Sodare otorga al Usuario una licencia limitada, no exclusiva, no transferible y revocable para utilizar la Plataforma de conformidad con estos Términos.
+          <strong style={{ color: "var(--foreground)" }}>Licencia de uso:</strong> Zefirus otorga al Usuario una licencia limitada, no exclusiva, no transferible y revocable para utilizar la Plataforma de conformidad con estos Términos.
         </P>
         <P>
-          <strong style={{ color: "var(--foreground)" }}>Contenido del Usuario:</strong> El Usuario retiene todos los derechos sobre el contenido que publique o cargue en la Plataforma. Al utilizarla, el Usuario otorga a Sodare una licencia para procesar, almacenar y transmitir dicho contenido en la medida necesaria para prestar el servicio.
+          <strong style={{ color: "var(--foreground)" }}>Contenido del Usuario:</strong> El Usuario retiene todos los derechos sobre el contenido que publique o cargue en la Plataforma. Al utilizarla, el Usuario otorga a Zefirus una licencia para procesar, almacenar y transmitir dicho contenido en la medida necesaria para prestar el servicio.
         </P>
       </Section>
 
@@ -206,7 +206,7 @@ export default function TermsPage() {
           , la cual forma parte integral de estos Términos de Servicio. Al utilizar la Plataforma, el Usuario consiente el tratamiento de sus datos de conformidad con dicha política.
         </P>
         <P>
-          Sodare implementa medidas de seguridad técnicas y organizativas apropiadas para proteger los datos contra accesos no autorizados, pérdida o divulgación indebida.
+          Zefirus implementa medidas de seguridad técnicas y organizativas apropiadas para proteger los datos contra accesos no autorizados, pérdida o divulgación indebida.
         </P>
       </Section>
 
@@ -219,7 +219,7 @@ export default function TermsPage() {
           "Los pagos se realizan de forma anticipada por el período contratado.",
           "Las suscripciones se renuevan automáticamente salvo cancelación previa.",
           "No se realizarán reembolsos por períodos parciales salvo disposición legal aplicable.",
-          "Sodare se reserva el derecho de modificar sus precios con previo aviso de 30 días.",
+          "Zefirus se reserva el derecho de modificar sus precios con previo aviso de 30 días.",
         ]} />
       </Section>
 
@@ -228,22 +228,22 @@ export default function TermsPage() {
           La Plataforma se proporciona «tal como está» y «según disponibilidad», sin garantías de ningún tipo, ya sean expresas o implícitas. En la máxima medida permitida por la ley aplicable:
         </P>
         <Ul items={[
-          "Sodare no garantiza que la Plataforma esté libre de errores, interrupciones o vulnerabilidades.",
-          "Sodare no será responsable por daños indirectos, incidentales, especiales o consecuentes.",
-          "La responsabilidad total de Sodare no excederá los importes pagados por el Usuario en los últimos 3 meses.",
-          "Sodare no es responsable de pérdidas derivadas de interrupciones en plataformas de terceros integradas.",
+          "Zefirus no garantiza que la Plataforma esté libre de errores, interrupciones o vulnerabilidades.",
+          "Zefirus no será responsable por daños indirectos, incidentales, especiales o consecuentes.",
+          "La responsabilidad total de Zefirus no excederá los importes pagados por el Usuario en los últimos 3 meses.",
+          "Zefirus no es responsable de pérdidas derivadas de interrupciones en plataformas de terceros integradas.",
         ]} />
       </Section>
 
       <Section title="11. Modificaciones de los Términos">
         <P>
-          Sodare se reserva el derecho de modificar estos Términos de Servicio en cualquier momento. Los cambios materiales serán notificados con al menos 15 días de anticipación a través de la Plataforma o por correo electrónico. El uso continuado de la Plataforma tras la notificación implica la aceptación de los nuevos términos.
+          Zefirus se reserva el derecho de modificar estos Términos de Servicio en cualquier momento. Los cambios materiales serán notificados con al menos 15 días de anticipación a través de la Plataforma o por correo electrónico. El uso continuado de la Plataforma tras la notificación implica la aceptación de los nuevos términos.
         </P>
       </Section>
 
       <Section title="12. Terminación">
         <P>
-          Cualquiera de las partes puede terminar la relación en cualquier momento. Sodare puede suspender o cancelar el acceso del Usuario de forma inmediata si:
+          Cualquiera de las partes puede terminar la relación en cualquier momento. Zefirus puede suspender o cancelar el acceso del Usuario de forma inmediata si:
         </P>
         <Ul items={[
           "El Usuario incumple estos Términos de Servicio.",
@@ -251,13 +251,13 @@ export default function TermsPage() {
           "El pago de la suscripción está en mora.",
         ]} />
         <P>
-          Tras la terminación, Sodare podrá eliminar los datos del Usuario de acuerdo con su política de retención de datos, salvo que la ley exija su conservación.
+          Tras la terminación, Zefirus podrá eliminar los datos del Usuario de acuerdo con su política de retención de datos, salvo que la ley exija su conservación.
         </P>
       </Section>
 
       <Section title="13. Ley Aplicable y Jurisdicción">
         <P>
-          Estos Términos de Servicio se rigen por las leyes aplicables en el territorio donde opere Sodare. Cualquier disputa que no pueda resolverse amigablemente será sometida a la jurisdicción de los tribunales competentes del domicilio de Sodare, renunciando expresamente las partes a cualquier otro fuero.
+          Estos Términos de Servicio se rigen por las leyes aplicables en el territorio donde opere Zefirus. Cualquier disputa que no pueda resolverse amigablemente será sometida a la jurisdicción de los tribunales competentes del domicilio de Zefirus, renunciando expresamente las partes a cualquier otro fuero.
         </P>
       </Section>
 

@@ -7,7 +7,7 @@ import React from "react";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Reporte — Sodare",
+  title: "Reporte — Zefirus",
   description: "Reporte de resultados de marketing digital",
 };
 

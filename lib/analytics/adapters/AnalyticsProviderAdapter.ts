@@ -112,7 +112,7 @@ export interface AnalyticsProviderAdapter {
   /** Normaliza un payload crudo del proveedor al modelo interno. */
   normalizeRawData(rawPayload: unknown, reportType: string): NormalizedRecord;
 
-  // Mapeos del vocabulario del proveedor al canónico de Sodare.
+  // Mapeos del vocabulario del proveedor al canónico de Zefirus.
   mapProviderChannel(raw: unknown): string;
   mapProviderStatus(raw: unknown): string;
   mapProviderOutcome(raw: unknown): string;

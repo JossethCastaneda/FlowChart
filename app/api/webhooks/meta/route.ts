@@ -9,7 +9,7 @@ import { env } from "@/lib/env";
  * Persiste un DM entrante de Messenger/IG en el inbox (tiempo real). Resuelve el
  * workspace dueño del activo y deduplica por mid. No bloquea el webhook: cualquier
  * fallo se loguea y sigue. Los "echo" (mensajes enviados por la propia página) se
- * guardan como sender "page" para reflejar respuestas hechas fuera de Sodare.
+ * guardan como sender "page" para reflejar respuestas hechas fuera de Zefirus.
  */
 async function persistMetaDm(
   platform: InboxPlatform,

@@ -1,5 +1,5 @@
 /**
- * Agentes de módulo de Sodare + orquestador ejecutivo.
+ * Agentes de módulo de Zefirus + orquestador ejecutivo.
  *
  * Cada SUBAGENTE analiza los datos REALES de un módulo del workspace (colector
  * Prisma workspace-scoped → contexto textual) y produce hallazgos estructurados.
@@ -51,7 +51,7 @@ function moduleAgent(key: string, name: string, role: string): AgentDef<ModuleFi
     key,
     name,
     system:
-      `Eres el agente de ${name} de Sodare (SaaS de marketing). ${role} ` +
+      `Eres el agente de ${name} de Zefirus (SaaS de marketing). ${role} ` +
       "Analiza ÚNICAMENTE las cifras del contexto; NUNCA inventes métricas ni nombres. " +
       "Si no hay datos, dilo en hallazgos y recomienda cómo empezar. Responde en español, " +
       "conciso y de negocio.",
@@ -209,7 +209,7 @@ export const synthesisAgent: AgentDef<ActionPlan> = {
   key: "orquestador_ejecutivo",
   name: "Orquestador ejecutivo",
   system:
-    "Eres el orquestador ejecutivo de Sodare. Recibes los hallazgos de los agentes de cada " +
+    "Eres el orquestador ejecutivo de Zefirus. Recibes los hallazgos de los agentes de cada " +
     "módulo del workspace y los sintetizas en UN plan de acción semanal priorizado. Usa SOLO " +
     "la información provista (no inventes cifras); prioriza por impacto de negocio; responde " +
     "en español claro y accionable.",

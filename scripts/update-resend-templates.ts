@@ -1,5 +1,5 @@
 /**
- * Actualiza los templates de Resend con diseño premium SODARE.
+ * Actualiza los templates de Resend con diseño premium ZEFIRUS.
  * Ejecutar: npx tsx scripts/update-resend-templates.ts
  */
 
@@ -18,7 +18,7 @@ const PASSWORD_RESET_ID = "0714fcce-9f7e-4b8a-b5a3-4375b2310c0d";
 const WORKSPACE_INVITE_ID = "15897827-b6e8-4831-b28c-6fa6cc035bca";
 
 // ── Shared components ──
-const sodareHeader = `
+const zefirusHeader = `
 <tr><td style="padding:40px 40px 0; text-align:center;">
   <!-- Logo mark -->
   <table cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
@@ -27,7 +27,7 @@ const sodareHeader = `
         <span style="color:#00f0ff; font-size:22px; font-weight:900; line-height:44px;">&#x2607;</span>
       </td>
       <td style="padding-left:14px;">
-        <span style="font-size:24px; font-weight:800; letter-spacing:6px; color:#e2e8f0; font-family:'Segoe UI',Arial,sans-serif;">SODARE</span>
+        <span style="font-size:24px; font-weight:800; letter-spacing:6px; color:#e2e8f0; font-family:'Segoe UI',Arial,sans-serif;">ZEFIRUS</span>
       </td>
     </tr>
   </table>
@@ -43,7 +43,7 @@ const sodareHeader = `
   </table>
 </td></tr>`;
 
-const sodareFooter = (note: string) => `
+const zefirusFooter = (note: string) => `
 <tr><td style="padding:0 40px 12px;">
   <table width="100%" cellpadding="0" cellspacing="0">
     <tr><td style="height:1px; background:linear-gradient(90deg, transparent, rgba(0,240,255,0.12), transparent);"></td></tr>
@@ -54,7 +54,7 @@ const sodareFooter = (note: string) => `
     ${note}
   </p>
   <p style="color:#1e293b; font-size:10px; margin:12px 0 0; letter-spacing:2px; font-family:'Segoe UI',Arial,sans-serif;">
-    SODARE &#x2022; MARKETING INTELLIGENCE PLATFORM
+    ZEFIRUS &#x2022; MARKETING INTELLIGENCE PLATFORM
   </p>
 </td></tr>`;
 
@@ -86,7 +86,7 @@ const passwordResetHtml = `
     <!-- Top glow bar -->
     <tr><td style="height:3px; background:linear-gradient(90deg, transparent 5%, #00f0ff 30%, #0080ff 70%, transparent 95%);"></td></tr>
 
-    ${sodareHeader}
+    ${zefirusHeader}
 
     <!-- Body -->
     <tr><td style="padding:32px 40px 40px;">
@@ -156,7 +156,7 @@ const passwordResetHtml = `
       </table>
     </td></tr>
 
-    ${sodareFooter("Este enlace expira en 1 hora por seguridad.")}
+    ${zefirusFooter("Este enlace expira en 1 hora por seguridad.")}
 
     <!-- Bottom glow bar -->
     <tr><td style="height:2px; background:linear-gradient(90deg, transparent 10%, #0080ff 50%, transparent 90%);"></td></tr>
@@ -194,13 +194,13 @@ const workspaceInviteHtml = `
     <!-- Top glow bar -->
     <tr><td style="height:3px; background:linear-gradient(90deg, transparent 5%, #00f0ff 30%, #0080ff 70%, transparent 95%);"></td></tr>
 
-    ${sodareHeader}
+    ${zefirusHeader}
 
     <!-- Body -->
     <tr><td style="padding:32px 40px 40px;">
       <!-- Greeting -->
       <p style="color:#94a3b8; font-size:15px; line-height:1.7; margin:0 0 24px; font-family:'Segoe UI',Arial,sans-serif;">
-        <strong style="color:#e2e8f0;">{{{INVITER_NAME}}}</strong> te ha invitado a unirte a un workspace en SODARE.
+        <strong style="color:#e2e8f0;">{{{INVITER_NAME}}}</strong> te ha invitado a unirte a un workspace en ZEFIRUS.
       </p>
 
       <!-- Workspace card -->
@@ -291,7 +291,7 @@ const workspaceInviteHtml = `
       </table>
     </td></tr>
 
-    ${sodareFooter("Esta invitaci&#xF3;n expira en 7 d&#xED;as.")}
+    ${zefirusFooter("Esta invitaci&#xF3;n expira en 7 d&#xED;as.")}
 
     <!-- Bottom glow bar -->
     <tr><td style="height:2px; background:linear-gradient(90deg, transparent 10%, #0080ff 50%, transparent 90%);"></td></tr>
@@ -327,11 +327,11 @@ async function updateTemplate(id: string, name: string, html: string) {
 }
 
 async function main() {
-  console.log("\n  SODARE — Actualizando templates de email\n");
+  console.log("\n  ZEFIRUS — Actualizando templates de email\n");
   console.log("  ────────────────────────────────────────\n");
 
-  await updateTemplate(PASSWORD_RESET_ID, "sodare-password-reset", passwordResetHtml);
-  await updateTemplate(WORKSPACE_INVITE_ID, "sodare-workspace-invite", workspaceInviteHtml);
+  await updateTemplate(PASSWORD_RESET_ID, "zefirus-password-reset", passwordResetHtml);
+  await updateTemplate(WORKSPACE_INVITE_ID, "zefirus-workspace-invite", workspaceInviteHtml);
 
   console.log("  Listo.\n");
 }

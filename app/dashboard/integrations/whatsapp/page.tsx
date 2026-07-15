@@ -57,7 +57,7 @@ const TRANSLATIONS = {
     notConnectedDesc: "Conecta tu cuenta de WhatsApp Business para enviar mensajes y plantillas.",
     wabaConnectedMsg: "Conectado a WABA",
     enabledLines: "Cuentas Habilitadas",
-    linesLinkedCount: "{connectedCount} de {totalCount} líneas enlazadas con Sodare",
+    linesLinkedCount: "{connectedCount} de {totalCount} líneas enlazadas con Zefirus",
     noLinesDesc: "No hay líneas de WhatsApp disponibles en esta cuenta WABA.",
     linkBtn: "Enlazar",
     testChat: "Prueba de Chat",
@@ -126,7 +126,7 @@ const TRANSLATIONS = {
     notConnectedDesc: "Connect your WhatsApp Business account to send messages and templates.",
     wabaConnectedMsg: "Connected to WABA",
     enabledLines: "Enabled Lines",
-    linesLinkedCount: "{connectedCount} of {totalCount} lines linked with Sodare",
+    linesLinkedCount: "{connectedCount} of {totalCount} lines linked with Zefirus",
     noLinesDesc: "No WhatsApp lines available in this WABA account.",
     linkBtn: "Link",
     testChat: "Test Chat",
@@ -548,7 +548,7 @@ function InfoModal({ line, wabaId, onClose, onUnlink }: { line: WaLine; wabaId?:
   const [unlinking, setUnlinking] = useState(false);
 
   const handleUnlink = async () => {
-    if (!confirm(`¿Desvincular esta línea de Sodare? Dejará de recibir mensajes.`)) return;
+    if (!confirm(`¿Desvincular esta línea de Zefirus? Dejará de recibir mensajes.`)) return;
     setUnlinking(true);
     await onUnlink();
     setUnlinking(false);

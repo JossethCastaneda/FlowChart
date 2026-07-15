@@ -1,5 +1,5 @@
 /**
- * SODARE · MMM — Regresión OLS simplificada
+ * ZEFIRUS · MMM — Regresión OLS simplificada
  *
  * Ridge Regression (L2 penalty) para estimar los coeficientes β del modelo:
  *   y = β₀ + β₁X₁ + β₂X₂ + ... + βₙXₙ + ε

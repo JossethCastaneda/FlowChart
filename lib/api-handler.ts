@@ -90,7 +90,7 @@ export function withAuth(handler: Handler<AuthContext>) {
  * Inyecta workspaceId y role en el contexto.
  *
  * Orden de prioridad para resolver el workspace:
- *   1. Cookie sodare_active_workspace (si existe y el usuario es miembro)
+ *   1. Cookie zefirus_active_workspace (si existe y el usuario es miembro)
  *   2. Primer workspace del usuario (fallback)
  */
 export function withWorkspace(handler: Handler<WorkspaceContext>) {

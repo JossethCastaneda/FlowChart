@@ -1,4 +1,4 @@
-# Auditoría Full-Stack — Sodare (2026-06-26)
+# Auditoría Full-Stack — Zefirus (2026-06-26)
 
 > Auditoría **de solo lectura** del estado actual del repo. **No se aplicaron cambios estructurales**
 > a propósito: el árbol de trabajo tiene un **refactor masivo sin commitear en vuelo** (ver §0) y
@@ -11,7 +11,7 @@
 ## 0. 🔴 Hallazgo #1 — Refactor masivo sin commitear (colisión de proceso)
 
 El working tree tiene **42 archivos modificados, +1585 / −2351 líneas SIN commitear**, hechos por un
-**committer concurrente** (`Sodare Dev <jtrejo.lid.mkt@gmail.com>`, otra sesión/proceso — ver
+**committer concurrente** (`Zefirus Dev <jtrejo.lid.mkt@gmail.com>`, otra sesión/proceso — ver
 [[concurrent-committer-and-onedrive]]). Es un refactor coherente (tsc pasa) pero **a medio terminar**.
 Toca exactamente la infra a auditar. Bloques principales:
 
@@ -47,7 +47,7 @@ lo absorbe con mensaje equivocado), (b) imposible revisar por PR, (c) cualquier 
    un nuevo `/api/cron/meta/refresh-tokens` (sin agendar). Hay **dos implementaciones**; reconciliar a una.
 3. **Límite de plan de Vercel:** 6 cron jobs requieren plan **Pro** (Hobby permite 2). Verificar el plan;
    en Hobby el deploy de crons falla.
-4. **Modo proxy:** `next.config.ts/rewrites` reenvía `/api/*` a `NEXT_PUBLIC_API_URL` (dev.sodare.xyz) si
+4. **Modo proxy:** `next.config.ts/rewrites` reenvía `/api/*` a `NEXT_PUBLIC_API_URL` (dev.zefirus.xyz) si
    está seteado. Confirmar que en Producción NO esté seteado (si no, el frontend proxyea a otro backend).
 
 ---
@@ -64,7 +64,7 @@ lo absorbe con mensaje equivocado), (b) imposible revisar por PR, (c) cualquier 
 **🟠 Riesgos:**
 1. **`prisma db push` en cada build** (`build` script → `scripts/db-sync.mjs`). Es aditivo y no-fatal, PERO
    empuja el esquema a **la DB que resuelva `DATABASE_URL` en ese entorno**. Con la **ambigüedad c-7 vs c-8
-   sin resolver** (CLAUDE.md: producción Vercel apunta a `ep-long-unit…c-7`, no a `sodare-prod`/c-8), un build
+   sin resolver** (CLAUDE.md: producción Vercel apunta a `ep-long-unit…c-7`, no a `zefirus-prod`/c-8), un build
    puede mutar el esquema de la rama equivocada. **Decisión humana pendiente** de qué proyecto Neon es el oficial.
 2. **`ENCRYPTION_KEY` inconsistente:** `env.ts` acepta `length(64).or(length(32))`, pero `lib/encryption.ts`
    exige **exactamente 64 hex** (`length !== 64` → falla). Una clave de 32 pasa env y rompe el cifrado. Endurecer env a `length(64)`.

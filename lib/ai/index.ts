@@ -1,5 +1,5 @@
 /**
- * Punto de entrada de la capa LLM multi-proveedor de Sodare/Aria.
+ * Punto de entrada de la capa LLM multi-proveedor de Zefirus/Aria.
  * Uso típico (server-side):
  *   import { getActiveProvider } from "@/lib/ai";
  *   const { text } = await getActiveProvider().complete({ system, messages });

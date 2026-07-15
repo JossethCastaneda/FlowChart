@@ -3,7 +3,7 @@
 import React from "react";
 
 /**
- * ORBI — mascota/copiloto de Sodare.
+ * ORBI — mascota/copiloto de Zefirus.
  * SVG/CSS puro, sin assets externos. Respeta prefers-reduced-motion.
  *
  * Uso:

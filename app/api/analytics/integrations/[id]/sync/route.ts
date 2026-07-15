@@ -100,7 +100,7 @@ export const POST = withWorkspace(async (req, ctx) => {
       try {
         const rollupStart = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
         const rollupEnd = new Date(endDate.getTime() + 24 * 60 * 60 * 1000);
-        await prisma.$executeRawUnsafe(`SELECT sodare_compute_daily_rollups($1, $2)`, rollupStart, rollupEnd);
+        await prisma.$executeRawUnsafe(`SELECT zefirus_compute_daily_rollups($1, $2)`, rollupStart, rollupEnd);
       } catch (err) {
         console.error("[Manual Sync] Fallo ejecutando rollup en Neon:", err);
       }

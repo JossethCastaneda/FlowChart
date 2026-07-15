@@ -10,7 +10,7 @@ export function QueryProvider({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Sodare Stateless Cache Defaults
+            // Zefirus Stateless Cache Defaults
             staleTime: 1000 * 60 * 5, // 5 minutos de caché antes de considerar los datos "viejos"
             gcTime: 1000 * 60 * 30,    // Mantener en memoria por 30 minutos
             refetchOnWindowFocus: false, // No recargar al cambiar de pestaña (evita spam a Meta)

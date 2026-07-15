@@ -1,5 +1,5 @@
 /**
- * SODARE Email Templates v3
+ * ZEFIRUS Email Templates v3
  * Responsive Light & Dark Mode Compatible Design.
  * Clean, corporate light mode by default with cyberpunk/holographic Dark Mode fallback.
  */
@@ -51,7 +51,7 @@ function baseWrapper(content: string): string {
 <body class="bg-body" style="margin:0;padding:0;background-color:#f8fafc;font-family:'Segoe UI',Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
   <!-- Preheader -->
   <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
-    SODARE — Sistema Operativo de Marketing Digital
+    ZEFIRUS — Sistema Operativo de Marketing Digital
   </div>
 
   <table width="100%" cellpadding="0" cellspacing="0" border="0" class="bg-body" style="background-color:#f8fafc;">
@@ -75,7 +75,7 @@ function baseWrapper(content: string): string {
 
               <table cellpadding="0" cellspacing="0" border="0" style="margin:0 auto;">
                 <tr>
-                  <td class="logo-text" style="font-family:'Courier New',Consolas,monospace;font-size:28px;font-weight:900;letter-spacing:10px;color:#0f172a;padding-bottom:12px;">SODARE</td>
+                  <td class="logo-text" style="font-family:'Courier New',Consolas,monospace;font-size:28px;font-weight:900;letter-spacing:10px;color:#0f172a;padding-bottom:12px;">ZEFIRUS</td>
                 </tr>
               </table>
 
@@ -120,7 +120,7 @@ function baseWrapper(content: string): string {
           <tr>
             <td align="center" style="padding:24px 36px 28px;">
               <p class="footer-text" style="margin:0;font-family:'Courier New',monospace;font-size:9px;color:#94a3b8;letter-spacing:3px;">
-                SODARE
+                ZEFIRUS
               </p>
               <p class="footer-text" style="margin:4px 0 0;font-family:'Courier New',monospace;font-size:8px;color:#94a3b8;letter-spacing:2px;">
                 SISTEMA OPERATIVO DE MARKETING DIGITAL
@@ -281,7 +281,7 @@ export function getPasswordResetEmailHtml({
             Hola <strong>${userName}</strong>,
           </p>
           <p class="text-muted" style="margin:0;font-size:13px;color:#64748b;line-height:1.7;">
-            Recibimos una solicitud para restablecer la contraseña de tu cuenta en SODARE. Haz clic en el botón de abajo para continuar.
+            Recibimos una solicitud para restablecer la contraseña de tu cuenta en ZEFIRUS. Haz clic en el botón de abajo para continuar.
           </p>
         </td>
       </tr>
@@ -336,7 +336,7 @@ export function getWelcomeEmailHtml({
             Hola <strong>${userName}</strong>,
           </p>
           <p class="text-muted" style="margin:0;font-size:13px;color:#64748b;line-height:1.7;">
-            Tu cuenta en SODARE ha sido creada exitosamente. Ahora tienes acceso completo a la plataforma de inteligencia multicanal.
+            Tu cuenta en ZEFIRUS ha sido creada exitosamente. Ahora tienes acceso completo a la plataforma de inteligencia multicanal.
           </p>
         </td>
       </tr>

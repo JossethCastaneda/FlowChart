@@ -1,5 +1,5 @@
 /**
- * Framework de agentes de Sodare sobre la capa LLM multi-proveedor.
+ * Framework de agentes de Zefirus sobre la capa LLM multi-proveedor.
  *
  * Un AGENTE = prompt de sistema + salida estructurada (JSON Schema + Zod) que
  * corre con la IA CONTRATADA del workspace (el modelo del catálogo). Un

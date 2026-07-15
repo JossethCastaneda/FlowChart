@@ -1,6 +1,6 @@
 /**
  * Ads Manager — Calculated Metrics Library
- * Métricas calculadas por Sodare (no nativas de Meta)
+ * Métricas calculadas por Zefirus (no nativas de Meta)
  */
 
 // ── Meta Objective mapping ──────────────────────────────────────────────────

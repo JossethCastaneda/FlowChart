@@ -502,7 +502,7 @@ export function InboxLayout() {
   } = useInboxFilters(conversations, currentAssignee);
 
   useEffect(() => {
-    try { setShowProfile(localStorage.getItem("sodare:inbox-profile") === "1"); } catch { /* ignore */ }
+    try { setShowProfile(localStorage.getItem("zefirus:inbox-profile") === "1"); } catch { /* ignore */ }
     const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
     checkDesktop();
     window.addEventListener("resize", checkDesktop);
@@ -511,7 +511,7 @@ export function InboxLayout() {
 
   const toggleProfile = () => setShowProfile(prev => {
     const next = !prev;
-    try { localStorage.setItem("sodare:inbox-profile", next ? "1" : "0"); } catch { /* ignore */ }
+    try { localStorage.setItem("zefirus:inbox-profile", next ? "1" : "0"); } catch { /* ignore */ }
     return next;
   });
 

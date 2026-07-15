@@ -15,7 +15,7 @@ function getResend(): Resend | null {
   if (!_resend) _resend = new Resend(env.RESEND_API_KEY);
   return _resend;
 }
-const FROM_EMAIL = env.RESEND_FROM_EMAIL || env.EMAIL_FROM || "SODARE <noreply@sodare.xyz>";
+const FROM_EMAIL = env.RESEND_FROM_EMAIL || env.EMAIL_FROM || "ZEFIRUS <noreply@zefirus.xyz>";
 const BASE_URL = getBaseUrl();
 
 // ─── WhatsApp helper ─────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ export async function createNotification({
           await resendClient.emails.send({
             from: FROM_EMAIL,
             to: user.email,
-            subject: emailSubject || `SODARE — ${title}`,
+            subject: emailSubject || `ZEFIRUS — ${title}`,
             html: emailHtml,
           });
         }
@@ -170,7 +170,7 @@ export async function notifyTaskAssigned({
     : null;
 
   const waMessage = [
-    `📋 *Nueva tarea asignada* — SODARE`,
+    `📋 *Nueva tarea asignada* — ZEFIRUS`,
     ``,
     `*${taskTitle}*`,
     `Prioridad: ${priority}${dueDateFormatted ? `\nVence: ${dueDateFormatted}` : ""}`,
@@ -186,7 +186,7 @@ export async function notifyTaskAssigned({
     message: `${assignerName} te asigno: "${taskTitle}"`,
     link: "/dashboard/ops",
     sendEmail: true,
-    emailSubject: `SODARE — Nueva tarea: ${taskTitle}`,
+    emailSubject: `ZEFIRUS — Nueva tarea: ${taskTitle}`,
     emailHtml: getTaskAssignedEmailHtml({
       assigneeName,
       taskTitle,
@@ -255,7 +255,7 @@ export async function notifyTaskStatusChanged({
   const emoji = statusEmoji[newStatus] ?? "📋";
 
   const waMessage = [
-    `${emoji} *Tarea actualizada* — SODARE`,
+    `${emoji} *Tarea actualizada* — ZEFIRUS`,
     ``,
     `*${taskTitle}*`,
     `Estado: ${newStatus}`,
@@ -326,7 +326,7 @@ export async function notifyTaskPriorityChanged({
 
   const priorityEmoji: Record<string, string> = { P0: "🔴", P1: "🟠", P2: "🟡", P3: "🟢" };
   const waMessage = [
-    `${priorityEmoji[newPriority] ?? "📋"} *Prioridad actualizada* — SODARE`,
+    `${priorityEmoji[newPriority] ?? "📋"} *Prioridad actualizada* — ZEFIRUS`,
     ``,
     `*${taskTitle}*`,
     `Prioridad: ${oldPriority} → ${newPriority}`,
@@ -396,7 +396,7 @@ export async function notifyTaskCommented({
   const preview = commentPreview.length > 80 ? `${commentPreview.slice(0, 80)}…` : commentPreview;
 
   const waMessage = [
-    `💬 *Nuevo comentario* — SODARE`,
+    `💬 *Nuevo comentario* — ZEFIRUS`,
     ``,
     `*${taskTitle}*`,
     `${commenterName}: "${preview}"`,
@@ -467,8 +467,8 @@ export async function checkSLAWarnings(workspaceId: string) {
     const dueDateFormatted = task.dueDate.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
     const slaTitle = hoursLeft <= 0 ? "SLA Vencido" : "SLA por vencer";
     const waMessage = hoursLeft <= 0
-      ? `⛔ *SLA VENCIDO* — SODARE\n\n*${task.title}*\nVenció el ${dueDateFormatted}\n\nVer: ${taskUrl}`
-      : `⏰ *SLA por vencer* — SODARE\n\n*${task.title}*\nVence: ${dueDateFormatted} (${hoursLeft}h)\n\nVer: ${taskUrl}`;
+      ? `⛔ *SLA VENCIDO* — ZEFIRUS\n\n*${task.title}*\nVenció el ${dueDateFormatted}\n\nVer: ${taskUrl}`
+      : `⏰ *SLA por vencer* — ZEFIRUS\n\n*${task.title}*\nVence: ${dueDateFormatted} (${hoursLeft}h)\n\nVer: ${taskUrl}`;
 
     await createNotification({
       userId: user.id,
@@ -477,7 +477,7 @@ export async function checkSLAWarnings(workspaceId: string) {
       message: `${task.title} [${task.id}]`,
       link: "/dashboard/ops",
       sendEmail: true,
-      emailSubject: `SODARE — ${hoursLeft <= 0 ? "SLA VENCIDO" : "SLA por vencer"}: ${task.title}`,
+      emailSubject: `ZEFIRUS — ${hoursLeft <= 0 ? "SLA VENCIDO" : "SLA por vencer"}: ${task.title}`,
       emailHtml: getSLAWarningEmailHtml({
         userName: task.assignee,
         taskTitle: task.title,

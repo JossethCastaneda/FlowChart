@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Sodare - Authentication",
-  description: "Login to the Sodare Multichannel Intelligence platform.",
+  title: "Zefirus - Authentication",
+  description: "Login to the Zefirus Multichannel Intelligence platform.",
 };
 
 export default function LoginLayout({

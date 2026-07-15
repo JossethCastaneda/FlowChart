@@ -65,5 +65,5 @@ export async function POST(req: NextRequest) {
 
 // TikTok may send GET requests for endpoint verification
 export async function GET() {
-  return NextResponse.json({ status: "ok", service: "sodare-tiktok-webhook" }, { status: 200 });
+  return NextResponse.json({ status: "ok", service: "zefirus-tiktok-webhook" }, { status: 200 });
 }

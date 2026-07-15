@@ -217,7 +217,7 @@ export default function PublicReportPage() {
           )}
           <p style={{ fontSize: 9, color: "var(--text-muted)", margin: 0, opacity: 0.5 }}>
             Generado el {fmtDate(snapshot.generatedAt)}
-            {!settings.hideWatermark && " · Powered by Sodare"}
+            {!settings.hideWatermark && " · Powered by Zefirus"}
           </p>
         </div>
       </div>

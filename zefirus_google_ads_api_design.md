@@ -1,8 +1,8 @@
-# Sodare - Google Ads API Design Documentation
+# Zefirus - Google Ads API Design Documentation
 
 ## 1. Tool Overview
-**Tool Name:** Sodare
-**Description:** Sodare is a centralized SaaS platform designed for digital marketing agencies and brands to monitor their marketing performance. 
+**Tool Name:** Zefirus
+**Description:** Zefirus is a centralized SaaS platform designed for digital marketing agencies and brands to monitor their marketing performance. 
 **Objective:** The primary goal of our integration with the Google Ads API is to retrieve read-only performance metrics (impressions, clicks, conversions, spend) from our users' own Google Ads accounts and display them in internal dashboards within our platform.
 
 ## 2. Target Audience
@@ -22,7 +22,7 @@ Our tool is intended for external users (digital marketing agencies and business
 
 ## 5. Automation & Creation Features
 **None.** 
-Sodare is strictly a reporting and visualization tool. We do not use the API to automate campaign creation, manage bids, modify budgets, or delete any resources.
+Zefirus is strictly a reporting and visualization tool. We do not use the API to automate campaign creation, manage bids, modify budgets, or delete any resources.
 
 ## 6. Token Usage
-Our Developer Token is used exclusively within our proprietary software (Sodare). We do not share our token with third-party tools or external developers.
+Our Developer Token is used exclusively within our proprietary software (Zefirus). We do not share our token with third-party tools or external developers.

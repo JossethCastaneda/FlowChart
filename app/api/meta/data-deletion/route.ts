@@ -24,7 +24,7 @@ import { logger } from "@/lib/logger";
  * - Returns the confirmation code so the user can track status
  */
 
-const APP_URL = env.NEXTAUTH_URL || env.NEXT_PUBLIC_APP_URL || "https://sodare.xyz";
+const APP_URL = env.NEXTAUTH_URL || env.NEXT_PUBLIC_APP_URL || "https://zefirus.xyz";
 
 export async function POST(req: NextRequest) {
   // Fallback code in case DB insert fails — always return something to Meta

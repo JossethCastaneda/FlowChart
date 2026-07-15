@@ -25,7 +25,7 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
-    // Si la variable está definida, mandamos todas las peticiones /api a dev.sodare.xyz (Backend)
+    // Si la variable está definida, mandamos todas las peticiones /api a dev.zefirus.xyz (Backend)
     // El frontend actúa como proxy transparente
     const apiUrl = process.env.NEXT_PUBLIC_API_URL?.trim().replace(/^\uFEFF/, ""); // Remove BOM if present
     if (apiUrl && apiUrl.startsWith("http")) {
@@ -35,7 +35,7 @@ const nextConfig: NextConfig = {
           missing: [
             {
               type: 'host',
-              value: 'dev.sodare.xyz',
+              value: 'dev.zefirus.xyz',
             },
           ],
           destination: `${apiUrl}/api/:path*`,
@@ -52,7 +52,7 @@ const nextConfig: NextConfig = {
         source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
-          { key: "Access-Control-Allow-Origin", value: process.env.NEXT_PUBLIC_FRONTEND_URL || "https://sodare.xyz" },
+          { key: "Access-Control-Allow-Origin", value: process.env.NEXT_PUBLIC_FRONTEND_URL || "https://zefirus.xyz" },
           { key: "Access-Control-Allow-Methods", value: "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
           { key: "Access-Control-Allow-Headers", value: "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" },
         ],
@@ -75,7 +75,7 @@ const nextConfig: NextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: blob: https://*.fbcdn.net https://*.xx.fbcdn.net https://graph.facebook.com https://platform-lookaside.fbsbx.com https://*.cdninstagram.com https://www.googletagmanager.com https://www.google-analytics.com https://static.xx.fbcdn.net",
-              "connect-src 'self' https://dev.sodare.xyz https://sodare.xyz https://zefirus.xyz https://graph.facebook.com https://*.facebook.com https://*.facebook.net https://api.resend.com https://vitals.vercel-insights.com https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com https://stats.g.doubleclick.net",
+              "connect-src 'self' https://dev.zefirus.xyz https://zefirus.xyz https://zefirus.xyz https://graph.facebook.com https://*.facebook.com https://*.facebook.net https://api.resend.com https://vitals.vercel-insights.com https://www.google-analytics.com https://*.analytics.google.com https://*.google-analytics.com https://stats.g.doubleclick.net",
               "media-src 'self' blob: https://*.fbcdn.net https://*.cdninstagram.com",
               // frame-src: permite el popup/iframe del login de Facebook e iframe interno
               "frame-src 'self' https://www.facebook.com https://staticxx.facebook.com https://web.facebook.com",

@@ -18,14 +18,14 @@ export const useClipboardStore = create<ClipboardState>((set, get) => ({
   items: (() => {
     if (typeof window === "undefined") return [];
     try {
-      const stored = sessionStorage.getItem("sodare-clipboard");
+      const stored = sessionStorage.getItem("zefirus-clipboard");
       return stored ? JSON.parse(stored).items || [] : [];
     } catch { return []; }
   })(),
   timestamp: (() => {
     if (typeof window === "undefined") return null;
     try {
-      const stored = sessionStorage.getItem("sodare-clipboard");
+      const stored = sessionStorage.getItem("zefirus-clipboard");
       return stored ? JSON.parse(stored).timestamp || null : null;
     } catch { return null; }
   })(),
@@ -34,7 +34,7 @@ export const useClipboardStore = create<ClipboardState>((set, get) => ({
     const timestamp = Date.now();
     set({ items, timestamp });
     try {
-      sessionStorage.setItem("sodare-clipboard", JSON.stringify({ items, timestamp }));
+      sessionStorage.setItem("zefirus-clipboard", JSON.stringify({ items, timestamp }));
     } catch {}
   },
 
@@ -46,7 +46,7 @@ export const useClipboardStore = create<ClipboardState>((set, get) => ({
   clear: () => {
     set({ items: [], timestamp: null });
     try {
-      sessionStorage.removeItem("sodare-clipboard");
+      sessionStorage.removeItem("zefirus-clipboard");
     } catch {}
   },
 }));

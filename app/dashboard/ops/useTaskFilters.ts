@@ -11,7 +11,7 @@ export function useTaskFilters() {
 
   useEffect(() => {
     try {
-      const r = localStorage.getItem("sodare:ops-prefs");
+      const r = localStorage.getItem("zefirus:ops-prefs");
       if (r) {
         const p = JSON.parse(r);
         if (p.groupBy) setGroupBy(p.groupBy);
@@ -26,7 +26,7 @@ export function useTaskFilters() {
 
   useEffect(() => {
     try {
-      localStorage.setItem("sodare:ops-prefs", JSON.stringify({ groupBy, viewMode, fAssignee, fPriority, fTag, fArea }));
+      localStorage.setItem("zefirus:ops-prefs", JSON.stringify({ groupBy, viewMode, fAssignee, fPriority, fTag, fArea }));
     } catch { /* ignore */ }
   }, [groupBy, viewMode, fAssignee, fPriority, fTag, fArea]);
 

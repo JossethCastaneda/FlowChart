@@ -2,7 +2,7 @@
  * app/api/whatsapp/send/route.ts
  *
  * POST — Envía un mensaje de WhatsApp desde el Inbox o desde cualquier
- * componente de Sodare hacia un número externo.
+ * componente de Zefirus hacia un número externo.
  *
  * Body (JSON):
  *   type: "text" | "template"

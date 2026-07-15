@@ -1,6 +1,6 @@
 "use client";
 /**
- * Módulo AGENTES — nodo principal de la capa de IA de Sodare.
+ * Módulo AGENTES — nodo principal de la capa de IA de Zefirus.
  *
  * Catálogo ejecutivo comparable: UNA card por modelo (sin desplegables),
  * organizado por proveedor en filas deslizables horizontalmente. Cada card
@@ -170,7 +170,7 @@ export default function AgentesPage() {
     <div className="p-4 sm:p-6 flex flex-col gap-6">
       <PageHeader
         title="Agentes"
-        description="El núcleo de IA de Sodare. Activa un modelo y la inteligencia entra en juego en todos los módulos de la plataforma."
+        description="El núcleo de IA de Zefirus. Activa un modelo y la inteligencia entra en juego en todos los módulos de la plataforma."
       />
 
       {/* SECCIÓN: ORQUESTADOR */}
@@ -484,7 +484,7 @@ export default function AgentesPage() {
         </p>
         <p style={{ fontSize: 13, lineHeight: 1.6, color: "var(--text-secondary)", margin: 0, maxWidth: 720 }}>
           El modelo contratado se convierte en la inteligencia de todo el sistema: entra en juego en todos y
-          cada uno de los módulos y submódulos de Sodare — conversación, análisis, generación de contenido y
+          cada uno de los módulos y submódulos de Zefirus — conversación, análisis, generación de contenido y
           agentes automáticos — sin configuraciones adicionales. Cambiar de modelo aplica al instante en toda
           la plataforma.
         </p>

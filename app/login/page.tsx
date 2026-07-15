@@ -1,9 +1,9 @@
 "use client";
 
 /**
- * SODARE · Login Page — Línea gráfica nativa
+ * ZEFIRUS · Login Page — Línea gráfica nativa
  *
- * Usa 100% los design tokens del sistema Sodare:
+ * Usa 100% los design tokens del sistema Zefirus:
  *  • Background: --background (#04070e) + dashboard-bg radial gradients
  *  • Superficies: --surface glass-panel con borde var(--border) cyan
  *  • Color primario: --c-brand / --cyan (#5b9bff)
@@ -118,8 +118,8 @@ export default function LoginPage() {
         window.history.replaceState({}, "", "/login");
       }
       try {
-        const le = window.localStorage.getItem("sodare:lastEmail");
-        const ln = window.localStorage.getItem("sodare:lastName");
+        const le = window.localStorage.getItem("zefirus:lastEmail");
+        const ln = window.localStorage.getItem("zefirus:lastName");
         if (le) { setSavedEmail(le); setEmail(le); }
         if (ln) setSavedName(ln);
       } catch { /* noop */ }
@@ -166,8 +166,8 @@ export default function LoginPage() {
 
   function rememberAndGo() {
     try {
-      window.localStorage.setItem("sodare:lastEmail", email);
-      if (name) window.localStorage.setItem("sodare:lastName", name);
+      window.localStorage.setItem("zefirus:lastEmail", email);
+      if (name) window.localStorage.setItem("zefirus:lastName", name);
     } catch { /* noop */ }
     setSuccess(true);
     setTimeout(() => { window.location.href = getSafeCallbackUrl(); }, 800);
@@ -292,7 +292,7 @@ export default function LoginPage() {
       {/* ── Scoped styles ── */}
       <style>{`
         /* ──────────────────────────────────────────────────
-           LOGIN PAGE — Sodare brand design system
+           LOGIN PAGE — Zefirus brand design system
            Tokens: var(--background), var(--surface), var(--border),
                    var(--c-brand), var(--cyan), var(--cyan-dim),
                    var(--foreground), var(--text-secondary), var(--text-muted)
@@ -307,7 +307,7 @@ export default function LoginPage() {
           justify-content: center;
           overflow: hidden;
           padding: 24px;
-          /* Sodare native dark background */
+          /* Zefirus native dark background */
           background-color: var(--background);
           font-family: var(--font-sans, 'Inter', system-ui, sans-serif);
         }
@@ -373,7 +373,7 @@ export default function LoginPage() {
           opacity: 0;
         }
 
-        /* ── Main card — uses Sodare glass-panel pattern ── */
+        /* ── Main card — uses Zefirus glass-panel pattern ── */
         .login-card {
           position: relative;
           z-index: 10;
@@ -732,7 +732,7 @@ export default function LoginPage() {
         }
       `}</style>
 
-      {/* ── Galaxy starfield (native Sodare component) ── */}
+      {/* ── Galaxy starfield (native Zefirus component) ── */}
       <GalaxyBackground />
 
       {/* ── Background radial glow (dashboard-bg pattern) ── */}
@@ -783,7 +783,7 @@ export default function LoginPage() {
         <div className="login-card-inner">
 
           {/* System label */}
-          <div className="login-system-label">· SODARE COMMAND BRIDGE ·</div>
+          <div className="login-system-label">· ZEFIRUS COMMAND BRIDGE ·</div>
 
           {/* Logo */}
           <div style={{ textAlign: "center", marginBottom: 28 }}>

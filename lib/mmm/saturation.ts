@@ -1,5 +1,5 @@
 ﻿/**
- * SODARE · MMM — Saturation (Diminishing Returns)
+ * ZEFIRUS · MMM — Saturation (Diminishing Returns)
  *
  * La saturación modela el hecho de que cada dólar adicional en un canal
  * produce rendimientos decrecientes. Usa la función Hill (S-curve):
