@@ -42,13 +42,13 @@ export async function GET(_req: NextRequest) {
     res.cookies.set(name, "", { 
       maxAge: 0, 
       path: "/",
-      domain: ".sodare.xyz",
+      domain: ".zefirus.xyz",
       expires: new Date(0),
     });
     res.cookies.set(name, "", { 
       maxAge: 0, 
       path: "/",
-      domain: "sodare.xyz",
+      domain: "zefirus.xyz",
       expires: new Date(0),
     });
   }

@@ -324,7 +324,7 @@ const productionCookies: NextAuthOptions["cookies"] =
             sameSite: "lax" as const,
             path: "/",
             secure: true,
-            domain: ".sodare.xyz",
+            domain: ".zefirus.xyz",
           },
         },
         callbackUrl: {
@@ -333,7 +333,7 @@ const productionCookies: NextAuthOptions["cookies"] =
             sameSite: "lax" as const,
             path: "/",
             secure: true,
-            domain: ".sodare.xyz",
+            domain: ".zefirus.xyz",
           },
         },
         csrfToken: {
@@ -343,7 +343,7 @@ const productionCookies: NextAuthOptions["cookies"] =
             sameSite: "lax" as const,
             path: "/",
             secure: true,
-            domain: ".sodare.xyz",
+            domain: ".zefirus.xyz",
           },
         },
       }
