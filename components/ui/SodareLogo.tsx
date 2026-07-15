@@ -168,9 +168,9 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
             )}
           </g>
 
-          {/* Central "S" glyph — angular Star Wars style */}
+          {/* Central "Z" glyph — angular Star Wars style */}
           <path
-            d="M 24 20 L 40 20 L 40 24 L 28 24 L 28 29 L 40 29 L 40 44 L 24 44 L 24 40 L 36 40 L 36 33 L 24 33 Z"
+            d="M 24 20 L 40 20 L 40 24 L 29 40 L 40 40 L 40 44 L 24 44 L 24 40 L 35 24 L 24 24 Z"
             fill={`url(#${uid}-s-glow)`}
             filter={`url(#${uid}-shadow)`}
           />
@@ -205,7 +205,7 @@ export function SodareLogo({ size = "md", showText = true, className, style, ani
             lineHeight: 1,
           }}
         >
-          SODARE
+          ZEFIRUS
         </span>
       )}
     </div>
@@ -242,7 +242,7 @@ export function SodareIcon({ size = 24 }: { size?: number }) {
         filter="url(#si-shadow)"
       />
       <path
-        d="M 24 20 L 40 20 L 40 24 L 28 24 L 28 29 L 40 29 L 40 44 L 24 44 L 24 40 L 36 40 L 36 33 L 24 33 Z"
+        d="M 24 20 L 40 20 L 40 24 L 29 40 L 40 40 L 40 44 L 24 44 L 24 40 L 35 24 L 24 24 Z"
         fill="url(#si-glow)"
       />
     </svg>
