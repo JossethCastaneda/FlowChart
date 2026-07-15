@@ -17,7 +17,7 @@
  */
 
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { SodareLogo } from "@/components/ui/SodareLogo";
+import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { useLanguage } from "@/components/layout/LanguageContext";
 
@@ -296,7 +296,7 @@ export default function LoginPage() {
            Tokens: var(--background), var(--surface), var(--border),
                    var(--c-brand), var(--cyan), var(--cyan-dim),
                    var(--foreground), var(--text-secondary), var(--text-muted)
-           Fonts:  Inter (body), Orbitron (logo via SodareLogo)
+           Fonts:  Inter (body), Orbitron (logo via ZefirusLogo)
         ────────────────────────────────────────────────── */
 
         .login-page-root {
@@ -788,7 +788,7 @@ export default function LoginPage() {
           {/* Logo */}
           <div style={{ textAlign: "center", marginBottom: 28 }}>
             <a href="/" style={{ display: "inline-flex" }}>
-              <SodareLogo size="lg" />
+              <ZefirusLogo size="lg" />
             </a>
           </div>
 

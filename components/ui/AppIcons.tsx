@@ -294,10 +294,10 @@ export const CariAIIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) 
   </svg>
 );
 
-// ─── Sodare Brand Logo ────────────────────────────────────────────────────────
-export const SodareIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) => (
+// ─── Zefirus Brand Logo ────────────────────────────────────────────────────────
+export const ZefirusIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) => (
   <svg
-    viewBox="0 0 40 40"
+    viewBox="0 0 64 64"
     width={size}
     height={size}
     xmlns="http://www.w3.org/2000/svg"
@@ -305,12 +305,13 @@ export const SodareIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) 
     {...props}
   >
     <defs>
-      <linearGradient id="sodareGradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#5b9bff" />
-        <stop offset="100%" stopColor="#3b82f6" />
+      <linearGradient id="zefirusGradIcon" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#0ea5e9" />
+        <stop offset="100%" stopColor="#2563eb" />
       </linearGradient>
     </defs>
-    <path fill="url(#sodareGradIcon)" d="M20 2C10.06 2 2 10.06 2 20s8.06 18 18 18s18-8.06 18-18S29.94 2 20 2zm6.2 24.3c-2.4 2.4-5.6 3.7-9 3.7c-3.1 0-5.8-1.1-7.8-2.9c.9-.9 1.8-1.8 2.7-2.7c1.3.9 3.1 1.6 5.1 1.6c4.5 0 8.1-3.6 8.1-8.1s-3.6-8.1-8.1-8.1c-2.4 0-4.6 1.1-6.1 2.8c.8.9 1.6 1.7 2.4 2.5c.9-1 2.2-1.7 3.7-1.7c2.5 0 4.5 2 4.5 4.5s-2 4.5-4.5 4.5c-.8 0-1.5-.2-2.1-.6L9 21.8C9.6 26.4 14.4 30 20 30c5.6 0 10.4-3.6 11-8.2l-4.8 2.5z"/>
+    <rect x="6" y="6" width="52" height="52" rx="14" fill="rgba(2,6,23,0.9)" stroke="url(#zefirusGradIcon)" strokeWidth="2" />
+    <path d="M 24 20 L 40 20 L 40 24 L 29 40 L 40 40 L 40 44 L 24 44 L 24 40 L 35 24 L 24 24 Z" fill="url(#zefirusGradIcon)" />
   </svg>
 );
 
@@ -338,7 +339,7 @@ export const APP_ICONS: Record<string, React.FC<IconProps>> = {
   botmaker: BotmakerIcon,
   cari: CariAIIcon,
   cari_ai: CariAIIcon,
-  sodare: SodareIcon,
+  zefirus: ZefirusIcon,
 };
 
 // ─── Helper to get platform icon component dynamically ────────────────────────

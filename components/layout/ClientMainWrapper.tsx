@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
-import { SodareLogo } from "@/components/ui/SodareLogo";
+import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { WhatsAppPhonePrompt } from "@/components/ui/WhatsAppPhonePrompt";
@@ -562,7 +562,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
         {/* Logo */}
         <div className="flex items-center justify-between px-5 py-5" style={{ borderBottom: "1px solid var(--hairline)" }}>
           <Link href="/dashboard/resumen" className="flex items-center gap-3" aria-label="Inicio">
-            <SodareLogo size="sm" showText={true} />
+            <ZefirusLogo size="sm" showText={true} />
           </Link>
           {/* Pin toggle — inside sidebar, no hamburger needed */}
           <button
@@ -678,7 +678,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             >
               <Menu className="w-5 h-5" />
             </button>
-            <SodareLogo size="sm" />
+            <ZefirusLogo size="sm" />
           </div>
           <div className="flex items-center gap-2">
             <NotificationBell />

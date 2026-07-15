@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import { Loader2, ArrowRight, Building2, User, Briefcase, Plus, X } from "lucide-react";
-import { SodareLogo } from "@/components/ui/SodareLogo";
+import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 import { Orbi } from "@/components/ui/Orbi";
 
 export default function OnboardingPage() {
@@ -156,7 +156,7 @@ function OnboardingContent() {
         </div>
 
         <div style={{ marginBottom: "32px" }}>
-          <SodareLogo size="md" />
+          <ZefirusLogo size="md" />
         </div>
 
         {/* STEP 1: WORKSPACE NAME */}

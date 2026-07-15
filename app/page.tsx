@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ReactLenis } from "lenis/react";
-import { SodareLogo } from "@/components/ui/SodareLogo";
+import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 import { Orbi } from "@/components/ui/Orbi";
 import {
   ArrowRight,
@@ -311,7 +311,7 @@ export default function Home() {
       }}>
         <div style={{ padding: "12px 24px", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <Link href="/" style={{ textDecoration: "none", display: "flex", alignItems: "center", gap: 12 }}>
-            <SodareLogo size="sm" animated={false} showText={false} />
+            <ZefirusLogo size="sm" animated={false} showText={false} />
             <span style={{ fontSize: 20, fontWeight: 700, color: "var(--foreground)", letterSpacing: "-0.04em" }}>Sodare</span>
           </Link>
           <nav className="col-nav-links" style={{ display: "flex", alignItems: "center", gap: 40 }}>
@@ -804,7 +804,7 @@ export default function Home() {
         <div style={{ maxWidth: 1200, margin: "0 auto", padding: "64px 24px 40px" }}>
           <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 48, flexWrap: "wrap" }}>
             <div style={{ maxWidth: 300 }}>
-              <SodareLogo size="sm" animated={false} />
+              <ZefirusLogo size="sm" animated={false} />
               <p style={{ fontSize: 14, color: "var(--text-muted)", marginTop: 16, lineHeight: 1.6 }}>
                 Plataforma de inteligencia multicanal para agencias y anunciantes en México y LATAM.
               </p>

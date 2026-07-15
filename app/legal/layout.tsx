@@ -1,6 +1,6 @@
 import React from "react";
 import Link from "next/link";
-import { SodareLogo } from "@/components/ui/SodareLogo";
+import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 
 export const metadata = {
   title: "Términos de Servicio — Sodare",
@@ -36,7 +36,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
           height: 60,
         }}>
           <Link href="/" style={{ textDecoration: "none" }}>
-            <SodareLogo />
+            <ZefirusLogo />
           </Link>
           <nav style={{ display: "flex", gap: 24, alignItems: "center" }}>
             <Link href="/legal/terms" style={{ fontSize: 13, color: "var(--text-muted)", textDecoration: "none" }}>

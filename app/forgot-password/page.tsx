@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { SodareLogo } from "@/components/ui/SodareLogo";
+import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -179,7 +179,7 @@ export default function ForgotPasswordPage() {
     <div style={containerStyle}>
       <div style={cardStyle}>
         <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px" }}>
-          <SodareLogo size="lg" />
+          <ZefirusLogo size="lg" />
         </div>
         <p style={{
           color: "var(--text-secondary)",
