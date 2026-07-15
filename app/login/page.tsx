@@ -199,9 +199,46 @@ export default function LoginPage() {
     }
   }
 
-  function handleFacebookLogin() {
-    if (!hasFacebookProvider) { setCredError("Facebook Login no está configurado en este entorno."); return; }
-    popupLogin("facebook");
+  async function handleFacebookLogin() {
+    const w = window as any;
+    if (!w.FB) {
+      setCredError("El SDK de Facebook no está disponible. Recarga la página e inténtalo de nuevo.");
+      return;
+    }
+    setIsLoading(true);
+    setCredError("");
+    w.FB.login((response: any) => {
+      if (response.status === "connected" && response.authResponse?.accessToken) {
+        (async () => {
+          try {
+            const { signIn } = await import("next-auth/react");
+            const result = await signIn("facebook-sdk", {
+              accessToken: response.authResponse.accessToken,
+              redirect: false,
+            });
+            if (result?.error) {
+              setIsLoading(false);
+              setCredError(
+                result.error === "MetaRateLimit"
+                  ? "Facebook tiene demasiadas solicitudes activas. Espera un momento e inténtalo de nuevo."
+                  : "No se pudo iniciar sesión con Facebook. Inténtalo de nuevo."
+              );
+            } else {
+              rememberAndGo();
+            }
+          } catch {
+            setIsLoading(false);
+            setCredError("Ocurrió un error inesperado al iniciar sesión con Facebook.");
+          }
+        })();
+      } else {
+        setIsLoading(false);
+        // Solo mostrar error si el usuario no cerró el popup voluntariamente
+        if (response.status !== "unknown" && response.status !== "not_authorized") {
+          setCredError("Inicio de sesión con Facebook cancelado.");
+        }
+      }
+    }, { scope: "public_profile,email" });
   }
   function handleGoogleLogin() {
     if (!hasGoogleProvider) { setCredError("Google Login no está configurado en este entorno."); return; }

@@ -43,7 +43,7 @@ export const POST = withAuth(async (req, ctx) => {
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 365, // 1 year
     path: "/",
-    domain: process.env.NODE_ENV === "production" ? ".sodare.xyz" : undefined,
+    domain: process.env.NODE_ENV === "production" ? ".zefirus.xyz" : undefined,
   });
 
   logger.info("Active workspace switched", { workspaceId, userId: ctx.userId });
