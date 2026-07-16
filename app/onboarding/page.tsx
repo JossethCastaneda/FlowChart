@@ -55,9 +55,8 @@ function OnboardingContent() {
       .then((r) => r.json())
       .then(async (data) => {
         if (data.data && data.data.length > 0) {
-          await update();
-          router.push("/dashboard/resumen");
-          router.refresh();
+          await update({ hasWorkspace: true });
+          window.location.href = "/dashboard/resumen";
         } else {
           setChecking(false);
         }

@@ -500,7 +500,7 @@ export const authOptions: NextAuthOptions = {
       }
     },
 
-    async jwt({ token, account, user, trigger }) {
+    async jwt({ token, account, user, trigger, session }) {
       if (user) {
         // Detect account linking: if token already has a sub (from existing session)
         // and it differs from the incoming OAuth user.id, we are linking!
@@ -588,6 +588,10 @@ export const authOptions: NextAuthOptions = {
         } else {
           console.log("[AUTH] Linking new account to existing session:", token.sub);
         }
+      }
+
+      if (trigger === "update" && session?.hasWorkspace !== undefined) {
+        token.hasWorkspace = session.hasWorkspace;
       }
 
       // Re-check hasWorkspace on login, session update, or when false
