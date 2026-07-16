@@ -5,6 +5,7 @@ export interface Message {
     timestamp: Date;
     status?: "sending" | "sent" | "error";
     errorText?: string;
+    attachments?: any[];
 }
 
 export interface PostComment {

@@ -1,4 +1,4 @@
-﻿import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, UserPlus, Tag, Clock, MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark, CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Plus, Filter, Heart, Share2 } from "lucide-react";
+import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, UserPlus, Tag, Clock, MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark, CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Plus, Filter, Heart, Share2 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message, PostComment, PostData, Conversation, ConnectedPage, Platform, ChannelFilter, QueueFilter } from "./types";
@@ -514,6 +514,8 @@ export function ChatView({
       return () => setBreadcrumbs([]);
     }, [conversation.id, conversation.contactName, onBack, setBreadcrumbs]);
     const [showReplies, setShowReplies] = useState(false);
+    const [showEmojis, setShowEmojis] = useState(false);
+    const EMOJIS = ["😀","😂","😍","🙏","🔥","👍","❤️","🎉","😎","🤔","😭","✨","💯","🙌","👀","👏","😊","🥰","🤌","💔"];
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const pc = getPlatformConfig(conversation.platform);
     useEffect(() => {
@@ -635,12 +637,41 @@ export function ChatView({
                     borderRadius: msg.incoming ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
                     boxShadow: msg.incoming ? "none" : "0 2px 8px rgba(0,106,255,0.3)",
                   }}>
-                    <p style={{
-                      fontSize: 13, color: msg.incoming ? "var(--foreground)" : "white",
-                      margin: 0, lineHeight: 1.5, wordBreak: "break-word",
-                    }}>
-                      {msg.text}
-                    </p>
+                    {msg.text && (
+                      <p style={{
+                        fontSize: 13, color: msg.incoming ? "var(--foreground)" : "white",
+                        margin: 0, lineHeight: 1.5, wordBreak: "break-word",
+                      }}>
+                        {msg.text}
+                      </p>
+                    )}
+                    {msg.attachments && msg.attachments.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: msg.text && msg.text !== "📎 Adjunto" ? 8 : 0 }}>
+                        {msg.attachments.map((att: any, i: number) => {
+                          if (att.type === "image" || att.type === "sticker" || att.payload?.url) {
+                            return (
+                              <img 
+                                key={i} 
+                                src={att.payload?.url || att.url} 
+                                alt="Adjunto" 
+                                style={{ maxWidth: "100%", borderRadius: 8, maxHeight: 250, objectFit: "contain" }}
+                              />
+                            );
+                          }
+                          return (
+                            <a 
+                              key={i} 
+                              href={att.payload?.url || att.url} 
+                              target="_blank" 
+                              rel="noreferrer"
+                              style={{ color: msg.incoming ? "var(--cyan)" : "white", textDecoration: "underline", fontSize: 13 }}
+                            >
+                              Archivo adjunto
+                            </a>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                   {/* Message Status */}
                   {!msg.incoming && msg.status && (
@@ -735,6 +766,54 @@ export function ChatView({
         </div>
       )}
 
+      {/* --- Emojis --- */}
+      {showEmojis && (
+        <div style={{
+          borderTop: "1px solid var(--hairline)",
+          padding: "8px 16px",
+          background: "var(--hairline)",
+          flexShrink: 0,
+        }}>
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            marginBottom: 6,
+          }}>
+            <span style={{ fontSize: 10, color: "var(--text-secondary)", fontWeight: 600 }}>
+              Emojis
+            </span>
+            <button
+              onClick={() => setShowEmojis(false)}
+              style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}
+            >
+              <X style={{ width: 12, height: 12, color: "var(--text-muted)" }} />
+            </button>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {EMOJIS.map((emoji, i) => (
+              <button
+                key={i}
+                onClick={() => { setInput(input + emoji); }}
+                style={{
+                  padding: "5px", fontSize: 20,
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  transition: "transform 0.15s",
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = "scale(1.2)";
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = "scale(1)";
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* --- Input Bar (always visible at bottom) --- */}
       <div style={{
         padding: "10px 16px",
@@ -747,9 +826,9 @@ export function ChatView({
           <div style={{ display: "flex", gap: 2, flexShrink: 0 }}>
             {[
               { icon: Bookmark, action: () => setShowReplies(!showReplies), active: showReplies },
-              { icon: Paperclip, action: () => {}, active: false },
-              { icon: Image, action: () => {}, active: false },
-              { icon: Smile, action: () => {}, active: false },
+              { icon: Paperclip, action: () => alert("Para adjuntar archivos, primero configura Vercel Blob en las variables de entorno."), active: false },
+              { icon: Image, action: () => alert("Para enviar imágenes, primero configura Vercel Blob en las variables de entorno."), active: false },
+              { icon: Smile, action: () => setShowEmojis(!showEmojis), active: showEmojis },
             ].map((btn, i) => (
               <button
                 key={i}

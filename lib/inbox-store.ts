@@ -125,6 +125,7 @@ export interface InboundMessageInput {
   sender?: "user" | "page";
   /** Override for conversation ID (e.g. post ID for comments). Defaults to contactId */
   conversationExternalId?: string;
+  attachments?: any[];
 }
 
 /**
@@ -185,6 +186,7 @@ export async function persistInboundMessage(m: InboundMessageInput): Promise<str
         content: m.text || "",
         sender: isUser ? "user" : "page",
         senderName: m.contactName ?? m.contactId,
+        attachments: m.attachments ? m.attachments : undefined,
         createdAt: when,
       },
     });

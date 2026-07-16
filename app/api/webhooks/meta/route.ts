@@ -94,6 +94,7 @@ async function persistMetaDm(
       contactAvatar,
       mid: msg.message.mid ?? null,
       text: msg.message.text || (msg.message.attachments?.length ? "📎 Adjunto" : ""),
+      attachments: msg.message.attachments,
       timestampMs: typeof msg.timestamp === "string" ? Number(msg.timestamp) : (msg.timestamp ?? Date.now()),
       sender: isEcho ? "page" : "user",
     });

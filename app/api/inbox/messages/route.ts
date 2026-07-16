@@ -118,6 +118,23 @@ export async function GET(request: NextRequest) {
   // Marcar como leído al abrir.
   if (conv.unread) {
     await prisma.inboxConversation.update({ where: { id: conv.id }, data: { unread: false } }).catch(() => {});
+    if (conv.platform === "facebook_messenger" || conv.platform === "instagram_dm") {
+      try {
+        const isIg = conv.platform === "instagram_dm";
+        const token = await getMetaAccessToken(request, isIg ? "ig_inbox" : "inbox");
+        if (token && conv.pageId) {
+          const tokens = await getPageTokens(token);
+          const pageToken = tokens[conv.pageId] || token;
+          await metaFetch(
+            metaUrl(`${conv.pageId}/messages`),
+            pageToken,
+            { method: "POST", body: JSON.stringify({ recipient: { id: conv.externalId }, sender_action: "mark_seen" }) }
+          );
+        }
+      } catch (err) {
+        logger.warn("[INBOX] Failed to send mark_seen", { err });
+      }
+    }
   }
 
   return NextResponse.json({
@@ -128,6 +145,7 @@ export async function GET(request: NextRequest) {
       timestamp: m.createdAt,
       senderName: m.senderName || (m.sender === "user" ? conv.contactName || "Usuario" : "page"),
       senderId: m.senderName,
+      attachments: m.attachments ? (m.attachments as any[]) : undefined,
     })),
   });
 }
