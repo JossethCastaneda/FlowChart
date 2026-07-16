@@ -105,11 +105,11 @@ export async function POST(req: NextRequest) {
     // ── HMAC-SHA256 Signature Validation (Meta Security Requirement) ──────
     const rawBody = await req.text();
     const signature = req.headers.get("x-hub-signature-256");
-    const appSecret = env.FACEBOOK_CLIENT_SECRET;
+    const appSecret = env.META_APP_SECRET;
 
     // Reject if app secret is not configured
     if (!appSecret) {
-      logger.error("[WEBHOOK] FACEBOOK_CLIENT_SECRET not set");
+      logger.error("[WEBHOOK] META_APP_SECRET not set");
       return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
     }
 

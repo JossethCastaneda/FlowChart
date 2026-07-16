@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
     const signedRequest = body?.get("signed_request") as string | null;
 
     let metaUserId = "unknown";
-    const appSecret = env.FACEBOOK_CLIENT_SECRET;
+    const appSecret = env.META_APP_SECRET;
 
     if (signedRequest && appSecret) {
       const decoded = verifySignedRequest(signedRequest, appSecret);
@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Invalid signed_request" }, { status: 403 });
       }
     } else if (!appSecret) {
-      logger.error("[Meta Data Deletion] ⚠️ FACEBOOK_CLIENT_SECRET not set, cannot verify signed_request");
+      logger.error("[Meta Data Deletion] ⚠️ META_APP_SECRET not set, cannot verify signed_request");
       // Still persist with unknown user — we can't verify but Meta expects a response
     }
 

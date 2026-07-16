@@ -251,10 +251,10 @@ async function exchangeCodeForToken(
   const rawSecret = process.env.WHATSAPP_APP_SECRET;
   const appSecret = (rawSecret && rawSecret !== "PENDIENTE_OBTENER_DE_META_APP_SETTINGS")
     ? rawSecret
-    : process.env.FACEBOOK_CLIENT_SECRET;
+    : process.env.META_APP_SECRET;
 
   if (!appId || !appSecret) {
-    logger.error("exchangeCodeForToken: faltan NEXT_PUBLIC_META_APP_ID o el App Secret (WHATSAPP_APP_SECRET/FACEBOOK_CLIENT_SECRET)");
+    logger.error("exchangeCodeForToken: faltan NEXT_PUBLIC_META_APP_ID o el App Secret (WHATSAPP_APP_SECRET/META_APP_SECRET)");
     return null;
   }
 

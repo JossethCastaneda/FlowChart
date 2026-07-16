@@ -90,8 +90,8 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${baseUrl}/connect/done?error=invalid_state`);
   }
 
-  const clientId = env.FACEBOOK_CLIENT_ID || "";
-  const clientSecret = env.FACEBOOK_CLIENT_SECRET || "";
+  const clientId = env.META_APP_ID || "";
+  const clientSecret = env.META_APP_SECRET || "";
   const redirectUri = `${baseUrl}/api/connect/callback`;
 
   try {

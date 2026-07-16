@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.formData().catch(() => null);
     const signedRequest = body?.get("signed_request") as string | null;
-    const appSecret = env.FACEBOOK_CLIENT_SECRET;
+    const appSecret = env.META_APP_SECRET;
 
     if (signedRequest && appSecret) {
       const decoded = verifySignedRequest(signedRequest, appSecret);
@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
         logger.warn("Meta deauthorize: signed_request HMAC verification failed");
       }
     } else if (signedRequest) {
-      logger.error("Meta deauthorize: FACEBOOK_CLIENT_SECRET not set, cannot verify signed_request");
+      logger.error("Meta deauthorize: META_APP_SECRET not set, cannot verify signed_request");
     }
 
     // Meta expects a 200 OK response

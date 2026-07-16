@@ -32,8 +32,8 @@ export const GET = withWorkspace(async (_req: NextRequest, ctx) => {
   // api/connect/[module], el callback y el webhook. METAAPI_VERSION tiene
   // default en env.ts, por eso siempre estará presente.
   result.meta = {
-    appId: flag(env.FACEBOOK_CLIENT_ID),
-    appSecret: flag(env.FACEBOOK_CLIENT_SECRET),
+    appId: flag(env.META_APP_ID),
+    appSecret: flag(env.META_APP_SECRET),
     apiVersion: flag(env.META_API_VERSION),
     webhookVerifyToken: flag(env.META_WEBHOOK_VERIFY_TOKEN),
   };

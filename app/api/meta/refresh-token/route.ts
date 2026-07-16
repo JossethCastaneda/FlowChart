@@ -26,8 +26,8 @@ async function exchangeToken(currentToken: string): Promise<
 > {
   const exchangeUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
   exchangeUrl.searchParams.set("grant_type", "fb_exchange_token");
-  exchangeUrl.searchParams.set("client_id", env.FACEBOOK_CLIENT_ID || "");
-  exchangeUrl.searchParams.set("client_secret", env.FACEBOOK_CLIENT_SECRET || "");
+  exchangeUrl.searchParams.set("client_id", env.META_APP_ID || "");
+  exchangeUrl.searchParams.set("client_secret", env.META_APP_SECRET || "");
   exchangeUrl.searchParams.set("fb_exchange_token", currentToken);
 
   const res = await fetch(exchangeUrl.toString());

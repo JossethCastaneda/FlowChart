@@ -61,9 +61,9 @@ export async function GET(
     );
   }
 
-  const metaAppId = env.FACEBOOK_CLIENT_ID;
+  const metaAppId = env.META_APP_ID;
   if (!metaAppId) {
-    return NextResponse.json({ error: "FACEBOOK_CLIENT_ID not configured" }, { status: 500 });
+    return NextResponse.json({ error: "META_APP_ID not configured" }, { status: 500 });
   }
 
   const configId = env[config.envKey];

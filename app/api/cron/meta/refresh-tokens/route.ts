@@ -22,11 +22,11 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const clientId = env.FACEBOOK_CLIENT_ID;
-  const clientSecret = env.FACEBOOK_CLIENT_SECRET;
+  const clientId = env.META_APP_ID;
+  const clientSecret = env.META_APP_SECRET;
 
   if (!clientId || !clientSecret) {
-    logger.error("[CRON META REFRESH] Missing FACEBOOK_CLIENT_ID or SECRET");
+    logger.error("[CRON META REFRESH] Missing META_APP_ID or SECRET");
     return NextResponse.json({ error: "Server misconfiguration" }, { status: 500 });
   }
 
