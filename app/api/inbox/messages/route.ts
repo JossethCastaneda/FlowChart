@@ -43,14 +43,14 @@ async function backfillThread(
 
   const url = metaUrl(`${conv.pageId}/conversations`, {
     user_id: conv.externalId,
-    fields: "messages.limit(50){id,message,from,created_time}",
+    fields: "messages.limit(50){id,message,from,created_time,attachments,shares}",
     ...(isIg ? { platform: "instagram" } : {}),
   });
   const res = await metaFetch(url, pageToken, { cache: "no-store" });
   if (!res.ok) return 0;
   const data = await res.json();
   const thread = data?.data?.[0];
-  const msgs: Array<{ id: string; message?: string; from?: { id: string }; created_time?: string }> =
+  const msgs: Array<{ id: string; message?: string; from?: { id: string }; created_time?: string; attachments?: any; shares?: any }> =
     thread?.messages?.data ?? [];
   if (msgs.length === 0) return 0;
 
@@ -68,9 +68,10 @@ async function backfillThread(
       data: {
         conversationId: conv.id,
         externalId: m.id,
-        content: m.message || "",
+        content: m.message || (m.attachments?.data?.length || m.shares?.data?.length ? "📎 Adjunto" : ""),
         sender: m.from?.id === conv.pageId ? "page" : "user",
         senderName: m.from?.id === conv.pageId ? "page" : null,
+        attachments: m.attachments?.data || m.shares?.data || undefined,
         createdAt: new Date(m.created_time || Date.now()),
       },
     });

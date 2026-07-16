@@ -649,20 +649,30 @@ export function ChatView({
                     {msg.attachments && msg.attachments.length > 0 && (
                       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: msg.text && msg.text !== "📎 Adjunto" ? 8 : 0 }}>
                         {msg.attachments.map((att: any, i: number) => {
-                          if (att.type === "image" || att.type === "sticker" || att.payload?.url) {
+                          if (att.type === "image" || att.type === "sticker" || att.payload?.url || att.image_data?.url) {
                             return (
                               <img 
                                 key={i} 
-                                src={att.payload?.url || att.url} 
+                                src={att.payload?.url || att.image_data?.url || att.url} 
                                 alt="Adjunto" 
                                 style={{ maxWidth: "100%", borderRadius: 8, maxHeight: 250, objectFit: "contain" }}
+                              />
+                            );
+                          }
+                          if (att.video_data?.url) {
+                            return (
+                              <video 
+                                key={i}
+                                src={att.video_data.url}
+                                controls
+                                style={{ maxWidth: "100%", borderRadius: 8, maxHeight: 250 }}
                               />
                             );
                           }
                           return (
                             <a 
                               key={i} 
-                              href={att.payload?.url || att.url} 
+                              href={att.payload?.url || att.image_data?.url || att.video_data?.url || att.file_url || att.url} 
                               target="_blank" 
                               rel="noreferrer"
                               style={{ color: msg.incoming ? "var(--cyan)" : "white", textDecoration: "underline", fontSize: 13 }}
