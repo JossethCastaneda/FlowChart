@@ -77,26 +77,40 @@ export async function POST(req: NextRequest) {
     // ── Resolve pageToken server-side from workspace Integration ──
     // NEVER trust the pageToken from the client. Always fetch from DB.
     // This eliminates the IDOR vector described in Audit #6.
+    //
+    // Priority: meta_community (has pages_messaging scope required by Send API),
+    // then meta (generic fallback). Other modules (ads, analytics) lack the
+    // pages_messaging permission and would fail at the Graph API level.
     let pageToken: string | null = null;
 
-    // Look for a page token stored in the community integration for this workspace
-    const integration = await prisma.integration.findFirst({
-      where: {
-        workspaceId,
-        provider: { startsWith: "meta" },
-        connected: true,
-      },
-    });
-
-    if (integration?.credentials) {
+    const PROVIDERS_PRIORITY = ["meta_community", "meta"] as const;
+    for (const prov of PROVIDERS_PRIORITY) {
+      if (pageToken) break;
+      const integration = await prisma.integration.findFirst({
+        where: { workspaceId, provider: prov, connected: true },
+      });
+      if (!integration?.credentials) continue;
       const creds = integration.credentials as Record<string, unknown>;
-      const rawToken =
-        (creds.pageTokens as Record<string, string> | undefined)?.[pageId] ||
-        (creds.accessToken as string | undefined);
 
-      if (rawToken) {
+      // 1. Page-specific token from pages[] array (connect callback format:
+      //    credentials.pages = [{ id, name, accessToken (encrypted), ... }])
+      const pages = creds.pages as Array<{ id: string; accessToken?: string }> | undefined;
+      const matchedPage = pages?.find((p) => p.id === pageId);
+      if (matchedPage?.accessToken) {
         try {
-          pageToken = decryptToken(rawToken);
+          pageToken = decryptToken(matchedPage.accessToken);
+        } catch {
+          pageToken = null;
+        }
+        if (pageToken) break;
+      }
+
+      // 2. Fallback: user access token (works for Send API with long-lived tokens
+      //    that have pages_messaging + the page is managed by the user)
+      const userToken = creds.accessToken as string | undefined;
+      if (userToken) {
+        try {
+          pageToken = decryptToken(userToken);
         } catch {
           pageToken = null;
         }
