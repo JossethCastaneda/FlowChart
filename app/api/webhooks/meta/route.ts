@@ -232,6 +232,26 @@ async function processWebhookEvents(body: any, object: string) {
             });
           }
 
+          // Message Reactions
+          if (msg.reaction) {
+            const actionText = msg.reaction.action === "react" ? `Reaccionó con ${msg.reaction.emoji}` : "Quitó su reacción";
+            await persistMetaDm("facebook_messenger", "page", entryId, {
+              ...msg,
+              message: {
+                mid: `${msg.reaction.mid}_reaction_${Date.now()}`,
+                text: actionText,
+              }
+            });
+            await createAlert({
+              type: "message_reaction",
+              severity: "info",
+              title: "❤️ Reacción en Messenger",
+              message: `Usuario ${msg.sender?.id} ${msg.reaction.action === "react" ? `reaccionó con ${msg.reaction.emoji}` : "quitó su reacción"}`,
+              meta: { pageId: entryId, senderId: msg.sender?.id, reaction: msg.reaction.reaction, emoji: msg.reaction.emoji },
+              channel: "messenger",
+            });
+          }
+
           // Message delivery confirmation
           if (msg.delivery) {
             logger.info(`[WEBHOOK] 📧 Delivery: ${msg.delivery.mids?.length || 0} msgs delivered to ${msg.sender?.id}`);
@@ -415,6 +435,26 @@ async function processWebhookEvents(body: any, object: string) {
               title: "💬 Nuevo DM — Instagram",
               message: `DM de ${msg.sender?.id}: "${(msg.message.text || "📎 Adjunto").slice(0, 120)}"`,
               meta: { igAccountId: entryId, senderId: msg.sender?.id, messageId: msg.message.mid, time: msg.timestamp },
+              channel: "instagram",
+            });
+          }
+
+          // IG Reactions
+          if (msg.reaction) {
+            const actionText = msg.reaction.action === "react" ? `Reaccionó con ${msg.reaction.emoji}` : "Quitó su reacción";
+            await persistMetaDm("instagram_dm", "ig_account", entryId, {
+              ...msg,
+              message: {
+                mid: `${msg.reaction.mid}_reaction_${Date.now()}`,
+                text: actionText,
+              }
+            });
+            await createAlert({
+              type: "message_reaction",
+              severity: "info",
+              title: "❤️ Reacción en Instagram",
+              message: `Usuario ${msg.sender?.id} ${msg.reaction.action === "react" ? `reaccionó con ${msg.reaction.emoji}` : "quitó su reacción"}`,
+              meta: { igAccountId: entryId, senderId: msg.sender?.id, reaction: msg.reaction.reaction, emoji: msg.reaction.emoji },
               channel: "instagram",
             });
           }
