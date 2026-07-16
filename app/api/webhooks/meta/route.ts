@@ -243,6 +243,10 @@ async function processWebhookEvents(body: any, object: string) {
                 text: actionText,
               }
             });
+            await prisma.inboxMessage.updateMany({
+              where: { externalId: msg.reaction.mid },
+              data: { reaction: msg.reaction.action === "react" ? msg.reaction.emoji : null },
+            });
             await createAlert({
               type: "message_reaction",
               severity: "info",
@@ -440,7 +444,7 @@ async function processWebhookEvents(body: any, object: string) {
             });
           }
 
-          // IG Reactions
+          // Instagram Message Reactions
           if (msg.reaction) {
             const actionText = msg.reaction.action === "react" ? `Reaccionó con ${msg.reaction.emoji}` : "Quitó su reacción";
             await persistMetaDm("instagram_dm", "ig_account", entryId, {
@@ -449,6 +453,10 @@ async function processWebhookEvents(body: any, object: string) {
                 mid: `${msg.reaction.mid}_reaction_${Date.now()}`,
                 text: actionText,
               }
+            });
+            await prisma.inboxMessage.updateMany({
+              where: { externalId: msg.reaction.mid },
+              data: { reaction: msg.reaction.action === "react" ? msg.reaction.emoji : null },
             });
             await createAlert({
               type: "message_reaction",

@@ -698,6 +698,7 @@ model InboxMessage {
   senderName     String?
   senderAvatar   String?
   attachments    Json?
+  reaction       String?
   createdAt      DateTime @default(now())
 
   conversation InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)

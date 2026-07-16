@@ -629,6 +629,7 @@ export function ChatView({
 
                 <div style={{ maxWidth: "65%" }}>
                   <div style={{
+                    position: "relative",
                     padding: "10px 14px",
                     background: msg.incoming
                       ? "var(--surface-hover)"
@@ -670,6 +671,23 @@ export function ChatView({
                             </a>
                           );
                         })}
+                      </div>
+                    )}
+                    {msg.reaction && (
+                      <div style={{
+                        position: "absolute",
+                        bottom: -10,
+                        right: msg.incoming ? -10 : "auto",
+                        left: !msg.incoming ? -10 : "auto",
+                        background: "var(--background)",
+                        border: "1px solid var(--hairline)",
+                        borderRadius: "50%",
+                        padding: "2px 4px",
+                        fontSize: 12,
+                        boxShadow: "0 2px 4px rgba(0,0,0,0.2)",
+                        zIndex: 10,
+                      }}>
+                        {msg.reaction}
                       </div>
                     )}
                   </div>

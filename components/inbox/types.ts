@@ -6,6 +6,7 @@ export interface Message {
     status?: "sending" | "sent" | "error";
     errorText?: string;
     attachments?: any[];
+    reaction?: string;
 }
 
 export interface PostComment {

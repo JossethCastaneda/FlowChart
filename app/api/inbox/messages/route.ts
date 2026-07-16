@@ -146,6 +146,7 @@ export async function GET(request: NextRequest) {
       senderName: m.senderName || (m.sender === "user" ? conv.contactName || "Usuario" : "page"),
       senderId: m.senderName,
       attachments: m.attachments ? (m.attachments as any[]) : undefined,
+      reaction: m.reaction || undefined,
     })),
   });
 }
