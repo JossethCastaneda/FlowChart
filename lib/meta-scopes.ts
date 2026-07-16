@@ -144,6 +144,7 @@ export const MODULE_SCOPE_MAP: Record<string, {
       "pages_manage_engagement",
       "read_insights",
       "publish_video",
+      "business_management",
     ],
     permissions: [],
     required: ["pages_messaging", "pages_show_list"],
