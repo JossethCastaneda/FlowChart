@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger";
 import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
 import { resolveWorkspaceForMetaAsset, persistInboundMessage, type InboxPlatform } from "@/lib/inbox-store";
 import { env } from "@/lib/env";
+import { parseIntegrationCredentials } from "@/lib/meta-tokens";
 
 /**
  * Persiste un DM entrante de Messenger/IG en el inbox (tiempo real). Resuelve el
@@ -34,11 +35,63 @@ async function persistMetaDm(
       });
       return;
     }
+    let contactName: string | undefined = undefined;
+    let contactAvatar: string | undefined = undefined;
+
+    // Obtener detalles del usuario desde Graph API si es un mensaje entrante
+    if (!isEcho && contactId) {
+      try {
+        const integrations = await prisma.integration.findMany({
+          where: { workspaceId, provider: { startsWith: "meta" } },
+          select: { credentials: true }
+        });
+        
+        let pageToken: string | null = null;
+        for (const integ of integrations) {
+          const parsed = parseIntegrationCredentials(integ.credentials);
+          if (!parsed) continue;
+          
+          const page = parsed.pages.find(p => p.pageId === assetId || p.instagramBusinessAccountId === assetId);
+          if (page?.pageAccessToken) {
+            pageToken = page.pageAccessToken;
+            break;
+          }
+        }
+
+        if (pageToken) {
+          const fields = platform === "instagram_dm" ? "name,profile_pic" : "first_name,last_name,profile_pic";
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout max
+          
+          const res = await fetch(`https://graph.facebook.com/${env.META_API_VERSION}/${contactId}?fields=${fields}&access_token=${pageToken}`, {
+            signal: controller.signal
+          });
+          clearTimeout(timeoutId);
+          
+          if (res.ok) {
+            const data = await res.json();
+            if (platform === "instagram_dm") {
+               contactName = data.name;
+            } else {
+               contactName = [data.first_name, data.last_name].filter(Boolean).join(" ");
+            }
+            contactAvatar = data.profile_pic;
+          } else {
+             logger.warn("[WEBHOOK] Failed to fetch user profile", { status: res.status, contactId });
+          }
+        }
+      } catch (err) {
+        logger.warn("[WEBHOOK] Error fetching user profile (fallback to ID)", { error: err instanceof Error ? err.message : String(err) });
+      }
+    }
+
     await persistInboundMessage({
       workspaceId,
       platform,
       pageId: assetId,
       contactId,
+      contactName,
+      contactAvatar,
       mid: msg.message.mid ?? null,
       text: msg.message.text || (msg.message.attachments?.length ? "📎 Adjunto" : ""),
       timestampMs: typeof msg.timestamp === "string" ? Number(msg.timestamp) : (msg.timestamp ?? Date.now()),
