@@ -47,7 +47,7 @@ export const GET = withWorkspace(async (_req: NextRequest, ctx) => {
     social: flag(env.FACEBOOK_SOCIAL_CONFIG_ID),
     ads: flag(env.FACEBOOK_ADS_CONFIG_ID),
     analytics: flag(env.FACEBOOK_ANALYTICS_CONFIG_ID),
-    community: flag(env.FACEBOOK_COMMUNITY_CONFIG_ID),
+    community: flag(env.MESSENGER_CONFIG_ID),
   };
 
   // Instagram Login directo (api/integrations/instagram/*)

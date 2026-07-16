@@ -31,7 +31,7 @@ const CONFIG_MAP: Record<string, { envKey: keyof typeof env; label: string }> = 
     label: "Analytics Engine",
   },
   community: {
-    envKey: "FACEBOOK_COMMUNITY_CONFIG_ID",
+    envKey: "MESSENGER_CONFIG_ID",
     label: "Community Management",
   },
 };

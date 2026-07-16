@@ -71,7 +71,7 @@ const envSchema = z.object({
   FACEBOOK_SOCIAL_CONFIG_ID: z.string().optional(),
   FACEBOOK_ADS_CONFIG_ID: z.string().optional(),
   FACEBOOK_ANALYTICS_CONFIG_ID: z.string().optional(),
-  FACEBOOK_COMMUNITY_CONFIG_ID: z.string().optional(),
+  MESSENGER_CONFIG_ID: z.string().optional(),
 
   // Instagram directo
   INSTAGRAM_APP_ID: z.string().min(1).optional(),

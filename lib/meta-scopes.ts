@@ -17,7 +17,7 @@
  *           instagram_manage_engagement, instagram_manage_insights,
  *           instagram_manage_contents, instagram_content_publish
  *
- * - community → FACEBOOK_COMMUNITY_CONFIG_ID
+ * - community → MESSENGER_CONFIG_ID
  *   Scopes: pages_messaging + FB page scopes (no IG scopes — separate app)
  *   Added: pages_manage_engagement, pages_read_user_content, read_insights,
  *          publish_video
