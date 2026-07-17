@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse, after } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
@@ -193,14 +193,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    // Process the heavy webhook payload in the background (prevent Meta timeouts)
-    after(async () => {
-      try {
-        await processWebhookEvents(body, object);
-      } catch (err) {
+    // Procesar directamente (sin after()) para garantizar persistencia en Vercel serverless.
+    // after() puede silenciosamente no ejecutarse si la función Lambda se termina antes.
+    // Usamos Promise.race con 15s de timeout: Meta requiere respuesta en <20s y reintenta si
+    // no responde, pero aquí procesamos primero y respondemos tras completar o al timeout.
+    const timeout = new Promise<void>((resolve) => setTimeout(resolve, 15_000));
+    await Promise.race([
+      processWebhookEvents(body, object).catch((err) => {
         logger.error("[WEBHOOK] Background processing error:", err);
-      }
-    });
+      }),
+      timeout,
+    ]);
 
     return NextResponse.json({ received: true });
   } catch (err) {
@@ -208,6 +211,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 }
+
 
 async function processWebhookEvents(body: any, object: string) {
   for (const entry of body.entry) {
