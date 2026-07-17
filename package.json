@@ -12,12 +12,12 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "db:generate": "prisma generate",
+    "db:generate": "prisma generate && node scripts/patch-prisma-types.mjs",
     "db:migrate": "prisma migrate dev",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:reencrypt": "tsx scripts/reencrypt-tokens.ts",
-    "postinstall": "prisma generate"
+    "postinstall": "prisma generate && node scripts/patch-prisma-types.mjs"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
