@@ -2,31 +2,40 @@
 /**
  * patch-prisma-types.mjs
  *
- * Prisma 7 genera los tipos en node_modules/.prisma/client pero el IDE resuelve
- * @prisma/client/index.d.ts (fecha de instalación del paquete npm — desactualizada).
- * Este script parcha los archivos .d.ts de @prisma/client para que re-exporten
- * desde .prisma/client donde viven los tipos generados reales.
+ * Prisma 7 genera los tipos en node_modules/.prisma/client, pero el IDE
+ * resuelve @prisma/client/index.d.ts (el archivo del paquete npm instalado,
+ * que puede estar desactualizado respecto al schema actual).
  *
- * Se ejecuta automáticamente como postinstall + en prisma generate.
+ * Este script copia los archivos .d.ts generados por `prisma generate` de
+ * .prisma/client a @prisma/client para que el IDE siempre tenga los tipos
+ * correctos sin necesidad de reiniciar el servidor TS.
+ *
+ * Se ejecuta automáticamente como postinstall + db:generate.
  */
-import { writeFileSync } from "node:fs";
+import { copyFileSync, existsSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, "..");
-const clientDir = join(root, "node_modules", "@prisma", "client");
+const src = join(root, "node_modules", ".prisma", "client");
+const dest = join(root, "node_modules", "@prisma", "client");
 
-const patches = {
-  "index.d.ts": "export * from '.prisma/client/index'\n",
-  "default.d.ts": "export * from '.prisma/client/index'\n",
-};
+if (!existsSync(src)) {
+  console.warn("[patch-prisma] ⚠️  .prisma/client not found — run 'prisma generate' first");
+  process.exit(0);
+}
 
-for (const [file, content] of Object.entries(patches)) {
+const files = ["index.d.ts", "default.d.ts", "index-browser.d.ts", "edge.d.ts", "extension.d.ts"];
+
+for (const file of files) {
+  const srcFile = join(src, file);
+  const destFile = join(dest, file);
+  if (!existsSync(srcFile)) continue;
   try {
-    writeFileSync(join(clientDir, file), content, "utf8");
-    console.log(`[patch-prisma] ✅ Patched @prisma/client/${file}`);
+    copyFileSync(srcFile, destFile);
+    console.log(`[patch-prisma] ✅ Synced ${file}`);
   } catch (e) {
-    console.warn(`[patch-prisma] ⚠️  Could not patch ${file}:`, e.message);
+    console.warn(`[patch-prisma] ⚠️  Could not sync ${file}:`, e.message);
   }
 }
