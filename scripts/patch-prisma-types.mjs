@@ -6,9 +6,9 @@
  * resuelve @prisma/client/index.d.ts (el archivo del paquete npm instalado,
  * que puede estar desactualizado respecto al schema actual).
  *
- * Este script copia los archivos .d.ts generados por `prisma generate` de
- * .prisma/client a @prisma/client para que el IDE siempre tenga los tipos
- * correctos sin necesidad de reiniciar el servidor TS.
+ * Este script copia SOLO index.d.ts de .prisma/client a @prisma/client.
+ * El index.d.ts contiene todos los tipos generados (modelos, inputs, etc.)
+ * y es el archivo que el IDE usa vía el campo "types" en package.json.
  *
  * Se ejecuta automáticamente como postinstall + db:generate.
  */
@@ -26,16 +26,20 @@ if (!existsSync(src)) {
   process.exit(0);
 }
 
-const files = ["index.d.ts", "default.d.ts", "index-browser.d.ts", "edge.d.ts", "extension.d.ts"];
+// Solo copiamos index.d.ts — contiene todos los tipos generados.
+// No tocamos edge.d.ts, extension.d.ts ni default.d.ts para no romper
+// las re-exportaciones que el runtime de Prisma necesita.
+const srcFile = join(src, "index.d.ts");
+const destFile = join(dest, "index.d.ts");
 
-for (const file of files) {
-  const srcFile = join(src, file);
-  const destFile = join(dest, file);
-  if (!existsSync(srcFile)) continue;
-  try {
-    copyFileSync(srcFile, destFile);
-    console.log(`[patch-prisma] ✅ Synced ${file}`);
-  } catch (e) {
-    console.warn(`[patch-prisma] ⚠️  Could not sync ${file}:`, e.message);
-  }
+if (!existsSync(srcFile)) {
+  console.warn("[patch-prisma] ⚠️  .prisma/client/index.d.ts not found");
+  process.exit(0);
+}
+
+try {
+  copyFileSync(srcFile, destFile);
+  console.log("[patch-prisma] ✅ Synced @prisma/client/index.d.ts");
+} catch (e) {
+  console.warn("[patch-prisma] ⚠️  Could not sync index.d.ts:", e.message);
 }
