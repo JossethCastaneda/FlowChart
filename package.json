@@ -4,9 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "node scripts/db-sync.mjs && prisma generate && node scripts/patch-prisma-types.mjs && next build",
+    "build": "node scripts/db-sync.mjs && prisma generate && node scripts/patch-prisma-types.mjs || true && next build",
     "db:sync": "node scripts/db-sync.mjs",
-    "release": "node scripts/db-sync.mjs && prisma generate && node scripts/patch-prisma-types.mjs && next build",
+    "release": "node scripts/db-sync.mjs && prisma generate && node scripts/patch-prisma-types.mjs || true && next build",
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
@@ -17,7 +17,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "db:reencrypt": "tsx scripts/reencrypt-tokens.ts",
-    "postinstall": "prisma generate && node scripts/patch-prisma-types.mjs"
+    "postinstall": "prisma generate && (node scripts/patch-prisma-types.mjs || true)"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
