@@ -268,21 +268,23 @@ async function processWebhookEvents(body: any, object: string) {
                 data: { deliveredAt: new Date() },
               }).catch(() => {});
             } else if (watermark) {
-              // Fallback: mark all page-sent messages up to watermark as delivered
-              const convRecord = await prisma.inboxConversation.findFirst({
-                where: { externalId: msg.sender?.id },
-                select: { id: true },
-              }).catch(() => null);
-              if (convRecord) {
-                await prisma.inboxMessage.updateMany({
-                  where: {
-                    conversationId: convRecord.id,
-                    sender: "page",
-                    deliveredAt: null,
-                    createdAt: { lte: new Date(watermark) },
-                  },
-                  data: { deliveredAt: new Date(watermark) },
-                }).catch(() => {});
+              const wsId = await resolveWorkspaceForMetaAsset(entryId, "page").catch(() => null);
+              if (wsId) {
+                const convRecord = await prisma.inboxConversation.findFirst({
+                  where: { workspaceId: wsId, externalId: msg.sender?.id },
+                  select: { id: true },
+                }).catch(() => null);
+                if (convRecord) {
+                  await prisma.inboxMessage.updateMany({
+                    where: {
+                      conversationId: convRecord.id,
+                      sender: "page",
+                      deliveredAt: null,
+                      createdAt: { lte: new Date(watermark) },
+                    },
+                    data: { deliveredAt: new Date(watermark) },
+                  }).catch(() => {});
+                }
               }
             }
           }
@@ -292,20 +294,23 @@ async function processWebhookEvents(body: any, object: string) {
             logger.info(`[WEBHOOK] 👁️ Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
             const watermark: number | undefined = msg.read.watermark;
             if (watermark) {
-              const convRecord = await prisma.inboxConversation.findFirst({
-                where: { externalId: msg.sender?.id },
-                select: { id: true },
-              }).catch(() => null);
-              if (convRecord) {
-                await prisma.inboxMessage.updateMany({
-                  where: {
-                    conversationId: convRecord.id,
-                    sender: "page",
-                    readAt: null,
-                    createdAt: { lte: new Date(watermark) },
-                  },
-                  data: { readAt: new Date(watermark), deliveredAt: new Date(watermark) },
-                }).catch(() => {});
+              const wsId = await resolveWorkspaceForMetaAsset(entryId, "page").catch(() => null);
+              if (wsId) {
+                const convRecord = await prisma.inboxConversation.findFirst({
+                  where: { workspaceId: wsId, externalId: msg.sender?.id },
+                  select: { id: true },
+                }).catch(() => null);
+                if (convRecord) {
+                  await prisma.inboxMessage.updateMany({
+                    where: {
+                      conversationId: convRecord.id,
+                      sender: "page",
+                      readAt: null,
+                      createdAt: { lte: new Date(watermark) },
+                    },
+                    data: { readAt: new Date(watermark), deliveredAt: new Date(watermark) },
+                  }).catch(() => {});
+                }
               }
             }
           }
@@ -552,20 +557,23 @@ async function processWebhookEvents(body: any, object: string) {
             logger.info(`[WEBHOOK] 👁️ IG Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
             const watermark: number | undefined = msg.read.watermark;
             if (watermark) {
-              const convRecord = await prisma.inboxConversation.findFirst({
-                where: { externalId: msg.sender?.id },
-                select: { id: true },
-              }).catch(() => null);
-              if (convRecord) {
-                await prisma.inboxMessage.updateMany({
-                  where: {
-                    conversationId: convRecord.id,
-                    sender: "page",
-                    readAt: null,
-                    createdAt: { lte: new Date(watermark) },
-                  },
-                  data: { readAt: new Date(watermark), deliveredAt: new Date(watermark) },
-                }).catch(() => {});
+              const wsId = await resolveWorkspaceForMetaAsset(entryId, "ig_account").catch(() => null);
+              if (wsId) {
+                const convRecord = await prisma.inboxConversation.findFirst({
+                  where: { workspaceId: wsId, externalId: msg.sender?.id },
+                  select: { id: true },
+                }).catch(() => null);
+                if (convRecord) {
+                  await prisma.inboxMessage.updateMany({
+                    where: {
+                      conversationId: convRecord.id,
+                      sender: "page",
+                      readAt: null,
+                      createdAt: { lte: new Date(watermark) },
+                    },
+                    data: { readAt: new Date(watermark), deliveredAt: new Date(watermark) },
+                  }).catch(() => {});
+                }
               }
             }
           }
