@@ -707,24 +707,6 @@ export function ChatView({
                       {msg.status === "sending" ? "Enviando..." : msg.status === "error" ? (msg.errorText || "Error al enviar") : ""}
                     </div>
                   )}
-                  {/* Mock quick reply buttons under bot messages */}
-                  {!msg.incoming && (
-                    <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 8, justifyContent: "flex-end" }}>
-                      {["Más info.", "Quiero ser BAIT", "! Ya no tengo línea."].map((reply, i) => (
-                        <button
-                          key={i}
-                          style={{
-                            padding: "6px 12px", fontSize: 11, fontWeight: 500,
-                            color: "var(--cyan)", background: "transparent",
-                            border: "1px solid var(--cyan)", borderRadius: 16,
-                            cursor: "pointer", fontFamily: "inherit"
-                          }}
-                        >
-                          {reply}
-                        </button>
-                      ))}
-                    </div>
-                  )}
                   <p style={{
                     fontSize: 9, margin: "3px 4px 0",
                     color: "var(--text-muted)",
