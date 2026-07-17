@@ -7,6 +7,10 @@ export interface Message {
     errorText?: string;
     attachments?: any[];
     reaction?: string;
+    /** ISO Date — when the outgoing message was delivered to the recipient's device */
+    deliveredAt?: Date;
+    /** ISO Date — when the recipient read the outgoing message */
+    readAt?: Date;
 }
 
 export interface PostComment {

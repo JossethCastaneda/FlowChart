@@ -690,16 +690,18 @@ model InboxConversation {
 }
 
 model InboxMessage {
-  id             String   @id @default(cuid())
+  id             String    @id @default(cuid())
   conversationId String
   externalId     String?
-  content        String   @db.Text
-  sender         String // "user" | "page"
+  content        String    @db.Text
+  sender         String    // "user" | "page"
   senderName     String?
   senderAvatar   String?
   attachments    Json?
   reaction       String?
-  createdAt      DateTime @default(now())
+  deliveredAt    DateTime? // cuando Meta confirma entrega (msg.delivery watermark)
+  readAt         DateTime? // cuando el usuario lee (msg.read watermark)
+  createdAt      DateTime  @default(now())
 
   conversation InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 

@@ -148,6 +148,8 @@ export async function GET(request: NextRequest) {
       senderId: m.senderName,
       attachments: m.attachments ? (m.attachments as any[]) : undefined,
       reaction: m.reaction || undefined,
+      deliveredAt: m.deliveredAt || undefined,
+      readAt: m.readAt || undefined,
     })),
   });
 }

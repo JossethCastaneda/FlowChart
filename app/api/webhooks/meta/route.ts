@@ -257,14 +257,57 @@ async function processWebhookEvents(body: any, object: string) {
             });
           }
 
-          // Message delivery confirmation
+          // Message delivery confirmation — persist deliveredAt on each confirmed message
           if (msg.delivery) {
             logger.info(`[WEBHOOK] 📧 Delivery: ${msg.delivery.mids?.length || 0} msgs delivered to ${msg.sender?.id}`);
+            const deliveryMids: string[] = msg.delivery.mids || [];
+            const watermark: number | undefined = msg.delivery.watermark;
+            if (deliveryMids.length > 0) {
+              await prisma.inboxMessage.updateMany({
+                where: { externalId: { in: deliveryMids }, deliveredAt: null },
+                data: { deliveredAt: new Date() },
+              }).catch(() => {});
+            } else if (watermark) {
+              // Fallback: mark all page-sent messages up to watermark as delivered
+              const convRecord = await prisma.inboxConversation.findFirst({
+                where: { externalId: msg.sender?.id },
+                select: { id: true },
+              }).catch(() => null);
+              if (convRecord) {
+                await prisma.inboxMessage.updateMany({
+                  where: {
+                    conversationId: convRecord.id,
+                    sender: "page",
+                    deliveredAt: null,
+                    createdAt: { lte: new Date(watermark) },
+                  },
+                  data: { deliveredAt: new Date(watermark) },
+                }).catch(() => {});
+              }
+            }
           }
 
-          // Message read confirmation
+          // Message read confirmation — persist readAt on all page-sent messages up to watermark
           if (msg.read) {
             logger.info(`[WEBHOOK] 👁️ Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
+            const watermark: number | undefined = msg.read.watermark;
+            if (watermark) {
+              const convRecord = await prisma.inboxConversation.findFirst({
+                where: { externalId: msg.sender?.id },
+                select: { id: true },
+              }).catch(() => null);
+              if (convRecord) {
+                await prisma.inboxMessage.updateMany({
+                  where: {
+                    conversationId: convRecord.id,
+                    sender: "page",
+                    readAt: null,
+                    createdAt: { lte: new Date(watermark) },
+                  },
+                  data: { readAt: new Date(watermark), deliveredAt: new Date(watermark) },
+                }).catch(() => {});
+              }
+            }
           }
 
           // Postback (button click in Messenger)
@@ -490,6 +533,41 @@ async function processWebhookEvents(body: any, object: string) {
               meta: { igAccountId: entryId, senderId: msg.sender?.id, mediaUrl: msg.message.attachments[0].payload?.url, time: msg.timestamp },
               channel: "instagram",
             });
+          }
+
+          // Instagram delivery confirmation
+          if (msg.delivery) {
+            logger.info(`[WEBHOOK] 📧 IG Delivery: ${msg.delivery.mids?.length || 0} msgs delivered to ${msg.sender?.id}`);
+            const deliveryMids: string[] = msg.delivery.mids || [];
+            if (deliveryMids.length > 0) {
+              await prisma.inboxMessage.updateMany({
+                where: { externalId: { in: deliveryMids }, deliveredAt: null },
+                data: { deliveredAt: new Date() },
+              }).catch(() => {});
+            }
+          }
+
+          // Instagram read confirmation
+          if (msg.read) {
+            logger.info(`[WEBHOOK] 👁️ IG Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
+            const watermark: number | undefined = msg.read.watermark;
+            if (watermark) {
+              const convRecord = await prisma.inboxConversation.findFirst({
+                where: { externalId: msg.sender?.id },
+                select: { id: true },
+              }).catch(() => null);
+              if (convRecord) {
+                await prisma.inboxMessage.updateMany({
+                  where: {
+                    conversationId: convRecord.id,
+                    sender: "page",
+                    readAt: null,
+                    createdAt: { lte: new Date(watermark) },
+                  },
+                  data: { readAt: new Date(watermark), deliveredAt: new Date(watermark) },
+                }).catch(() => {});
+              }
+            }
           }
 
           // Postback

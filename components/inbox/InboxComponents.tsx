@@ -701,19 +701,42 @@ export function ChatView({
                       </div>
                     )}
                   </div>
-                  {/* Message Status */}
-                  {!msg.incoming && msg.status && (
-                    <div style={{ fontSize: 9, color: msg.status === "error" ? "var(--red)" : "var(--text-muted)", marginTop: 4, textAlign: "right", fontWeight: 500 }}>
-                      {msg.status === "sending" ? "Enviando..." : msg.status === "error" ? (msg.errorText || "Error al enviar") : ""}
+                  {/* Message Status — ticks and read receipts for outgoing messages */}
+                  {!msg.incoming && (
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 3 }}>
+                      {msg.status === "error" ? (
+                        <span style={{ fontSize: 9, color: "var(--red)", fontWeight: 500 }}>
+                          {msg.errorText || "Error al enviar"}
+                        </span>
+                      ) : msg.status === "sending" ? (
+                        /* Sending: single grey tick with opacity pulse */
+                        <span style={{ fontSize: 9, color: "var(--text-muted)", opacity: 0.6 }}>
+                          {"✓"}
+                        </span>
+                      ) : msg.readAt ? (
+                        /* Read: double cyan/blue tick + "Visto" */
+                        <span style={{ fontSize: 9, color: "var(--cyan)", fontWeight: 500, display: "flex", alignItems: "center", gap: 2 }}>
+                          <span style={{ letterSpacing: "-2px" }}>{"✓✓"}</span>
+                          <span style={{ letterSpacing: 0 }}>Visto</span>
+                        </span>
+                      ) : msg.deliveredAt ? (
+                        /* Delivered: double grey tick */
+                        <span style={{ fontSize: 9, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
+                          <span style={{ letterSpacing: "-2px" }}>{"✓✓"}</span>
+                          <span style={{ letterSpacing: 0 }}>Entregado</span>
+                        </span>
+                      ) : (
+                        /* Sent (persisted, awaiting delivery confirmation): single grey tick */
+                        <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{"✓"}</span>
+                      )}
+                      <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{formatTime(msg.timestamp)}</span>
                     </div>
                   )}
-                  <p style={{
-                    fontSize: 9, margin: "3px 4px 0",
-                    color: "var(--text-muted)",
-                    textAlign: msg.incoming ? "left" : "right",
-                  }}>
-                    {formatTime(msg.timestamp)}
-                  </p>
+                  {msg.incoming && (
+                    <p style={{ fontSize: 9, margin: "3px 4px 0", color: "var(--text-muted)", textAlign: "left" }}>
+                      {formatTime(msg.timestamp)}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}

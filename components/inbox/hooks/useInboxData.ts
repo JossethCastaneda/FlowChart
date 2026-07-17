@@ -70,7 +70,19 @@ export function useInboxData() {
           const pageId = (conv as any)._pageId;
           return fetch(`/api/inbox/messages?conversationId=${conv.id}&pageId=${pageId || ""}&_t=${Date.now()}`)
             .then(r => r.ok ? r.json() : null)
-            .then(d => ({ id: conv.id, messages: d?.messages?.map((m: any) => ({ id: m.id, text: m.text, incoming: m.incoming, timestamp: new Date(m.timestamp) })) || null }))
+            .then(d => ({
+              id: conv.id,
+              messages: d?.messages?.map((m: any) => ({
+                id: m.id,
+                text: m.text,
+                incoming: m.incoming,
+                timestamp: new Date(m.timestamp),
+                attachments: m.attachments || undefined,
+                reaction: m.reaction || undefined,
+                deliveredAt: m.deliveredAt ? new Date(m.deliveredAt) : undefined,
+                readAt: m.readAt ? new Date(m.readAt) : undefined,
+              })) || null,
+            }))
             .catch(() => ({ id: conv.id, messages: null }));
         });
         Promise.all(prefetchers).then(results => {
@@ -139,7 +151,16 @@ export function useInboxData() {
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (data?.messages?.length) {
-          const msgs: Message[] = data.messages.map((m: any) => ({ id: m.id, text: m.text, incoming: m.incoming, timestamp: new Date(m.timestamp) }));
+          const msgs: Message[] = data.messages.map((m: any) => ({
+            id: m.id,
+            text: m.text,
+            incoming: m.incoming,
+            timestamp: new Date(m.timestamp),
+            attachments: m.attachments || undefined,
+            reaction: m.reaction || undefined,
+            deliveredAt: m.deliveredAt ? new Date(m.deliveredAt) : undefined,
+            readAt: m.readAt ? new Date(m.readAt) : undefined,
+          }));
           setConversations(prev => prev.map(c => c.id === id ? { ...c, messages: msgs } : c));
         }
       }).catch(() => {});
