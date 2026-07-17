@@ -26,12 +26,16 @@ export async function GET(request: NextRequest) {
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
+  logger.info("[INBOX-DIAG] conversations fetch", { userId: jwt.sub, workspaceId });
+
   try {
     const rows = await prisma.inboxConversation.findMany({
       where: { workspaceId },
       orderBy: { lastMessageAt: "desc" },
       take: 500,
     });
+
+    logger.info("[INBOX-DIAG] conversations result", { workspaceId, count: rows.length });
 
     // Resolver nombres de página en un solo query (no un join por conversación).
     const pageIds = [...new Set(rows.map((r) => r.pageId).filter((p): p is string => !!p))];
