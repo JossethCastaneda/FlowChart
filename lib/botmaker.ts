@@ -1,164 +1,51 @@
+/**
+ * BotMaker API v2.0 — analytics and session metrics.
+ * Connection logic lives in ./botmaker/connection.ts; types in ./botmaker/types.ts.
+ * This file is the canonical entry-point for @/lib/botmaker imports.
+ *
+ * Sub-module structure:
+ *   lib/botmaker/types.ts      — All interface definitions (canonical source)
+ *   lib/botmaker/connection.ts — Token resolution, SSRF, HTTP client
+ *   lib/botmaker/channels.ts   — Channel listing, caching, platform normalization
+ *   lib/botmaker/index.ts      — Barrel re-export
+ */
+
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
+import { botmakerFetch } from "./botmaker/connection";
+import { BmSession, ResultsMetrics, ChannelCanonical, BmChannelInfo } from "./botmaker/types";
 
-/**
- * BotMaker API v2.0 — https://api.botmaker.com/v2.0/
- * Auth: `access-token` header. Source: BotMaker API research (account Swagger
- * is the source of truth for the full surface).
- */
+// Re-export types that are only defined in sub-modules (no local duplicate)
+export type {
+  BmSession, BmMessage, BmEvent, BmEventInfo,
+  BotmakerConnection, BotmakerChannelsResult, BmChannelInfo,
+} from "./botmaker/types";
+// Note: CANONICAL_CHANNELS and CanonicalChannel are exported from local declarations below
+
+
+
+// Re-export botmakerFetch from sub-module (backward compat)
+export { botmakerFetch } from "./botmaker/connection";
+// Re-export channel utilities from sub-module (backward compat)
+export {
+  fetchBotmakerChannels,
+  listBotmakerChannels,
+  cacheBotmakerChannels,
+  getCachedBotmakerChannels,
+} from "./botmaker/channels";
+// Re-export connection utilities (backward compat)
+export {
+  normalizeBotmakerBase,
+  getBotmakerConnection,
+  getBotmakerToken,
+} from "./botmaker/connection";
+
+
+// ── Internal constants ────────────────────────────────────────────────────────
 const BASE = "https://api.botmaker.com/v2.0";
 
-const ALLOWED_BOTMAKER_HOSTS = new Set(["api.botmaker.com", "go.botmaker.com"]);
-
-/** Normalize a user-entered BotMaker base URL (adds scheme, strips trailing slash). */
-export function normalizeBotmakerBase(raw?: string | null): string {
-  const DEFAULT = "https://api.botmaker.com/v2.0";
-  let b = (raw || "").trim();
-  if (!b) return DEFAULT;
-  if (!/^https?:\/\//i.test(b)) b = "https://" + b;
-  
-  // SSRF prevention: check if hostname is allowed
-  let parsedUrl: URL;
-  try {
-    parsedUrl = new URL(b);
-  } catch {
-    return DEFAULT;
-  }
-  
-  const hostname = parsedUrl.hostname.toLowerCase();
-  // Allow localhost ONLY in non-production environments for local testing/development
-  const isDevLocal = process.env.NODE_ENV !== "production" && (hostname === "localhost" || hostname === "127.0.0.1");
-  
-  if (!ALLOWED_BOTMAKER_HOSTS.has(hostname) && !isDevLocal) {
-    throw new Error(`[BOTMAKER] Host no permitido: ${hostname}`);
-  }
-  
-  return b.replace(/\/+$/, "");
-}
-
-export interface BotmakerConnection {
-  baseUrl: string;
-  accessToken: string;
-}
-
-/**
- * Resolve the per-workspace BotMaker connection (base URL + access token).
- * The user connects their OWN url + access/refresh token in Integraciones; the
- * tokens are stored AES-256 encrypted in the Integration record.
- *
- * Priority:
- *   1. Encrypted Integration (provider "botmaker") for the workspace.
- *   2. env BOTMAKER_ACCESS_TOKEN — **development only** (shared, not for tenants).
- */
-export async function getBotmakerConnection(workspaceId: string): Promise<BotmakerConnection | null> {
-  try {
-    const integ = await prisma.integration.findUnique({
-      where: { workspaceId_provider_userId: { workspaceId, provider: "botmaker", userId: "workspace" } },
-    });
-    const creds = integ?.credentials as Record<string, unknown> | null;
-    if (integ?.connected && creds?.accessToken) {
-      const accessToken = decryptToken(creds.accessToken as string);
-      if (accessToken) {
-        return { baseUrl: normalizeBotmakerBase(creds.baseUrl as string | undefined), accessToken };
-      }
-    }
-  } catch { /* ignore — fall through */ }
-
-  // Dev-only global fallback. In production each workspace connects its own token.
-  if (process.env.NODE_ENV !== "production" && process.env.BOTMAKER_ACCESS_TOKEN) {
-    return {
-      baseUrl: normalizeBotmakerBase(process.env.BOTMAKER_BASE_URL),
-      accessToken: process.env.BOTMAKER_ACCESS_TOKEN,
-    };
-  }
-  return null;
-}
-
-/** Back-compat helper: just the access token. */
-export async function getBotmakerToken(workspaceId: string): Promise<string | null> {
-  return (await getBotmakerConnection(workspaceId))?.accessToken ?? null;
-}
-
-
-/** Fetch a BotMaker path with the access-token header + basic 429 backoff. */
-export async function botmakerFetch(
-  path: string,
-  token: string,
-  init: RequestInit = {},
-  retries = 2,
-  baseUrl: string = BASE
-): Promise<Response> {
-  let cleanPath = path;
-  if (cleanPath.startsWith("/v2.0/") && baseUrl.endsWith("/v2.0")) {
-    cleanPath = cleanPath.substring(5);
-  }
-  if (!cleanPath.startsWith("/")) {
-    cleanPath = "/" + cleanPath;
-  }
-  const res = await fetch(`${baseUrl}${cleanPath}`, {
-    ...init,
-    headers: {
-      "Content-Type": "application/json",
-      Accept: "application/json",
-      "access-token": token,
-      ...(init.headers || {}),
-    },
-  });
-  if (res.status === 429 && retries > 0) {
-    await new Promise((r) => setTimeout(r, (3 - retries) * 1200)); // exponential-ish backoff
-    return botmakerFetch(path, token, init, retries - 1, baseUrl);
-  }
-  return res;
-}
-
-
-// ── Session metrics ─────────────────────────────────────────────────────────
-// Shapes match the account Swagger (GET /sessions → SessionsPage.items →
-// SessionResponse, with include-messages + include-events).
-
-export interface BmMessage {
-  from?: "bot" | "user" | "agent"; // who sent the message
-  creationTime?: string | number;
-  content?: {
-    type?: string;
-    text?: string;
-    /** Botones MOSTRADOS por el bot (array de strings u objetos {label/value}). */
-    buttons?: unknown;
-    /** Botón ELEGIDO por el usuario (string u objeto {label/value}). */
-    selectedButton?: unknown;
-    /** Adjunto multimedia (imagen/audio/video/archivo). */
-    media?: { type?: string; url?: string; caption?: string } | null;
-    /** Ítems de carrusel mostrados. */
-    carouselItems?: unknown;
-  } & Record<string, unknown>;
-}
-export interface BmEventInfo {
-  typification?: string;
-  /** notification-error: tipo/razón del error del bot. */
-  error?: string;
-  errorType?: string;
-  reason?: string;
-  messageId?: string;
-  /** set-variable: variable capturada por el bot (señal de "pidió este dato"). */
-  variableName?: string;
-  variableValue?: string;
-  /** find-intent: intención disparada / fallback. */
-  intentId?: string;
-  intentName?: string;
-  isFallback?: boolean;
-}
-export interface BmEvent {
-  name?: string;
-  creationTime?: string | number;
-  info?: BmEventInfo & Record<string, unknown>;
-}
-export interface BmSession {
-  id?: string;
-  creationTime?: string | number;
-  chat?: { chat?: { contactId?: string; channelId?: string }; lastUserMessageDatetime?: string };
-  messages?: BmMessage[];
-  events?: BmEvent[];
-}
+// ── Session API ───────────────────────────────────────────────────────────────
+// Analytics session functions below. Types and connection are in ./botmaker/.
 
 /**
  * GET /sessions, paginated (follows `nextPage`). Includes messages + events so
@@ -198,20 +85,7 @@ export async function listSessions(
   return all;
 }
 
-export interface ResultsMetrics {
-  sessionsStarted: number;
-  uniqueSessions: number;
-  messagesByUser: number;
-  messagesByBot: number;
-  messagesByAgent: number;
-  avgResponseTimeSec: number;       // bot/agent avg reply time
-  avgUserResponseTimeSec: number;   // user avg reply time
-  avgBotResponseTimeSec: number;
-  avgSessionDurationSec: number;    // session start → close
-  topTypifications: { label: string; count: number }[];
-  hourlyUniqueSessions: number[];   // 24 buckets
-  topUserQuestions: { text: string; count: number }[];
-}
+// ResultsMetrics is defined in ./botmaker/types.ts (re-exported above)
 
 const toMs = (v: any): number | null => {
   if (v == null) return null;
@@ -307,6 +181,7 @@ export const EMPTY_RESULTS_METRICS: ResultsMetrics = computeResultsMetrics([]);
 // `platform` per channel; we normalize it to one of these canonical buckets.
 export const CANONICAL_CHANNELS = ["whatsapp", "messenger", "instagram", "facebook"] as const;
 export type CanonicalChannel = (typeof CANONICAL_CHANNELS)[number];
+
 
 /** Normalize a BotMaker channel `platform` string into one of the 4 product channels. */
 export function canonicalPlatform(raw?: string | null): CanonicalChannel | null {
@@ -1144,156 +1019,10 @@ export function computeBehaviorByBot(
   return out.sort((a, b) => b.sampleSize - a.sampleSize);
 }
 
-// ── Listado de canales (para autollenar el formulario de proyecto) ───────────
-export type ChannelCanonical = "whatsapp" | "webchat" | "instagram" | "facebook" | "messenger";
+// ── Channel types and functions ───────────────────────────────────────────────
+// All channel logic moved to ./botmaker/channels.ts and ./botmaker/types.ts.
+// Re-exported at the top of this file via named export for backward compat.
 
-export interface BmChannelInfo {
-  id: string;
-  platform: string;
-  canonical: ChannelCanonical | null;
-  name: string;
-  /** Número de línea (solo WhatsApp). */
-  number?: string;
-  active: boolean;
-}
-
-/** Mapea el `platform` de un canal Botmaker a su forma canónica (incluye webchat). */
-function channelCanonical(platform?: string | null): ChannelCanonical | null {
-  const p = (platform || "").toLowerCase().trim();
-  if (!p) return null;
-  // Alineado con canonicalPlatform (sesiones) + alias reales de Botmaker.
-  if (p.includes("whats") || p.includes("wapp") || p === "wa" || p === "waba" || p === "wsp" || p === "wpp") return "whatsapp";
-  if (p.includes("insta") || p === "ig") return "instagram";
-  if (p.includes("messenger") || p === "fbm") return "messenger";
-  if (p.includes("facebook") || p === "fb" || p === "fbk") return "facebook";
-  if (p.includes("web") || p.includes("chat") || p.includes("widget") || p === "api" || p === "botmaker") return "webchat";
-  return null;
-}
-
-/**
- * Canónico de un canal con INFERENCIA por forma cuando el `platform` no se
- * reconoce: si trae número de teléfono → WhatsApp; si no → Web Chat. Evita que un
- * canal real se pierda solo porque Botmaker reporta un `platform` no visto.
- */
-function resolveChannelCanonical(platform: string, number?: string): ChannelCanonical {
-  return channelCanonical(platform) ?? (number ? "whatsapp" : "webchat");
-}
-
-/**
- * GET /channels → canales del bot del workspace (números de WhatsApp, webchats,
- * Instagram y Facebook). Se usa para AUTOLLENAR el formulario "Nuevo Proyecto"
- * en vez de teclear los números a mano.
- */
-/** Resultado de `/channels` con metadatos de diagnóstico (rawCount/platforms/HTTP). */
-export interface BotmakerChannelsResult {
-  channels: BmChannelInfo[];
-  /** # de items que Botmaker devolvió ANTES de filtrar/clasificar. */
-  rawCount: number;
-  /** Valores distintos de `platform` vistos en la respuesta (para mapear). */
-  platforms: string[];
-  httpStatus: number;
-}
-
-/**
- * Descarga y parsea `/channels` devolviendo además metadatos para diagnóstico.
- * Tolera múltiples shapes (items/channels/data/result/arreglo plano) y campos
- * alternos, e INFIERE el canónico cuando el `platform` no se reconoce (no se
- * descarta ningún canal en silencio). `listBotmakerChannels` envuelve esto.
- */
-export async function fetchBotmakerChannels(conn: BotmakerConnection): Promise<BotmakerChannelsResult> {
-  const res = await botmakerFetch("/channels", conn.accessToken, {}, 2, conn.baseUrl);
-  if (!res.ok) {
-    console.warn(`[BOTMAKER] /channels HTTP ${res.status}`);
-    return { channels: [], rawCount: 0, platforms: [], httpStatus: res.status };
-  }
-  const data = await res.json().catch(() => null);
-  // Botmaker puede envolver los canales en distintas claves según versión/cuenta
-  // (items / channels / data / result) o devolver un arreglo plano. Toleramos todas.
-  const raw = Array.isArray(data)
-    ? data
-    : (data?.items ?? data?.channels ?? data?.data ?? data?.result ?? []);
-  const items = (Array.isArray(raw) ? raw : []) as Record<string, unknown>[];
-  const str = (v: unknown): string => (typeof v === "string" ? v : "");
-  const channels = items
-    .map((c) => {
-      const platform = str(c.platform) || str(c.type) || str(c.channelType);
-      const number = str(c.number) || str(c.phoneNumber) || str(c.phone) || undefined;
-      return {
-        id: str(c.id) || str(c.channelId) || str(c._id),
-        platform,
-        canonical: resolveChannelCanonical(platform, number),
-        name: str(c.name) || str(c.displayName) || str(c.title),
-        number,
-        active: c.active !== false && c.enabled !== false,
-      };
-    })
-    .filter((c) => c.id);
-  const platforms = [...new Set(
-    items.map((c) => str(c.platform) || str(c.type) || str(c.channelType)).filter(Boolean)
-  )];
-  if (channels.length === 0) {
-    const keys = data && typeof data === "object" ? Object.keys(data).join(",") : typeof data;
-    console.warn(`[BOTMAKER] /channels sin canales tras parsear (keys=${keys}, raw=${items.length})`);
-  }
-  return { channels, rawCount: items.length, platforms, httpStatus: res.status };
-}
-
-export async function listBotmakerChannels(conn: BotmakerConnection): Promise<BmChannelInfo[]> {
-  return (await fetchBotmakerChannels(conn)).channels;
-}
-
-/**
- * Persiste los canales del bot en `IntegrationAssetCache` (assetType "bot") al
- * CONECTAR la integración, para que el formulario "Nuevo Proyecto" los tenga
- * disponibles de inmediato (y como respaldo si la API en vivo falla/tarda).
- */
-export async function cacheBotmakerChannels(
-  integrationId: string,
-  workspaceId: string,
-  channels: BmChannelInfo[]
-): Promise<void> {
-  for (const c of channels) {
-    if (!c.id) continue;
-    const metadata = { platform: c.platform, number: c.number ?? null, active: c.active };
-    await prisma.integrationAssetCache.upsert({
-      where: { integrationId_assetType_externalId: { integrationId, assetType: "bot", externalId: c.id } },
-      update: { name: c.name || c.id, metadata, syncedAt: new Date() },
-      create: { integrationId, workspaceId, provider: "botmaker", assetType: "bot", externalId: c.id, name: c.name || c.id, metadata },
-    });
-  }
-}
-
-/**
- * Lee los canales del bot cacheados (poblados al conectar / por el sync workflow)
- * y los reconstruye al mismo contrato que `listBotmakerChannels`. Respaldo para
- * cuando la API en vivo de Botmaker no responde. Tolera el `metadata` histórico
- * del sync workflow (`{ platform, phoneNumber }`) además del nuevo (`{ number }`).
- */
-export async function getCachedBotmakerChannels(workspaceId: string): Promise<BmChannelInfo[]> {
-  try {
-    const rows = await prisma.integrationAssetCache.findMany({
-      where: { workspaceId, provider: "botmaker", assetType: "bot" },
-      orderBy: { name: "asc" },
-    });
-    return rows.map((r) => {
-      const meta = (r.metadata as Record<string, unknown>) || {};
-      const platform = String(meta.platform ?? "");
-      const number =
-        typeof meta.number === "string" ? meta.number :
-        typeof meta.phoneNumber === "string" ? meta.phoneNumber : undefined;
-      return {
-        id: r.externalId,
-        platform,
-        canonical: resolveChannelCanonical(platform, number),
-        name: r.name || r.externalId,
-        number,
-        active: meta.active !== false,
-      };
-    });
-  } catch {
-    return [];
-  }
-}
 
 // ── Lead Quality Scoring ─────────────────────────────────────────────────────
 // Measures how valuable / engaged the incoming leads are based purely on

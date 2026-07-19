@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --webpack",
+    "dev": "next dev",
     "build": "node scripts/db-sync.mjs && prisma generate && node scripts/patch-prisma-types.mjs || true && next build",
     "db:sync": "node scripts/db-sync.mjs",
     "release": "node scripts/db-sync.mjs && prisma generate && node scripts/patch-prisma-types.mjs || true && next build",
@@ -75,3 +75,4 @@
     "vitest": "^3.2.4"
   }
 }
+*
