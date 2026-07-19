@@ -63,7 +63,7 @@ export const GET = withWorkspace(async (_req, ctx) => {
 
 /**
  * POST /api/workspace/integrations
- * Connect a token-based integration (e.g. BotMaker, Cari).
+ * Connect a token-based integration.
  * Only OWNER/ADMIN can save tokens. Token is AES-256 encrypted at rest.
  *
  * Body: { provider, token, baseUrl?, refreshToken? }
@@ -84,39 +84,7 @@ export const POST = withWorkspace(async (req, ctx) => {
   if (!result.ok) return result.response;
   const { provider, token, baseUrl, refreshToken } = result.data;
 
-  // Validate Botmaker token BEFORE saving to avoid storing invalid credentials.
-  // A 401/403 from Botmaker means the token is invalid.
-  // Getting 0 channels with a 200 is valid (account with no channels yet) — we still save the token.
-  if (provider === "botmaker") {
-    try {
-      const { normalizeBotmakerBase, botmakerFetch } = await import("@/lib/botmaker");
-      const validationBaseUrl = normalizeBotmakerBase(baseUrl);
-      const res = await botmakerFetch("/channels", token, {}, 1, validationBaseUrl);
-      if (res.status === 401 || res.status === 403) {
-        return apiError(
-          "El token de Botmaker es inválido o no tiene permisos. Revisa tus credenciales.",
-          "INVALID_TOKEN",
-          400
-        );
-      }
-      if (!res.ok && res.status !== 404) {
-        // 4xx distinto de 401/403 o 5xx — podría ser un error de red o URL incorrecta.
-        logger.warn("Botmaker token validation: unexpected status", { workspaceId: ctx.workspaceId, status: res.status });
-        return apiError(
-          `Error al validar con Botmaker (HTTP ${res.status}). Verifica la URL base si usas una instancia propia.`,
-          "BOTMAKER_VALIDATION_ERROR",
-          400
-        );
-      }
-    } catch (e) {
-      logger.warn("Botmaker token validation failed", { workspaceId: ctx.workspaceId, error: e });
-      return apiError(
-        "Error de red al validar con Botmaker. Revisa tu token o URL base.",
-        "BOTMAKER_NETWORK_ERROR",
-        400
-      );
-    }
-  }
+
 
   const credentials: Record<string, unknown> = {
     accessToken: encryptToken(token),
@@ -145,28 +113,7 @@ export const POST = withWorkspace(async (req, ctx) => {
     },
   });
 
-  // Cache Botmaker channels after successful connection
-  if (provider === "botmaker") {
-    try {
-      const { normalizeBotmakerBase, listBotmakerChannels, cacheBotmakerChannels } = await import("@/lib/botmaker");
-      const conn = { baseUrl: normalizeBotmakerBase(baseUrl), accessToken: token };
-      const channels = await listBotmakerChannels(conn);
-      if (channels.length > 0) {
-        await cacheBotmakerChannels(integration.id, ctx.workspaceId, channels);
-        logger.info("Botmaker channels cached", {
-          workspaceId: ctx.workspaceId,
-          channelCount: channels.length,
-          integrationId: integration.id,
-        });
-      }
-    } catch (e) {
-      logger.warn("Failed to cache Botmaker channels after connect", {
-        workspaceId: ctx.workspaceId,
-        integrationId: integration.id,
-        error: e,
-      });
-    }
-  }
+
 
   logger.info("Integration connected", {
     provider,
@@ -187,7 +134,7 @@ export const POST = withWorkspace(async (req, ctx) => {
 export const DELETE = withWorkspace(async (req, ctx) => {
   // BUG arreglado: antes el provider se leía SOLO del body (validateBody), pero
   // todos los callers lo mandan como ?provider=... → la validación fallaba y la
-  // desconexión (TikTok, Botmaker, Cari…) nunca se ejecutaba.
+  // desconexión nunca se ejecutaba.
   let provider = new URL(req.url).searchParams.get("provider") || "";
   if (!provider) {
     const body = (await req.json().catch(() => ({}))) as { provider?: unknown };

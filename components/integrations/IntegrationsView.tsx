@@ -9,7 +9,6 @@ import {
 import { PageHeader } from "@/components/ui/PageHeader";
 import { openConnectPopup } from "@/lib/connect-popup";
 import { CustomCrmModal } from "@/components/integrations/CustomCrmModal";
-import { CariConnectModal } from "@/components/integrations/CariConnectModal";
 import { useLanguage } from "@/components/layout/LanguageContext";
 import {
   MetaIcon,
@@ -24,8 +23,6 @@ import {
   LinkedInIcon,
   XIcon,
   HubSpotIcon,
-  BotmakerIcon,
-  CariAIIcon
 } from "@/components/ui/AppIcons";
 interface IntegrationData {
   id: string;
@@ -37,7 +34,7 @@ interface IntegrationData {
   pages?: { id: string; name: string; picture?: string | null }[];
 }
 
-// ─── Token Modal (BotMaker / Cari token entry) ────────────────────────────────
+// ─── Token Modal (token entry) ────────────────────────────────────────────────
 function TokenModal({ provider, label, isConnected, onClose, onSuccess, onDisconnect }: {
   provider: string; label: string; isConnected?: boolean; onClose: () => void; onSuccess: () => void; onDisconnect?: () => void;
 }) {
@@ -50,7 +47,6 @@ function TokenModal({ provider, label, isConnected, onClose, onSuccess, onDiscon
     setError(null);
     try {
       // El backend (ConnectSchema) espera { provider, token } — NO credentials.accessToken
-      // (eso devolvía 422). Para Botmaker valida el token (channels>0) antes de guardar.
       const res = await fetch("/api/workspace/integrations", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -207,8 +203,6 @@ const getTranslatedChannelDesc = (name: string, originalDesc: string, lang: 'es'
     "TikTok Ads": "In-Feed, TopView and Spark Ads from the dashboard.",
     "LinkedIn Ads": "Sponsored Content and Lead Gen Forms.",
     "X (Twitter)": "Promoted Tweets, Trends and audiences.",
-    "BotMaker": "Chatbots, WhatsApp API and conversation analytics.",
-    "Cari AI": "Report API: real-time conversations and agents.",
     "CRM Custom": "Connect your own CRM via custom API endpoint.",
     "HubSpot": "Email automation and CRM sync.",
   };
@@ -224,7 +218,6 @@ export function IntegrationsView() {
   const [loading, setLoading]             = useState(true);
   const [tokenModal, setTokenModal]       = useState<{ provider: string; label: string; isConnected?: boolean } | null>(null);
   const [showCrm, setShowCrm]             = useState(false);
-  const [showCari, setShowCari]           = useState(false);
 
   const loadIntegrations = useCallback(() => {
     setLoading(true);
@@ -273,10 +266,6 @@ export function IntegrationsView() {
         window.location.href = "/api/oauth/google/start?modules=tag_tracking"; break;
       case "tiktok_ads":
         openConnectPopup("/api/oauth/tiktok_ads/start?popup=1", loadIntegrations); break;
-      case "botmaker":
-        setTokenModal({ provider: "botmaker", label: "BotMaker", isConnected: !!getState("botmaker")?.connected }); break;
-      case "cari":
-        setShowCari(true); break;
       case "custom_crm":
         setShowCrm(true); break;
       default: break;
@@ -476,12 +465,7 @@ export function IntegrationsView() {
           onSuccess={() => { setShowCrm(false); loadIntegrations(); }}
         />
       )}
-      {showCari && (
-        <CariConnectModal
-          onClose={() => setShowCari(false)}
-          onSuccess={() => { setShowCari(false); loadIntegrations(); }}
-        />
-      )}
+
     </>
   );
 }

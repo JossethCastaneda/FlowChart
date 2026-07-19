@@ -8,12 +8,12 @@ import { mapMetaError } from "@/lib/meta-errors";
 
 export const dynamic = "force-dynamic";
 
-// In-memory page token cache (per-process, resets on cold start).
-let _pageTokenCache: { tokens: Record<string, string>; ts: number } | null = null;
-const CACHE_TTL = 5 * 60 * 1000;
-
+/**
+ * Fetches page tokens for the given user token.
+ * Request-scoped: no in-memory cache (Vercel serverless kills the process between requests
+ * anyway, so module-level caches provide false savings while breaking multi-instance envs).
+ */
 async function getPageTokens(userToken: string): Promise<Record<string, string>> {
-  if (_pageTokenCache && Date.now() - _pageTokenCache.ts < CACHE_TTL) return _pageTokenCache.tokens;
   const pagesRes = await metaFetch(
     metaUrl("me/accounts", { fields: "id,access_token", limit: "100" }),
     userToken,
@@ -22,7 +22,6 @@ async function getPageTokens(userToken: string): Promise<Record<string, string>>
   const pagesData = await pagesRes.json();
   const tokens: Record<string, string> = {};
   for (const p of pagesData.data || []) if (p.access_token) tokens[p.id] = p.access_token;
-  _pageTokenCache = { tokens, ts: Date.now() };
   return tokens;
 }
 

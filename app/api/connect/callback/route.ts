@@ -384,7 +384,32 @@ export async function GET(request: NextRequest) {
       where: { workspaceId: resolvedWorkspaceId, endpoint: "connection-status" },
     }).catch(() => {});
 
-    // Dispatch background sync workflow to cache assets immediately
+    // ── Seed inmediato de IntegrationAssetCache (page + ig_account) ────────────
+    // El workflow de sync es async y puede tardar. Si llega un webhook de IG DM
+    // antes de que corra el workflow, resolveWorkspaceForMetaAsset falla y el
+    // mensaje se descarta silenciosamente. Sembramos el cache aquí de forma
+    // sincrónica para que el primer evento ya resuelva el workspace.
+    try {
+      for (const p of pages) {
+        await prisma.integrationAssetCache.upsert({
+          where: { integrationId_assetType_externalId: { integrationId: metaIntegration.id, assetType: "page", externalId: p.id } },
+          update: { name: p.name, syncedAt: new Date() },
+          create: { integrationId: metaIntegration.id, workspaceId: resolvedWorkspaceId, provider: "meta", assetType: "page", externalId: p.id, name: p.name, metadata: {} },
+        });
+        if (p.instagramId) {
+          await prisma.integrationAssetCache.upsert({
+            where: { integrationId_assetType_externalId: { integrationId: metaIntegration.id, assetType: "ig_account", externalId: p.instagramId } },
+            update: { name: p.name, syncedAt: new Date() },
+            create: { integrationId: metaIntegration.id, workspaceId: resolvedWorkspaceId, provider: "meta", assetType: "ig_account", externalId: p.instagramId, name: p.name, metadata: { linkedPageId: p.id } },
+          });
+        }
+      }
+      logger.info(`[CONNECT CALLBACK] ✅ Seeded asset cache: ${pages.length} pages for module ${module}`);
+    } catch (cacheErr) {
+      logger.warn("[CONNECT CALLBACK] ⚠️ Asset cache seed failed (non-fatal — workflow will retry):", cacheErr);
+    }
+
+    // Dispatch background sync workflow for deep asset data (campaigns, ad accounts, etc.)
     try {
       await start(syncIntegrationAssetsWorkflow, [metaIntegration.id]);
       logger.info(`[CONNECT CALLBACK] ⚡ Dispatched asset sync for integration ${metaIntegration.id}`);

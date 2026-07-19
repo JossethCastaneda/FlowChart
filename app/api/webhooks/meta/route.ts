@@ -251,6 +251,18 @@ async function processWebhookEvents(body: any, object: string) {
               where: { externalId: msg.reaction.mid },
               data: { reaction: msg.reaction.action === "react" ? msg.reaction.emoji : null },
             });
+            // FIX: touch InboxConversation.updatedAt so the SSE watermark fires
+            // (updateMany on InboxMessage does NOT propagate to the parent conversation).
+            const reactedMsg = await prisma.inboxMessage.findFirst({
+              where: { externalId: msg.reaction.mid },
+              select: { conversationId: true },
+            }).catch(() => null);
+            if (reactedMsg?.conversationId) {
+              await prisma.inboxConversation.update({
+                where: { id: reactedMsg.conversationId },
+                data: { updatedAt: new Date() },
+              }).catch(() => {});
+            }
             await createAlert({
               type: "message_reaction",
               severity: "info",
@@ -510,6 +522,17 @@ async function processWebhookEvents(body: any, object: string) {
               where: { externalId: msg.reaction.mid },
               data: { reaction: msg.reaction.action === "react" ? msg.reaction.emoji : null },
             });
+            // FIX: touch InboxConversation.updatedAt so the SSE watermark fires
+            const reactedMsgIg = await prisma.inboxMessage.findFirst({
+              where: { externalId: msg.reaction.mid },
+              select: { conversationId: true },
+            }).catch(() => null);
+            if (reactedMsgIg?.conversationId) {
+              await prisma.inboxConversation.update({
+                where: { id: reactedMsgIg.conversationId },
+                data: { updatedAt: new Date() },
+              }).catch(() => {});
+            }
             await createAlert({
               type: "message_reaction",
               severity: "info",

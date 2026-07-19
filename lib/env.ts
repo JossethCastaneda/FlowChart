@@ -112,9 +112,7 @@ const envSchema = z.object({
   // Análisis de Resultados — sal para hashear PII (teléfono/email)
   ANALYTICS_PII_SALT: z.string().min(1).optional(),
 
-  // Botmaker (opcional)
-  BOTMAKER_ACCESS_TOKEN: z.string().optional(),
-  BOTMAKER_BASE_URL: z.string().url().optional(),
+
 
   // TikTok Ads
   // App ID  = numeric integer shown in "App details" (used in auth URL)

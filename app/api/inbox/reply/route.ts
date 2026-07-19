@@ -51,10 +51,9 @@ export async function POST(req: NextRequest) {
     // ── SECURITY: Verify conversationId belongs to this workspace ──
     // This prevents IDOR — a member cannot reply to conversations from other workspaces
     // by crafting a request with an arbitrary conversationId.
-    const conversation = await prisma.inboxConversation.findUnique({
-      where: {
-        workspaceId_externalId: { workspaceId, externalId: conversationId },
-      },
+    // We match by internal DB id + workspaceId (not externalId, which is a platform identifier).
+    const conversation = await prisma.inboxConversation.findFirst({
+      where: { id: conversationId, workspaceId },
     });
 
     if (!conversation) {

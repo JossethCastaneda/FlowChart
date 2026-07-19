@@ -4,7 +4,6 @@
  *
  * Excluded (cada uno con su propio flujo establecido):
  *   - Meta      → app/api/connect/[module]
- *   - BotMaker  → lib/botmaker.ts
  *   - Google    → el Google Hub (app/api/oauth/google + lib/integrations/google).
  *                 Un único cliente OAuth (GOOGLE_CLIENT_ID) con consentimiento
  *                 incremental por módulo. Los antiguos providers google_ads/
@@ -12,6 +11,7 @@
  *                 junio 2026: estaban muertos (env.ts no exponía sus *_CLIENT_ID)
  *                 y duplicaban el Hub. NO volver a añadir Google a este registry.
  */
+
 
 export interface ProviderConfig {
   id: string;

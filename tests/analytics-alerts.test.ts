@@ -53,7 +53,7 @@ describe("Alert engine (pure)", () => {
     const ctx: AlertContext = {
       kpis: kpis({ totalConversations: 0 }),
       dataQualityCriticalCount: 3,
-      syncFailure: { provider: "botmaker", error: "401" },
+      syncFailure: { provider: "meta_ads", error: "401" },
     };
     const types = evaluateAlerts(ctx).map((a) => a.type);
     expect(types).toContain("sync_failed");

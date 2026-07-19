@@ -16,12 +16,8 @@ export const GOALS = [
   "Alcance (Reach)", "Tráfico a tienda",
 ];
 
-export type BotChannel = "whatsapp" | "webchat" | "instagram" | "facebook";
-export const BOT_PLATFORM_CHANNELS: Record<string, BotChannel[]> = {
-  cari_ai: ["whatsapp", "webchat"],
-  botmaker: ["whatsapp", "webchat", "instagram", "facebook"],
-  google: ["webchat"],
-};
+
+
 
 export const GOOGLE_PLATFORM = "__google__";
 export const NO_BOT_PLATFORM = "__none__";

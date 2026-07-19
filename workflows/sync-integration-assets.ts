@@ -1,7 +1,6 @@
 import { sleep } from "workflow";
 import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
-import { botmakerFetch, normalizeBotmakerBase } from "@/lib/botmaker";
 import { env } from "@/lib/env";
 import { metaFetch } from "@/lib/server-auth";
 
@@ -9,8 +8,8 @@ import { metaFetch } from "@/lib/server-auth";
 const META_GRAPH_VERSION = env.META_API_VERSION;
 
 /**
- * Workflow asíncrono para mantener sincronizados los activos de las integraciones 
- * (Cuentas Publicitarias, Páginas, Bots) sin bloquear la interfaz del usuario.
+ * Workflow asíncrono para mantener sincronizados los activos de las integraciones
+ * (Cuentas Publicitarias, Páginas) sin bloquear la interfaz del usuario.
  */
 export async function syncIntegrationAssetsWorkflow(integrationId: string, delaySeconds: number = 0) {
   "use workflow";
@@ -26,7 +25,7 @@ export async function syncIntegrationAssetsWorkflow(integrationId: string, delay
 
 async function executeSyncStep(integrationId: string) {
   "use step";
-  
+
   const integration = await prisma.integration.findUnique({
     where: { id: integrationId },
   });
@@ -51,21 +50,15 @@ async function executeSyncStep(integrationId: string) {
   try {
     if (integration.provider.startsWith("meta")) {
       await syncMetaAssets(integration, token);
-    } else if (integration.provider === "botmaker") {
-      // Respetar el host Botmaker propio del workspace (igual que getBotmakerConnection).
-      const baseUrl = normalizeBotmakerBase((integration.credentials as { baseUrl?: string } | null)?.baseUrl);
-      await syncBotmakerAssets(integration, token, baseUrl);
     } else if (integration.provider === "google") {
       await syncGoogleAssets(integration, token);
     }
-    
+
     return { status: "success", timestamp: new Date().toISOString() };
   } catch (error: any) {
     // Si Meta devuelve un Rate Limit (código 4, 17 o 32), podemos pausar el workflow
     if (error.message?.includes("limit reached") || error.code === 4 || error.code === 17) {
       console.warn(`Rate limit alcanzado para integración ${integrationId}. Reintentando en 30m...`);
-      // Vercel Workflow manejará el Error reintentando con backoff exponencial 
-      // de acuerdo a la configuración del SDK.
       throw new Error("RATE_LIMIT_EXCEEDED");
     }
     throw error;
@@ -77,7 +70,7 @@ async function syncMetaAssets(integration: any, token: string) {
   const pagesRes = await metaFetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/accounts?fields=id,name,category,instagram_business_account`, token);
   if (!pagesRes.ok) throw await pagesRes.json();
   const pagesData = await pagesRes.json();
-  
+
   for (const page of pagesData.data) {
     await prisma.integrationAssetCache.upsert({
       where: {
@@ -103,89 +96,85 @@ async function syncMetaAssets(integration: any, token: string) {
       }
     });
 
-    // Si tiene cuenta de IG, también la cacheamos
-    if (page.instagram_business_account) {
+    // ── FIX: también persistir la cuenta IG vinculada como assetType "ig_account" ──
+    // resolveWorkspaceForMetaAsset(igId, "ig_account") falla en cache-miss si no
+    // está aquí. Sin esto los webhooks de IG DM se descartan silenciosamente.
+    const igId = page.instagram_business_account?.id;
+    if (igId) {
       await prisma.integrationAssetCache.upsert({
         where: {
           integrationId_assetType_externalId: {
             integrationId: integration.id,
             assetType: "ig_account",
-            externalId: page.instagram_business_account.id,
-          }
-        },
-        update: { name: `IG - ${page.name}`, syncedAt: new Date(), metadata: {} },
-        create: {
-          integrationId: integration.id,
-          workspaceId: integration.workspaceId,
-          provider: "meta",
-          assetType: "ig_account",
-          externalId: page.instagram_business_account.id,
-          name: `IG - ${page.name}`,
-          metadata: {}
-        }
-      });
-    }
-  }
-
-  // 2. Sincronizar Cuentas Publicitarias (Ad Accounts)
-  const adRes = await metaFetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/adaccounts?fields=id,name,account_status,amount_spent,currency`, token);
-  if (adRes.ok) {
-    const adData = await adRes.json();
-    for (const adAcc of adData.data) {
-      await prisma.integrationAssetCache.upsert({
-        where: {
-          integrationId_assetType_externalId: {
-            integrationId: integration.id,
-            assetType: "ad_account",
-            externalId: adAcc.id,
+            externalId: igId,
           }
         },
         update: {
-          name: adAcc.name || adAcc.id,
-          metadata: { status: adAcc.account_status, spend: adAcc.amount_spent, currency: adAcc.currency },
+          name: page.name, // nombre de la página FB vinculada como referencia
+          metadata: { linkedPageId: page.id, linkedPageName: page.name },
           syncedAt: new Date()
         },
         create: {
           integrationId: integration.id,
           workspaceId: integration.workspaceId,
           provider: "meta",
-          assetType: "ad_account",
-          externalId: adAcc.id,
-          name: adAcc.name || adAcc.id,
-          metadata: { status: adAcc.account_status, spend: adAcc.amount_spent, currency: adAcc.currency }
+          assetType: "ig_account",
+          externalId: igId,
+          name: page.name,
+          metadata: { linkedPageId: page.id, linkedPageName: page.name }
         }
       });
-      
-      // EXTRACCIÓN PROFUNDA: Descargar datos reales de Anuncios
-      await syncDeepMetaAdsData(adAcc.id, token);
     }
   }
 
-  // 3. Pre-calculate Analytics (Background Syncing)
-  try {
-    const fallbackUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL 
-      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
-      : process.env.VERCEL_URL 
-        ? `https://${process.env.VERCEL_URL}` 
-        : "http://localhost:3000";
-        
-    const appUrl = env.NEXT_PUBLIC_APP_URL || fallbackUrl;
-    const headers = { 
-      "Authorization": `Bearer ${env.CRON_SECRET}`,
-      "x-meta-token": token 
-    };
+  // 2. Sincronizar Cuentas Publicitarias
+  const adAccountsRes = await metaFetch(`https://graph.facebook.com/${META_GRAPH_VERSION}/me/adaccounts?fields=id,name,account_status,currency,timezone_name,amount_spent,balance`, token);
+  if (!adAccountsRes.ok) throw await adAccountsRes.json();
+  const adAccountsData = await adAccountsRes.json();
 
-    // Trigger organic for 28 and 7 days
-    await fetch(`${appUrl}/api/analytics/organic?force=true&days=28&workspaceId=${integration.workspaceId}`, { headers });
-    await fetch(`${appUrl}/api/analytics/organic?force=true&days=7&workspaceId=${integration.workspaceId}`, { headers });
-    
-    // Trigger posts and audience
-    await fetch(`${appUrl}/api/analytics/posts?force=true&workspaceId=${integration.workspaceId}`, { headers });
-    await fetch(`${appUrl}/api/analytics/audience?force=true&workspaceId=${integration.workspaceId}`, { headers });
-    
-    console.log(`[SYNC] Pre-calculated analytics for workspace ${integration.workspaceId}`);
-  } catch (error) {
-    console.error(`Error in precalculating analytics for ${integration.workspaceId}:`, error);
+  for (const adAccount of adAccountsData.data) {
+    await prisma.integrationAssetCache.upsert({
+      where: {
+        integrationId_assetType_externalId: {
+          integrationId: integration.id,
+          assetType: "ad_account",
+          externalId: adAccount.id,
+        }
+      },
+      update: {
+        name: adAccount.name,
+        metadata: {
+          account_status: adAccount.account_status,
+          currency: adAccount.currency,
+          timezone_name: adAccount.timezone_name,
+          amount_spent: adAccount.amount_spent,
+          balance: adAccount.balance
+        },
+        syncedAt: new Date()
+      },
+      create: {
+        integrationId: integration.id,
+        workspaceId: integration.workspaceId,
+        provider: "meta",
+        assetType: "ad_account",
+        externalId: adAccount.id,
+        name: adAccount.name,
+        metadata: {
+          account_status: adAccount.account_status,
+          currency: adAccount.currency,
+          timezone_name: adAccount.timezone_name,
+          amount_spent: adAccount.amount_spent,
+          balance: adAccount.balance
+        }
+      }
+    });
+
+    // Sincronizar datos profundos de ads (campañas, adsets, ads) en segundo plano
+    try {
+      await syncDeepMetaAdsData(adAccount.id, token);
+    } catch (error) {
+      console.error(`Error in precalculating analytics for ${integration.workspaceId}:`, error);
+    }
   }
 }
 
@@ -196,15 +185,15 @@ async function fetchPaginated(url: string, token: string): Promise<any[]> {
   while (nextUrl) {
     const res = await metaFetch(nextUrl, token);
     if (!res.ok) {
-      const err: any = await res.json().catch(()=>({}));
+      const err: any = await res.json().catch(() => ({}));
       throw err;
     }
     const data: any = await res.json();
     results = results.concat(data.data || []);
     nextUrl = data.paging?.next || null;
-    
+
     // Pausa para evitar rate limits
-    if (nextUrl) await sleep("2s"); 
+    if (nextUrl) await sleep("2s");
   }
   return results;
 }
@@ -222,7 +211,7 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
 
     const insightsCampaignsUrl = `https://graph.facebook.com/${version}/${adAccountId}/insights?date_preset=${datePreset}&level=campaign&fields=campaign_id,spend,impressions,reach,clicks,cpc,cpm,ctr,frequency,actions,cost_per_action_type,action_values,purchase_roas,website_purchase_roas,video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,video_p100_watched_actions,video_thruplay_watched_actions,outbound_clicks&limit=50`;
     const insightsCamp = await fetchPaginated(insightsCampaignsUrl, token);
-    
+
     const insightsMapC = new Map(insightsCamp.map((item: any) => [item.campaign_id, item]));
     const mergedCampaigns = campaigns.map((campaign: any) => {
       const insight = insightsMapC.get(campaign.id) || {};
@@ -300,53 +289,6 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
   }
 }
 
-
-async function syncBotmakerAssets(integration: any, token: string, baseUrl?: string) {
-  // Sincronizar Canales de Botmaker (WhatsApp, Messenger, etc.)
-  try {
-    const res = await botmakerFetch("/channels", token, {}, 2, normalizeBotmakerBase(baseUrl));
-    if (!res.ok) {
-      console.error(`Botmaker /channels sync failed: HTTP ${res.status}`);
-      return;
-    }
-    // La API puede devolver { items: [...] } o un arreglo directo (ver listBotmakerChannels).
-    const data = await res.json().catch(() => null);
-    const channels = (data?.items ?? data ?? []) as any[];
-    if (Array.isArray(channels)) {
-      for (const channel of channels) {
-        await prisma.integrationAssetCache.upsert({
-          where: {
-            integrationId_assetType_externalId: {
-              integrationId: integration.id,
-              assetType: "bot",
-              externalId: channel.id || channel.channelId,
-            }
-          },
-          update: {
-            name: channel.name || `${channel.platform} Bot`,
-            metadata: { platform: channel.platform, phoneNumber: channel.phoneNumber },
-            syncedAt: new Date()
-          },
-          create: {
-            integrationId: integration.id,
-            workspaceId: integration.workspaceId,
-            provider: "botmaker",
-            assetType: "bot",
-            externalId: channel.id || channel.channelId,
-            name: channel.name || `${channel.platform} Bot`,
-            metadata: { platform: channel.platform, phoneNumber: channel.phoneNumber }
-          }
-        });
-      }
-    }
-  } catch (error) {
-    console.error("Error fetching Botmaker channels for sync:", error);
-  }
-}
-
-async function syncGoogleAssets(integration: any, token: string) {
+async function syncGoogleAssets(_integration: any, _token: string) {
   // TODO: Implementar lógica de caché de métricas de Google Ads una vez que se defina la estructura de la API.
-  // Por ahora loggeamos para trazabilidad.
-  console.log(`[Google Sync] Pending implementation for integration: ${integration.id}`);
 }
-
