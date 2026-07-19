@@ -95,6 +95,36 @@ async function syncMetaAssets(integration: any, token: string) {
         metadata: { category: page.category, instagram_business_account: page.instagram_business_account }
       }
     });
+
+    // ── FIX: también persistir la cuenta IG vinculada como assetType "ig_account" ──
+    // resolveWorkspaceForMetaAsset(igId, "ig_account") falla en cache-miss si no
+    // está aquí. Sin esto los webhooks de IG DM se descartan silenciosamente.
+    const igId = page.instagram_business_account?.id;
+    if (igId) {
+      await prisma.integrationAssetCache.upsert({
+        where: {
+          integrationId_assetType_externalId: {
+            integrationId: integration.id,
+            assetType: "ig_account",
+            externalId: igId,
+          }
+        },
+        update: {
+          name: page.name, // nombre de la página FB vinculada como referencia
+          metadata: { linkedPageId: page.id, linkedPageName: page.name },
+          syncedAt: new Date()
+        },
+        create: {
+          integrationId: integration.id,
+          workspaceId: integration.workspaceId,
+          provider: "meta",
+          assetType: "ig_account",
+          externalId: igId,
+          name: page.name,
+          metadata: { linkedPageId: page.id, linkedPageName: page.name }
+        }
+      });
+    }
   }
 
   // 2. Sincronizar Cuentas Publicitarias
