@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   const jwt = await getToken({ req: request });
@@ -101,8 +102,9 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({ error: "Not found", details: profileData }, { status: 404 });
-  } catch (err: any) {
-    require("fs").writeFileSync("profile_debug_error.json", JSON.stringify({ error: err.message, stack: err.stack }), "utf8");
-    return NextResponse.json({ error: "Server error", message: err.message }, { status: 500 });
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
+    logger.error("[INBOX-PROFILE] Error fetching profile", { userId: request.nextUrl.searchParams.get("userId"), error: message });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

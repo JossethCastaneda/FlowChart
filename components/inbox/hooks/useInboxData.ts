@@ -281,10 +281,21 @@ export function useInboxData() {
     try {
       const pageId = (selected as any)._pageId || selected.pageId || "";
       const recipientId = selected.contactId || selected.id.replace("igc_", "").replace("fbc_", "");
-      const res = await fetch("/api/inbox/messages", { 
+      const isWhatsApp = selected.platform === "whatsapp";
+
+      // WhatsApp uses /api/inbox/messages (Cloud API path).
+      // Messenger & Instagram DM use /api/inbox/reply which enforces
+      // IDOR checks (conversationId owned by workspace) and resolves
+      // the page token server-side from Integration credentials.
+      const endpoint = isWhatsApp ? "/api/inbox/messages" : "/api/inbox/reply";
+      const body = isWhatsApp
+        ? { conversationId: selected.id, pageId, recipientId, message: text.trim(), platform: selected.platform }
+        : { conversationId: selected.id, pageId, recipientId, text: text.trim() };
+
+      const res = await fetch(endpoint, { 
         method: "POST", 
         headers: { "Content-Type": "application/json" }, 
-        body: JSON.stringify({ conversationId: selected.id, pageId, recipientId, message: text.trim(), platform: selected.platform }) 
+        body: JSON.stringify(body),
       });
       
       if (!res.ok) {
@@ -296,8 +307,8 @@ export function useInboxData() {
         if (c.id !== selected.id) return c;
         return { ...c, messages: c.messages.map(m => m.id === newMsgId ? { ...m, status: "sent" } : m) };
       }));
-    } catch (err: any) { 
-      const errorMsg = err?.message || "Error al enviar";
+    } catch (err: unknown) { 
+      const errorMsg = err instanceof Error ? err.message : "Error al enviar";
       setConversations(prev => prev.map(c => {
         if (c.id !== selected.id) return c;
         return { ...c, messages: c.messages.map(m => m.id === newMsgId ? { ...m, status: "error", errorText: errorMsg } : m) };
