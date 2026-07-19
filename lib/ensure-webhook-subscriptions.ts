@@ -1,25 +1,14 @@
-/**
- * Auto-reparación idempotente de suscripciones a webhooks de Meta.
+﻿/**
+ * Auto-reparacion idempotente de suscripciones a webhooks de Meta.
  *
- * Contexto: la suscripción de páginas solo ocurría al conectar un módulo o al
- * llamar manualmente a /api/webhooks/subscribe. Cuando la suscripción falló en
- * su momento (p. ej. el bug todo-o-nada por scopes — ver lib/meta-webhooks), las
- * conexiones existentes quedaban SIN webhooks y el inbox no recibía mensajes en
- * tiempo real, sin forma de auto-repararse salvo reconectar a mano.
+ * CRITICO: subscribed_apps es un PUT implicito — cada llamada reemplaza TODOS
+ * los campos suscritos de esa pagina. Si hay dos integraciones (ej. community +
+ * social) con las mismas paginas, procesarlas en loop hace que la segunda
+ * sobreescriba a la primera, eliminando campos (ej. 'messages' de Messenger).
+ * Por eso se calcula la UNION de scopes de todas las integraciones antes de
+ * suscribir, y se llama subscribePages UNA SOLA VEZ por pagina.
  *
- * Esta función re-ejecuta la suscripción (ya consciente de scopes) usando los
- * page tokens ya almacenados en la Integration. Es:
- *  - Idempotente: subscribed_apps se puede reenviar sin efectos secundarios.
- *  - Guardada: se salta si corrió hace menos de ENSURE_TTL_MS para no golpear
- *    Graph en cada apertura del inbox. El guard se persiste en la tabla de
- *    cache dedicada (MetaAnalyticsCache), NO en las credenciales de la
- *    integración — así nunca reescribe el JSON de tokens ni compite con el
- *    cron de refresco de tokens (evita clobber del access token).
- *  - Silenciosa: nunca lanza; los fallos se loguean. Pensada para fire-and-forget.
- *
- * Corre SERVER-SIDE (el ENCRYPTION_KEY de producción descifra los page tokens),
- * disparada desde el stream SSE del inbox: abrir el inbox repara las
- * suscripciones sin acción manual del usuario.
+ * Corre SERVER-SIDE, disparada desde el stream SSE del inbox.
  */
 
 import prisma from "@/lib/prisma";
@@ -28,8 +17,8 @@ import { subscribePages, type SubscribablePage } from "@/lib/meta-webhooks";
 import { logger } from "@/lib/logger";
 import { env } from "@/lib/env";
 
-const ENSURE_TTL_MS = 6 * 60 * 60 * 1000; // 6h entre re-verificaciones por workspace
-const GUARD_ENDPOINT = "webhook-ensure"; // fila en MetaAnalyticsCache usada como guard
+const ENSURE_TTL_MS = 6 * 60 * 60 * 1000;
+const GUARD_ENDPOINT = "webhook-ensure";
 
 type MetaCreds = {
   pages?: Array<{ id: string; name?: string; accessToken?: string; instagramId?: string | null }>;
@@ -37,76 +26,91 @@ type MetaCreds = {
   [k: string]: unknown;
 };
 
-/**
- * Asegura que las páginas del workspace estén suscritas a los webhooks.
- * Devuelve un resumen (o null si no hizo nada). Nunca lanza.
- */
 export async function ensureWebhookSubscriptions(
   workspaceId: string,
-): Promise<{ integration: string; subscribed: number; failed: number }[] | null> {
+): Promise<{ subscribed: number; failed: number; scopesUsed: string[] } | null> {
   try {
     const now = Date.now();
 
-    // Guard por workspace (una sola fila, no por integración): si se verificó
-    // hace < TTL, salir sin tocar Graph. updatedAt se refresca en cada upsert.
     const guard = await prisma.metaAnalyticsCache.findUnique({
       where: { workspaceId_endpoint_paramsKey: { workspaceId, endpoint: GUARD_ENDPOINT, paramsKey: "" } },
       select: { updatedAt: true },
     });
     if (guard && now - guard.updatedAt.getTime() < ENSURE_TTL_MS) return null;
 
-    // Sella ANTES de la red (lock optimista): conexiones SSE concurrentes que
-    // abran el mismo inbox no dispararán la suscripción en paralelo.
     await prisma.metaAnalyticsCache.upsert({
       where: { workspaceId_endpoint_paramsKey: { workspaceId, endpoint: GUARD_ENDPOINT, paramsKey: "" } },
       create: { workspaceId, endpoint: GUARD_ENDPOINT, paramsKey: "", data: {} },
-      update: { data: {} }, // fuerza refresco de updatedAt (@updatedAt)
+      update: { data: {} },
     }).catch(() => {});
 
-    // Integraciones Meta con page tokens: community es la del inbox FB/IG.
     const integrations = await prisma.integration.findMany({
       where: { workspaceId, provider: { startsWith: "meta" }, connected: true },
       select: { id: true, provider: true, credentials: true },
     });
     if (integrations.length === 0) return null;
 
-    const summaries: { integration: string; subscribed: number; failed: number }[] = [];
+    // FIX: Union de scopes + dedup de paginas
+    // subscribed_apps es PUT implicito: cada llamada REEMPLAZA todos los
+    // subscribed_fields. Procesar cada integracion por separado hacia que la
+    // segunda eliminara los campos de la primera (ej. 'messages' de
+    // pages_messaging se perdia cuando publisher_facebook conectaba despues
+    // de community/messenger).
+    const unionScopes = new Set<string>();
+    const pageMap = new Map<string, SubscribablePage>();
 
-    for (const intg of integrations) {
+    // Priorizar community/meta para sus page tokens
+    const sorted = [...integrations].sort((a, b) => {
+      const priority = (p: string) => (p === "meta_community" || p === "meta" ? 0 : 1);
+      return priority(a.provider) - priority(b.provider);
+    });
+
+    for (const intg of sorted) {
       const creds = (intg.credentials as MetaCreds) || {};
-      const pages = creds.pages ?? [];
-      if (pages.length === 0) continue;
-
-      const subscribable: SubscribablePage[] = [];
-      for (const p of pages) {
-        if (!p.accessToken) continue;
+      for (const s of creds.grantedScopes ?? []) unionScopes.add(s);
+      for (const p of creds.pages ?? []) {
+        if (!p.accessToken || pageMap.has(p.id)) continue;
         let token: string;
         try {
           token = decryptToken(p.accessToken);
         } catch {
-          continue; // token ilegible con la clave actual — omitir esta página
+          continue;
         }
-        subscribable.push({ id: p.id, name: p.name, accessToken: token, instagramId: p.instagramId ?? null });
+        pageMap.set(p.id, {
+          id: p.id,
+          name: p.name,
+          accessToken: token,
+          instagramId: p.instagramId ?? null,
+        });
       }
-      if (subscribable.length === 0) continue;
-
-      const results = await subscribePages(subscribable, env.META_API_VERSION, creds.grantedScopes);
-      const subscribed = results.filter((r) => r.success).length;
-      const failed = results.length - subscribed;
-      summaries.push({ integration: intg.provider, subscribed, failed });
-
-      logger.info("[ENSURE-WEBHOOKS] Re-suscripción automática", {
-        workspaceId,
-        provider: intg.provider,
-        subscribed,
-        failed,
-        failures: results.filter((r) => !r.success).slice(0, 5).map((r) => ({ id: r.id, error: r.error })),
-      });
     }
 
-    return summaries.length > 0 ? summaries : null;
+    const subscribable = Array.from(pageMap.values());
+    if (subscribable.length === 0) return null;
+
+    const combinedScopes = Array.from(unionScopes);
+
+    logger.info("[ENSURE-WEBHOOKS] Suscripcion con scopes unificados", {
+      workspaceId,
+      integrations: sorted.map((i) => i.provider),
+      pages: subscribable.length,
+      scopes: combinedScopes,
+    });
+
+    const results = await subscribePages(subscribable, env.META_API_VERSION, combinedScopes);
+    const subscribed = results.filter((r) => r.success).length;
+    const failed = results.length - subscribed;
+
+    logger.info("[ENSURE-WEBHOOKS] Re-suscripcion completada", {
+      workspaceId,
+      subscribed,
+      failed,
+      failures: results.filter((r) => !r.success).slice(0, 5).map((r) => ({ id: r.id, error: r.error })),
+    });
+
+    return { subscribed, failed, scopesUsed: combinedScopes };
   } catch (err) {
-    logger.warn("[ENSURE-WEBHOOKS] falló", {
+    logger.warn("[ENSURE-WEBHOOKS] fallo", {
       workspaceId,
       error: err instanceof Error ? err.message : String(err),
     });
