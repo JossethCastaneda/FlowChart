@@ -31,7 +31,8 @@ vi.mock("@/lib/prisma", () => {
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-import { authOptions } from "../auth.config";
+import { authOptions } from "../lib/auth.config";
+
 
 describe("authOptions configuration", () => {
   beforeEach(() => {

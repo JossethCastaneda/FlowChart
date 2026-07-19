@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth.config";
+import { authOptions } from "@/lib/auth.config";
+
 import { apiUnauthorized, apiError, apiServerError, apiForbidden } from "@/lib/api-response";
 import { logger } from "@/lib/logger";
 import prisma from "@/lib/prisma";

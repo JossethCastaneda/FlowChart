@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
-import { authOptions } from "@/auth.config";
+import { authOptions } from "@/lib/auth.config";
+
 import type { NextRequest } from "next/server";
 
 export const dynamic = "force-dynamic";

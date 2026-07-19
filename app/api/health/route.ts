@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth/next";
-import { authOptions } from "@/auth.config";
+import { authOptions } from "@/lib/auth.config";
+
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
