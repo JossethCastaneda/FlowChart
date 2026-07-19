@@ -66,7 +66,7 @@ console.log(`[db-sync] target database host: ${host}`);
 // Drop stale tables that are not in our Prisma schema but exist in the DB,
 // which cause Prisma to abort the entire sync with "data loss" warnings.
 // This is idempotent and safe — these tables are not referenced by any code.
-const STALE_TABLES = ["playing_with_neon", "BestTimeCache", "BotMakerConfig", "HashtagCache"];
+const STALE_TABLES = ["playing_with_neon", "BestTimeCache", "HashtagCache"];
 try {
   const client = new Client({ connectionString: dbUrl, ssl: true });
   await client.connect();

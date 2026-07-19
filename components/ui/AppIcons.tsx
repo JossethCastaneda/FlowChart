@@ -240,59 +240,8 @@ export const InstagramIcon: React.FC<IconProps> = ({ size = 20, style, ...props 
   </svg>
 );
 
-// ─── Botmaker ────────────────────────────────────────────────────────────────
-// Ícono limpio de robot sin fondo (el fondo lo da iconBg).
-export const BotmakerIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={size}
-    height={size}
-    xmlns="http://www.w3.org/2000/svg"
-    style={style}
-    {...props}
-  >
-    {/* Antenna dot */}
-    <circle cx="12" cy="3" r="1.2" fill="white"/>
-    {/* Antenna stem */}
-    <rect x="11.3" y="4" width="1.4" height="3" rx="0.7" fill="white"/>
-    {/* Robot head */}
-    <rect x="4" y="7" width="16" height="11" rx="3" fill="white"/>
-    {/* Eyes */}
-    <rect x="7.5" y="10" width="3" height="3" rx="1.5" fill="#1E40AF"/>
-    <rect x="13.5" y="10" width="3" height="3" rx="1.5" fill="#1E40AF"/>
-    {/* Eye shine */}
-    <circle cx="8.5" cy="10.8" r="0.5" fill="white"/>
-    <circle cx="14.5" cy="10.8" r="0.5" fill="white"/>
-    {/* Mouth line */}
-    <rect x="8" y="15" width="8" height="1.5" rx="0.75" fill="rgba(30,64,175,0.4)"/>
-  </svg>
-);
 
-// ─── Cari AI ─────────────────────────────────────────────────────────────────
-// Ícono limpio de IA - estrella/chispa para inteligencia artificial.
-export const CariAIIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) => (
-  <svg
-    viewBox="0 0 24 24"
-    width={size}
-    height={size}
-    xmlns="http://www.w3.org/2000/svg"
-    style={style}
-    {...props}
-  >
-    {/* Sparkle / AI star */}
-    <path
-      fill="white"
-      d="M12 2 L13.5 9 L20 8 L14.5 12 L18 19 L12 15 L6 19 L9.5 12 L4 8 L10.5 9 Z"
-    />
-    {/* Center glow */}
-    <circle cx="12" cy="12" r="2" fill="rgba(255,255,255,0.3)"/>
-    {/* Small orbiting dots */}
-    <circle cx="12" cy="5" r="0.8" fill="white" opacity="0.7"/>
-    <circle cx="19" cy="12" r="0.8" fill="white" opacity="0.7"/>
-    <circle cx="12" cy="19" r="0.8" fill="white" opacity="0.7"/>
-    <circle cx="5" cy="12" r="0.8" fill="white" opacity="0.7"/>
-  </svg>
-);
+
 
 // ─── Zefirus Brand Logo ────────────────────────────────────────────────────────
 export const ZefirusIcon: React.FC<IconProps> = ({ size = 20, style, ...props }) => (
@@ -336,9 +285,6 @@ export const APP_ICONS: Record<string, React.FC<IconProps>> = {
   google_tag: GTMIcon,
   messenger: MessengerIcon,
   instagram: InstagramIcon,
-  botmaker: BotmakerIcon,
-  cari: CariAIIcon,
-  cari_ai: CariAIIcon,
   zefirus: ZefirusIcon,
 };
 

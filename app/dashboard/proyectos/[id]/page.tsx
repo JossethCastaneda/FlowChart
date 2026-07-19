@@ -10,7 +10,8 @@ import {
   HeartPulse, RefreshCw, MousePointer, Shield,
   Tag, Building, MapPin, Link, ShieldCheck
 } from "lucide-react";
-import { normalizeIntegrationProvider } from "@/lib/analytics/project-scope";
+
+
 import { GoogleSourcesPanel } from "@/components/projects/GoogleSourcesPanel";
 import { GoogleAdsDashboard } from "@/components/projects/GoogleAdsDashboard";
 import { UserReliabilityModule } from "@/components/analytics/UserReliabilityModule";

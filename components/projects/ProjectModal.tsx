@@ -3,10 +3,10 @@ import { createPortal } from "react-dom";
 import { X, ChevronDown, Check, Plus, AlertTriangle, Users, Globe, DollarSign } from "lucide-react";
 import type { Project, ChannelConfig } from "@/types/project";
 import {
-  PLATFORMS, VERTICALS, GOALS, BOT_PLATFORM_CHANNELS, GOOGLE_PLATFORM, NO_BOT_PLATFORM,
-  CPR_MAP, type BotChannel
+  PLATFORMS, VERTICALS, GOALS, GOOGLE_PLATFORM, NO_BOT_PLATFORM,
+  CPR_MAP
 } from "@/lib/project-constants";
-import { normalizeIntegrationProvider, PROVIDER_LABELS } from "@/lib/analytics/project-scope";
+
 
 interface MetaPage {
   id: string;

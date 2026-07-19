@@ -197,7 +197,6 @@ const BREADCRUMB_MAP: Record<string, { es: string; en: string }> = {
   dashboard: { es: "Inicio", en: "Home" },
   proyectos: { es: "Clientes", en: "Clients" },
   resumen: { es: "Resumen", en: "Overview" },
-  botmaker: { es: "Botmaker", en: "Botmaker" },
   analytics: { es: "Analítica", en: "Analytics" },
   portabilidad: { es: "Portabilidad", en: "Portability" },
   briefing: { es: "Briefing", en: "Briefing" },

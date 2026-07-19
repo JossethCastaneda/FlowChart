@@ -221,8 +221,9 @@ export function aggregateOperations(rows: AggConversation[], slaFrtSeconds = 120
   };
 }
 
-/** Comparación entre proveedores (Cari AI vs Botmaker) — spec §18. */
+/** Comparación de conversaciones por proveedor — spec §18. */
 export function compareProviders(rows: AggConversation[]): Record<string, { total: number; resolvedByBot: number; containment: number }> {
+
   const out: Record<string, { total: number; resolvedByBot: number; containment: number }> = {};
   for (const c of rows) {
     const p = c.provider || "unknown";

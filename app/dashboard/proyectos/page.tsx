@@ -20,9 +20,10 @@ import { PlanLimitBanner } from "@/components/settings/PlanUsageMeter";
 import type { Project, ChannelConfig } from "@/types/project";
 import { ProjectCard } from "@/components/projects/ProjectCard";
 import {
-  PLATFORMS, VERTICALS, GOALS, BOT_PLATFORM_CHANNELS, GOOGLE_PLATFORM, NO_BOT_PLATFORM,
-  CPR_MAP, STATUSES, STATUS_COLORS, type BotChannel
+  PLATFORMS, VERTICALS, GOALS, GOOGLE_PLATFORM, NO_BOT_PLATFORM,
+  CPR_MAP, STATUSES, STATUS_COLORS
 } from "@/lib/project-constants";
+
 
 /* ═══════════════════════════════════════
    TYPES
