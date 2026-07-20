@@ -18,6 +18,34 @@ import { logger } from "@/lib/logger";
 
 export type InboxPlatform = "facebook_messenger" | "instagram_dm" | "facebook_comment" | "instagram_comment" | "whatsapp";
 
+/** Escribe en IntegrationAssetCache para que el próximo mensaje sea O(1) en vez de O(N-tenants). */
+async function cacheAssetWorkspace(externalId: string, kind: "page" | "ig_account", workspaceId: string): Promise<void> {
+  try {
+    // El @@unique es [integrationId, assetType, externalId] — como no tenemos integrationId aquí,
+    // hacemos un updateMany + create condicional (no upsert sin la clave compuesta).
+    const updated = await prisma.integrationAssetCache.updateMany({
+      where: { assetType: kind, externalId, workspaceId },
+      data: { syncedAt: new Date() },
+    });
+    if (updated.count === 0) {
+      // No existe aún — crear con integrationId vacío (es para el cache de ruteo, no para sync).
+      await prisma.integrationAssetCache.create({
+        data: {
+          integrationId: `inbox-auto:${workspaceId}`,
+          workspaceId,
+          provider: "meta",
+          assetType: kind,
+          externalId,
+          name: externalId,  // placeholder — se sobreescribe al sincronizar assets
+          metadata: {},
+        },
+      }).catch(() => {/* race condition: ya existe — ignorar */});
+    }
+  } catch {
+    // No crítico — el siguiente mensaje hará el scan de nuevo.
+  }
+}
+
 /** Resuelve el workspace dueño de un activo Meta (página / cuenta IG) para rutear el inbox. */
 export async function resolveWorkspaceForMetaAsset(
   externalId: string,
@@ -38,7 +66,11 @@ export async function resolveWorkspaceForMetaAsset(
     where: { externalId: { in: ids } },
     select: { project: { select: { workspaceId: true } } },
   });
-  if (src?.project?.workspaceId) return src.project.workspaceId;
+  if (src?.project?.workspaceId) {
+    // Write-back para que el siguiente mensaje sea un cache hit.
+    void cacheAssetWorkspace(externalId, kind, src.project.workspaceId);
+    return src.project.workspaceId;
+  }
 
   // 3. Fallback: Channel.config — buscar en la configuración de canales
   //    del proyecto (mismo camino que usa createAlert/findProjectsForEvent).
@@ -58,13 +90,25 @@ export async function resolveWorkspaceForMetaAsset(
       if (!cfg) continue;
       // Verificar pageId directo o en arrays pages[]/instagramAccounts[]
       if (kind === "page") {
-        if (cfg.pageId === externalId || cfg.pageId === normalized) return ch.project.workspaceId;
+        if (cfg.pageId === externalId || cfg.pageId === normalized) {
+          void cacheAssetWorkspace(externalId, kind, ch.project.workspaceId);
+          return ch.project.workspaceId;
+        }
         const pages = cfg.pages as Array<{ id: string }> | undefined;
-        if (pages?.some((p) => ids.includes(p.id))) return ch.project.workspaceId;
+        if (pages?.some((p) => ids.includes(p.id))) {
+          void cacheAssetWorkspace(externalId, kind, ch.project.workspaceId);
+          return ch.project.workspaceId;
+        }
       } else {
-        if (cfg.igAccountId === externalId || cfg.igAccountId === normalized) return ch.project.workspaceId;
+        if (cfg.igAccountId === externalId || cfg.igAccountId === normalized) {
+          void cacheAssetWorkspace(externalId, kind, ch.project.workspaceId);
+          return ch.project.workspaceId;
+        }
         const accounts = cfg.instagramAccounts as Array<{ id: string }> | undefined;
-        if (accounts?.some((a) => ids.includes(a.id))) return ch.project.workspaceId;
+        if (accounts?.some((a) => ids.includes(a.id))) {
+          void cacheAssetWorkspace(externalId, kind, ch.project.workspaceId);
+          return ch.project.workspaceId;
+        }
       }
     }
   } catch (err) {
@@ -88,7 +132,10 @@ export async function resolveWorkspaceForMetaAsset(
         return p.instagramId === externalId || p.instagramId === normalized;
       });
       
-      if (found) return integ.workspaceId;
+      if (found) {
+        void cacheAssetWorkspace(externalId, kind, integ.workspaceId);
+        return integ.workspaceId;
+      }
     }
   } catch (err) {
     logger.warn("[INBOX-STORE] Integration credentials fallback failed", {

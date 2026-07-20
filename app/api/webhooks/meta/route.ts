@@ -4,7 +4,7 @@ import { logger } from "@/lib/logger";
 import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
 import { resolveWorkspaceForMetaAsset, persistInboundMessage, type InboxPlatform } from "@/lib/inbox-store";
 import { env } from "@/lib/env";
-import { parseIntegrationCredentials } from "@/lib/meta-tokens";
+import { parseIntegrationCredentials, getPageTokenForFetch } from "@/lib/meta-tokens";
 
 /**
  * Persiste un DM entrante de Messenger/IG en el inbox (tiempo real). Resuelve el
@@ -51,10 +51,23 @@ async function persistMetaDm(
           const parsed = parseIntegrationCredentials(integ.credentials);
           if (!parsed) continue;
           
-          const page = parsed.pages.find(p => p.pageId === assetId || p.instagramBusinessAccountId === assetId);
-          if (page?.pageAccessToken) {
-            pageToken = page.pageAccessToken;
+          // getPageTokenForFetch descifra el token AES — el stored token es cifrado y NO puede
+          // pasarse directamente a la Graph API (ese era el bug: Graph lo rechazaba silenciosamente).
+          const decryptedToken = getPageTokenForFetch(parsed.pages, assetId)
+            ?? parsed.pages.find(p => p.instagramBusinessAccountId === assetId
+                ? getPageTokenForFetch(parsed.pages, p.pageId)
+                : null)?.pageAccessToken
+            ?? null;
+          
+          if (decryptedToken && !decryptedToken.startsWith("enc:")) {
+            pageToken = decryptedToken;
             break;
+          }
+          // Fallback: buscar por instagramBusinessAccountId
+          const igPage = parsed.pages.find(p => p.instagramBusinessAccountId === assetId);
+          if (igPage) {
+            const igToken = getPageTokenForFetch(parsed.pages, igPage.pageId);
+            if (igToken) { pageToken = igToken; break; }
           }
         }
 
@@ -237,22 +250,14 @@ async function processWebhookEvents(body: any, object: string) {
             });
           }
 
-          // Message Reactions
+          // Message Reactions — solo actualizamos la columna reaction del mensaje original.
+          // NO creamos un mensaje sintético (eso duplicaba en cada reentrega por el Date.now()).
           if (msg.reaction) {
-            const actionText = msg.reaction.action === "react" ? `Reaccionó con ${msg.reaction.emoji}` : "Quitó su reacción";
-            await persistMetaDm("facebook_messenger", "page", entryId, {
-              ...msg,
-              message: {
-                mid: `${msg.reaction.mid}_reaction_${Date.now()}`,
-                text: actionText,
-              }
-            });
             await prisma.inboxMessage.updateMany({
               where: { externalId: msg.reaction.mid },
               data: { reaction: msg.reaction.action === "react" ? msg.reaction.emoji : null },
             });
-            // FIX: touch InboxConversation.updatedAt so the SSE watermark fires
-            // (updateMany on InboxMessage does NOT propagate to the parent conversation).
+            // Tocar updatedAt de la conversación para que el SSE watermark dispare.
             const reactedMsg = await prisma.inboxMessage.findFirst({
               where: { externalId: msg.reaction.mid },
               select: { conversationId: true },
@@ -508,21 +513,12 @@ async function processWebhookEvents(body: any, object: string) {
             });
           }
 
-          // Instagram Message Reactions
+          // Instagram Message Reactions — solo actualizamos la columna reaction del mensaje original.
           if (msg.reaction) {
-            const actionText = msg.reaction.action === "react" ? `Reaccionó con ${msg.reaction.emoji}` : "Quitó su reacción";
-            await persistMetaDm("instagram_dm", "ig_account", entryId, {
-              ...msg,
-              message: {
-                mid: `${msg.reaction.mid}_reaction_${Date.now()}`,
-                text: actionText,
-              }
-            });
             await prisma.inboxMessage.updateMany({
               where: { externalId: msg.reaction.mid },
               data: { reaction: msg.reaction.action === "react" ? msg.reaction.emoji : null },
             });
-            // FIX: touch InboxConversation.updatedAt so the SSE watermark fires
             const reactedMsgIg = await prisma.inboxMessage.findFirst({
               where: { externalId: msg.reaction.mid },
               select: { conversationId: true },

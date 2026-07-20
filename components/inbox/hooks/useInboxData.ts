@@ -92,11 +92,16 @@ export function useInboxData() {
           }));
         });
 
-        // Fetch missing profiles for Meta conversations (where name is just a numeric ID, is default, or avatar is missing)
-        const profileFetchers = mapped.filter(c =>
-          (c.platform === "fb_messenger" || c.platform === "instagram_dm" || c.platform === "ig_dm") &&
-          (/^\d+$/.test(c.contactName) || c.contactName === "Usuario" || !c.contactAvatar)
-        ).map(conv => {
+        // Refetch de perfiles: solo cuando el contactName ES un PSID numérico puro (no resuelto).
+        // Con el fix de decryptToken en el webhook, los mensajes nuevos ya llegan con nombre/avatar,
+        // así que esta lista converge a 0. Limitamos a 5 por ciclo para no saturar Graph.
+        const profileFetchers = mapped
+          .filter(c =>
+            (c.platform === "fb_messenger" || c.platform === "instagram_dm" || c.platform === "ig_dm") &&
+            /^\d+$/.test(c.contactName)  // solo PSIDs numéricos — "Usuario" y nombres reales no entran
+          )
+          .slice(0, 5)  // máximo 5 por ciclo
+          .map(conv => {
           const pageId = (conv as any)._pageId;
           return fetch(`/api/inbox/profile?userId=${conv.contactId}&pageId=${pageId || ""}`)
             .then(r => r.ok ? r.json() : null)

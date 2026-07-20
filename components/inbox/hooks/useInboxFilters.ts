@@ -12,14 +12,18 @@ export function useInboxFilters(
   const [queueFilter, setQueueFilter] = useState<QueueFilter>("all");
   const [queueMenuOpen, setQueueMenuOpen] = useState(false);
 
-  // Constants for tabs (should match InboxLayout constants or be imported)
+  // Constants for tabs — los valores en `platforms[]` deben coincidir con el tipo Platform
+  // (los valores que useInboxData.mapConversations produce, NO los valores de la DB).
+  // DB: facebook_messenger → frontend: fb_messenger
+  // DB: instagram_dm       → frontend: instagram_dm | ig_dm
+  // DB: instagram_comment  → frontend: instagram_comment | ig_comment
   const CHANNEL_TABS = [
-    { key: "all",        label: "Todo",              color: "#9b7be8", platforms: [] },
-    { key: "messenger",  label: "Messenger",         color: "#006AFF", platforms: ["facebook_messenger"] },
-    { key: "instagram",  label: "Instagram DM",      color: "#d62976", platforms: ["instagram_dm"] },
-    { key: "fb_comment", label: "FB Comentarios",    color: "#1877F2", platforms: ["facebook_comment"] },
-    { key: "ig_comment", label: "IG Comentarios",    color: "#f86f2b", platforms: ["instagram_comment"] },
-    { key: "whatsapp",   label: "WhatsApp",          color: "#25D366", platforms: ["whatsapp"] },
+    { key: "all",        label: "Todo",           color: "#9b7be8", platforms: [] as string[] },
+    { key: "messenger",  label: "Messenger",      color: "#006AFF", platforms: ["fb_messenger"] },
+    { key: "instagram",  label: "Instagram DM",   color: "#d62976", platforms: ["instagram_dm", "ig_dm"] },
+    { key: "fb_comment", label: "FB Comentarios", color: "#1877F2", platforms: ["fb_comment"] },
+    { key: "ig_comment", label: "IG Comentarios", color: "#f86f2b", platforms: ["ig_comment", "instagram_comment"] },
+    { key: "whatsapp",   label: "WhatsApp",       color: "#25D366", platforms: ["whatsapp"] },
   ];
 
   const QUEUE_TABS = [

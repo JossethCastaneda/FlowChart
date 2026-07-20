@@ -21,7 +21,8 @@ const ReplySchema = z.object({
 /**
  * POST /api/inbox/reply
  *
- * Sends a reply to a Messenger / Instagram DM conversation.
+ * Sends a reply to a Messenger / Instagram DM conversation, or to a
+ * Facebook / Instagram comment via /{comment-id}/replies.
  *
  * Security:
  * - Requires authenticated session
@@ -75,8 +76,6 @@ export async function POST(req: NextRequest) {
 
     // ── Resolve pageToken server-side from workspace Integration ──
     // NEVER trust the pageToken from the client. Always fetch from DB.
-    // This eliminates the IDOR vector described in Audit #6.
-    //
     // Priority: meta_community (has pages_messaging scope required by Send API),
     // then meta (generic fallback). Other modules (ads, analytics) lack the
     // pages_messaging permission and would fail at the Graph API level.
@@ -123,47 +122,70 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // ── Send the reply via Meta Send API ──
-    // Replies go through POST /{pageId}/messages (Send API), NOT /{conversationId}/messages
-    const replyRes = await metaFetch(
-      `https://graph.facebook.com/${META_V}/${pageId}/messages`,
-      pageToken,
-      {
-        method: "POST",
-        body: JSON.stringify({
-          recipient: { id: recipientId },
-          message: { text },
-          messaging_type: "RESPONSE",
-        }),
-      }
-    );
-    const replyData = await replyRes.json();
+    const isComment =
+      conversation.platform === "facebook_comment" ||
+      conversation.platform === "instagram_comment";
+    const now = new Date();
+    let replyMessageId: string | null = null;
 
-    if (!replyRes.ok || replyData.error) {
-      const mapped = mapMetaError(replyData?.error);
-      logger.error("[INBOX-REPLY] Meta API error:", replyData?.error?.message);
-      return NextResponse.json(
-        { error: mapped.user_message },
-        { status: 422 }
+    if (isComment) {
+      // ── Reply to Comment via /{comment-id}/replies ──
+      // For comments, externalId IS the comment-id (not the PSID of the user).
+      // Strip internal prefixes (fbc_ / igc_) to get the raw Graph comment ID.
+      const commentId = conversation.externalId.replace(/^fbc_|^igc_/, "");
+      if (!commentId) {
+        return NextResponse.json({ error: "No se pudo determinar el comment-id" }, { status: 400 });
+      }
+      const commentRes = await metaFetch(
+        `https://graph.facebook.com/${META_V}/${commentId}/replies`,
+        pageToken,
+        {
+          method: "POST",
+          body: JSON.stringify({ message: text }),
+        }
       );
+      const commentData = await commentRes.json();
+      if (!commentRes.ok || commentData.error) {
+        const mapped = mapMetaError(commentData?.error);
+        logger.error("[INBOX-REPLY] Comment reply Meta API error:", commentData?.error?.message);
+        return NextResponse.json({ error: mapped.user_message }, { status: 422 });
+      }
+      replyMessageId = commentData.id || null;
+    } else {
+      // ── Send the reply via Meta Send API (DMs: Messenger / IG DM) ──
+      // Replies go through POST /{pageId}/messages (Send API), NOT /{conversationId}/messages
+      const replyRes = await metaFetch(
+        `https://graph.facebook.com/${META_V}/${pageId}/messages`,
+        pageToken,
+        {
+          method: "POST",
+          body: JSON.stringify({
+            recipient: { id: recipientId },
+            message: { text },
+            messaging_type: "RESPONSE",
+          }),
+        }
+      );
+      const replyData = await replyRes.json();
+      if (!replyRes.ok || replyData.error) {
+        const mapped = mapMetaError(replyData?.error);
+        logger.error("[INBOX-REPLY] Meta API error:", replyData?.error?.message);
+        return NextResponse.json({ error: mapped.user_message }, { status: 422 });
+      }
+      replyMessageId = replyData.id || null;
     }
 
     // ── Update InboxConversation in DB ──
-    const now = new Date();
     await prisma.inboxConversation.update({
       where: { id: conversation.id },
-      data: {
-        lastMessage: text,
-        lastMessageAt: now,
-        unread: false,
-      },
+      data: { lastMessage: text, lastMessageAt: now, unread: false },
     });
 
     // ── Create InboxMessage record ──
     await prisma.inboxMessage.create({
       data: {
         conversationId: conversation.id,
-        externalId: replyData.id || null,
+        externalId: replyMessageId,
         content: text,
         sender: "page",
         senderName: pageId || null,
@@ -171,18 +193,11 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    logger.info(`[INBOX-REPLY] ✅ Reply sent to conversation ${conversationId}`);
-    return NextResponse.json({
-      success: true,
-      messageId: replyData.id || null,
-      conversationId,
-    });
+    logger.info(`[INBOX-REPLY] ✅ Reply sent to conversation ${conversationId} (${conversation.platform})`);
+    return NextResponse.json({ success: true, messageId: replyMessageId, conversationId });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Error interno";
     logger.error("[INBOX-REPLY] Error:", message);
-    return NextResponse.json(
-      { error: message },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
