@@ -1,9 +1,8 @@
 import { NextRequest } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch, resolvePageToken } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
-import { decryptToken } from "@/lib/encryption";
 import { validateBody } from "@/lib/validate";
 import { z } from "zod";
 import { logger } from "@/lib/logger";
@@ -32,15 +31,21 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   const _validate = await validateBody(req, z.object({
     mediaId: z.string().min(1, "mediaId es requerido"),
     comment: z.string().min(1, "comment es requerido"),
-    pageToken: z.string().optional()
+    igUserId: z.string().optional(),
   }));
 
   if (!_validate.ok) return _validate.response;
-  
-  const { mediaId, comment, pageToken: encryptedPageToken } = _validate.data;
 
-  // Decrypt the page token — prefer it over workspace-level token
-  const pageToken = encryptedPageToken ? decryptToken(encryptedPageToken) || token : token;
+  const { mediaId, comment, igUserId } = _validate.data;
+
+  // SEGURIDAD: comentar en IG requiere el PAGE token de la cuenta dueña del media.
+  // Se resuelve server-side (nunca se confía en un pageToken del cliente — además el
+  // decryptToken de un plaintext lanzaría y provocaría 500). Si el cliente no envía
+  // igUserId, resolvePageToken cae a la primera página con cuenta IG vinculada.
+  const resolved = igUserId
+    ? await resolvePageToken(token, { igUserId })
+    : await resolvePageToken(token, {});
+  const pageToken = resolved?.pageToken ?? token;
 
   // ── Post the comment ──
   const commentRes = await metaFetch(

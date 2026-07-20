@@ -477,7 +477,7 @@ export function Composer() {
             caption: platformCaption,
             pageId: target.pageId,
             igUserId: target.igId,
-            pageToken: "", // server resolves from session
+            // El token de página lo resuelve el servidor (nunca desde el cliente).
           };
           if (format === "reel") {
             body.videoUrl = mediaUrl;
@@ -490,7 +490,11 @@ export function Composer() {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify(body),
           });
-          const data = await res.json();
+          const raw = await res.json();
+          // Las rutas responden con envelope { success, data: { reelId/storyId } };
+          // desempaquetar para leer reelId/storyId (antes quedaba undefined y el
+          // primer comentario nunca se posteaba).
+          const data = raw?.data ?? raw;
           results.push({ ...data, platform: target.platform });
 
           // First comment for IG (post/reel only)
@@ -504,7 +508,7 @@ export function Composer() {
             if (mediaId) {
               await fetch("/api/publisher/first-comment", {
                 method: "POST", headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ mediaId, comment: firstComment }),
+                body: JSON.stringify({ mediaId, comment: firstComment, igUserId: target.igId }),
               }).catch(() => {}); // non-critical
             }
           }

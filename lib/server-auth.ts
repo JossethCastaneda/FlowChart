@@ -290,6 +290,40 @@ export async function metaGetAll(
 }
 
 /**
+ * Resuelve el PAGE access token server-side a partir del token de usuario/módulo.
+ * Los endpoints de publicación de página (photos, video_reels, photo_stories,
+ * video_stories, /media de IG) REQUIEREN un page token, no el token de usuario.
+ * Nunca se debe confiar en un pageToken enviado por el cliente.
+ *
+ * Busca en me/accounts (paginado) la página por pageId (FB) o por la cuenta IG
+ * vinculada (igUserId) y devuelve su access_token.
+ */
+export async function resolvePageToken(
+  userToken: string,
+  opts: { pageId?: string; igUserId?: string }
+): Promise<{ pageToken: string; pageId: string; igUserId?: string } | null> {
+  const { data: pages } = await metaGetAll(
+    `https://graph.facebook.com/${META_API_VERSION}/me/accounts?fields=id,name,access_token,instagram_business_account{id}&limit=100`,
+    userToken
+  );
+  let page: any = null;
+  if (opts.pageId) {
+    page = pages.find((p: any) => p.id === opts.pageId) || null;
+  } else if (opts.igUserId) {
+    page = pages.find((p: any) => p.instagram_business_account?.id === opts.igUserId) || null;
+  } else {
+    // Sin selector explícito: primera página con cuenta IG vinculada (best-effort).
+    page = pages.find((p: any) => p.instagram_business_account?.id) || pages[0] || null;
+  }
+  if (!page?.access_token) return null;
+  return {
+    pageToken: page.access_token,
+    pageId: page.id,
+    igUserId: page.instagram_business_account?.id,
+  };
+}
+
+/**
  * Automatically disconnects a Meta integration in the database if the token
  * is invalidated by Facebook (401 or OAuthException code 190/102).
  */

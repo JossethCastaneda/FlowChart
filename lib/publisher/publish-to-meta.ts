@@ -87,6 +87,17 @@ export async function publishPostToMeta(params: {
   };
   const errors: string[] = [];
 
+  // SEGURIDAD DE DATOS: esta función publica al feed/media estándar. NO implementa
+  // los flujos de Reels ni Stories (video_reels / *_stories / media_type=STORIES).
+  // Sin este guard, un reel/story PROGRAMADO se publicaba como post permanente de
+  // feed (un story debería durar 24h). Preferimos fallar claro a corromper el post.
+  if (post.type === "reel" || post.type === "story") {
+    errors.push(
+      `La publicación programada de ${post.type === "reel" ? "reels" : "historias"} aún no está soportada. Publícalo de forma inmediata desde el editor.`
+    );
+    return { externalIds, errors, targetPage: null };
+  }
+
   // ── Páginas (todas, paginadas) ──
   const initialPagesUrl = `https://graph.facebook.com/${META_VERSION}/me/accounts?fields=id,name,access_token,instagram_business_account{id,username}&limit=100`;
   const { data: pages, error: pagesError } = await metaGetAll(

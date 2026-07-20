@@ -23,6 +23,9 @@ const updatePostSchema = z.object({
   projectId: z.string().nullable().optional(),
   pageName: z.string().nullable().optional(),
   pageId: z.string().nullable().optional(),
+  // Persistir texto por-plataforma y primer comentario también al editar.
+  contentByPlatform: z.record(z.string(), z.string()).nullable().optional(),
+  firstComment: z.string().nullable().optional(),
 });
 
 // GET /api/publisher/posts/[id]
@@ -75,6 +78,8 @@ export const PUT = withWorkspace(async (req: NextRequest, ctx) => {
   if (body.projectId !== undefined) updateData.projectId = body.projectId || null;
   if (body.pageName !== undefined) updateData.pageName = body.pageName || null;
   if (body.pageId !== undefined) updateData.pageId = body.pageId || null;
+  if (body.contentByPlatform !== undefined) updateData.contentByPlatform = body.contentByPlatform ?? undefined;
+  if (body.firstComment !== undefined) updateData.firstComment = body.firstComment;
 
   let requestedTime: Date | null | undefined;
   if (body.scheduledAt !== undefined) {

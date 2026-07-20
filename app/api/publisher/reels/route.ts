@@ -1,9 +1,8 @@
 import { NextRequest } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch, resolvePageToken } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
-import { decryptToken } from "@/lib/encryption";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
 import { logger } from "@/lib/logger";
@@ -49,12 +48,20 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     caption,
     pageId,
     igUserId,
-    pageToken: encryptedPageToken,
     shareToFeed = true,
   } = _validate.data;
 
-  // Decrypt the page token
-  const pageToken = encryptedPageToken ? decryptToken(encryptedPageToken) || token : token;
+  // SEGURIDAD: resolver el PAGE token server-side (los endpoints video_reels/media de
+  // página/IG lo requieren). Nunca confiar en un pageToken enviado por el cliente.
+  const resolved = await resolvePageToken(token, { pageId, igUserId });
+  if (!resolved) {
+    return apiError(
+      "No se pudo resolver el token de la página/cuenta. Verifica que esté conectada en Integraciones.",
+      "PAGE_TOKEN_UNRESOLVED",
+      400,
+    );
+  }
+  const pageToken = resolved.pageToken;
 
   // ═══════════════════════════════════════════
   // Facebook Reel
@@ -160,7 +167,10 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
 
       const statusRes = await metaFetch(
         `https://graph.facebook.com/${META_V}/${containerId}?fields=status_code`,
-        pageToken
+        pageToken,
+        // Sin no-store, metaFetch aplica next.revalidate=3600 a los GET y el polling
+        // leería el MISMO status cacheado por 1h → siempre timeout.
+        { cache: "no-store" }
       );
       const statusData = await statusRes.json();
 
@@ -205,5 +215,6 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   return apiError(`Plataforma "${platform}" no soportada. Usa "facebook" o "instagram".`, "VALIDATION_ERROR", 400);
 });
 
-// Instagram Reels processing can take up to 2 minutes
-export const maxDuration = 120;
+// El polling puede tardar ~2 min + overhead de subida; 300s es el máximo de la
+// plataforma y evita que la función muera a mitad del polling (perdiendo el reel).
+export const maxDuration = 300;

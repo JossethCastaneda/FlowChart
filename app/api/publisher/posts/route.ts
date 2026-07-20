@@ -50,6 +50,10 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       projectId: z.string().optional(),
       pageName: z.string().optional(),
       pageId: z.string().optional(),
+      // El Composer envía estos y las columnas existen, pero Zod los strippeaba →
+      // el texto por-plataforma y el primer comentario nunca se persistían.
+      contentByPlatform: z.record(z.string(), z.string()).optional(),
+      firstComment: z.string().optional(),
     })
   );
 
@@ -65,6 +69,8 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     projectId,
     pageName,
     pageId,
+    contentByPlatform,
+    firstComment,
   } = parsed.data;
 
   if (!content || content.trim().length < 1) {
@@ -95,6 +101,8 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       projectId: projectId || null,
       pageName: pageName || null,
       pageId: pageId || null,
+      contentByPlatform: contentByPlatform ?? undefined,
+      firstComment: firstComment ?? null,
     },
   });
 

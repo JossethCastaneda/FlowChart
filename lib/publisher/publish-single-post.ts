@@ -66,15 +66,33 @@ export async function publishSinglePost(
   }
 
   try {
-    const integration = await prisma.integration.findUnique({
-      where: {
-        workspaceId_provider_userId: {
-          workspaceId: claimedPost.workspaceId,
-          provider: "meta",
-          userId: "workspace",
+    // Resolver el token del MÓDULO publisher (mismo criterio que la publicación
+    // interactiva vía getMetaAccessToken('publisher_facebook')). Antes usaba el
+    // genérico "meta", que puede carecer de los scopes de publicación → los posts
+    // programados fallaban o publicaban con la cuenta equivocada. Fallback al
+    // genérico solo si no hay integración de módulo publisher conectada.
+    const isIgOnly =
+      claimedPost.channels.includes("instagram") && !claimedPost.channels.includes("facebook");
+    const providerCandidates = isIgOnly
+      ? ["meta_publisher_instagram", "meta_publisher_facebook", "meta"]
+      : ["meta_publisher_facebook", "meta_publisher_instagram", "meta"];
+
+    let integration: Awaited<ReturnType<typeof prisma.integration.findUnique>> = null;
+    for (const provider of providerCandidates) {
+      const found = await prisma.integration.findUnique({
+        where: {
+          workspaceId_provider_userId: {
+            workspaceId: claimedPost.workspaceId,
+            provider,
+            userId: "workspace",
+          },
         },
-      },
-    });
+      });
+      if (found?.connected && (found.credentials as IntegrationCredentials | null)?.accessToken) {
+        integration = found;
+        break;
+      }
+    }
 
     const credentials = integration?.credentials as IntegrationCredentials | null;
     if (!integration?.connected || typeof credentials?.accessToken !== "string") {

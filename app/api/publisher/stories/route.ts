@@ -1,9 +1,8 @@
 import { NextRequest } from "next/server";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
-import { getMetaAccessToken, metaFetch } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch, resolvePageToken } from "@/lib/server-auth";
 import { mapMetaError } from "@/lib/meta-errors";
-import { decryptToken } from "@/lib/encryption";
 import { z } from "zod";
 import { validateBody } from "@/lib/validate";
 import { logger } from "@/lib/logger";
@@ -49,15 +48,22 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     explicitMediaType,
     pageId,
     igUserId,
-    pageToken: bodyPageToken,
-    encryptedPageToken: bodyEncryptedPageToken,
   } = _validate.data;
 
   // Manejo de compatibilidad: explicitMediaType o mediaType
   const mediaType = explicitMediaTypeBody || explicitMediaType;
-  const encryptedPageToken = bodyEncryptedPageToken || bodyPageToken;
 
-  const pageToken = encryptedPageToken ? decryptToken(encryptedPageToken) || token : token;
+  // SEGURIDAD: los endpoints de página requieren PAGE token. Se resuelve server-side
+  // desde me/accounts (nunca se confía en un pageToken enviado por el cliente).
+  const resolved = await resolvePageToken(token, { pageId, igUserId });
+  if (!resolved) {
+    return apiError(
+      "No se pudo resolver el token de la página/cuenta. Verifica que esté conectada en Integraciones.",
+      "PAGE_TOKEN_UNRESOLVED",
+      400,
+    );
+  }
+  const pageToken = resolved.pageToken;
 
   // Auto-detect media type from URL extension
   const isVideo =
@@ -207,7 +213,8 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
         await new Promise((resolve) => setTimeout(resolve, 10_000));
         const statusRes = await metaFetch(
           `https://graph.facebook.com/${META_V}/${containerId}?fields=status_code`,
-          pageToken
+          pageToken,
+          { cache: "no-store" } // evita que el polling lea status cacheado 1h
         );
         const statusData = await statusRes.json();
         if (statusData.status_code === "FINISHED") {
@@ -252,5 +259,6 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   return apiError(`Plataforma "${platform}" no soportada. Usa "facebook" o "instagram".`, "VALIDATION_ERROR", 400);
 });
 
-// Video stories may take time to process
-export const maxDuration = 120;
+// El procesamiento de video stories + polling puede acercarse a 2 min; 300s es el
+// máximo de la plataforma y evita que la función muera a mitad del polling.
+export const maxDuration = 300;
