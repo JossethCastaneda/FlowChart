@@ -10,7 +10,12 @@ import { apiSuccess, apiError } from "@/lib/api-response";
 
 import { logger } from "@/lib/logger";
 
-export const maxDuration = 60;
+// El flujo peor caso (video IG: subida + polling ~50s) supera 60s → la función moría
+// tras publicar pero antes de guardar externalIds, dejando el post "Failed" pese a estar
+// publicado y habilitando duplicados al reintentar. 300s es el máximo de la plataforma.
+export const maxDuration = 300;
+
+const STALE_LOCK_MS = 5 * 60 * 1000;
 
 /**
  * POST /api/publisher/publish
@@ -34,6 +39,25 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError("Este post ya fue publicado", "VALIDATION_ERROR", 400);
   }
 
+  // CLAIM ATÓMICO: evita la doble publicación (dos requests manuales concurrentes, o un
+  // manual + el workflow programado). Solo un actor gana el updateMany condicional; el
+  // resto recibe 409. Un lock "Publishing" viejo (>5min, función muerta) se puede reclamar.
+  const staleBefore = new Date(Date.now() - STALE_LOCK_MS);
+  const claim = await prisma.scheduledPost.updateMany({
+    where: {
+      id: postId,
+      workspaceId: ctx.workspaceId,
+      OR: [
+        { status: { in: ["Draft", "Scheduled", "Failed"] } },
+        { status: "Publishing", updatedAt: { lt: staleBefore } },
+      ],
+    },
+    data: { status: "Publishing" },
+  });
+  if (claim.count === 0) {
+    return apiError("Este post ya se está publicando o ya fue publicado", "ALREADY_PUBLISHING", 409);
+  }
+
   // Resuelve el token estrictamente según el canal del post (sin fallback cruzado para respetar accesos)
   let accessToken = null;
   if (post.channels.includes("facebook")) {
@@ -43,6 +67,11 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   }
 
   if (!accessToken) {
+    // Liberar el claim (si no, el post queda "Publishing" hasta expirar el lock).
+    await prisma.scheduledPost.update({
+      where: { id: postId },
+      data: { status: "Failed", error: "No hay cuenta de Meta conectada para el canal del post" },
+    }).catch(() => {});
     return apiError(
       "No hay cuenta de Facebook conectada. Ve al Publisher y conecta tu cuenta de Facebook.",
       "UNAUTHORIZED",

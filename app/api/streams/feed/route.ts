@@ -22,10 +22,12 @@ export async function GET(request: NextRequest) {
   const pageId = request.nextUrl.searchParams.get("pageId");
 
   try {
-    // Get pages
+    // Get pages. cache:no-store en todo el feed: es contenido "en tiempo real"; sin esto
+    // metaFetch aplica next.revalidate=3600 y el botón de refrescar sería un no-op (1h stale).
     const pagesRes = await metaFetch(
       metaUrl("me/accounts", { fields: "id,name,access_token,instagram_business_account,picture" }),
-      token
+      token,
+      { cache: "no-store" }
     );
     const pagesData = await pagesRes.json();
     const pages = pagesData.data || [];
@@ -60,7 +62,8 @@ export async function GET(request: NextRequest) {
             fields: "id,message,created_time,from,full_picture,shares,likes.summary(true),comments.summary(true)",
             limit: "15",
           }),
-          pageToken
+          pageToken,
+          { cache: "no-store" }
         );
         if (feedRes.ok) {
           const feedData = await feedRes.json();
@@ -88,7 +91,8 @@ export async function GET(request: NextRequest) {
             fields: "id,message,from,created_time,permalink_url",
             limit: "15",
           }),
-          pageToken
+          pageToken,
+          { cache: "no-store" }
         );
         if (tagRes.ok) {
           const tagData = await tagRes.json();
@@ -118,7 +122,8 @@ export async function GET(request: NextRequest) {
               fields: "id,caption,timestamp,media_url,thumbnail_url,like_count,comments_count,username",
               limit: "15",
             }),
-            pageToken
+            pageToken,
+            { cache: "no-store" }
           );
           if (mediaRes.ok) {
             const mediaData = await mediaRes.json();
@@ -145,7 +150,8 @@ export async function GET(request: NextRequest) {
               fields: "id,caption,username,timestamp,permalink",
               limit: "15",
             }),
-            pageToken
+            pageToken,
+            { cache: "no-store" }
           );
           if (tagsRes.ok) {
             const tagsData = await tagsRes.json();

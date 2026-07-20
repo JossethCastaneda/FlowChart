@@ -337,6 +337,9 @@ export async function GET(request: NextRequest) {
           refreshedAt: new Date().toISOString(),
           grantedScopes: unionScopes,
           profile: connectedProfile,
+          // Preservar ajustes por-página (p.ej. toggles de Messenger). Sin esto, cada
+          // reconexión de un módulo Meta los borraba al reconstruir las credenciales.
+          ...(existingCreds?.pageSettings ? { pageSettings: existingCreds.pageSettings } : {}),
         };
 
     if (wouldLoseScopes) {

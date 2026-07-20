@@ -96,6 +96,21 @@ export async function GET(
     return NextResponse.redirect(`${integrationsUrl}?connect_error=invalid_state`);
   }
 
+  // SEGURIDAD: aunque el state está firmado con HMAC, la membresía pudo revocarse entre
+  // el inicio del OAuth y este callback. Re-verificar que el usuario sigue siendo
+  // OWNER/ADMIN del workspace ANTES de escribir la Integration (mismo criterio que el
+  // resto de conexiones de activos).
+  if (workspaceId) {
+    const membership = await prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId } },
+      select: { role: true },
+    });
+    if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {
+      logger.warn("[OAUTH CALLBACK] ❌ Membership/role check failed", { workspaceId, userId });
+      return NextResponse.redirect(`${integrationsUrl}?connect_error=forbidden`);
+    }
+  }
+
   // 3. Resolve provider config
   const config = getProvider(provider);
   if (!config) {
