@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
 /**
  * Neon Postgres database-backed rate limiter for serverless environments.
@@ -49,43 +50,29 @@ export async function rateLimit(
   const now = new Date();
 
   try {
-    // 1. Delete expired entry for this key specifically (efficient cleanup)
+    // 1. Expirar la ventana vencida para esta clave (reinicia el contador).
     await prisma.rateLimit.deleteMany({
-      where: {
-        key,
-        resetAt: { lt: now },
-      },
+      where: { key, resetAt: { lt: now } },
     }).catch(() => {});
 
-    // 2. Find the rate limit entry
-    const entry = await prisma.rateLimit.findUnique({
+    // 2. Incremento ATÓMICO. Antes era findUnique + update (read-then-write): N
+    //    requests concurrentes leían el mismo count y escribían el mismo valor,
+    //    subcontando hasta N-1 → un atacante saltaba el límite disparando en
+    //    paralelo. Prisma compila esto a INSERT ... ON CONFLICT DO UPDATE
+    //    count = count + 1 RETURNING, que es atómico.
+    const resetAt = new Date(now.getTime() + windowMs);
+    const updated = await prisma.rateLimit.upsert({
       where: { key },
+      create: { key, count: 1, resetAt },
+      update: { count: { increment: 1 } },
     });
 
-    if (!entry) {
-      // Create new rate limit entry
-      const resetAt = new Date(now.getTime() + windowMs);
-      await prisma.rateLimit.upsert({
-        where: { key },
-        create: { key, count: 1, resetAt },
-        update: { count: 1, resetAt },
-      });
-      return { ok: true, remaining: maxAttempts - 1 };
-    }
-
-    const newCount = entry.count + 1;
-    await prisma.rateLimit.update({
-      where: { key },
-      data: { count: newCount },
-    });
-
-    if (newCount > maxAttempts) {
+    if (updated.count > maxAttempts) {
       return { ok: false, remaining: 0 };
     }
-
-    return { ok: true, remaining: Math.max(0, maxAttempts - newCount) };
+    return { ok: true, remaining: Math.max(0, maxAttempts - updated.count) };
   } catch (err) {
-    console.error("[RATE LIMIT] Database rate limit error, falling back to fail-open:", err);
+    logger.error("[RATE LIMIT] Database rate limit error, falling back to fail-open", { error: err });
     return { ok: true, remaining: 1 };
   }
 }

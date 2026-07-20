@@ -81,19 +81,24 @@ export const POST = withAuth(async (_req, ctx) => {
     },
   });
 
-  await prisma.$transaction([
-    prisma.workspaceMember.create({
-      data: {
-        workspaceId: invite.workspaceId,
-        userId: ctx.userId,
-        role: invite.role,
-      },
-    }),
-    prisma.workspaceInvite.update({
-      where: { token },
-      data: { acceptedAt: new Date() },
-    }),
-  ]);
+  // Uso único ATÓMICO: reclamar la invitación (acceptedAt: null → now) en un solo
+  // updateMany condicional. Sin esto, dos requests concurrentes con el mismo token
+  // pasaban ambas la verificación previa y creaban DOS membresías de una sola invitación.
+  const claimed = await prisma.workspaceInvite.updateMany({
+    where: { token, acceptedAt: null, expires: { gt: new Date() } },
+    data: { acceptedAt: new Date() },
+  });
+  if (claimed.count === 0) {
+    return apiError("Invitación inválida o expirada", "INVITE_INVALID", 410);
+  }
+
+  await prisma.workspaceMember.create({
+    data: {
+      workspaceId: invite.workspaceId,
+      userId: ctx.userId,
+      role: invite.role,
+    },
+  });
 
   logger.info("Workspace invite accepted", {
     workspaceId: invite.workspaceId,
@@ -101,11 +106,13 @@ export const POST = withAuth(async (_req, ctx) => {
     role: invite.role,
   });
 
-  // Set cookie so the newly joined workspace is immediately active
-  const response = NextResponse.json(apiSuccess({
+  // Set cookie so the newly joined workspace is immediately active.
+  // apiSuccess ya devuelve un NextResponse; NO envolverlo en NextResponse.json otra
+  // vez (eso serializaba el objeto Response → body vacío {}).
+  const response = apiSuccess({
     workspaceId: invite.workspaceId,
     redirectTo: "/dashboard/resumen",
-  }));
+  });
   response.cookies.set(ACTIVE_WORKSPACE_COOKIE, invite.workspaceId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

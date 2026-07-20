@@ -60,7 +60,9 @@ export const POST = withAuth(async (req: NextRequest, ctx) => {
   const hashedPassword = await bcrypt.hash(newPassword, 12);
   await prisma.user.update({
     where: { id: user.id },
-    data: { password: hashedPassword },
+    // passwordChangedAt invalida OTRAS sesiones (la actual también; el usuario
+    // deberá volver a iniciar sesión tras cambiar la contraseña).
+    data: { password: hashedPassword, passwordChangedAt: new Date() },
   });
 
   logger.info("Password changed", { userId: ctx.userId });

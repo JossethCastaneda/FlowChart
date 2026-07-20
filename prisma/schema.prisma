@@ -49,6 +49,9 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String? // null para usuarios OAuth (Facebook/Google)
+  // Marca de cambio de contraseña: invalida sesiones JWT emitidas antes de esta
+  // fecha (se compara contra token.loginAt en withAuth). Cambia en reset/change.
+  passwordChangedAt DateTime?
   whatsappPhone String? // número personal para notificaciones WA (ej. "5215512345678")
   accounts      Account[]
   sessions      Session[]

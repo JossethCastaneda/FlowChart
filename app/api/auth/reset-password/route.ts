@@ -57,7 +57,8 @@ export async function POST(req: NextRequest) {
       const hashedPassword = await bcrypt.hash(password, 12);
       await tx.user.update({
         where: { id: user.id },
-        data: { password: hashedPassword },
+        // passwordChangedAt invalida las sesiones JWT emitidas antes de este momento.
+        data: { password: hashedPassword, passwordChangedAt: new Date() },
       });
 
       await tx.verificationToken.delete({ where: { token: tokenHash } });

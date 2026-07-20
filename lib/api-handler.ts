@@ -62,10 +62,11 @@ export function withAuth(handler: Handler<AuthContext>) {
 
       // Guard against orphan sessions: verifica que el userId exista en la DB.
       // Ocurre cuando la app cambia de base de datos y el JWT sigue referenciando
-      // un userId de la anterior.
+      // un userId de la anterior. Se reutiliza este read para invalidar sesiones
+      // tras un cambio de contraseña (passwordChangedAt vs token.loginAt).
       const userExists = await prisma.user.findUnique({
         where: { id: session.user.id },
-        select: { id: true },
+        select: { id: true, passwordChangedAt: true },
       });
       if (!userExists) {
         logger.warn("Orphan session: userId not found in DB", {
@@ -73,6 +74,17 @@ export function withAuth(handler: Handler<AuthContext>) {
           userId: session.user.id,
         });
         return apiUnauthorized("Tu sesión expiró. Por favor cierra sesión y vuelve a iniciar sesión.");
+      }
+
+      // Invalidación de sesión tras cambio de contraseña: si la sesión se emitió
+      // ANTES del último cambio, forzar re-login.
+      const loginAt = (session as { loginAt?: number | null }).loginAt;
+      if (
+        userExists.passwordChangedAt &&
+        typeof loginAt === "number" &&
+        loginAt < userExists.passwordChangedAt.getTime()
+      ) {
+        return apiUnauthorized("Tu contraseña cambió. Por favor vuelve a iniciar sesión.");
       }
 
       return await handler(req, {

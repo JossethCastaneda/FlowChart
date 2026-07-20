@@ -425,18 +425,16 @@ export const authOptions: NextAuthOptions = {
 
         // 3. If we have an active session, link the new OAuth account to the session user
         if (sessionUser) {
+          // SEGURIDAD: login es SOLO identidad (modelo comercial). NO se persisten
+          // access_token/refresh_token/id_token — nunca se usan para leer activos y su
+          // almacenamiento en texto plano era una fuga si se filtraba la DB. Los activos
+          // se conectan por-módulo (api/connect, api/oauth) con tokens cifrados.
           await prisma.account.create({
             data: {
               userId: sessionUser.id,
               type: account.type || "oauth",
               provider: account.provider,
               providerAccountId: account.providerAccountId,
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-              expires_at: account.expires_at,
-              token_type: account.token_type,
-              scope: account.scope,
-              id_token: account.id_token,
             },
           });
 
@@ -467,19 +465,13 @@ export const authOptions: NextAuthOptions = {
         // activa (flujo "Vincular", paso 3 arriba).
 
         if (existingUser) {
-          // Link the OAuth account to the existing user
+          // Link the OAuth account to the existing user (solo identidad, sin tokens).
           await prisma.account.create({
             data: {
               userId: existingUser.id,
               type: account.type || "oauth",
               provider: account.provider,
               providerAccountId: account.providerAccountId,
-              access_token: account.access_token,
-              refresh_token: account.refresh_token,
-              expires_at: account.expires_at,
-              token_type: account.token_type,
-              scope: account.scope,
-              id_token: account.id_token,
             },
           });
 
@@ -502,6 +494,10 @@ export const authOptions: NextAuthOptions = {
 
     async jwt({ token, account, user, trigger, session }) {
       if (user) {
+        // Marca de inicio de sesión estable (no cambia en refreshes rolling posteriores
+        // porque `user` solo está presente al autenticar). Se compara con
+        // User.passwordChangedAt para invalidar sesiones tras un cambio de contraseña.
+        token.loginAt = Date.now();
         // Detect account linking: if token already has a sub (from existing session)
         // and it differs from the incoming OAuth user.id, we are linking!
         // Note: For OAuth, user.id is the provider's ID (e.g. Google ID), while token.sub is our CUID.
@@ -662,14 +658,20 @@ export const authOptions: NextAuthOptions = {
         (token.hasWorkspace as boolean) ?? false;
       session.provider =
         (token.provider as string) ?? null;
+      session.loginAt = (token.loginAt as number) ?? null;
       return session;
     },
 
     async redirect({ url, baseUrl }) {
       // Allow relative URLs (like /invite/token)
       if (url.startsWith("/")) return `${baseUrl}${url}`;
-      // Allow same-origin URLs
-      if (url.startsWith(baseUrl)) return url;
+      // SEGURIDAD: comparar ORIGEN exacto, no prefijo. `url.startsWith(baseUrl)`
+      // aceptaba https://zefirus.xyz.evil.com (open redirect post-login → phishing).
+      try {
+        if (new URL(url).origin === new URL(baseUrl).origin) return url;
+      } catch {
+        /* url malformada → cae al baseUrl seguro */
+      }
       return baseUrl;
     },
   },

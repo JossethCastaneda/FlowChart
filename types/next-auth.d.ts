@@ -9,6 +9,8 @@ declare module "next-auth" {
     // Use getMetaAccessToken() from lib/server-auth.ts in server routes.
     hasWorkspace?: boolean;
     provider?: string | null;
+    /** Epoch ms del inicio de sesión (para invalidar tras cambio de contraseña). */
+    loginAt?: number | null;
   }
 }
 
@@ -18,5 +20,6 @@ declare module "next-auth/jwt" {
     accessToken?: string;
     hasWorkspace?: boolean;
     provider?: string | null;
+    loginAt?: number;
   }
 }
