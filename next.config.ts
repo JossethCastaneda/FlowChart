@@ -3,10 +3,6 @@ import { withSentryConfig } from "@sentry/nextjs";
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Map backend env to public env automatically for the client SDK to prevent ID mismatch
-  env: {
-    NEXT_PUBLIC_META_APP_ID: process.env.NEXT_PUBLIC_META_APP_ID || process.env.FACEBOOK_CLIENT_ID,
-  },
   
   // Configured for optimal Docker usage
   output: "standalone",
