@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch , META_API_VERSION } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch , META_API_VERSION, getRequestWorkspaceId } from "@/lib/server-auth";
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
 import { validateBody } from "@/lib/validate";
 import { AdUpdateSchema } from "@/lib/ads-schemas";
@@ -10,6 +10,12 @@ export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "ads");
   if (!accessToken) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // Aislamiento multi-tenant de la caché de anuncios.
+  const workspaceId = await getRequestWorkspaceId(req);
+  if (!workspaceId) {
+    return NextResponse.json({ error: "No hay workspace activo." }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);
@@ -42,7 +48,8 @@ export async function GET(req: NextRequest) {
     // 0. Check fast DB Cache first
     const cache = await prisma.metaAdsCache.findUnique({
       where: {
-        adAccountId_level_dateRange: {
+        workspaceId_adAccountId_level_dateRange: {
+          workspaceId,
           adAccountId,
           level: "ads",
           dateRange: cacheKey,
@@ -130,7 +137,8 @@ export async function GET(req: NextRequest) {
 
     await prisma.metaAdsCache.upsert({
       where: {
-        adAccountId_level_dateRange: {
+        workspaceId_adAccountId_level_dateRange: {
+          workspaceId,
           adAccountId,
           level: "ads",
           dateRange: cacheKey,
@@ -138,6 +146,7 @@ export async function GET(req: NextRequest) {
       },
       update: { data: responsePayload as any },
       create: {
+        workspaceId,
         adAccountId,
         level: "ads",
         dateRange: cacheKey,

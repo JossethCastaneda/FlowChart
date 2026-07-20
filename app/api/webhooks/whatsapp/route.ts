@@ -189,6 +189,20 @@ async function handleIncomingMessage({
       },
     });
 
+    // ── Dedup: Meta reentrega webhooks. Sin esto cada reentrega crea un mensaje
+    //    duplicado (InboxMessage.externalId no tiene @@unique). Verificamos por
+    //    (conversación, msgId) antes de crear — mismo patrón que persistInboundMessage.
+    if (msgId) {
+      const dup = await prisma.inboxMessage.findFirst({
+        where: { conversationId: conversation.id, externalId: msgId },
+        select: { id: true },
+      });
+      if (dup) {
+        logger.info("[WA Webhook] Mensaje duplicado ignorado", { conversationId: conversation.id, msgId });
+        return;
+      }
+    }
+
     // ── Crear el mensaje ──────────────────────────────────────────────────────
     await prisma.inboxMessage.create({
       data: {

@@ -142,6 +142,17 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       );
     }
 
+    // Validar que el projectId (si viene) pertenece a este workspace, no a otro.
+    if (projectId) {
+      const project = await prisma.project.findFirst({
+        where: { id: projectId, workspaceId },
+        select: { id: true },
+      });
+      if (!project) {
+        return apiError("El proyecto indicado no pertenece a este workspace.", "INVALID_PROJECT", 400);
+      }
+    }
+
     // Upsert WaPhoneSource
     const source = await prisma.waPhoneSource.upsert({
       where: { phoneNumberId },

@@ -128,7 +128,7 @@ export const GET = withWorkspace(async (req, ctx) => {
   // ── Strategy 2: Read from MetaAdsCache (synced daily by sync-ads) ──
   if (accountIds.length > 0) {
     try {
-      const metaWeeks = await extractMetaSpendFromCache(accountIds, capped);
+      const metaWeeks = await extractMetaSpendFromCache(ctx.workspaceId, accountIds, capped);
 
       if (metaWeeks.length > 0) {
         // Also try Google

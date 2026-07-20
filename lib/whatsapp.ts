@@ -208,6 +208,34 @@ export async function listWaTemplates(creds: WaCredentials): Promise<WaTemplate[
   return (data.data ?? []) as WaTemplate[];
 }
 
+// ─── Verificación de propiedad de una línea ──────────────────────────────────
+
+/**
+ * Verifica que un phoneNumberId pertenece realmente a la WABA de estas credenciales.
+ * Toda operación por-línea (registrar, deregistrar, enviar, enlazar) DEBE pasar por
+ * aquí primero: el phoneNumberId llega del cliente y sin este check un atacante puede
+ * operar sobre números de otra WABA usando su propio token.
+ */
+export async function phoneBelongsToWaba(
+  creds: WaCredentials,
+  phoneNumberId: string,
+): Promise<boolean> {
+  try {
+    const res = await fetch(
+      `${WA_API_BASE}/${creds.wabaId}/phone_numbers?fields=id&limit=100`,
+      {
+        headers: { Authorization: `Bearer ${creds.accessToken}` },
+        signal: AbortSignal.timeout(8000),
+      },
+    );
+    if (!res.ok) return false;
+    const data = await res.json();
+    return ((data?.data ?? []) as Array<{ id: string }>).some((n) => n.id === phoneNumberId);
+  } catch {
+    return false;
+  }
+}
+
 // ─── Resolución de workspace desde phoneNumberId ──────────────────────────────
 
 /**

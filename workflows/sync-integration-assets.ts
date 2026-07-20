@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { decryptToken } from "@/lib/encryption";
 import { env } from "@/lib/env";
 import { metaFetch } from "@/lib/server-auth";
+import { logger } from "@/lib/logger";
 
 /** Versión centralizada de la Graph API (default v25.0 en lib/env.ts). */
 const META_GRAPH_VERSION = env.META_API_VERSION;
@@ -58,7 +59,7 @@ async function executeSyncStep(integrationId: string) {
   } catch (error: any) {
     // Si Meta devuelve un Rate Limit (código 4, 17 o 32), podemos pausar el workflow
     if (error.message?.includes("limit reached") || error.code === 4 || error.code === 17) {
-      console.warn(`Rate limit alcanzado para integración ${integrationId}. Reintentando en 30m...`);
+      logger.warn("[SYNC-ASSETS] Rate limit alcanzado, reintentando", { integrationId });
       throw new Error("RATE_LIMIT_EXCEEDED");
     }
     throw error;
@@ -171,9 +172,9 @@ async function syncMetaAssets(integration: any, token: string) {
 
     // Sincronizar datos profundos de ads (campañas, adsets, ads) en segundo plano
     try {
-      await syncDeepMetaAdsData(adAccount.id, token);
+      await syncDeepMetaAdsData(adAccount.id, token, integration.workspaceId);
     } catch (error) {
-      console.error(`Error in precalculating analytics for ${integration.workspaceId}:`, error);
+      logger.error("[SYNC-ASSETS] Error precalculando analytics", { workspaceId: integration.workspaceId, adAccountId: adAccount.id, error });
     }
   }
 }
@@ -192,13 +193,15 @@ async function fetchPaginated(url: string, token: string): Promise<any[]> {
     results = results.concat(data.data || []);
     nextUrl = data.paging?.next || null;
 
-    // Pausa para evitar rate limits
-    if (nextUrl) await sleep("2s");
+    // Pausa para evitar rate limits. IMPORTANTE: esto corre dentro de un "use step"
+    // (executeSyncStep), NO en el contexto del workflow, así que sleep() de WDK lanzaría
+    // "sleep() can only be called in a workflow". Usar un delay normal de Node.
+    if (nextUrl) await new Promise((r) => setTimeout(r, 2000));
   }
   return results;
 }
 
-async function syncDeepMetaAdsData(adAccountId: string, token: string) {
+async function syncDeepMetaAdsData(adAccountId: string, token: string, workspaceId: string) {
   const version = META_GRAPH_VERSION;
   const datePreset = "last_30d";
   const cacheKey = "last_30d";
@@ -225,9 +228,9 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
     });
 
     await prisma.metaAdsCache.upsert({
-      where: { adAccountId_level_dateRange: { adAccountId, level: "campaigns", dateRange: cacheKey } },
+      where: { workspaceId_adAccountId_level_dateRange: { workspaceId, adAccountId, level: "campaigns", dateRange: cacheKey } },
       update: { data: mergedCampaigns, updatedAt: new Date() },
-      create: { adAccountId, level: "campaigns", dateRange: cacheKey, data: mergedCampaigns }
+      create: { workspaceId, adAccountId, level: "campaigns", dateRange: cacheKey, data: mergedCampaigns }
     });
 
     // ADSETS
@@ -251,9 +254,9 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
     });
 
     await prisma.metaAdsCache.upsert({
-      where: { adAccountId_level_dateRange: { adAccountId, level: "adsets", dateRange: cacheKey } },
+      where: { workspaceId_adAccountId_level_dateRange: { workspaceId, adAccountId, level: "adsets", dateRange: cacheKey } },
       update: { data: mergedAdsets, updatedAt: new Date() },
-      create: { adAccountId, level: "adsets", dateRange: cacheKey, data: mergedAdsets }
+      create: { workspaceId, adAccountId, level: "adsets", dateRange: cacheKey, data: mergedAdsets }
     });
 
     // ADS
@@ -278,13 +281,13 @@ async function syncDeepMetaAdsData(adAccountId: string, token: string) {
     });
 
     await prisma.metaAdsCache.upsert({
-      where: { adAccountId_level_dateRange: { adAccountId, level: "ads", dateRange: cacheKey } },
+      where: { workspaceId_adAccountId_level_dateRange: { workspaceId, adAccountId, level: "ads", dateRange: cacheKey } },
       update: { data: mergedAds, updatedAt: new Date() },
-      create: { adAccountId, level: "ads", dateRange: cacheKey, data: mergedAds }
+      create: { workspaceId, adAccountId, level: "ads", dateRange: cacheKey, data: mergedAds }
     });
 
   } catch (error) {
-    console.error(`Error in deep sync for adAccountId ${adAccountId}:`, error);
+    logger.error("[SYNC-ASSETS] Error en deep sync", { adAccountId, error });
     throw error;
   }
 }

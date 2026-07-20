@@ -15,12 +15,19 @@ export async function GET(request: NextRequest) {
   const userId = request.nextUrl.searchParams.get("userId");
   if (!userId) return new NextResponse(null, { status: 400 });
 
+  // SEGURIDAD: userId se interpola en el path de la Graph API. Sin esta validación,
+  // un valor como "me?fields=accounts{name,access_token}&x=" reescribe el nodo y
+  // la respuesta JSON (con tokens de página) se streamearía al cliente. Los PSID /
+  // IG-scoped ids son siempre numéricos → allowlist estricta.
+  if (!/^\d+$/.test(userId)) return new NextResponse(null, { status: 400 });
+
   const token = await getMetaAccessToken(request, "inbox");
   if (!token) return new NextResponse(null, { status: 401 });
 
   try {
     // First try to get the page token for this specific page
     const pageId = request.nextUrl.searchParams.get("pageId");
+    if (pageId && !/^\d+$/.test(pageId)) return new NextResponse(null, { status: 400 });
     let pageToken = token;
     if (pageId) {
       const pagesRes = await metaFetch(
@@ -41,8 +48,12 @@ export async function GET(request: NextRequest) {
       return new NextResponse(null, { status: 404 });
     }
 
-    // Stream the image back
+    // SEGURIDAD (defensa en profundidad): solo relayar imágenes. Si Graph devolviera
+    // JSON (p. ej. por un fallo de validación futuro), nunca se reenvía al cliente.
     const contentType = picRes.headers.get("content-type") || "image/jpeg";
+    if (!contentType.startsWith("image/")) {
+      return new NextResponse(null, { status: 415 });
+    }
     const body = await picRes.arrayBuffer();
 
     return new NextResponse(Buffer.from(body), {

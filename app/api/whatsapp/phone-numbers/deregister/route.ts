@@ -3,7 +3,7 @@ import { z } from "zod";
 import { withWorkspace } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
-import { getWaCredentials } from "@/lib/whatsapp";
+import { getWaCredentials, phoneBelongsToWaba } from "@/lib/whatsapp";
 import { logger } from "@/lib/logger";
 
 const GRAPH_BASE = "https://graph.facebook.com/v25.0";
@@ -22,6 +22,16 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
   const creds = await getWaCredentials(workspaceId);
   if (!creds) {
     return apiError("WhatsApp Business no está conectado.", "WA_NOT_CONNECTED", 400);
+  }
+
+  // SEGURIDAD: deregister es destructivo (corta la mensajería de una línea). Verificar
+  // que el número pertenece a la WABA del workspace antes de operar sobre él.
+  if (!(await phoneBelongsToWaba(creds, phoneNumberId))) {
+    return apiError(
+      "El número indicado no pertenece a la cuenta de WhatsApp conectada.",
+      "FORBIDDEN_PHONE",
+      403,
+    );
   }
 
   try {

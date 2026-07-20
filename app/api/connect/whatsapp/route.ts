@@ -21,7 +21,7 @@
 
 import { NextRequest } from "next/server";
 import { z } from "zod";
-import { withWorkspace } from "@/lib/api-handler";
+import { withWorkspaceRole } from "@/lib/api-handler";
 import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import { encryptToken } from "@/lib/encryption";
@@ -48,7 +48,9 @@ const directTokenSchema = z.object({
 
 const connectSchema = z.union([embeddedSignupSchema, directTokenSchema]);
 
-export const POST = withWorkspace(async (req: NextRequest, ctx) => {
+// Conectar/desconectar activos es OWNER/ADMIN — mismo criterio que el resto de
+// integraciones (evita que un MEMBER conecte o secuestre líneas del workspace).
+export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (req: NextRequest, ctx) => {
   const validation = await validateBody(req, connectSchema);
   if (!validation.ok) return validation.response;
 
@@ -78,6 +80,18 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     // Si el frontend capturó los IDs del postMessage WA_EMBEDDED_SIGNUP, úsalos
     // (SIEMPRE preferir estos — son exactamente lo que el cliente eligió en el flujo)
     if (body.phoneNumberId && body.wabaId) {
+      // SEGURIDAD: phoneNumberId/wabaId vienen del cliente. Sin verificar que el token
+      // recién intercambiado realmente tiene acceso a ese número, un atacante podría
+      // enviar el phoneNumberId de OTRO workspace y (vía el upsert de WaPhoneSource)
+      // reasignarse el ruteo de sus mensajes entrantes. Validamos propiedad real.
+      const ownsPhone = await validateWaToken(accessToken, body.phoneNumberId);
+      if (!ownsPhone) {
+        return apiError(
+          "El número indicado no pertenece a la cuenta autorizada en Embedded Signup.",
+          "WA_PHONE_NOT_OWNED",
+          403,
+        );
+      }
       phoneNumberId = body.phoneNumberId;
       wabaId        = body.wabaId;
     } else {
@@ -120,6 +134,30 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
         "WA_INVALID_TOKEN",
         400,
       );
+    }
+  }
+
+  // SEGURIDAD: no permitir robar una línea ya enlazada a otro workspace.
+  const existingPhone = await prisma.waPhoneSource.findUnique({
+    where: { phoneNumberId },
+    select: { workspaceId: true },
+  });
+  if (existingPhone && existingPhone.workspaceId !== workspaceId) {
+    return apiError(
+      "Este número de WhatsApp ya está conectado a otra cuenta de Zefirus.",
+      "WA_PHONE_ALREADY_LINKED",
+      409,
+    );
+  }
+
+  // Validar que el projectId (si viene) pertenece a este workspace.
+  if (projectId) {
+    const project = await prisma.project.findFirst({
+      where: { id: projectId, workspaceId },
+      select: { id: true },
+    });
+    if (!project) {
+      return apiError("El proyecto indicado no pertenece a este workspace.", "INVALID_PROJECT", 400);
     }
   }
 
@@ -173,7 +211,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
 });
 
 
-export const DELETE = withWorkspace(async (_req: NextRequest, ctx) => {
+export const DELETE = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextRequest, ctx) => {
   const { workspaceId } = ctx;
 
   try {

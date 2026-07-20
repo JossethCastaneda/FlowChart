@@ -53,15 +53,19 @@ interface SpendByWeek {
  * Falls back to the "last_30d" cache entry.
  */
 export async function extractMetaSpendFromCache(
+  workspaceId: string,
   adAccountIds: string[],
   weeksCap: number = 12
 ): Promise<SpendByWeek[]> {
   const byWeek = new Map<string, { spend: number; outcome: number }>();
 
   for (const accountId of adAccountIds) {
-    // MetaAdsCache stores data keyed by adAccountId (with "act_" prefix in some cases)
+    // Aislamiento multi-tenant: filtrar SIEMPRE por workspaceId. Sin esto, cualquier
+    // workspace podía leer el gasto cacheado de una cuenta de otro con solo poner su
+    // adAccountId en la config de sus canales.
     const cacheEntries = await prisma.metaAdsCache.findMany({
       where: {
+        workspaceId,
         adAccountId: { in: [`act_${accountId}`, accountId] },
         level: "campaigns",
       },
@@ -222,7 +226,7 @@ export async function ingestMmmSpend(
   // 2. Meta spend from cache
   if (metaAccountIds.length > 0) {
     try {
-      const metaWeeks = await extractMetaSpendFromCache(metaAccountIds, weeksCap);
+      const metaWeeks = await extractMetaSpendFromCache(workspaceId, metaAccountIds, weeksCap);
       for (const row of metaWeeks) {
         await prisma.mmmWeeklySpend.upsert({
           where: {

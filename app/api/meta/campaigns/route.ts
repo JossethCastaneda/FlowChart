@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch, META_API_VERSION, getRequestWorkspaceId } from "@/lib/server-auth";
 import { calculateDataQuality, mapMetaError } from "@/lib/meta-errors";
 import { validateBody } from "@/lib/validate";
 import { CampaignUpdateSchema } from "@/lib/ads-schemas";
@@ -11,6 +11,13 @@ export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "ads");
   if (!accessToken) {
     return NextResponse.json({ error: "No hay token Meta. Conecta tu cuenta en Integraciones." }, { status: 401 });
+  }
+
+  // Aislamiento multi-tenant de la caché de anuncios (evita servir datos de gasto
+  // de una cuenta cacheada por otro workspace).
+  const workspaceId = await getRequestWorkspaceId(req);
+  if (!workspaceId) {
+    return NextResponse.json({ error: "No hay workspace activo." }, { status: 401 });
   }
 
   const { searchParams } = new URL(req.url);
@@ -43,7 +50,8 @@ export async function GET(req: NextRequest) {
     // 0. Check DB cache — return immediately if fresh (< 60 min)
     const cache = await prisma.metaAdsCache.findUnique({
       where: {
-        adAccountId_level_dateRange: {
+        workspaceId_adAccountId_level_dateRange: {
+          workspaceId,
           adAccountId,
           level: "campaigns",
           dateRange: cacheKey,
@@ -153,10 +161,10 @@ export async function GET(req: NextRequest) {
     // Save to cache (fire-and-forget — don't block response)
     prisma.metaAdsCache.upsert({
       where: {
-        adAccountId_level_dateRange: { adAccountId, level: "campaigns", dateRange: cacheKey },
+        workspaceId_adAccountId_level_dateRange: { workspaceId, adAccountId, level: "campaigns", dateRange: cacheKey },
       },
       update: { data: responsePayload as any },
-      create: { adAccountId, level: "campaigns", dateRange: cacheKey, data: responsePayload as any },
+      create: { workspaceId, adAccountId, level: "campaigns", dateRange: cacheKey, data: responsePayload as any },
     }).catch((e: unknown) => logger.warn("Campaigns cache save failed", { error: e }));
 
     return NextResponse.json(responsePayload);

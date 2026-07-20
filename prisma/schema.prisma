@@ -849,14 +849,20 @@ model DataDeletionRequest {
 // ------------------------------------------------------
 model MetaAdsCache {
   id          String   @id @default(cuid())
+  // Aislamiento multi-tenant: la caché DEBE estar scopeada por workspace. Sin esto,
+  // un workspace podía servir datos de gasto cacheados de una cuenta publicitaria de
+  // OTRO workspace con solo conocer su adAccountId. Default "" para que `db push` añada
+  // la columna sin pérdida de datos; las filas legacy ("") nunca se sirven (las lecturas
+  // filtran siempre por un workspaceId real) y se regeneran.
+  workspaceId String   @default("")
   adAccountId String // ID de la cuenta publicitaria
   level       String // "campaigns", "adsets", "ads"
   dateRange   String // Clave del rango de fechas (ej. "last_7d", "maximum", "2026-06-01_2026-06-12")
   data        Json // El payload JSON completo y ya procesado
   updatedAt   DateTime @updatedAt
 
-  @@unique([adAccountId, level, dateRange])
-  @@index([adAccountId])
+  @@unique([workspaceId, adAccountId, level, dateRange])
+  @@index([workspaceId, adAccountId])
 }
 
 // ------------------------------------------------------

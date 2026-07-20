@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch, META_API_VERSION, getRequestWorkspaceId } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
@@ -178,6 +178,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Aislamiento multi-tenant de la caché de anuncios.
+  const workspaceId = await getRequestWorkspaceId(req);
+  if (!workspaceId) {
+    return NextResponse.json({ error: "No hay workspace activo." }, { status: 401 });
+  }
+
   const { searchParams } = new URL(req.url);
   let adAccountId = searchParams.get("adAccountId");
   const dateStart = searchParams.get("dateStart");
@@ -211,7 +217,8 @@ export async function GET(req: NextRequest) {
     // ── Check DB Cache ───────────────────────────────────────────────
     const cache = await prisma.metaAdsCache.findUnique({
       where: {
-        adAccountId_level_dateRange: {
+        workspaceId_adAccountId_level_dateRange: {
+          workspaceId,
           adAccountId,
           level: "audience_reliability",
           dateRange: cacheKey,
@@ -224,8 +231,11 @@ export async function GET(req: NextRequest) {
     }
 
     // ── Build URLs ───────────────────────────────────────────────────
+    // timeRange ya empieza con "&" y el query string ya está abierto ("?level=ad...").
+    // NO reemplazar el "&" por "?" (metería un segundo "?" DENTRO del valor de fields,
+    // rompiendo TODAS las llamadas con error #100 y cacheando el fallo 12h).
     const buildUrl = (breakdowns: string) =>
-      `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&breakdowns=${breakdowns}&fields=${INSIGHTS_FIELDS}${timeRange.replace(/^&/, "?")}&limit=500`;
+      `https://graph.facebook.com/${version}/${adAccountId}/insights?level=ad&breakdowns=${breakdowns}&fields=${INSIGHTS_FIELDS}${timeRange}&limit=500`;
 
     // Demographics (age, gender) — SUPPORTS actions
     const demoUrl = buildUrl("age,gender");
@@ -504,7 +514,8 @@ export async function GET(req: NextRequest) {
     await prisma.metaAdsCache
       .upsert({
         where: {
-          adAccountId_level_dateRange: {
+          workspaceId_adAccountId_level_dateRange: {
+            workspaceId,
             adAccountId,
             level: "audience_reliability",
             dateRange: cacheKey,
@@ -512,6 +523,7 @@ export async function GET(req: NextRequest) {
         },
         update: { data: responsePayload as any },
         create: {
+          workspaceId,
           adAccountId,
           level: "audience_reliability",
           dateRange: cacheKey,

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { after } from "next/server";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
@@ -206,18 +207,21 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    // ── Procesamiento asíncrono fire-and-forget ──────────────────────────
+    // ── Procesamiento tras responder 200 (después de la respuesta) ───────
     // Respondemos 200 ANTES de procesar para que Meta nunca espere >20s.
-    // Meta reintenta solo si NO recibe 200; ya que sí lo recibirá, los
-    // reintentos innecesarios quedan eliminados.
-    // 
-    // Nota arquitectural: el patrón ideal para garantías más fuertes es
-    // QStash (AGENTS.md) — esto lo resolvería con colas durables. Lo que
-    // hacemos aquí es el máximo posible dentro de la ejecución serverless.
-    processWebhookEvents(body, object).catch((err) => {
-      logger.error("[WEBHOOK] Background processing error:", err);
+    // CLAVE serverless: usamos `after()` de Next 16 en vez de una promesa flotante.
+    // Una promesa flotante NO está garantizada: Vercel puede congelar/terminar la
+    // instancia en cuanto se devuelve la respuesta, perdiendo DMs/comentarios/alertas.
+    // `after()` mantiene viva la función hasta terminar el trabajo diferido.
+    // (Para garantías aún más fuertes: encolar el payload verificado en QStash.)
+    after(async () => {
+      try {
+        await processWebhookEvents(body, object);
+      } catch (err) {
+        logger.error("[WEBHOOK] Background processing error:", err);
+      }
     });
-    // Responder INMEDIATAMENTE — no esperamos a que termine el procesamiento.
+    // Responder INMEDIATAMENTE — el trabajo continúa vía after().
     return NextResponse.json({ received: true });
   } catch (err) {
     logger.error("[WEBHOOK] Critical error:", err);
@@ -900,12 +904,67 @@ async function processWebhookEvents(body: any, object: string) {
 // ═══════════════════════════════════════════════════════════════
 
 /**
+ * Resuelve el/los workspace(s) que REALMENTE conectaron un activo Meta, usando solo
+ * fuentes de confianza: IntegrationAssetCache (assets sincronizados al conectar) e
+ * Integration.credentials.pages. NUNCA Channel.config (editable por el usuario).
+ * Es la base del aislamiento multi-tenant en el ruteo de webhooks.
+ */
+async function resolveOwningWorkspaceIds(
+  externalId: string,
+  normalizedId: string,
+  kind: "page" | "instagram" | "ad_account",
+): Promise<Set<string>> {
+  const ids = [...new Set([externalId, normalizedId, `act_${normalizedId}`])];
+  const owners = new Set<string>();
+
+  const assetType = kind === "page" ? "page" : kind === "instagram" ? "ig_account" : "ad_account";
+  try {
+    const assets = await prisma.integrationAssetCache.findMany({
+      where: { assetType, externalId: { in: ids } },
+      select: { workspaceId: true },
+    });
+    for (const a of assets) owners.add(a.workspaceId);
+  } catch (err) {
+    logger.warn("[WEBHOOK] IntegrationAssetCache ownership query failed", {
+      error: err instanceof Error ? err.message : String(err),
+    });
+  }
+
+  // Fallback: credenciales de Integration (páginas / cuentas IG). Las cuentas
+  // publicitarias no viven en creds.pages, así que para ad_account basta el cache.
+  if (owners.size === 0 && kind !== "ad_account") {
+    try {
+      const metaIntegrations = await prisma.integration.findMany({
+        where: { provider: { startsWith: "meta" } },
+        select: { workspaceId: true, credentials: true },
+      });
+      for (const integ of metaIntegrations) {
+        const creds = integ.credentials as { pages?: Array<{ id?: string; instagramId?: string }> } | null;
+        if (!creds?.pages || !Array.isArray(creds.pages)) continue;
+        const found = creds.pages.some((p) =>
+          kind === "page"
+            ? ids.includes(String(p.id))
+            : ids.includes(String(p.instagramId)),
+        );
+        if (found) owners.add(integ.workspaceId);
+      }
+    } catch (err) {
+      logger.warn("[WEBHOOK] Integration credentials ownership query failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
+  return owners;
+}
+
+/**
  * Finds projects whose Channel config references the given Meta external IDs.
  *
  * Fast path: lookup indexado en MetaSource (externalId → projectId).
  * Slow path (solo si el cache no tiene la fuente): scan de proyectos activos,
- * y los matches se escriben a MetaSource para que el siguiente evento de la
- * misma fuente se resuelva con un solo query.
+ * verificando propiedad del activo (resolveOwningWorkspaceIds); los matches se
+ * escriben a MetaSource para que el siguiente evento se resuelva con un query.
  */
 async function findProjectsForEvent(meta: {
   pageId?: string;
@@ -938,6 +997,21 @@ async function findProjectsForEvent(meta: {
         },
       },
     });
+  }
+
+  // ── SEGURIDAD (aislamiento multi-tenant): resolver qué workspace(s) son dueños
+  //    REALES de este activo, usando SOLO fuentes de confianza (assets conectados),
+  //    nunca Channel.config (editable por el usuario). Un OWNER/ADMIN de otro
+  //    workspace podía poner el pageId/adAccountId de una víctima en la config de su
+  //    canal y así recibir sus eventos (fuga) y envenenar el cache MetaSource.
+  const owningWorkspaceIds = await resolveOwningWorkspaceIds(externalId, normalizedId, kind);
+  if (owningWorkspaceIds.size === 0) {
+    // El activo no está conectado en ningún workspace vía Integration/asset cache:
+    // no hay dueño verificable, así que NO enrutamos por config sola.
+    logger.warn("[WEBHOOK] Evento de activo sin dueño verificable — no se enruta por config", {
+      externalId: normalizedId, kind,
+    });
+    return [];
   }
 
   // ── Slow path: Optimizado para escanear solo canales Meta ──
@@ -979,6 +1053,9 @@ async function findProjectsForEvent(meta: {
 
   for (const c of metaChannels) {
     if (c.project.status !== "Activo") continue;
+    // SEGURIDAD: el proyecto DEBE pertenecer a un workspace que realmente conectó
+    // este activo. Sin esto, la config de un canal ajeno enrutaría eventos de la víctima.
+    if (!owningWorkspaceIds.has(c.project.workspaceId)) continue;
 
     const cfg = c.config as Record<string, unknown> | null;
     if (!cfg) continue;
@@ -986,9 +1063,13 @@ async function findProjectsForEvent(meta: {
     let isMatch = false;
     if (meta.adAccountId) {
       const accounts = cfg.adAccounts as string[] | undefined;
-      isMatch = accounts?.some(
-        (a) => a.includes(meta.adAccountId!) || meta.adAccountId!.includes(a)
-      ) ?? false;
+      // Comparación exacta sobre IDs normalizados (sin "act_"). El substring previo
+      // ("".includes → true / act_123 ⊂ act_1234) cross-matcheaba cuentas y, con una
+      // entrada vacía, matcheaba TODO.
+      isMatch = accounts?.some((a) => {
+        const an = String(a ?? "").replace(/^act_/, "");
+        return an !== "" && an === normalizedId;
+      }) ?? false;
     } else if (meta.pageId) {
       const pages = cfg.pages as Array<{ id: string }> | undefined;
       isMatch = cfg.pageId === meta.pageId || pages?.some((p) => p.id === meta.pageId) === true;

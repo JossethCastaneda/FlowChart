@@ -125,6 +125,24 @@ export async function getMetaAccessToken(
 }
 
 /**
+ * Resuelve el workspaceId activo del request (JWT → workspace activo).
+ * Úsalo cuando necesites scopear datos por workspace en rutas que autentican vía
+ * getMetaAccessToken (que resuelve el workspace internamente pero no lo expone).
+ */
+export async function getRequestWorkspaceId(
+  request: Request | NextRequest
+): Promise<string | null> {
+  try {
+    const jwtToken = await getToken({ req: request as NextRequest, secret: AUTH_SECRET });
+    if (!jwtToken?.sub) return null;
+    return await getActiveWorkspaceId(jwtToken.sub);
+  } catch (err) {
+    logger.error("[SERVER-AUTH] getRequestWorkspaceId error", { err });
+    return null;
+  }
+}
+
+/**
  * Fetch from Meta Graph API with Authorization Bearer header.
  * IMPORTANT: Use this instead of putting access_token in the URL query string.
  */

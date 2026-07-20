@@ -441,16 +441,25 @@ export async function checkSLAWarnings(workspaceId: string) {
   const taskUrl = `${BASE_URL}/dashboard/ops`;
 
   for (const task of tasks) {
-    if (!task.dueDate || !task.assignee) continue;
+    if (!task.dueDate || (!task.assigneeId && !task.assignee)) continue;
 
     const hoursLeft = Math.round((task.dueDate.getTime() - now.getTime()) / (1000 * 60 * 60));
     const type = hoursLeft <= 0 ? "sla_expired" : "sla_warning";
 
-    // Find user + whatsappPhone
-    const user = await prisma.user.findFirst({
-      where: { OR: [{ name: task.assignee }, { email: { startsWith: task.assignee } }] },
-      select: { id: true, whatsappPhone: true },
+    // SEGURIDAD (aislamiento multi-tenant): resolver el asignado SOLO entre miembros de
+    // ESTE workspace. Preferir assigneeId (userId robusto); caer a nombre/email únicamente
+    // dentro del workspace. La búsqueda global previa (por nombre/email en TODA la DB)
+    // filtraba notificaciones de tareas a usuarios homónimos de otros workspaces.
+    const member = await prisma.workspaceMember.findFirst({
+      where: {
+        workspaceId,
+        user: task.assigneeId
+          ? { id: task.assigneeId }
+          : { OR: [{ name: task.assignee! }, { email: { startsWith: task.assignee! } }] },
+      },
+      select: { user: { select: { id: true, whatsappPhone: true } } },
     });
+    const user = member?.user;
     if (!user) continue;
 
     // Check if we already sent a notification for this task today
@@ -479,7 +488,7 @@ export async function checkSLAWarnings(workspaceId: string) {
       sendEmail: true,
       emailSubject: `ZEFIRUS — ${hoursLeft <= 0 ? "SLA VENCIDO" : "SLA por vencer"}: ${task.title}`,
       emailHtml: getSLAWarningEmailHtml({
-        userName: task.assignee,
+        userName: task.assignee ?? "Responsable",
         taskTitle: task.title,
         hoursLeft,
         dueDate: dueDateFormatted,
