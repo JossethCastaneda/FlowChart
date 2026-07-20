@@ -64,6 +64,13 @@ const envSchema = z.object({
   META_API_VERSION: z.string().default("v25.0"),
   META_WEBHOOK_VERIFY_TOKEN: z.string().min(1).optional(),
 
+  // WhatsApp Business Cloud API (webhook de la app; los tokens por-workspace viven
+  // cifrados en Integration, no aquí). Antes se leían con process.env directo.
+  WHATSAPP_APP_SECRET: z.string().min(1).optional(),
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN: z.string().min(1).optional(),
+  META_SYSTEM_USER_TOKEN: z.string().min(1).optional(),
+  META_BUSINESS_PORTFOLIO_ID: z.string().min(1).optional(),
+
   // Meta Config IDs
   FACEBOOK_LOGIN_CONFIG_ID: z.string().min(1).optional(),
   FACEBOOK_PUBLISHER_FB_CONFIG_ID: z.string().optional(),
