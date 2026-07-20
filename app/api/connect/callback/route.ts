@@ -417,12 +417,24 @@ export async function GET(request: NextRequest) {
       logger.error("[CONNECT CALLBACK] ❌ Failed to dispatch sync workflow:", syncErr);
     }
 
-    // Auto-suscribir webhooks de todas las páginas/IG conectadas. Antes era un
-    // paso manual (api/webhooks/subscribe) y los módulos quedaban sin recibir
-    // eventos (comentarios, DMs, ad_review, leadgen). Se ejecuta en paralelo y
-    // nunca bloquea el éxito de la conexión: un fallo solo se loguea/audita.
+    // Auto-suscribir webhooks con UNION de scopes de todas las integraciones.
+    // FIX: subscribed_apps es un PUT implicito — si solo usamos los scopes del
+    // modulo recien conectado, sobrescribimos y eliminamos campos que otros modulos
+    // habian suscrito (ej. 'messages' de Messenger se pierde al conectar publisher).
+    // Solucion: unir los scopes de todas las integraciones Meta del workspace.
     try {
-      const subResults = await subscribePages(rawPages, META_API_VERSION, userScopes);
+      const existingIntegrations = await prisma.integration.findMany({
+        where: { workspaceId: resolvedWorkspaceId, provider: { startsWith: "meta" }, connected: true },
+        select: { credentials: true },
+      });
+      const allScopesSet = new Set<string>(userScopes);
+      for (const intg of existingIntegrations) {
+        const creds = intg.credentials as { grantedScopes?: string[] } | null;
+        for (const s of creds?.grantedScopes ?? []) allScopesSet.add(s);
+      }
+      const unionScopes = Array.from(allScopesSet);
+
+      const subResults = await subscribePages(rawPages, META_API_VERSION, unionScopes);
       const { subscribed, failed } = logSubscriptionResults(subResults, {
         route: "api/connect/callback",
         module,
@@ -435,7 +447,7 @@ export async function GET(request: NextRequest) {
           action: "subscribe_webhooks",
           resourceType: "Integration",
           resourceId: metaIntegration.id,
-          details: { module, pages: rawPages.length, subscribed, failed },
+          details: { module, pages: rawPages.length, subscribed, failed, unionScopes: unionScopes.length },
         },
       }).catch((auditErr) => {
         logger.error("[CONNECT CALLBACK] ❌ Failed to write AuditLog:", auditErr);
