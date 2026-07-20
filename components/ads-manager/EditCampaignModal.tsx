@@ -53,15 +53,22 @@ export function EditCampaignModal({ campaign, onClose, onSaved }: EditCampaignMo
     return () => window.removeEventListener("keydown", handler);
   }, [onClose]);
 
+  // Campañas ABO (presupuesto a nivel de ad set) NO tienen daily/lifetime a nivel
+  // campaña: el input de presupuesto ni se renderiza. Sin este flag, la validación
+  // budget>0 bloqueaba guardar nombre/estado/bid en esas campañas (muy comunes).
+  const hasCampaignBudget = hasDailyBudget || hasLifetimeBudget;
+
   const handleSave = async () => {
     setLocalError(null);
     if (!name.trim()) { setLocalError("El nombre es obligatorio"); return; }
-    if (budget <= 0) { setLocalError("El presupuesto debe ser mayor a 0"); return; }
+    if (hasCampaignBudget && budget <= 0) { setLocalError("El presupuesto debe ser mayor a 0"); return; }
 
     const fields: any = { name };
     if (status !== campaign.status) fields.status = status;
-    if (budgetType === "daily") fields.daily_budget = budget;
-    else fields.lifetime_budget = budget;
+    if (hasCampaignBudget) {
+      if (budgetType === "daily") fields.daily_budget = budget;
+      else fields.lifetime_budget = budget;
+    }
     fields.bid_strategy = bidStrategy;
     fields.special_ad_categories = specialCategory ? [specialCategory] : [];
 

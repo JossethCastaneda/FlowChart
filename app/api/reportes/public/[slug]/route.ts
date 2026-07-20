@@ -8,10 +8,17 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { logger } from "@/lib/logger";
 
-/** Campos del snapshot que se exponen en la vista pública. */
+/**
+ * Campos del snapshot (ReportSnapshot en lib/reportes/generator.ts) que se exponen
+ * en la vista pública. DEBEN coincidir con las claves reales del snapshot; el
+ * allowlist previo listaba claves inexistentes (summary/creatives/projectMeta/channels)
+ * y strippeaba kpis/topCreatives/pacing/insights → la página pública quedaba vacía.
+ */
 const PUBLIC_DATA_FIELDS = [
-  "summary", "timeSeries", "creatives", "projectMeta", "channels",
+  "projectName", "projectAlias", "client", "vertical",
+  "kpis", "timeSeries", "topCreatives", "pacing", "insights",
   "dateFrom", "dateTo", "generatedAt",
 ] as const;
 
@@ -69,8 +76,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ slu
 
     return response;
   } catch (e: unknown) {
-    const msg = e instanceof Error ? e.message : "Error interno";
-    console.error("[API reportes/public GET]", e);
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    logger.error("[API reportes/public GET]", { error: e });
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 });
   }
 }

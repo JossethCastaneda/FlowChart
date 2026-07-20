@@ -138,43 +138,47 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
     const results = { success: 0, failed: 0, errors: [] as string[] };
     const version = process.env.NEXT_PUBLIC_FB_API_VERSION || "v25.0";
 
+    // La importación masiva solo soporta campañas por ahora: los ad sets requieren un
+    // campaignId + targeting y los ads un creative, que la plantilla CSV no captura.
+    // Antes esto hacía PUT /api/meta/{level} (sin handler → 405) y TODA fila fallaba.
+    if (level !== "campaigns") {
+      results.failed = parsedRows.length;
+      results.errors.push(
+        `La importación masiva de "${level}" aún no está soportada. Crea ${level === "adsets" ? "conjuntos de anuncios" : "anuncios"} desde el editor.`
+      );
+      setImportResults(results);
+      setImporting(false);
+      setStep(4);
+      return;
+    }
+
     for (let i = 0; i < parsedRows.length; i++) {
       const row = parsedRows[i];
       try {
-        const body: any = { adAccountId };
+        // El endpoint /create espera presupuestos en UNIDADES de moneda (multiplica ×100
+        // internamente) y exige confirmed_by_user. NO enviar centavos aquí.
+        const body: any = {
+          adAccountId,
+          name: row.name,
+          objective: row.objective || "OUTCOME_TRAFFIC",
+          special_ad_categories: row.special_ad_categories ? [row.special_ad_categories] : [],
+          confirmed_by_user: true,
+        };
+        if (row.daily_budget) body.daily_budget = parseFloat(row.daily_budget);
+        if (row.lifetime_budget) body.lifetime_budget = parseFloat(row.lifetime_budget);
 
-        if (level === "campaigns") {
-          body.name = row.name;
-          body.status = row.status || "PAUSED";
-          body.objective = row.objective || "OUTCOME_TRAFFIC";
-          if (row.daily_budget) body.daily_budget = Math.round(parseFloat(row.daily_budget) * 100);
-          if (row.lifetime_budget) body.lifetime_budget = Math.round(parseFloat(row.lifetime_budget) * 100);
-          body.special_ad_categories = row.special_ad_categories ? [row.special_ad_categories] : [];
-        } else if (level === "adsets") {
-          body.name = row.name;
-          body.status = row.status || "PAUSED";
-          if (row.daily_budget) body.daily_budget = Math.round(parseFloat(row.daily_budget) * 100);
-          body.optimization_goal = row.optimization_goal || "LINK_CLICKS";
-          body.billing_event = row.billing_event || "IMPRESSIONS";
-          if (row.bid_amount) body.bid_amount = Math.round(parseFloat(row.bid_amount) * 100);
-        } else {
-          body.name = row.name;
-          body.status = row.status || "PAUSED";
-          if (row.creative_id) body.creative = { creative_id: row.creative_id };
-        }
-
-        const res = await fetch(`/api/meta/${level}`, {
-          method: "PUT",
+        const res = await fetch(`/api/meta/campaigns/create`, {
+          method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
         });
         const data = await res.json();
 
-        if (data.success || data.id) {
+        if (data.status === "success" || data.object_id) {
           results.success++;
         } else {
           results.failed++;
-          results.errors.push(`"${row.name}": ${data.error || "Error desconocido"}`);
+          results.errors.push(`"${row.name}": ${data.user_message || data.error || "Error desconocido"}`);
         }
       } catch (err: any) {
         results.failed++;

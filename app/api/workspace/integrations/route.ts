@@ -54,7 +54,11 @@ export const GET = withWorkspace(async (_req, ctx) => {
       canDisconnect: ctx.role === "OWNER" || intg.connectedBy === ctx.userId,
       connectedModules,
       resources: (creds.resources as Record<string, unknown>) || {},
-      pages: (creds.pages as unknown[]) || [],
+      // SEGURIDAD: nunca exponer el token por página al cliente (aunque esté cifrado).
+      // Mismo criterio que app/api/connect/status. La UI solo necesita id/nombre/foto/IG.
+      pages: ((creds.pages as Array<Record<string, unknown>> | undefined) || []).map(
+        ({ accessToken, access_token, ...safe }) => safe
+      ),
     };
   });
 

@@ -34,7 +34,22 @@ export async function GET(request: NextRequest) {
     }
 
     const posts: any[] = [];
-    const page = pageId ? (pages.find((p: any) => p.id === pageId) || pages[0]) : pages[0];
+    // El frontend manda como pageId el id de la PÁGINA FB o el de la CUENTA IG vinculada.
+    // Hay que matchear ambos; antes solo comparaba p.id (FB) y para columnas IG caía
+    // silenciosamente a pages[0] → mostraba la cuenta equivocada en workspaces con 2+ páginas.
+    let page = pages[0];
+    if (pageId) {
+      const found = pages.find(
+        (p: any) => p.id === pageId || p.instagram_business_account?.id === pageId
+      );
+      if (!found) {
+        return NextResponse.json(
+          { posts: [], error: "La página/cuenta solicitada no está disponible en esta conexión." },
+          { status: 404 }
+        );
+      }
+      page = found;
+    }
     const pageToken = page.access_token || token;
 
     if (platform === "facebook") {

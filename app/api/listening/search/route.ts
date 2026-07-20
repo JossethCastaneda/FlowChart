@@ -365,6 +365,11 @@ IMPORTANTE: Responde SOLO con JSON válido, sin markdown.`;
         }));
         // Add remaining posts without sentiment
         postsWithSentiment.push(...posts.slice(50).map(p => ({ ...p, sentiment: "neutral" as const })));
+      } else {
+        // Gemini respondió non-OK (429 cuota / 400 / 503). Sin este throw, el análisis
+        // quedaba vacío y TODO el resultado (mentions=0, posts=[], timeseries en cero)
+        // aparecía vacío en vez de caer al análisis por reglas.
+        throw new Error(`Gemini responded ${res.status}`);
       }
     } catch (err) {
       logger.warn("[LISTENING SEARCH] Gemini analysis failed", { err });
