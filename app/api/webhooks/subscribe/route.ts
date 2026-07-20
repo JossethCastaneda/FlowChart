@@ -3,6 +3,7 @@ import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { getMetaAccessToken, metaFetch, metaUrl, META_API_VERSION as META_VERSION } from "@/lib/server-auth";
 import { subscribePages } from "@/lib/meta-webhooks";
+import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { logger } from "@/lib/logger";
 
 /**
@@ -20,6 +21,10 @@ export async function POST(request: NextRequest) {
   if (!jwt?.sub) return NextResponse.json({ error: "No auth" }, { status: 401 });
   const workspaceId = await getActiveWorkspaceId(jwt.sub);
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
+  // Configurar webhooks es una acción de administración del workspace.
+  if (!(await verifyWorkspaceAccess(workspaceId, jwt.sub, ["OWNER", "ADMIN"]))) {
+    return NextResponse.json({ error: "Solo OWNER/ADMIN pueden configurar webhooks" }, { status: 403 });
+  }
   const token = await getMetaAccessToken(request, "webhook");
   if (!token) return NextResponse.json({ error: "No Meta token" }, { status: 401 });
 
@@ -78,16 +83,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // SEGURIDAD: NO devolver el verify token (secreto compartido de la app) al cliente.
+    // La suscripción ya se hace server-side; para la config manual, el admin lo consulta
+    // en las variables de entorno del entorno de despliegue.
     return NextResponse.json({
       success: true,
       callbackUrl,
-      verifyToken,
+      verifyTokenConfigured: true,
       subscriptions: results,
       totalPages: pages.length,
       instructions: {
         step1: "Ve a Meta Developers → Tu App → Webhooks",
         step2: `Callback URL: ${callbackUrl}`,
-        step3: `Verify Token: ${verifyToken}`,
+        step3: "Verify Token: usa el valor de META_WEBHOOK_VERIFY_TOKEN de tu entorno (no se muestra aquí por seguridad).",
         step4: "Suscríbete a: page, instagram, ad_account, whatsapp_business_account",
         pageFields: "messages, messaging_postbacks, messaging_optins, messaging_referrals, message_deliveries, message_reads, feed, mention, ratings, leadgen",
         instagramFields: "messages, messaging_postbacks, comments, mentions, story_insights, live_comments",

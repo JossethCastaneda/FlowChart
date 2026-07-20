@@ -34,10 +34,12 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     );
   }
 
-  // Max 10MB
-  const MAX_SIZE = 10 * 1024 * 1024;
+  // Límite real: el body de una función serverless de Vercel está topado a ~4.5MB, así
+  // que anunciar 10MB era engañoso (la plataforma rechazaba el request antes de llegar
+  // aquí). Para media más pesada se necesita subida directa cliente→Blob (pendiente).
+  const MAX_SIZE = 4.5 * 1024 * 1024;
   if (file.size > MAX_SIZE) {
-    return apiError("El archivo excede 10MB", "VALIDATION_ERROR", 400);
+    return apiError("El archivo excede 4.5MB (límite de subida directa). Para videos más grandes, comprime el archivo.", "VALIDATION_ERROR", 400);
   }
 
   // Upload to Vercel Blob if configured, otherwise fallback to base64
@@ -58,7 +60,10 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
         finalName = `${finalName}.${ext}`;
       }
 
-      const blob = await put(finalName, file, { access: 'public' });
+      // Namespacing por workspace + UUID: evita colisiones globales de nombre entre
+      // tenants (dos "photo.jpg" chocarían) que degradaban a base64-en-DB.
+      const blobPath = `publisher/${ctx.workspaceId}/${randomUUID()}-${finalName}`;
+      const blob = await put(blobPath, file, { access: 'public' });
       fileUrl = blob.url;
     } catch (uploadError) {
       logger.warn("[PUBLISHER] Vercel Blob upload failed, falling back to base64:", uploadError);

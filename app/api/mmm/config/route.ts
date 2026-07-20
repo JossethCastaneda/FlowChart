@@ -145,31 +145,25 @@ export const PUT = withWorkspace(async (req, ctx) => {
       }
     : undefined;
 
-  const existingModel = await prisma.centurionModel.findFirst({
-    where: { workspaceId: ctx.workspaceId, clientName: client }
+  // Upsert atómico por (workspaceId, clientName) — evita duplicados bajo dos guardados
+  // concurrentes (antes findFirst + create no atómico).
+  await prisma.centurionModel.upsert({
+    where: { workspaceId_clientName: { workspaceId: ctx.workspaceId, clientName: client } },
+    update: {
+      config: savedConfig as any,
+      ...(vertical ? { verticalName: vertical } : {}),
+      ...(metricsJson ? { metrics: metricsJson as any } : {}),
+      updatedAt: new Date(),
+    },
+    create: {
+      workspaceId: ctx.workspaceId,
+      clientName: client,
+      verticalName: vertical ?? null,
+      engine: "FastMMM",
+      config: savedConfig as any,
+      ...(metricsJson ? { metrics: metricsJson as any } : {}),
+    },
   });
-
-  if (existingModel) {
-    await prisma.centurionModel.update({
-      where: { id: existingModel.id },
-      data: {
-        config: savedConfig as any,
-        ...(metricsJson ? { metrics: metricsJson as any } : {}),
-        updatedAt: new Date()
-      }
-    });
-  } else {
-    await prisma.centurionModel.create({
-      data: {
-        workspaceId: ctx.workspaceId,
-        clientName: client,
-        verticalName: vertical ?? null,
-        engine: "FastMMM",
-        config: savedConfig as any,
-        ...(metricsJson ? { metrics: metricsJson as any } : {}),
-      }
-    });
-  }
 
   return apiSuccess({ saved: true, savedAt: savedConfig.savedAt });
 });

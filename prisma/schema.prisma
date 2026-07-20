@@ -1549,7 +1549,9 @@ model CenturionModel {
 
   workspace Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
 
-  @@index([workspaceId, clientName])
+  // Único por (workspace, cliente): todo el código lo trata así (findFirst/deleteMany
+  // por esas dos columnas). El índice simple permitía duplicados bajo carrera find→create.
+  @@unique([workspaceId, clientName])
 }
 
 // ------------------------------------------------------
