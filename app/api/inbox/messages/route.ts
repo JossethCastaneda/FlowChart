@@ -195,11 +195,18 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Messenger / Instagram (Send API) ──
-  const isIg = conv?.platform === "instagram_dm" || platform === "instagram_dm";
-  const resolvedPageId = pageId || conv?.pageId || "";
-  const resolvedRecipient = recipientId || conv?.externalId || "";
+  // SEGURIDAD: derivar SIEMPRE pageId y recipient de la conversación verificada del
+  // workspace, nunca del cliente. Antes `pageId || conv?.pageId` y `recipientId ||
+  // conv?.externalId` dejaban que el cliente enviara DMs a un destinatario/página
+  // arbitrarios (incluso sin conversationId) usando el token del workspace.
+  if (!conv) {
+    return NextResponse.json({ error: "Conversation not found" }, { status: 404 });
+  }
+  const isIg = conv.platform === "instagram_dm";
+  const resolvedPageId = conv.pageId || "";
+  const resolvedRecipient = conv.externalId || "";
   if (!resolvedPageId || !resolvedRecipient) {
-    return NextResponse.json({ error: "pageId and recipientId required for Facebook/Instagram" }, { status: 400 });
+    return NextResponse.json({ error: "La conversación no tiene página/destinatario asociados" }, { status: 400 });
   }
 
   const token = await getMetaAccessToken(request, isIg ? "ig_inbox" : "inbox");

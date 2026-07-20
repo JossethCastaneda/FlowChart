@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+import { z } from "zod";
 import prisma from "@/lib/prisma";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 
 const AUTH_SECRET = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+
+const GoogleSourcesSchema = z.object({
+  adsCustomerId: z.string().max(64).optional(),
+  ga4PropertyId: z.string().max(64).optional(),
+  gtmAccountId: z.string().max(64).optional(),
+  gtmContainerId: z.string().max(64).optional(),
+});
 
 export interface GoogleSources {
   adsCustomerId?: string;
@@ -72,7 +80,13 @@ export async function PUT(
     return NextResponse.json({ error: "Google not connected. Connect Google in Integrations first." }, { status: 400 });
   }
 
-  const body = await request.json() as Partial<GoogleSources>;
+  // Parse seguro: request.json() lanza con body malformado → antes crasheaba (500).
+  const rawBody = await request.json().catch(() => null);
+  const parsed = GoogleSourcesSchema.safeParse(rawBody);
+  if (!parsed.success) {
+    return NextResponse.json({ error: "Body inválido" }, { status: 400 });
+  }
+  const body = parsed.data;
   const current = (project.googleSources as GoogleSources) || {};
 
   const newSources: GoogleSources = {

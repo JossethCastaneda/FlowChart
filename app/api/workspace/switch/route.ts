@@ -37,13 +37,15 @@ export const POST = withAuth(async (req, ctx) => {
     data: { workspace: membership.workspace },
   });
 
+  // Cookie host-only (sin domain explícito), igual que la cookie de invitación. El
+  // `.zefirus.xyz` hardcodeado rompía el switch en deploys de Preview (*.vercel.app)
+  // y "shadowaba" la cookie host-only puesta por otras rutas.
   response.cookies.set(ACTIVE_WORKSPACE_COOKIE, workspaceId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     maxAge: 60 * 60 * 24 * 365, // 1 year
     path: "/",
-    domain: process.env.NODE_ENV === "production" ? ".zefirus.xyz" : undefined,
   });
 
   logger.info("Active workspace switched", { workspaceId, userId: ctx.userId });

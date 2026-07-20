@@ -1,5 +1,5 @@
 import { withWorkspaceRole } from "@/lib/api-handler";
-import { apiSuccess } from "@/lib/api-response";
+import { apiSuccess, apiError } from "@/lib/api-response";
 import { validateBody } from "@/lib/validate";
 import { z } from "zod";
 import prisma from "@/lib/prisma";
@@ -37,11 +37,11 @@ export const PUT = withWorkspaceRole(["OWNER", "ADMIN"])(async (req, ctx) => {
   }
 
   if (!foundProvider) {
-    return apiSuccess({ error: "Modelo no encontrado en el catálogo" }, 400);
+    return apiError("Modelo no encontrado en el catálogo", "MODEL_NOT_FOUND", 400);
   }
 
   if (!getProvider(foundProvider.id).isConfigured()) {
-    return apiSuccess({ error: `El proveedor ${foundProvider.label} no está configurado (Falta API Key)` }, 400);
+    return apiError(`El proveedor ${foundProvider.label} no está configurado (Falta API Key)`, "PROVIDER_NOT_CONFIGURED", 400);
   }
 
   // Obtener settings actuales para mezclar el extConfig

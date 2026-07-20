@@ -35,11 +35,24 @@ export const PATCH = withAuth(async (req, ctx) => {
   if (!result.ok) return result.response;
   const { userId, permissions } = result.data;
 
-  const target = await prisma.workspaceMember.findUnique({
-    where: { workspaceId_userId: { workspaceId, userId } },
-    select: { id: true },
-  });
+  const [requester, target] = await Promise.all([
+    prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId: ctx.userId } },
+      select: { role: true },
+    }),
+    prisma.workspaceMember.findUnique({
+      where: { workspaceId_userId: { workspaceId, userId } },
+      select: { id: true, role: true },
+    }),
+  ]);
   if (!target) return apiNotFound("Miembro no encontrado");
+
+  // SEGURIDAD: un ADMIN NO puede editar los permisos de un OWNER/ADMIN (ni los suyos
+  // propios) — eso le permitiría deshacer las restricciones impuestas por el OWNER.
+  // Solo el OWNER puede tocar permisos de roles administrativos.
+  if (requester?.role !== "OWNER" && (target.role === "OWNER" || target.role === "ADMIN")) {
+    return apiForbidden("Solo el OWNER puede modificar permisos de administradores");
+  }
 
   await prisma.workspaceMember.update({
     where: { workspaceId_userId: { workspaceId, userId } },

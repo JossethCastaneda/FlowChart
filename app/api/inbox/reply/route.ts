@@ -153,14 +153,18 @@ export async function POST(req: NextRequest) {
       replyMessageId = commentData.id || null;
     } else {
       // ── Send the reply via Meta Send API (DMs: Messenger / IG DM) ──
-      // Replies go through POST /{pageId}/messages (Send API), NOT /{conversationId}/messages
+      // Replies go through POST /{pageId}/messages (Send API), NOT /{conversationId}/messages.
+      // SEGURIDAD: el destinatario es el externalId (PSID del contacto) de la conversación
+      // YA verificada como del workspace — NO el recipientId del cliente, que permitiría
+      // enviar DMs a un PSID arbitrario a través de la página con un conversationId válido.
+      const recipientPsid = conversation.externalId;
       const replyRes = await metaFetch(
         `https://graph.facebook.com/${META_V}/${pageId}/messages`,
         pageToken,
         {
           method: "POST",
           body: JSON.stringify({
-            recipient: { id: recipientId },
+            recipient: { id: recipientPsid },
             message: { text },
             messaging_type: "RESPONSE",
           }),
