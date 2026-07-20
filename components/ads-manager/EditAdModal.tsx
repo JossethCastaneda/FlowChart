@@ -5,6 +5,16 @@ import { useMetaUpdate } from "@/hooks/useMetaUpdate";
 import { AdPreview, AdCreativeData } from "./AdPreview";
 import { inputStyle, selectStyle, toggleStyle } from "./EditCampaignModal";
 
+/** Devuelve el hostname de una URL, o undefined si aún no es válida (input parcial). */
+function safeHostname(url: string | undefined): string | undefined {
+  if (!url) return undefined;
+  try {
+    return new URL(url.startsWith("http") ? url : `https://${url}`).hostname;
+  } catch {
+    return undefined;
+  }
+}
+
 function FormGroup({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
     <div>
@@ -80,7 +90,9 @@ export function EditAdModal({ ad, adAccountId, onClose, onSaved }: EditAdModalPr
     description,
     ctaType,
     ctaUrl,
-    displayUrl: ctaUrl ? new URL(ctaUrl.startsWith("http") ? ctaUrl : `https://${ctaUrl}`).hostname : undefined,
+    // new URL() lanza con input parcial mientras el usuario teclea la URL → crasheaba el
+    // render de todo el modal. Parseo defensivo: si aún no es válida, sin displayUrl.
+    displayUrl: safeHostname(ctaUrl),
     imageUrl: imageUrl || existingCreative.thumbnail_url,
   };
 

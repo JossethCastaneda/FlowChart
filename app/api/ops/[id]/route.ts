@@ -87,6 +87,24 @@ export const PATCH = withAuth(async (req, ctx) => {
     }
   }
 
+  // SEGURIDAD: parentId y blockedBy deben referenciar tareas del MISMO workspace.
+  // Sin esto, se podían crear relaciones cruzadas hacia tareas de otro tenant.
+  if (parentId) {
+    const parent = await prisma.task.findFirst({
+      where: { id: parentId, workspaceId: task.workspaceId },
+      select: { id: true },
+    });
+    if (!parent) return apiError("La tarea padre no pertenece a este workspace", "INVALID_PARENT", 400);
+  }
+  if (blockedByIds !== undefined && blockedByIds.length > 0) {
+    const validCount = await prisma.task.count({
+      where: { id: { in: blockedByIds }, workspaceId: task.workspaceId },
+    });
+    if (validCount !== blockedByIds.length) {
+      return apiError("Una o más dependencias no pertenecen a este workspace", "INVALID_DEPENDENCY", 400);
+    }
+  }
+
   const updated = await prisma.task.update({
     where: { id },
     data: {

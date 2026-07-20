@@ -4,11 +4,27 @@
    ════════════════════════════════════════════════════════════ */
 
 import { NextRequest } from "next/server";
+import { z } from "zod";
 import { withWorkspace, type WorkspaceContext } from "@/lib/api-handler";
-import { apiSuccess, apiError, apiForbidden } from "@/lib/api-response";
+import { apiSuccess, apiError } from "@/lib/api-response";
+import { validateBody } from "@/lib/validate";
 import prisma from "@/lib/prisma";
 import { buildReportData, generateReportSlug } from "@/lib/reportes/generator";
 import type { ReportSettings } from "@/lib/reportes/generator";
+
+const isoDate = z
+  .string()
+  .refine((s) => !Number.isNaN(new Date(s).getTime()), "Fecha inválida");
+
+const CreateReportSchema = z.object({
+  projectId: z.string().min(1),
+  title: z.string().min(1).max(300),
+  dateFrom: isoDate,
+  dateTo: isoDate,
+  insightsData: z.unknown().optional(),
+  settings: z.record(z.string(), z.unknown()).optional(),
+  expiresAt: isoDate.optional(),
+});
 
 // ── GET: listar reportes del workspace ──────────────────────
 export const GET = withWorkspace(async (req: NextRequest, ctx: WorkspaceContext) => {
@@ -39,12 +55,9 @@ export const GET = withWorkspace(async (req: NextRequest, ctx: WorkspaceContext)
 
 // ── POST: generar un nuevo reporte ──────────────────────────
 export const POST = withWorkspace(async (req: NextRequest, ctx: WorkspaceContext) => {
-  const body = await req.json();
-  const { projectId, title, dateFrom, dateTo, insightsData, settings } = body;
-
-  if (!projectId || !title || !dateFrom || !dateTo) {
-    return apiError("Faltan campos: projectId, title, dateFrom, dateTo", "VALIDATION_ERROR");
-  }
+  const parsed = await validateBody(req, CreateReportSchema);
+  if (!parsed.ok) return parsed.response;
+  const { projectId, title, dateFrom, dateTo, insightsData, settings, expiresAt: expiresAtRaw } = parsed.data;
 
   // Verify project belongs to workspace
   const project = await prisma.project.findFirst({
@@ -55,7 +68,12 @@ export const POST = withWorkspace(async (req: NextRequest, ctx: WorkspaceContext
   }
 
   // Build report data
-  const snapshot = await buildReportData(projectId, dateFrom, dateTo, insightsData);
+  const snapshot = await buildReportData(
+    projectId,
+    dateFrom,
+    dateTo,
+    insightsData as Parameters<typeof buildReportData>[3]
+  );
 
   // Get workspace settings for white-label defaults
   const wsSettings = await prisma.workspaceSettings.findUnique({
@@ -71,8 +89,8 @@ export const POST = withWorkspace(async (req: NextRequest, ctx: WorkspaceContext
 
   // Default expiration: 90 days from now (never null in new reports)
   const DEFAULT_EXPIRY_DAYS = 90;
-  const expiresAt = body.expiresAt
-    ? new Date(body.expiresAt)
+  const expiresAt = expiresAtRaw
+    ? new Date(expiresAtRaw)
     : new Date(Date.now() + DEFAULT_EXPIRY_DAYS * 24 * 60 * 60 * 1000);
 
   // Create report
