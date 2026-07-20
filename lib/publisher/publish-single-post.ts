@@ -71,8 +71,9 @@ export async function publishSinglePost(
     // genérico "meta", que puede carecer de los scopes de publicación → los posts
     // programados fallaban o publicaban con la cuenta equivocada. Fallback al
     // genérico solo si no hay integración de módulo publisher conectada.
+    const channels = claimedPost.channels ?? [];
     const isIgOnly =
-      claimedPost.channels.includes("instagram") && !claimedPost.channels.includes("facebook");
+      channels.includes("instagram") && !channels.includes("facebook");
     const providerCandidates = isIgOnly
       ? ["meta_publisher_instagram", "meta_publisher_facebook", "meta"]
       : ["meta_publisher_facebook", "meta_publisher_instagram", "meta"];
