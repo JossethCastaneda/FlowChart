@@ -5,6 +5,21 @@ import { logger } from "@/lib/logger";
 
 const TOKEN_ENDPOINT = "https://oauth2.googleapis.com/token";
 
+/**
+ * decryptToken lanza ante credenciales en texto plano (legacy). En refresh/revoke eso
+ * derribaba toda la operación. safeDecrypt degrada a "" para seguir un camino limpio
+ * (refrescar o retornar null) en vez de propagar la excepción.
+ */
+function safeDecrypt(v: string | null | undefined): string {
+  if (!v) return "";
+  try {
+    return decryptToken(v);
+  } catch {
+    logger.warn("[OAUTH GOOGLE] Credencial no descifrable (¿legacy en texto plano?) — se requiere reconexión");
+    return "";
+  }
+}
+
 export interface GoogleCredentials {
   accessToken?: string;
   refreshToken?: string;
@@ -33,10 +48,11 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
     return null;
   }
 
-  const decryptedAccess = decryptToken(creds.accessToken);
-  
-  // If we have a token and it expires in more than 5 minutes, use it
-  if (creds.expiresAt && Date.now() < creds.expiresAt - 5 * 60 * 1000) {
+  const decryptedAccess = safeDecrypt(creds.accessToken);
+
+  // If we have a valid token and it expires in more than 5 minutes, use it.
+  // Si el descifrado falló (legacy plaintext), decryptedAccess = "" → forzamos refresh.
+  if (decryptedAccess && creds.expiresAt && Date.now() < creds.expiresAt - 5 * 60 * 1000) {
     return decryptedAccess;
   }
 
@@ -49,7 +65,11 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
     return null;
   }
 
-  const decryptedRefresh = decryptToken(creds.refreshToken);
+  const decryptedRefresh = safeDecrypt(creds.refreshToken);
+  if (!decryptedRefresh) {
+    logger.warn("[OAUTH GOOGLE] refresh token no descifrable — se requiere reconexión de Google");
+    return null;
+  }
 
   try {
     const res = await fetch(TOKEN_ENDPOINT, {
@@ -99,7 +119,7 @@ export async function refreshAccessToken(workspaceId: string): Promise<string | 
  * falla, el caller debe continuar borrando las credenciales locales.
  */
 export async function revokeGoogleToken(creds: GoogleCredentials | null | undefined): Promise<boolean> {
-  const token = decryptToken(creds?.refreshToken) || decryptToken(creds?.accessToken);
+  const token = safeDecrypt(creds?.refreshToken) || safeDecrypt(creds?.accessToken);
   if (!token) return false;
 
   try {

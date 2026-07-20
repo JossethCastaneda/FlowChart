@@ -5,6 +5,7 @@ import { getBaseUrl } from "@/lib/get-base-url";
 import { decryptToken } from "@/lib/encryption";
 import { verifyCronAuth } from "@/lib/cron-auth";
 import { logger } from "@/lib/logger";
+import { ACTIVE_PROJECT_STATUSES } from "@/lib/project-constants";
 
 // Vercel Cron: called at 9:00, 12:00, 16:00, 18:00 CST (15:00, 18:00, 22:00, 00:00 UTC)
 // Authorization via CRON_SECRET (Bearer header — Vercel standard)
@@ -20,7 +21,7 @@ export async function GET(req: NextRequest) {
     // Get all active projects with channels + workspace members
     // FIX: projects don't have members directly — fetch via workspace
     const projects = await prisma.project.findMany({
-      where: { status: "Activo" },
+      where: { status: { in: [...ACTIVE_PROJECT_STATUSES] } },
       include: {
         channels: true,
         workspace: {
@@ -49,24 +50,29 @@ export async function GET(req: NextRequest) {
         const alertsEnabled = (project as any).alertsEnabled !== false;
         if (!alertsEnabled) continue;
 
-        // FIX: token comes from the Integration table via workspace, not from cfg.accessToken
-        // Get Meta token from workspace Integration table
-        const integration = await prisma.integration.findUnique({
-          where: {
-            workspaceId_provider_userId: {
-              workspaceId: project.workspaceId,
-              provider: "meta",
-              userId: "workspace",
+        // Token desde la Integration del workspace. Preferir el módulo de Ads
+        // (meta_ads, con los scopes de insights) y caer al genérico "meta". Antes solo
+        // miraba "meta" → workspaces conectados vía el botón de Ads quedaban sin alertas.
+        let rawToken: string | undefined;
+        for (const provider of ["meta_ads", "meta"]) {
+          const integration = await prisma.integration.findUnique({
+            where: {
+              workspaceId_provider_userId: { workspaceId: project.workspaceId, provider, userId: "workspace" },
             },
-          },
-        });
+          });
+          const candidate = (integration?.credentials as any)?.accessToken;
+          if (integration?.connected && candidate) { rawToken = candidate; break; }
+        }
+        if (!rawToken) continue;
 
         // Decrypt the stored token — credentials are encrypted at rest with AES-256-GCM.
-        // Without decryptToken() the raw "enc:..." string would be sent to Meta, which
-        // causes a silent auth failure on every Graph API call.
-        const rawToken = (integration?.credentials as any)?.accessToken;
-        if (!rawToken) continue;
-        const token = decryptToken(rawToken);
+        let token: string;
+        try {
+          token = decryptToken(rawToken);
+        } catch {
+          logger.error(`[ALERTS] Failed to decrypt token for workspace ${project.workspaceId}`);
+          continue;
+        }
         if (!token || token.startsWith("enc:")) {
           logger.error(`[ALERTS] Failed to decrypt token for workspace ${project.workspaceId}`);
           continue;
@@ -201,8 +207,21 @@ export async function GET(req: NextRequest) {
 
         if (alerts.length === 0) continue;
 
+        // DEDUP: no recrear alertas ni reenviar emails idénticos en cada corrida del cron.
+        // Se omite cualquier alerta cuyo (projectId, type) ya se generó en las últimas 20h.
+        const recentAlerts = await prisma.projectAlert.findMany({
+          where: {
+            projectId: project.id,
+            createdAt: { gte: new Date(Date.now() - 20 * 60 * 60 * 1000) },
+          },
+          select: { type: true },
+        });
+        const recentTypes = new Set(recentAlerts.map((a) => a.type));
+        const newAlerts = alerts.filter((a) => !recentTypes.has(a.type));
+        if (newAlerts.length === 0) continue;
+
         // Save alerts to DB — isolated per alert so one failure doesn't block others
-        for (const alert of alerts) {
+        for (const alert of newAlerts) {
           try {
             await prisma.projectAlert.create({
               data: {
@@ -235,7 +254,7 @@ export async function GET(req: NextRequest) {
               to: allEmails,
               projectName: project.name,
               healthScore,
-              alerts,
+              alerts: newAlerts,
               dashboardUrl: `${baseUrl}/dashboard/proyectos/${project.id}`,
             });
           } catch (emailErr) {
@@ -251,7 +270,7 @@ export async function GET(req: NextRequest) {
                 userId: member.userId,
                 type: "health_alert",
                 title: `${project.name}: Health Score ${healthScore}`,
-                message: alerts.map((a) => a.title).join(", "),
+                message: newAlerts.map((a) => a.title).join(", "),
                 link: `/dashboard/proyectos/${project.id}`,
               },
             });
@@ -263,7 +282,7 @@ export async function GET(req: NextRequest) {
         results.push({
           project: project.name,
           healthScore,
-          alertCount: alerts.length,
+          alertCount: newAlerts.length,
           emailsSent: allEmails.length,
         });
       } catch (projectErr: any) {

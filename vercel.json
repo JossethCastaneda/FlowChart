@@ -22,10 +22,6 @@
       "schedule": "0 4 * * *"
     },
     {
-      "path": "/api/cron/analytics-sync",
-      "schedule": "0 5 * * *"
-    },
-    {
       "path": "/api/cron/mmm-ingest",
       "schedule": "0 7 * * 1"
     }

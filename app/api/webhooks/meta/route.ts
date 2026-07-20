@@ -6,6 +6,7 @@ import { resolveWorkspaceFromPhone } from "@/lib/whatsapp";
 import { resolveWorkspaceForMetaAsset, persistInboundMessage, type InboxPlatform } from "@/lib/inbox-store";
 import { env } from "@/lib/env";
 import { parseIntegrationCredentials, getPageTokenForFetch } from "@/lib/meta-tokens";
+import { ACTIVE_PROJECT_STATUSES } from "@/lib/project-constants";
 
 /**
  * Persiste un DM entrante de Messenger/IG en el inbox (tiempo real). Resuelve el
@@ -986,7 +987,7 @@ async function findProjectsForEvent(meta: {
     return prisma.project.findMany({
       where: {
         id: { in: sources.map((s) => s.projectId) },
-        status: "Activo",
+        status: { in: [...ACTIVE_PROJECT_STATUSES] },
       },
       select: {
         id: true,
@@ -1052,7 +1053,7 @@ async function findProjectsForEvent(meta: {
   const matchedProjects = new Map<string, ProjectMatched>();
 
   for (const c of metaChannels) {
-    if (c.project.status !== "Activo") continue;
+    if (!ACTIVE_PROJECT_STATUSES.includes(c.project.status as (typeof ACTIVE_PROJECT_STATUSES)[number])) continue;
     // SEGURIDAD: el proyecto DEBE pertenecer a un workspace que realmente conectó
     // este activo. Sin esto, la config de un canal ajeno enrutaría eventos de la víctima.
     if (!owningWorkspaceIds.has(c.project.workspaceId)) continue;

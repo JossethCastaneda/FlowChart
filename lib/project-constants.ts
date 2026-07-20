@@ -33,6 +33,13 @@ export const CPR_MAP: Record<string, string> = {
 
 export const STATUSES = ["EN VUELO", "EN ÓRBITA", "Draft", "Completado"] as const;
 
+/**
+ * Estados en los que un proyecto se considera "activo" para ruteo de eventos y
+ * alertas. Incluye el legacy "Activo": el formulario nuevo guarda "EN VUELO"/"EN ÓRBITA",
+ * así que filtrar solo por "Activo" saltaba silenciosamente todos los proyectos nuevos.
+ */
+export const ACTIVE_PROJECT_STATUSES = ["EN VUELO", "EN ÓRBITA", "Activo"] as const;
+
 export const STATUS_COLORS: Record<string, string> = {
   "EN VUELO": "emerald", "EN ÓRBITA": "amber", Draft: "muted", Completado: "cyan",
 };
