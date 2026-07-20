@@ -81,8 +81,8 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
       }}
       onMouseOver={e => { if (!isActive) e.currentTarget.style.background = "var(--surface-hover)"; }}
       onMouseOut={e => { if (!isActive) e.currentTarget.style.background = "transparent"; }}
-      onFocus={e => { e.currentTarget.style.boxShadow = "inset 0 0 0 2px var(--cyan)"; }}
-      onBlur={e => { e.currentTarget.style.boxShadow = "none"; }}
+      onFocus={e => { e.currentTarget.style.outline = "2px solid var(--glass-border)"; e.currentTarget.style.outlineOffset = "2px"; }}
+      onBlur={e => { e.currentTarget.style.outline = "none"; }}
     >
       {/* Avatar + Platform badge */}
       <div style={{ position: "relative", flexShrink: 0 }}>
@@ -101,7 +101,6 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
             position: "absolute", top: 0, left: 0,
             width: 10, height: 10, borderRadius: "50%",
             background: "var(--cyan)", border: "2px solid var(--background)",
-            boxShadow: "0 0 6px var(--cyan)",
           }} aria-hidden="true" />
         )}
       </div>

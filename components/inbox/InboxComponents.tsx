@@ -630,7 +630,7 @@ export function ChatView({
                       : "linear-gradient(135deg, #006AFF, #006AFF)",
                     border: msg.incoming ? "1px solid var(--hairline)" : "none",
                     borderRadius: msg.incoming ? "4px 16px 16px 16px" : "16px 4px 16px 16px",
-                    boxShadow: msg.incoming ? "none" : "0 2px 8px rgba(0,106,255,0.3)",
+                    boxShadow: msg.incoming ? "none" : "var(--shadow-hard)",
                   }}>
                     {msg.text && (
                       <p style={{
@@ -912,7 +912,7 @@ export function ChatView({
                 border: "none", borderRadius: 8,
                 cursor: input.trim() ? "pointer" : "default",
                 transition: "all 0.2s", flexShrink: 0,
-                boxShadow: input.trim() ? "0 2px 8px rgba(155,123,232,0.3)" : "none",
+                boxShadow: "none",
               }}
             >
               <Send style={{

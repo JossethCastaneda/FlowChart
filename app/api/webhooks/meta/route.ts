@@ -206,18 +206,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ received: true });
     }
 
-    // Procesar directamente (sin after()) para garantizar persistencia en Vercel serverless.
-    // after() puede silenciosamente no ejecutarse si la función Lambda se termina antes.
-    // Usamos Promise.race con 15s de timeout: Meta requiere respuesta en <20s y reintenta si
-    // no responde, pero aquí procesamos primero y respondemos tras completar o al timeout.
-    const timeout = new Promise<void>((resolve) => setTimeout(resolve, 15_000));
-    await Promise.race([
-      processWebhookEvents(body, object).catch((err) => {
-        logger.error("[WEBHOOK] Background processing error:", err);
-      }),
-      timeout,
-    ]);
-
+    // ── Procesamiento asíncrono fire-and-forget ──────────────────────────
+    // Respondemos 200 ANTES de procesar para que Meta nunca espere >20s.
+    // Meta reintenta solo si NO recibe 200; ya que sí lo recibirá, los
+    // reintentos innecesarios quedan eliminados.
+    // 
+    // Nota arquitectural: el patrón ideal para garantías más fuertes es
+    // QStash (AGENTS.md) — esto lo resolvería con colas durables. Lo que
+    // hacemos aquí es el máximo posible dentro de la ejecución serverless.
+    processWebhookEvents(body, object).catch((err) => {
+      logger.error("[WEBHOOK] Background processing error:", err);
+    });
+    // Responder INMEDIATAMENTE — no esperamos a que termine el procesamiento.
     return NextResponse.json({ received: true });
   } catch (err) {
     logger.error("[WEBHOOK] Critical error:", err);
@@ -808,9 +808,16 @@ async function processWebhookEvents(body: any, object: string) {
                       update: { lastMessage: textBody.slice(0, 255), lastMessageAt: timestamp, unread: true, contactName, updatedAt: new Date() },
                       create: { workspaceId: resolved.workspaceId, platform: "whatsapp", externalId: `wa_${waMsg.from}`, pageId: phoneNumberId, contactName, lastMessage: textBody.slice(0, 255), lastMessageAt: timestamp, unread: true, status: "open", tags: [] },
                     });
-                    await prisma.inboxMessage.create({
-                      data: { conversationId: conversation.id, externalId: waMsg.id, content: textBody, sender: "user", senderName: contactName, createdAt: timestamp },
+                    // Dedup por waMsg.id — los reintentos de WA no deben duplicar mensajes.
+                    const dupWa = await prisma.inboxMessage.findFirst({
+                      where: { conversationId: conversation.id, externalId: waMsg.id },
+                      select: { id: true },
                     });
+                    if (!dupWa) {
+                      await prisma.inboxMessage.create({
+                        data: { conversationId: conversation.id, externalId: waMsg.id, content: textBody, sender: "user", senderName: contactName, createdAt: timestamp },
+                      });
+                    }
                   }
                 } catch (inboxErr) {
                   logger.warn("[WEBHOOK] Error upserting WA inbox", { phoneNumberId, error: inboxErr });
