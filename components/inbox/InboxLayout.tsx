@@ -328,8 +328,8 @@ function ConnectedBanner({
 }) {
   return (
     <div role="status" aria-label="Cuenta conectada" style={{
-      display: "flex", alignItems: "center", justifyContent: "space-between",
-      padding: "16px 24px",
+      display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "16px",
+      padding: "12px 16px",
       background: "var(--background)",
       borderBottom: "1px solid var(--hairline)",
       flexShrink: 0,
@@ -356,7 +356,7 @@ function ConnectedBanner({
           </div>
         </div>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         {isMetaConnected && userProfile && (
           <div style={{ display: "flex", alignItems: "center", gap: 8, paddingRight: 16, borderRight: "1px solid var(--hairline)" }}>
             <Avatar src={userProfile.picture} name={userProfile.name || "Usuario"} size={32} color="var(--purple)" />
@@ -774,7 +774,7 @@ export function InboxLayout() {
         {showProfile && selected && (
           <div
             className="absolute inset-y-0 right-0 z-20 w-[280px] md:static md:w-[280px] md:min-w-[280px] shadow-2xl md:shadow-none flex flex-col"
-            style={{ background: "transparent", borderLeft: "1px solid var(--glass-border)", overflow: "hidden" }}
+            style={{ background: "var(--background)", borderLeft: "1px solid var(--glass-border)", overflow: "hidden" }}
             role="complementary" aria-label="Perfil del contacto"
           >
             <ContactProfile conversation={selected} onAssign={(member) => handleAssign(selected, member)} onAddTag={(tag) => handleAddTag(selected, tag)} onRemoveTag={(tag) => handleRemoveTag(selected, tag)} onAddNote={(content) => handleAddNote(selected, content)} onDeleteNote={(noteId) => handleDeleteNote(selected, noteId)} onClose={toggleProfile} />

@@ -538,35 +538,29 @@ export function ChatView({
     return (
     <>
       {/* --- Chat Header --- */}
-      <div style={{
-        padding: "16px",
-        borderBottom: "1px solid var(--glass-border)",
-        display: "flex", flexDirection: "column", gap: 10,
-        flexShrink: 0, background: "transparent",
-      }}>
+      <div className="flex flex-col gap-2 md:gap-3 p-3 md:p-4 shrink-0 bg-transparent border-b border-[var(--glass-border)]">
         {/* Top Row: User Info */}
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12, fontSize: 11, color: "var(--text-muted)" }}>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 md:gap-3 text-[11px] text-[var(--text-muted)]">
             {onBack && (
               <button onClick={onBack} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--foreground)] mr-1" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
                 <ChevronLeft style={{ width: 18, height: 18 }} />
               </button>
             )}
             
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="flex items-center gap-2 md:gap-3">
               <Avatar src={conversation.contactAvatar} name={conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")} size={36} color={pc.color} />
-              <span style={{ color: "var(--foreground)", fontWeight: 600, fontSize: 16 }}>
+              <span className="text-[var(--foreground)] font-semibold text-[14px] md:text-[16px]">
                 {conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")}
               </span>
             </div>
           </div>
 
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div className="flex items-center gap-2">
             <button 
               onClick={onClose}
-              style={{ background: "transparent", border: "1px solid var(--glass-border)", color: conversation.closed ? "var(--emerald)" : "var(--text-secondary)", cursor: "pointer", padding: "6px 12px", borderRadius: "16px", fontSize: "11px", fontWeight: 600, display: "flex", alignItems: "center", gap: 6, transition: "background 0.2s" }}
-              onMouseEnter={e => e.currentTarget.style.background = "var(--surface-hover)"}
-              onMouseLeave={e => e.currentTarget.style.background = "transparent"}
+              className="flex items-center gap-1 md:gap-1.5 px-2 py-1.5 md:px-3 md:py-1.5 rounded-2xl font-semibold text-[10px] md:text-[11px] bg-transparent border border-[var(--glass-border)] transition-colors hover:bg-[var(--surface-hover)]"
+              style={{ color: conversation.closed ? "var(--emerald)" : "var(--text-secondary)" }}
             >
               <CheckCircle2 style={{ width: 14, height: 14 }} />
               {conversation.closed ? "REABRIR" : "CERRAR"}
