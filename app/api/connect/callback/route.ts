@@ -81,6 +81,13 @@ export async function GET(request: NextRequest) {
     userId = decoded.userId;
     workspaceId = decoded.workspaceId || "";
 
+    // Anti-replay: rechazar estados de más de 15 min (o sin timestamp = legacy).
+    const STATE_TTL_MS = 15 * 60 * 1000;
+    if (typeof decoded.ts !== "number" || Date.now() - decoded.ts > STATE_TTL_MS) {
+      logger.warn("[CONNECT CALLBACK] ❌ State expirado o sin timestamp");
+      return NextResponse.redirect(`${baseUrl}/connect/done?error=state_expired`);
+    }
+
     // Verify that the userId in the state matches the current JWT session
     if (userId !== jwt.sub) {
       logger.warn(`[CONNECT CALLBACK] ❌ User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
@@ -234,14 +241,16 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect(`${baseUrl}/connect/done?error=insufficient_role`);
       }
     } else {
-      // Fallback: find user's first workspace
+      // Fallback: primer workspace del usuario donde sea OWNER/ADMIN. Antes NO verificaba
+      // el rol → un MEMBER (vía un state legacy sin workspaceId) podía conectar una
+      // integración a su primer workspace sin ser admin.
       const membership = await prisma.workspaceMember.findFirst({
-        where: { userId },
+        where: { userId, role: { in: ["OWNER", "ADMIN"] } },
         orderBy: { workspace: { createdAt: "asc" } },
         select: { workspaceId: true },
       });
       if (!membership) {
-        return NextResponse.redirect(`${baseUrl}/connect/done?error=no_workspace`);
+        return NextResponse.redirect(`${baseUrl}/connect/done?error=insufficient_role`);
       }
       resolvedWorkspaceId = membership.workspaceId;
     }

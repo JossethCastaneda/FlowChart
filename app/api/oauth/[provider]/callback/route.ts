@@ -83,6 +83,12 @@ export async function GET(
     workspaceId = decoded.workspaceId || "";
     isPopup = !!decoded.popup;
 
+    // Anti-replay: rechazar estados de más de 15 min (o sin timestamp = legacy).
+    if (typeof decoded.ts !== "number" || Date.now() - decoded.ts > 15 * 60 * 1000) {
+      logger.warn("[OAUTH CALLBACK] ❌ State expirado o sin timestamp");
+      return NextResponse.redirect(`${integrationsUrl}?connect_error=state_expired`);
+    }
+
     if (userId !== jwt.sub) {
       logger.warn(`[OAUTH CALLBACK] ❌ User mismatch — state: ${userId}, jwt: ${jwt.sub}`);
       return NextResponse.redirect(`${integrationsUrl}?connect_error=user_mismatch`);

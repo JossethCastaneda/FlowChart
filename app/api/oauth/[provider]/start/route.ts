@@ -82,6 +82,7 @@ export async function GET(
     workspaceId,
     nonce: crypto.randomUUID(),
     popup: isPopup,
+    ts: Date.now(), // el callback rechaza estados de más de 15 min (anti-replay)
   });
   const sig = createHmac("sha256", AUTH_SECRET)
     .update(payload)
