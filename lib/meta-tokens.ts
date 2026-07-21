@@ -60,16 +60,6 @@ export function parseIntegrationCredentials(credentials: any): UserTokenData | n
 }
 
 /**
- * Validate token expiry (with 5-min buffer)
- */
-export function isTokenExpired(expiresAtStr: string, bufferMinutes = 5): boolean {
-  const expiresAt = new Date(expiresAtStr);
-  const now = new Date();
-  const buffer = bufferMinutes * 60 * 1000;
-  return now.getTime() > expiresAt.getTime() - buffer;
-}
-
-/**
  * Get page access token by page ID (decrypts from storage)
  * INTERNAL ONLY — never return to client
  */
@@ -84,23 +74,3 @@ export function getPageTokenForFetch(pages: PageTokenData[], pageId: string): st
   }
 }
 
-/**
- * Determine which token (user vs page) should be used for a Graph API call
- * 
- * RULE:
- * - User token: GET /me/*, permissions checks, etc.
- * - Page token: POST /page/feed (publishing), page-level reads
- */
-export function selectTokenForEndpoint(
-  endpoint: string,
-  method: "GET" | "POST" | "DELETE" = "GET"
-): "user" | "page" {
-  // Publishing endpoints require page token
-  if (method === "POST" && endpoint.includes("/feed")) return "page";
-  if (method === "POST" && endpoint.includes("/photos")) return "page";
-  if (method === "POST" && endpoint.includes("/videos")) return "page";
-  if (method === "DELETE" && endpoint.includes("/")) return "page";
-
-  // Everything else uses user token
-  return "user";
-}

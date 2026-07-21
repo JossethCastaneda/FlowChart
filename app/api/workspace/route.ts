@@ -68,24 +68,39 @@ export const POST = withAuth(async (req, ctx) => {
     return apiError("El nombre no produce un slug válido", "VALIDATION_ERROR", 422);
   }
 
-  const slug = await generateUniqueSlug(
+  let slug = await generateUniqueSlug(
     baseSlug,
     async (s) => !!(await prisma.workspace.findUnique({ where: { slug: s }, select: { id: true } }))
   );
 
-  const workspace = await prisma.$transaction(async (tx) => {
-    const ws = await tx.workspace.create({
+  // El chequeo de unicidad del slug es TOCTOU: dos creaciones concurrentes con el mismo
+  // nombre obtienen el mismo slug y la segunda chocaba con P2002 → 500. Reintentar con un
+  // sufijo aleatorio ante colisión de slug.
+  const createWorkspace = () =>
+    prisma.workspace.create({
       data: {
         name: name.trim(),
         slug,
-        members: {
-          create: { userId: ctx.userId, role: "OWNER" },
-        },
+        members: { create: { userId: ctx.userId, role: "OWNER" } },
       },
       select: { id: true, name: true, slug: true, plan: true, createdAt: true },
     });
-    return ws;
-  });
+
+  let workspace;
+  for (let attempt = 0; ; attempt++) {
+    try {
+      workspace = await createWorkspace();
+      break;
+    } catch (err) {
+      const isSlugConflict =
+        typeof err === "object" && err !== null && (err as { code?: string }).code === "P2002";
+      if (isSlugConflict && attempt < 5) {
+        slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
+        continue;
+      }
+      throw err;
+    }
+  }
 
   logger.info("Workspace created", { workspaceId: workspace.id, userId: ctx.userId, slug });
 

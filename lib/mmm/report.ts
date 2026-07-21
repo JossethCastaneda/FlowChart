@@ -4,7 +4,6 @@
  */
 
 import type { WeeklyRow, MmmModel, ChannelConfig } from "./types";
-import { hillSaturation } from "./saturation";
 
 // ─── CSV Export ───────────────────────────────────────────────────────────────
 
@@ -46,13 +45,6 @@ export function generateSummaryText(model: MmmModel, channels: ChannelConfig[], 
 
   const contribTotal = Object.values(model.contributions).reduce((s, v) => s + v, 0);
 
-  const satLines = enabledCh
-    .filter(ch => hillSaturation(0, ch.saturationAlpha, ch.saturationK) !== undefined)
-    .map(ch => {
-      const spend = Object.values(model.contributions).reduce((_, __) => 0, 0); // placeholder
-      return ch;
-    });
-
   const lines = [
     "=== MEDIA MIX MODELING - RESUMEN EJECUTIVO ===",
     "",
@@ -79,9 +71,6 @@ export function generateSummaryText(model: MmmModel, channels: ChannelConfig[], 
     "",
     "Generado por Zefirus Media Mix - " + new Date().toLocaleDateString("es-MX"),
   ];
-
-  // silence unused
-  void satLines;
 
   return lines.filter(l => l !== undefined).join("\n");
 }
