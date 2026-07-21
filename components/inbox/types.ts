@@ -62,6 +62,8 @@ export interface Conversation {
     channelSource?: "facebook_app" | "instagram_app" | "whatsapp" | "db";
     /** ISO string of when conversation was first created */
     createdAt?: string;
+    priority?: boolean;
+    customFields?: Record<string, any> | null;
 }
 
 export interface ConnectedPage {

@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
       where: { workspaceId },
       orderBy: { lastMessageAt: "desc" },
       take: 500,
+      include: { contact: { select: { customFields: true } } },
     });
 
     logger.info("[INBOX-DIAG] conversations result", { workspaceId, count: rows.length });
@@ -73,9 +74,12 @@ export async function GET(request: NextRequest) {
         lastMessageAt: c.lastMessageAt || c.updatedAt,
         createdAt: c.createdAt,
         unread: c.unread,
+        // @ts-ignore
+        priority: c.priority,
         status: c.status,
         assignedTo: c.assignedTo,
         tags: c.tags,
+        customFields: c.contact?.customFields || null,
         channelSource: isWa ? "whatsapp" : c.platform.startsWith("instagram") ? "instagram_app" : "facebook_app",
       };
     });

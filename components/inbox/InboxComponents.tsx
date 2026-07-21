@@ -1080,6 +1080,16 @@ export function ContactProfile({
             {conversation.closed ? "CERRADO" : "ACTIVO"}
           </span>
 
+          {conversation.priority && (
+            <span style={{
+              fontSize: 9, fontWeight: 700, padding: "2px 8px", borderRadius: 10, marginBottom: 8, marginLeft: 4,
+              background: "rgba(251,191,36,0.1)", color: "#f59e0b", border: "1px solid rgba(251,191,36,0.2)",
+              letterSpacing: "0.08em",
+            }}>
+              ⭐ PRIORIDAD
+            </span>
+          )}
+
           {/* Activity mini-stats */}
           {(incomingCount + outgoingCount) > 0 && (
             <div style={{ display: "flex", gap: 6, width: "100%" }}>
@@ -1180,7 +1190,7 @@ export function ContactProfile({
         </ProfileSection>
 
         {/* CANAL (datos dinámicos) */}
-        <ProfileSection title="Canal">
+        <ProfileSection title="Información de Messenger">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[
               { label: "Plataforma", value: platformLabel[conversation.platform] || conversation.platform, hasIcon: true },
@@ -1199,6 +1209,50 @@ export function ContactProfile({
               </div>
             ))}
           </div>
+        </ProfileSection>
+
+        {/* INFO SOBRE TI */}
+        <ProfileSection title="Información sobre ti">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Ubicación</span>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                  {conversation.customFields?.locale || "Desconocida (Sin permiso)"}
+                </span>
+             </div>
+             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Zona Horaria</span>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                  {conversation.customFields?.timezone ? `UTC ${conversation.customFields.timezone}` : "No disponible"}
+                </span>
+             </div>
+             <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Género</span>
+                <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
+                  {conversation.customFields?.gender || "No disponible"}
+                </span>
+             </div>
+          </div>
+        </ProfileSection>
+
+        {/* PEDIDOS */}
+        <ProfileSection title="Pedidos">
+           <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", textAlign: "center", padding: "10px 0" }}>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>No hay pedidos recientes.</span>
+              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--cyan)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                + Crear pedido
+              </button>
+           </div>
+        </ProfileSection>
+
+        {/* CITAS */}
+        <ProfileSection title="Citas">
+           <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", textAlign: "center", padding: "10px 0" }}>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>No hay citas próximas.</span>
+              <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--cyan)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
+                + Programar cita
+              </button>
+           </div>
         </ProfileSection>
 
         {/* Mensajes destacados / Multimedia */}

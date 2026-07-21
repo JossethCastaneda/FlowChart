@@ -687,6 +687,7 @@ model InboxConversation {
   lastMessage   String?
   lastMessageAt DateTime?
   unread        Boolean   @default(true)
+  priority      Boolean   @default(false)
   assignedTo    String? // userId
   status        String    @default("open") // "open", "closed", "assigned"
   tags          String[]
