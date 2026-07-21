@@ -776,6 +776,7 @@ model InboxMessage {
   conversation InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
 
   @@index([conversationId])
+  @@unique([conversationId, externalId])
 }
 
 model SavedReply {

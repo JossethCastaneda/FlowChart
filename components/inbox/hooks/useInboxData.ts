@@ -5,6 +5,7 @@ export function useInboxData() {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string>("");
   const [initialFetchDone, setInitialFetchDone] = useState(false);
+  const initialFetchDoneRef = useRef(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const selectedIdRef = useRef(selectedId);
@@ -12,6 +13,13 @@ export function useInboxData() {
   
   const conversationsRef = useRef(conversations);
   useEffect(() => { conversationsRef.current = conversations; }, [conversations]);
+
+  const lastNotifiedAtRef = useRef<number>(Date.now());
+  useEffect(() => {
+    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+      Notification.requestPermission().catch(() => {});
+    }
+  }, []);
 
   const mapConversations = useCallback((raw: any[]): Conversation[] => {
     const pm: Record<string, Platform> = {
@@ -63,6 +71,37 @@ export function useInboxData() {
       .then(r => r.ok ? r.json() : null)
       .then(data => {
         if (!data?.conversations?.length) return;
+
+        let shouldNotify = false;
+        let notifyTitle = "Nuevo Mensaje";
+        let notifyBody = "Tienes un nuevo mensaje en Zefirus.";
+        const currentMax = lastNotifiedAtRef.current;
+        let newMax = currentMax;
+
+        data.conversations.forEach((c: any) => {
+          const msgTime = new Date(c.lastMessageAt || 0).getTime();
+          if (c.unread && msgTime > currentMax) {
+            shouldNotify = true;
+            notifyTitle = c.contactName || "Nuevo Mensaje";
+            notifyBody = c.lastMessage || "Mensaje entrante...";
+            if (msgTime > newMax) newMax = msgTime;
+          }
+        });
+
+        lastNotifiedAtRef.current = newMax;
+
+        if (shouldNotify && initialFetchDoneRef.current) {
+          try {
+            const audio = new Audio("/sounds/notification.mp3");
+            audio.play().catch(() => {});
+            if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "granted") {
+              new Notification(notifyTitle, { body: notifyBody, icon: "/icon.svg" });
+            }
+          } catch (e) {
+            console.warn("Notification error", e);
+          }
+        }
+
         dmCacheRef.current = data.conversations;
         const mapped = rebuild();
 
@@ -142,6 +181,7 @@ export function useInboxData() {
     // Los DMs marcan el fin del "cargando"; los comentarios se integran al llegar.
     await dmFetch;
     setInitialFetchDone(true);
+    initialFetchDoneRef.current = true;
     setIsRefreshing(false);
     await commentsFetch;
   }, [mapConversations]);
