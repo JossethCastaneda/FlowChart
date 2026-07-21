@@ -22,6 +22,7 @@ export interface ResolveContactInput {
   name?: string | null;
   avatar?: string | null;
   phone?: string | null;
+  customFields?: Record<string, any>;
 }
 
 /**
@@ -51,6 +52,7 @@ export async function resolveOrCreateContact(input: ResolveContactInput): Promis
         avatar: input.avatar ?? null,
         phone: input.phone ?? (platform === "whatsapp" ? externalId : null),
         lastContactedAt: new Date(),
+        customFields: input.customFields ? input.customFields : undefined,
         channels: {
           create: { workspaceId, platform, externalId, handle: input.name ?? null },
         },
@@ -87,7 +89,21 @@ export async function resolveOrCreateContact(input: ResolveContactInput): Promis
  */
 async function enrich(contactId: string, input: ResolveContactInput): Promise<void> {
   try {
-    await prisma.contact.update({ where: { id: contactId }, data: { lastContactedAt: new Date() } });
+    let updateData: any = { lastContactedAt: new Date() };
+
+    // Si nos envían customFields desde el webhook (ej. timezone, locale, gender)
+    if (input.customFields && Object.keys(input.customFields).length > 0) {
+      // Necesitamos hacer merge con lo existente para no pisar otros campos custom
+      const current = await prisma.contact.findUnique({ where: { id: contactId }, select: { customFields: true } });
+      const mergedFields = {
+        ...(typeof current?.customFields === "object" && current?.customFields !== null ? current.customFields : {}),
+        ...input.customFields
+      };
+      updateData.customFields = mergedFields;
+    }
+    
+    await prisma.contact.update({ where: { id: contactId }, data: updateData });
+
     if (input.name) {
       await prisma.contact.updateMany({ where: { id: contactId, name: null }, data: { name: input.name } });
     }

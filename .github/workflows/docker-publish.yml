@@ -37,6 +37,6 @@ jobs:
         with:
           context: .
           push: true
-          tags: vcr.vercel.com/josseths-projects-b50cae29/sodare/sodare-repositorio:latest
+          tags: vcr.vercel.com/josseths-projects-b50cae29/zefirus/zefirus-repositorio:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max

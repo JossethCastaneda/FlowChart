@@ -176,6 +176,8 @@ export interface InboundMessageInput {
   attachments?: any[];
   /** mid del mensaje al que se responde (Messenger reply-to / message_context). */
   replyToId?: string | null;
+  /** Custom fields extraidos de Graph API (locale, timezone, gender) */
+  customFields?: Record<string, any>;
 }
 
 /**
@@ -201,6 +203,7 @@ export async function persistInboundMessage(m: InboundMessageInput): Promise<str
         externalId: m.contactId,
         name: m.contactName,
         avatar: m.contactAvatar,
+        customFields: m.customFields,
       });
     }
 

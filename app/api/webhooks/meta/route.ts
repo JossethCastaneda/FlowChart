@@ -39,6 +39,7 @@ async function persistMetaDm(
     }
     let contactName: string | undefined = undefined;
     let contactAvatar: string | undefined = undefined;
+    let fetchedCustomFields: any = undefined;
 
     // Obtener detalles del usuario desde Graph API si es un mensaje entrante
     if (!isEcho && contactId) {
@@ -74,7 +75,7 @@ async function persistMetaDm(
         }
 
         if (pageToken) {
-          const fields = platform === "instagram_dm" ? "name,profile_pic" : "first_name,last_name,profile_pic";
+          const fields = platform === "instagram_dm" ? "name,profile_pic" : "first_name,last_name,profile_pic,locale,timezone,gender";
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout max
           
@@ -89,6 +90,11 @@ async function persistMetaDm(
                contactName = data.name;
             } else {
                contactName = [data.first_name, data.last_name].filter(Boolean).join(" ");
+               fetchedCustomFields = {
+                 locale: data.locale,
+                 timezone: data.timezone,
+                 gender: data.gender
+               };
             }
             contactAvatar = data.profile_pic;
           } else {
@@ -113,6 +119,7 @@ async function persistMetaDm(
       timestampMs: typeof msg.timestamp === "string" ? Number(msg.timestamp) : (msg.timestamp ?? Date.now()),
       sender: isEcho ? "page" : "user",
       replyToId: msg.message.reply_to?.mid ?? null,
+      customFields: typeof fetchedCustomFields !== "undefined" ? fetchedCustomFields : undefined,
     });
   } catch (err) {
     logger.warn("[WEBHOOK] persistMetaDm failed", {
