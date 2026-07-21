@@ -176,7 +176,7 @@ export async function POST(req: NextRequest) {
         logger.error("[INBOX-REPLY] Meta API error:", replyData?.error?.message);
         return NextResponse.json({ error: mapped.user_message }, { status: 422 });
       }
-      replyMessageId = replyData.id || null;
+      replyMessageId = replyData.message_id || replyData.id || null;
     }
 
     // ── Update InboxConversation in DB ──

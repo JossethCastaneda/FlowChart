@@ -14,11 +14,16 @@ export function useInboxData() {
   const conversationsRef = useRef(conversations);
   useEffect(() => { conversationsRef.current = conversations; }, [conversations]);
 
-  const lastNotifiedAtRef = useRef<number>(Date.now());
+  const lastNotifiedAtRef = useRef<number>(0);
   useEffect(() => {
-    if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
-      Notification.requestPermission().catch(() => {});
-    }
+    const requestPerm = () => {
+      if (typeof window !== "undefined" && "Notification" in window && Notification.permission === "default") {
+        Notification.requestPermission().catch(() => {});
+      }
+      document.removeEventListener("click", requestPerm);
+    };
+    document.addEventListener("click", requestPerm);
+    return () => document.removeEventListener("click", requestPerm);
   }, []);
 
   const mapConversations = useCallback((raw: any[]): Conversation[] => {
