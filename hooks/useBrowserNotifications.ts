@@ -20,55 +20,29 @@ import { usePathname } from "next/navigation";
  * 2. Un sonido de notificación tipo "ding-dong" vía AudioContext
  */
 
-// ── Sound generation via AudioContext (sin archivos externos) ──
-let audioCtx: AudioContext | null = null;
+// ── Sound generation via HTML Audio Element ──
+let audioRef: HTMLAudioElement | null = null;
 
-function getAudioContext(): AudioContext {
-  if (!audioCtx || audioCtx.state === "closed") {
-    audioCtx = new AudioContext();
-  }
-  return audioCtx;
-}
-
-/**
- * Genera un sonido de notificación tipo Messenger:
- * Dos tonos cortos armoniosos ("ding-dong").
- */
 function playNotificationSound(): void {
   try {
-    const ctx = getAudioContext();
-    if (ctx.state === "suspended") {
-      ctx.resume().catch(() => {});
+    if (typeof window === "undefined") return;
+    
+    if (!audioRef) {
+      audioRef = new Audio("/sounds/inbox-notification.mp3");
+      // Pre-cargar el audio
+      audioRef.load();
     }
-
-    const now = ctx.currentTime;
-
-    // ── Primer tono (ding) ──
-    const osc1 = ctx.createOscillator();
-    const gain1 = ctx.createGain();
-    osc1.type = "sine";
-    osc1.frequency.setValueAtTime(880, now); // A5
-    gain1.gain.setValueAtTime(0.3, now);
-    gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
-    osc1.connect(gain1);
-    gain1.connect(ctx.destination);
-    osc1.start(now);
-    osc1.stop(now + 0.15);
-
-    // ── Segundo tono (dong) ──
-    const osc2 = ctx.createOscillator();
-    const gain2 = ctx.createGain();
-    osc2.type = "sine";
-    osc2.frequency.setValueAtTime(1100, now + 0.12); // C#6
-    gain2.gain.setValueAtTime(0, now);
-    gain2.gain.setValueAtTime(0.25, now + 0.12);
-    gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
-    osc2.connect(gain2);
-    gain2.connect(ctx.destination);
-    osc2.start(now + 0.12);
-    osc2.stop(now + 0.35);
+    
+    // Si ya se está reproduciendo, reiniciar al principio
+    audioRef.currentTime = 0;
+    
+    // Ignorar promesa para evitar errores no capturados si el usuario
+    // no ha interactuado con la página (política de auto-play)
+    audioRef.play().catch(() => {
+      // Silently fail if autoplay is blocked
+    });
   } catch {
-    // AudioContext might not be available
+    // Failsafe catch
   }
 }
 
@@ -113,21 +87,7 @@ export function useBrowserNotifications() {
     }
   }, []);
 
-  // ── Desbloquear AudioContext con la primera interacción ──
-  useEffect(() => {
-    const unlock = () => {
-      try {
-        const ctx = getAudioContext();
-        if (ctx.state === "suspended") ctx.resume().catch(() => {});
-      } catch {}
-    };
-    document.addEventListener("click", unlock, { once: true });
-    document.addEventListener("keydown", unlock, { once: true });
-    return () => {
-      document.removeEventListener("click", unlock);
-      document.removeEventListener("keydown", unlock);
-    };
-  }, []);
+
 
   // ── Verificar nuevos mensajes y disparar notificaciones ──
   const checkForNewMessages = useCallback(async () => {
