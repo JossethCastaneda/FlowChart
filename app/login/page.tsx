@@ -89,6 +89,7 @@ export default function LoginPage() {
   const [name, setName] = useState("");
   const [credError, setCredError] = useState("");
   const [showPw, setShowPw] = useState(false);
+  const [fbReady, setFbReady] = useState(false);
   const { lang, setLang } = useLanguage();
   const [success, setSuccess] = useState(false);
 
@@ -139,13 +140,14 @@ export default function LoginPage() {
       }
     })();
 
-    // FB SDK
+    // FB SDK — usado solo si el provider facebook-sdk está configurado
     const APP_ID = process.env.NEXT_PUBLIC_META_APP_ID;
     if (!APP_ID) return () => { isActive = false; };
     const w = window as any;
     const initSdk = () => {
       w.FB!.init({ appId: APP_ID, cookie: true, xfbml: false, version: process.env.NEXT_PUBLIC_META_API_VERSION || "v22.0" });
       w.FB!.AppEvents.logPageView();
+      if (isActive) setFbReady(true);
     };
     if (w.FB) initSdk();
     else {
@@ -200,9 +202,12 @@ export default function LoginPage() {
   }
 
   async function handleFacebookLogin() {
+    // Si el SDK aún no cargó (carga asíncrona), usamos el popup de NextAuth
+    // directamente — evita el error "El SDK de Facebook no está disponible"
+    // que aparece cuando el usuario hace clic antes de que sdk.js termine.
     const w = window as any;
-    if (!w.FB) {
-      setCredError("El SDK de Facebook no está disponible. Recarga la página e inténtalo de nuevo.");
+    if (!fbReady || !w.FB) {
+      popupLogin("facebook");
       return;
     }
     setIsLoading(true);
