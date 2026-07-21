@@ -19,11 +19,16 @@ export async function GET(request: Request) {
     // Period for the per-account spend (used to default to the highest-spend account).
     // Accepts ?preset= (a Meta date_preset) or ?since=&until= for custom ranges.
     const reqUrl = new URL(request.url);
-    const preset = reqUrl.searchParams.get("preset") || "maximum";
+    const rawPreset = reqUrl.searchParams.get("preset") || "maximum";
     const since = reqUrl.searchParams.get("since");
     const until = reqUrl.searchParams.get("until");
+    // SEGURIDAD: since/until/preset se interpolan en la expresión de campos de Graph.
+    // Validar estrictamente (YYYY-MM-DD y preset alfanumérico) para evitar inyección que
+    // rompa la expresión de field expansion.
+    const isDate = (s: string | null): s is string => !!s && /^\d{4}-\d{2}-\d{2}$/.test(s);
+    const preset = /^[a-z0-9_]+$/i.test(rawPreset) ? rawPreset : "maximum";
     const insightsField =
-      since && until
+      isDate(since) && isDate(until)
         ? `insights.time_range({'since':'${since}','until':'${until}'}){spend}`
         : `insights.date_preset(${preset === "custom" ? "maximum" : preset}){spend}`;
 

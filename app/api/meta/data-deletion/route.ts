@@ -33,22 +33,24 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.formData().catch(() => null);
     const signedRequest = body?.get("signed_request") as string | null;
-
-    let metaUserId = "unknown";
     const appSecret = env.META_APP_SECRET;
 
-    if (signedRequest && appSecret) {
-      const decoded = verifySignedRequest(signedRequest, appSecret);
-      if (decoded) {
-        metaUserId = decoded.user_id || "unknown";
-      } else {
-        logger.warn("[Meta Data Deletion] ⚠️ signed_request HMAC verification failed — rejecting.");
-        return NextResponse.json({ error: "Invalid signed_request" }, { status: 403 });
-      }
-    } else if (!appSecret) {
-      logger.error("[Meta Data Deletion] ⚠️ META_APP_SECRET not set, cannot verify signed_request");
-      // Still persist with unknown user — we can't verify but Meta expects a response
+    // SEGURIDAD: exigir un signed_request VERIFICADO antes de persistir. Antes, una
+    // petición sin signed_request (o con META_APP_SECRET ausente) creaba una fila
+    // DataDeletionRequest con metaUserId='unknown' → cualquiera podía spamear la tabla.
+    if (!appSecret) {
+      logger.error("[Meta Data Deletion] META_APP_SECRET no configurado");
+      return NextResponse.json({ error: "Server misconfiguration" }, { status: 503 });
     }
+    if (!signedRequest) {
+      return NextResponse.json({ error: "signed_request requerido" }, { status: 400 });
+    }
+    const decoded = verifySignedRequest(signedRequest, appSecret);
+    if (!decoded) {
+      logger.warn("[Meta Data Deletion] ⚠️ signed_request HMAC verification failed — rejecting.");
+      return NextResponse.json({ error: "Invalid signed_request" }, { status: 403 });
+    }
+    const metaUserId = decoded.user_id || "unknown";
 
     // Persist the deletion request for compliance tracking
     try {

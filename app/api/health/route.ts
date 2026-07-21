@@ -67,12 +67,9 @@ export async function GET(req: NextRequest) {
     env: {
       nodeEnv: process.env.NODE_ENV,
       vercelEnv: process.env.VERCEL_ENV || "not-vercel",
-      dbHost: (() => {
-        try {
-          const url = process.env.DATABASE_URL || process.env.STORAGE_DATABASE_URL || "";
-          return new URL(url).host;
-        } catch { return "unknown"; }
-      })(),
+      // dbHost removido: exponía el host de la base de datos (infra sensible) a cualquier
+      // miembro autenticado. El diagnóstico del host queda en /api/health/integrations,
+      // que sí está restringido a OWNER/ADMIN.
     },
   });
 }

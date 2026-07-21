@@ -12,7 +12,9 @@
  */
 
 import { NextRequest } from "next/server";
+import { timingSafeEqual } from "crypto";
 import { env } from "@/lib/env";
+import { logger } from "@/lib/logger";
 
 /**
  * Verifica que la request provenga de un cron job autenticado de Vercel.
@@ -22,9 +24,14 @@ export function verifyCronAuth(req: NextRequest | Request): boolean {
   const secret = env.CRON_SECRET;
   // fail-closed: si no hay secreto configurado, rechazar siempre
   if (!secret) {
-    console.error("[CRON] CRON_SECRET no está configurado — rechazando request.");
+    logger.error("[CRON] CRON_SECRET no está configurado — rechazando request.");
     return false;
   }
-  const authHeader = req.headers.get("authorization");
-  return authHeader === `Bearer ${secret}`;
+  const authHeader = req.headers.get("authorization") ?? "";
+  const expected = `Bearer ${secret}`;
+  const aBuf = Buffer.from(authHeader);
+  const eBuf = Buffer.from(expected);
+  // Comparación en tiempo constante (evita el side-channel del === corto-circuito).
+  if (aBuf.length !== eBuf.length) return false;
+  return timingSafeEqual(aBuf, eBuf);
 }

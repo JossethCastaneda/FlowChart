@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import { getMetaAccessToken, metaFetch, metaUrl, META_API_VERSION } from "@/lib/server-auth";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
 
@@ -57,24 +57,24 @@ export async function GET(request: NextRequest) {
 
     // Fetch profile (Messenger API uses first_name/last_name, IG uses name)
     const cleanUserId = userId.replace("igc_", "").replace("fbc_", "");
-    
+    // SEGURIDAD: cleanUserId se interpola en el path de la Graph API. Los PSID / IG ids
+    // son numéricos → allowlist estricta (evita path injection tipo el proxy de avatares).
+    if (!/^\d+$/.test(cleanUserId)) {
+      return NextResponse.json({ error: "userId inválido" }, { status: 400 });
+    }
+
     // Determine platform from the conversation in database if possible, or fallback to igc_ prefix
     const conv = await prisma.inboxConversation.findFirst({
       where: { workspaceId, externalId: userId },
       select: { platform: true }
     });
     const isInstagram = conv?.platform?.includes("instagram") || conv?.platform?.includes("ig_") || userId.startsWith("igc_");
-    
-    const { META_API_VERSION } = await import("@/lib/server-auth");
-    
-    let profileUrl = "";
-    if (isInstagram) {
-      profileUrl = `https://graph.facebook.com/${META_API_VERSION}/${cleanUserId}?fields=name,username,profile_picture_url&access_token=${pageToken}`;
-    } else {
-      profileUrl = `https://graph.facebook.com/${META_API_VERSION}/${cleanUserId}?fields=name,first_name,last_name,profile_pic&access_token=${pageToken}`;
-    }
 
-    const profileRes = await fetch(profileUrl);
+    // Token vía Bearer header (metaFetch), NUNCA en la URL (evita fuga en logs).
+    const fields = isInstagram ? "name,username,profile_picture_url" : "name,first_name,last_name,profile_pic";
+    const profileUrl = `https://graph.facebook.com/${META_API_VERSION}/${cleanUserId}?fields=${fields}`;
+
+    const profileRes = await metaFetch(profileUrl, pageToken, { cache: "no-store" });
     const profileData = await profileRes.json();
 
     const fullName = profileData.name || [profileData.first_name, profileData.last_name].filter(Boolean).join(" ") || profileData.username || null;

@@ -6,18 +6,21 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { createHmac } from "crypto";
+import { createHmac, timingSafeEqual } from "crypto";
 import { logger } from "@/lib/logger";
 
 const TIKTOK_WEBHOOK_SECRET = process.env.TIKTOK_WEBHOOK_SECRET ?? "";
 
 function verifySignature(body: string, signature: string): boolean {
-  if (!TIKTOK_WEBHOOK_SECRET) return true; // Skip verification if secret not set yet
-  if (!signature) return false; // fail-closed: con secret configurado, la firma es obligatoria
-  const expected = createHmac("sha256", TIKTOK_WEBHOOK_SECRET)
-    .update(body)
-    .digest("hex");
-  return `sha256=${expected}` === signature;
+  // Fail-closed también ante secret ausente: sin él no se puede verificar, así que se
+  // rechaza (antes devolvía true = aceptaba cualquier POST no autenticado).
+  if (!TIKTOK_WEBHOOK_SECRET) return false;
+  if (!signature) return false;
+  const expected = `sha256=${createHmac("sha256", TIKTOK_WEBHOOK_SECRET).update(body).digest("hex")}`;
+  const sigBuf = Buffer.from(signature);
+  const expBuf = Buffer.from(expected);
+  if (sigBuf.length !== expBuf.length) return false;
+  return timingSafeEqual(sigBuf, expBuf);
 }
 
 export async function POST(req: NextRequest) {
@@ -25,7 +28,12 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text();
     const signature = req.headers.get("x-tiktok-signature") ?? "";
 
-    // Fail-closed: si hay secret configurado, toda petición debe traer firma válida
+    if (!TIKTOK_WEBHOOK_SECRET) {
+      logger.error("[TIKTOK WEBHOOK] TIKTOK_WEBHOOK_SECRET no configurado");
+      return NextResponse.json({ error: "Server misconfiguration" }, { status: 503 });
+    }
+
+    // Fail-closed: toda petición debe traer firma HMAC válida.
     if (!verifySignature(rawBody, signature)) {
       logger.warn("[TIKTOK WEBHOOK] ❌ Invalid signature");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
