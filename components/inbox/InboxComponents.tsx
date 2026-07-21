@@ -505,6 +505,7 @@ export function ChatView({
           onBack?: () => void;
         }) {
     const [input, setInput] = useState("");
+    const isSendingRef = useRef(false);
     const { setBreadcrumbs } = useHeaderStore();
 
     useEffect(() => {
@@ -528,9 +529,14 @@ export function ChatView({
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [conversation.messages.length]);
     const handleSubmit = () => {
-            onSend(input);
-            setInput("");
-          };
+      const trimmed = input.trim();
+      if (!trimmed || isSendingRef.current) return;
+      isSendingRef.current = true;
+      setInput("");
+      onSend(trimmed);
+      // Reset lock after a short delay to allow re-sends
+      setTimeout(() => { isSendingRef.current = false; }, 800);
+    };
     const messagesByDate: { date: string; msgs: Message[] }[] = [];
     conversation.messages.forEach(msg => {
     const dateStr = formatDate(msg.timestamp);
@@ -895,6 +901,7 @@ export function ChatView({
               onKeyDown={e => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
+                  e.stopPropagation();
                   handleSubmit();
                 }
               }}
@@ -907,8 +914,8 @@ export function ChatView({
               }}
             />
             <button
-              onClick={handleSubmit}
-              disabled={!input.trim()}
+              onClick={e => { e.preventDefault(); handleSubmit(); }}
+              disabled={!input.trim() || isSendingRef.current}
               style={{
                 width: 32, height: 32,
                 display: "flex", alignItems: "center", justifyContent: "center",

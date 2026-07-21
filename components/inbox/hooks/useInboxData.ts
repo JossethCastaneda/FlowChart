@@ -320,7 +320,7 @@ export function useInboxData() {
   const handleSendMessage = async (text: string, selected: Conversation) => {
     if (!text.trim() || !selected) return;
     
-    const newMsgId = `${selected.id}_${Date.now()}`;
+    const newMsgId = `optimistic_${selected.id}_${Date.now()}`;
     const newMsg = { id: newMsgId, text: text.trim(), incoming: false, timestamp: new Date(), status: "sending" } as Message & { status?: string };
     
     setConversations(prev => {
@@ -353,10 +353,14 @@ export function useInboxData() {
         throw new Error(errData.error || "Failed to send");
       }
       
+      // Remove the optimistic message and reload from DB to avoid duplicates
+      // when the SSE/polling also brings the message from DB.
       setConversations(prev => prev.map(c => {
         if (c.id !== selected.id) return c;
-        return { ...c, messages: c.messages.map(m => m.id === newMsgId ? { ...m, status: "sent" } : m) };
+        return { ...c, messages: c.messages.filter(m => m.id !== newMsgId) };
       }));
+      // Reload messages from DB to get the canonical version
+      loadMessages(selected.id);
     } catch (err: unknown) { 
       const errorMsg = err instanceof Error ? err.message : "Error al enviar";
       setConversations(prev => prev.map(c => {
