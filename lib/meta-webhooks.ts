@@ -15,12 +15,23 @@ import { logger } from "@/lib/logger";
 
 /** Campos de webhook para páginas de Facebook. */
 export const PAGE_WEBHOOK_FIELDS = [
-  "messages", // Messenger messages
+  // ── Messenger Core ──
+  "messages", // Messenger messages (includes is_echo + reply_to context)
   "messaging_postbacks", // Button clicks in Messenger
   "messaging_optins", // User opt-ins
   "messaging_referrals", // Referrals (m.me links, ads)
   "message_deliveries", // Delivery confirmations
   "message_reads", // Read receipts
+  // ── Messenger Extended (réplica completa) ──
+  "message_reactions", // Emoji reactions on messages
+  "message_echoes", // Separate echo events for page-sent messages
+  "message_edits", // User/page message edits
+  "message_context", // Reply-to context (quoted messages)
+  "messaging_handovers", // Thread control handover between apps
+  "messaging_account_linking", // Account linking/unlinking events
+  "messaging_customer_information", // Customer info shared via opt-in
+  "messaging_policy_enforcement", // Meta policy actions (block/unblock/warning)
+  // ── Page Feed ──
   "feed", // Page feed events (posts, comments, reactions)
   "mention", // Page mentions
   "ratings", // Page ratings/reviews
@@ -46,12 +57,23 @@ export const INSTAGRAM_WEBHOOK_FIELDS = [
  * Por eso los campos se filtran por los scopes realmente otorgados.
  */
 const PAGE_FIELD_SCOPES: Record<string, string> = {
+  // Messenger Core
   messages: "pages_messaging",
   messaging_postbacks: "pages_messaging",
   messaging_optins: "pages_messaging",
   messaging_referrals: "pages_messaging",
   message_deliveries: "pages_messaging",
   message_reads: "pages_messaging",
+  // Messenger Extended
+  message_reactions: "pages_messaging",
+  message_echoes: "pages_messaging",
+  message_edits: "pages_messaging",
+  message_context: "pages_messaging",
+  messaging_handovers: "pages_messaging",
+  messaging_account_linking: "pages_messaging",
+  messaging_customer_information: "pages_messaging",
+  messaging_policy_enforcement: "pages_messaging",
+  // Page Feed
   feed: "pages_manage_metadata",
   mention: "pages_manage_metadata",
   ratings: "pages_manage_metadata",

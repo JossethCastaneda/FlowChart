@@ -767,6 +767,9 @@ model InboxMessage {
   reaction       String?
   deliveredAt    DateTime? // cuando Meta confirma entrega (msg.delivery watermark)
   readAt         DateTime? // cuando el usuario lee (msg.read watermark)
+  replyToId      String?   // mid del mensaje al que se responde (Messenger reply-to)
+  editedAt       DateTime? // timestamp de última edición (message_edits webhook)
+  isEdited       Boolean   @default(false)
   createdAt      DateTime  @default(now())
 
   conversation InboxConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)

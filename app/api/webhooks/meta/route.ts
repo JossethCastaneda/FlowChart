@@ -22,7 +22,7 @@ async function persistMetaDm(
     sender?: { id?: string };
     recipient?: { id?: string };
     timestamp?: number | string;
-    message?: { mid?: string; text?: string; is_echo?: boolean; attachments?: unknown[] };
+    message?: { mid?: string; text?: string; is_echo?: boolean; attachments?: unknown[]; reply_to?: { mid?: string } };
   },
 ): Promise<void> {
   try {
@@ -112,6 +112,7 @@ async function persistMetaDm(
       attachments: msg.message.attachments,
       timestampMs: typeof msg.timestamp === "string" ? Number(msg.timestamp) : (msg.timestamp ?? Date.now()),
       sender: isEcho ? "page" : "user",
+      replyToId: msg.message.reply_to?.mid ?? null,
     });
   } catch (err) {
     logger.warn("[WEBHOOK] persistMetaDm failed", {
@@ -153,10 +154,14 @@ export async function GET(req: NextRequest) {
  * Supported objects: page, instagram, ad_account, whatsapp_business_account
  * 
  * SUBSCRIBED FIELDS:
- * ─── Page ───
+ * ─── Page (Messenger — réplica completa) ───
  *   messages, messaging_postbacks, messaging_optins, messaging_referrals,
- *   message_deliveries, message_reads, feed, mention, ratings,
- *   leadgen, lead_dispatched
+ *   message_deliveries, message_reads, message_reactions, message_echoes,
+ *   message_edits, message_context, messaging_handovers,
+ *   messaging_account_linking, messaging_customer_information,
+ *   messaging_policy_enforcement
+ * ─── Page Feed ───
+ *   feed, mention, ratings, leadgen, lead_dispatched
  *
  * ─── Instagram ───
  *   messages, messaging_postbacks, comments, mentions, story_insights,
@@ -373,6 +378,91 @@ async function processWebhookEvents(body: any, object: string) {
               title: "🔗 Referral — Messenger",
               message: `Referral de ${msg.referral.source || "desconocido"}: ${msg.referral.type || ""} — Ref: ${msg.referral.ref || "N/A"}`,
               meta: { pageId: entryId, senderId: msg.sender?.id, source: msg.referral.source, ref: msg.referral.ref, adId: msg.referral.ad_id, time: msg.timestamp },
+              channel: "messenger",
+            });
+          }
+
+          // Message edit — user or page edited a previously sent message
+          if (msg.message_edit) {
+            const editMid = msg.message_edit.mid;
+            const editText = msg.message_edit.text;
+            if (editMid) {
+              await prisma.inboxMessage.updateMany({
+                where: { externalId: editMid },
+                data: {
+                  content: editText || "[Mensaje editado]",
+                  isEdited: true,
+                  editedAt: new Date(),
+                },
+              }).catch(() => {});
+              // Tocar updatedAt de la conversación para que SSE watermark dispare
+              const editedMsg = await prisma.inboxMessage.findFirst({
+                where: { externalId: editMid },
+                select: { conversationId: true },
+              }).catch(() => null);
+              if (editedMsg?.conversationId) {
+                await prisma.inboxConversation.update({
+                  where: { id: editedMsg.conversationId },
+                  data: { updatedAt: new Date() },
+                }).catch(() => {});
+              }
+              logger.info("[WEBHOOK] ✏️ Message edited", { pageId: entryId, mid: editMid });
+            }
+          }
+
+          // Handover — thread control transfer between apps (pass/take/request)
+          if (msg.pass_thread_control || msg.take_thread_control || msg.request_thread_control) {
+            const action = msg.pass_thread_control ? "pass" : msg.take_thread_control ? "take" : "request";
+            const payload = msg.pass_thread_control || msg.take_thread_control || msg.request_thread_control;
+            logger.info(`[WEBHOOK] 🔄 Handover: ${action}`, { pageId: entryId, senderId: msg.sender?.id, payload });
+            await createAlert({
+              type: "messenger_handover",
+              severity: "info",
+              title: `🔄 Handover — ${action}`,
+              message: `Thread control ${action} para usuario ${msg.sender?.id}. Target: ${payload?.new_owner_app_id || payload?.requested_owner_app_id || "N/A"}`,
+              meta: { pageId: entryId, senderId: msg.sender?.id, action, ...payload, time: msg.timestamp },
+              channel: "messenger",
+            });
+          }
+
+          // Account linking — user linked/unlinked their account
+          if (msg.account_linking) {
+            const status = msg.account_linking.status; // "linked" | "unlinked"
+            logger.info(`[WEBHOOK] 🔗 Account ${status}`, { pageId: entryId, senderId: msg.sender?.id });
+            await createAlert({
+              type: "messenger_account_linking",
+              severity: "info",
+              title: status === "linked" ? "🔗 Cuenta vinculada — Messenger" : "🔓 Cuenta desvinculada — Messenger",
+              message: `Usuario ${msg.sender?.id} — ${status}${msg.account_linking.authorization_code ? ` (code: ${msg.account_linking.authorization_code.slice(0, 20)}…)` : ""}`,
+              meta: { pageId: entryId, senderId: msg.sender?.id, status, time: msg.timestamp },
+              channel: "messenger",
+            });
+          }
+
+          // Customer information — user shared personal info (phone, email, etc.)
+          if (msg.messaging_customer_information) {
+            logger.info("[WEBHOOK] 📋 Customer info received", { pageId: entryId, senderId: msg.sender?.id });
+            await createAlert({
+              type: "messenger_customer_info",
+              severity: "info",
+              title: "📋 Info del cliente — Messenger",
+              message: `Cliente ${msg.sender?.id} compartió información personal`,
+              meta: { pageId: entryId, senderId: msg.sender?.id, info: msg.messaging_customer_information, time: msg.timestamp },
+              channel: "messenger",
+            });
+          }
+
+          // Policy enforcement — Meta enforced a policy action (block, unblock, warning)
+          if (msg.policy_enforcement) {
+            const action = msg.policy_enforcement.action; // "block" | "unblock" | "warning"
+            const severity = action === "block" ? "critical" as const : "warning" as const;
+            logger.warn(`[WEBHOOK] ⚠️ Policy enforcement: ${action}`, { pageId: entryId, reason: msg.policy_enforcement.reason });
+            await createAlert({
+              type: "messenger_policy_enforcement",
+              severity,
+              title: `⚠️ Política de Meta — ${action}`,
+              message: `Acción: ${action}. Razón: ${msg.policy_enforcement.reason || "No especificada"}`,
+              meta: { pageId: entryId, action, reason: msg.policy_enforcement.reason, time: msg.timestamp },
               channel: "messenger",
             });
           }

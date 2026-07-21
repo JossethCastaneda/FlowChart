@@ -174,6 +174,8 @@ export interface InboundMessageInput {
   /** Override for conversation ID (e.g. post ID for comments). Defaults to contactId */
   conversationExternalId?: string;
   attachments?: any[];
+  /** mid del mensaje al que se responde (Messenger reply-to / message_context). */
+  replyToId?: string | null;
 }
 
 /**
@@ -250,6 +252,7 @@ export async function persistInboundMessage(m: InboundMessageInput): Promise<str
         sender: isUser ? "user" : "page",
         senderName: m.contactName ?? m.contactId,
         attachments: m.attachments ? m.attachments : undefined,
+        replyToId: m.replyToId ?? null,
         createdAt: when,
       },
     });
