@@ -8,6 +8,7 @@ import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 import { NotificationBell } from "@/components/ui/NotificationBell";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { WhatsAppPhonePrompt } from "@/components/ui/WhatsAppPhonePrompt";
+import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
 import { usePathname } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import { useHeaderStore } from "@/lib/header-store";
@@ -232,6 +233,9 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
   const { theme, setTheme } = useTheme();
   const { lang, setLang } = useLanguage();
   const currentModule = MODULES.find(m => pathname === m.route || pathname?.startsWith(m.route + "/"));
+
+  // ── Global browser notifications (pop-up + sound) ──
+  useBrowserNotifications();
 
   // Load pinned preference on mount
   useEffect(() => {
