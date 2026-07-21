@@ -81,8 +81,11 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (req, ctx) => {
       try {
         const { put } = await import("@vercel/blob");
         const safe = (file.name || "dataset.csv").replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 100);
+        // PRIVACIDAD: los CSV de leads contienen PII (emails/teléfonos). Se guardan como
+        // blob PRIVADO (requiere autenticación), no público. La app lee las filas desde la
+        // DB (AriaDatasetRow), así que rawFileUrl es solo una copia cruda de respaldo.
         const blob = await put(`aria/${ctx.workspaceId}/${Date.now()}-${safe}`, file, {
-          access: "public",
+          access: "private",
         });
         rawFileUrl = blob.url;
       } catch (e) {

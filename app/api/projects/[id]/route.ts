@@ -99,13 +99,16 @@ export const PUT = withAuth(async (req, ctx) => {
       : {}),
   };
 
-  await prisma.project.update({
-    where: { id },
-    data: updatePayload as Prisma.ProjectUpdateInput,
-  });
+  // Actualización del proyecto y de sus canales en UNA sola transacción: antes el update
+  // del proyecto corría fuera de la transacción de canales, así que un fallo dejaba el
+  // proyecto actualizado con canales/MetaSource inconsistentes.
+  await prisma.$transaction(async (tx) => {
+    await tx.project.update({
+      where: { id },
+      data: updatePayload as Prisma.ProjectUpdateInput,
+    });
 
-  if (channels !== undefined) {
-    await prisma.$transaction(async (tx) => {
+    if (channels !== undefined) {
       await tx.channel.deleteMany({ where: { projectId: id } });
       if (channels.length > 0) {
         await tx.channel.createMany({
@@ -120,8 +123,8 @@ export const PUT = withAuth(async (req, ctx) => {
       // Los canales determinan qué fuentes Meta mapean a este proyecto: invalidar
       // el cache de webhooks para que se repueble con la nueva configuración.
       await tx.metaSource.deleteMany({ where: { projectId: id } });
-    });
-  }
+    }
+  });
 
   const updatedResult = await prisma.project.findUnique({
     where: { id },
