@@ -15,6 +15,7 @@
 
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { resolveOrCreateContact } from "@/lib/crm/contacts";
 
 export type InboxPlatform = "facebook_messenger" | "instagram_dm" | "facebook_comment" | "instagram_comment" | "whatsapp";
 
@@ -188,6 +189,19 @@ export async function persistInboundMessage(m: InboundMessageInput): Promise<str
 
     const convExternalId = m.conversationExternalId || m.contactId;
 
+    // CRM: resolver/crear el Contact unificado para el remitente (best-effort). Solo para
+    // mensajes entrantes de un usuario real (no ecos de la página).
+    let resolvedContactId: string | null = null;
+    if (isUser && m.contactId) {
+      resolvedContactId = await resolveOrCreateContact({
+        workspaceId: m.workspaceId,
+        platform: m.platform,
+        externalId: m.contactId,
+        name: m.contactName,
+        avatar: m.contactAvatar,
+      });
+    }
+
     const conversation = await prisma.inboxConversation.upsert({
       where: { workspaceId_externalId: { workspaceId: m.workspaceId, externalId: convExternalId } },
       update: {
@@ -199,6 +213,7 @@ export async function persistInboundMessage(m: InboundMessageInput): Promise<str
         ...(isUser ? { unread: true } : {}),
         ...(m.contactName ? { contactName: m.contactName } : {}),
         ...(m.contactAvatar ? { contactAvatar: m.contactAvatar } : {}),
+        ...(resolvedContactId ? { contactId: resolvedContactId } : {}),
         updatedAt: new Date(),
       },
       create: {
@@ -209,6 +224,7 @@ export async function persistInboundMessage(m: InboundMessageInput): Promise<str
         igId: m.platform === "instagram_dm" || m.platform === "instagram_comment" ? m.pageId : null,
         contactName: m.contactName ?? m.contactId,
         contactAvatar: m.contactAvatar ?? null,
+        contactId: resolvedContactId,
         lastMessage: preview,
         lastMessageAt: when,
         unread: isUser,

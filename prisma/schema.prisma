@@ -112,6 +112,7 @@ model Workspace {
   mmmWeeklySpend     MmmWeeklySpend[]
   reports            Report[]
   aiUsages           AiUsage[]
+  contacts           Contact[]
 }
 
 // ------------------------------------------------------
@@ -674,6 +675,8 @@ model InboxConversation {
   igId          String? // Legacy Instagram user ID (kept for backwards compat)
   contactName   String?
   contactAvatar String?
+  // CRM: enlace a la persona unificada entre canales (auto-poblado en el inbox-store).
+  contactId     String?
   lastMessage   String?
   lastMessageAt DateTime?
   unread        Boolean   @default(true)
@@ -684,12 +687,65 @@ model InboxConversation {
   updatedAt     DateTime  @updatedAt
 
   workspace Workspace      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  contact   Contact?       @relation(fields: [contactId], references: [id], onDelete: SetNull)
   messages  InboxMessage[]
   notes     InboxNote[]
 
   @@unique([workspaceId, externalId])
   @@index([workspaceId])
   @@index([workspaceId, status])
+  @@index([contactId])
+}
+
+// ------------------------------------------------------
+// CRM — Contacto unificado (omnicanal)
+// ------------------------------------------------------
+// Una persona = un Contact por workspace, con N identidades por canal
+// (ContactChannel). Permite historial unificado, tags/campos a nivel persona,
+// asignación de propietario y etapa de ciclo de vida (lead → cliente).
+model Contact {
+  id              String    @id @default(cuid())
+  workspaceId     String
+  name            String?
+  email           String?
+  phone           String?
+  avatar          String?
+  company         String?
+  /// lead | prospect | customer | evangelist | other
+  lifecycleStage  String    @default("lead")
+  ownerId         String? // userId responsable de la cuenta
+  tags            String[]
+  customFields    Json      @default("{}")
+  notes           String?   @db.Text
+  lastContactedAt DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  workspace     Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  channels      ContactChannel[]
+  conversations InboxConversation[]
+
+  @@index([workspaceId])
+  @@index([workspaceId, lifecycleStage])
+  @@index([workspaceId, ownerId])
+}
+
+// Identidad de un contacto en un canal concreto (PSID / teléfono / IG id).
+// El @@unique permite resolver O(1) externalId→contacto y unificar canales.
+model ContactChannel {
+  id          String   @id @default(cuid())
+  contactId   String
+  workspaceId String
+  platform    String // whatsapp | facebook_messenger | instagram_dm | facebook_comment | instagram_comment
+  externalId  String // PSID / phone (sin prefijo) / IG-scoped id
+  handle      String? // nombre/handle visible en ese canal
+  createdAt   DateTime @default(now())
+
+  contact Contact @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@unique([workspaceId, platform, externalId])
+  @@index([contactId])
+  @@index([workspaceId])
 }
 
 model InboxMessage {

@@ -23,6 +23,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+import { resolveOrCreateContact } from "@/lib/crm/contacts";
 import {
   verifyWaWebhookSignature,
   resolveWorkspaceFromPhone,
@@ -160,6 +161,15 @@ async function handleIncomingMessage({
   const { textBody, attachments } = extractMessageContent(waMsg);
 
   try {
+    // CRM: resolver/crear el Contact unificado (identidad de canal = teléfono).
+    const resolvedContactId = await resolveOrCreateContact({
+      workspaceId,
+      platform: "whatsapp",
+      externalId: senderPhone,
+      name: contactName,
+      phone: senderPhone,
+    });
+
     // ── Upsert de la conversación (identificada por workspaceId + externalId) ──
     const conversation = await prisma.inboxConversation.upsert({
       where: {
@@ -173,6 +183,7 @@ async function handleIncomingMessage({
         lastMessageAt: timestamp,
         unread: true,
         contactName,
+        ...(resolvedContactId ? { contactId: resolvedContactId } : {}),
         updatedAt: new Date(),
       },
       create: {
@@ -181,6 +192,7 @@ async function handleIncomingMessage({
         externalId: `wa_${senderPhone}`,
         pageId: phoneNumberId,
         contactName,
+        contactId: resolvedContactId,
         lastMessage: textBody.slice(0, 255),
         lastMessageAt: timestamp,
         unread: true,

@@ -66,6 +66,8 @@ export async function GET(request: NextRequest) {
         pageName,
         contactName: c.contactName || "Usuario",
         contactId,
+        // Contact.id del CRM unificado (distinto del PSID/teléfono de `contactId`).
+        crmContactId: c.contactId,
         contactAvatar: c.contactAvatar || null,
         lastMessage: c.lastMessage || "",
         lastMessageAt: c.lastMessageAt || c.updatedAt,
