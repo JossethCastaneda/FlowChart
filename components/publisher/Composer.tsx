@@ -999,7 +999,9 @@ export function Composer() {
               <span style={{ fontSize: 12, color: "var(--text-secondary)", fontWeight: 500, fontFamily: "var(--font-display)", letterSpacing: "0.1em" }}>RETRASO ORBITAL:</span>
               <input type="datetime-local" value={scheduledAt}
                 onChange={(e) => setScheduledAt(e.target.value)}
-                min={new Date().toISOString().slice(0, 16)}
+                // min en hora LOCAL (el input datetime-local es local). Con toISOString()
+                // (UTC) en zonas UTC-negativas se bloqueaban las próximas horas válidas.
+                min={new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16)}
                 style={{
                   maxWidth: 200, padding: "6px 10px", borderRadius: 6,
                   background: "var(--row-hover)", border: "1px solid var(--hairline)",

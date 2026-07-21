@@ -386,9 +386,8 @@ export function ScheduledCalendar() {
         <div style={{ display: "flex", gap: 4, alignItems: "flex-start", flexShrink: 0 }}>
           {isEditable && (
             <>
-              <button onClick={() => console.log("Edit:", post.id)} title="Editar" style={actionBtnStyle}>
-                <Pencil style={{ width: 13, height: 13 }} />
-              </button>
+              {/* El botón "Editar" se retiró: era un console.log sin flujo de edición
+                  cableado (afordancia falsa). Editar un post se hace desde el Composer. */}
               <button
                 onClick={() => publishNow(post.id)}
                 title="Publicar Ahora"
