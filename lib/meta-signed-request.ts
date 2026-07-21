@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { logger } from "@/lib/logger";
 
 /**
  * Verifies and decodes a Meta signed_request.
@@ -36,7 +37,7 @@ export function verifySignedRequest(
 
     // Constant-time comparison to prevent timing attacks
     if (sig.length !== expectedSig.length || !crypto.timingSafeEqual(sig, expectedSig)) {
-      console.warn("[META SIGNED_REQUEST] ❌ HMAC signature mismatch");
+      logger.warn("[META SIGNED_REQUEST] ❌ HMAC signature mismatch");
       return null;
     }
 
@@ -48,7 +49,7 @@ export function verifySignedRequest(
 
     return JSON.parse(payloadStr);
   } catch (err) {
-    console.error("[META SIGNED_REQUEST] Failed to verify:", err);
+    logger.error("[META SIGNED_REQUEST] Failed to verify", { error: err });
     return null;
   }
 }

@@ -9,7 +9,7 @@ import { logger } from "@/lib/logger";
 let _resend: Resend | null = null;
 function getResend(): Resend | null {
   if (!env.RESEND_API_KEY) {
-    console.warn("[NOTIFICATIONS] RESEND_API_KEY not set — email sending disabled");
+    logger.warn("[NOTIFICATIONS] RESEND_API_KEY not set — email sending disabled");
     return null;
   }
   if (!_resend) _resend = new Resend(env.RESEND_API_KEY);
@@ -101,7 +101,7 @@ export async function createNotification({
         }
       }
     } catch (err) {
-      console.error("[NOTIFICATIONS] Email error:", err);
+      logger.error("[NOTIFICATIONS] Email error", { error: err });
     }
   }
 
