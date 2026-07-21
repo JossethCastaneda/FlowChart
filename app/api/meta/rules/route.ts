@@ -15,6 +15,11 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const adAccountId = searchParams.get("adAccountId");
   if (!adAccountId) return NextResponse.json({ error: "Missing adAccountId" }, { status: 400 });
+  // SEGURIDAD: adAccountId se interpola en el path de Graph. Validar formato estricto
+  // (evita inyección de segmentos de path).
+  if (!/^(act_)?\d+$/.test(adAccountId)) {
+    return NextResponse.json({ error: "adAccountId inválido" }, { status: 400 });
+  }
 
   const token = accessToken;
   const version = META_API_VERSION;

@@ -153,6 +153,17 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       }
     }
 
+    // SEGURIDAD: si la misma WABA está conectada en dos workspaces, ambos pasan la
+    // verificación de pertenencia; el upsert (keyed por phoneNumberId) re-homeaba la
+    // línea al último que enlazara. Rechazar si ya pertenece a otro workspace.
+    const existingPhone = await prisma.waPhoneSource.findUnique({
+      where: { phoneNumberId },
+      select: { workspaceId: true },
+    });
+    if (existingPhone && existingPhone.workspaceId !== workspaceId) {
+      return apiError("Esta línea ya está enlazada a otra cuenta de Zefirus.", "WA_PHONE_ALREADY_LINKED", 409);
+    }
+
     // Upsert WaPhoneSource
     const source = await prisma.waPhoneSource.upsert({
       where: { phoneNumberId },
