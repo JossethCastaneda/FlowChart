@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
     const _validate = await validateBody(req, AdsetCreateSchema);
     if (!_validate.ok) return _validate.response;
     let { adAccountId } = _validate.data;
-    const { campaignId, objective, name, dailyBudget, countries, ageMin, ageMax, genders, advantageAudience, advantagePlacements } = _validate.data;
+    const { campaignId, objective, name, dailyBudget, countries, ageMin, ageMax, genders, advantageAudience, advantagePlacements, start_time, end_time } = _validate.data;
 
     const map = OBJ_MAP[objective];
     if (!map) {
@@ -67,6 +67,10 @@ export async function POST(req: NextRequest) {
     if (dailyBudget && Number(dailyBudget) > 0) {
       payload.daily_budget = Math.round(Number(dailyBudget) * 100);
     }
+
+    // Programación opcional del conjunto.
+    if (start_time) payload.start_time = start_time;
+    if (end_time) payload.end_time = end_time;
 
     if (!advantagePlacements) {
       // Manual placements fallback

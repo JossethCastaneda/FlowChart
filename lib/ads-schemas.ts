@@ -125,6 +125,10 @@ export const AdsetCreateSchema = z.object({
   genders: z.array(z.union([z.literal(1), z.literal(2)])).max(2).optional(),
   advantageAudience: z.boolean().optional(),
   advantagePlacements: z.boolean().optional(),
+  // Programación del conjunto (ISO 8601). Antes no estaban en el schema → Zod los
+  // strippeaba y las fechas elegidas en el modal se descartaban silenciosamente.
+  start_time: z.string().datetime({ offset: true }).optional(),
+  end_time: z.string().datetime({ offset: true }).optional(),
   confirmed_by_user: ConfirmedByUser,
 });
 

@@ -98,9 +98,13 @@ export function EditAdSetModal({ adset, onClose, onSaved }: EditAdSetModalProps)
     if (bidAmount > 0 && bidStrategy === "LOWEST_COST_WITH_BID_CAP") fields.bid_amount = bidAmount;
     if (optimizationGoal !== adset.optimization_goal) fields.optimization_goal = optimizationGoal;
 
-    // Schedule
-    if (startTime) fields.start_time = new Date(startTime).toISOString();
-    if (endTime) fields.end_time = new Date(endTime).toISOString();
+    // Schedule — SOLO enviar si el usuario cambió el valor. Antes se reenviaba en cada
+    // guardado y `new Date(localValue).toISOString()` reinterpretaba la hora en la zona
+    // horaria del navegador, desplazando la programación un poco en cada save.
+    const origStart = adset.start_time ? adset.start_time.substring(0, 16) : "";
+    const origEnd = adset.end_time ? adset.end_time.substring(0, 16) : "";
+    if (startTime && startTime !== origStart) fields.start_time = new Date(startTime).toISOString();
+    if (endTime !== origEnd) fields.end_time = endTime ? new Date(endTime).toISOString() : null;
 
     // Targeting — must be full object
     const newTargeting = {

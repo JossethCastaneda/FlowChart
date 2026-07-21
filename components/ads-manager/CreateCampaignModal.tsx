@@ -66,7 +66,10 @@ export function CreateCampaignModal({ adAccountId, adAccountName, onClose, onCre
           objective,
           special_ad_categories: special ? [special] : [],
           buying_type: buyingType,
-          smart_promotion_type: objective === "OUTCOME_SALES" && isAsc ? "SMART_APP_PROMOTION" : undefined, // Meta API uses specific flags or relies on the AdSet for ASC, we pass this to help the backend map it if necessary
+          // Advantage+ Shopping (ASC) sobre OUTCOME_SALES usa SMART_SHOPPING.
+          // SMART_APP_PROMOTION es para campañas de promoción de APPS — enviarlo aquí
+          // producía el smart_promotion_type equivocado.
+          smart_promotion_type: objective === "OUTCOME_SALES" && isAsc ? "SMART_SHOPPING" : undefined,
           daily_budget: cbo && dailyBudget ? Number(dailyBudget) : undefined,
           bid_strategy: cbo ? bidStrategy : undefined,
           confirmed_by_user: true,

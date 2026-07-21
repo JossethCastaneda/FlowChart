@@ -50,7 +50,20 @@ export function ExportButton({ data, level, visibleColumns }: ExportButtonProps)
       case "clicks": return (ins.clicks || 0).toString();
       case "ctr": return (ins.ctr || 0).toFixed(2);
       case "cpc": return (ins.cpc || 0).toFixed(2);
-      case "results": return findActionValue(ins.actions, "link_click").toString();
+      case "results": {
+        // El "resultado" real depende del objetivo (compras, leads, conversaciones…),
+        // no siempre link_click. Se toma el primer tipo con valor por prioridad.
+        const RESULT_PRIORITY = [
+          "offsite_conversion.fb_pixel_purchase", "purchase", "onsite_conversion.purchase",
+          "lead", "onsite_conversion.lead_grouped", "complete_registration",
+          "onsite_conversion.messaging_conversation_started_7d", "link_click",
+        ];
+        for (const t of RESULT_PRIORITY) {
+          const v = findActionValue(ins.actions, t);
+          if (v > 0) return v.toString();
+        }
+        return "0";
+      }
       case "conversations": return findActionValue(ins.actions, "onsite_conversion.messaging_conversation_started_7d").toString();
       case "spend": return (ins.spend || 0).toFixed(2);
       default: return "";
