@@ -104,8 +104,17 @@ export async function runTrainingPipeline(datasetId: string): Promise<PipelineRe
   const neg = y ? y.length - pos : 0;
   const trainable = !!y && rows.length >= MIN_ROWS && pos >= MIN_PER_CLASS && neg >= MIN_PER_CLASS;
 
-  // Un modelo activo por dataset: limpia el anterior (cascade borra runs/predicciones).
-  await prisma.ariaModel.deleteMany({ where: { datasetId } });
+  // Un modelo activo por dataset. NO borrar el anterior aún: si el entrenamiento crashea
+  // (cómputo pesado / timeout), el dataset quedaría SIN modelo ni predicciones. Se
+  // capturan los IDs viejos y se borran DESPUÉS de crear el nuevo (crash-safe).
+  const oldModelIds = (
+    await prisma.ariaModel.findMany({ where: { datasetId }, select: { id: true } })
+  ).map((m) => m.id);
+  const purgeOldModels = async () => {
+    if (oldModelIds.length) {
+      await prisma.ariaModel.deleteMany({ where: { id: { in: oldModelIds } } });
+    }
+  };
 
   if (trainable && y && target) {
     const split = stratifiedSplit(y, 0.2, datasetId);
@@ -197,6 +206,8 @@ export async function runTrainingPipeline(datasetId: string): Promise<PipelineRe
       };
     });
     await prisma.ariaPrediction.createMany({ data: predData });
+    // Nuevo modelo + predicciones ya persistidos → ahora sí borrar los viejos.
+    await purgeOldModels();
     await prisma.ariaDataset.update({ where: { id: datasetId }, data: { status: "ready" } });
 
     return {
@@ -262,6 +273,8 @@ export async function runTrainingPipeline(datasetId: string): Promise<PipelineRe
     insights: asJson({ model: "heuristic_baseline", note: "Score heurístico (no entrenado)" }),
   }));
   await prisma.ariaPrediction.createMany({ data: predData });
+  // Nuevo baseline persistido → ahora sí borrar los modelos viejos.
+  await purgeOldModels();
   await prisma.ariaDataset.update({ where: { id: datasetId }, data: { status: "baseline" } });
 
   return {

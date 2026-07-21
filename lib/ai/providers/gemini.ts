@@ -15,7 +15,14 @@ import { toGeminiSchema } from "../schema";
 
 interface GeminiResponse {
   candidates?: { content?: { parts?: { text?: string }[] }; finishReason?: string }[];
+  usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
   error?: { message?: string };
+}
+
+function extractUsage(data: GeminiResponse) {
+  const promptTokens = data.usageMetadata?.promptTokenCount ?? 0;
+  const completionTokens = data.usageMetadata?.candidatesTokenCount ?? 0;
+  return { promptTokens, completionTokens, totalTokens: promptTokens + completionTokens };
 }
 
 /** Une TODAS las parts de texto (Gemini puede responder multi-parte). */
@@ -109,7 +116,7 @@ export const geminiProvider: LLMProvider = {
       const reason = data.candidates?.[0]?.finishReason ?? "sin candidates";
       throw new LLMProviderError("gemini", 502, `Respuesta vacía del modelo (${reason})`);
     }
-    return { text, model, provider: "gemini" };
+    return { text, model, provider: "gemini", usage: extractUsage(data) };
   },
 
   async completeStructured<T>(
@@ -148,6 +155,6 @@ export const geminiProvider: LLMProvider = {
     } catch {
       throw new LLMProviderError("gemini", 502, "Respuesta JSON inválida");
     }
-    return { text, model, provider: "gemini", data: opts.parse(json) };
+    return { text, model, provider: "gemini", data: opts.parse(json), usage: extractUsage(data) };
   },
 };

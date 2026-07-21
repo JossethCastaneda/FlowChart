@@ -18,7 +18,14 @@ const ENDPOINT = "https://api.openai.com/v1/chat/completions";
 
 interface OpenAIResponse {
   choices?: { message?: { content?: string } }[];
+  usage?: { prompt_tokens?: number; completion_tokens?: number };
   error?: { message?: string };
+}
+
+function extractUsage(data: OpenAIResponse) {
+  const promptTokens = data.usage?.prompt_tokens ?? 0;
+  const completionTokens = data.usage?.completion_tokens ?? 0;
+  return { promptTokens, completionTokens, totalTokens: promptTokens + completionTokens };
 }
 
 type OpenAIContentPart =
@@ -83,7 +90,7 @@ export const openaiProvider: LLMProvider = {
   async complete(opts: CompleteOptions): Promise<CompleteResult> {
     const model = opts.model ?? this.defaultModel;
     const data = await call(opts, model);
-    return { text: data.choices?.[0]?.message?.content ?? "", model, provider: "openai" };
+    return { text: data.choices?.[0]?.message?.content ?? "", model, provider: "openai", usage: extractUsage(data) };
   },
 
   async completeStructured<T>(
@@ -102,6 +109,6 @@ export const openaiProvider: LLMProvider = {
     } catch {
       throw new LLMProviderError("openai", 502, "Respuesta JSON inválida");
     }
-    return { text, model, provider: "openai", data: opts.parse(json) };
+    return { text, model, provider: "openai", data: opts.parse(json), usage: extractUsage(data) };
   },
 };

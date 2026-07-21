@@ -26,7 +26,14 @@ const DEFAULT_MAX_TOKENS = 1024;
 interface AnthropicResponse {
   content?: { type?: string; text?: string }[];
   stop_reason?: string;
+  usage?: { input_tokens?: number; output_tokens?: number };
   error?: { message?: string };
+}
+
+function extractUsage(data: AnthropicResponse) {
+  const promptTokens = data.usage?.input_tokens ?? 0;
+  const completionTokens = data.usage?.output_tokens ?? 0;
+  return { promptTokens, completionTokens, totalTokens: promptTokens + completionTokens };
 }
 
 type AnthropicBlock =
@@ -118,7 +125,7 @@ export const anthropicProvider: LLMProvider = {
   async complete(opts: CompleteOptions): Promise<CompleteResult> {
     const model = opts.model ?? this.defaultModel;
     const data = await call(opts, model);
-    return { text: extractText(data), model, provider: "anthropic" };
+    return { text: extractText(data), model, provider: "anthropic", usage: extractUsage(data) };
   },
 
   async completeStructured<T>(
@@ -136,6 +143,6 @@ export const anthropicProvider: LLMProvider = {
     } catch {
       throw new LLMProviderError("anthropic", 502, "Respuesta JSON inválida");
     }
-    return { text, model, provider: "anthropic", data: opts.parse(json) };
+    return { text, model, provider: "anthropic", data: opts.parse(json), usage: extractUsage(data) };
   },
 };
