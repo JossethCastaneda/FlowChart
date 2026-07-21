@@ -39,6 +39,15 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError("Este post ya fue publicado", "VALIDATION_ERROR", 400);
   }
 
+  // Guard de aprobación: un post pendiente/rechazado no puede publicarse.
+  if (post.approvalStatus === "pending" || post.approvalStatus === "rejected") {
+    return apiError(
+      "Este post requiere aprobación de un OWNER/ADMIN antes de publicarse.",
+      "APPROVAL_REQUIRED",
+      403
+    );
+  }
+
   // CLAIM ATÓMICO: evita la doble publicación (dos requests manuales concurrentes, o un
   // manual + el workflow programado). Solo un actor gana el updateMany condicional; el
   // resto recibe 409. Un lock "Publishing" viejo (>5min, función muerta) se puede reclamar.

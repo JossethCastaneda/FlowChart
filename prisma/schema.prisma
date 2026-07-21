@@ -575,6 +575,13 @@ model ScheduledPost {
   scheduledAt       DateTime?
   publishedAt       DateTime?
   status            String    @default("Draft") // Draft, Scheduled, Published, Failed
+  // Flujo de aprobación de equipo (opt-in por workspace). null = no requiere aprobación;
+  // "pending" = espera revisión; "approved"/"rejected" = revisado. Un post "pending" no
+  // puede programarse ni publicarse hasta ser aprobado por OWNER/ADMIN.
+  approvalStatus    String? // null | pending | approved | rejected
+  approvedById      String? // userId del revisor
+  approvedAt        DateTime?
+  reviewNote        String?   @db.Text // comentario del revisor (p. ej. motivo de rechazo)
   error             String?   @db.Text // error message if publish failed
   externalIds       Json? // { facebook: "post_id", instagram: "media_id" }
   qStashMessageId   String? // ID del mensaje programado en QStash

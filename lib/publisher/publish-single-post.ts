@@ -30,6 +30,12 @@ export async function publishSinglePost(
     return { id: postId, status: "Published" };
   }
 
+  // Guard de aprobación: nunca publicar un post pendiente/rechazado (defensa en
+  // profundidad; el workflow no debería iniciarse para estos, pero por si acaso).
+  if (post.approvalStatus === "pending" || post.approvalStatus === "rejected") {
+    return { id: postId, status: "Skipped", error: "Skipped: pendiente de aprobación" };
+  }
+
   if (expectedScheduleToken && post.qStashMessageId !== expectedScheduleToken) {
     return {
       id: postId,

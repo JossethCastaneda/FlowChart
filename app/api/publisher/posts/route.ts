@@ -9,6 +9,7 @@ import {
   startPublishWorkflowSchedule,
   validatePublisherScheduledAt,
 } from "@/lib/publisher/schedule";
+import { workspaceRequiresApproval, initialApprovalStatus } from "@/lib/publisher/approval";
 import { logger } from "@/lib/logger";
 
 // GET /api/publisher/posts - list posts for workspace
@@ -92,6 +93,12 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     if (scheduleError) return apiError(scheduleError, "VALIDATION_ERROR", 400);
   }
 
+  // Flujo de aprobación (opt-in por workspace): si está activo y el creador no es
+  // OWNER/ADMIN, el post queda "pending" y NO se programa hasta ser aprobado.
+  const requiresApproval = await workspaceRequiresApproval(ctx.workspaceId);
+  const approvalStatus = initialApprovalStatus(requiresApproval, ctx.role);
+  const blockedPending = approvalStatus === "pending";
+
   const post = await prisma.scheduledPost.create({
     data: {
       workspaceId: ctx.workspaceId,
@@ -101,6 +108,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       mediaUrls: mediaUrls || [],
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       status: validStatus,
+      approvalStatus,
       type: type || "post",
       hashtags: hashtags || [],
       projectId: projectId || null,
@@ -111,7 +119,9 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     },
   });
 
-  if (post.status === "Scheduled" && post.scheduledAt) {
+  // Si requiere aprobación y quedó pendiente, NO iniciar el workflow de programación
+  // todavía — se disparará al aprobarse (endpoint /approve).
+  if (post.status === "Scheduled" && post.scheduledAt && !blockedPending) {
     try {
       const scheduleToken = await startPublishWorkflowSchedule(post.id, post.scheduledAt);
       const scheduled = await prisma.scheduledPost.update({
@@ -134,6 +144,13 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       });
       return apiSuccess({ post: broken, warning }, 201);
     }
+  }
+
+  if (blockedPending) {
+    return apiSuccess(
+      { post, warning: "El post requiere aprobación de un OWNER/ADMIN antes de programarse." },
+      201
+    );
   }
 
   return apiSuccess({ post }, 201);
