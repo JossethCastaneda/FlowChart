@@ -16,7 +16,9 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const { searchParams } = new URL(req.url);
   const status = searchParams.get("status");
   const channel = searchParams.get("channel");
-  const limit = parseInt(searchParams.get("limit") || "100", 10);
+  // limit no numérico daba NaN → take: NaN → 500. Se clampa a [1, 500] con default 100.
+  const limitRaw = parseInt(searchParams.get("limit") || "100", 10);
+  const limit = Number.isFinite(limitRaw) && limitRaw > 0 ? Math.min(limitRaw, 500) : 100;
 
   const where: Prisma.ScheduledPostWhereInput = { workspaceId: ctx.workspaceId };
   if (status) {
@@ -29,7 +31,7 @@ export const GET = withWorkspace(async (req: NextRequest, ctx) => {
   const posts = await prisma.scheduledPost.findMany({
     where,
     orderBy: [{ scheduledAt: "desc" }, { createdAt: "desc" }],
-    take: Math.min(limit, 500),
+    take: limit,
   });
 
   return apiSuccess({ posts });
@@ -43,8 +45,11 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       content: z.string().min(1, "El contenido es obligatorio").optional(),
       channels: z.array(z.string()).min(1, "Selecciona al menos un canal"),
       mediaUrls: z.array(z.string()).optional(),
-      scheduledAt: z.string().optional(),
-      status: z.string().optional(),
+      // Fecha válida siempre que venga (un Draft con scheduledAt basura crasheaba en
+      // new Date(...) → 500). El estado solo puede ser Draft/Scheduled (no Published/
+      // Publishing — evita historial falso o filas inmutables).
+      scheduledAt: z.string().refine((s) => !Number.isNaN(new Date(s).getTime()), "Fecha inválida").optional(),
+      status: z.enum(["Draft", "Scheduled"]).optional(),
       type: z.string().optional(),
       hashtags: z.array(z.string()).optional(),
       projectId: z.string().optional(),

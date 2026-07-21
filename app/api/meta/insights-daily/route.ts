@@ -10,7 +10,10 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const id = searchParams.get("id");
   const level = searchParams.get("level") || "campaign";
-  const days = parseInt(searchParams.get("days") || "30", 10);
+  // days no numérico daba NaN → since.setDate(NaN) = Invalid Date → toISOString() lanzaba
+  // RangeError FUERA del try (500). Se clampa a [1, 365] con default 30.
+  const daysRaw = parseInt(searchParams.get("days") || "30", 10);
+  const days = Number.isFinite(daysRaw) ? Math.max(1, Math.min(365, daysRaw)) : 30;
 
   if (!id) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
