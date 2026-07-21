@@ -14,11 +14,15 @@ export function Avatar({
   name,
   size = 42,
   color = "var(--cyan)",
+  style,
+  className,
 }: {
   src?: string | null;
   name: string;
   size?: number;
   color?: string;
+  style?: React.CSSProperties;
+  className?: string;
 }) {
   const [error, setError] = useState(false);
   
@@ -34,14 +38,15 @@ export function Avatar({
         src={src}
         alt={name || "Usuario"}
         role="presentation"
-        style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover" }}
+        className={className}
+        style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover", ...style }}
         onError={() => setError(true)}
       />
     );
   }
 
   return (
-    <div style={{
+    <div className={className} style={{
       width: size,
       height: size,
       borderRadius: "50%",
@@ -53,6 +58,7 @@ export function Avatar({
       fontSize: Math.max(10, Math.floor(size * 0.35)),
       fontWeight: 700,
       color: color,
+      ...style
     }}>
       {initials || "U"}
     </div>
@@ -610,15 +616,13 @@ export function ChatView({
               >
                 {/* Incoming avatar */}
                 {msg.incoming && (
-                  <div style={{
-                    width: 28, height: 28, borderRadius: "50%",
-                    background: `${pc.color}15`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: 9, fontWeight: 700, color: pc.color,
-                    marginRight: 8, marginTop: 4, flexShrink: 0,
-                  }}>
-                    {getInitials(conversation.contactName)}
-                  </div>
+                  <Avatar 
+                    src={conversation.contactAvatar} 
+                    name={conversation.contactName || "Usuario"} 
+                    size={28} 
+                    color={pc.color} 
+                    style={{ marginRight: 8, marginTop: 4, flexShrink: 0 }} 
+                  />
                 )}
 
                 <div style={{ maxWidth: "65%" }}>
