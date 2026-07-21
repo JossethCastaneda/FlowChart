@@ -3,6 +3,7 @@ import { validateBody } from "@/lib/validate";
 import { apiSuccess, apiCreated, apiError, apiNotFound, apiForbidden, apiServerError } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { logger } from "@/lib/logger";
+import { recordAudit } from "@/lib/audit";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
@@ -75,6 +76,13 @@ export const DELETE = withAuth(async (req, ctx) => {
   });
 
   logger.info("Workspace member removed", { workspaceId, removedUserId: userId, byUserId: ctx.userId });
+  await recordAudit({
+    workspaceId,
+    userId: ctx.userId,
+    action: "member.removed",
+    resourceType: "WorkspaceMember",
+    resourceId: userId,
+  });
 
   return apiSuccess({ removed: true });
 });

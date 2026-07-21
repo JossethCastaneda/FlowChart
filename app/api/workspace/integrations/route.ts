@@ -3,6 +3,7 @@ import { validateBody } from "@/lib/validate";
 import { apiSuccess, apiCreated, apiError, apiNotFound, apiForbidden } from "@/lib/api-response";
 import { encryptToken } from "@/lib/encryption";
 import { logger } from "@/lib/logger";
+import { recordAudit } from "@/lib/audit";
 import { GOOGLE_MODULES, isModuleConnected } from "@/lib/integrations/google/registry";
 import prisma, { type Prisma } from "@/lib/prisma";
 import { z } from "zod";
@@ -181,6 +182,13 @@ export const DELETE = withWorkspace(async (req, ctx) => {
     provider,
     workspaceId: ctx.workspaceId,
     byUserId: ctx.userId,
+  });
+  await recordAudit({
+    workspaceId: ctx.workspaceId,
+    userId: ctx.userId,
+    action: "integration.disconnected",
+    resourceType: "Integration",
+    resourceId: provider,
   });
 
   return apiSuccess({ disconnected: true });

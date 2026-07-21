@@ -3,6 +3,7 @@ import { validateBody } from "@/lib/validate";
 import { apiSuccess, apiError, apiNotFound, apiForbidden } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { logger } from "@/lib/logger";
+import { recordAudit } from "@/lib/audit";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
 
@@ -63,6 +64,14 @@ export const PATCH = withAuth(async (req, ctx) => {
     targetUserId: userId,
     newRole: role,
     byUserId: ctx.userId,
+  });
+  await recordAudit({
+    workspaceId,
+    userId: ctx.userId,
+    action: "member.role_changed",
+    resourceType: "WorkspaceMember",
+    resourceId: userId,
+    details: { from: target.role, to: role },
   });
 
   return apiSuccess(updated);
