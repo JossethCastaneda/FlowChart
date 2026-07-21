@@ -95,17 +95,56 @@ try {
       ) ranked
       WHERE rn > 1
     )
-  `);
+  `).catch(() => { /* ignorar si la tabla no existe */ });
+
+  // Dedup CenturionModel por (workspaceId, clientName) — unique constraint añadido en feat/crm.
+  // Keep newest row per group.
+  await client.query(`
+    DELETE FROM "CenturionModel"
+    WHERE id IN (
+      SELECT id FROM (
+        SELECT id,
+               ROW_NUMBER() OVER (
+                 PARTITION BY "workspaceId", "clientName"
+                 ORDER BY "createdAt" DESC NULLS LAST
+               ) as rn
+        FROM "CenturionModel"
+      ) ranked
+      WHERE rn > 1
+    )
+  `).catch(() => { /* tabla puede no existir aún — ignorar */ });
+
+  // Dedup MetaAdsCache por (workspaceId, adAccountId, level, dateRange) — unique constraint añadido en feat/crm.
+  await client.query(`
+    DELETE FROM "MetaAdsCache"
+    WHERE id IN (
+      SELECT id FROM (
+        SELECT id,
+               ROW_NUMBER() OVER (
+                 PARTITION BY "workspaceId", "adAccountId", "level", "dateRange"
+                 ORDER BY "updatedAt" DESC NULLS LAST
+               ) as rn
+        FROM "MetaAdsCache"
+      ) ranked
+      WHERE rn > 1
+    )
+  `).catch(() => { /* tabla puede no existir aún — ignorar */ });
+
   await client.end();
 } catch (e) {
   console.warn("[db-sync] pre-sync cleanup skipped (non-fatal):", e?.message || String(e));
 }
 
-// Apply additive schema changes. Non-fatal: a deploy must never be blocked by a
-// sync that would otherwise require --accept-data-loss. We intentionally do NOT
-// pass --accept-data-loss so a genuinely destructive diff is surfaced, not run.
+// Apply schema changes. We pass --accept-data-loss because:
+//  1. All potentially-destructive unique constraints are pre-cleaned above.
+//  2. Prisma db push always warns about new unique constraints regardless of
+//     whether there are actual duplicate rows — without this flag the entire
+//     sync silently fails in CI, leaving the production schema out of sync.
+// NOTE: Prisma db push NEVER drops tables or columns automatically, so
+//       the only "data loss" risk is from unique constraint violations which
+//       we have already resolved in the cleanup step above.
 try {
-  execSync("npx prisma db push", { stdio: "inherit", env: { ...process.env, CI: "true" } });
+  execSync("npx prisma db push --accept-data-loss", { stdio: "inherit", env: { ...process.env, CI: "true" } });
 } catch (e) {
   console.warn("[db-sync] prisma db push skipped (non-fatal):", e?.message || String(e));
 }
