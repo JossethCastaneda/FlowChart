@@ -75,7 +75,7 @@ async function persistMetaDm(
         }
 
         if (pageToken) {
-          const fields = platform === "instagram_dm" ? "name,profile_pic" : "first_name,last_name,profile_pic,locale,timezone,gender";
+          const fields = platform === "instagram_dm" ? "name,profile_pic" : "first_name,last_name,profile_pic";
           const controller = new AbortController();
           const timeoutId = setTimeout(() => controller.abort(), 3000); // 3s timeout max
           
@@ -90,11 +90,6 @@ async function persistMetaDm(
                contactName = data.name;
             } else {
                contactName = [data.first_name, data.last_name].filter(Boolean).join(" ");
-               fetchedCustomFields = {
-                 locale: data.locale,
-                 timezone: data.timezone,
-                 gender: data.gender
-               };
             }
             contactAvatar = data.profile_pic;
           } else {
