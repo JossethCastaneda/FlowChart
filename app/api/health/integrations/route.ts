@@ -4,6 +4,7 @@ import { apiError, apiSuccess } from "@/lib/api-response";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { env } from "@/lib/env";
 import prisma from "@/lib/prisma";
+import { resolveModuleConfig, resolveLoginConfigId } from "@/lib/meta-config";
 
 /** "ok" si la variable está presente y no vacía, "missing" en otro caso. */
 const flag = (value: string | undefined | null) => (value ? "ok" : "missing");
@@ -38,16 +39,17 @@ export const GET = withWorkspace(async (_req: NextRequest, ctx) => {
     webhookVerifyToken: flag(env.META_WEBHOOK_VERIFY_TOKEN),
   };
 
-  // config_id por módulo (Facebook Login for Business). Sin estos, el botón
-  // "Conectar" del módulo correspondiente devuelve 500.
+  // config_id por módulo (Facebook Login for Business). Resueltos vía lib/meta-config
+  // (nombre nuevo META_CONFIG_* con fallback al legacy). Sin estos, el botón "Conectar"
+  // del módulo devuelve 500.
   result.metaConfigIds = {
-    login: flag(env.FACEBOOK_LOGIN_CONFIG_ID),
-    publisherFacebook: flag(env.FACEBOOK_PUBLISHER_FB_CONFIG_ID),
-    publisherInstagram: flag(env.FACEBOOK_PUBLISHER_IG_CONFIG_ID),
-    social: flag(env.FACEBOOK_SOCIAL_CONFIG_ID),
-    ads: flag(env.FACEBOOK_ADS_CONFIG_ID),
-    analytics: flag(env.FACEBOOK_ANALYTICS_CONFIG_ID),
-    community: flag(env.MESSENGER_CONFIG_ID),
+    login: flag(resolveLoginConfigId()),
+    publisherFacebook: flag(resolveModuleConfig("publisher_facebook")?.configId),
+    publisherInstagram: flag(resolveModuleConfig("publisher_instagram")?.configId),
+    social: flag(resolveModuleConfig("social")?.configId),
+    ads: flag(resolveModuleConfig("ads")?.configId),
+    analytics: flag(resolveModuleConfig("analytics")?.configId),
+    community: flag(resolveModuleConfig("community")?.configId),
   };
 
   // Instagram Login directo (api/integrations/instagram/*)

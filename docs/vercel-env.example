@@ -1,0 +1,151 @@
+# ============================================================================
+#  ZEFIRUS — Plantilla de variables de entorno para VERCEL
+#  Convención (AGENTS.md): PLATAFORMA_FUNCION_MODULO
+#
+#  CÓMO USAR:
+#   1. En Vercel → Project → Settings → Environment Variables.
+#   2. Crea cada variable de abajo y PEGA TU VALOR donde dice <...>.
+#   3. Para "solo conectar", basta llenar el BLOQUE 1 (config IDs) + las apps
+#      de Meta/Google del BLOQUE 2. El resto ya tiene defaults o es infra.
+#
+#  Las variables de INFRA (BLOQUE 9) tienen nombres FIJOS impuestos por Vercel/
+#  Neon/NextAuth y NO se renombran a la convención (romperían el contrato externo).
+# ============================================================================
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ BLOQUE 1 — CONFIG IDs DE META (LO ÚNICO QUE CONECTAS POR SECCIÓN)         │
+# │ config_id de "Facebook Login for Business", uno por módulo.              │
+# │ Cada uno debe tener configurados sus scopes en el panel de Meta.         │
+# │ El código acepta el nombre NUEVO o el LEGACY (basta uno).                │
+# └────────────────────────────────────────────────────────────────────────┘
+
+# Login (identidad) — app de FACEBOOK, scopes: email, public_profile
+FACEBOOK_CONFIG_AUTH=<CONFIG_ID_LOGIN>
+
+# Publisher Facebook — app de META
+META_CONFIG_PUBLISHERFB=<CONFIG_ID_PUBLISHER_FB>
+
+# Publisher Instagram — app de META
+META_CONFIG_PUBLISHERIG=<CONFIG_ID_PUBLISHER_IG>
+
+# Social (canales) — app de META
+META_CONFIG_SOCIAL=<CONFIG_ID_SOCIAL>
+
+# Meta Ads Manager — app de META
+META_CONFIG_ADS=<CONFIG_ID_ADS>
+
+# Analytics — app de META
+META_CONFIG_ANALYTICS=<CONFIG_ID_ANALYTICS>
+
+# Inbox / Community (Messenger + IG DM + comentarios) — app de META
+META_CONFIG_INBOX=<CONFIG_ID_INBOX>
+
+# WhatsApp Embedded Signup — config_id del flujo (CLIENT-side, se inlinea en build)
+NEXT_PUBLIC_META_CONFIG_WHATSAPP=<CONFIG_ID_WHATSAPP_EMBEDDED_SIGNUP>
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ BLOQUE 2 — APPS DE META / FACEBOOK / INSTAGRAM                            │
+# │ ¡SON APPS DISTINTAS! META = integraciones/webhooks. FACEBOOK = login.    │
+# └────────────────────────────────────────────────────────────────────────┘
+
+# App de META (integraciones, webhooks, config_ids del BLOQUE 1)
+META_APP_ID=<META_APP_ID>
+META_APP_SECRET=<META_APP_SECRET>
+META_API_VERSION=v25.0
+NEXT_PUBLIC_META_APP_ID=<META_APP_ID>          # mismo valor, expuesto al cliente (FB SDK)
+NEXT_PUBLIC_META_API_VERSION=v25.0
+
+# App de FACEBOOK (SOLO login NextAuth — identidad)
+FACEBOOK_CLIENT_ID=<FACEBOOK_LOGIN_APP_ID>
+FACEBOOK_CLIENT_SECRET=<FACEBOOK_LOGIN_APP_SECRET>
+
+# Instagram Login directo (opcional — api/integrations/instagram/*)
+INSTAGRAM_APP_ID=<INSTAGRAM_APP_ID>
+INSTAGRAM_APP_SECRET=<INSTAGRAM_APP_SECRET>
+INSTAGRAM_REDIRECT_URI=https://TU_DOMINIO/api/integrations/instagram/callback
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ BLOQUE 3 — WHATSAPP BUSINESS                                              │
+# └────────────────────────────────────────────────────────────────────────┘
+
+WHATSAPP_APP_SECRET=<WHATSAPP_APP_SECRET>                 # (o usa META_APP_SECRET)
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=<CADENA_ALEATORIA>
+META_SYSTEM_USER_TOKEN=<SYSTEM_USER_TOKEN>               # portfolio WABAs (opcional)
+META_BUSINESS_PORTFOLIO_ID=<BUSINESS_PORTFOLIO_ID>
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ BLOQUE 4 — GOOGLE                                                         │
+# └────────────────────────────────────────────────────────────────────────┘
+
+GOOGLE_CLIENT_ID=<GOOGLE_OAUTH_CLIENT_ID>
+GOOGLE_CLIENT_SECRET=<GOOGLE_OAUTH_CLIENT_SECRET>
+GOOGLE_ADS_DEVELOPER_TOKEN=<GOOGLE_ADS_DEV_TOKEN>        # opcional (Google Ads)
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ BLOQUE 5 — TIKTOK (opcional)                                              │
+# └────────────────────────────────────────────────────────────────────────┘
+
+TIKTOK_ADS_APP_ID=<TIKTOK_APP_ID>
+TIKTOK_ADS_CLIENT_ID=<TIKTOK_CLIENT_KEY>
+TIKTOK_ADS_CLIENT_SECRET=<TIKTOK_CLIENT_SECRET>
+TIKTOK_WEBHOOK_SECRET=<TIKTOK_WEBHOOK_SECRET>
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ BLOQUE 6 — WEBHOOKS (verify tokens — cadenas que tú inventas)            │
+# └────────────────────────────────────────────────────────────────────────┘
+
+META_WEBHOOK_VERIFY_TOKEN=<CADENA_ALEATORIA>            # webhook Meta (page/ig/ads)
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ BLOQUE 7 — IA (al menos un proveedor)                                     │
+# └────────────────────────────────────────────────────────────────────────┘
+
+ANTHROPIC_API_KEY=<ANTHROPIC_KEY>
+OPENAI_API_KEY=<OPENAI_KEY>
+GEMINI_API_KEY=<GEMINI_KEY>
+ARIA_LLM_PROVIDER=gemini                                 # gemini | anthropic | openai
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ BLOQUE 8 — EMAIL (Resend)                                                 │
+# └────────────────────────────────────────────────────────────────────────┘
+
+RESEND_API_KEY=<RESEND_API_KEY>
+RESEND_FROM_EMAIL=Zefirus <no-reply@TU_DOMINIO>
+
+
+# ┌────────────────────────────────────────────────────────────────────────┐
+# │ BLOQUE 9 — INFRA (NOMBRES FIJOS — NO RENOMBRAR)                           │
+# │ Impuestos por Vercel/Neon/NextAuth/Blob. Renombrarlos ROMPE el contrato. │
+# └────────────────────────────────────────────────────────────────────────┘
+
+# Base de datos (Neon) — la integración Neon en Vercel suele inyectar DATABASE_URL
+# y las STORAGE_*. Apunta a la rama correcta (ver AGENTS.md "Database topology").
+DATABASE_URL=<POSTGRES_CONNECTION_STRING>
+
+# Auth (NextAuth) — nombres fijos
+NEXTAUTH_URL=https://TU_DOMINIO
+NEXTAUTH_SECRET=<CADENA_ALEATORIA_LARGA>
+
+# Cifrado de tokens en reposo (AES-256-GCM) — EXACTAMENTE 64 hex chars
+ENCRYPTION_KEY=<64_HEX_CHARS>
+
+# Protección de crons y worker de publicación
+CRON_SECRET=<CADENA_ALEATORIA>
+PUBLISH_WORKER_SECRET=<CADENA_ALEATORIA>
+
+# Vercel Blob (subida de media / datasets) — inyectado por la integración Blob
+BLOB_READ_WRITE_TOKEN=<VERCEL_BLOB_TOKEN>
+
+# Sal para hashear PII en analítica
+ANALYTICS_PII_SALT=<CADENA_ALEATORIA>
+
+# URLs públicas (client-side)
+NEXT_PUBLIC_APP_URL=https://TU_DOMINIO

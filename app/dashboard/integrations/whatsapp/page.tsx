@@ -36,7 +36,8 @@ import {
 
 // ── Env vars ────────────────────────────────────────────────────────────────
 const APP_ID    = process.env.NEXT_PUBLIC_META_APP_ID || "";
-const CONFIG_ID = process.env.NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID || "";
+// Convención PLATAFORMA_FUNCION_MODULO → NEXT_PUBLIC_META_CONFIG_WHATSAPP (fallback al legacy).
+const CONFIG_ID = process.env.NEXT_PUBLIC_META_CONFIG_WHATSAPP || process.env.NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID || "";
 
 // ─── Translations ────────────────────────────────────────────────────────────
 const TRANSLATIONS = {

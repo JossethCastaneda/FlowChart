@@ -12,12 +12,14 @@
  *   Meta rechaza permisos que no pueden demostrarse con screencast.
  *
  * ══ App Separation (July 2026) ══
- * - publisher_instagram → FACEBOOK_PUBLISHER_IG_CONFIG_ID
+ * El config_id de cada módulo se resuelve en lib/meta-config.ts (nombre nuevo
+ * META_CONFIG_* con fallback al legacy). Ver docs/vercel-env.md.
+ * - publisher_instagram → META_CONFIG_PUBLISHERIG (legacy: FACEBOOK_PUBLISHER_IG_CONFIG_ID)
  *   Scopes: instagram_manage_messages, instagram_manage_comments,
  *           instagram_manage_engagement, instagram_manage_insights,
  *           instagram_manage_contents, instagram_content_publish
  *
- * - community → MESSENGER_CONFIG_ID
+ * - community → META_CONFIG_INBOX (legacy: MESSENGER_CONFIG_ID)
  *   Scopes: pages_messaging + FB page scopes (no IG scopes — separate app)
  *   Added: pages_manage_engagement, pages_read_user_content, read_insights,
  *          publish_video

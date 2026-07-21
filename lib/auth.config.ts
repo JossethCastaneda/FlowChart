@@ -3,6 +3,7 @@ import FacebookProvider from "next-auth/providers/facebook";
 import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
+import { resolveLoginConfigId } from "@/lib/meta-config";
 
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
 
@@ -25,8 +26,9 @@ if (process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET) {
         params: {
           // Facebook Login for Business requires config_id — without it,
           // the dialog shows "app needs at least one supported permission".
-          // The FACEBOOK_LOGIN_CONFIG_ID must include email + public_profile.
-          config_id: process.env.FACEBOOK_LOGIN_CONFIG_ID || "",
+          // Resuelto vía FACEBOOK_CONFIG_AUTH (o legacy FACEBOOK_LOGIN_CONFIG_ID);
+          // debe incluir email + public_profile.
+          config_id: resolveLoginConfigId(),
           scope: "email,public_profile",
           auth_type: "rerequest",
           // override_default_response_type is required by Meta to honor config_id

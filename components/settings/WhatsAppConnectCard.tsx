@@ -8,7 +8,9 @@ import { Loader2, CheckCircle2, Circle, X, Phone, RefreshCw, Send, ExternalLink,
 // Sin fallbacks hardcodeados: la configuración vive en Vercel. Si falta un
 // env, el botón de conexión muestra un error claro en lugar de usar IDs viejos.
 const APP_ID    = process.env.NEXT_PUBLIC_META_APP_ID || "";
-const CONFIG_ID = process.env.NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID || "";
+// Convención PLATAFORMA_FUNCION_MODULO → NEXT_PUBLIC_META_CONFIG_WHATSAPP (con fallback
+// al legacy NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID). Ambos literales se inlinean en build.
+const CONFIG_ID = process.env.NEXT_PUBLIC_META_CONFIG_WHATSAPP || process.env.NEXT_PUBLIC_META_EMBEDDED_SIGNUP_CONFIG_ID || "";
 
 // ── Load FB SDK once ──────────────────────────────────────────────────────────
 

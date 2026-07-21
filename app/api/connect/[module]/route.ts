@@ -5,36 +5,10 @@ import { getActiveWorkspaceId } from "@/lib/active-workspace";
 import { verifyWorkspaceAccess } from "@/lib/auth-workspace";
 import { env } from "@/lib/env";
 import { logger } from "@/lib/logger";
+import { resolveModuleConfig, META_MODULES } from "@/lib/meta-config";
 
 const META_API_VERSION = env.META_API_VERSION;
 const NEXTAUTH_SECRET = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
-
-const CONFIG_MAP: Record<string, { envKey: keyof typeof env; label: string }> = {
-  publisher_facebook: {
-    envKey: "FACEBOOK_PUBLISHER_FB_CONFIG_ID",
-    label: "Publisher Facebook",
-  },
-  publisher_instagram: {
-    envKey: "FACEBOOK_PUBLISHER_IG_CONFIG_ID",
-    label: "Publisher Instagram",
-  },
-  social: {
-    envKey: "FACEBOOK_SOCIAL_CONFIG_ID",
-    label: "Social Channels",
-  },
-  ads: {
-    envKey: "FACEBOOK_ADS_CONFIG_ID",
-    label: "Meta Ads Manager",
-  },
-  analytics: {
-    envKey: "FACEBOOK_ANALYTICS_CONFIG_ID",
-    label: "Analytics Engine",
-  },
-  community: {
-    envKey: "MESSENGER_CONFIG_ID",
-    label: "Community Management",
-  },
-};
 
 
 export async function GET(
@@ -53,10 +27,10 @@ export async function GET(
   }
   const userId = String(jwt.sub);
 
-  const config = CONFIG_MAP[module];
+  const config = resolveModuleConfig(module);
   if (!config) {
     return NextResponse.json(
-      { error: `Unknown module: ${module}. Valid: ${Object.keys(CONFIG_MAP).join(", ")}` },
+      { error: `Unknown module: ${module}. Valid: ${META_MODULES.join(", ")}` },
       { status: 400 }
     );
   }
@@ -66,10 +40,10 @@ export async function GET(
     return NextResponse.json({ error: "META_APP_ID not configured" }, { status: 500 });
   }
 
-  const configId = env[config.envKey];
+  const configId = config.configId;
   if (!configId) {
     return NextResponse.json(
-      { error: `${String(config.envKey)} not configured for ${config.label}` },
+      { error: `${config.expectedEnv} not configured for ${config.label}` },
       { status: 500 }
     );
   }
