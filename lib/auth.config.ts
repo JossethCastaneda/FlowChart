@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { resolveLoginConfigId } from "@/lib/meta-config";
+import { logger } from "@/lib/logger";
 
 const META_API_VERSION = process.env.META_API_VERSION || "v25.0";
 
@@ -288,7 +289,7 @@ providers.push(
           });
         }
 
-        console.log("[AUTH facebook-sdk] Authorization successful for user:", dbUser.id);
+        logger.info("[AUTH] facebook-sdk authorization successful", { userId: dbUser.id });
         return {
           id: dbUser.id, // CUID de nuestra DB (no el ID de Facebook)
           name: dbUser.name,
@@ -416,7 +417,7 @@ export const authOptions: NextAuthOptions = {
                 where: { id: decoded.sub },
               });
               if (sessionUser) {
-                console.log(`[AUTH signIn] Active session detected for user: ${sessionUser.id} (${sessionUser.email})`);
+                logger.debug("[AUTH] signIn: active session detected", { userId: sessionUser.id });
               }
             }
           }
@@ -445,7 +446,7 @@ export const authOptions: NextAuthOptions = {
           user.email = sessionUser.email;
           user.name = sessionUser.name || user.name;
 
-          console.log(`[AUTH signIn] Linked ${account.provider} to session user: ${sessionUser.id} (${sessionUser.email})`);
+          logger.info("[AUTH] signIn: linked provider to session user", { provider: account.provider, userId: sessionUser.id });
           return true;
         }
 
@@ -482,7 +483,7 @@ export const authOptions: NextAuthOptions = {
           user.email = existingUser.email;
           user.name = existingUser.name || user.name;
 
-          console.log(`[AUTH signIn] Linked ${account.provider} account to existing user: ${existingUser.id} (${existingUser.email})`);
+          logger.info("[AUTH] signIn: linked provider to existing user", { provider: account.provider, userId: existingUser.id });
           return true;
         }
 
@@ -584,7 +585,7 @@ export const authOptions: NextAuthOptions = {
             token.sub = user.id; // Fallback
           }
         } else {
-          console.log("[AUTH] Linking new account to existing session:", token.sub);
+          logger.info("[AUTH] jwt: linking new account to existing session", { userId: token.sub });
         }
       }
 
