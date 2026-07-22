@@ -6,15 +6,20 @@ import { env } from "@/lib/env";
 /**
  * GET /api/debug/instagram-webhook
  * Diagnóstico temporal para verificar el estado del flujo de webhooks de Instagram.
- * SOLO PARA USO INTERNO — requiere sesión activa.
- * 
- * @todo Eliminar este endpoint después de corregir el problema.
+ * Acepta sesión NextAuth OR header Authorization: Bearer <CRON_SECRET>
  */
 export async function GET(req: NextRequest) {
-  const secret = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
-  const jwt = await getToken({ req: req as any, secret });
-  if (!jwt?.sub) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  // Auth: sesión NextAuth OR CRON_SECRET header
+  const cronSecret = env.CRON_SECRET;
+  const authHeader = req.headers.get("authorization");
+  const isCronAuth = cronSecret && authHeader === `Bearer ${cronSecret}`;
+
+  if (!isCronAuth) {
+    const secret = env.NEXTAUTH_SECRET || env.AUTH_SECRET;
+    const jwt = await getToken({ req: req as any, secret });
+    if (!jwt?.sub) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
   }
 
   const result: Record<string, unknown> = {};
