@@ -20,7 +20,7 @@ import { resolveOrCreateContact } from "@/lib/crm/contacts";
 export type InboxPlatform = "facebook_messenger" | "instagram_dm" | "facebook_comment" | "instagram_comment" | "whatsapp";
 
 /** Escribe en IntegrationAssetCache para que el próximo mensaje sea O(1) en vez de O(N-tenants). */
-async function cacheAssetWorkspace(externalId: string, kind: "page" | "ig_account", workspaceId: string): Promise<void> {
+export async function cacheAssetWorkspace(externalId: string, kind: "page" | "ig_account", workspaceId: string): Promise<void> {
   try {
     // El @@unique es [integrationId, assetType, externalId] — como no tenemos integrationId aquí,
     // hacemos un updateMany + create condicional (no upsert sin la clave compuesta).

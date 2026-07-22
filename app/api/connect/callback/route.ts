@@ -101,6 +101,20 @@ export async function GET(request: NextRequest) {
   const clientSecret = env.META_APP_SECRET || "";
   const redirectUri = `${baseUrl}/api/connect/callback`;
 
+  // ── BRANCH: Instagram Platform Direct Login ─────────────────────────────────
+  // Cuando module=instagram, el flujo usa instagram.com/oauth → graph.instagram.com
+  // con INSTAGRAM_APP_ID/SECRET (app separada, no la app de Meta Ads/Webhooks).
+  if (module === "instagram") {
+    return await handleInstagramDirectCallback({
+      code,
+      baseUrl,
+      redirectUri,
+      userId,
+      workspaceId,
+    });
+  }
+  // ────────────────────────────────────────────────────────────────────────────
+
   try {
     // 1. Exchange code for short-lived token
     const tokenUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
@@ -227,6 +241,7 @@ export async function GET(request: NextRequest) {
     } catch (e) {
       logger.warn("[CONNECT CALLBACK] Failed to fetch connected profile:", e);
     }
+
 
     // 4. Verify workspace membership using workspaceId from state
     let resolvedWorkspaceId = workspaceId;
@@ -474,5 +489,213 @@ export async function GET(request: NextRequest) {
   } catch (err: any) {
     logger.error("[CONNECT CALLBACK] Error:", err);
     return NextResponse.redirect(`${baseUrl}/connect/done?module=&error=server_error`);
+  }
+}
+
+/**
+ * Maneja el callback del flujo de Instagram Business Login (Direct, sin Facebook).
+ * Usa INSTAGRAM_APP_ID/SECRET y graph.instagram.com (no graph.facebook.com).
+ *
+ * Ref: https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login
+ */
+async function handleInstagramDirectCallback({
+  code,
+  baseUrl,
+  redirectUri,
+  userId,
+  workspaceId,
+}: {
+  code: string;
+  baseUrl: string;
+  redirectUri: string;
+  userId: string;
+  workspaceId: string;
+}): Promise<Response> {
+  const igAppId = env.INSTAGRAM_APP_ID;
+  const igAppSecret = env.INSTAGRAM_APP_SECRET;
+
+  if (!igAppId || !igAppSecret) {
+    logger.error("[IG DIRECT CALLBACK] INSTAGRAM_APP_ID or INSTAGRAM_APP_SECRET not configured");
+    return NextResponse.redirect(`${baseUrl}/connect/done?error=instagram_not_configured`);
+  }
+
+  try {
+    // ── PASO 1: Intercambiar code por short-lived token (Instagram Platform) ──
+    // POST a https://api.instagram.com/oauth/access_token (form-encoded)
+    const tokenForm = new URLSearchParams({
+      client_id: igAppId,
+      client_secret: igAppSecret,
+      grant_type: "authorization_code",
+      redirect_uri: redirectUri,
+      code,
+    });
+
+    const tokenRes = await fetch("https://api.instagram.com/oauth/access_token", {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: tokenForm.toString(),
+    });
+    const tokenData = await tokenRes.json();
+
+    if (!tokenRes.ok || !tokenData.access_token) {
+      logger.error("[IG DIRECT CALLBACK] Short-lived token exchange failed:", tokenData);
+      return NextResponse.redirect(
+        `${baseUrl}/connect/done?error=token_exchange_failed&details=${encodeURIComponent(tokenData.error_message || tokenData.error_description || "Unknown error")}`
+      );
+    }
+
+    const shortLivedToken: string = tokenData.access_token;
+    const instagramUserId: string = String(tokenData.user_id);
+
+    // ── PASO 2: Intercambiar por long-lived token (~60 días) ──
+    // GET https://graph.instagram.com/access_token
+    let longLivedToken = shortLivedToken;
+    let expiresAt: Date | null = null;
+    try {
+      const llUrl = new URL("https://graph.instagram.com/access_token");
+      llUrl.searchParams.set("grant_type", "ig_exchange_token");
+      llUrl.searchParams.set("client_secret", igAppSecret);
+      llUrl.searchParams.set("access_token", shortLivedToken);
+
+      const llRes = await fetch(llUrl.toString());
+      const llData = await llRes.json();
+
+      if (llRes.ok && llData.access_token) {
+        longLivedToken = llData.access_token;
+        if (llData.expires_in) {
+          expiresAt = new Date(Date.now() + llData.expires_in * 1000);
+        }
+        logger.info("[IG DIRECT CALLBACK] Long-lived Instagram token obtained", { instagramUserId });
+      } else {
+        logger.warn("[IG DIRECT CALLBACK] Long-lived exchange failed, using short-lived:", llData);
+      }
+    } catch (e) {
+      logger.warn("[IG DIRECT CALLBACK] Long-lived exchange error:", e);
+    }
+
+    // ── PASO 3: Obtener perfil del usuario de Instagram ──
+    // GET https://graph.instagram.com/me?fields=id,username,name,profile_picture_url
+    let profile: { username?: string; name?: string; picture?: string } = {};
+    try {
+      const meUrl = new URL("https://graph.instagram.com/me");
+      meUrl.searchParams.set("fields", "id,username,name,profile_picture_url");
+      meUrl.searchParams.set("access_token", longLivedToken);
+
+      const meRes = await fetch(meUrl.toString());
+      const meData = await meRes.json();
+      if (meRes.ok && meData.id) {
+        profile = {
+          username: meData.username ?? undefined,
+          name: meData.name ?? undefined,
+          picture: meData.profile_picture_url ?? undefined,
+        };
+        logger.info("[IG DIRECT CALLBACK] Profile fetched", { username: profile.username });
+      }
+    } catch (e) {
+      logger.warn("[IG DIRECT CALLBACK] Failed to fetch IG profile:", e);
+    }
+
+    // ── PASO 4: Verificar workspace ──
+    let resolvedWorkspaceId = workspaceId;
+    if (resolvedWorkspaceId) {
+      const member = await prisma.workspaceMember.findFirst({
+        where: { userId, workspaceId: resolvedWorkspaceId, role: { in: ["OWNER", "ADMIN"] } },
+      });
+      if (!member) {
+        return NextResponse.redirect(`${baseUrl}/connect/done?error=insufficient_role`);
+      }
+    } else {
+      const membership = await prisma.workspaceMember.findFirst({
+        where: { userId, role: { in: ["OWNER", "ADMIN"] } },
+        orderBy: { workspace: { createdAt: "asc" } },
+        select: { workspaceId: true },
+      });
+      if (!membership) return NextResponse.redirect(`${baseUrl}/connect/done?error=insufficient_role`);
+      resolvedWorkspaceId = membership.workspaceId;
+    }
+
+    // ── PASO 5: Guardar en la tabla Integration ──
+    const { encryptToken } = await import("@/lib/encryption");
+    const encryptedToken = encryptToken(longLivedToken);
+
+    const integration = await prisma.integration.upsert({
+      where: {
+        workspaceId_provider_userId: {
+          workspaceId: resolvedWorkspaceId,
+          provider: "instagram",
+          userId: "workspace",
+        },
+      },
+      update: {
+        connected: true,
+        connectedAt: new Date(),
+        // El token se guarda cifrado DENTRO de credentials (el modelo no tiene campo accessToken separado)
+        credentials: {
+          accessToken: encryptedToken, // cifrado AES-256
+          instagramUserId,
+          username: profile.username ?? null,
+          name: profile.name ?? null,
+          profile: {
+            username: profile.username,
+            name: profile.name,
+            picture: profile.picture,
+          },
+          expiresAt: expiresAt?.toISOString() ?? null,
+        },
+      },
+      create: {
+        workspaceId: resolvedWorkspaceId,
+        provider: "instagram",
+        userId: "workspace",
+        connected: true,
+        connectedAt: new Date(),
+        credentials: {
+          accessToken: encryptedToken, // cifrado AES-256
+          instagramUserId,
+          username: profile.username ?? null,
+          name: profile.name ?? null,
+          profile: {
+            username: profile.username,
+            name: profile.name,
+            picture: profile.picture,
+          },
+          expiresAt: expiresAt?.toISOString() ?? null,
+        },
+      },
+    });
+
+    logger.info("[IG DIRECT CALLBACK] ✅ Integration saved", {
+      workspaceId: resolvedWorkspaceId,
+      instagramUserId,
+      username: profile.username,
+      integrationId: integration.id,
+    });
+
+    // ── PASO 6: Sembrar el cache de assets para resolución de webhooks ──
+    try {
+      const { cacheAssetWorkspace } = await import("@/lib/inbox-store");
+      await cacheAssetWorkspace(instagramUserId, "ig_account", resolvedWorkspaceId);
+      logger.info("[IG DIRECT CALLBACK] Asset cache seeded", { instagramUserId });
+    } catch (cacheErr) {
+      logger.warn("[IG DIRECT CALLBACK] Asset cache seed failed (non-fatal):", cacheErr);
+    }
+
+    // ── PASO 7: AuditLog ──
+    await prisma.auditLog.create({
+      data: {
+        workspaceId: resolvedWorkspaceId,
+        userId,
+        action: "integration.connected",
+        resourceType: "Integration",
+        resourceId: integration.id,
+        details: { module: "instagram", username: profile.username, instagramUserId },
+      },
+    }).catch((err) => logger.warn("[IG DIRECT CALLBACK] AuditLog failed:", err));
+
+    return NextResponse.redirect(`${baseUrl}/connect/done?module=instagram`);
+
+  } catch (err) {
+    logger.error("[IG DIRECT CALLBACK] Unhandled error:", err);
+    return NextResponse.redirect(`${baseUrl}/connect/done?module=instagram&error=server_error`);
   }
 }
