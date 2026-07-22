@@ -131,6 +131,7 @@ const ALL_CHANNELS: ChannelDef[] = [
     description: "Automatiza conversaciones, responde mensajes y comentarios.",
     Icon: InstagramIcon, iconBg: "linear-gradient(135deg,#833AB4,#FD1D1D,#F77737)",
     badges: [{ label: "POSTS", color: "#bc5fb2" }, { label: "DMS", color: "#bc5fb2" }],
+    managePage: "/dashboard/integrations/instagram",
   },
   // WhatsApp
   {

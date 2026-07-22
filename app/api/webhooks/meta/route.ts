@@ -184,7 +184,14 @@ export async function GET(req: NextRequest) {
     return new Response(challenge, { status: 200, headers: { "Content-Type": "text/plain" } });
   }
 
-  logger.warn("[WEBHOOK] ❌ Verification failed — token mismatch");
+  // Log the mismatch so we can diagnose from Vercel logs
+  logger.warn("[WEBHOOK] ❌ Verification failed — token mismatch", {
+    mode,
+    receivedToken: token ? `"${token}" (length=${token.length})` : "null",
+    configuredToken: VERIFY_TOKEN ? `length=${VERIFY_TOKEN.length}, starts="${VERIFY_TOKEN.substring(0, 4)}..."` : "null",
+    match: token === VERIFY_TOKEN,
+    hint: "El token enviado por Meta Developers no coincide con META_WEBHOOK_VERIFY_TOKEN en Vercel",
+  });
   return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 }
 
