@@ -1,4 +1,4 @@
-import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, MessageCircle, MessageSquare, Bookmark, CheckCircle2, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Heart, Share2 } from "lucide-react";
+import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, MessageCircle, MessageSquare, Bookmark, CheckCircle2, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Heart, Share2, Check, CheckCheck } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Message, PostData, Conversation, ConnectedPage } from "./types";
 import { useHeaderStore } from "@/lib/header-store";
@@ -868,24 +868,26 @@ export function ChatView({
                         </span>
                       ) : msg.status === "sending" ? (
                         /* Sending: single grey tick with opacity pulse */
-                        <span style={{ fontSize: 9, color: "var(--text-muted)", opacity: 0.6 }}>
-                          {"âœ“"}
+                        <span style={{ display: "flex", alignItems: "center", color: "var(--text-muted)", opacity: 0.6 }}>
+                          <Check size={12} strokeWidth={3} />
                         </span>
                       ) : msg.readAt ? (
                         /* Read: double cyan/blue tick + "Visto" */
                         <span style={{ fontSize: 9, color: "var(--cyan)", fontWeight: 500, display: "flex", alignItems: "center", gap: 2 }}>
-                          <span style={{ letterSpacing: "-2px" }}>{"âœ“âœ“"}</span>
-                          <span style={{ letterSpacing: 0 }}>Visto</span>
+                          <CheckCheck size={14} strokeWidth={2.5} />
+                          <span>Visto</span>
                         </span>
                       ) : msg.deliveredAt ? (
                         /* Delivered: double grey tick */
                         <span style={{ fontSize: 9, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
-                          <span style={{ letterSpacing: "-2px" }}>{"âœ“âœ“"}</span>
-                          <span style={{ letterSpacing: 0 }}>Entregado</span>
+                          <CheckCheck size={14} strokeWidth={2.5} />
+                          <span>Entregado</span>
                         </span>
                       ) : (
                         /* Sent (persisted, awaiting delivery confirmation): single grey tick */
-                        <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{"âœ“"}</span>
+                        <span style={{ display: "flex", alignItems: "center", color: "var(--text-muted)" }}>
+                          <Check size={12} strokeWidth={3} />
+                        </span>
                       )}
                       <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{formatTime(msg.timestamp)}</span>
                     </div>
