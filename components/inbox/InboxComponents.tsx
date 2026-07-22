@@ -303,13 +303,44 @@ export function PageSelector({
 }
 
 export function PostView({ conversation, onBack }: { conversation: Conversation; onBack?: () => void }) {
-    const postData = (conversation as any)?._postData as PostData | null;
+    const [postData, setPostData] = useState<PostData | null>((conversation as any)?._postData ?? null);
+    const [loadingPost, setLoadingPost] = useState(false);
+    const [loadError, setLoadError] = useState(false);
     const pc = getPlatformConfig(conversation.platform);
+
+    // Auto-cargar el post si no viene incluido (comentario llegado por webhook)
+    useEffect(() => {
+      if (postData) return; // ya tenemos datos
+      const pageId = (conversation as any)?._pageId || (conversation as any)?.pageId || "";
+      // El externalId de conversaciones de comentario es el post_id
+      const rawExternalId: string = (conversation as any)?.externalId || conversation.id || "";
+      // Quitar prefijos internos: fbc_ / igc_
+      const postId = rawExternalId.replace(/^fbc_|^igc_/, "");
+      if (!postId || !pageId) return;
+      setLoadingPost(true);
+      setLoadError(false);
+      fetch(`/api/inbox/post?postId=${encodeURIComponent(postId)}&pageId=${encodeURIComponent(pageId)}`)
+        .then(r => r.ok ? r.json() : Promise.reject(new Error(`HTTP ${r.status}`)))
+        .then(data => { if (data?.postData) setPostData(data.postData); else setLoadError(true); })
+        .catch(() => setLoadError(true))
+        .finally(() => setLoadingPost(false));
+    }, [conversation.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    if (loadingPost) {
+      return (
+        <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
+          <div style={{ width: 28, height: 28, border: "3px solid var(--hairline)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
+          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Cargando publicación...</p>
+          <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+        </div>
+      );
+    }
+
     if (!postData) {
     return (
       <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
         <MessageSquare style={{ width: 32, height: 32, color: "var(--text-muted)" }} />
-        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Sin datos de publicación</p>
+        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{loadError ? "No se pudo cargar la publicación" : "Sin datos de publicación"}</p>
       </div>
     );
     }

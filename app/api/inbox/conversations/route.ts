@@ -81,6 +81,8 @@ export async function GET(request: NextRequest) {
         tags: c.tags,
         customFields: c.contact?.customFields || null,
         channelSource: isWa ? "whatsapp" : c.platform.startsWith("instagram") ? "instagram_app" : "facebook_app",
+        // externalId: PSID para DMs, post_id para comentarios — lo usa PostView para cargar el post on-demand
+        externalId: c.externalId || null,
       };
     });
 

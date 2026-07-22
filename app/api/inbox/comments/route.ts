@@ -33,9 +33,31 @@ export async function GET(request: NextRequest) {
   if (fbToken) {
     let fbPages: Array<{ id: string; name: string; access_token?: string }> = [];
     try {
-      const r = await metaFetch(metaUrl("me/accounts", { fields: "id,name,access_token", limit: "100" }), fbToken, { cache: "no-store" });
+      const r = await metaFetch(metaUrl("me/accounts", { fields: "id,name,access_token", limit: "200" }), fbToken, { cache: "no-store" });
       fbPages = (await r.json())?.data ?? [];
-    } catch (err) { logger.warn("[INBOX-COMMENTS] FB pages failed", { err }); }
+    } catch (err) { logger.warn("[INBOX-COMMENTS] FB pages (me/accounts) failed", { err }); }
+
+    // Páginas gestionadas vía Business Manager Portfolio (no aparecen en me/accounts)
+    try {
+      const bizRes = await metaFetch(metaUrl("me/businesses", { fields: "id,name", limit: "50" }), fbToken, { cache: "no-store" });
+      if (bizRes.ok) {
+        const bizData = await bizRes.json();
+        const pageIds = new Set(fbPages.map((p) => p.id));
+        for (const biz of (bizData.data ?? [])) {
+          const pagesRes = await metaFetch(
+            metaUrl(`${biz.id}/owned_pages`, { fields: "id,name,access_token", limit: "200" }),
+            fbToken,
+            { cache: "no-store" }
+          );
+          if (pagesRes.ok) {
+            const pagesData = await pagesRes.json();
+            for (const p of (pagesData.data ?? [])) {
+              if (!pageIds.has(p.id)) { fbPages.push(p); pageIds.add(p.id); }
+            }
+          }
+        }
+      }
+    } catch (err) { logger.warn("[INBOX-COMMENTS] Business portfolio pages failed", { err }); }
 
     for (const page of fbPages) {
       const pageToken = page.access_token;

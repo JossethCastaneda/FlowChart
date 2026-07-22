@@ -42,6 +42,7 @@ export function useInboxData() {
       pageId: c.pageId, pageName: c.pageName || null,
       createdAt: c.createdAt || null,
       _pageId: c.pageId, _pageName: c.pageName, _postData: c._postData || null,
+      externalId: c.externalId || null,
     }));
   }, []);
 
