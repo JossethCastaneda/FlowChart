@@ -1,15 +1,19 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { getMetaAccessToken, metaFetch, metaUrl } from "@/lib/server-auth";
+import { metaFetch } from "@/lib/server-auth";
+import { decryptToken } from "@/lib/encryption";
+import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
+
+const META_V = process.env.META_API_VERSION || "v25.0";
 
 /**
  * GET /api/inbox/post?postId=<post_id>&pageId=<page_id>
  *
  * Carga un post de Facebook con sus comentarios on-demand.
- * Usado cuando un hilo de comentario llega por webhook (sin _postData)
- * y el usuario lo abre en el inbox.
+ * Usado cuando un hilo de comentario llega por webhook (sin _postData).
+ * Resuelve el page token desde la DB (mismo patron que /api/inbox/reply).
  */
 export async function GET(request: NextRequest) {
   const jwt = await getToken({ req: request });
@@ -26,74 +30,61 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "postId y pageId son requeridos" }, { status: 400 });
   }
 
-  const fbToken = await getMetaAccessToken(request, "inbox").catch(() => null);
-  if (!fbToken) {
-    return NextResponse.json({ error: "No hay token de Meta conectado" }, { status: 401 });
+  // ── Resolver pageToken desde la DB (igual que reply/route.ts) ──
+  // Nunca confiamos en tokens del cliente ni hacemos chain de Graph API.
+  let pageToken: string | null = null;
+
+  const PROVIDERS_PRIORITY = ["meta_community", "meta"] as const;
+  for (const prov of PROVIDERS_PRIORITY) {
+    if (pageToken) break;
+    const integration = await prisma.integration.findFirst({
+      where: { workspaceId, provider: prov, connected: true },
+    });
+    if (!integration?.credentials) continue;
+    const creds = integration.credentials as Record<string, unknown>;
+
+    // 1. Page-specific token desde pages[] (formato del connect callback)
+    const pages = creds.pages as Array<{ id: string; accessToken?: string }> | undefined;
+    const matchedPage = pages?.find((p) => p.id === pageId);
+    if (matchedPage?.accessToken) {
+      try { pageToken = decryptToken(matchedPage.accessToken); } catch { pageToken = null; }
+      if (pageToken) break;
+    }
+
+    // 2. Fallback: user access token
+    const userToken = creds.accessToken as string | undefined;
+    if (userToken) {
+      try { pageToken = decryptToken(userToken); } catch { pageToken = null; }
+    }
+  }
+
+  if (!pageToken) {
+    logger.warn("[INBOX-POST] No page token found", { workspaceId, pageId });
+    return NextResponse.json(
+      { error: "No se encontro token para esta pagina. Reconecta tu cuenta en Integraciones." },
+      { status: 401 }
+    );
   }
 
   try {
-    // Intentar obtener page access token especifico (necesario para paginas en portfolio)
-    let pageToken: string | null = null;
-    try {
-      const accountsRes = await metaFetch(
-        metaUrl("me/accounts", { fields: "id,access_token", limit: "200" }),
-        fbToken,
-        { cache: "no-store" }
-      );
-      if (accountsRes.ok) {
-        const accounts = await accountsRes.json();
-        const match = (accounts.data ?? []).find((p: { id: string; access_token?: string }) => p.id === pageId);
-        if (match?.access_token) pageToken = match.access_token;
-      }
-    } catch { /* silencioso */ }
-
-    // Si no encontramos en me/accounts, buscar via Business Manager portfolio
-    if (!pageToken) {
-      try {
-        const bizRes = await metaFetch(
-          metaUrl("me/businesses", { fields: "id", limit: "50" }),
-          fbToken,
-          { cache: "no-store" }
-        );
-        if (bizRes.ok) {
-          const bizData = await bizRes.json();
-          for (const biz of (bizData.data ?? [])) {
-            const pagesRes = await metaFetch(
-              metaUrl(`${biz.id}/owned_pages`, { fields: "id,access_token", limit: "200" }),
-              fbToken,
-              { cache: "no-store" }
-            );
-            if (pagesRes.ok) {
-              const pagesData = await pagesRes.json();
-              const match = (pagesData.data ?? []).find((p: { id: string; access_token?: string }) => p.id === pageId);
-              if (match?.access_token) { pageToken = match.access_token; break; }
-            }
-          }
-        }
-      } catch { /* silencioso */ }
-    }
-
-    const tokenToUse = pageToken || fbToken;
-
-    const res = await metaFetch(
-      metaUrl(postId, {
-        fields:
-          "id,message,created_time,permalink_url,full_picture,shares,likes.summary(true)," +
-          "comments.summary(true).limit(25){id,message,from{id,name},created_time,like_count}",
-      }),
-      tokenToUse,
+    const res = await fetch(
+      `https://graph.facebook.com/${META_V}/${encodeURIComponent(postId)}?fields=id,message,created_time,permalink_url,full_picture,shares,likes.summary(true),comments.summary(true).limit(25){id,message,from{id,name},created_time,like_count}&access_token=${pageToken}`,
       { cache: "no-store" }
     );
 
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
-      logger.warn("[INBOX-POST] Graph API error", { postId, status: res.status, err: errData });
+      logger.warn("[INBOX-POST] Graph API error", { postId, pageId, status: res.status, err: errData });
       return NextResponse.json({ error: "No se pudo cargar el post" }, { status: 502 });
     }
 
     const post = await res.json();
-    const allComments = (post.comments?.data ?? []);
-    const userComments = allComments.filter((c: { from?: { id: string } }) => c.from?.id !== pageId);
+    const allComments = (post.comments?.data ?? []) as Array<{
+      id: string; message?: string;
+      from?: { id?: string; name?: string };
+      created_time: string; like_count?: number;
+    }>;
+    const userComments = allComments.filter((c) => c.from?.id !== pageId);
 
     const postData = {
       caption: post.message || "",
@@ -103,16 +94,14 @@ export async function GET(request: NextRequest) {
       likeCount: post.likes?.summary?.total_count || 0,
       shareCount: post.shares?.count || 0,
       commentsCount: post.comments?.summary?.total_count || userComments.length,
-      comments: userComments.slice(0, 25).map((c: {
-        id: string; message?: string;
-        from?: { id?: string; name?: string };
-        created_time: string; like_count?: number
-      }) => ({
+      comments: userComments.slice(0, 25).map((c) => ({
         id: c.id,
         text: c.message || "",
         username: c.from?.name || "Usuario",
         userId: c.from?.id || null,
-        avatar: c.from?.id ? `/api/inbox/avatar?userId=${c.from.id}&pageId=${pageId}` : null,
+        avatar: c.from?.id
+          ? `https://graph.facebook.com/${META_V}/${c.from.id}/picture?type=square&width=64&height=64&access_token=${pageToken}`
+          : null,
         timestamp: c.created_time,
         likes: c.like_count || 0,
       })),

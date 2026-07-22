@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Message, PostComment, PostData, Conversation, ConnectedPage, Platform, ChannelFilter, QueueFilter } from "./types";
 import { useHeaderStore } from "@/lib/header-store";
-import { relativeTime, formatTime, formatDate, getPlatformConfig, getInitials } from "./utils";
+import { relativeTime, formatTime, formatDate, getPlatformConfig, getInitials, resolveContactAvatar } from "./utils";
 import { SAVED_REPLIES } from "./utils";
 import { TEAM_MEMBERS } from "./utils";
 import { PlatformIcon } from "./InboxLayout";
@@ -592,7 +592,7 @@ export function ChatView({
             )}
             
             <div className="flex items-center gap-2 md:gap-3">
-              <Avatar src={conversation.contactAvatar} name={conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")} size={36} color={pc.color} />
+              <Avatar src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} name={conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")} size={36} color={pc.color} />
               <span className="text-[var(--foreground)] font-semibold text-[14px] md:text-[16px]">
                 {conversation.contactName && /^\d+$/.test(conversation.contactName) ? "Usuario Anonimizado" : (conversation.contactName || "Usuario")}
               </span>
@@ -653,8 +653,8 @@ export function ChatView({
               >
                 {/* Incoming avatar */}
                 {msg.incoming && (
-                  <Avatar 
-                    src={conversation.contactAvatar} 
+                  <Avatar
+                    src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} 
                     name={conversation.contactName || "Usuario"} 
                     size={28} 
                     color={pc.color} 
@@ -1094,7 +1094,7 @@ export function ContactProfile({
 
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
           <div style={{ margin: "0 auto 10px", position: "relative" }}>
-            <Avatar src={conversation.contactAvatar} name={displayName} size={60} color={pc.color} />
+            <Avatar src={resolveContactAvatar(conversation.contactAvatar, conversation.contactId, (conversation as any)?._pageId, conversation.platform)} name={displayName} size={60} color={pc.color} />
             <div style={{ position: "absolute", bottom: 0, right: 0, background: "var(--surface)", borderRadius: "50%", padding: 2, border: "1px solid var(--hairline)" }}>
               <PlatformIcon platform={conversation.platform} size={12} />
             </div>

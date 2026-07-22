@@ -57,3 +57,27 @@ export const SAVED_REPLIES = [
       "Gracias por tu compra. ¡Esperamos verte pronto!",
     ];
 export const TEAM_MEMBERS = ["Sin asignar", "Ana", "Luis", "Martha", "Diego"];
+
+/**
+ * Resuelve el URL del avatar de un contacto de Meta.
+ * Si ya existe un avatar guardado, lo devuelve directamente.
+ * Si no, y el contactId es numérico (PSID de Facebook), usa el proxy
+ * /api/inbox/avatar para obtener la foto de perfil en tiempo real.
+ */
+export function resolveContactAvatar(
+  contactAvatar: string | null | undefined,
+  contactId: string | null | undefined,
+  pageId?: string | null,
+  platform?: Platform,
+): string | null {
+  if (contactAvatar) return contactAvatar;
+  // Solo para plataformas de Meta y PSIDs numéricos (no WhatsApp ni post_ids)
+  if (!contactId) return null;
+  const isNumericId = /^\d+$/.test(contactId);
+  const isMeta = !platform || platform === "fb_messenger" || platform === "fb_comment" || platform === "ig_dm" || platform === "ig_comment" || platform === "instagram_comment" || platform === "instagram_dm";
+  if (!isNumericId || !isMeta) return null;
+  const params = new URLSearchParams({ userId: contactId });
+  if (pageId) params.set("pageId", pageId);
+  return `/api/inbox/avatar?${params.toString()}`;
+}
+
