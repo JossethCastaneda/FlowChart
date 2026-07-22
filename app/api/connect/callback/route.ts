@@ -683,27 +683,54 @@ async function handleInstagramDirectCallback({
     // ── PASO 6b: Suscribir webhooks de Instagram ──────────────────────────────
     // POST /me/subscribed_apps es REQUERIDO para recibir mensajes/comentarios vía webhook.
     // Sin esta llamada, Instagram no enviará nada al endpoint aunque esté configurado en Meta Developers.
+    // IMPORTANTE: subscribed_fields debe ir en el BODY (form-encoded), no como query param.
     // Ref: https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login#subscribe-to-webhooks
     try {
-      const subscribeUrl = new URL("https://graph.instagram.com/me/subscribed_apps");
-      subscribeUrl.searchParams.set("access_token", longLivedToken);
-      subscribeUrl.searchParams.set("subscribed_fields", [
+      const subscribedFields = [
         "messages",
         "messaging_postbacks",
         "comments",
         "mentions",
         "story_insights",
-      ].join(","));
+      ].join(",");
 
-      const subRes = await fetch(subscribeUrl.toString(), { method: "POST" });
-      const subData = await subRes.json();
+      // Intentamos primero con graph.instagram.com (Instagram Platform API)
+      const subBody = new URLSearchParams({
+        access_token: longLivedToken,
+        subscribed_fields: subscribedFields,
+      });
+
+      let subRes = await fetch("https://graph.instagram.com/me/subscribed_apps", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: subBody.toString(),
+      });
+      let subData = await subRes.json();
+
+      // Fallback: graph.facebook.com (algunas configuraciones de app lo requieren)
+      if (!subRes.ok || !subData.success) {
+        logger.warn("[IG DIRECT CALLBACK] graph.instagram.com subscribed_apps failed, trying graph.facebook.com", {
+          instagramUserId, error: subData,
+        });
+        const fbSubBody = new URLSearchParams({
+          access_token: longLivedToken,
+          subscribed_fields: subscribedFields,
+        });
+        subRes = await fetch(`https://graph.facebook.com/${env.META_API_VERSION}/me/subscribed_apps`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: fbSubBody.toString(),
+        });
+        subData = await subRes.json();
+      }
 
       if (subRes.ok && subData.success) {
-        logger.info("[IG DIRECT CALLBACK] ✅ Webhook subscription activated", { instagramUserId });
+        logger.info("[IG DIRECT CALLBACK] ✅ Webhook subscription activated", { instagramUserId, fields: subscribedFields });
       } else {
         logger.warn("[IG DIRECT CALLBACK] ⚠️ Webhook subscription failed (non-fatal)", {
           instagramUserId,
           error: subData,
+          hint: "Verifica que el webhook esté configurado en Meta Developers para App ID " + igAppId,
         });
       }
     } catch (subErr) {
