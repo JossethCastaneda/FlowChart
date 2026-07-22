@@ -1,7 +1,6 @@
 ﻿import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 import { getActiveWorkspaceId } from "@/lib/active-workspace";
-import { metaFetch } from "@/lib/server-auth";
 import { decryptToken } from "@/lib/encryption";
 import prisma from "@/lib/prisma";
 import { logger } from "@/lib/logger";
@@ -99,8 +98,10 @@ export async function GET(request: NextRequest) {
         text: c.message || "",
         username: c.from?.name || "Usuario",
         userId: c.from?.id || null,
+        // Avatar via proxy server-side — NUNCA embeber el pageToken en la URL
+        // devuelta al cliente (mismo patrón que /api/inbox/comments).
         avatar: c.from?.id
-          ? `https://graph.facebook.com/${META_V}/${c.from.id}/picture?type=square&width=64&height=64&access_token=${pageToken}`
+          ? `/api/inbox/avatar?userId=${encodeURIComponent(c.from.id)}&pageId=${encodeURIComponent(pageId)}`
           : null,
         timestamp: c.created_time,
         likes: c.like_count || 0,
