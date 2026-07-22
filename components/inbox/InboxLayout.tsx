@@ -155,6 +155,7 @@ function ConversationRow({ conv, isActive, onClick }: { conv: Conversation; isAc
 // ═══════════════════════════════════════════════════════════════
 function ConnectDropdown({
   onConnectMeta,
+  onConnectInstagram,
   onConnectWhatsApp,
   buttonStyle,
   buttonText = "Conectar cuenta",
@@ -162,6 +163,7 @@ function ConnectDropdown({
   showMetaIcon = false,
 }: {
   onConnectMeta: () => void;
+  onConnectInstagram: () => void;
   onConnectWhatsApp: () => void;
   buttonStyle?: React.CSSProperties;
   buttonText?: string;
@@ -221,7 +223,7 @@ function ConnectDropdown({
             position: "absolute",
             top: "calc(100% + 6px)",
             right: 0,
-            width: 250,
+            width: 260,
             background: "var(--panel-bg)",
             backdropFilter: "blur(12px)",
             border: "1px solid var(--glass-border)",
@@ -236,58 +238,40 @@ function ConnectDropdown({
           <div style={{ padding: "6px 14px 4px", fontSize: 10, fontWeight: 700, textTransform: "uppercase", color: "var(--text-muted)", letterSpacing: "0.05em" }}>
             Selecciona plataforma
           </div>
-          
+          {/* Facebook: Messenger DMs + FB Comments */}
           <button
-            onClick={() => {
-              onConnectMeta();
-              setIsOpen(false);
-            }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 14px",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--foreground)",
-              fontFamily: "inherit",
-              fontSize: 13,
-              textAlign: "left",
-              transition: "background 0.2s",
-            }}
+            onClick={() => { onConnectMeta(); setIsOpen(false); }}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--foreground)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
             onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
-            <div style={{ display: "flex", gap: 3, alignItems: "center" }}>
-              <FacebookIcon size={18} />
-              <InstagramIcon size={18} />
-            </div>
+            <FacebookIcon size={20} />
             <div style={{ display: "flex", flexDirection: "column" }}>
-              <span style={{ fontWeight: 600 }}>Meta Suite</span>
-              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Facebook & Instagram DMs</span>
+              <span style={{ fontWeight: 600 }}>Facebook</span>
+              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>Messenger DMs + Comentarios</span>
             </div>
           </button>
 
+          {/* Instagram: IG DMs + IG Comments (publisher_instagram) */}
           <button
-            onClick={() => {
-              onConnectWhatsApp();
-              setIsOpen(false);
-            }}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              padding: "10px 14px",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-              color: "var(--foreground)",
-              fontFamily: "inherit",
-              fontSize: 13,
-              textAlign: "left",
-              transition: "background 0.2s",
-            }}
+            onClick={() => { onConnectInstagram(); setIsOpen(false); }}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--foreground)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <InstagramIcon size={20} />
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <span style={{ fontWeight: 600 }}>Instagram</span>
+              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>IG DMs + Comentarios (múltiples cuentas)</span>
+            </div>
+          </button>
+
+          <div style={{ height: 1, background: "var(--hairline)", margin: "4px 14px" }} />
+
+          {/* WhatsApp Business */}
+          <button
+            onClick={() => { onConnectWhatsApp(); setIsOpen(false); }}
+            style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "transparent", border: "none", cursor: "pointer", color: "var(--foreground)", fontFamily: "inherit", fontSize: 13, textAlign: "left", transition: "background 0.2s", width: "100%" }}
             onMouseEnter={(e) => (e.currentTarget.style.background = "var(--surface-hover)")}
             onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
           >
@@ -303,14 +287,17 @@ function ConnectDropdown({
   );
 }
 
+
 // ═══════════════════════════════════════════════════════════════
 function ConnectedBanner({
   connectedPages,
   onDisconnect,
   disconnecting,
   onConnectMeta,
+  onConnectInstagram,
   onConnectWhatsApp,
   isMetaConnected,
+  isIgConnected,
   isWaConnected,
   userProfile,
   waNumber,
@@ -319,8 +306,10 @@ function ConnectedBanner({
   onDisconnect: () => void;
   disconnecting: boolean;
   onConnectMeta: () => void;
+  onConnectInstagram: () => void;
   onConnectWhatsApp: () => void;
   isMetaConnected: boolean;
+  isIgConnected: boolean;
   isWaConnected: boolean;
   userProfile?: { id: string; name: string | null; picture: string | null } | null;
   waNumber?: string | null;
@@ -339,7 +328,12 @@ function ConnectedBanner({
           <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
             {isMetaConnected ? (
               <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.25)", color: "#3b82f6", padding: "3px 10px", borderRadius: 12, fontWeight: 600 }}>
-                <FacebookIcon size={12} /> Meta Conectado
+                <FacebookIcon size={12} /> Facebook Conectado
+              </span>
+            ) : null}
+            {isIgConnected ? (
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11, background: "rgba(225,48,108,0.12)", border: "1px solid rgba(225,48,108,0.3)", color: "#e1306c", padding: "3px 10px", borderRadius: 12, fontWeight: 600 }}>
+                <InstagramIcon size={12} /> Instagram Conectado
               </span>
             ) : null}
             {isWaConnected ? (
@@ -347,7 +341,7 @@ function ConnectedBanner({
                 <WhatsAppIcon size={12} /> WhatsApp Conectado {waNumber ? `(${waNumber})` : ""}
               </span>
             ) : null}
-            {!isMetaConnected && !isWaConnected ? (
+            {!isMetaConnected && !isIgConnected && !isWaConnected ? (
               <span style={{ fontSize: 13, color: "var(--text-muted)" }}>
                 Ninguna cuenta conectada
               </span>
@@ -366,10 +360,11 @@ function ConnectedBanner({
           </div>
         )}
         
-        {(isMetaConnected || isWaConnected) ? (
+        {(isMetaConnected || isIgConnected || isWaConnected) ? (
           <div style={{ display: "flex", gap: 8 }}>
             <ConnectDropdown
               onConnectMeta={onConnectMeta}
+              onConnectInstagram={onConnectInstagram}
               onConnectWhatsApp={onConnectWhatsApp}
               buttonText="Conectar más"
               buttonStyle={{
@@ -399,13 +394,14 @@ function ConnectedBanner({
               onClick={onDisconnect}
               disabled={disconnecting}
               >
-                {disconnecting ? "Cerrando sesión Meta..." : "Cerrar sesión Meta"}
+                {disconnecting ? "Cerrando sesión..." : "Cerrar sesión Meta"}
               </button>
             )}
           </div>
         ) : (
           <ConnectDropdown
             onConnectMeta={onConnectMeta}
+            onConnectInstagram={onConnectInstagram}
             onConnectWhatsApp={onConnectWhatsApp}
             buttonText="Conectar cuenta"
             buttonStyle={{
@@ -425,10 +421,12 @@ function ConnectedBanner({
 function EmptyChat({
   hasAnyConnection,
   onConnectMeta,
+  onConnectInstagram,
   onConnectWhatsApp,
 }: {
   hasAnyConnection: boolean;
   onConnectMeta: () => void;
+  onConnectInstagram: () => void;
   onConnectWhatsApp: () => void;
 }) {
   return (
@@ -453,6 +451,7 @@ function EmptyChat({
       {!hasAnyConnection && (
         <ConnectDropdown
           onConnectMeta={onConnectMeta}
+          onConnectInstagram={onConnectInstagram}
           onConnectWhatsApp={onConnectWhatsApp}
           buttonText="Conectar cuenta"
           showPlusIcon={true}
@@ -532,6 +531,8 @@ export function InboxLayout() {
         else if (data.modules.community?.userProfile) setUserProfile(data.modules.community.userProfile);
         const pages: ConnectedPage[] = [];
         const seen = new Set<string>();
+
+        // Facebook Pages (community module)
         const communityMod = data.modules.community;
         if (communityMod && communityMod.connected) {
           (communityMod.pages || []).forEach((p: any) => {
@@ -547,6 +548,26 @@ export function InboxLayout() {
             }
           });
         }
+
+        // Instagram accounts (publisher_instagram module — multiple IG accounts)
+        const igMod = data.modules.publisher_instagram;
+        if (igMod && igMod.connected) {
+          (igMod.pages || []).forEach((p: any) => {
+            // Agregar la página FB si no está ya (necesaria para el page token)
+            if (!seen.has(p.id)) {
+              seen.add(p.id);
+              pages.push({ id: p.id, name: p.name || "Página", picture: p.picture || null, platform: "facebook" });
+            }
+            // Agregar la cuenta de IG vinculada
+            const igId: string | null = p.instagramId || p.instagram_business_account?.id || null;
+            const igName: string = p.instagram_business_account?.name || p.instagramUsername || p.name;
+            if (igId && !seen.has(igId)) {
+              seen.add(igId);
+              pages.push({ id: igId, name: igName, picture: p.instagram_business_account?.picture || p.picture || null, platform: "instagram", igId });
+            }
+          });
+        }
+
         setConnectedPages(pages);
       }).catch(() => {});
   }, []);
@@ -570,6 +591,10 @@ export function InboxLayout() {
     setTimeout(() => setConnectToast(null), 5000);
   }, [fetchConnectionStatus, fetchConversations]);
 
+  const handleConnectInstagram = useCallback(() => {
+    openConnectPopup("publisher_instagram", handleConnectSuccess);
+  }, [handleConnectSuccess]);
+
   const hasAnyConnection = Object.values(connectionStatus).some(m => m?.connected);
   const selected = filtered.find(c => c.id === selectedId) || (isDesktop ? filtered[0] : null) || null;
 
@@ -581,8 +606,10 @@ export function InboxLayout() {
         onDisconnect={handleDisconnect} 
         disconnecting={disconnecting} 
         onConnectMeta={() => openConnectPopup("community", handleConnectSuccess)} 
+        onConnectInstagram={handleConnectInstagram}
         onConnectWhatsApp={() => window.location.href = "/dashboard/integrations/whatsapp"} 
         isMetaConnected={connectionStatus["community"]?.connected || false}
+        isIgConnected={connectionStatus["publisher_instagram"]?.connected || false}
         isWaConnected={connectionStatus["whatsapp_business"]?.connected || false}
         userProfile={userProfile}
         waNumber={connectionStatus["whatsapp_business"]?.phoneNumber}
@@ -719,6 +746,7 @@ export function InboxLayout() {
                   <div style={{ marginTop: 10 }}>
                     <ConnectDropdown
                       onConnectMeta={() => openConnectPopup("community", handleConnectSuccess)}
+                      onConnectInstagram={handleConnectInstagram}
                       onConnectWhatsApp={() => window.location.href = "/dashboard/integrations/whatsapp"}
                       buttonText="Conectar cuenta"
                       showPlusIcon={true}
@@ -759,6 +787,7 @@ export function InboxLayout() {
               <EmptyChat
                 hasAnyConnection={hasAnyConnection}
                 onConnectMeta={() => openConnectPopup("community", handleConnectSuccess)}
+                onConnectInstagram={handleConnectInstagram}
                 onConnectWhatsApp={() => window.location.href = "/dashboard/integrations/whatsapp"}
               />
             ) : selected.platform === "fb_comment" || selected.platform === "ig_comment" || selected.platform === "instagram_comment" ? (
