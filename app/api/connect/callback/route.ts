@@ -680,61 +680,115 @@ async function handleInstagramDirectCallback({
       logger.warn("[IG DIRECT CALLBACK] Asset cache seed failed (non-fatal):", cacheErr);
     }
 
-    // ── PASO 6b: Suscribir webhooks de Instagram ──────────────────────────────
-    // POST /me/subscribed_apps es REQUERIDO para recibir mensajes/comentarios vía webhook.
-    // Sin esta llamada, Instagram no enviará nada al endpoint aunque esté configurado en Meta Developers.
-    // IMPORTANTE: subscribed_fields debe ir en el BODY (form-encoded), no como query param.
-    // Ref: https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login#subscribe-to-webhooks
-    try {
+    // ── PASO 6b: Suscribir webhooks de Instagram (automático, con retry) ────────
+    // POST /me/subscribed_apps es REQUERIDO para que Meta envíe eventos al webhook.
+    // Sin esta llamada, Instagram no enviará nada aunque el webhook esté configurado en Meta Developers.
+    // Intentamos múltiples endpoints y actualizamos la DB con el resultado.
+    {
       const subscribedFields = [
         "messages",
         "messaging_postbacks",
         "comments",
         "mentions",
         "story_insights",
+        "message_reactions",
+        "messaging_seen",
+        "messaging_referral",
+        "message_edit",
       ].join(",");
 
-      // Intentamos primero con graph.instagram.com (Instagram Platform API)
-      const subBody = new URLSearchParams({
-        access_token: longLivedToken,
-        subscribed_fields: subscribedFields,
-      });
+      const endpointsToTry = [
+        // 1. Instagram Platform API (recomendado para Business Login)
+        `https://graph.instagram.com/me/subscribed_apps`,
+        // 2. Instagram Platform con user ID explícito
+        `https://graph.instagram.com/${instagramUserId}/subscribed_apps`,
+        // 3. Facebook Graph API con versión
+        `https://graph.facebook.com/${env.META_API_VERSION}/me/subscribed_apps`,
+        // 4. Facebook Graph API sin versión (legacy)
+        `https://graph.facebook.com/me/subscribed_apps`,
+      ];
 
-      let subRes = await fetch("https://graph.instagram.com/me/subscribed_apps", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: subBody.toString(),
-      });
-      let subData = await subRes.json();
+      let subscriptionOk = false;
+      let lastError: unknown = null;
+      let successEndpoint: string | null = null;
 
-      // Fallback: graph.facebook.com (algunas configuraciones de app lo requieren)
-      if (!subRes.ok || !subData.success) {
-        logger.warn("[IG DIRECT CALLBACK] graph.instagram.com subscribed_apps failed, trying graph.facebook.com", {
-          instagramUserId, error: subData,
-        });
-        const fbSubBody = new URLSearchParams({
-          access_token: longLivedToken,
-          subscribed_fields: subscribedFields,
-        });
-        subRes = await fetch(`https://graph.facebook.com/${env.META_API_VERSION}/me/subscribed_apps`, {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: fbSubBody.toString(),
-        });
-        subData = await subRes.json();
+      for (const endpoint of endpointsToTry) {
+        try {
+          const subBody = new URLSearchParams({
+            access_token: longLivedToken,
+            subscribed_fields: subscribedFields,
+          });
+          const subRes = await fetch(endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: subBody.toString(),
+          });
+          const subData = await subRes.json();
+
+          if (subRes.ok && subData.success) {
+            subscriptionOk = true;
+            successEndpoint = endpoint;
+            logger.info("[IG DIRECT CALLBACK] ✅ Webhook subscription activated", {
+              instagramUserId,
+              endpoint,
+              fields: subscribedFields,
+            });
+            break;
+          } else {
+            lastError = subData;
+            logger.warn("[IG DIRECT CALLBACK] Subscription endpoint failed, trying next", {
+              instagramUserId,
+              endpoint,
+              error: subData?.error ?? subData,
+            });
+          }
+        } catch (endpointErr) {
+          lastError = endpointErr;
+          logger.warn("[IG DIRECT CALLBACK] Subscription endpoint threw, trying next", {
+            instagramUserId,
+            endpoint,
+            error: String(endpointErr),
+          });
+        }
       }
 
-      if (subRes.ok && subData.success) {
-        logger.info("[IG DIRECT CALLBACK] ✅ Webhook subscription activated", { instagramUserId, fields: subscribedFields });
-      } else {
-        logger.warn("[IG DIRECT CALLBACK] ⚠️ Webhook subscription failed (non-fatal)", {
+      // Actualizar la integración con el resultado de la suscripción (para diagnóstico)
+      try {
+        await prisma.integration.update({
+          where: { id: integration.id },
+          data: {
+            credentials: {
+              accessToken: encryptedToken,
+              instagramUserId,
+              username: profile.username ?? null,
+              name: profile.name ?? null,
+              profile: {
+                username: profile.username,
+                name: profile.name,
+                picture: profile.picture,
+              },
+              expiresAt: expiresAt?.toISOString() ?? null,
+              webhookSubscribedAt: subscriptionOk ? new Date().toISOString() : null,
+              webhookSubscriptionResult: subscriptionOk ? "success" : "failed",
+              webhookSubscribedVia: successEndpoint,
+              webhookSubscribedFields: subscriptionOk ? subscribedFields : null,
+              webhookLastError: subscriptionOk ? null : JSON.stringify(lastError)?.slice(0, 500),
+            },
+          },
+        });
+      } catch (updateErr) {
+        logger.warn("[IG DIRECT CALLBACK] Failed to persist subscription result (non-fatal):", updateErr);
+      }
+
+      if (!subscriptionOk) {
+        logger.error("[IG DIRECT CALLBACK] ❌ ALL webhook subscription endpoints failed", {
           instagramUserId,
-          error: subData,
-          hint: "Verifica que el webhook esté configurado en Meta Developers para App ID " + igAppId,
+          igAppId,
+          lastError,
+          hint: "El token puede no tener permisos para suscribir webhooks, o la app no está configurada en Meta Developers.",
         });
+        // NO abortar — la integración ya se guardó, el usuario puede reactivar desde la UI.
       }
-    } catch (subErr) {
-      logger.warn("[IG DIRECT CALLBACK] Webhook subscription error (non-fatal):", subErr);
     }
 
     // ── PASO 7: AuditLog ──
