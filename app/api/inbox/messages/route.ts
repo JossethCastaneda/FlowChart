@@ -165,8 +165,10 @@ export async function POST(request: NextRequest) {
   if (!workspaceId) return NextResponse.json({ error: "No workspace" }, { status: 400 });
 
   const body = await request.json();
-  const { pageId, recipientId, message, conversationId, platform } = body as {
-    pageId?: string; recipientId?: string; message?: string; conversationId?: string; platform?: string;
+  // pageId/recipientId are intentionally NOT read from the client — they are
+  // always derived from the workspace-verified conversation below (anti-IDOR).
+  const { message, conversationId, platform } = body as {
+    message?: string; conversationId?: string; platform?: string;
   };
   if (!message) return NextResponse.json({ error: "message required" }, { status: 400 });
 

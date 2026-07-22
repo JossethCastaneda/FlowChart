@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useSession } from "next-auth/react";
 import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 import { openConnectPopup } from "@/lib/connect-popup";
 import {
   Search, X, ChevronDown, ChevronUp,
-  CheckCircle2, AlertCircle, Filter, Unplug, Wifi,
+  CheckCircle2, AlertCircle, Filter, Wifi,
   RefreshCw, Plus,
 } from "lucide-react";
 import {
-  Message, Conversation,
+  Conversation,
   ConnectedPage, Platform, ChannelFilter, QueueFilter,
 } from "./types";
-import { relativeTime, getPlatformConfig, getInitials } from "./utils";
+import { relativeTime, getPlatformConfig } from "./utils";
 import { PageSelector, PostView, ChatView, ContactProfile, Avatar } from "./InboxComponents";
 import { MessengerIcon, FacebookIcon, InstagramIcon, WhatsAppIcon } from "@/components/ui/AppIcons";
 import { useInboxData } from "./hooks/useInboxData";
@@ -290,7 +290,6 @@ function ConnectDropdown({
 
 // ═══════════════════════════════════════════════════════════════
 function ConnectedBanner({
-  connectedPages,
   onDisconnect,
   disconnecting,
   onConnectMeta,
@@ -302,7 +301,6 @@ function ConnectedBanner({
   userProfile,
   waNumber,
 }: {
-  connectedPages: ConnectedPage[];
   onDisconnect: () => void;
   disconnecting: boolean;
   onConnectMeta: () => void;
@@ -601,9 +599,8 @@ export function InboxLayout() {
   return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, minHeight: 0, height: "calc(100vh - 200px)" }}>
       {/* CONNECTED BANNER */}
-      <ConnectedBanner 
-        connectedPages={connectedPages} 
-        onDisconnect={handleDisconnect} 
+      <ConnectedBanner
+        onDisconnect={handleDisconnect}
         disconnecting={disconnecting} 
         onConnectMeta={() => openConnectPopup("community", handleConnectSuccess)} 
         onConnectInstagram={handleConnectInstagram}

@@ -47,7 +47,9 @@ export async function POST(req: NextRequest) {
     // ── Validate input ──
     const result = await validateBody(req, ReplySchema);
     if (!result.ok) return result.response;
-    const { conversationId, recipientId, text, pageId } = result.data;
+    // recipientId is validated by the schema but intentionally not used here —
+    // the real recipient is derived from the workspace-verified conversation.
+    const { conversationId, text, pageId } = result.data;
 
     // ── SECURITY: Verify conversationId belongs to this workspace ──
     // This prevents IDOR — a member cannot reply to conversations from other workspaces
