@@ -27,7 +27,7 @@ export interface MetaModuleConfig {
 /** Módulo de conexión Meta → variables de su config_id. */
 export const META_MODULE_CONFIG: Record<string, MetaModuleConfig> = {
   publisher_facebook: { current: "META_CONFIG_PUBLISHERFB", legacy: "FACEBOOK_PUBLISHER_FB_CONFIG_ID", label: "Publisher Facebook" },
-  publisher_instagram: { current: "META_CONFIG_PUBLISHERIG", legacy: "FACEBOOK_PUBLISHER_IG_CONFIG_ID", label: "Publisher Instagram" },
+  publisher_instagram: { current: "META_LOGIN_INSTAGRAM", legacy: "FACEBOOK_PUBLISHER_IG_CONFIG_ID", label: "Publisher Instagram" },
   social: { current: "META_CONFIG_SOCIAL", legacy: "FACEBOOK_SOCIAL_CONFIG_ID", label: "Social Channels" },
   ads: { current: "META_CONFIG_ADS", legacy: "FACEBOOK_ADS_CONFIG_ID", label: "Meta Ads Manager" },
   analytics: { current: "META_CONFIG_ANALYTICS", legacy: "FACEBOOK_ANALYTICS_CONFIG_ID", label: "Analytics Engine" },
