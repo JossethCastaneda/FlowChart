@@ -547,7 +547,7 @@ export function InboxLayout() {
           });
         }
 
-        // Instagram accounts (publisher_instagram module — multiple IG accounts)
+        // Instagram accounts (publisher_instagram module — multiple IG accounts via FB)
         const igMod = data.modules.publisher_instagram;
         if (igMod && igMod.connected) {
           (igMod.pages || []).forEach((p: any) => {
@@ -564,6 +564,23 @@ export function InboxLayout() {
               pages.push({ id: igId, name: igName, picture: p.instagram_business_account?.picture || p.picture || null, platform: "instagram", igId });
             }
           });
+        }
+
+        // Instagram directo (api/integrations/instagram — sin Facebook)
+        const igDirectMod = data.modules.instagram;
+        if (igDirectMod && igDirectMod.connected && igDirectMod.instagramUserId) {
+          const igId: string = igDirectMod.instagramUserId;
+          if (!seen.has(igId)) {
+            seen.add(igId);
+            const profile = igDirectMod.userProfile;
+            pages.push({
+              id: igId,
+              name: profile?.username ? `@${profile.username}` : (profile?.name || "Instagram"),
+              picture: profile?.picture || null,
+              platform: "instagram",
+              igId,
+            });
+          }
         }
 
         setConnectedPages(pages);
@@ -590,7 +607,7 @@ export function InboxLayout() {
   }, [fetchConnectionStatus, fetchConversations]);
 
   const handleConnectInstagram = useCallback(() => {
-    openConnectPopup("publisher_instagram", handleConnectSuccess);
+    openConnectPopup("/api/integrations/instagram/connect", handleConnectSuccess);
   }, [handleConnectSuccess]);
 
   const hasAnyConnection = Object.values(connectionStatus).some(m => m?.connected);

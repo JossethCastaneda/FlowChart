@@ -144,6 +144,29 @@ export async function resolveWorkspaceForMetaAsset(
     });
   }
 
+  // 4b. Fallback: Instagram directo (provider=instagram, sin Facebook)
+  // Busca por instagramUserId en las credenciales del integration directo de IG.
+  if (kind === "ig_account") {
+    try {
+      const igIntegrations = await prisma.integration.findMany({
+        where: { provider: "instagram", connected: true },
+        select: { workspaceId: true, credentials: true },
+      });
+      for (const integ of igIntegrations) {
+        const creds = integ.credentials as any;
+        const igUserId = creds?.instagramUserId?.toString() ?? null;
+        if (igUserId && (igUserId === externalId || igUserId === normalized)) {
+          void cacheAssetWorkspace(externalId, kind, integ.workspaceId);
+          return integ.workspaceId;
+        }
+      }
+    } catch (err) {
+      logger.warn("[INBOX-STORE] Instagram direct integration fallback failed", {
+        error: err instanceof Error ? err.message : String(err),
+      });
+    }
+  }
+
   // Si llegamos aquí, no pudimos resolver el workspace → el mensaje se descartará.
   logger.warn("[INBOX-STORE] resolveWorkspaceForMetaAsset: no workspace found", {
     externalId,

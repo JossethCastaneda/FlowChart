@@ -31,7 +31,7 @@ export async function GET(request: NextRequest) {
 
     const modules: Record<string, { connected: boolean; connectedAt: string | null; pages: any[]; userProfile?: any; tokenExpiresSoon?: boolean; daysUntilExpiry?: number }> = {};
 
-    for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community"]) {
+    for (const mod of ["publisher_facebook", "publisher_instagram", "social", "ads", "analytics", "community", "instagram"]) {
 
       // Modo estricto: cada módulo reporta SOLO su propia Integration
       // (meta_<mod>). Sin fallback al genérico "meta" — mostrar "conectado"
@@ -92,6 +92,25 @@ export async function GET(request: NextRequest) {
         })
       : null;
 
+    // ── Instagram directo status ──────────────────────────────────────────────
+    const igDirectIntegration = await prisma.integration.findUnique({
+      where: {
+        workspaceId_provider_userId: { workspaceId, provider: "instagram", userId: "workspace" },
+      },
+      select: { connected: true, connectedAt: true, credentials: true },
+    });
+    const igCreds = igDirectIntegration?.credentials as Record<string, unknown> | null;
+
+    // Expiry check for direct IG token
+    let igTokenExpiresSoon = false;
+    let igDaysUntilExpiry: number | undefined;
+    if (igCreds?.expiresAt && typeof igCreds.expiresAt === "string") {
+      const igExpiry = new Date(igCreds.expiresAt);
+      const msLeft = igExpiry.getTime() - now.getTime();
+      igDaysUntilExpiry = Math.floor(msLeft / (1000 * 60 * 60 * 24));
+      igTokenExpiresSoon = igDaysUntilExpiry <= 7;
+    }
+
     return NextResponse.json({
       modules: {
         ...modules,
@@ -102,10 +121,20 @@ export async function GET(request: NextRequest) {
           wabaId: waCreds?.wabaId ?? null,
           pages: [],
         },
+        instagram: {
+          connected: igDirectIntegration?.connected ?? false,
+          connectedAt: igDirectIntegration?.connectedAt?.toISOString() || null,
+          userProfile: igCreds?.profile ?? null,
+          username: igCreds?.username ?? null,
+          instagramUserId: igCreds?.instagramUserId ?? null,
+          tokenExpiresSoon: igTokenExpiresSoon,
+          daysUntilExpiry: igDaysUntilExpiry,
+          pages: [],
+        },
       },
       pages: genericPages,
       userProfile: genericProfile,
-      hasAnyConnection: integrations.some((i) => i.connected) || (waIntegration?.connected ?? false),
+      hasAnyConnection: integrations.some((i) => i.connected) || (waIntegration?.connected ?? false) || (igDirectIntegration?.connected ?? false),
       tokenExpiresSoon: genericTokenExpiresSoon,
       daysUntilExpiry: genericDaysUntilExpiry,
     });
