@@ -74,6 +74,43 @@ async function persistMetaDm(
           }
         }
 
+        // Fallback: Instagram Direct Login (provider="instagram") — guarda su token en credentials.accessToken
+        // Usamos graph.instagram.com en vez de graph.facebook.com para este caso
+        if (!pageToken && platform === "instagram_dm") {
+          try {
+            const { decryptToken } = await import("@/lib/encryption");
+            const igDirectInteg = await prisma.integration.findFirst({
+              where: { workspaceId, provider: "instagram", connected: true },
+              select: { credentials: true },
+            });
+            if (igDirectInteg?.credentials) {
+              const creds = igDirectInteg.credentials as Record<string, unknown>;
+              if (creds.accessToken && typeof creds.accessToken === "string") {
+                const decrypted = decryptToken(creds.accessToken);
+                if (decrypted && !decrypted.startsWith("enc:")) {
+                  // Buscar perfil en graph.instagram.com con el token de usuario de IG
+                  const igController = new AbortController();
+                  const igTimeout = setTimeout(() => igController.abort(), 3000);
+                  const igRes = await fetch(
+                    `https://graph.instagram.com/${contactId}?fields=name,profile_pic&access_token=${decrypted}`,
+                    { signal: igController.signal }
+                  );
+                  clearTimeout(igTimeout);
+                  if (igRes.ok) {
+                    const igData = await igRes.json();
+                    contactName = igData.name ?? undefined;
+                    contactAvatar = igData.profile_pic ?? undefined;
+                  }
+                }
+              }
+            }
+          } catch (igErr) {
+            logger.warn("[WEBHOOK] IG Direct profile fetch failed (non-fatal)", {
+              error: igErr instanceof Error ? igErr.message : String(igErr),
+            });
+          }
+        }
+
         if (pageToken) {
           const fields = platform === "instagram_dm" ? "name,profile_pic" : "first_name,last_name,profile_pic";
           const controller = new AbortController();
@@ -195,15 +232,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Missing signature" }, { status: 403 });
     }
 
-    // Verify HMAC with timing-safe comparison
+    // Verify HMAC with timing-safe comparison.
+    // Intentamos con META_APP_SECRET primero; si falla, intentamos con INSTAGRAM_APP_SECRET
+    // porque los webhooks de la app de Instagram Direct Login usan su propio secret.
     const { createHmac, timingSafeEqual } = await import("crypto");
-    const expected = "sha256=" + createHmac("sha256", appSecret).update(rawBody).digest("hex");
-    const sigBuf = Buffer.from(signature);
-    const expBuf = Buffer.from(expected);
-    if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
-      logger.warn("[WEBHOOK] ❌ HMAC mismatch — possible spoofed request");
+
+    const verifyWithSecret = (secret: string): boolean => {
+      const expected = "sha256=" + createHmac("sha256", secret).update(rawBody).digest("hex");
+      const sigBuf = Buffer.from(signature);
+      const expBuf = Buffer.from(expected);
+      return sigBuf.length === expBuf.length && timingSafeEqual(sigBuf, expBuf);
+    };
+
+    const metaValid = verifyWithSecret(appSecret);
+    const igSecret = env.INSTAGRAM_APP_SECRET;
+    const igValid = !metaValid && !!igSecret && verifyWithSecret(igSecret);
+
+    if (!metaValid && !igValid) {
+      logger.warn("[WEBHOOK] ❌ HMAC mismatch — possible spoofed request", {
+        triedMeta: true,
+        triedInstagram: !!igSecret,
+      });
       return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
     }
+
+    logger.info("[WEBHOOK] ✅ Signature valid", { app: metaValid ? "meta" : "instagram" });
 
     const body = JSON.parse(rawBody);
     const object = body.object; // "page", "instagram", "ad_account", "whatsapp_business_account"

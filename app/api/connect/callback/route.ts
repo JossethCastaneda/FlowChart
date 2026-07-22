@@ -680,6 +680,36 @@ async function handleInstagramDirectCallback({
       logger.warn("[IG DIRECT CALLBACK] Asset cache seed failed (non-fatal):", cacheErr);
     }
 
+    // ── PASO 6b: Suscribir webhooks de Instagram ──────────────────────────────
+    // POST /me/subscribed_apps es REQUERIDO para recibir mensajes/comentarios vía webhook.
+    // Sin esta llamada, Instagram no enviará nada al endpoint aunque esté configurado en Meta Developers.
+    // Ref: https://developers.facebook.com/documentation/instagram-platform/instagram-api-with-instagram-login/business-login#subscribe-to-webhooks
+    try {
+      const subscribeUrl = new URL("https://graph.instagram.com/me/subscribed_apps");
+      subscribeUrl.searchParams.set("access_token", longLivedToken);
+      subscribeUrl.searchParams.set("subscribed_fields", [
+        "messages",
+        "messaging_postbacks",
+        "comments",
+        "mentions",
+        "story_insights",
+      ].join(","));
+
+      const subRes = await fetch(subscribeUrl.toString(), { method: "POST" });
+      const subData = await subRes.json();
+
+      if (subRes.ok && subData.success) {
+        logger.info("[IG DIRECT CALLBACK] ✅ Webhook subscription activated", { instagramUserId });
+      } else {
+        logger.warn("[IG DIRECT CALLBACK] ⚠️ Webhook subscription failed (non-fatal)", {
+          instagramUserId,
+          error: subData,
+        });
+      }
+    } catch (subErr) {
+      logger.warn("[IG DIRECT CALLBACK] Webhook subscription error (non-fatal):", subErr);
+    }
+
     // ── PASO 7: AuditLog ──
     await prisma.auditLog.create({
       data: {
