@@ -74,7 +74,7 @@ export async function GET(request: NextRequest) {
         lastMessageAt: c.lastMessageAt || c.updatedAt,
         createdAt: c.createdAt,
         unread: c.unread,
-        priority: c.priority,
+        priority: (c as any).priority ?? null,
         status: c.status,
         assignedTo: c.assignedTo,
         tags: c.tags,

@@ -1,9 +1,8 @@
-import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, ChevronUp, UserPlus, Tag, Clock, MessageCircle, MessageSquare, AtSign, MoreHorizontal, Bookmark, CheckCircle2, Circle, AlertCircle, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Plus, Filter, Heart, Share2 } from "lucide-react";
+﻿import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, MessageCircle, MessageSquare, Bookmark, CheckCircle2, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Heart, Share2 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { Message, PostComment, PostData, Conversation, ConnectedPage, Platform, ChannelFilter, QueueFilter } from "./types";
+import { Message, PostData, Conversation, ConnectedPage } from "./types";
 import { useHeaderStore } from "@/lib/header-store";
-import { relativeTime, formatTime, formatDate, getPlatformConfig, getInitials, resolveContactAvatar } from "./utils";
+import { formatTime, formatDate, getPlatformConfig, getInitials, resolveContactAvatar } from "./utils";
 import { SAVED_REPLIES } from "./utils";
 import { TEAM_MEMBERS } from "./utils";
 import { PlatformIcon } from "./InboxLayout";
@@ -135,7 +134,7 @@ export function PageSelector({
             fontSize: 12, fontWeight: 600, color: "var(--foreground)",
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           }}>
-            {selectedPage?.name || "Todas las páginas"}
+            {selectedPage?.name || "Todas las pÃ¡ginas"}
           </div>
           {selectedPage && (
             <div style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "capitalize" }}>
@@ -172,7 +171,7 @@ export function PageSelector({
               <Search style={{ width: 12, height: 12, color: "var(--text-muted)", flexShrink: 0 }} />
               <input
                 type="text"
-                placeholder="Buscar página..."
+                placeholder="Buscar pÃ¡gina..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 autoFocus
@@ -207,7 +206,7 @@ export function PageSelector({
                 <Globe style={{ width: 15, height: 15, color: "var(--purple)" }} />
               </div>
               <div style={{ textAlign: "left" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: !selectedPage ? "var(--purple)" : "white" }}>Todas las páginas</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: !selectedPage ? "var(--purple)" : "white" }}>Todas las pÃ¡ginas</div>
                 <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{pages.length} cuentas conectadas</div>
               </div>
             </button>
@@ -306,15 +305,19 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
     const [postData, setPostData] = useState<PostData | null>((conversation as any)?._postData ?? null);
     const [loadingPost, setLoadingPost] = useState(false);
     const [loadError, setLoadError] = useState(false);
+    const [replyText, setReplyText] = useState("");
+    const [replyTarget, setReplyTarget] = useState<{ id: string; username: string } | null>(null);
+    const [sendingReply, setSendingReply] = useState(false);
     const pc = getPlatformConfig(conversation.platform);
+
+    const pageId: string = (conversation as any)?._pageId || (conversation as any)?.pageId || "";
+    const pageName: string = (conversation as any)?._pageName || conversation.contactName || "PÃ¡gina";
+    const pageAvatar: string | null = pageId ? `/api/inbox/avatar?userId=${encodeURIComponent(pageId)}&pageId=${encodeURIComponent(pageId)}` : null;
 
     // Auto-cargar el post si no viene incluido (comentario llegado por webhook)
     useEffect(() => {
-      if (postData) return; // ya tenemos datos
-      const pageId = (conversation as any)?._pageId || (conversation as any)?.pageId || "";
-      // El externalId de conversaciones de comentario es el post_id
+      if (postData) return;
       const rawExternalId: string = (conversation as any)?.externalId || conversation.id || "";
-      // Quitar prefijos internos: fbc_ / igc_
       const postId = rawExternalId.replace(/^fbc_|^igc_/, "");
       if (!postId || !pageId) return;
       setLoadingPost(true);
@@ -326,11 +329,28 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
         .finally(() => setLoadingPost(false));
     }, [conversation.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
+    const handleSendReply = async () => {
+      const text = replyText.trim();
+      if (!text || sendingReply) return;
+      setSendingReply(true);
+      try {
+        const commentId = replyTarget?.id || (conversation as any)?.externalId?.replace(/^fbc_|^igc_/, "");
+        await fetch("/api/inbox/reply", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversationId: conversation.id, text, commentId, pageId }),
+        });
+        setReplyText("");
+        setReplyTarget(null);
+      } catch { /* ignore */ }
+      setSendingReply(false);
+    };
+
     if (loadingPost) {
       return (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
           <div style={{ width: 28, height: 28, border: "3px solid var(--hairline)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Cargando publicación...</p>
+          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Cargando publicaciÃ³n...</p>
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       );
@@ -340,33 +360,31 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
     return (
       <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
         <MessageSquare style={{ width: 32, height: 32, color: "var(--text-muted)" }} />
-        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{loadError ? "No se pudo cargar la publicación" : "Sin datos de publicación"}</p>
+        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{loadError ? "No se pudo cargar la publicaciÃ³n" : "Sin datos de publicaciÃ³n"}</p>
       </div>
     );
     }
 
     return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
-      {/* Header */}
+      {/* â”€â”€ Top bar: back + "Ver publicaciÃ³n" â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
       <div style={{
-        padding: "12px 16px",
+        padding: "10px 16px",
         borderBottom: "1px solid var(--hairline)",
-        display: "flex", alignItems: "center", gap: 10,
+        display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
       }}>
         {onBack && (
-          <button onClick={onBack} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--foreground)] mr-2">
+          <button onClick={onBack} className="md:hidden text-[var(--text-secondary)] hover:text-[var(--foreground)] mr-2" style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
             <ChevronLeft style={{ width: 20, height: 20 }} />
           </button>
         )}
-        <div style={{
-          width: 32, height: 32, borderRadius: "50%",
-          background: pc.color, display: "flex", alignItems: "center", justifyContent: "center",
-        }}>
-          <pc.icon style={{ width: 16, height: 16, color: "var(--foreground)" }} />
-        </div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{(conversation as any)?._pageName || conversation.contactName}</div>
-          <div style={{ fontSize: 10, color: "var(--text-muted)" }}>{pc.label} · {formatDate(conversation.lastMessageTime)}</div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flex: 1 }}>
+          <pc.icon style={{ width: 12, height: 12, color: pc.color }} />
+          <span style={{ fontSize: 10, color: "var(--text-muted)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            {pc.label}
+          </span>
+          <span style={{ fontSize: 10, color: "var(--hairline)" }}>Â·</span>
+          <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{formatDate(conversation.lastMessageTime)}</span>
         </div>
         {postData.permalink && (
           <a href={postData.permalink} target="_blank" rel="noopener noreferrer"
@@ -379,81 +397,123 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
             }}
           >
             <ExternalLink style={{ width: 10, height: 10 }} />
-            Ver publicación
+            Ver publicaciÃ³n
           </a>
         )}
       </div>
 
-      {/* Post content */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "0" }}>
-        {/* Post image */}
-        {postData.mediaUrl && (
-          <div style={{
-            width: "100%",
-            borderBottom: "1px solid var(--hairline)",
-            background: "var(--panel-bg)", 
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}>
-            <img
-              src={postData.mediaUrl}
-              alt=""
-              style={{
-                width: "100%", maxHeight: 500,
-                objectFit: "contain",
-                display: "block",
-              }}
-              onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
-            />
-          </div>
-        )}
+      {/* â”€â”€ Scrollable area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <div style={{ flex: 1, overflowY: "auto" }}>
 
-        {/* Engagement metrics */}
+        {/* â”€â”€ Post card (Meta Business Suite style) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
         <div style={{
-          display: "flex", gap: 20, padding: "12px 16px",
-          borderBottom: "1px solid var(--hairline)",
+          margin: "12px 16px",
+          background: "var(--panel-bg)",
+          border: "1px solid var(--glass-border)",
+          borderRadius: 10,
+          overflow: "hidden",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <Heart style={{ width: 14, height: 14, color: "var(--red)" }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{(postData.likeCount ?? 0).toLocaleString()}</span>
-            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>likes</span>
+
+          {/* Page header inside post card */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px" }}>
+            {/* Page avatar */}
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              {pageAvatar ? (
+                <img
+                  src={pageAvatar}
+                  alt={pageName}
+                  style={{ width: 40, height: 40, borderRadius: "50%", objectFit: "cover", border: "2px solid var(--glass-border)" }}
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).style.display = "none";
+                    const parent = (e.target as HTMLImageElement).parentElement;
+                    if (parent && !parent.querySelector(".pg-fb")) {
+                      const d = document.createElement("div");
+                      d.className = "pg-fb";
+                      d.style.cssText = `width:40px;height:40px;border-radius:50%;background:${pc.color};display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:700;color:#fff;`;
+                      d.textContent = pageName.charAt(0).toUpperCase();
+                      parent.insertBefore(d, e.target as Node);
+                    }
+                  }}
+                />
+              ) : (
+                <div style={{ width: 40, height: 40, borderRadius: "50%", background: pc.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 700, color: "#fff" }}>
+                  {pageName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              {/* Platform badge */}
+              <div style={{
+                position: "absolute", bottom: -2, right: -2,
+                width: 16, height: 16, borderRadius: "50%",
+                background: pc.color, border: "2px solid var(--panel-bg)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>
+                <pc.icon style={{ width: 8, height: 8, color: "#fff" }} />
+              </div>
+            </div>
+
+            {/* Page name + date */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", display: "flex", alignItems: "center", gap: 4 }}>
+                {pageName}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--text-muted)" }}>
+                {formatDate(conversation.lastMessageTime)}
+              </div>
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-            <MessageCircle style={{ width: 14, height: 14, color: "var(--cyan)" }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{(postData.commentsCount ?? 0).toLocaleString()}</span>
-            <span style={{ fontSize: 10, color: "var(--text-muted)" }}>comentarios</span>
-          </div>
-          {(postData.shareCount || 0) > 0 && (
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <Share2 style={{ width: 14, height: 14, color: "var(--purple)" }} />
-              <span style={{ fontSize: 13, fontWeight: 600, color: "var(--foreground)" }}>{(postData.shareCount || 0).toLocaleString()}</span>
-              <span style={{ fontSize: 10, color: "var(--text-muted)" }}>shares</span>
+
+          {/* Caption above image (Meta style) */}
+          {postData.caption && (
+            <div style={{ padding: "0 14px 10px" }}>
+              <p style={{ fontSize: 13, color: "var(--foreground)", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>
+                {postData.caption.length > 280 ? postData.caption.slice(0, 280) + "..." : postData.caption}
+              </p>
             </div>
           )}
+
+          {/* Post image */}
+          {postData.mediaUrl && (
+            <div style={{ width: "100%", background: "#000", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <img
+                src={postData.mediaUrl}
+                alt=""
+                style={{ width: "100%", maxHeight: 420, objectFit: "contain", display: "block" }}
+                onError={(e) => { (e.target as HTMLImageElement).parentElement!.style.display = "none"; }}
+              />
+            </div>
+          )}
+
+          {/* Engagement metrics (Meta style: â¤ï¸ N likes  ðŸ’¬ N comentarios) */}
+          <div style={{
+            display: "flex", alignItems: "center", justifyContent: "space-between",
+            padding: "8px 14px",
+            borderTop: "1px solid var(--hairline)",
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+              <span style={{ fontSize: 15 }}>â¤ï¸</span>
+              <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{(postData.likeCount ?? 0).toLocaleString()} likes</span>
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                {(postData.commentsCount ?? 0).toLocaleString()} comentarios
+              </span>
+              {(postData.shareCount || 0) > 0 && (
+                <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
+                  Â· {(postData.shareCount || 0).toLocaleString()} compartidos
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
-        {/* Caption */}
-        {postData.caption && (
-          <div style={{ padding: "12px 16px", borderBottom: "1px solid var(--hairline)" }}>
-            <p style={{
-              fontSize: 13, color: "var(--foreground)", lineHeight: 1.6,
-              margin: 0, whiteSpace: "pre-wrap",
-            }}>
-              {postData.caption.length > 300 ? postData.caption.slice(0, 300) + "..." : postData.caption}
-            </p>
-          </div>
-        )}
-
-        {/* Comments section */}
-        <div style={{ padding: "12px 16px 6px" }}>
-          <div style={{
-            fontSize: 11, fontWeight: 700, color: "var(--text-muted)",
-            letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 12,
-          }}>
+        {/* â”€â”€ Comments section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        <div style={{ padding: "0 16px 12px" }}>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
             Comentarios ({postData.commentsCount})
           </div>
 
           {postData.comments.length === 0 ? (
-            <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", padding: 20 }}>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", textAlign: "center", padding: "20px 0" }}>
               Sin comentarios recientes
             </p>
           ) : (
@@ -468,52 +528,115 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                     <img
                       src={comment.avatar}
                       alt=""
-                      style={{ width: 32, height: 32, borderRadius: "50%", objectFit: "cover" }}
+                      style={{ width: 34, height: 34, borderRadius: "50%", objectFit: "cover" }}
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = "none";
                         const parent = (e.target as HTMLImageElement).parentElement;
-                        if (parent && !parent.querySelector(".fb-avatar")) {
+                        if (parent && !parent.querySelector(".cm-av")) {
                           const d = document.createElement("div");
-                          d.className = "fb-avatar";
-                          d.style.cssText = "width:32px;height:32px;border-radius:50%;background:rgba(155,123,232,0.1);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--purple);";
+                          d.className = "cm-av";
+                          d.style.cssText = "width:34px;height:34px;border-radius:50%;background:rgba(155,123,232,0.15);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--purple);";
                           d.textContent = comment.username.charAt(0).toUpperCase();
                           parent.insertBefore(d, e.target as Node);
                         }
                       }}
                     />
                   ) : (
-                    <div style={{
-                      width: 32, height: 32, borderRadius: "50%",
-                      background: "var(--surface)",
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      fontSize: 11, fontWeight: 700, color: "var(--purple)",
-                    }}>
+                    <div style={{ width: 34, height: 34, borderRadius: "50%", background: "rgba(155,123,232,0.15)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, fontWeight: 700, color: "var(--purple)" }}>
                       {comment.username.charAt(0).toUpperCase()}
                     </div>
                   )}
                 </div>
 
-                {/* Comment content */}
+                {/* Comment bubble (Meta Business Suite style) */}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-                    <span style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{comment.username}</span>
-                    <span style={{ fontSize: 9, color: "var(--text-muted)" }}>
+                  <div style={{
+                    background: "var(--surface-hover)",
+                    borderRadius: "0 12px 12px 12px",
+                    padding: "8px 12px",
+                    display: "inline-block",
+                    maxWidth: "100%",
+                  }}>
+                    <div style={{ fontSize: 12, fontWeight: 700, color: "var(--foreground)", marginBottom: 2 }}>{comment.username}</div>
+                    <p style={{ fontSize: 13, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5, wordBreak: "break-word" }}>{comment.text}</p>
+                  </div>
+
+                  {/* Meta: timestamp + likes + Responder */}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 4, paddingLeft: 4 }}>
+                    <span style={{ fontSize: 10, color: "var(--text-muted)" }}>
                       {new Date(comment.timestamp).toLocaleDateString("es-MX", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
                     </span>
+                    {comment.likes > 0 && (
+                      <span style={{ fontSize: 10, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
+                        <span>â¤ï¸</span>{comment.likes}
+                      </span>
+                    )}
+                    <button
+                      onClick={() => setReplyTarget({ id: comment.id, username: comment.username })}
+                      style={{ fontSize: 10, fontWeight: 700, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0, fontFamily: "inherit" }}
+                    >
+                      Responder
+                    </button>
                   </div>
-                  <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0, lineHeight: 1.5 }}>
-                    {comment.text}
-                  </p>
-                  {comment.likes > 0 && (
-                    <div style={{ display: "flex", alignItems: "center", gap: 3, marginTop: 4 }}>
-                      <Heart style={{ width: 10, height: 10, color: "var(--red)" }} />
-                      <span style={{ fontSize: 10, color: "var(--text-muted)" }}>{comment.likes}</span>
-                    </div>
-                  )}
                 </div>
               </div>
             ))
           )}
+        </div>
+      </div>
+
+      {/* â”€â”€ Reply box (Meta: "Comentar como [PÃ¡gina]") â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      <div style={{
+        borderTop: "1px solid var(--hairline)",
+        padding: "10px 14px",
+        background: "var(--background)",
+        flexShrink: 0,
+      }}>
+        {replyTarget && (
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, padding: "4px 8px", background: "var(--surface-hover)", borderRadius: 6 }}>
+            <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Respondiendo a</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: "var(--cyan)" }}>@{replyTarget.username}</span>
+            <button onClick={() => setReplyTarget(null)} style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>âœ•</button>
+          </div>
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          {/* Page avatar en el reply box */}
+          {pageAvatar ? (
+            <img src={pageAvatar} alt="" style={{ width: 30, height: 30, borderRadius: "50%", objectFit: "cover", flexShrink: 0 }}
+              onError={(e) => {
+                (e.target as HTMLImageElement).style.display = "none";
+              }}
+            />
+          ) : (
+            <div style={{ width: 30, height: 30, borderRadius: "50%", background: pc.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff", flexShrink: 0 }}>
+              {pageName.charAt(0).toUpperCase()}
+            </div>
+          )}
+          <div style={{ flex: 1, display: "flex", alignItems: "center", background: "var(--surface-hover)", borderRadius: 20, border: "1px solid var(--hairline)", padding: "0 12px", gap: 8 }}>
+            <span style={{ fontSize: 10, color: "var(--text-muted)", whiteSpace: "nowrap" }}>como {pageName}</span>
+            <input
+              value={replyText}
+              onChange={e => setReplyText(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendReply(); } }}
+              placeholder="Escribe un comentario..."
+              style={{
+                flex: 1, background: "transparent", border: "none", outline: "none",
+                fontSize: 13, color: "var(--foreground)", fontFamily: "inherit",
+                padding: "9px 0",
+              }}
+            />
+            <button
+              onClick={handleSendReply}
+              disabled={!replyText.trim() || sendingReply}
+              style={{
+                background: "none", border: "none", cursor: replyText.trim() ? "pointer" : "default",
+                padding: 0, color: replyText.trim() ? "var(--cyan)" : "var(--text-muted)",
+                display: "flex", alignItems: "center",
+              }}
+            >
+              <Send style={{ width: 16, height: 16 }} />
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -553,7 +676,7 @@ export function ChatView({
     }, [conversation.id, conversation.contactName, onBack, setBreadcrumbs]);
     const [showReplies, setShowReplies] = useState(false);
     const [showEmojis, setShowEmojis] = useState(false);
-    const EMOJIS = ["😀","😂","😍","🙏","🔥","👍","❤️","🎉","😎","🤔","😭","✨","💯","🙌","👀","👏","😊","🥰","🤌","💔"];
+    const EMOJIS = ["ðŸ˜€","ðŸ˜‚","ðŸ˜","ðŸ™","ðŸ”¥","ðŸ‘","â¤ï¸","ðŸŽ‰","ðŸ˜Ž","ðŸ¤”","ðŸ˜­","âœ¨","ðŸ’¯","ðŸ™Œ","ðŸ‘€","ðŸ‘","ðŸ˜Š","ðŸ¥°","ðŸ¤Œ","ðŸ’”"];
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const pc = getPlatformConfig(conversation.platform);
     useEffect(() => {
@@ -682,7 +805,7 @@ export function ChatView({
                       </p>
                     )}
                     {msg.attachments && msg.attachments.length > 0 && (
-                      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: msg.text && msg.text !== "📎 Adjunto" ? 8 : 0 }}>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: msg.text && msg.text !== "ðŸ“Ž Adjunto" ? 8 : 0 }}>
                         {msg.attachments.map((att: any, i: number) => {
                           if (att.type === "image" || att.type === "sticker" || att.payload?.url || att.image_data?.url) {
                             return (
@@ -736,7 +859,7 @@ export function ChatView({
                       </div>
                     )}
                   </div>
-                  {/* Message Status — ticks and read receipts for outgoing messages */}
+                  {/* Message Status â€” ticks and read receipts for outgoing messages */}
                   {!msg.incoming && (
                     <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4, marginTop: 3 }}>
                       {msg.status === "error" ? (
@@ -746,23 +869,23 @@ export function ChatView({
                       ) : msg.status === "sending" ? (
                         /* Sending: single grey tick with opacity pulse */
                         <span style={{ fontSize: 9, color: "var(--text-muted)", opacity: 0.6 }}>
-                          {"✓"}
+                          {"âœ“"}
                         </span>
                       ) : msg.readAt ? (
                         /* Read: double cyan/blue tick + "Visto" */
                         <span style={{ fontSize: 9, color: "var(--cyan)", fontWeight: 500, display: "flex", alignItems: "center", gap: 2 }}>
-                          <span style={{ letterSpacing: "-2px" }}>{"✓✓"}</span>
+                          <span style={{ letterSpacing: "-2px" }}>{"âœ“âœ“"}</span>
                           <span style={{ letterSpacing: 0 }}>Visto</span>
                         </span>
                       ) : msg.deliveredAt ? (
                         /* Delivered: double grey tick */
                         <span style={{ fontSize: 9, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
-                          <span style={{ letterSpacing: "-2px" }}>{"✓✓"}</span>
+                          <span style={{ letterSpacing: "-2px" }}>{"âœ“âœ“"}</span>
                           <span style={{ letterSpacing: 0 }}>Entregado</span>
                         </span>
                       ) : (
                         /* Sent (persisted, awaiting delivery confirmation): single grey tick */
-                        <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{"✓"}</span>
+                        <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{"âœ“"}</span>
                       )}
                       <span style={{ fontSize: 9, color: "var(--text-muted)" }}>{formatTime(msg.timestamp)}</span>
                     </div>
@@ -895,7 +1018,7 @@ export function ChatView({
             {[
               { icon: Bookmark, action: () => setShowReplies(!showReplies), active: showReplies },
               { icon: Paperclip, action: () => alert("Para adjuntar archivos, primero configura Vercel Blob en las variables de entorno."), active: false },
-              { icon: Image, action: () => alert("Para enviar imágenes, primero configura Vercel Blob en las variables de entorno."), active: false },
+              { icon: Image, action: () => alert("Para enviar imÃ¡genes, primero configura Vercel Blob en las variables de entorno."), active: false },
               { icon: Smile, action: () => setShowEmojis(!showEmojis), active: showEmojis },
             ].map((btn, i) => (
               <button
@@ -966,7 +1089,7 @@ export function ChatView({
 
           {/* Quick like */}
           <button
-            onClick={() => onSend("👍")}
+            onClick={() => onSend("ðŸ‘")}
             style={{
               width: 32, height: 32,
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -1109,7 +1232,7 @@ export function ContactProfile({
           <p style={{ fontSize: 10, color: "var(--text-muted)", margin: "0 0 4px", display: "flex", alignItems: "center", gap: 4, justifyContent: "center" }}>
             <PlatformIcon platform={conversation.platform} size={10} />
             {platformLabel[conversation.platform] || conversation.platform}
-            {conversation.pageName && <><span style={{ opacity: 0.4 }}>·</span><span style={{ color: "var(--text-secondary)" }}>{conversation.pageName}</span></>}
+            {conversation.pageName && <><span style={{ opacity: 0.4 }}>Â·</span><span style={{ color: "var(--text-secondary)" }}>{conversation.pageName}</span></>}
           </p>
 
           <span style={{
@@ -1128,7 +1251,7 @@ export function ContactProfile({
               background: "rgba(251,191,36,0.1)", color: "#f59e0b", border: "1px solid rgba(251,191,36,0.2)",
               letterSpacing: "0.08em",
             }}>
-              ⭐ PRIORIDAD
+              â­ PRIORIDAD
             </span>
           )}
 
@@ -1156,7 +1279,7 @@ export function ContactProfile({
             </div>
             <button onClick={() => setShowAssign(!showAssign)}
               style={{ background: "transparent", border: "1px solid var(--glass-border)", color: "var(--cyan)", fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "inherit" }}>
-              <span>Cambiar asignación</span>
+              <span>Cambiar asignaciÃ³n</span>
               <ChevronDown style={{ width: 10, height: 10 }} />
             </button>
             {showAssign && (
@@ -1231,16 +1354,16 @@ export function ContactProfile({
           </div>
         </ProfileSection>
 
-        {/* CANAL (datos dinámicos) */}
-        <ProfileSection title="Información de Messenger">
+        {/* CANAL (datos dinÃ¡micos) */}
+        <ProfileSection title="InformaciÃ³n de Messenger">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[
               { label: "Plataforma", value: platformLabel[conversation.platform] || conversation.platform, hasIcon: true },
-              { label: "Página / Canal", value: conversation.pageName || conversation.pageId || "—" },
-              { label: "ID de Contacto", value: conversation.contactId || "—" },
+              { label: "PÃ¡gina / Canal", value: conversation.pageName || conversation.pageId || "â€”" },
+              { label: "ID de Contacto", value: conversation.contactId || "â€”" },
               { label: "Estado", value: conversation.closed ? "Cerrado" : "Abierto" },
               ...(conversation.createdAt ? [{ label: "Primer contacto", value: fmtDate(conversation.createdAt) }] : []),
-              { label: "Último mensaje", value: fmtDate(conversation.lastMessageTime.toISOString()) },
+              { label: "Ãšltimo mensaje", value: fmtDate(conversation.lastMessageTime.toISOString()) },
             ].map((v, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>{v.label}</span>
@@ -1254,10 +1377,10 @@ export function ContactProfile({
         </ProfileSection>
 
         {/* INFO SOBRE TI */}
-        <ProfileSection title="Información sobre ti">
+        <ProfileSection title="InformaciÃ³n sobre ti">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Ubicación</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>UbicaciÃ³n</span>
                 <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
                   {conversation.customFields?.locale || "Desconocida (Sin permiso)"}
                 </span>
@@ -1269,7 +1392,7 @@ export function ContactProfile({
                 </span>
              </div>
              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Género</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>GÃ©nero</span>
                 <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
                   {conversation.customFields?.gender || "No disponible"}
                 </span>
@@ -1290,7 +1413,7 @@ export function ContactProfile({
         {/* CITAS */}
         <ProfileSection title="Citas">
            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", textAlign: "center", padding: "10px 0" }}>
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>No hay citas próximas.</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>No hay citas prÃ³ximas.</span>
               <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--cyan)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                 + Programar cita
               </button>
