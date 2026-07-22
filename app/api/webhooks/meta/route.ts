@@ -657,6 +657,15 @@ async function processWebhookEvents(body: any, object: string) {
       if (object === "instagram") {
         // ─── Instagram DM Messages ───
         for (const msg of entry.messaging || []) {
+          // DIAGNÓSTICO: loguear el entry.id para verificar qué ID usa Meta
+          logger.info("[WEBHOOK][IG] Mensaje entrante", {
+            entryId,
+            senderId: msg.sender?.id,
+            recipientId: msg.recipient?.id,
+            hasMid: !!msg.message?.mid,
+            msgType: msg.message ? "message" : msg.reaction ? "reaction" : msg.delivery ? "delivery" : msg.read ? "read" : "other",
+          });
+
           if (msg.message) {
             // Persistir en el inbox (tiempo real, modelo DB).
             await persistMetaDm("instagram_dm", "ig_account", entryId, msg);
@@ -778,6 +787,16 @@ async function processWebhookEvents(body: any, object: string) {
 
           // Comments on IG posts
           if (field === "comments") {
+            // DIAGNÓSTICO: loguear el entry.id para comentarios
+            logger.info("[WEBHOOK][IG] Comentario entrante", {
+              entryId,
+              field,
+              commentId: value?.id,
+              fromUsername: value?.from?.username,
+              fromId: value?.from?.id,
+              mediaId: value?.media?.id || value?.media_id,
+            });
+
             await createAlert({
               type: "ig_comment",
               severity: "info",
@@ -788,6 +807,7 @@ async function processWebhookEvents(body: any, object: string) {
             });
             
             const workspaceId = await resolveWorkspaceForMetaAsset(entryId, "ig_account");
+            logger.info("[WEBHOOK][IG] resolveWorkspace result", { entryId, workspaceId: workspaceId ?? "NOT FOUND" });
             if (workspaceId) {
               await persistInboundMessage({
                 workspaceId,
