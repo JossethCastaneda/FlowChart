@@ -1,4 +1,4 @@
-﻿import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, MessageCircle, MessageSquare, Bookmark, CheckCircle2, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Heart, Share2 } from "lucide-react";
+import { Search, Send, X, ChevronRight, ChevronLeft, ChevronDown, MessageCircle, MessageSquare, Bookmark, CheckCircle2, Paperclip, Smile, Image, ThumbsUp, User, Globe, ExternalLink, Heart, Share2 } from "lucide-react";
 import React, { useState, useEffect, useRef } from "react";
 import { Message, PostData, Conversation, ConnectedPage } from "./types";
 import { useHeaderStore } from "@/lib/header-store";
@@ -134,7 +134,7 @@ export function PageSelector({
             fontSize: 12, fontWeight: 600, color: "var(--foreground)",
             whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
           }}>
-            {selectedPage?.name || "Todas las pÃ¡ginas"}
+            {selectedPage?.name || "Todas las páginas"}
           </div>
           {selectedPage && (
             <div style={{ fontSize: 9, color: "var(--text-muted)", textTransform: "capitalize" }}>
@@ -171,7 +171,7 @@ export function PageSelector({
               <Search style={{ width: 12, height: 12, color: "var(--text-muted)", flexShrink: 0 }} />
               <input
                 type="text"
-                placeholder="Buscar pÃ¡gina..."
+                placeholder="Buscar página..."
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 autoFocus
@@ -206,7 +206,7 @@ export function PageSelector({
                 <Globe style={{ width: 15, height: 15, color: "var(--purple)" }} />
               </div>
               <div style={{ textAlign: "left" }}>
-                <div style={{ fontSize: 12, fontWeight: 600, color: !selectedPage ? "var(--purple)" : "white" }}>Todas las pÃ¡ginas</div>
+                <div style={{ fontSize: 12, fontWeight: 600, color: !selectedPage ? "var(--purple)" : "white" }}>Todas las páginas</div>
                 <div style={{ fontSize: 9, color: "var(--text-muted)" }}>{pages.length} cuentas conectadas</div>
               </div>
             </button>
@@ -311,7 +311,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
     const pc = getPlatformConfig(conversation.platform);
 
     const pageId: string = (conversation as any)?._pageId || (conversation as any)?.pageId || "";
-    const pageName: string = (conversation as any)?._pageName || conversation.contactName || "PÃ¡gina";
+    const pageName: string = (conversation as any)?._pageName || conversation.contactName || "Página";
     const pageAvatar: string | null = pageId ? `/api/inbox/avatar?userId=${encodeURIComponent(pageId)}&pageId=${encodeURIComponent(pageId)}` : null;
 
     // Auto-cargar el post si no viene incluido (comentario llegado por webhook)
@@ -350,7 +350,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
       return (
         <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
           <div style={{ width: 28, height: 28, border: "3px solid var(--hairline)", borderTopColor: "var(--cyan)", borderRadius: "50%", animation: "spin 0.8s linear infinite" }} />
-          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Cargando publicaciÃ³n...</p>
+          <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Cargando publicación...</p>
           <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
         </div>
       );
@@ -360,14 +360,14 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
     return (
       <div style={{ display: "flex", flexDirection: "column", flex: 1, alignItems: "center", justifyContent: "center", gap: 12, padding: 40 }}>
         <MessageSquare style={{ width: 32, height: 32, color: "var(--text-muted)" }} />
-        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{loadError ? "No se pudo cargar la publicaciÃ³n" : "Sin datos de publicaciÃ³n"}</p>
+        <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{loadError ? "No se pudo cargar la publicación" : "Sin datos de publicación"}</p>
       </div>
     );
     }
 
     return (
     <div style={{ display: "flex", flexDirection: "column", flex: 1, overflow: "hidden" }}>
-      {/* â”€â”€ Top bar: back + "Ver publicaciÃ³n" â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Top bar: back + "Ver publicación" ───────────────────────────────── */}
       <div style={{
         padding: "10px 16px",
         borderBottom: "1px solid var(--hairline)",
@@ -397,15 +397,15 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
             }}
           >
             <ExternalLink style={{ width: 10, height: 10 }} />
-            Ver publicaciÃ³n
+            Ver publicación
           </a>
         )}
       </div>
 
-      {/* â”€â”€ Scrollable area â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Scrollable area ────────────────────────────────────────────────── */}
       <div style={{ flex: 1, overflowY: "auto" }}>
 
-        {/* â”€â”€ Post card (Meta Business Suite style) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Post card (Meta Business Suite style) ────────────────────────── */}
         <div style={{
           margin: "12px 16px",
           background: "var(--panel-bg)",
@@ -483,14 +483,14 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
             </div>
           )}
 
-          {/* Engagement metrics (Meta style: â¤ï¸ N likes  ðŸ’¬ N comentarios) */}
+          {/* Engagement metrics (Meta style: ❤️ N likes  💬 N comentarios) */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "8px 14px",
             borderTop: "1px solid var(--hairline)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ fontSize: 15 }}>â¤ï¸</span>
+              <span style={{ fontSize: 15 }}>❤️</span>
               <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{(postData.likeCount ?? 0).toLocaleString()} likes</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -499,14 +499,14 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
               </span>
               {(postData.shareCount || 0) > 0 && (
                 <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-                  Â· {(postData.shareCount || 0).toLocaleString()} compartidos
+                  · {(postData.shareCount || 0).toLocaleString()} compartidos
                 </span>
               )}
             </div>
           </div>
         </div>
 
-        {/* â”€â”€ Comments section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+        {/* ── Comments section ──────────────────────────────────────────────── */}
         <div style={{ padding: "0 16px 12px" }}>
           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--text-muted)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 10 }}>
             Comentarios ({postData.commentsCount})
@@ -568,7 +568,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                     </span>
                     {comment.likes > 0 && (
                       <span style={{ fontSize: 10, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
-                        <span>â¤ï¸</span>{comment.likes}
+                        <span>❤️</span>{comment.likes}
                       </span>
                     )}
                     <button
@@ -585,7 +585,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
         </div>
       </div>
 
-      {/* â”€â”€ Reply box (Meta: "Comentar como [PÃ¡gina]") â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */}
+      {/* ── Reply box (Meta: "Comentar como [Página]") ─────────────────────── */}
       <div style={{
         borderTop: "1px solid var(--hairline)",
         padding: "10px 14px",
@@ -1018,7 +1018,7 @@ export function ChatView({
             {[
               { icon: Bookmark, action: () => setShowReplies(!showReplies), active: showReplies },
               { icon: Paperclip, action: () => alert("Para adjuntar archivos, primero configura Vercel Blob en las variables de entorno."), active: false },
-              { icon: Image, action: () => alert("Para enviar imÃ¡genes, primero configura Vercel Blob en las variables de entorno."), active: false },
+              { icon: Image, action: () => alert("Para enviar imágenes, primero configura Vercel Blob en las variables de entorno."), active: false },
               { icon: Smile, action: () => setShowEmojis(!showEmojis), active: showEmojis },
             ].map((btn, i) => (
               <button
@@ -1279,7 +1279,7 @@ export function ContactProfile({
             </div>
             <button onClick={() => setShowAssign(!showAssign)}
               style={{ background: "transparent", border: "1px solid var(--glass-border)", color: "var(--cyan)", fontSize: 10, fontWeight: 600, padding: "4px 10px", borderRadius: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 4, marginTop: 4, fontFamily: "inherit" }}>
-              <span>Cambiar asignaciÃ³n</span>
+              <span>Cambiar asignación</span>
               <ChevronDown style={{ width: 10, height: 10 }} />
             </button>
             {showAssign && (
@@ -1354,16 +1354,16 @@ export function ContactProfile({
           </div>
         </ProfileSection>
 
-        {/* CANAL (datos dinÃ¡micos) */}
-        <ProfileSection title="InformaciÃ³n de Messenger">
+        {/* CANAL (datos dinámicos) */}
+        <ProfileSection title="Información de Messenger">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {[
               { label: "Plataforma", value: platformLabel[conversation.platform] || conversation.platform, hasIcon: true },
-              { label: "PÃ¡gina / Canal", value: conversation.pageName || conversation.pageId || "â€”" },
-              { label: "ID de Contacto", value: conversation.contactId || "â€”" },
+              { label: "Página / Canal", value: conversation.pageName || conversation.pageId || "—" },
+              { label: "ID de Contacto", value: conversation.contactId || "—" },
               { label: "Estado", value: conversation.closed ? "Cerrado" : "Abierto" },
               ...(conversation.createdAt ? [{ label: "Primer contacto", value: fmtDate(conversation.createdAt) }] : []),
-              { label: "Ãšltimo mensaje", value: fmtDate(conversation.lastMessageTime.toISOString()) },
+              { label: "Último mensaje", value: fmtDate(conversation.lastMessageTime.toISOString()) },
             ].map((v, i) => (
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
                 <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>{v.label}</span>
@@ -1377,10 +1377,10 @@ export function ContactProfile({
         </ProfileSection>
 
         {/* INFO SOBRE TI */}
-        <ProfileSection title="InformaciÃ³n sobre ti">
+        <ProfileSection title="Información sobre ti">
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>UbicaciÃ³n</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Ubicación</span>
                 <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
                   {conversation.customFields?.locale || "Desconocida (Sin permiso)"}
                 </span>
@@ -1392,7 +1392,7 @@ export function ContactProfile({
                 </span>
              </div>
              <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>GÃ©nero</span>
+                <span style={{ fontSize: 10, fontWeight: 600, color: "var(--foreground)" }}>Género</span>
                 <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>
                   {conversation.customFields?.gender || "No disponible"}
                 </span>
@@ -1413,7 +1413,7 @@ export function ContactProfile({
         {/* CITAS */}
         <ProfileSection title="Citas">
            <div style={{ display: "flex", flexDirection: "column", gap: 6, alignItems: "center", textAlign: "center", padding: "10px 0" }}>
-              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>No hay citas prÃ³ximas.</span>
+              <span style={{ fontSize: 11, color: "var(--text-muted)" }}>No hay citas próximas.</span>
               <button style={{ padding: "6px 12px", borderRadius: 8, background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--cyan)", fontSize: 11, fontWeight: 600, cursor: "pointer" }}>
                 + Programar cita
               </button>
