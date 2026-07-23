@@ -39,31 +39,8 @@ const PLATFORM_ONLY_BREAKDOWNS = new Set([
 ]);
 
 // ── Breakdown → Meta API parameter mapping ───────────────────────────────
-const BREAKDOWN_MAP: Record<string, { breakdowns?: string; time_increment?: string }> = {
-  none:               {},
-  day:                { time_increment: "1" },
-  week:               { time_increment: "7" },
-  month:              { time_increment: "monthly" },
-  age:                { breakdowns: "age" },
-  gender:             { breakdowns: "gender" },
-  age_gender:         { breakdowns: "age,gender" },
-  country:            { breakdowns: "country" },
-  region:             { breakdowns: "region" },
-  dma:                { breakdowns: "dma" },
-  platform:           { breakdowns: "publisher_platform" },
-  placement:          { breakdowns: "publisher_platform,platform_position" },
-  device:             { breakdowns: "device_platform" },
-  time_of_day:        { breakdowns: "hourly_stats_aggregated_by_advertiser_time_zone" },
-  hourly_daily:       { breakdowns: "hourly_stats_aggregated_by_advertiser_time_zone", time_increment: "1" },
-  conversion_device:  { breakdowns: "impression_device" },
-  destination:        { breakdowns: "place_page_id" },
-  // Dynamic creative (ad-level only)
-  dynamic_image:       { breakdowns: "image_asset" },
-  dynamic_text:        { breakdowns: "body_asset" },
-  dynamic_headline:    { breakdowns: "title_asset" },
-  dynamic_description: { breakdowns: "description_asset" },
-  dynamic_cta:         { breakdowns: "call_to_action_asset" },
-};
+// We generate this dynamically inside the GET request now, because time_of_day
+// and hourly_daily depend on the 'tz' query param.
 
 export async function GET(req: NextRequest) {
   const accessToken = await getMetaAccessToken(req, "ads");
@@ -78,10 +55,40 @@ export async function GET(req: NextRequest) {
   const dateStart     = searchParams.get("dateStart");
   const dateEnd       = searchParams.get("dateEnd");
   const level         = searchParams.get("level"); // "ad" required for dynamic_*
+  const tz            = searchParams.get("tz") || "advertiser";
 
   if (!id) {
     return NextResponse.json({ error: "Missing id" }, { status: 400 });
   }
+
+  const hourlyBreakdownField = tz === "audience"
+    ? "hourly_stats_aggregated_by_audience_time_zone"
+    : "hourly_stats_aggregated_by_advertiser_time_zone";
+
+  const BREAKDOWN_MAP: Record<string, { breakdowns?: string; time_increment?: string }> = {
+    none:               {},
+    day:                { time_increment: "1" },
+    week:               { time_increment: "7" },
+    month:              { time_increment: "monthly" },
+    age:                { breakdowns: "age" },
+    gender:             { breakdowns: "gender" },
+    age_gender:         { breakdowns: "age,gender" },
+    country:            { breakdowns: "country" },
+    region:             { breakdowns: "region" },
+    dma:                { breakdowns: "dma" },
+    platform:           { breakdowns: "publisher_platform" },
+    placement:          { breakdowns: "publisher_platform,platform_position" },
+    device:             { breakdowns: "device_platform" },
+    time_of_day:        { breakdowns: hourlyBreakdownField },
+    hourly_daily:       { breakdowns: hourlyBreakdownField, time_increment: "1" },
+    conversion_device:  { breakdowns: "impression_device" },
+    destination:        { breakdowns: "place_page_id" },
+    dynamic_image:       { breakdowns: "image_asset" },
+    dynamic_text:        { breakdowns: "body_asset" },
+    dynamic_headline:    { breakdowns: "title_asset" },
+    dynamic_description: { breakdowns: "description_asset" },
+    dynamic_cta:         { breakdowns: "call_to_action_asset" },
+  };
 
   const mapping = BREAKDOWN_MAP[breakdownKey];
   if (!mapping) {

@@ -344,10 +344,13 @@ export default function ProjectDashboardPage() {
   // Track which breakdowns have been attempted (prevents re-fetch loops)
   const breakdownFetchedRef = useRef<Record<string, boolean>>({});
 
+  // Heatmap Timezone state
+  const [heatmapTimezone, setHeatmapTimezone] = useState<"advertiser" | "audience">("advertiser");
+
   // Reset breakdown cache when filters change
   useEffect(() => {
     breakdownFetchedRef.current = {};
-  }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId]);
+  }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId, heatmapTimezone]);
 
   // Load breakdowns for audience/creative tabs — uses same date range
   // KEY FIX: Aggregate across ALL ad accounts when "all" selected (not just first)
@@ -368,8 +371,8 @@ export default function ProjectDashboardPage() {
       const results = await Promise.all(accs.map(async (accRaw) => {
         const id = accRaw.startsWith("act_") ? accRaw : `act_${accRaw}`;
         const url = dateStart && dateEnd
-          ? `/api/meta/breakdowns?id=${id}&breakdown=${key}&dateStart=${dateStart}&dateEnd=${dateEnd}`
-          : `/api/meta/breakdowns?id=${id}&breakdown=${key}&preset=${dp}`;
+          ? `/api/meta/breakdowns?id=${id}&breakdown=${key}&dateStart=${dateStart}&dateEnd=${dateEnd}&tz=${heatmapTimezone}`
+          : `/api/meta/breakdowns?id=${id}&breakdown=${key}&preset=${dp}&tz=${heatmapTimezone}`;
         try {
           const r = await fetch(url);
           const d = await r.json();
@@ -386,7 +389,7 @@ export default function ProjectDashboardPage() {
       console.error(`Breakdown ${key} fetch all failed:`, err);
       setBreakdownData(prev => ({ ...prev, [key]: [] }));
     }
-  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd]);
+  }, [project, activePlatform, selectedAccountId, datePreset, dateStart, dateEnd, heatmapTimezone]);
 
   // Ad Creatives state
   const [adCreatives, setAdCreatives] = useState<any[]>([]);
@@ -1171,25 +1174,48 @@ background: "var(--surface)", border: "1px solid var(--border)",
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
                 <div>
                   <h3 style={headingStyle}>Distribución por Hora y Día</h3>
-                  <p style={subStyle}>Hover para ver detalle · Horas en zona horaria de la audiencia</p>
+                  <p style={subStyle}>Hover para ver detalle · Horas en zona horaria de la {heatmapTimezone === "advertiser" ? "cuenta publicitaria" : "audiencia"}</p>
                 </div>
-                {/* Metric switcher */}
-                <div style={{ display: "flex", gap: 3, background: "var(--surface-hover)", borderRadius: 8, padding: "3px" }}>
-                  {heatMetrics.map(m => (
-                    <button
-                      key={m.key}
-                      onClick={() => setHeatMetric(m.key)}
-                      style={{
-                        padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
-                        borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
-                        background: heatMetric === m.key ? "var(--cyan)" : "transparent",
-                        color: heatMetric === m.key ? "#000" : "var(--text-secondary)",
-                        letterSpacing: "0.04em",
-                      }}
-                    >
-                      {m.label}
-                    </button>
-                  ))}
+                <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+                  {/* Timezone switcher */}
+                  <div style={{ display: "flex", gap: 3, background: "var(--surface-hover)", borderRadius: 8, padding: "3px" }}>
+                    {[
+                      { key: "advertiser", label: "Cuenta" },
+                      { key: "audience", label: "Audiencia" }
+                    ].map(tz => (
+                      <button
+                        key={tz.key}
+                        onClick={() => setHeatmapTimezone(tz.key as "advertiser" | "audience")}
+                        style={{
+                          padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
+                          borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
+                          background: heatmapTimezone === tz.key ? "var(--cyan)" : "transparent",
+                          color: heatmapTimezone === tz.key ? "#000" : "var(--text-secondary)",
+                          letterSpacing: "0.04em",
+                        }}
+                      >
+                        {tz.label}
+                      </button>
+                    ))}
+                  </div>
+                  {/* Metric switcher */}
+                  <div style={{ display: "flex", gap: 3, background: "var(--surface-hover)", borderRadius: 8, padding: "3px" }}>
+                    {heatMetrics.map(m => (
+                      <button
+                        key={m.key}
+                        onClick={() => setHeatMetric(m.key)}
+                        style={{
+                          padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
+                          borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
+                          background: heatMetric === m.key ? "var(--cyan)" : "transparent",
+                          color: heatMetric === m.key ? "#000" : "var(--text-secondary)",
+                          letterSpacing: "0.04em",
+                        }}
+                      >
+                        {m.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
               <div style={{ overflowX: "auto", maxHeight: 520, overflowY: "auto" }}>
