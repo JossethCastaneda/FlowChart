@@ -1334,8 +1334,28 @@ background: "var(--surface)", border: "1px solid var(--border)",
       {activeTab === "gasto" && (
         <ErrorBoundary name="Tab Gasto">
         <div className="space-y-3">
+          {/* Smart Alerts */}
+          {(() => {
+            const alerts: { type: "warning" | "danger" | "info"; msg: string }[] = [];
+            const todayStr2 = new Date().toISOString().slice(0, 10);
+            const todayS = timeSeriesData.filter((d: any) => d.fullDate === todayStr2).reduce((s: number, d: any) => s + d.spend, 0);
+            if (todayS > bk.daily * 1.5) alerts.push({ type: "danger", msg: `⚠️ Sobregasto hoy: ${fmtMXN0(todayS)} gastado (${pct((todayS / bk.daily) * 100)} del diario ideal de ${fmtMXN(bk.daily)})` });
+            if (totalSpend > idealSpendToday * 1.2 && idealSpendToday > 0) alerts.push({ type: "warning", msg: `📊 El acumulado (${fmtMXN0(totalSpend)}) va ${pct(((totalSpend / idealSpendToday) - 1) * 100)} por encima de la curva ideal (${fmtMXN0(idealSpendToday)})` });
+            if (cprTarget > 0 && cpr > cprTarget * 1.5 && totalResults > 0) alerts.push({ type: "danger", msg: `💸 CPR elevado: ${fmtMXN(cpr)} vs meta de ${fmtMXN(cprTarget)} (+${pct(((cpr / cprTarget) - 1) * 100)})` });
+            if (bk.monthly > 0 && totalSpend < idealSpendToday * 0.5 && daysElapsed > 5) alerts.push({ type: "info", msg: `💤 Sub-gasto: solo ${pct((totalSpend / idealSpendToday) * 100)} del ideal acumulado. ¿La campaña está activa?` });
+            if (alerts.length === 0) return null;
+            const colorMap = { danger: { bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.3)", text: "var(--red)" }, warning: { bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.3)", text: "var(--amber)" }, info: { bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.3)", text: "var(--cyan)" } };
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {alerts.map((a, i) => {
+                  const c = colorMap[a.type];
+                  return <div key={i} style={{ padding: "8px 14px", borderRadius: 8, background: c.bg, border: `1px solid ${c.border}`, fontSize: 11, color: c.text, fontWeight: 500 }}>{a.msg}</div>;
+                })}
+              </div>
+            );
+          })()}
+
           {/* Budget Summary Cards */}
-          {/* Budget Summary Cards — Redesigned */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Presupuesto mensual */}
             <div style={{ ...panelStyle, borderTop: "2px solid rgba(251,191,36,0.5)" }}>
