@@ -56,7 +56,7 @@ const goalLabel = (goal?: string) => {
 // Goal → Meta action_type mapping
 const GOAL_ACTION_MAP: Record<string, string[]> = {
   "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
-  "Leads (Formulario Meta)": ["lead", "leadgen_grouped"],
+  "Leads (Formulario Meta)": ["lead", "leadgen_grouped", "onsite_conversion.lead_grouped"],
   "Leads (Sitio Web / Pixel)": ["offsite_conversion.fb_pixel_lead"],
   "Leads (Todas las fuentes)": ["lead", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead"],
   "Ventas (Sitio Web)": ["offsite_conversion.fb_pixel_purchase"],
