@@ -19,8 +19,16 @@ interface CachedInsights {
 
 // Goal → Meta action_type priority mapping (shared with project detail page)
 export const GOAL_ACTION_MAP: Record<string, string[]> = {
+  // Explicit goals (new naming)
+  "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
+  "Leads (Formulario Meta)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "omni_lead"],
+  "Leads (Sitio Web / Pixel)": ["offsite_conversion.fb_pixel_lead", "lead", "omni_lead"],
+  "Leads (Todas las fuentes)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead", "onsite_conversion.lead_grouped", "onsite_conversion.lead"],
+  "Ventas (Sitio Web)": ["offsite_conversion.fb_pixel_purchase"],
+  "Ventas (Todas las fuentes)": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase"],
+  // Legacy goals
   "Conversaciones": ["onsite_conversion.messaging_conversation_started_7d", "messaging_conversation_started_7d", "onsite_conversion.messaging_first_reply"],
-  "Leads": ["lead", "leadgen_grouped", "onsite_conversion.lead_grouped"],
+  "Leads": ["onsite_conversion.flow_complete", "lead", "leadgen_grouped", "onsite_conversion.lead_grouped", "offsite_conversion.fb_pixel_lead", "omni_lead"],
   "Ventas (Purchase)": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase"],
   "Registros": ["complete_registration", "omni_complete_registration", "offsite_conversion.fb_pixel_complete_registration"],
   "Clics al sitio": ["link_click", "landing_page_view"],
@@ -31,8 +39,10 @@ export const GOAL_ACTION_MAP: Record<string, string[]> = {
   "Tráfico a tienda": ["store_visit"],
 };
 
+
 const RESULT_TYPES_FALLBACK = [
   "onsite_conversion.messaging_conversation_started_7d",
+  "onsite_conversion.flow_complete",
   "lead", "purchase", "complete_registration",
   "omni_purchase", "offsite_conversion", "onsite_conversion",
   "app_install", "landing_page_view", "link_click",

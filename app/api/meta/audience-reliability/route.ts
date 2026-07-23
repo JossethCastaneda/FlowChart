@@ -16,9 +16,9 @@ import { logger } from "@/lib/logger";
 const GOAL_ACTION_MAP: Record<string, string[]> = {
   // Explícitas
   "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
-  "Leads (Formulario Meta)": ["lead", "leadgen", "leadgen_grouped", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "omni_lead"],
+  "Leads (Formulario Meta)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "omni_lead"],
   "Leads (Sitio Web / Pixel)": ["offsite_conversion.fb_pixel_lead", "lead", "omni_lead"],
-  "Leads (Todas las fuentes)": ["lead", "leadgen", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead", "onsite_conversion.lead_grouped", "onsite_conversion.lead"],
+  "Leads (Todas las fuentes)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead", "onsite_conversion.lead_grouped", "onsite_conversion.lead"],
   "Ventas (Sitio Web)": ["offsite_conversion.fb_pixel_purchase"],
   "Ventas (Todas las fuentes)": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase"],
 
@@ -28,7 +28,7 @@ const GOAL_ACTION_MAP: Record<string, string[]> = {
     "messaging_conversation_started_7d",
     "onsite_conversion.messaging_first_reply",
   ],
-  "Leads": ["lead", "leadgen_grouped", "onsite_conversion.lead_grouped", "offsite_conversion.fb_pixel_lead", "omni_lead"],
+  "Leads": ["onsite_conversion.flow_complete", "lead", "leadgen_grouped", "onsite_conversion.lead_grouped", "offsite_conversion.fb_pixel_lead", "omni_lead"],
   "Ventas (Purchase)": [
     "purchase",
     "omni_purchase",
