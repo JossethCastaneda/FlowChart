@@ -8,7 +8,6 @@ import { Megaphone, Search, RefreshCw, AlertCircle, Plus, Info, Filter, X, Chevr
 import { PermissionGuard } from "@/components/layout/PermissionsContext";
 import DateRangePicker from "@/components/ui/DateRangePicker";
 import { AccountSelector } from "@/components/ads-manager/AccountSelector";
-import { BotSelector } from "@/components/shared/BotSelector";
 import { CreateCampaignModal } from "@/components/ads-manager/CreateCampaignModal";
 import { CreateAdSetModal } from "@/components/ads-manager/CreateAdSetModal";
 import { BreakdownSelector } from "@/components/ads-manager/BreakdownSelector";
@@ -121,8 +120,6 @@ function AdsManagerContent() {
   // Meta Ads connection status
   const [adsConnected, setAdsConnected] = useState<boolean | null>(null);
   const [justConnected, setJustConnected] = useState(false);
-
-  const [selectedBotId, setSelectedBotId] = useState("");
   const [isSyncing, setIsSyncing] = useState(false);
 
   const handleManualSync = async () => {
@@ -1342,11 +1339,6 @@ function AdsManagerContent() {
               accounts={accounts}
               selectedAccountId={selectedAccountId}
               onSelectAccount={setSelectedAccountId}
-            />
-            <BotSelector
-              selectedBotId={selectedBotId}
-              onSelectBot={setSelectedBotId}
-              platformFilter={platform}
             />
             <button
               onClick={handleManualSync}
