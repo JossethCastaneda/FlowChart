@@ -77,24 +77,27 @@ const GOAL_ACTION_MAP: Record<string, string[]> = {
 const RESULT_TYPES_FALLBACK = ['onsite_conversion.messaging_conversation_started_7d','onsite_conversion.flow_complete','lead','purchase','complete_registration','omni_purchase','offsite_conversion','onsite_conversion','app_install','landing_page_view','link_click'];
 const findResultAction = (actions: any[] | undefined, goal?: string) => {
   if (!actions?.length) return null;
-  // 1. If we know the goal, try its specific action types FIRST (exact match)
+  // 1. If we know the goal AND it has a specific map, use ONLY those types
   if (goal && GOAL_ACTION_MAP[goal]) {
     for (const t of GOAL_ACTION_MAP[goal]) {
       const exact = actions.find((a: any) => a.action_type === t);
       if (exact) return exact;
     }
+    // Goal has explicit map but no matching action found — return null (0 results)
+    // NEVER fall through to generic fallback, which would pick page_engagement/link_click
+    return null;
   }
-  // 2. Fallback: try exact match on common types (more specific first)
+  // 2. No explicit goal: try common result types (more specific first)
   for (const t of RESULT_TYPES_FALLBACK) {
     const exact = actions.find((a: any) => a.action_type === t);
     if (exact) return exact;
   }
-  // 3. Last resort: substring match on fallback types
+  // 3. Last resort when no goal: substring match
   for (const t of RESULT_TYPES_FALLBACK) {
-    const partial = actions.find((a: any) => a.action_type.includes(t));
+    const partial = actions.find((a: any) => a.action_type?.includes(t));
     if (partial) return partial;
   }
-  return actions[0];
+  return null;
 };
 const parseBudget = (s: string) => parseFloat(s.replace(/[^0-9.]/g, "")) || 0;
 const parseGoal = (s: string) => { const m = s.match(/(\d[\d,]*)/); return m ? parseInt(m[1].replace(/,/g, ""), 10) : 0; };

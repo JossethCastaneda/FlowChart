@@ -51,24 +51,27 @@ const RESULT_TYPES_FALLBACK = [
 /** Find the best result action from an actions array using goal-aware matching */
 export function findResultAction(actions: any[] | undefined, goal?: string): any | null {
   if (!actions?.length) return null;
-  // 1. If we know the goal, try its specific action types FIRST (exact match)
+  // 1. If we know the goal AND it has a specific map, use ONLY those types
   if (goal && GOAL_ACTION_MAP[goal]) {
     for (const t of GOAL_ACTION_MAP[goal]) {
       const exact = actions.find((a: any) => a.action_type === t);
       if (exact) return exact;
     }
+    // Goal has explicit map but no matching action found — return null (0 results)
+    // NEVER fall through to generic fallback, which would pick page_engagement/link_click
+    return null;
   }
-  // 2. Fallback: try exact match on common types
+  // 2. No explicit goal: try common result types
   for (const t of RESULT_TYPES_FALLBACK) {
     const exact = actions.find((a: any) => a.action_type === t);
     if (exact) return exact;
   }
-  // 3. Last resort: substring match
+  // 3. Last resort when no goal: substring match
   for (const t of RESULT_TYPES_FALLBACK) {
     const partial = actions.find((a: any) => a.action_type?.includes(t));
     if (partial) return partial;
   }
-  return actions[0];
+  return null;
 }
 
 /** Count total results from a timeSeries array using goal-aware matching */
