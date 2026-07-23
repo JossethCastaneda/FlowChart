@@ -97,6 +97,48 @@ export async function GET() {
         result.daily_detail = dailyDetail;
       }
 
+      // Hourly breakdown (same as heatmap)
+      const hourlyUrl = `https://graph.facebook.com/${META_API_VERSION}/${accId}/insights?` +
+        `fields=spend,impressions,actions&level=account&time_increment=1` +
+        `&breakdowns=hourly_stats_aggregated_by_advertiser_time_zone&date_preset=last_3d&limit=200` +
+        `&access_token=${accessToken}`;
+      
+      const hourlyRes = await fetch(hourlyUrl);
+      const hourlyJson = await hourlyRes.json();
+      
+      if (hourlyJson.error) {
+        result.hourly = { error: hourlyJson.error.message, code: hourlyJson.error.code };
+      } else {
+        const rows = hourlyJson.data || [];
+        const hasActions = rows.some((r: any) => "actions" in r);
+        const actionSumsH: Record<string, number> = {};
+        rows.forEach((r: any) => {
+          (r.actions || []).forEach((a: any) => {
+            actionSumsH[a.action_type] = (actionSumsH[a.action_type] || 0) + parseFloat(a.value || "0");
+          });
+        });
+        
+        // Sample row: show all fields
+        const sampleRow = rows[0] ? {
+          fields: Object.keys(rows[0]),
+          date_start: rows[0].date_start,
+          hourly_stats: rows[0].hourly_stats_aggregated_by_advertiser_time_zone,
+          spend: rows[0].spend,
+          impressions: rows[0].impressions,
+          has_actions: "actions" in rows[0],
+          actions_sample: rows[0].actions?.slice(0, 5),
+        } : null;
+        
+        result.hourly = {
+          total_rows: rows.length,
+          has_actions_field: hasActions,
+          action_types: Object.entries(actionSumsH)
+            .sort((a, b) => b[1] - a[1])
+            .map(([type, total]) => ({ type, total })),
+          sample_row: sampleRow,
+        };
+      }
+
       results.push(result);
     }
 
