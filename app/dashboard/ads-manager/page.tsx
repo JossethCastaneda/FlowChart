@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, Suspense } from "react";
+import React, { useState, useEffect, useCallback, Suspense, useRef } from "react";
 import { useSession as useSessionHook } from "next-auth/react";
 import { useSearchParams } from "next/navigation";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -21,7 +21,7 @@ import { EditAdSetModal } from "@/components/ads-manager/EditAdSetModal";
 import { EditAdModal } from "@/components/ads-manager/EditAdModal";
 import { FilterPanel, type FilterItem } from "@/components/ads-manager/FilterPanel";
 import { CampaignDrawer } from "@/components/ads-manager/CampaignDrawer";
-import { AlertsCenter } from "@/components/ads-manager/AlertsCenter";
+
 import { showToast } from "@/components/ui/Toast";
 import { useAlerts } from "@/hooks/useAlerts";
 import { ExportButton } from "@/components/ads-manager/ExportButton";
@@ -1510,8 +1510,8 @@ function AdsManagerContent() {
         </div>
       )}
 
-      {/* ── ALERTS CENTER ── */}
-      <AlertsCenterConnected data={filteredData} level={activeLevel} />
+      {/* ── ALERTS TOASTS ── */}
+      <AlertsToasts data={filteredData} level={activeLevel} />
 
       {/* Info advisory removed for compactness */}
 
@@ -1785,8 +1785,28 @@ function AdsManagerContent() {
   );
 }
 
-// AlertsCenter wrapper that uses the hook
-function AlertsCenterConnected({ data, level }: { data: any[]; level: "campaigns" | "adsets" | "ads" }) {
+// Alerts wrapper that triggers toasts with sound
+function AlertsToasts({ data, level }: { data: any[]; level: "campaigns" | "adsets" | "ads" }) {
   const alerts = useAlerts(data, level);
-  return <AlertsCenter alerts={alerts} />;
+  const shownAlerts = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    const newAlerts = alerts.filter(a => !shownAlerts.current.has(a.id));
+    if (newAlerts.length > 0) {
+      // Play sound once per batch
+      try {
+        const audio = new Audio("/sounds/notification.mp3");
+        audio.play().catch(() => {});
+      } catch (e) {}
+
+      // Show toasts
+      newAlerts.forEach(a => {
+        shownAlerts.current.add(a.id);
+        const type = a.level === "positive" ? "success" : a.level === "critical" ? "error" : "warning";
+        showToast(type, `${a.title}: ${a.message}`);
+      });
+    }
+  }, [alerts]);
+
+  return null;
 }
