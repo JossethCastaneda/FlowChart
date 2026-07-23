@@ -4,8 +4,11 @@ import React, { useState, useCallback, useRef } from "react";
 import {
   Search, TrendingUp, MessageCircle, ThumbsUp, ThumbsDown, Minus,
   Hash, Globe, Loader2, ExternalLink, Heart, Share2, BarChart2,
-  Sparkles, Users, Clock, ChevronRight, RefreshCw
+  Sparkles, Users, Clock, ChevronRight, RefreshCw,
+  AlertTriangle, Smile, Flame, ChartNoAxesColumn, type LucideIcon
 } from "lucide-react";
+import { SIcon } from "@/components/ui/SIcon";
+import { FacebookIcon, InstagramIcon } from "@/components/ui/AppIcons";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend
@@ -377,8 +380,8 @@ export function ListeningDashboard() {
         borderRadius: 16,
         padding: "24px 28px",
       }}>
-        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
-          🔍 {lang === "es" ? "Búsqueda de Keywords" : "Keyword Search"}
+        <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+          <SIcon icon={Search} size={18} />{lang === "es" ? "Búsqueda de Keywords" : "Keyword Search"}
         </h2>
         <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20 }}>
           {lang === "es"
@@ -493,8 +496,9 @@ export function ListeningDashboard() {
           padding: "16px 20px",
           color: "var(--c-danger)",
           fontSize: 14,
+          display: "flex", alignItems: "center", gap: 8,
         }}>
-          ⚠️ {error}
+          <SIcon icon={AlertTriangle} size={16} />{error}
         </div>
       )}
 
@@ -570,8 +574,8 @@ export function ListeningDashboard() {
 
             <div style={{ borderTop: "1px solid var(--border)", marginTop: 8, paddingTop: 8, padding: "8px 12px 4px" }}>
               <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-                📘 {result.sources.facebook} Facebook<br />
-                📸 {result.sources.instagram} Instagram
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><FacebookIcon size={12} />{result.sources.facebook} Facebook</span><br />
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5 }}><InstagramIcon size={12} />{result.sources.instagram} Instagram</span>
               </p>
             </div>
           </div>
@@ -621,8 +625,8 @@ export function ListeningDashboard() {
                   borderRadius: 12,
                   padding: 24,
                 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, color: "var(--text-primary)" }}>
-                    📈 {lang === "es" ? "Menciones en el tiempo" : "Mentions over time"}
+                  <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <SIcon icon={TrendingUp} size={16} />{lang === "es" ? "Menciones en el tiempo" : "Mentions over time"}
                   </h3>
                   {result.timeseries.some(t => t.count > 0) ? (
                     <ResponsiveContainer width="100%" height={220}>
@@ -644,7 +648,7 @@ export function ListeningDashboard() {
                     </ResponsiveContainer>
                   ) : (
                     <EmptyState
-                      icon="📊"
+                      icon={ChartNoAxesColumn}
                       message={lang === "es"
                         ? "No hay suficientes datos para mostrar la tendencia en el tiempo."
                         : "Not enough data to show the trend over time."}
@@ -778,8 +782,8 @@ export function ListeningDashboard() {
                   borderRadius: 12,
                   padding: 24,
                 }}>
-                  <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
-                    💭 {lang === "es" ? "Mapa de Temas" : "Topic Map"}
+                  <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                    <SIcon icon={Hash} size={16} />{lang === "es" ? "Mapa de Temas" : "Topic Map"}
                   </h3>
                   <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
                     {lang === "es"
@@ -802,7 +806,7 @@ export function ListeningDashboard() {
                     </div>
                   ) : (
                     <EmptyState
-                      icon="💭"
+                      icon={Hash}
                       message={lang === "es"
                         ? "Agrega más contenido relacionado con esta keyword para ver el mapa de temas."
                         : "Add more content related to this keyword to see the topic map."}
@@ -872,7 +876,7 @@ export function ListeningDashboard() {
 
                 {sortedPosts.length === 0 ? (
                   <EmptyState
-                    icon="🔍"
+                    icon={Search}
                     message={lang === "es"
                       ? "No se encontraron menciones de esta keyword en tus redes conectadas. Intenta con otra keyword o conecta más integraciones."
                       : "No mentions of this keyword found in your connected networks. Try a different keyword or connect more integrations."}
@@ -893,8 +897,8 @@ export function ListeningDashboard() {
                 borderRadius: 12,
                 padding: 24,
               }}>
-                <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
-                  🕐 {lang === "es" ? "Pico de Actividad" : "Activity Peak"}
+                <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)", display: "flex", alignItems: "center", gap: 8 }}>
+                  <SIcon icon={Clock} size={16} />{lang === "es" ? "Pico de Actividad" : "Activity Peak"}
                 </h3>
                 <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 24 }}>
                   {lang === "es"
@@ -905,7 +909,7 @@ export function ListeningDashboard() {
                   <ActivityHeatmap heatmap={result.heatmap} days={days} />
                 ) : (
                   <EmptyState
-                    icon="🕐"
+                    icon={Clock}
                     message={lang === "es"
                       ? "No hay datos de actividad para mostrar. Necesitas más menciones con fechas recientes."
                       : "No activity data to display. You need more mentions with recent dates."}
@@ -940,7 +944,7 @@ export function ListeningDashboard() {
 
                 {result.authors.length === 0 ? (
                   <EmptyState
-                    icon="👥"
+                    icon={Users}
                     message={lang === "es"
                       ? "No se encontraron autores para esta keyword."
                       : "No authors found for this keyword."}
@@ -987,7 +991,7 @@ export function ListeningDashboard() {
                             display: "flex", alignItems: "center", justifyContent: "center",
                             fontSize: 16, flexShrink: 0,
                           }}>
-                            {author.platform === "instagram" ? "📸" : "📘"}
+                            {author.platform === "instagram" ? <InstagramIcon size={16} /> : <FacebookIcon size={16} />}
                           </div>
                           <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
                             {author.name}
@@ -1049,7 +1053,7 @@ export function ListeningDashboard() {
           padding: "60px 24px",
           textAlign: "center",
         }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>🔍</div>
+          <div style={{ marginBottom: 16, display: "flex", justifyContent: "center" }}><SIcon icon={Search} size={56} style={{ color: "var(--text-muted)" }} /></div>
           <h3 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>
             {lang === "es" ? "Busca tu primera keyword" : "Search your first keyword"}
           </h3>
@@ -1061,13 +1065,13 @@ export function ListeningDashboard() {
 
           <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 40, flexWrap: "wrap" }}>
             {[
-              { icon: "📊", label: lang === "es" ? "Volumen en el tiempo" : "Volume over time" },
-              { icon: "😊", label: lang === "es" ? "Análisis de sentimiento" : "Sentiment analysis" },
-              { icon: "💭", label: lang === "es" ? "Mapa de temas" : "Topic map" },
-              { icon: "🔥", label: lang === "es" ? "Pico de actividad" : "Activity peak" },
+              { icon: ChartNoAxesColumn, label: lang === "es" ? "Volumen en el tiempo" : "Volume over time" },
+              { icon: Smile, label: lang === "es" ? "Análisis de sentimiento" : "Sentiment analysis" },
+              { icon: Hash, label: lang === "es" ? "Mapa de temas" : "Topic map" },
+              { icon: Flame, label: lang === "es" ? "Pico de actividad" : "Activity peak" },
             ].map(f => (
-              <div key={f.icon} style={{ textAlign: "center", maxWidth: 120 }}>
-                <div style={{ fontSize: 28, marginBottom: 6 }}>{f.icon}</div>
+              <div key={f.label} style={{ textAlign: "center", maxWidth: 120 }}>
+                <div style={{ marginBottom: 6, display: "flex", justifyContent: "center" }}><SIcon icon={f.icon} size={28} style={{ color: "var(--text-muted)" }} /></div>
                 <div style={{ fontSize: 12, color: "var(--text-secondary)" }}>{f.label}</div>
               </div>
             ))}
@@ -1109,7 +1113,7 @@ function PostCard({ post }: { post: SearchResult["posts"][0] }) {
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 16, flexShrink: 0,
           }}>
-            {post.platform === "instagram" ? "📸" : "📘"}
+            {post.platform === "instagram" ? <InstagramIcon size={16} /> : <FacebookIcon size={16} />}
           </div>
           <div>
             <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{post.author}</p>
@@ -1190,7 +1194,7 @@ function PostCard({ post }: { post: SearchResult["posts"][0] }) {
 /* ─────────────────────────────────────────────────────────────
    EmptyState helper
 ───────────────────────────────────────────────────────────── */
-function EmptyState({ icon, message }: { icon: string; message: string }) {
+function EmptyState({ icon, message }: { icon: LucideIcon; message: string }) {
   return (
     <div style={{
       display: "flex",
@@ -1202,7 +1206,7 @@ function EmptyState({ icon, message }: { icon: string; message: string }) {
       color: "var(--text-secondary)",
       gap: 12,
     }}>
-      <span style={{ fontSize: 36 }}>{icon}</span>
+      <SIcon icon={icon} size={36} style={{ color: "var(--text-muted)" }} />
       <p style={{ fontSize: 14, maxWidth: 380, lineHeight: 1.6 }}>{message}</p>
     </div>
   );
