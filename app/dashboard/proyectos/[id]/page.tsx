@@ -522,6 +522,15 @@ export default function ProjectDashboardPage() {
 
   // Aggregate metrics
   let totalSpend = 0, totalResults = 0, totalImpressions = 0, totalClicks = 0, totalReach = 0, totalActionValue = 0;
+  // DEBUG: Log FIRST day's actions to understand what Meta returns
+  const _firstDay = (insights?.timeSeries || [])[0];
+  if (_firstDay?.actions) {
+    console.debug("[LEADS-DEBUG] Goal:", ch?.goal);
+    console.debug("[LEADS-DEBUG] All action_types from first day:", _firstDay.actions.map((a: any) => `${a.action_type}=${a.value}`).join(", "));
+    const _picked = findResultAction(_firstDay.actions, ch?.goal);
+    console.debug("[LEADS-DEBUG] Picked action_type:", _picked?.action_type, "value:", _picked?.value);
+  }
+
   (insights?.timeSeries || []).forEach((d: any) => {
     totalSpend += parseFloat(d.spend || "0"); totalImpressions += parseInt(d.impressions || "0", 10); totalClicks += parseInt(d.clicks || "0", 10);
     totalReach += parseInt(d.reach || "0", 10);
