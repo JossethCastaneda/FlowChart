@@ -58,7 +58,7 @@ function Toast({ alert, onDismiss }: ToastProps) {
       onClick={handleClose}
     >
       <div style={{ flexShrink: 0, marginTop: 1 }}>
-        <Icon size={16} style={{ color: config.text }} />
+        <Icon size={16} color={config.text} />
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <p style={{ fontSize: 12, fontWeight: 700, color: config.text, margin: 0, lineHeight: 1.3 }}>

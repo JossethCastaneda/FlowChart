@@ -167,7 +167,7 @@ export default function AlertsPanel() {
               }}
             >
               <div style={{ flexShrink: 0, marginTop: 2 }}>
-                <Icon size={14} style={{ color: config.text }} />
+                <Icon size={14} color={config.text} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
