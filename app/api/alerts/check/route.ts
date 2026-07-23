@@ -113,10 +113,10 @@ export async function GET(req: NextRequest) {
         const findResult = (actions: any[]) => {
           if (!actions?.length) return null;
           for (const t of RESULT_TYPES) {
-            const f = actions.find((a: any) => a.action_type.includes(t));
+            const f = actions.find((a: any) => a.action_type?.includes(t));
             if (f) return f;
           }
-          return actions[0];
+          return null;
         };
 
         const ra = findResult(insightsData.actions);
