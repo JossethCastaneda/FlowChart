@@ -65,12 +65,12 @@ const TRANSLATIONS = {
     testChatDesc: "Envía un mensaje de prueba para verificar que la línea funcione.",
     recipientNum: "Número destinatario",
     useTemplate: "Usar plantilla",
-    templateNoteOk: "✅ Recomendado — funciona sin depender de ventana 24h",
-    templateNoteWarn: "⚠️ Solo si el destinatario interactuó en las últimas 24h",
+    templateNoteOk: "Recomendado -- funciona sin depender de ventana 24h",
+    templateNoteWarn: "Solo si el destinatario interactuo en las ultimas 24h",
     cancel: "Cancelar",
     sendTest: "Enviar prueba",
     sending: "Enviando...",
-    sentSuccess: "Enviado ✓ ID: {id}",
+    sentSuccess: "Enviado - ID: {id}",
     sendError: "Error al enviar",
     editProfile: "Editar perfil",
     editProfileDesc: "Actualiza la información de tu perfil comercial de WhatsApp.",
@@ -134,12 +134,12 @@ const TRANSLATIONS = {
     testChatDesc: "Send a test message to verify the line is working.",
     recipientNum: "Recipient number",
     useTemplate: "Use template",
-    templateNoteOk: "✅ Recommended — works without depending on a 24h window",
-    templateNoteWarn: "⚠️ Only if the recipient interacted in the last 24h",
+    templateNoteOk: "Recommended -- works without depending on a 24h window",
+    templateNoteWarn: "Only if the recipient interacted in the last 24h",
     cancel: "Cancel",
     sendTest: "Send test",
     sending: "Sending...",
-    sentSuccess: "Sent ✓ ID: {id}",
+    sentSuccess: "Sent - ID: {id}",
     sendError: "Error sending",
     editProfile: "Edit profile",
     editProfileDesc: "Update your WhatsApp business profile information.",
@@ -341,7 +341,7 @@ function TestChatModal({ line, onClose }: { line: WaLine; onClose: () => void })
         body: JSON.stringify({ phoneNumberId: line.id, recipient: recipient.replace(/\D/g, ""), useTemplate }),
       });
       const data = await res.json();
-      if (res.ok && data.success) setResult({ ok: true, msg: `${lang === "es" ? "Enviado" : "Sent"} ✓ ID: ${data.data?.messageId || "—"}` });
+      if (res.ok && data.success) setResult({ ok: true, msg: `${lang === "es" ? "Enviado" : "Sent"} - ID: ${data.data?.messageId || "—"}` });
       else setResult({ ok: false, msg: data.error || t.sendError });
     } catch { setResult({ ok: false, msg: "t.networkError" }); }
     setSending(false);

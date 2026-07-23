@@ -342,7 +342,7 @@ export const CreativeLightbox = ({
                 )}
                 <div>
                   <p style={{ fontSize: 12, fontWeight: 600, color: "var(--foreground)" }}>{pageName || ad.title || ad.adName}</p>
-                  <p style={{ fontSize: 10, color: "var(--text-secondary)" }}>Publicidad · 🌐</p>
+                  <p style={{ fontSize: 10, color: "var(--text-secondary)" }}>Publicidad · </p>
                 </div>
               </div>
             </div>

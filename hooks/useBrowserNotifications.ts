@@ -158,7 +158,7 @@ export function useBrowserNotifications() {
       } else {
         // Múltiples mensajes — notificación agrupada
         const notification = new Notification(
-          `💬 ${newUnread.length} nuevos mensajes`,
+          ` ${newUnread.length} nuevos mensajes`,
           {
             body: newUnread
               .slice(0, 4)

@@ -130,7 +130,7 @@ export function PlanUsageMeter({ onUpgrade }: PlanUsageMeterProps) {
             onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.85")}
             onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
           >
-            {hasAnyExceeded ? "⚠ Actualizar ahora" : `Mejorar a ${nextPlan ? PLAN_LABELS[nextPlan] : "Pro"}`}
+            {hasAnyExceeded ? "Actualizar ahora" : `Mejorar a ${nextPlan ? PLAN_LABELS[nextPlan] : "Pro"}`}
           </button>
         )}
       </div>
@@ -167,7 +167,7 @@ export function PlanUsageMeter({ onUpgrade }: PlanUsageMeterProps) {
 
       {isHighestPlan && (
         <p style={{ fontSize: "11px", color: "rgba(100,116,139,0.7)", textAlign: "center", margin: "8px 0 0" }}>
-          ✓ Estás en el plan más alto — todos los límites son ilimitados
+          Estás en el plan más alto — todos los límites son ilimitados
         </p>
       )}
     </div>

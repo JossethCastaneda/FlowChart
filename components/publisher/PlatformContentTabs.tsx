@@ -68,7 +68,7 @@ export function PlatformContentTabs({
             fontFamily: "var(--font-sans)",
           }}
         >
-          ✏️ Mismo texto
+          Mismo texto
         </button>
         <button
           onClick={() => onToggle(true)}
@@ -90,7 +90,7 @@ export function PlatformContentTabs({
             fontFamily: "var(--font-sans)",
           }}
         >
-          🔀 Por plataforma
+          Por plataforma
         </button>
       </div>
 
@@ -127,7 +127,7 @@ export function PlatformContentTabs({
                 fontFamily: "var(--font-sans)",
               }}
             >
-              📘 Facebook
+              Facebook
             </button>
             {/* Instagram tab */}
             <button
@@ -151,7 +151,7 @@ export function PlatformContentTabs({
                 fontFamily: "var(--font-sans)",
               }}
             >
-              📷 Instagram
+              Instagram
             </button>
           </div>
 

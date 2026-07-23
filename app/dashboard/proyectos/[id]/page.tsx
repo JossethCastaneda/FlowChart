@@ -814,11 +814,11 @@ background: "var(--surface)", border: "1px solid var(--border)",
                       if (mCpr <= 0) {
                         statusEl = <span style={{ color: "var(--text-muted)" }}>Sin meta</span>;
                       } else if (actualCpa <= mCpr * 1.05) {
-                        statusEl = <span style={{ color: "var(--emerald)", fontWeight: 600 }}>🟢 Superado</span>;
+                        statusEl = <span style={{ color: "var(--emerald)", fontWeight: 600 }}> Superado</span>;
                       } else if (actualCpa <= mCpr * 1.20) {
-                        statusEl = <span style={{ color: "var(--amber)", fontWeight: 600 }}>🟡 Riesgo</span>;
+                        statusEl = <span style={{ color: "var(--amber)", fontWeight: 600 }}> Riesgo</span>;
                       } else {
-                        statusEl = <span style={{ color: "var(--red)", fontWeight: 600 }}>🔴 Desviado</span>;
+                        statusEl = <span style={{ color: "var(--red)", fontWeight: 600 }}> Desviado</span>;
                       }
 
                       return (
@@ -877,7 +877,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   border: `1px solid ${trackStatus === "on-track" ? "rgba(0,200,117,0.25)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.25)" : "rgba(226,68,92,0.25)"}`,
                   boxShadow: trackStatus === "on-track" ? "0 0 12px rgba(0,200,117,0.15)" : trackStatus === "at-risk" ? "0 0 12px rgba(253,171,61,0.15)" : "0 0 12px rgba(226,68,92,0.15)",
                 }}>
-                  {trackStatus === "on-track" ? "✓ EN TRACK" : trackStatus === "at-risk" ? "⚠ EN RIESGO" : trackStatus === "off-track" ? "✕ FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
+                  {trackStatus === "on-track" ? "EN TRACK" : trackStatus === "at-risk" ? "EN RIESGO" : trackStatus === "off-track" ? "FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
                 </div>
               </div>
               {/* Sub-KPI mini-cards */}
@@ -1047,7 +1047,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   <p style={{ fontSize: 9, color: "var(--text-secondary)", fontWeight: 700, letterSpacing: "0.1em" }}>RITMO DE GASTO</p>
                 </div>
                 <p style={{ fontSize: 14, fontWeight: 700, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }}>
-                  {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo ✓"}
+                  {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo"}
                 </p>
                 <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
                   Ideal hoy: <strong style={{ color: "var(--text-secondary)" }}>{fmtMXN(idealSpendToday)}</strong> · Real: <strong style={{ color: "var(--text-secondary)" }}>{fmtMXN(totalSpend)}</strong>
@@ -1339,10 +1339,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
             const alerts: { type: "warning" | "danger" | "info"; msg: string }[] = [];
             const todayStr2 = new Date().toISOString().slice(0, 10);
             const todayS = timeSeriesData.filter((d: any) => d.fullDate === todayStr2).reduce((s: number, d: any) => s + d.spend, 0);
-            if (todayS > bk.daily * 1.5) alerts.push({ type: "danger", msg: `⚠️ Sobregasto hoy: ${fmtMXN0(todayS)} gastado (${pct((todayS / bk.daily) * 100)} del diario ideal de ${fmtMXN(bk.daily)})` });
-            if (totalSpend > idealSpendToday * 1.2 && idealSpendToday > 0) alerts.push({ type: "warning", msg: `📊 El acumulado (${fmtMXN0(totalSpend)}) va ${pct(((totalSpend / idealSpendToday) - 1) * 100)} por encima de la curva ideal (${fmtMXN0(idealSpendToday)})` });
-            if (cprTarget > 0 && cpr > cprTarget * 1.5 && totalResults > 0) alerts.push({ type: "danger", msg: `💸 CPR elevado: ${fmtMXN(cpr)} vs meta de ${fmtMXN(cprTarget)} (+${pct(((cpr / cprTarget) - 1) * 100)})` });
-            if (bk.monthly > 0 && totalSpend < idealSpendToday * 0.5 && daysElapsed > 5) alerts.push({ type: "info", msg: `💤 Sub-gasto: solo ${pct((totalSpend / idealSpendToday) * 100)} del ideal acumulado. ¿La campaña está activa?` });
+            if (todayS > bk.daily * 1.5) alerts.push({ type: "danger", msg: `Sobregasto hoy: ${fmtMXN0(todayS)} gastado (${pct((todayS / bk.daily) * 100)} del diario ideal de ${fmtMXN(bk.daily)})` });
+            if (totalSpend > idealSpendToday * 1.2 && idealSpendToday > 0) alerts.push({ type: "warning", msg: `El acumulado (${fmtMXN0(totalSpend)}) va ${pct(((totalSpend / idealSpendToday) - 1) * 100)} por encima de la curva ideal (${fmtMXN0(idealSpendToday)})` });
+            if (cprTarget > 0 && cpr > cprTarget * 1.5 && totalResults > 0) alerts.push({ type: "danger", msg: `CPR elevado: ${fmtMXN(cpr)} vs meta de ${fmtMXN(cprTarget)} (+${pct(((cpr / cprTarget) - 1) * 100)})` });
+            if (bk.monthly > 0 && totalSpend < idealSpendToday * 0.5 && daysElapsed > 5) alerts.push({ type: "info", msg: `Sub-gasto: solo ${pct((totalSpend / idealSpendToday) * 100)} del ideal acumulado. La campana esta activa?` });
             if (alerts.length === 0) return null;
             const colorMap = { danger: { bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.3)", text: "var(--red)" }, warning: { bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.3)", text: "var(--amber)" }, info: { bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.3)", text: "var(--cyan)" } };
             return (
@@ -1537,7 +1537,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                       onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; e.currentTarget.style.color = "var(--foreground)"; }}
                       onMouseLeave={e => { e.currentTarget.style.background = "var(--surface-hover)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
                     >
-                      📥 Exportar CSV
+                      Exportar CSV
                     </button>
                   </div>
                   <table style={{ borderCollapse: "collapse", fontSize: 11, minWidth: "100%" }}>
@@ -1548,7 +1548,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 10, color: "var(--foreground)" }}>FECHA</th>
                         {cols.map((c: any, i: number) => {
                           const isToday = c.fullDate === todayFullDate;
-                          return <th key={i} style={{ ...headerCellStyle, ...(isToday ? { background: "var(--emerald)", fontWeight: 800 } : {}) }}>{c.dayName}{isToday ? " ★" : ""}</th>;
+                          return <th key={i} style={{ ...headerCellStyle, ...(isToday ? { background: "var(--emerald)", fontWeight: 800 } : {}) }}>{c.dayName}{isToday ? " (Hoy)" : ""}</th>;
                         })}
                       </tr>
                       {/* Date numbers row */}
@@ -2027,7 +2027,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                                   ? <img src={ad.thumbnailUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                                   : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "var(--text-secondary)" }} /></div>
                                 }
-                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>▶</span>}
+                                {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}></span>}
                                 {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>⟡</span>}
                               </div>
                               <span style={{ color: "var(--foreground)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
@@ -2253,7 +2253,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   }}>
                     <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🏆</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}></div>
                       <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
@@ -2281,7 +2281,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   }}>
                     <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🥇</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}></div>
                       <p style={{ fontSize: 9, color: "var(--purple)", fontWeight: 800, letterSpacing: "0.12em" }}>ADSET GANADOR</p>
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>

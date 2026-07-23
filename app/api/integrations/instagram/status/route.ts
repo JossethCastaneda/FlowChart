@@ -62,8 +62,8 @@ export const GET = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextReques
     callbackUrl: `${baseUrl}/api/webhooks/meta`,
     verifyToken: verifyToken ?? null,
     verifyTokenHint: verifyToken
-      ? `✅ Configurado. Úsalo exactamente así en Meta Developers: "${verifyToken}"`
-      : "❌ No configurado. Agrega META_WEBHOOK_VERIFY_TOKEN en Vercel > Settings > Environment Variables.",
+      ? ` Configurado. Úsalo exactamente así en Meta Developers: "${verifyToken}"`
+      : " No configurado. Agrega META_WEBHOOK_VERIFY_TOKEN en Vercel > Settings > Environment Variables.",
     appId: appId ?? null,
     subscribedFields: ["messages", "messaging_postbacks", "comments", "mentions", "story_insights"],
   };

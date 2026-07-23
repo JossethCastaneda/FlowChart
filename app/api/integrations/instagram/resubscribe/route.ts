@@ -67,7 +67,7 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextReque
       const ok = res.ok && !!data.success;
       attempts.push({ endpoint: label, ok, data });
       if (ok) {
-        logger.info(`[IG RESUBSCRIBE] ✅ Webhook subscription via ${label}`, { workspaceId, instagramUserId });
+        logger.info(`[IG RESUBSCRIBE] Webhook subscription via ${label}`, { workspaceId, instagramUserId });
         // Guardar el resultado en la DB
         await prisma.integration.update({
           where: { id: igInteg.id },
@@ -111,7 +111,7 @@ export const POST = withWorkspaceRole(["OWNER", "ADMIN"])(async (_req: NextReque
     return NextResponse.json({ success: true, endpoint: "graph.facebook.com/me", subscribedFields, attempts });
   }
 
-  logger.warn("[IG RESUBSCRIBE] ⚠️ All subscription attempts failed", { workspaceId, attempts });
+  logger.warn("[IG RESUBSCRIBE] All subscription attempts failed", { workspaceId, attempts });
   return NextResponse.json({
     success: false,
     error: "Subscription failed on all endpoints",

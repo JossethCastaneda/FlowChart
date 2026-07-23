@@ -73,7 +73,7 @@ export async function GET(
     const expBuf = Buffer.from(expected, "hex");
 
     if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
-      logger.warn("[OAUTH CALLBACK] ❌ HMAC signature mismatch");
+      logger.warn("[OAUTH CALLBACK]  HMAC signature mismatch");
       return NextResponse.redirect(`${integrationsUrl}?connect_error=invalid_state`);
     }
 
@@ -85,17 +85,17 @@ export async function GET(
 
     // Anti-replay: rechazar estados de más de 15 min (o sin timestamp = legacy).
     if (typeof decoded.ts !== "number" || Date.now() - decoded.ts > 15 * 60 * 1000) {
-      logger.warn("[OAUTH CALLBACK] ❌ State expirado o sin timestamp");
+      logger.warn("[OAUTH CALLBACK]  State expirado o sin timestamp");
       return NextResponse.redirect(`${integrationsUrl}?connect_error=state_expired`);
     }
 
     if (userId !== jwt.sub) {
-      logger.warn(`[OAUTH CALLBACK] ❌ User mismatch — state: ${userId}, jwt: ${jwt.sub}`);
+      logger.warn(`[OAUTH CALLBACK]  User mismatch — state: ${userId}, jwt: ${jwt.sub}`);
       return NextResponse.redirect(`${integrationsUrl}?connect_error=user_mismatch`);
     }
 
     if (provider !== providerParam) {
-      logger.warn(`[OAUTH CALLBACK] ❌ Provider mismatch — state: ${provider}, URL: ${providerParam}`);
+      logger.warn(`[OAUTH CALLBACK]  Provider mismatch — state: ${provider}, URL: ${providerParam}`);
       return NextResponse.redirect(`${integrationsUrl}?connect_error=provider_mismatch`);
     }
   } catch {
@@ -112,7 +112,7 @@ export async function GET(
       select: { role: true },
     });
     if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {
-      logger.warn("[OAUTH CALLBACK] ❌ Membership/role check failed", { workspaceId, userId });
+      logger.warn("[OAUTH CALLBACK]  Membership/role check failed", { workspaceId, userId });
       return NextResponse.redirect(`${integrationsUrl}?connect_error=forbidden`);
     }
   }
@@ -211,7 +211,7 @@ export async function GET(
       },
     });
 
-    logger.info(`[OAUTH CALLBACK] ✅ ${config.label} connected for workspace ${workspaceId}`);
+    logger.info(`[OAUTH CALLBACK]  ${config.label} connected for workspace ${workspaceId}`);
     const successUrl = isPopup
       ? `${baseUrl}/connect/done?module=${provider}`
       : `${integrationsUrl}?connected=${provider}`;

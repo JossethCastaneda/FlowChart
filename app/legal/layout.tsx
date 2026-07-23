@@ -74,7 +74,7 @@ export default function LegalLayout({ children }: { children: React.ReactNode })
         marginTop: 80,
       }}>
         <p style={{ fontSize: 12, color: "var(--text-muted)" }}>
-          © {new Date().getFullYear()} Zefirus. Todos los derechos reservados.
+           {new Date().getFullYear()} Zefirus. Todos los derechos reservados.
         </p>
         <div style={{ display: "flex", gap: 20, justifyContent: "center", marginTop: 12 }}>
           <Link href="/legal/terms" style={{ fontSize: 12, color: "var(--text-muted)", textDecoration: "none" }}>

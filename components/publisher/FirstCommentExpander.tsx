@@ -154,7 +154,7 @@ export function FirstCommentExpander({ value, onChange, visible }: Props) {
               gap: 6,
             }}
           >
-            <span style={{ color: "#E1306C", fontSize: 14 }}>ℹ</span>
+            <span style={{ color: "#E1306C", fontSize: 14 }}></span>
             Se publica automáticamente justo después del post
           </div>
         </div>

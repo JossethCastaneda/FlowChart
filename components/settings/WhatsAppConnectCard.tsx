@@ -816,8 +816,8 @@ export function WhatsAppConnectCard() {
               </div>
               <span style={{ fontSize: "9px", color: "var(--text-secondary)", display: "block", marginTop: -6 }}>
                 {useTemplate 
-                  ? "✅ Recomendado: Se salta la ventana de 24h y funciona siempre."
-                  : "⚠️ Solo funciona si el destinatario interactuó en las últimas 24h."
+                  ? "Recomendado: Se salta la ventana de 24h y funciona siempre."
+                  : "Solo funciona si el destinatario interactuó en las últimas 24h."
                 }
               </span>
 

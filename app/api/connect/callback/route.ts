@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
     const expBuf = Buffer.from(expected, "hex");
 
     if (sigBuf.length !== expBuf.length || !timingSafeEqual(sigBuf, expBuf)) {
-      logger.warn("[CONNECT CALLBACK] ❌ HMAC signature mismatch — possible CSRF attack");
+      logger.warn("[CONNECT CALLBACK] HMAC signature mismatch — possible CSRF attack");
       return NextResponse.redirect(`${baseUrl}/connect/done?error=invalid_state`);
     }
 
@@ -84,13 +84,13 @@ export async function GET(request: NextRequest) {
     // Anti-replay: rechazar estados de más de 15 min (o sin timestamp = legacy).
     const STATE_TTL_MS = 15 * 60 * 1000;
     if (typeof decoded.ts !== "number" || Date.now() - decoded.ts > STATE_TTL_MS) {
-      logger.warn("[CONNECT CALLBACK] ❌ State expirado o sin timestamp");
+      logger.warn("[CONNECT CALLBACK] State expirado o sin timestamp");
       return NextResponse.redirect(`${baseUrl}/connect/done?error=state_expired`);
     }
 
     // Verify that the userId in the state matches the current JWT session
     if (userId !== jwt.sub) {
-      logger.warn(`[CONNECT CALLBACK] ❌ User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
+      logger.warn(`[CONNECT CALLBACK] User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
       return NextResponse.redirect(`${baseUrl}/connect/done?error=user_mismatch`);
     }
   } catch {
@@ -188,7 +188,7 @@ export async function GET(request: NextRequest) {
         // FIX: Validate permissions match module requirements
         const validation = validateModulePermissions(module, userScopes);
         if (!validation.valid) {
-          logger.warn(`[CONNECT CALLBACK] ⚠️ Missing scopes for ${module}:`, validation.missing);
+          logger.warn(`[CONNECT CALLBACK] Missing scopes for ${module}:`, validation.missing);
           // Don't fail yet — proceed but log warning
         }
       }
@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
         where: { userId, workspaceId: resolvedWorkspaceId, role: { in: ["OWNER", "ADMIN"] } },
       });
       if (!member) {
-        logger.warn(`[CONNECT CALLBACK] ❌ User ${userId} is not OWNER/ADMIN of workspace ${resolvedWorkspaceId}`);
+        logger.warn(`[CONNECT CALLBACK] User ${userId} is not OWNER/ADMIN of workspace ${resolvedWorkspaceId}`);
         return NextResponse.redirect(`${baseUrl}/connect/done?error=insufficient_role`);
       }
     } else {
@@ -368,7 +368,7 @@ export async function GET(request: NextRequest) {
 
     if (wouldLoseScopes) {
       logger.warn(
-        `[CONNECT CALLBACK] ⚠️ Token genérico "meta" conservado (el módulo "${module}" no cubre scopes existentes: ${existingScopes.filter((s) => !newScopeSet.has(s)).join(", ")})`
+        `[CONNECT CALLBACK] Token genérico "meta" conservado (el módulo "${module}" no cubre scopes existentes: ${existingScopes.filter((s) => !newScopeSet.has(s)).join(", ")})`
       );
     }
 
@@ -403,7 +403,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    logger.info(`[CONNECT CALLBACK] ✅ Module "${module}" connected with ${pages.length} pages`);
+    logger.info(`[CONNECT CALLBACK] Module "${module}" connected with ${pages.length} pages`);
 
     // Invalida el cache de connection-status (F6) para que el estado refleje la
     // nueva conexión de inmediato en vez de esperar el TTL.
@@ -431,17 +431,17 @@ export async function GET(request: NextRequest) {
           });
         }
       }
-      logger.info(`[CONNECT CALLBACK] ✅ Seeded asset cache: ${pages.length} pages for module ${module}`);
+      logger.info(`[CONNECT CALLBACK] Seeded asset cache: ${pages.length} pages for module ${module}`);
     } catch (cacheErr) {
-      logger.warn("[CONNECT CALLBACK] ⚠️ Asset cache seed failed (non-fatal — workflow will retry):", cacheErr);
+      logger.warn("[CONNECT CALLBACK] Asset cache seed failed (non-fatal — workflow will retry):", cacheErr);
     }
 
     // Dispatch background sync workflow for deep asset data (campaigns, ad accounts, etc.)
     try {
       await start(syncIntegrationAssetsWorkflow, [metaIntegration.id]);
-      logger.info(`[CONNECT CALLBACK] ⚡ Dispatched asset sync for integration ${metaIntegration.id}`);
+      logger.info(`[CONNECT CALLBACK] Dispatched asset sync for integration ${metaIntegration.id}`);
     } catch (syncErr) {
-      logger.error("[CONNECT CALLBACK] ❌ Failed to dispatch sync workflow:", syncErr);
+      logger.error("[CONNECT CALLBACK] Failed to dispatch sync workflow:", syncErr);
     }
 
     // Auto-suscribir webhooks con UNION de scopes de todas las integraciones.
@@ -477,10 +477,10 @@ export async function GET(request: NextRequest) {
           details: { module, pages: rawPages.length, subscribed, failed, unionScopes: unionScopes.length },
         },
       }).catch((auditErr) => {
-        logger.error("[CONNECT CALLBACK] ❌ Failed to write AuditLog:", auditErr);
+        logger.error("[CONNECT CALLBACK] Failed to write AuditLog:", auditErr);
       });
     } catch (subErr) {
-      logger.error("[CONNECT CALLBACK] ❌ Webhook auto-subscribe failed:", subErr);
+      logger.error("[CONNECT CALLBACK] Webhook auto-subscribe failed:", subErr);
     }
 
     // Always redirect to /connect/done — it handles popup close OR fallback navigation
@@ -664,7 +664,7 @@ async function handleInstagramDirectCallback({
       },
     });
 
-    logger.info("[IG DIRECT CALLBACK] ✅ Integration saved", {
+    logger.info("[IG DIRECT CALLBACK] Integration saved", {
       workspaceId: resolvedWorkspaceId,
       instagramUserId,
       username: profile.username,
@@ -728,7 +728,7 @@ async function handleInstagramDirectCallback({
           if (subRes.ok && subData.success) {
             subscriptionOk = true;
             successEndpoint = endpoint;
-            logger.info("[IG DIRECT CALLBACK] ✅ Webhook subscription activated", {
+            logger.info("[IG DIRECT CALLBACK] Webhook subscription activated", {
               instagramUserId,
               endpoint,
               fields: subscribedFields,
@@ -781,7 +781,7 @@ async function handleInstagramDirectCallback({
       }
 
       if (!subscriptionOk) {
-        logger.error("[IG DIRECT CALLBACK] ❌ ALL webhook subscription endpoints failed", {
+        logger.error("[IG DIRECT CALLBACK] ALL webhook subscription endpoints failed", {
           instagramUserId,
           igAppId,
           lastError,

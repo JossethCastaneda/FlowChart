@@ -378,7 +378,7 @@ export function ListeningDashboard() {
         padding: "24px 28px",
       }}>
         <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
-          🔍 {lang === "es" ? "Búsqueda de Keywords" : "Keyword Search"}
+          {lang === "es" ? "Búsqueda de Keywords" : "Keyword Search"}
         </h2>
         <p style={{ fontSize: 14, color: "var(--text-secondary)", marginBottom: 20 }}>
           {lang === "es"
@@ -494,7 +494,7 @@ export function ListeningDashboard() {
           color: "var(--c-danger)",
           fontSize: 14,
         }}>
-          ⚠️ {error}
+          {error}
         </div>
       )}
 
@@ -570,8 +570,8 @@ export function ListeningDashboard() {
 
             <div style={{ borderTop: "1px solid var(--border)", marginTop: 8, paddingTop: 8, padding: "8px 12px 4px" }}>
               <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>
-                📘 {result.sources.facebook} Facebook<br />
-                📸 {result.sources.instagram} Instagram
+                {result.sources.facebook} Facebook<br />
+                {result.sources.instagram} Instagram
               </p>
             </div>
           </div>
@@ -622,7 +622,7 @@ export function ListeningDashboard() {
                   padding: 24,
                 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 20, color: "var(--text-primary)" }}>
-                    📈 {lang === "es" ? "Menciones en el tiempo" : "Mentions over time"}
+                    {lang === "es" ? "Menciones en el tiempo" : "Mentions over time"}
                   </h3>
                   {result.timeseries.some(t => t.count > 0) ? (
                     <ResponsiveContainer width="100%" height={220}>
@@ -644,7 +644,7 @@ export function ListeningDashboard() {
                     </ResponsiveContainer>
                   ) : (
                     <EmptyState
-                      icon="📊"
+                      icon=""
                       message={lang === "es"
                         ? "No hay suficientes datos para mostrar la tendencia en el tiempo."
                         : "Not enough data to show the trend over time."}
@@ -779,7 +779,7 @@ export function ListeningDashboard() {
                   padding: 24,
                 }}>
                   <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
-                    💭 {lang === "es" ? "Mapa de Temas" : "Topic Map"}
+                    {lang === "es" ? "Mapa de Temas" : "Topic Map"}
                   </h3>
                   <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 20 }}>
                     {lang === "es"
@@ -802,7 +802,7 @@ export function ListeningDashboard() {
                     </div>
                   ) : (
                     <EmptyState
-                      icon="💭"
+                      icon=""
                       message={lang === "es"
                         ? "Agrega más contenido relacionado con esta keyword para ver el mapa de temas."
                         : "Add more content related to this keyword to see the topic map."}
@@ -872,7 +872,7 @@ export function ListeningDashboard() {
 
                 {sortedPosts.length === 0 ? (
                   <EmptyState
-                    icon="🔍"
+                    icon=""
                     message={lang === "es"
                       ? "No se encontraron menciones de esta keyword en tus redes conectadas. Intenta con otra keyword o conecta más integraciones."
                       : "No mentions of this keyword found in your connected networks. Try a different keyword or connect more integrations."}
@@ -894,7 +894,7 @@ export function ListeningDashboard() {
                 padding: 24,
               }}>
                 <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 6, color: "var(--text-primary)" }}>
-                  🕐 {lang === "es" ? "Pico de Actividad" : "Activity Peak"}
+                  {lang === "es" ? "Pico de Actividad" : "Activity Peak"}
                 </h3>
                 <p style={{ fontSize: 13, color: "var(--text-secondary)", marginBottom: 24 }}>
                   {lang === "es"
@@ -905,7 +905,7 @@ export function ListeningDashboard() {
                   <ActivityHeatmap heatmap={result.heatmap} days={days} />
                 ) : (
                   <EmptyState
-                    icon="🕐"
+                    icon=""
                     message={lang === "es"
                       ? "No hay datos de actividad para mostrar. Necesitas más menciones con fechas recientes."
                       : "No activity data to display. You need more mentions with recent dates."}
@@ -940,7 +940,7 @@ export function ListeningDashboard() {
 
                 {result.authors.length === 0 ? (
                   <EmptyState
-                    icon="👥"
+                    icon=""
                     message={lang === "es"
                       ? "No se encontraron autores para esta keyword."
                       : "No authors found for this keyword."}
@@ -987,7 +987,7 @@ export function ListeningDashboard() {
                             display: "flex", alignItems: "center", justifyContent: "center",
                             fontSize: 16, flexShrink: 0,
                           }}>
-                            {author.platform === "instagram" ? "📸" : "📘"}
+                            {author.platform === "instagram" ? "" : ""}
                           </div>
                           <span style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>
                             {author.name}
@@ -1049,7 +1049,7 @@ export function ListeningDashboard() {
           padding: "60px 24px",
           textAlign: "center",
         }}>
-          <div style={{ fontSize: 56, marginBottom: 16 }}>🔍</div>
+          <div style={{ fontSize: 56, marginBottom: 16 }}></div>
           <h3 style={{ fontSize: 20, fontWeight: 700, color: "var(--text-primary)", marginBottom: 8 }}>
             {lang === "es" ? "Busca tu primera keyword" : "Search your first keyword"}
           </h3>
@@ -1061,10 +1061,10 @@ export function ListeningDashboard() {
 
           <div style={{ display: "flex", justifyContent: "center", gap: 24, marginTop: 40, flexWrap: "wrap" }}>
             {[
-              { icon: "📊", label: lang === "es" ? "Volumen en el tiempo" : "Volume over time" },
-              { icon: "😊", label: lang === "es" ? "Análisis de sentimiento" : "Sentiment analysis" },
-              { icon: "💭", label: lang === "es" ? "Mapa de temas" : "Topic map" },
-              { icon: "🔥", label: lang === "es" ? "Pico de actividad" : "Activity peak" },
+              { icon: "", label: lang === "es" ? "Volumen en el tiempo" : "Volume over time" },
+              { icon: "", label: lang === "es" ? "Análisis de sentimiento" : "Sentiment analysis" },
+              { icon: "", label: lang === "es" ? "Mapa de temas" : "Topic map" },
+              { icon: "", label: lang === "es" ? "Pico de actividad" : "Activity peak" },
             ].map(f => (
               <div key={f.icon} style={{ textAlign: "center", maxWidth: 120 }}>
                 <div style={{ fontSize: 28, marginBottom: 6 }}>{f.icon}</div>
@@ -1109,7 +1109,7 @@ function PostCard({ post }: { post: SearchResult["posts"][0] }) {
             display: "flex", alignItems: "center", justifyContent: "center",
             fontSize: 16, flexShrink: 0,
           }}>
-            {post.platform === "instagram" ? "📸" : "📘"}
+            {post.platform === "instagram" ? "" : ""}
           </div>
           <div>
             <p style={{ fontSize: 14, fontWeight: 600, color: "var(--text-primary)" }}>{post.author}</p>

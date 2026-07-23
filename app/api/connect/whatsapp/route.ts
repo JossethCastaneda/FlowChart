@@ -340,7 +340,7 @@ async function exchangeCodeForToken(
  * Equivalente a: POST /v25.0/{wabaId}/subscribed_apps
  * Ref: https://developers.facebook.com/documentation/business-messaging/whatsapp/solution-providers/manage-webhooks/
  *
- * ⚠️ Sin este paso, el cliente queda conectado pero los mensajes entrantes
+ * Sin este paso, el cliente queda conectado pero los mensajes entrantes
  * NO llegan al webhook. Los mensajes salientes sí funcionan.
  */
 async function subscribeAppToWaba(

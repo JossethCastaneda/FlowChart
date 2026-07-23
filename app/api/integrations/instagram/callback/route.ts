@@ -203,9 +203,9 @@ export async function GET(request: NextRequest) {
             metadata: { username: profile.username },
           },
         });
-        logger.info("[IG CALLBACK] ✅ Asset cache seeded for ig_account", { igId: profile.id });
+        logger.info("[IG CALLBACK] Asset cache seeded for ig_account", { igId: profile.id });
       } catch (cacheErr) {
-        logger.warn("[IG CALLBACK] ⚠️ Asset cache seed failed (non-fatal)", { error: cacheErr });
+        logger.warn("[IG CALLBACK] Asset cache seed failed (non-fatal)", { error: cacheErr });
       }
     }
 

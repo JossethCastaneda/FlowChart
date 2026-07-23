@@ -117,7 +117,7 @@ export async function GET(req: NextRequest) {
         if (res.ok && data.success) {
           success = true;
           successEndpoint = endpoint;
-          logger.info("[CRON/IG-RESUB] ✅ Subscription activated", {
+          logger.info("[CRON/IG-RESUB]  Subscription activated", {
             integrationId: integ.id,
             instagramUserId,
             endpoint,

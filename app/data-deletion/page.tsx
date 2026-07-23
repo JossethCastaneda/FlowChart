@@ -33,7 +33,7 @@ function DeletionContent() {
           display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 24,
         }}>
-          ✓
+          OK
         </div>
         <h1 style={{
           fontFamily: "var(--font-display)",

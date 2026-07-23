@@ -65,7 +65,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     return apiError(mapped.user_message, "META_API_ERROR", 422);
   }
 
-  logger.info(`[FIRST-COMMENT] ✅ Comment posted on ${mediaId}: ${commentData.id}`);
+  logger.info(`[FIRST-COMMENT]  Comment posted on ${mediaId}: ${commentData.id}`);
   
   return apiSuccess({
     success: true,

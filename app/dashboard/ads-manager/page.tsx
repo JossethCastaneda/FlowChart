@@ -37,6 +37,7 @@ import { RulesBuilderModal } from "@/components/ads-manager/RulesBuilderModal";
 import { RulesManagerModal } from "@/components/ads-manager/RulesManagerModal";
 import { ImportModal } from "@/components/ads-manager/ImportModal";
 import { useClipboardStore } from "@/stores/clipboardStore";
+import { useAlertsStore } from "@/stores/alertsStore";
 import { calcROAS, isAdvantagePlus, findActionValue } from "@/lib/ads-metrics";
 
 const MetaIcon = () => (
@@ -233,6 +234,7 @@ function AdsManagerContent() {
 
   // Toast state
   const addToast = showToast;
+  const addAlert = useAlertsStore(state => state.addAlert);
 
   // Auto-sync timer (30 min)
   const [lastSynced, setLastSynced] = useState<Date | null>(null);
@@ -679,9 +681,11 @@ function AdsManagerContent() {
         const successCount = results.filter((r) => r.status === "fulfilled").length;
         const failCount = n - successCount;
         if (failCount === 0) {
-          addToast("success", `✅ ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} actualizadas correctamente`);
+          addToast("success", ` ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} actualizadas correctamente`);
+          addAlert({ severity: "success", title: "Actualización en Google Ads", message: `${successCount} ${levelLabel}(s) cambiaron de estado exitosamente.`, source: "gasto" });
         } else {
-          addToast("warning", `✅ ${successCount} actualizadas. ${failCount} fallaron.`);
+          addToast("warning", ` ${successCount} actualizadas. ${failCount} fallaron.`);
+          addAlert({ severity: "warning", title: "Actualización Parcial (Google Ads)", message: `${successCount} actualizadas, ${failCount} fallidas.`, source: "gasto" });
         }
         fetchData();
         setSelectedIds([]);
@@ -718,20 +722,25 @@ function AdsManagerContent() {
           // Check if delete was actually an archive (Meta behavior)
           const archivedCount = action === "delete" && actionResults ? actionResults.filter((r: any) => r.method === "archived").length : 0;
           if (archivedCount > 0) {
-            addToast("success", `✅ ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} archivada${successCount > 1 ? "s" : ""} (Meta no permite eliminar campañas con historial)`);
+            addToast("success", ` ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} archivada${successCount > 1 ? "s" : ""} (Meta no permite eliminar campañas con historial)`);
+            addAlert({ severity: "info", title: "Elementos archivados", message: `${successCount} ${levelLabel}(s) archivadas en Meta.`, source: "gasto" });
           } else {
-            addToast("success", `✅ ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} — ${action} completado`);
+            addToast("success", ` ${successCount} ${levelLabel}${successCount > 1 ? "s" : ""} — ${action} completado`);
+            addAlert({ severity: "success", title: "Acción completada", message: `${successCount} ${levelLabel}(s) procesadas correctamente (${action}).`, source: "gasto" });
           }
         } else {
           addToast("warning", `${successCount} de ${n} ${action} exitosas. ${failCount} fallaron.`);
+          addAlert({ severity: "warning", title: "Acción Parcial en Meta", message: `${failCount} elementos fallaron durante la acción ${action}.`, source: "gasto" });
         }
         fetchData();
         setSelectedIds([]);
       } else {
         addToast("error", data.error || "Error al ejecutar acción");
+        addAlert({ severity: "danger", title: "Error en Acción Masiva", message: data.error || "Ocurrió un error al procesar la acción en Meta.", source: "gasto" });
       }
     } catch (err: any) {
       addToast("error", `Error: ${err.message}`);
+      addAlert({ severity: "danger", title: "Error de Red", message: err.message, source: "system" });
     }
   };
 
@@ -748,7 +757,7 @@ function AdsManagerContent() {
       return { id, name: item?.name || id, level: activeLevel };
     });
     clipboard.copy(copiedItems);
-    addToast("info", `📋 ${copiedItems.length} ${activeLevel === "campaigns" ? "campaña" : activeLevel === "adsets" ? "conjunto" : "anuncio"}${copiedItems.length > 1 ? "s" : ""} copiada${copiedItems.length > 1 ? "s" : ""}`);
+    addToast("info", ` ${copiedItems.length} ${activeLevel === "campaigns" ? "campaña" : activeLevel === "adsets" ? "conjunto" : "anuncio"}${copiedItems.length > 1 ? "s" : ""} copiada${copiedItems.length > 1 ? "s" : ""}`);
   };
 
   const handlePaste = () => {
@@ -764,7 +773,7 @@ function AdsManagerContent() {
       .then((r) => r.json())
       .then((data) => {
         if (data.success) {
-          addToast("success", `✅ ${data.successCount} elementos pegados (duplicados como pausados)`);
+          addToast("success", ` ${data.successCount} elementos pegados (duplicados como pausados)`);
           clipboard.clear();
           fetchData();
         } else {
@@ -816,7 +825,7 @@ function AdsManagerContent() {
       });
       const data = await res.json();
       if (data.success) {
-        addToast("success", `✅ ${data.successCount} renombrados correctamente`);
+        addToast("success", ` ${data.successCount} renombrados correctamente`);
         fetchData();
       } else {
         addToast("error", data.error || "Error al renombrar");
@@ -839,7 +848,7 @@ function AdsManagerContent() {
       });
       const data = await res.json();
       if (data.success) {
-        addToast("success", `✅ ${data.successCount} presupuestos actualizados`);
+        addToast("success", ` ${data.successCount} presupuestos actualizados`);
         fetchData();
       } else {
         addToast("error", data.error || "Error al actualizar presupuestos");
@@ -862,7 +871,7 @@ function AdsManagerContent() {
       });
       const data = await res.json();
       if (data.success) {
-        addToast("success", `✅ Límite de gasto actualizado`);
+        addToast("success", ` Límite de gasto actualizado`);
         fetchData();
       } else {
         addToast("error", data.error || "Error al actualizar límite de gasto");
@@ -904,7 +913,7 @@ function AdsManagerContent() {
       a.download = `zefirus_${activeLevel}_${new Date().toISOString().slice(0, 10)}.csv`;
       a.click();
       URL.revokeObjectURL(url);
-      addToast("success", "📊 CSV exportado correctamente");
+      addToast("success", "CSV exportado correctamente");
     });
   };
 
@@ -938,7 +947,7 @@ function AdsManagerContent() {
     a.download = `zefirus_${activeLevel}_${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    addToast("success", "📊 Exportado correctamente");
+    addToast("success", "Exportado correctamente");
   };
 
   const handleDownloadTemplate = () => {
@@ -965,7 +974,7 @@ function AdsManagerContent() {
     a.download = "zefirus_plantilla_importacion.csv";
     a.click();
     URL.revokeObjectURL(url);
-    addToast("info", "📥 Plantilla descargada");
+    addToast("info", "Plantilla descargada");
   };
 
 
@@ -1159,7 +1168,7 @@ function AdsManagerContent() {
           }}>
             <CheckCircle className="w-4 h-4" style={{ color: "var(--emerald)", flexShrink: 0 }} />
             <span style={{ fontSize: "12px", color: "var(--emerald)", fontWeight: 600 }}>
-              ✅ Meta Ads conectado — sincronizando cuentas publicitarias...
+               Meta Ads conectado — sincronizando cuentas publicitarias...
             </span>
           </div>
         )}
@@ -1732,7 +1741,7 @@ function AdsManagerContent() {
         <RulesBuilderModal
           adAccountId={selectedAccountId}
           onClose={() => setShowRulesBuilder(false)}
-          onCreated={() => { addToast("success", "✅ Regla creada exitosamente"); setShowRulesBuilder(false); }}
+          onCreated={() => { addToast("success", " Regla creada exitosamente"); setShowRulesBuilder(false); }}
         />
       )}
       {showRulesManager && (
@@ -1746,7 +1755,7 @@ function AdsManagerContent() {
           adAccountId={selectedAccountId}
           level={activeLevel}
           onClose={() => setShowImportModal(false)}
-          onImported={() => { fetchData(); addToast("success", "✅ Importación completada"); }}
+          onImported={() => { fetchData(); addToast("success", " Importación completada"); }}
         />
       )}
 
@@ -1758,7 +1767,7 @@ function AdsManagerContent() {
           onClose={() => setShowCreateCampaign(false)}
           onCreated={() => {
             setShowCreateCampaign(false);
-            addToast("success", "✅ Campaña creada en pausa");
+            addToast("success", " Campaña creada en pausa");
             setActiveLevel("campaigns");
             fetchData();
           }}
@@ -1773,7 +1782,7 @@ function AdsManagerContent() {
           onClose={() => setShowCreateAdSet(false)}
           onCreated={() => {
             setShowCreateAdSet(false);
-            addToast("success", "✅ Conjunto creado en pausa");
+            addToast("success", " Conjunto creado en pausa");
             setActiveLevel("adsets");
             fetchData();
           }}

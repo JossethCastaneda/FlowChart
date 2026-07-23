@@ -123,12 +123,12 @@ export function UserReliabilityModule({
       }}>
         <p style={{ fontWeight: 700, color: "var(--foreground)", marginBottom: 6 }}>{label}</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <span style={{ color: "var(--cyan)" }}>🎯 Score: {m.reliabilityScore}</span>
-          <span style={{ color: "#10b981" }}>📊 CVR: {m.cvr}%</span>
-          <span style={{ color: "var(--text-secondary)" }}>🔗 Link Clicks: {fmtNum(m.linkClicks)}</span>
-          <span style={{ color: "var(--text-secondary)" }}>✅ {config.goalLabel}: {fmtNum(m.goalResults)}</span>
-          <span style={{ color: "var(--text-secondary)" }}>💰 CPA: {fmtMXN(m.cpa)}</span>
-          <span style={{ color: "var(--amber)" }}>🎯 Intención: {m.intentionRate}%</span>
+          <span style={{ color: "var(--cyan)" }}>Score: {m.reliabilityScore}</span>
+          <span style={{ color: "#10b981" }}>CVR: {m.cvr}%</span>
+          <span style={{ color: "var(--text-secondary)" }}>Link Clicks: {fmtNum(m.linkClicks)}</span>
+          <span style={{ color: "var(--text-secondary)" }}>{config.goalLabel}: {fmtNum(m.goalResults)}</span>
+          <span style={{ color: "var(--text-secondary)" }}>CPA: {fmtMXN(m.cpa)}</span>
+          <span style={{ color: "var(--amber)" }}>Intención: {m.intentionRate}%</span>
         </div>
       </div>
     );

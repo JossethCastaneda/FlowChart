@@ -339,7 +339,7 @@ export function ImportModal({ adAccountId, level, onClose, onImported }: ImportM
                 Importación completada
               </div>
               <div style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "12px" }}>
-                ✅ {importResults.success} exitosas · {importResults.failed > 0 ? `❌ ${importResults.failed} fallidas` : "0 errores"}
+                 {importResults.success} exitosas · {importResults.failed > 0 ? ` ${importResults.failed} fallidas` : "0 errores"}
               </div>
               {importResults.errors.length > 0 && (
                 <div style={{ textAlign: "left", maxHeight: "120px", overflowY: "auto", padding: "8px", background: "var(--red-dim)", borderRadius: "6px", fontSize: "9px", color: "var(--red)" }}>

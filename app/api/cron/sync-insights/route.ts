@@ -73,11 +73,11 @@ export async function GET(req: NextRequest) {
       // });
 
       // For now, just log success
-      logger.info(`[SYNC] ✅ ${integ.provider} for workspace ${integ.workspaceId}`, JSON.stringify(insights).slice(0, 200));
+      logger.info(`[SYNC]  ${integ.provider} for workspace ${integ.workspaceId}`, JSON.stringify(insights).slice(0, 200));
       results.push({ workspaceId: integ.workspaceId, provider: integ.provider, status: "ok" });
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown error";
-      logger.error(`[SYNC] ❌ ${integ.provider} for workspace ${integ.workspaceId}:`, message);
+      logger.error(`[SYNC]  ${integ.provider} for workspace ${integ.workspaceId}:`, message);
       results.push({ workspaceId: integ.workspaceId, provider: integ.provider, status: "error", error: message });
     }
   }

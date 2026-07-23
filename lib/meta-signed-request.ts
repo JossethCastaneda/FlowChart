@@ -37,7 +37,7 @@ export function verifySignedRequest(
 
     // Constant-time comparison to prevent timing attacks
     if (sig.length !== expectedSig.length || !crypto.timingSafeEqual(sig, expectedSig)) {
-      logger.warn("[META SIGNED_REQUEST] ❌ HMAC signature mismatch");
+      logger.warn("[META SIGNED_REQUEST]  HMAC signature mismatch");
       return null;
     }
 

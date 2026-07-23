@@ -155,7 +155,7 @@ export function PostPreview({
             <img src={pageAvatar} alt="" style={{ width: 38, height: 38, borderRadius: "50%", objectFit: "cover" }} />
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)" }}>{pageName}</div>
-              <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>Justo ahora · 🌎</div>
+              <div style={{ fontSize: 11, color: "var(--text-secondary)" }}>Justo ahora · </div>
             </div>
           </div>
           <MoreHorizontal style={{ width: 18, height: 18, color: "var(--text-muted)" }} />

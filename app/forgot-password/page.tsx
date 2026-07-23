@@ -95,7 +95,7 @@ export default function ForgotPasswordPage() {
       <div style={containerStyle}>
         <div style={cardStyle}>
           <h1 style={{ color: "var(--c-brand)", fontSize: "20px", marginBottom: "16px", textAlign: "center" }}>
-            {devResetUrl ? "🔧 Modo Desarrollo" : "📧 Revisa tu email"}
+            {devResetUrl ? " Modo Desarrollo" : " Revisa tu email"}
           </h1>
 
           {devResetUrl ? (

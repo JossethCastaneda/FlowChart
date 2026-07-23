@@ -146,7 +146,7 @@ async function persistMetaDm(
       contactName,
       contactAvatar,
       mid: msg.message.mid ?? null,
-      text: msg.message.text || (msg.message.attachments?.length ? "📎 Adjunto" : ""),
+      text: msg.message.text || (msg.message.attachments?.length ? "Adjunto" : ""),
       attachments: msg.message.attachments,
       timestampMs: typeof msg.timestamp === "string" ? Number(msg.timestamp) : (msg.timestamp ?? Date.now()),
       sender: isEcho ? "page" : "user",
@@ -180,12 +180,12 @@ export async function GET(req: NextRequest) {
   const challenge = searchParams.get("hub.challenge");
 
   if (mode === "subscribe" && token === VERIFY_TOKEN) {
-    logger.info("[WEBHOOK] ✅ Verification successful");
+    logger.info("[WEBHOOK] Verification successful");
     return new Response(challenge, { status: 200, headers: { "Content-Type": "text/plain" } });
   }
 
   // Log the mismatch so we can diagnose from Vercel logs
-  logger.warn("[WEBHOOK] ❌ Verification failed — token mismatch", {
+  logger.warn("[WEBHOOK] Verification failed — token mismatch", {
     mode,
     receivedToken: token ? `"${token}" (length=${token.length})` : "null",
     configuredToken: VERIFY_TOKEN ? `length=${VERIFY_TOKEN.length}, starts="${VERIFY_TOKEN.substring(0, 4)}..."` : "null",
@@ -235,7 +235,7 @@ export async function POST(req: NextRequest) {
 
     // Reject if signature is missing
     if (!signature) {
-      logger.warn("[WEBHOOK] ❌ Missing X-Hub-Signature-256 — rejecting");
+      logger.warn("[WEBHOOK] Missing X-Hub-Signature-256 — rejecting");
       return NextResponse.json({ error: "Missing signature" }, { status: 403 });
     }
 
@@ -256,14 +256,14 @@ export async function POST(req: NextRequest) {
     const igValid = !metaValid && !!igSecret && verifyWithSecret(igSecret);
 
     if (!metaValid && !igValid) {
-      logger.warn("[WEBHOOK] ❌ HMAC mismatch — possible spoofed request", {
+      logger.warn("[WEBHOOK] HMAC mismatch — possible spoofed request", {
         triedMeta: true,
         triedInstagram: !!igSecret,
       });
       return NextResponse.json({ error: "Invalid signature" }, { status: 403 });
     }
 
-    logger.info("[WEBHOOK] ✅ Signature valid", { app: metaValid ? "meta" : "instagram" });
+    logger.info("[WEBHOOK] Signature valid", { app: metaValid ? "meta" : "instagram" });
 
     const body = JSON.parse(rawBody);
     const object = body.object; // "page", "instagram", "ad_account", "whatsapp_business_account"
@@ -315,8 +315,8 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "new_message",
               severity: "info",
-              title: "💬 Nuevo mensaje — Messenger",
-              message: `Mensaje de usuario ${msg.sender?.id}: "${(msg.message.text || "📎 Adjunto").slice(0, 120)}"`,
+              title: "Nuevo mensaje — Messenger",
+              message: `Mensaje de usuario ${msg.sender?.id}: "${(msg.message.text || "Adjunto").slice(0, 120)}"`,
               meta: { pageId: entryId, senderId: msg.sender?.id, recipientId: msg.recipient?.id, messageId: msg.message.mid, time: msg.timestamp },
               channel: "messenger",
             });
@@ -343,7 +343,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "message_reaction",
               severity: "info",
-              title: "❤️ Reacción en Messenger",
+              title: "Reacción en Messenger",
               message: `Usuario ${msg.sender?.id} ${msg.reaction.action === "react" ? `reaccionó con ${msg.reaction.emoji}` : "quitó su reacción"}`,
               meta: { pageId: entryId, senderId: msg.sender?.id, reaction: msg.reaction.reaction, emoji: msg.reaction.emoji },
               channel: "messenger",
@@ -352,7 +352,7 @@ async function processWebhookEvents(body: any, object: string) {
 
           // Message delivery confirmation — persist deliveredAt on each confirmed message
           if (msg.delivery) {
-            logger.info(`[WEBHOOK] 📧 Delivery: ${msg.delivery.mids?.length || 0} msgs delivered to ${msg.sender?.id}`);
+            logger.info(`[WEBHOOK] Delivery: ${msg.delivery.mids?.length || 0} msgs delivered to ${msg.sender?.id}`);
             const deliveryMids: string[] = msg.delivery.mids || [];
             const watermark: number | undefined = msg.delivery.watermark;
             if (deliveryMids.length > 0) {
@@ -384,7 +384,7 @@ async function processWebhookEvents(body: any, object: string) {
 
           // Message read confirmation — persist readAt on all page-sent messages up to watermark
           if (msg.read) {
-            logger.info(`[WEBHOOK] 👁️ Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
+            logger.info(`[WEBHOOK] Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
             const watermark: number | undefined = msg.read.watermark;
             if (watermark) {
               const wsId = await resolveWorkspaceForMetaAsset(entryId, "page").catch(() => null);
@@ -413,7 +413,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "messenger_postback",
               severity: "info",
-              title: "🔘 Postback — Messenger",
+              title: "Postback — Messenger",
               message: `Botón presionado: "${msg.postback.title}" — Payload: ${msg.postback.payload}`,
               meta: { pageId: entryId, senderId: msg.sender?.id, payload: msg.postback.payload, time: msg.timestamp },
               channel: "messenger",
@@ -425,7 +425,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "messenger_optin",
               severity: "info",
-              title: "✅ Nuevo opt-in — Messenger",
+              title: "Nuevo opt-in — Messenger",
               message: `Usuario ${msg.sender?.id} dio opt-in. Ref: ${msg.optin.ref || "N/A"}`,
               meta: { pageId: entryId, senderId: msg.sender?.id, ref: msg.optin.ref, time: msg.timestamp },
               channel: "messenger",
@@ -437,7 +437,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "messenger_referral",
               severity: "info",
-              title: "🔗 Referral — Messenger",
+              title: "Referral — Messenger",
               message: `Referral de ${msg.referral.source || "desconocido"}: ${msg.referral.type || ""} — Ref: ${msg.referral.ref || "N/A"}`,
               meta: { pageId: entryId, senderId: msg.sender?.id, source: msg.referral.source, ref: msg.referral.ref, adId: msg.referral.ad_id, time: msg.timestamp },
               channel: "messenger",
@@ -468,7 +468,7 @@ async function processWebhookEvents(body: any, object: string) {
                   data: { updatedAt: new Date() },
                 }).catch(() => {});
               }
-              logger.info("[WEBHOOK] ✏️ Message edited", { pageId: entryId, mid: editMid });
+              logger.info("[WEBHOOK] Message edited", { pageId: entryId, mid: editMid });
             }
           }
 
@@ -476,11 +476,11 @@ async function processWebhookEvents(body: any, object: string) {
           if (msg.pass_thread_control || msg.take_thread_control || msg.request_thread_control) {
             const action = msg.pass_thread_control ? "pass" : msg.take_thread_control ? "take" : "request";
             const payload = msg.pass_thread_control || msg.take_thread_control || msg.request_thread_control;
-            logger.info(`[WEBHOOK] 🔄 Handover: ${action}`, { pageId: entryId, senderId: msg.sender?.id, payload });
+            logger.info(`[WEBHOOK] Handover: ${action}`, { pageId: entryId, senderId: msg.sender?.id, payload });
             await createAlert({
               type: "messenger_handover",
               severity: "info",
-              title: `🔄 Handover — ${action}`,
+              title: `Handover — ${action}`,
               message: `Thread control ${action} para usuario ${msg.sender?.id}. Target: ${payload?.new_owner_app_id || payload?.requested_owner_app_id || "N/A"}`,
               meta: { pageId: entryId, senderId: msg.sender?.id, action, ...payload, time: msg.timestamp },
               channel: "messenger",
@@ -490,11 +490,11 @@ async function processWebhookEvents(body: any, object: string) {
           // Account linking — user linked/unlinked their account
           if (msg.account_linking) {
             const status = msg.account_linking.status; // "linked" | "unlinked"
-            logger.info(`[WEBHOOK] 🔗 Account ${status}`, { pageId: entryId, senderId: msg.sender?.id });
+            logger.info(`[WEBHOOK] Account ${status}`, { pageId: entryId, senderId: msg.sender?.id });
             await createAlert({
               type: "messenger_account_linking",
               severity: "info",
-              title: status === "linked" ? "🔗 Cuenta vinculada — Messenger" : "🔓 Cuenta desvinculada — Messenger",
+              title: status === "linked" ? "Cuenta vinculada — Messenger" : "Cuenta desvinculada — Messenger",
               message: `Usuario ${msg.sender?.id} — ${status}${msg.account_linking.authorization_code ? ` (code: ${msg.account_linking.authorization_code.slice(0, 20)}…)` : ""}`,
               meta: { pageId: entryId, senderId: msg.sender?.id, status, time: msg.timestamp },
               channel: "messenger",
@@ -503,11 +503,11 @@ async function processWebhookEvents(body: any, object: string) {
 
           // Customer information — user shared personal info (phone, email, etc.)
           if (msg.messaging_customer_information) {
-            logger.info("[WEBHOOK] 📋 Customer info received", { pageId: entryId, senderId: msg.sender?.id });
+            logger.info("[WEBHOOK] Customer info received", { pageId: entryId, senderId: msg.sender?.id });
             await createAlert({
               type: "messenger_customer_info",
               severity: "info",
-              title: "📋 Info del cliente — Messenger",
+              title: "Info del cliente — Messenger",
               message: `Cliente ${msg.sender?.id} compartió información personal`,
               meta: { pageId: entryId, senderId: msg.sender?.id, info: msg.messaging_customer_information, time: msg.timestamp },
               channel: "messenger",
@@ -518,11 +518,11 @@ async function processWebhookEvents(body: any, object: string) {
           if (msg.policy_enforcement) {
             const action = msg.policy_enforcement.action; // "block" | "unblock" | "warning"
             const severity = action === "block" ? "critical" as const : "warning" as const;
-            logger.warn(`[WEBHOOK] ⚠️ Policy enforcement: ${action}`, { pageId: entryId, reason: msg.policy_enforcement.reason });
+            logger.warn(`[WEBHOOK] Policy enforcement: ${action}`, { pageId: entryId, reason: msg.policy_enforcement.reason });
             await createAlert({
               type: "messenger_policy_enforcement",
               severity,
-              title: `⚠️ Política de Meta — ${action}`,
+              title: `Política de Meta — ${action}`,
               message: `Acción: ${action}. Razón: ${msg.policy_enforcement.reason || "No especificada"}`,
               meta: { pageId: entryId, action, reason: msg.policy_enforcement.reason, time: msg.timestamp },
               channel: "messenger",
@@ -544,7 +544,7 @@ async function processWebhookEvents(body: any, object: string) {
               await createAlert({
                 type: "page_comment",
                 severity: "info",
-                title: "💬 Nuevo comentario — Facebook",
+                title: "Nuevo comentario — Facebook",
                 message: `Comentario de ${value.from?.name || "Usuario"}: "${(value.message || "").slice(0, 120)}"`,
                 meta: { pageId: entryId, postId: value.post_id, commentId: value.comment_id, from: value.from, time },
                 channel: "facebook",
@@ -560,7 +560,7 @@ async function processWebhookEvents(body: any, object: string) {
                   contactName: value.from?.name || "Usuario",
                   conversationExternalId: value.post_id,
                   mid: value.comment_id,
-                  text: value.message || "🖼️ [Multimedia]",
+                  text: value.message || "[Multimedia]",
                   timestampMs: value.created_time ? value.created_time * 1000 : time * 1000,
                   sender: value.from?.id === entryId ? "page" : "user",
                 });
@@ -571,7 +571,7 @@ async function processWebhookEvents(body: any, object: string) {
               await createAlert({
                 type: "page_reaction",
                 severity: "info",
-                title: `👍 Nueva reacción — Facebook`,
+                title: `Nueva reacción — Facebook`,
                 message: `${value.from?.name || "Usuario"} reaccionó con "${value.reaction_type || "like"}" a una publicación`,
                 meta: { pageId: entryId, postId: value.post_id, reaction: value.reaction_type, from: value.from, time },
                 channel: "facebook",
@@ -582,7 +582,7 @@ async function processWebhookEvents(body: any, object: string) {
               await createAlert({
                 type: "page_share",
                 severity: "info",
-                title: "🔄 Publicación compartida — Facebook",
+                title: "Publicación compartida — Facebook",
                 message: `${value.from?.name || "Usuario"} compartió una publicación de tu página`,
                 meta: { pageId: entryId, postId: value.post_id, from: value.from, time },
                 channel: "facebook",
@@ -593,7 +593,7 @@ async function processWebhookEvents(body: any, object: string) {
               await createAlert({
                 type: "page_wall_post",
                 severity: "info",
-                title: "📝 Publicación en tu muro — Facebook",
+                title: "Publicación en tu muro — Facebook",
                 message: `${value.from?.name || "Alguien"} publicó en tu página: "${(value.message || "").slice(0, 120)}"`,
                 meta: { pageId: entryId, postId: value.post_id, from: value.from, time },
                 channel: "facebook",
@@ -606,7 +606,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "page_mention",
               severity: "info",
-              title: "🏷️ Mención de página — Facebook",
+              title: "Mención de página — Facebook",
               message: `Tu página fue mencionada. Post ID: ${value?.post_id || "N/A"}`,
               meta: { pageId: entryId, postId: value?.post_id, senderId: value?.sender_id, time },
               channel: "facebook",
@@ -619,7 +619,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "page_review",
               severity: rating && rating <= 2 ? "warning" : "info",
-              title: `⭐ Nueva reseña — Facebook (${rating || "?"}/5)`,
+              title: `Nueva reseña — Facebook (${rating || "?"}/5)`,
               message: `${value?.reviewer_name || "Usuario"} dejó una reseña${value?.review_text ? `: "${value.review_text.slice(0, 120)}"` : ""}`,
               meta: { pageId: entryId, rating, reviewer: value?.reviewer_name, text: value?.review_text, time },
               channel: "facebook",
@@ -631,7 +631,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "new_lead",
               severity: "info",
-              title: "📋 Nuevo lead — Facebook",
+              title: "Nuevo lead — Facebook",
               message: `Lead generado. Lead ID: ${value?.leadgen_id}. Form ID: ${value?.form_id}`,
               meta: { pageId: entryId, leadId: value?.leadgen_id, formId: value?.form_id, adId: value?.ad_id, time },
               channel: "facebook",
@@ -642,7 +642,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "lead_dispatched",
               severity: "info",
-              title: "📤 Lead despachado — Facebook",
+              title: "Lead despachado — Facebook",
               message: `Lead despachado. Lead ID: ${value?.leadgen_id}`,
               meta: { pageId: entryId, leadId: value?.leadgen_id, time },
               channel: "facebook",
@@ -672,8 +672,8 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "ig_message",
               severity: "info",
-              title: "💬 Nuevo DM — Instagram",
-              message: `DM de ${msg.sender?.id}: "${(msg.message.text || "📎 Adjunto").slice(0, 120)}"`,
+              title: "Nuevo DM — Instagram",
+              message: `DM de ${msg.sender?.id}: "${(msg.message.text || "Adjunto").slice(0, 120)}"`,
               meta: { igAccountId: entryId, senderId: msg.sender?.id, messageId: msg.message.mid, time: msg.timestamp },
               channel: "instagram",
             });
@@ -698,7 +698,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "message_reaction",
               severity: "info",
-              title: "❤️ Reacción en Instagram",
+              title: "Reacción en Instagram",
               message: `Usuario ${msg.sender?.id} ${msg.reaction.action === "react" ? `reaccionó con ${msg.reaction.emoji}` : "quitó su reacción"}`,
               meta: { igAccountId: entryId, senderId: msg.sender?.id, reaction: msg.reaction.reaction, emoji: msg.reaction.emoji },
               channel: "instagram",
@@ -710,7 +710,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "ig_story_reply",
               severity: "info",
-              title: "📸 Respuesta a historia — Instagram",
+              title: "Respuesta a historia — Instagram",
               message: `Respuesta a tu historia: "${(msg.message.text || "").slice(0, 120)}"`,
               meta: { igAccountId: entryId, senderId: msg.sender?.id, storyUrl: msg.message.reply_to.story.url, time: msg.timestamp },
               channel: "instagram",
@@ -722,7 +722,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "ig_story_mention",
               severity: "info",
-              title: "🏷️ Mención en historia — Instagram",
+              title: "Mención en historia — Instagram",
               message: `Usuario ${msg.sender?.id} te mencionó en su historia`,
               meta: { igAccountId: entryId, senderId: msg.sender?.id, mediaUrl: msg.message.attachments[0].payload?.url, time: msg.timestamp },
               channel: "instagram",
@@ -731,7 +731,7 @@ async function processWebhookEvents(body: any, object: string) {
 
           // Instagram delivery confirmation
           if (msg.delivery) {
-            logger.info(`[WEBHOOK] 📧 IG Delivery: ${msg.delivery.mids?.length || 0} msgs delivered to ${msg.sender?.id}`);
+            logger.info(`[WEBHOOK] IG Delivery: ${msg.delivery.mids?.length || 0} msgs delivered to ${msg.sender?.id}`);
             const deliveryMids: string[] = msg.delivery.mids || [];
             if (deliveryMids.length > 0) {
               await prisma.inboxMessage.updateMany({
@@ -743,7 +743,7 @@ async function processWebhookEvents(body: any, object: string) {
 
           // Instagram read confirmation
           if (msg.read) {
-            logger.info(`[WEBHOOK] 👁️ IG Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
+            logger.info(`[WEBHOOK] IG Read: messages read by ${msg.sender?.id} up to ${msg.read.watermark}`);
             const watermark: number | undefined = msg.read.watermark;
             if (watermark) {
               const wsId = await resolveWorkspaceForMetaAsset(entryId, "ig_account").catch(() => null);
@@ -772,7 +772,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "ig_postback",
               severity: "info",
-              title: "🔘 Postback — Instagram",
+              title: "Postback — Instagram",
               message: `Botón: "${msg.postback.title}" — Payload: ${msg.postback.payload}`,
               meta: { igAccountId: entryId, senderId: msg.sender?.id, payload: msg.postback.payload, time: msg.timestamp },
               channel: "instagram",
@@ -800,7 +800,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "ig_comment",
               severity: "info",
-              title: "💬 Nuevo comentario — Instagram",
+              title: "Nuevo comentario — Instagram",
               message: `${value?.from?.username || "Usuario"} comentó: "${(value?.text || "").slice(0, 120)}"`,
               meta: { igAccountId: entryId, mediaId: value?.media?.id, commentId: value?.id, from: value?.from, time },
               channel: "instagram",
@@ -817,7 +817,7 @@ async function processWebhookEvents(body: any, object: string) {
                 contactName: value?.from?.username || "Usuario",
                 conversationExternalId: value?.media?.id || value?.media_id,
                 mid: value?.id,
-                text: value?.text || "🖼️ [Multimedia]",
+                text: value?.text || "[Multimedia]",
                 timestampMs: time * 1000,
                 sender: value?.from?.id === entryId ? "page" : "user",
               });
@@ -829,7 +829,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "ig_mention",
               severity: "info",
-              title: "🏷️ Mención — Instagram",
+              title: "Mención — Instagram",
               message: `${value?.username || "Usuario"} te mencionó en una publicación`,
               meta: { igAccountId: entryId, mediaId: value?.media_id, commentId: value?.comment_id, time },
               channel: "instagram",
@@ -841,7 +841,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "ig_live_comment",
               severity: "info",
-              title: "🔴 Comentario en Live — Instagram",
+              title: "Comentario en Live — Instagram",
               message: `${value?.from?.username || "Usuario"}: "${(value?.text || "").slice(0, 120)}"`,
               meta: { igAccountId: entryId, liveMediaId: value?.media_id, from: value?.from, time },
               channel: "instagram",
@@ -850,7 +850,7 @@ async function processWebhookEvents(body: any, object: string) {
 
           // Story insights (impressions, exits, etc.)
           if (field === "story_insights") {
-            logger.info(`[WEBHOOK] 📊 Story insights for IG ${entryId}:`, JSON.stringify(value).slice(0, 200));
+            logger.info(`[WEBHOOK] Story insights for IG ${entryId}:`, JSON.stringify(value).slice(0, 200));
           }
         }
       }
@@ -863,14 +863,14 @@ async function processWebhookEvents(body: any, object: string) {
           const field = change.field;
           const value = change.value;
 
-          logger.info(`[WEBHOOK] 📊 Ad Account ${entryId} — field: ${field}`, JSON.stringify(value).slice(0, 200));
+          logger.info(`[WEBHOOK] Ad Account ${entryId} — field: ${field}`, JSON.stringify(value).slice(0, 200));
 
           // Spending limit reached
           if (field === "account_spending_limit_reached") {
             await createAlert({
               type: "account_spending_limit",
               severity: "critical",
-              title: "🚨 Límite de gasto alcanzado",
+              title: "Límite de gasto alcanzado",
               message: `La cuenta publicitaria ${entryId} alcanzó su límite de gasto. Los anuncios se detendrán.`,
               meta: { adAccountId: entryId, field, value, time },
               channel: "ads",
@@ -882,7 +882,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "funding_removed",
               severity: "critical",
-              title: "🚨 Método de pago removido",
+              title: "Método de pago removido",
               message: `Se removió el método de pago de la cuenta ${entryId}. Los anuncios se detendrán.`,
               meta: { adAccountId: entryId, field, value, time },
               channel: "ads",
@@ -891,17 +891,17 @@ async function processWebhookEvents(body: any, object: string) {
 
           // Campaign changes
           if (field === "campaigns") {
-            const statusMap: Record<string, { emoji: string; sev: string }> = {
-              PAUSED: { emoji: "⏸️", sev: "warning" },
-              ACTIVE: { emoji: "▶️", sev: "info" },
-              DELETED: { emoji: "🗑️", sev: "warning" },
-              ARCHIVED: { emoji: "📦", sev: "info" },
+            const statusMap: Record<string, { label: string; sev: string }> = {
+              PAUSED: { label: "Pausada", sev: "warning" },
+              ACTIVE: { label: "Activada", sev: "info" },
+              DELETED: { label: "Eliminada", sev: "warning" },
+              ARCHIVED: { label: "Archivada", sev: "info" },
             };
-            const s = statusMap[value?.status] || { emoji: "ℹ️", sev: "info" };
+            const s = statusMap[value?.status] || { label: "Actualizada", sev: "info" };
             await createAlert({
               type: "campaign_status",
               severity: s.sev,
-              title: `${s.emoji} Campaña ${value?.status === "PAUSED" ? "pausada" : value?.status === "ACTIVE" ? "activada" : "actualizada"}`,
+              title: `Campana ${s.label}`,
               message: `Campaña "${value?.name || value?.id || entryId}" → ${value?.status || "actualizada"}`,
               meta: { adAccountId: entryId, campaignId: value?.id, status: value?.status, name: value?.name, time },
               channel: "ads",
@@ -913,7 +913,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "adset_status",
               severity: value?.status === "PAUSED" ? "warning" : "info",
-              title: `📦 Ad Set ${value?.status === "PAUSED" ? "pausado" : "actualizado"}`,
+              title: `Ad Set ${value?.status === "PAUSED" ? "pausado" : "actualizado"}`,
               message: `Ad Set "${value?.name || value?.id}" → ${value?.status || "actualizado"}`,
               meta: { adAccountId: entryId, adsetId: value?.id, status: value?.status, time },
               channel: "ads",
@@ -926,7 +926,7 @@ async function processWebhookEvents(body: any, object: string) {
               await createAlert({
                 type: "ad_disapproved",
                 severity: "critical",
-                title: "🚫 Anuncio rechazado por Meta",
+                title: "Anuncio rechazado por Meta",
                 message: `El anuncio "${value.name || value.id}" fue rechazado. Revisa las políticas publicitarias. Razón: ${value.review_feedback || "No especificada"}`,
                 meta: { adAccountId: entryId, adId: value.id, name: value.name, feedback: value.review_feedback, time },
                 channel: "ads",
@@ -935,7 +935,7 @@ async function processWebhookEvents(body: any, object: string) {
               await createAlert({
                 type: "ad_status",
                 severity: "info",
-                title: `📢 Anuncio actualizado`,
+                title: `Anuncio actualizado`,
                 message: `Anuncio "${value?.name || value?.id}" → ${value?.effective_status || value?.status || "actualizado"}`,
                 meta: { adAccountId: entryId, adId: value?.id, status: value?.effective_status || value?.status, time },
                 channel: "ads",
@@ -948,7 +948,7 @@ async function processWebhookEvents(body: any, object: string) {
             await createAlert({
               type: "ad_review",
               severity: value?.ad_review_status === "DISAPPROVED" ? "critical" : "info",
-              title: `📋 Revisión de anuncio: ${value?.ad_review_status || "en proceso"}`,
+              title: `Revisión de anuncio: ${value?.ad_review_status || "en proceso"}`,
               message: `Anuncio ${value?.ad_id}: ${value?.ad_review_status || "en revisión"}`,
               meta: { adAccountId: entryId, adId: value?.ad_id, status: value?.ad_review_status, time },
               channel: "ads",
@@ -1004,7 +1004,7 @@ async function processWebhookEvents(body: any, object: string) {
               await createAlert({
                 type: "whatsapp_message",
                 severity: "info",
-                title: "💬 Mensaje — WhatsApp",
+                title: "Mensaje — WhatsApp",
                 message: `De ${waMsg.from}: "${textBody.slice(0, 120)}"`,
                 meta: {
                   phoneNumberId,
@@ -1024,7 +1024,7 @@ async function processWebhookEvents(body: any, object: string) {
                 await createAlert({
                   type: "whatsapp_failed",
                   severity: "warning",
-                  title: "⚠️ Mensaje fallido — WhatsApp",
+                  title: "Mensaje fallido — WhatsApp",
                   message: `Mensaje a ${status.recipient_id} falló. Error: ${status.errors?.[0]?.message || "desconocido"}`,
                   meta: {
                     phoneNumberId: value?.metadata?.phone_number_id,
@@ -1036,25 +1036,25 @@ async function processWebhookEvents(body: any, object: string) {
                 });
               }
               // Log other statuses
-              logger.info(`[WEBHOOK] 📱 WhatsApp status: ${status.status} for ${status.recipient_id}`);
+              logger.info(`[WEBHOOK] WhatsApp status: ${status.status} for ${status.recipient_id}`);
             }
           }
 
           // Template status updates
           if (field === "message_template_status_update") {
             const statusMap: Record<string, string> = {
-              APPROVED: "✅ aprobada",
-              REJECTED: "🚫 rechazada",
-              PENDING: "⏳ pendiente",
-              DISABLED: "⛔ deshabilitada",
-              PAUSED: "⏸️ pausada",
+              APPROVED: "aprobada",
+              REJECTED: "rechazada",
+              PENDING: "pendiente",
+              DISABLED: "deshabilitada",
+              PAUSED: "pausada",
             };
             const statusText = statusMap[value?.event] || value?.event || "actualizada";
 
             await createAlert({
               type: "wa_template_status",
               severity: value?.event === "REJECTED" || value?.event === "DISABLED" ? "warning" : "info",
-              title: `📋 Plantilla ${statusText} — WhatsApp`,
+              title: `Plantilla ${statusText} — WhatsApp`,
               message: `Plantilla "${value?.message_template_name}" (ID: ${value?.message_template_id}) fue ${statusText}. Razón: ${value?.reason || "N/A"}`,
               meta: {
                 templateId: value?.message_template_id,
@@ -1294,7 +1294,7 @@ async function createAlert(alert: {
   channel?: string;
 }) {
   try {
-    logger.info(`[WEBHOOK] 📌 Alert: [${alert.severity.toUpperCase()}] ${alert.title}`);
+    logger.info(`[WEBHOOK] Alert: [${alert.severity.toUpperCase()}] ${alert.title}`);
 
     // Resolve only the projects related to this specific event source
     const projects = await findProjectsForEvent({
@@ -1348,7 +1348,7 @@ async function createAlert(alert: {
         }
       }
 
-      logger.info(`[WEBHOOK] ✅ Alert saved for "${project.name}": ${alert.title}`);
+      logger.info(`[WEBHOOK] Alert saved for "${project.name}": ${alert.title}`);
     }
   } catch (err) {
     logger.error("[WEBHOOK] Failed to create alert:", err);

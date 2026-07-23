@@ -224,7 +224,7 @@ export function IntegrationsPanel() {
                         background: "var(--surface)", color: "var(--amber)",
                         border: "1px solid rgba(224,168,60,0.2)", fontWeight: 700,
                       }}>
-                        ⚠ exp. {st?.daysUntilExpiry}d
+                        exp. {st?.daysUntilExpiry}d
                       </span>
                     )}
                   </div>
@@ -507,7 +507,7 @@ function WebhookRow({ connectedCount }: { connectedCount: number }) {
         >
           {subscribing
             ? <Loader2 style={{ width: 10, height: 10, animation: "int-spin 1s linear infinite" }} />
-            : done ? "✓ Listo" : "Activar"
+            : done ? "Listo" : "Activar"
           }
         </button>
       )}

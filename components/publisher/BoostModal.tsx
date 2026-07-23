@@ -30,12 +30,12 @@ export interface BoostModalProps {
 
 /* ── Constants ─────────────────────────────────────────── */
 const PRESET_COUNTRIES = [
-  { code: "MX", label: "México", flag: "🇲🇽" },
-  { code: "US", label: "EE.UU", flag: "🇺🇸" },
-  { code: "CO", label: "Colombia", flag: "🇨🇴" },
-  { code: "AR", label: "Argentina", flag: "🇦🇷" },
-  { code: "ES", label: "España", flag: "🇪🇸" },
-  { code: "CL", label: "Chile", flag: "🇨🇱" },
+  { code: "MX", label: "México", flag: "" },
+  { code: "US", label: "EE.UU", flag: "" },
+  { code: "CO", label: "Colombia", flag: "" },
+  { code: "AR", label: "Argentina", flag: "" },
+  { code: "ES", label: "España", flag: "" },
+  { code: "CL", label: "Chile", flag: "" },
 ];
 
 const BUDGET_PRESETS = [50, 100, 200, 500];

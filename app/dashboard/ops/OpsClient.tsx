@@ -79,7 +79,7 @@ const TRANSLATIONS = {
     writeComment: "Escribe un comentario...",
     postAttach: "Pegar URL de archivo...",
     addTagPlaceholder: "Agregar etiqueta...",
-    autoAssign: "⚡ Auto-asignar (recomendado)",
+    autoAssign: " Auto-asignar (recomendado)",
     dueDate: "Fecha Límite",
     status: "Estado",
     sla: "SLA",
@@ -123,7 +123,7 @@ const TRANSLATIONS = {
     writeComment: "Write a comment...",
     postAttach: "Paste file URL...",
     addTagPlaceholder: "Add tag...",
-    autoAssign: "⚡ Auto-assign (recommended)",
+    autoAssign: " Auto-assign (recommended)",
     dueDate: "Due Date",
     status: "Status",
     sla: "SLA",
@@ -1404,7 +1404,7 @@ export default function OpsPage() {
                           background: stat.okrStatus === "success" ? "rgba(52,183,124,0.12)" : "rgba(253,171,61,0.12)",
                           color: stat.okrStatus === "success" ? "var(--emerald)" : "var(--amber)"
                         }}>
-                          {stat.slaPct}% {stat.okrStatus === "success" ? "🟢 OK" : "⚠️ En Riesgo"}
+                          {stat.slaPct}% {stat.okrStatus === "success" ? "OK" : "En Riesgo"}
                         </span>
                       </div>
                     </div>

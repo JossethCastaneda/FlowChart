@@ -170,7 +170,7 @@ export async function notifyTaskAssigned({
     : null;
 
   const waMessage = [
-    `📋 *Nueva tarea asignada* — ZEFIRUS`,
+    ` *Nueva tarea asignada* — ZEFIRUS`,
     ``,
     `*${taskTitle}*`,
     `Prioridad: ${priority}${dueDateFormatted ? `\nVence: ${dueDateFormatted}` : ""}`,
@@ -247,12 +247,12 @@ export async function notifyTaskStatusChanged({
   if (!user || user.id === updaterUserId) return; // Don't notify yourself
 
   const statusEmoji: Record<string, string> = {
-    WIP: "🔄",
-    Review: "👀",
-    Done: "✅",
-    Backlog: "📥",
+    WIP: "",
+    Review: "",
+    Done: "",
+    Backlog: "",
   };
-  const emoji = statusEmoji[newStatus] ?? "📋";
+  const emoji = statusEmoji[newStatus] ?? "";
 
   const waMessage = [
     `${emoji} *Tarea actualizada* — ZEFIRUS`,
@@ -324,9 +324,9 @@ export async function notifyTaskPriorityChanged({
 
   if (!user || user.id === updaterUserId) return;
 
-  const priorityEmoji: Record<string, string> = { P0: "🔴", P1: "🟠", P2: "🟡", P3: "🟢" };
+  const priorityEmoji: Record<string, string> = { P0: "", P1: "", P2: "", P3: "" };
   const waMessage = [
-    `${priorityEmoji[newPriority] ?? "📋"} *Prioridad actualizada* — ZEFIRUS`,
+    `${priorityEmoji[newPriority] ?? ""} *Prioridad actualizada* — ZEFIRUS`,
     ``,
     `*${taskTitle}*`,
     `Prioridad: ${oldPriority} → ${newPriority}`,
@@ -396,7 +396,7 @@ export async function notifyTaskCommented({
   const preview = commentPreview.length > 80 ? `${commentPreview.slice(0, 80)}…` : commentPreview;
 
   const waMessage = [
-    `💬 *Nuevo comentario* — ZEFIRUS`,
+    ` *Nuevo comentario* — ZEFIRUS`,
     ``,
     `*${taskTitle}*`,
     `${commenterName}: "${preview}"`,
@@ -476,8 +476,8 @@ export async function checkSLAWarnings(workspaceId: string) {
     const dueDateFormatted = task.dueDate.toLocaleDateString("es-MX", { day: "2-digit", month: "short", year: "numeric" });
     const slaTitle = hoursLeft <= 0 ? "SLA Vencido" : "SLA por vencer";
     const waMessage = hoursLeft <= 0
-      ? `⛔ *SLA VENCIDO* — ZEFIRUS\n\n*${task.title}*\nVenció el ${dueDateFormatted}\n\nVer: ${taskUrl}`
-      : `⏰ *SLA por vencer* — ZEFIRUS\n\n*${task.title}*\nVence: ${dueDateFormatted} (${hoursLeft}h)\n\nVer: ${taskUrl}`;
+      ? ` *SLA VENCIDO* — ZEFIRUS\n\n*${task.title}*\nVenció el ${dueDateFormatted}\n\nVer: ${taskUrl}`
+      : ` *SLA por vencer* — ZEFIRUS\n\n*${task.title}*\nVence: ${dueDateFormatted} (${hoursLeft}h)\n\nVer: ${taskUrl}`;
 
     await createNotification({
       userId: user.id,

@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
 
     // Fail-closed: toda petición debe traer firma HMAC válida.
     if (!verifySignature(rawBody, signature)) {
-      logger.warn("[TIKTOK WEBHOOK] ❌ Invalid signature");
+      logger.warn("[TIKTOK WEBHOOK]  Invalid signature");
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     }
 
     const eventType = (payload?.type as string) ?? "unknown";
-    logger.info(`[TIKTOK WEBHOOK] ✅ Event received: ${eventType}`);
+    logger.info(`[TIKTOK WEBHOOK]  Event received: ${eventType}`);
 
     // Handle event types
     switch (eventType) {

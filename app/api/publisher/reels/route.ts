@@ -123,7 +123,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       return apiError(mapMetaError(finishData?.error).user_message, "META_API_ERROR", 422);
     }
 
-    logger.info(`[REELS] ✅ Facebook Reel published: ${finishData.video_id || videoId}`);
+    logger.info(`[REELS]  Facebook Reel published: ${finishData.video_id || videoId}`);
     return apiSuccess({
       success: true,
       reelId: finishData.video_id || videoId,
@@ -203,7 +203,7 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
       return apiError(mapMetaError(publishData?.error).user_message, "META_API_ERROR", 422);
     }
 
-    logger.info(`[REELS] ✅ Instagram Reel published: ${publishData.id}`);
+    logger.info(`[REELS]  Instagram Reel published: ${publishData.id}`);
     return apiSuccess({
       success: true,
       reelId: publishData.id,

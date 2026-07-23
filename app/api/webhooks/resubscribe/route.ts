@@ -94,7 +94,7 @@ export const POST = withWorkspace(async (_req, ctx) => {
       details: { subscribed: totalSubscribed, failed: totalFailed, unionScopes, details },
     },
   }).catch((auditErr) => {
-    logger.error("[RESUBSCRIBE] ❌ Failed to write AuditLog:", auditErr);
+    logger.error("[RESUBSCRIBE]  Failed to write AuditLog:", auditErr);
   });
 
   return apiSuccess({

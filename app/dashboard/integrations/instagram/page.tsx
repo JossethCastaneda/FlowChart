@@ -68,7 +68,7 @@ const T = {
     errorLoading: "Error cargando estado",
     resubscribeSuccess: "¡Webhooks reactivados correctamente!",
     resubscribeError: "Error al reactivar webhooks",
-    noTokenWarning: "⚠️ META_WEBHOOK_VERIFY_TOKEN no está configurado en Vercel. Sin este token, Meta Developers no puede verificar el webhook.",
+    noTokenWarning: "META_WEBHOOK_VERIFY_TOKEN no esta configurado en Vercel. Sin este token, Meta Developers no puede verificar el webhook.",
   },
   en: {
     title: "Instagram Direct",
@@ -104,7 +104,7 @@ const T = {
     errorLoading: "Error loading status",
     resubscribeSuccess: "Webhooks reactivated successfully!",
     resubscribeError: "Error reactivating webhooks",
-    noTokenWarning: "⚠️ META_WEBHOOK_VERIFY_TOKEN is not configured in Vercel. Without this token, Meta Developers cannot verify the webhook.",
+    noTokenWarning: "META_WEBHOOK_VERIFY_TOKEN is not configured in Vercel. Without this token, Meta Developers cannot verify the webhook.",
   },
 };
 
@@ -445,7 +445,7 @@ export default function InstagramIntegrationPage() {
                     <li><strong>developers.facebook.com/apps</strong> → App ID: {webhook?.appId ?? "1701603701115305"}</li>
                     <li>Instagram → <strong>Webhooks</strong> → "Add Callback URL"</li>
                     <li>Callback URL: <code style={{ color: "#e4e4e7" }}>{webhook?.callbackUrl}</code></li>
-                    <li>Verify Token: <code style={{ color: "#a78bfa" }}>{webhook?.verifyToken ?? "⚠️ no configurado"}</code></li>
+                    <li>Verify Token: <code style={{ color: "#a78bfa" }}>{webhook?.verifyToken ?? "no configurado"}</code></li>
                     <li>Haz clic en <strong>"Verify and Save"</strong></li>
                     <li>Suscríbete a: <code style={{ color: "#86efac" }}>{webhook?.subscribedFields?.join(", ")}</code></li>
                   </ol>

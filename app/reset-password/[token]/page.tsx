@@ -97,7 +97,7 @@ export default function ResetPasswordPage() {
       <div style={containerStyle}>
         <div style={cardStyle}>
           <h1 style={{ color: "var(--c-brand)", fontSize: "20px", marginBottom: "16px", textAlign: "center" }}>
-            ✅ Contraseña actualizada
+             Contraseña actualizada
           </h1>
           <p style={{ color: "var(--text-secondary)", textAlign: "center", fontSize: "14px" }}>
             Redirigiendo al login...
@@ -118,7 +118,7 @@ export default function ResetPasswordPage() {
           textAlign: "center",
           letterSpacing: "2px",
         }}>
-          ⚡ ZEFIRUS
+           ZEFIRUS
         </h1>
         <p style={{
           color: "var(--text-secondary)",

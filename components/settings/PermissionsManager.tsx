@@ -158,7 +158,7 @@ export function PermissionsManager() {
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 12, border: "1px solid var(--hairline)" }}>
                     <div>
                       <div style={{ fontSize: 13, fontWeight: 700, color: "var(--cyan)", letterSpacing: "0.02em" }}>
-                        👤 Permisos de Integrantes
+                         Permisos de Integrantes
                       </div>
                       <div style={{ fontSize: 11, color: "var(--text-secondary)", marginTop: 4 }}>
                         Aplica a todos los miembros asignados a esta área. Los líderes tienen acceso total por defecto.

@@ -211,7 +211,7 @@ export function AreasManager({ members, canEdit }: { members: Member[]; canEdit:
 
                   {/* Members + leads */}
                   <div>
-                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 8 }}>Miembros y líderes (★)</div>
+                    <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--text-muted)", marginBottom: 8 }}>Miembros y líderes ()</div>
                     {members.length === 0 ? (
                       <p style={{ fontSize: 11, color: "var(--text-muted)" }}>Invita miembros al workspace para asignarlos.</p>
                     ) : (

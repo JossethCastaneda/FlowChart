@@ -285,26 +285,26 @@ function extractMessageContent(waMsg: WaMessage): {
       textBody = waMsg.text?.body ?? "";
       break;
     case "image":
-      textBody = waMsg.image?.caption ?? "[📷 Imagen]";
+      textBody = waMsg.image?.caption ?? "[ Imagen]";
       attachments.push({ type: "image", caption: waMsg.image?.caption, mimeType: waMsg.image?.mime_type });
       break;
     case "video":
-      textBody = waMsg.video?.caption ?? "[🎥 Video]";
+      textBody = waMsg.video?.caption ?? "[ Video]";
       attachments.push({ type: "video", caption: waMsg.video?.caption, mimeType: waMsg.video?.mime_type });
       break;
     case "audio":
-      textBody = "[🎵 Audio]";
+      textBody = "[ Audio]";
       attachments.push({ type: "audio", mimeType: waMsg.audio?.mime_type });
       break;
     case "document":
-      textBody = waMsg.document?.filename ?? "[📄 Documento]";
+      textBody = waMsg.document?.filename ?? "[ Documento]";
       attachments.push({ type: "document", caption: waMsg.document?.caption, mimeType: waMsg.document?.mime_type });
       break;
     case "location":
-      textBody = `[📍 Ubicación: ${waMsg.location?.name ?? `${waMsg.location?.latitude},${waMsg.location?.longitude}`}]`;
+      textBody = `[ Ubicación: ${waMsg.location?.name ?? `${waMsg.location?.latitude},${waMsg.location?.longitude}`}]`;
       break;
     case "sticker":
-      textBody = "[🎭 Sticker]";
+      textBody = "[ Sticker]";
       break;
     case "interactive":
       // Respuestas a botones o listas

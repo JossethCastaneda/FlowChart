@@ -199,7 +199,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    logger.info(`[INBOX-REPLY] ✅ Reply sent to conversation ${conversationId} (${conversation.platform})`);
+    logger.info(`[INBOX-REPLY]  Reply sent to conversation ${conversationId} (${conversation.platform})`);
     return NextResponse.json({ success: true, messageId: replyMessageId, conversationId });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Error interno";

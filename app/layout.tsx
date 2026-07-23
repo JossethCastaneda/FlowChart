@@ -16,6 +16,7 @@ import { ZefirusBrandDefs } from "@/components/ui/ZefirusBrandDefs";
 import { PopupCloseHandler } from "@/components/layout/PopupCloseHandler";
 import { PaywallInterceptor } from "@/components/layout/PaywallInterceptor";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { AlertToastContainer } from "@/components/alerts/AlertToast";
 
 // Solo inyectar los tags si el ID tiene el formato real (GTM-XXXX / G-XXXX);
 // así un placeholder en Vercel no genera scripts rotos en producción.
@@ -139,6 +140,7 @@ export default function RootLayout({
                 <ClientMainWrapper>{children}</ClientMainWrapper>
               </QueryProvider>
               <ToastContainer />
+              <AlertToastContainer />
               <ConfirmModalContainer />
               <PopupCloseHandler />
               <PaywallInterceptor />

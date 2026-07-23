@@ -47,7 +47,7 @@ export async function POST(req: NextRequest) {
     }
     const decoded = verifySignedRequest(signedRequest, appSecret);
     if (!decoded) {
-      logger.warn("[Meta Data Deletion] ⚠️ signed_request HMAC verification failed — rejecting.");
+      logger.warn("[Meta Data Deletion] signed_request HMAC verification failed — rejecting.");
       return NextResponse.json({ error: "Invalid signed_request" }, { status: 403 });
     }
     const metaUserId = decoded.user_id || "unknown";

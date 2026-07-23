@@ -54,7 +54,7 @@ async function notifyTokenExpired(workspaceId: string): Promise<void> {
     data: admins.map((m) => ({
       userId: m.userId,
       type: "meta_token_expired",
-      title: "🔌 Conexión de Meta expirada",
+      title: " Conexión de Meta expirada",
       message:
         "Una o más conexiones de Meta expiraron y se desconectaron. Reconéctalas en Integraciones.",
       link: "/dashboard/integrations",

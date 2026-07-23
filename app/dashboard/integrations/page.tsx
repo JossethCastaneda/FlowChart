@@ -71,7 +71,7 @@ function OAuthToast() {
       }
       <div>
         <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", margin: "0 0 2px" }}>
-          {isSuccess ? `✅ ${label} conectado` : "Error de conexión"}
+          {isSuccess ? ` ${label} conectado` : "Error de conexión"}
         </p>
         <p style={{ fontSize: 12, color: "var(--text-secondary)", margin: 0 }}>
           {isSuccess

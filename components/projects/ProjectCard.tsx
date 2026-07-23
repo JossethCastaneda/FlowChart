@@ -140,7 +140,7 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
                   <span style={{ width: 5, height: 5, borderRadius: "50%", background: isExpired ? "var(--amber)" : (pl?.color || "currentColor"), flexShrink: 0 }} />
                 )}
                 {c.platformName}
-                {isExpired && <span style={{ fontSize: 9, marginLeft: 2 }} role="img" aria-label="warning">⚠️</span>}
+                {isExpired && <span style={{ fontSize: 9, marginLeft: 2 }} role="img" aria-label="warning"></span>}
               </span>
             );
           })}

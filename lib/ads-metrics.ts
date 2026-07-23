@@ -5,21 +5,21 @@
 
 // ── Meta Objective mapping ──────────────────────────────────────────────────
 export const OBJECTIVE_MAP: Record<string, { label: string; icon: string; color: string }> = {
-  OUTCOME_AWARENESS:     { label: "Awareness",      icon: "📡", color: "#5b9bff" },
-  OUTCOME_TRAFFIC:       { label: "Tráfico",         icon: "🔗", color: "#60a5fa" },
-  OUTCOME_ENGAGEMENT:    { label: "Interacción",     icon: "💬", color: "#a78bfa" },
-  OUTCOME_LEADS:         { label: "Leads",           icon: "📋", color: "#34d399" },
-  OUTCOME_APP_PROMOTION: { label: "App Promotion",   icon: "📱", color: "#d98843" },
-  OUTCOME_SALES:         { label: "Ventas",          icon: "🛒", color: "#bc5fb2" },
+  OUTCOME_AWARENESS:     { label: "Awareness",      icon: "", color: "#5b9bff" },
+  OUTCOME_TRAFFIC:       { label: "Tráfico",         icon: "", color: "#60a5fa" },
+  OUTCOME_ENGAGEMENT:    { label: "Interacción",     icon: "", color: "#a78bfa" },
+  OUTCOME_LEADS:         { label: "Leads",           icon: "", color: "#34d399" },
+  OUTCOME_APP_PROMOTION: { label: "App Promotion",   icon: "", color: "#d98843" },
+  OUTCOME_SALES:         { label: "Ventas",          icon: "", color: "#bc5fb2" },
   // Legacy objectives (still returned by API for old campaigns)
-  BRAND_AWARENESS:       { label: "Awareness",      icon: "📡", color: "#5b9bff" },
-  REACH:                 { label: "Alcance",         icon: "📡", color: "#5b9bff" },
-  LINK_CLICKS:           { label: "Tráfico",         icon: "🔗", color: "#60a5fa" },
-  POST_ENGAGEMENT:       { label: "Interacción",     icon: "💬", color: "#a78bfa" },
-  LEAD_GENERATION:       { label: "Leads",           icon: "📋", color: "#34d399" },
-  CONVERSIONS:           { label: "Conversiones",    icon: "🛒", color: "#bc5fb2" },
-  MESSAGES:              { label: "Mensajes",        icon: "✉️", color: "#818cf8" },
-  VIDEO_VIEWS:           { label: "Video Views",     icon: "🎬", color: "#d98843" },
+  BRAND_AWARENESS:       { label: "Awareness",      icon: "", color: "#5b9bff" },
+  REACH:                 { label: "Alcance",         icon: "", color: "#5b9bff" },
+  LINK_CLICKS:           { label: "Tráfico",         icon: "", color: "#60a5fa" },
+  POST_ENGAGEMENT:       { label: "Interacción",     icon: "", color: "#a78bfa" },
+  LEAD_GENERATION:       { label: "Leads",           icon: "", color: "#34d399" },
+  CONVERSIONS:           { label: "Conversiones",    icon: "", color: "#bc5fb2" },
+  MESSAGES:              { label: "Mensajes",        icon: "️", color: "#818cf8" },
+  VIDEO_VIEWS:           { label: "Video Views",     icon: "", color: "#d98843" },
 };
 
 // ── Star Wars Status Vocabulary ─────────────────────────────────────────────

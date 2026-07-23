@@ -6,6 +6,7 @@ import { GalaxyBackground } from "@/components/ui/GalaxyBackground";
 import { WorkspaceSwitcher } from "@/components/layout/WorkspaceSwitcher";
 import { ZefirusLogo } from "@/components/ui/ZefirusLogo";
 import { NotificationBell } from "@/components/ui/NotificationBell";
+import { AlertBellButton } from "@/components/alerts/AlertToast";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { WhatsAppPhonePrompt } from "@/components/ui/WhatsAppPhonePrompt";
 import { useBrowserNotifications } from "@/hooks/useBrowserNotifications";
@@ -684,6 +685,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             <ZefirusLogo size="sm" />
           </div>
           <div className="flex items-center gap-2">
+            <AlertBellButton />
             <NotificationBell />
           </div>
         </header>
@@ -807,6 +809,7 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
             <HoloIcon icon={MessageSquarePlus} variant="cyan" isActive={true} className="w-[18px] h-[18px]" />
           </Link>
 
+          <AlertBellButton />
           <NotificationBell />
 
           <button className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>

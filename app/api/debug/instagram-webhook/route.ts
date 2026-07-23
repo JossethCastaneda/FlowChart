@@ -26,13 +26,13 @@ export async function GET(req: NextRequest) {
 
   // 1. Variables de entorno configuradas (sin exponer los valores)
   result.envConfig = {
-    INSTAGRAM_APP_ID: env.INSTAGRAM_APP_ID ? `✅ configurado (${env.INSTAGRAM_APP_ID})` : "❌ NO configurado",
-    INSTAGRAM_APP_SECRET: env.INSTAGRAM_APP_SECRET ? "✅ configurado" : "❌ NO configurado",
-    META_APP_ID: env.META_APP_ID ? `✅ configurado (${env.META_APP_ID})` : "❌ NO configurado",
-    META_APP_SECRET: env.META_APP_SECRET ? "✅ configurado" : "❌ NO configurado",
+    INSTAGRAM_APP_ID: env.INSTAGRAM_APP_ID ? ` configurado (${env.INSTAGRAM_APP_ID})` : " NO configurado",
+    INSTAGRAM_APP_SECRET: env.INSTAGRAM_APP_SECRET ? " configurado" : " NO configurado",
+    META_APP_ID: env.META_APP_ID ? ` configurado (${env.META_APP_ID})` : " NO configurado",
+    META_APP_SECRET: env.META_APP_SECRET ? " configurado" : " NO configurado",
     META_WEBHOOK_VERIFY_TOKEN: env.META_WEBHOOK_VERIFY_TOKEN
-      ? `✅ configurado ("${env.META_WEBHOOK_VERIFY_TOKEN}")`
-      : "❌ NO configurado — la verificación del webhook FALLARÁ",
+      ? ` configurado ("${env.META_WEBHOOK_VERIFY_TOKEN}")`
+      : " NO configurado — la verificación del webhook FALLARÁ",
     META_API_VERSION: env.META_API_VERSION,
   };
 
@@ -91,7 +91,7 @@ export async function GET(req: NextRequest) {
     endpointUrl: webhookUrl,
     verifyToken: verifyToken
       ? `"${verifyToken}" — configura ESTE mismo token en Meta Developers > Instagram > Webhooks`
-      : "❌ NO CONFIGURADO — agrega META_WEBHOOK_VERIFY_TOKEN en Vercel",
+      : " NO CONFIGURADO — agrega META_WEBHOOK_VERIFY_TOKEN en Vercel",
     configInMetaDevelopers: {
       callbackUrl: `${webhookUrl}`,
       verifyToken: verifyToken ?? "UNDEFINED",

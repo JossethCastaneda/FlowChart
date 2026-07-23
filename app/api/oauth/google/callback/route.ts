@@ -67,7 +67,7 @@ export async function GET(request: NextRequest) {
   // ── SECURITY: el state debe pertenecer al usuario logueado. Evita que un state
   // firmado de otro usuario (filtrado) se complete bajo la sesión del atacante. ──
   if (userId !== jwt.sub) {
-    logger.warn(`[OAUTH GOOGLE] ❌ User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
+    logger.warn(`[OAUTH GOOGLE]  User mismatch — state userId: ${userId}, jwt.sub: ${jwt.sub}`);
     return NextResponse.redirect(new URL("/dashboard/integrations?error=user_mismatch", request.url));
   }
 

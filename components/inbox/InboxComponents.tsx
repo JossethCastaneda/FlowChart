@@ -483,14 +483,14 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
             </div>
           )}
 
-          {/* Engagement metrics (Meta style: ❤️ N likes  💬 N comentarios) */}
+          {/* Engagement metrics (Meta style: N likes  N comentarios) */}
           <div style={{
             display: "flex", alignItems: "center", justifyContent: "space-between",
             padding: "8px 14px",
             borderTop: "1px solid var(--hairline)",
           }}>
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{ fontSize: 15 }}>❤️</span>
+              <span style={{ fontSize: 15 }}></span>
               <span style={{ fontSize: 13, color: "var(--text-secondary)" }}>{(postData.likeCount ?? 0).toLocaleString()} likes</span>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -568,7 +568,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
                     </span>
                     {comment.likes > 0 && (
                       <span style={{ fontSize: 10, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 2 }}>
-                        <span>❤️</span>{comment.likes}
+                        <span></span>{comment.likes}
                       </span>
                     )}
                     <button
@@ -596,7 +596,7 @@ export function PostView({ conversation, onBack }: { conversation: Conversation;
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6, padding: "4px 8px", background: "var(--surface-hover)", borderRadius: 6 }}>
             <span style={{ fontSize: 11, color: "var(--text-muted)" }}>Respondiendo a</span>
             <span style={{ fontSize: 11, fontWeight: 700, color: "var(--cyan)" }}>@{replyTarget.username}</span>
-            <button onClick={() => setReplyTarget(null)} style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>âœ•</button>
+            <button onClick={() => setReplyTarget(null)} style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-muted)", background: "none", border: "none", cursor: "pointer", padding: 0 }}>âœ</button>
           </div>
         )}
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -676,7 +676,7 @@ export function ChatView({
     }, [conversation.id, conversation.contactName, onBack, setBreadcrumbs]);
     const [showReplies, setShowReplies] = useState(false);
     const [showEmojis, setShowEmojis] = useState(false);
-    const EMOJIS = ["ðŸ˜€","ðŸ˜‚","ðŸ˜","ðŸ™","ðŸ”¥","ðŸ‘","â¤ï¸","ðŸŽ‰","ðŸ˜Ž","ðŸ¤”","ðŸ˜­","âœ¨","ðŸ’¯","ðŸ™Œ","ðŸ‘€","ðŸ‘","ðŸ˜Š","ðŸ¥°","ðŸ¤Œ","ðŸ’”"];
+    const EMOJIS = ["ðŸ˜€","ðŸ˜‚","ðŸ˜","ðŸ","ðŸ”¥","ðŸ‘","â¤ï¸","ðŸŽ‰","ðŸ˜Ž","ðŸ¤”","ðŸ˜­","âœ¨","ðŸ’¯","ðŸŒ","ðŸ‘€","ðŸ‘","ðŸ˜Š","ðŸ¥°","ðŸ¤Œ","ðŸ’”"];
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const pc = getPlatformConfig(conversation.platform);
     useEffect(() => {

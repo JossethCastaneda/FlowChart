@@ -67,7 +67,7 @@ async function backfillThread(
       data: {
         conversationId: conv.id,
         externalId: m.id,
-        content: m.message || (m.attachments?.data?.length || m.shares?.data?.length ? "📎 Adjunto" : ""),
+        content: m.message || (m.attachments?.data?.length || m.shares?.data?.length ? " Adjunto" : ""),
         sender: m.from?.id === conv.pageId ? "page" : "user",
         senderName: m.from?.id === conv.pageId ? "page" : null,
         attachments: m.attachments?.data || m.shares?.data || undefined,

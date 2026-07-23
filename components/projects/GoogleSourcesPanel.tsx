@@ -224,9 +224,9 @@ export function GoogleSourcesPanel({ projectId }: GoogleSourcesPanelProps) {
 
         {errorMsg && (() => {
           const scopeMap: Record<string, { label: string; module: string; icon: string }> = {
-            "__scope_ads__": { label: "Google Ads", module: "google_ads", icon: "📊" },
-            "__scope_ga4__": { label: "Google Analytics 4", module: "page_analytics", icon: "📈" },
-            "__scope_gtm__": { label: "Tag Manager", module: "tag_tracking", icon: "🏷️" },
+            "__scope_ads__": { label: "Google Ads", module: "google_ads", icon: "" },
+            "__scope_ga4__": { label: "Google Analytics 4", module: "page_analytics", icon: "" },
+            "__scope_gtm__": { label: "Tag Manager", module: "tag_tracking", icon: "" },
           };
           const scopeInfo = scopeMap[errorMsg];
 

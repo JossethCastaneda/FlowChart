@@ -304,7 +304,7 @@ export function ScheduledCalendar() {
       setBoostResults((prev) => ({ ...prev, [boostTarget.id]: result }));
     }
     setBoostTarget(null);
-    setBanner({ type: "success", message: "⚡ Boost creado EN PAUSA. Actívalo desde el Ads Manager cuando estés listo — no gasta hasta entonces." });
+    setBanner({ type: "success", message: "Boost creado EN PAUSA. Actívalo desde el Ads Manager cuando estés listo — no gasta hasta entonces." });
   };
 
   /* ── Post card (list view + day detail) ────────────────── */
@@ -378,7 +378,7 @@ export function ScheduledCalendar() {
             {post.content.length > 100 ? post.content.slice(0, 100) + "..." : post.content}
           </p>
           {post.error && (
-            <p style={{ fontSize: 10, color: "var(--red)", margin: "4px 0 0" }}>⚠ {post.error}</p>
+            <p style={{ fontSize: 10, color: "var(--red)", margin: "4px 0 0" }}>{post.error}</p>
           )}
         </div>
 

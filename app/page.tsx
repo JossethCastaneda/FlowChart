@@ -826,7 +826,7 @@ export default function Home() {
             border: "1px solid var(--hairline)",
             display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap",
           }}>
-            <span style={{ fontSize: 13, color: "var(--text-muted)" }}>© {new Date().getFullYear()} Zefirus. Todos los derechos reservados.</span>
+            <span style={{ fontSize: 13, color: "var(--text-muted)" }}> {new Date().getFullYear()} Zefirus. Todos los derechos reservados.</span>
             <span style={{ fontSize: 13, color: "var(--text-muted)", display: "flex", alignItems: "center", gap: 6 }}>
               Hecho en México <MapPin size={14} />
             </span>

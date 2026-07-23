@@ -612,7 +612,7 @@ export const authOptions: NextAuthOptions = {
       }
 
       if (account) {
-        // SEPARACIÓN LOGIN ↔ ACTIVOS (modelo comercial):
+        // SEPARACIÓN LOGIN  ACTIVOS (modelo comercial):
         // Iniciar sesión con Facebook/Google es SOLO identidad (email, perfil).
         // El token de login NUNCA se guarda como integración del workspace ni
         // en el JWT. Conectar activos (páginas, ads, analytics…) se hace
