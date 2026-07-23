@@ -19,7 +19,7 @@ const GOAL_ACTION_MAP: Record<string, string[]> = {
     "messaging_conversation_started_7d",
     "onsite_conversion.messaging_first_reply",
   ],
-  "Leads": ["lead", "leadgen_grouped", "onsite_conversion.lead_grouped"],
+  "Leads": ["lead", "leadgen_grouped", "onsite_conversion.lead_grouped", "offsite_conversion.fb_pixel_lead", "omni_lead"],
   "Ventas (Purchase)": [
     "purchase",
     "omni_purchase",

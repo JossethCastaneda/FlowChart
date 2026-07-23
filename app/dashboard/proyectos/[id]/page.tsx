@@ -56,7 +56,7 @@ const goalLabel = (goal?: string) => {
 // Goal → Meta action_type priority mapping
 const GOAL_ACTION_MAP: Record<string, string[]> = {
   "Conversaciones": ["onsite_conversion.messaging_conversation_started_7d", "messaging_conversation_started_7d", "onsite_conversion.messaging_first_reply"],
-  "Leads": ["lead", "leadgen_grouped", "onsite_conversion.lead_grouped"],
+  "Leads": ["lead", "leadgen_grouped", "onsite_conversion.lead_grouped", "offsite_conversion.fb_pixel_lead", "omni_lead"],
   "Ventas (Purchase)": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase"],
   "Registros": ["complete_registration", "omni_complete_registration", "offsite_conversion.fb_pixel_complete_registration"],
   "Clics al sitio": ["link_click", "landing_page_view"],
