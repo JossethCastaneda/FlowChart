@@ -534,7 +534,7 @@ export default function ProjectDashboardPage() {
   const cpr = totalResults > 0 ? totalSpend / totalResults : 0;
   const ctr = totalImpressions > 0 ? (totalClicks / totalImpressions) * 100 : 0;
   const roas = totalSpend > 0 ? totalActionValue / totalSpend : 0;
-  const spendProgress = budgetNum > 0 ? (totalSpend / budgetNum) * 100 : 0;
+  const spendProgress = bk.monthly > 0 ? (totalSpend / bk.monthly) * 100 : 0;
 
   // Projections
   const daysElapsed = getDaysElapsedInMonth();
@@ -1335,6 +1335,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
         <ErrorBoundary name="Tab Gasto">
         <div className="space-y-3">
           {/* Budget Summary Cards */}
+          {/* Budget Summary Cards — Redesigned */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {/* Presupuesto mensual */}
             <div style={{ ...panelStyle, borderTop: "2px solid rgba(251,191,36,0.5)" }}>
@@ -1342,39 +1343,58 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <DollarSign style={{ width: 12, height: 12, color: "var(--amber)" }} />
                 </div>
-                <p style={labelStyle}>Presupuesto {bk.label}</p>
+                <p style={labelStyle}>Presupuesto Mensual</p>
               </div>
-              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--amber)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(budgetNum)}</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--amber)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(bk.monthly)}</p>
               <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)} · Semanal: {fmtMXN(bk.weekly)}</p>
             </div>
-            {/* Diario ideal */}
-            <div style={{ ...panelStyle, borderTop: "2px solid rgba(59,130,246,0.5)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--cyan-dim)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Target style={{ width: 12, height: 12, color: "var(--cyan)" }} />
+            {/* Gastado acumulado */}
+            {(() => {
+              const pctUsed = bk.monthly > 0 ? (totalSpend / bk.monthly) * 100 : 0;
+              const isOverBudget = totalSpend > idealSpendToday * 1.1;
+              return (
+                <div style={{ ...panelStyle, borderTop: `2px solid ${isOverBudget ? "rgba(226,68,92,0.5)" : "rgba(59,130,246,0.5)"}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: 6, background: isOverBudget ? "rgba(226,68,92,0.1)" : "rgba(59,130,246,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Activity style={{ width: 12, height: 12, color: isOverBudget ? "var(--red)" : "var(--cyan)" }} />
+                    </div>
+                    <p style={labelStyle}>Gastado Acumulado</p>
+                  </div>
+                  <p style={{ fontSize: 22, fontWeight: 700, color: isOverBudget ? "var(--red)" : "var(--cyan)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(totalSpend)}</p>
+                  <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN0(bk.monthly)} ({pct(pctUsed)})</p>
+                  {bk.monthly > 0 && (
+                    <div style={{ marginTop: 8, height: 3, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${Math.min(pctUsed, 100)}%`, background: isOverBudget ? "var(--red)" : "var(--cyan)", borderRadius: 2 }} />
+                    </div>
+                  )}
                 </div>
-                <p style={labelStyle}>Diario ideal</p>
-              </div>
-              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--cyan)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN(bk.daily)}</p>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>Ritmo objetivo por día</p>
-            </div>
-            {/* Gastado hoy */}
-            <div style={{ ...panelStyle, borderTop: `2px solid ${totalSpend > idealSpendToday * 1.1 ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: totalSpend > idealSpendToday * 1.1 ? "rgba(226,68,92,0.1)" : "rgba(0,200,117,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <Activity style={{ width: 12, height: 12, color: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)" }} />
+              );
+            })()}
+            {/* Gastado hoy — now actually shows today's spend */}
+            {(() => {
+              const todayStr = new Date().toISOString().slice(0, 10);
+              const todaySpend = timeSeriesData.filter((d: any) => d.fullDate === todayStr).reduce((sum: number, d: any) => sum + d.spend, 0);
+              const todayResults = timeSeriesData.filter((d: any) => d.fullDate === todayStr).reduce((sum: number, d: any) => sum + d.results, 0);
+              const todayOverBudget = todaySpend > bk.daily * 1.1;
+              const todayPct = bk.daily > 0 ? (todaySpend / bk.daily) * 100 : 0;
+              return (
+                <div style={{ ...panelStyle, borderTop: `2px solid ${todayOverBudget ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
+                    <div style={{ width: 24, height: 24, borderRadius: 6, background: todayOverBudget ? "rgba(226,68,92,0.1)" : "rgba(0,200,117,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                      <Target style={{ width: 12, height: 12, color: todayOverBudget ? "var(--red)" : "var(--emerald)" }} />
+                    </div>
+                    <p style={labelStyle}>Gastado Hoy</p>
+                  </div>
+                  <p style={{ fontSize: 22, fontWeight: 700, color: todayOverBudget ? "var(--red)" : "var(--emerald)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(todaySpend)}</p>
+                  <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN(bk.daily)} diario ideal{todayResults > 0 ? ` · ${todayResults} resultado${todayResults > 1 ? "s" : ""}` : ""}</p>
+                  {bk.daily > 0 && (
+                    <div style={{ marginTop: 8, height: 3, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${Math.min(todayPct, 100)}%`, background: todayOverBudget ? "var(--red)" : "var(--emerald)", borderRadius: 2 }} />
+                    </div>
+                  )}
                 </div>
-                <p style={labelStyle}>Gastado hoy</p>
-              </div>
-              <p style={{ fontSize: 22, fontWeight: 700, color: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(totalSpend)}</p>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN0(idealSpendToday)} ideal</p>
-              {/* mini progress bar */}
-              {idealSpendToday > 0 && (
-                <div style={{ marginTop: 8, height: 3, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${Math.min((totalSpend / idealSpendToday) * 100, 100)}%`, background: totalSpend > idealSpendToday * 1.1 ? "var(--red)" : "var(--emerald)", borderRadius: 2 }} />
-                </div>
-              )}
-            </div>
+              );
+            })()}
             {/* Restante */}
             <div style={{ ...panelStyle, borderTop: "2px solid rgba(139,141,242,0.5)" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
@@ -1383,8 +1403,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 </div>
                 <p style={labelStyle}>Restante</p>
               </div>
-              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(Math.max(budgetNum - totalSpend, 0))}</p>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{budgetNum > 0 ? `${pct(Math.min((totalSpend / budgetNum) * 100, 100))} utilizado` : "Sin presupuesto configurado"}</p>
+              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(Math.max(bk.monthly - totalSpend, 0))}</p>
+              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{bk.monthly > 0 ? `${pct(Math.min((totalSpend / bk.monthly) * 100, 100))} utilizado · ${daysRemaining} días restantes` : "Sin presupuesto configurado"}</p>
             </div>
           </div>
 
@@ -1425,31 +1445,100 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 600, color: "var(--foreground)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "var(--surface)", border: "1px solid var(--border)", zIndex: 2 };
                 const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "var(--surface-hover)", border: "1px solid var(--hairline)", position: "sticky" as const, left: 0, zIndex: 2 };
 
+                // Today's date for column highlighting
+                const todayFullDate = new Date().toISOString().slice(0, 10);
+
+                // Smart color function for each cell based on metric context
+                const getCellColor = (rowLabel: string, value: string, colIndex: number): string => {
+                  if (value === "—" || value === "$0.00" || value === "0") return "var(--text-muted)";
+                  
+                  // %Gastado: red if > 120%, amber if > 100%, green if 60-100%, muted if < 60%
+                  if (rowLabel === "%Gastado") {
+                    const num = parseFloat(value.replace("%", ""));
+                    if (num > 120) return "var(--red)";
+                    if (num > 100) return "var(--amber)";
+                    if (num >= 60) return "var(--emerald)";
+                    return "var(--text-secondary)";
+                  }
+                  // Cumplimiento: green if >= 100%, amber if >= 50%, red if < 50%
+                  if (rowLabel === "Cumplimiento") {
+                    const num = parseFloat(value.replace("%", ""));
+                    if (num >= 100) return "var(--emerald)";
+                    if (num >= 50) return "var(--amber)";
+                    return "var(--red)";
+                  }
+                  // Desvío: green if negative (below target), red if > 30%, amber if > 0%
+                  if (rowLabel === "Desvío") {
+                    const num = parseFloat(value.replace("+", "").replace("%", ""));
+                    if (num <= 0) return "var(--emerald)";
+                    if (num > 30) return "var(--red)";
+                    return "var(--amber)";
+                  }
+                  return "inherit"; // fallback to row color
+                };
+
                 const metricRows = [
-                  { label: "Presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "var(--foreground)" },
-                  { label: "Importe Gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "var(--amber)" },
-                  { label: "%Gastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "var(--foreground)" },
-                  { label: goalLabel(ch?.goal), total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "var(--emerald)" },
-                  { label: "Cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map((c: any) => goalBreakdown.daily > 0 ? pct((c.results / goalBreakdown.daily) * 100) : "—"), color: "#c084fc" },
-                  { label: CPR_MAP[ch?.goal || ""] || "CPR", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "var(--cyan)" },
-                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Objetivo`, total: cprTarget > 0 ? fmtMXN(cprTarget) : "—", values: cols.map(() => cprTarget > 0 ? fmtMXN(cprTarget) : "—"), color: "var(--text-secondary)" },
-                  { label: "Desvío", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(1)}%`; }), color: "var(--text-secondary)" },
+                  { label: "Presupuesto", key: "presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "var(--foreground)" },
+                  { label: "Importe Gastado", key: "gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "var(--amber)" },
+                  { label: "%Gastado", key: "pctGastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "var(--foreground)" },
+                  { label: goalLabel(ch?.goal), key: "leads", total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "var(--emerald)" },
+                  { label: "Cumplimiento", key: "cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map((c: any) => goalBreakdown.daily > 0 ? pct((c.results / goalBreakdown.daily) * 100) : "—"), color: "#c084fc" },
+                  { label: CPR_MAP[ch?.goal || ""] || "CPR", key: "cpr", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "var(--cyan)" },
+                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Objetivo`, key: "cprObj", total: cprTarget > 0 ? fmtMXN(cprTarget) : "—", values: cols.map(() => cprTarget > 0 ? fmtMXN(cprTarget) : "—"), color: "var(--text-secondary)" },
+                  { label: "Desvío", key: "desvio", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(1)}%`; }), color: "var(--text-secondary)" },
                 ];
 
+                // Export to CSV function
+                const exportCSV = () => {
+                  const headers = ["Métrica", "Al Día", ...cols.map((c: any) => c.fullDate || c.date)];
+                  const rows = metricRows.map(row => [row.label, row.total, ...row.values]);
+                  const csvContent = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
+                  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a");
+                  a.href = url;
+                  a.download = `gasto_${project.alias || "proyecto"}_${new Date().toISOString().slice(0, 10)}.csv`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                };
+
                 return (
+                  <>
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+                    <button
+                      onClick={exportCSV}
+                      style={{
+                        display: "flex", alignItems: "center", gap: 4,
+                        padding: "5px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
+                        color: "var(--text-secondary)", background: "var(--surface-hover)",
+                        border: "1px solid var(--border)", cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; e.currentTarget.style.color = "var(--foreground)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.background = "var(--surface-hover)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
+                    >
+                      📥 Exportar CSV
+                    </button>
+                  </div>
                   <table style={{ borderCollapse: "collapse", fontSize: 11, minWidth: "100%" }}>
                     {/* Day names header */}
                     <thead>
                       <tr>
                         <th style={{ ...totalCellStyle, background: "var(--surface-hover)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 10, color: "var(--foreground)" }}>AL DÍA</th>
                         <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 10, color: "var(--foreground)" }}>FECHA</th>
-                        {cols.map((c: any, i: number) => <th key={i} style={headerCellStyle}>{c.dayName}</th>)}
+                        {cols.map((c: any, i: number) => {
+                          const isToday = c.fullDate === todayFullDate;
+                          return <th key={i} style={{ ...headerCellStyle, ...(isToday ? { background: "var(--emerald)", fontWeight: 800 } : {}) }}>{c.dayName}{isToday ? " ★" : ""}</th>;
+                        })}
                       </tr>
                       {/* Date numbers row */}
                       <tr>
                         <th style={{ ...totalCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
                         <th style={{ ...labelCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
-                        {cols.map((c: any, i: number) => <th key={i} style={subHeaderStyle}>{c.date}</th>)}
+                        {cols.map((c: any, i: number) => {
+                          const isToday = c.fullDate === todayFullDate;
+                          return <th key={i} style={{ ...subHeaderStyle, ...(isToday ? { background: "rgba(0,200,117,0.1)", borderBottom: "2px solid var(--emerald)" } : {}) }}>{c.date}</th>;
+                        })}
                       </tr>
                     </thead>
                     <tbody>
@@ -1463,13 +1552,24 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <tr key={ri} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.015)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
                           <td style={{ ...totalCellStyle, color: row.color, textAlign: "right", paddingRight: 12, minWidth: 100 }}>{row.total}</td>
                           <td style={labelCellStyle}>{row.label}</td>
-                          {row.values.map((v: string, ci: number) => (
-                            <td key={ci} style={{ ...cellStyle, color: row.color === "var(--foreground)" ? "var(--text-muted)" : row.color, fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400 }}>{v}</td>
-                          ))}
+                          {row.values.map((v: string, ci: number) => {
+                            const isToday = cols[ci]?.fullDate === todayFullDate;
+                            const smartColor = getCellColor(row.label, v, ci);
+                            const cellColor = smartColor !== "inherit" ? smartColor : (row.color === "var(--foreground)" ? "var(--text-muted)" : row.color);
+                            return (
+                              <td key={ci} style={{
+                                ...cellStyle,
+                                color: cellColor,
+                                fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400,
+                                ...(isToday ? { background: "rgba(0,200,117,0.04)", borderLeft: "1px solid rgba(0,200,117,0.2)", borderRight: "1px solid rgba(0,200,117,0.2)" } : {}),
+                              }}>{v}</td>
+                            );
+                          })}
                         </tr>
                       ))}
                     </tbody>
                   </table>
+                  </>
                 );
               })()}
             </div>
