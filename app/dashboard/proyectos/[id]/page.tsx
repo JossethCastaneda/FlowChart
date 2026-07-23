@@ -1100,66 +1100,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
             dateMap[dateStr][hour].results += ra ? parseInt(ra.value, 10) : 0;
           });
 
-          // ── Timezone-stitch pass ──────────────────────────────────────────
-          // Meta reports hourly data using audience_time_zone. For Mexican accounts
-          // (UTC-6), this means hours 18-23 local time get logged as hours 0-5 of
-          // the NEXT calendar day in UTC. We detect and fix this:
-          // If a date's data ONLY exists in hours 0-5 (no activity in hours 6-23)
-          // AND the previous date exists, we remap hours 0-5 → 18-23 of previous day.
-          const allDates = Object.keys(dateMap).sort();
-          const datesToRemove = new Set<string>();
-
-          allDates.forEach((dateStr) => {
-            const hours = dateMap[dateStr];
-            const prev = prevDate(dateStr);
-            if (!dateMap[prev]) return; // no previous date to stitch into
-
-            // Count data in early (0-5) vs late (6-23) hours
-            const earlyActivity = [0, 1, 2, 3, 4, 5].filter(
-              h => hours[h].spend > 0 || hours[h].results > 0 || hours[h].impressions > 0
-            );
-            const lateActivity = Array.from({ length: 18 }, (_, i) => i + 6).filter(
-              h => hours[h].spend > 0 || hours[h].results > 0 || hours[h].impressions > 0
-            );
-
-            // Only stitch if this date has NO late activity (6-23) but DOES have early activity (0-5)
-            // AND the early hours are in the range 0-5 (typical UTC-6 overflow)
-            if (lateActivity.length === 0 && earlyActivity.length > 0) {
-              const currentHour = new Date().getHours();
-              const isPrevToday = prev === todayStr;
-
-              // Filter early hours to only those whose target hour has already occurred if the target day is today
-              const stitchableHours = earlyActivity.filter(h => {
-                const targetH = h + 18;
-                return !isPrevToday || targetH <= currentHour;
-              });
-
-              if (stitchableHours.length > 0) {
-                console.debug(`[Heatmap] Stitching TZ overflow: ${dateStr} hours [${stitchableHours.join(',')}] → prev date ${prev} as hours [${stitchableHours.map(h => h + 18).join(',')}]`);
-                stitchableHours.forEach(h => {
-                  const targetH = h + 18;
-                  dateMap[prev][targetH].impressions += hours[h].impressions;
-                  dateMap[prev][targetH].spend       += hours[h].spend;
-                  dateMap[prev][targetH].clicks      += hours[h].clicks;
-                  dateMap[prev][targetH].results     += hours[h].results;
-
-                  // Clear them from original day
-                  hours[h] = { impressions: 0, spend: 0, clicks: 0, results: 0 };
-                });
-
-                // Only remove the date if all early hours with data were stitched
-                const remainingEarly = [0, 1, 2, 3, 4, 5].some(
-                  h => hours[h].spend > 0 || hours[h].results > 0 || hours[h].impressions > 0
-                );
-                if (!remainingEarly) {
-                  datesToRemove.add(dateStr);
-                }
-              }
-            }
-          });
-
-          // Sort dates chronologically, excluding stitched-away dates
-          const sortedDates = Object.keys(dateMap).sort().filter(d => !datesToRemove.has(d));
+          // Sort dates chronologically
+          const sortedDates = Object.keys(dateMap).sort();
 
           // Format date label: "Lun 02/06"
           const formatDateLabel = (dateStr: string) => {
