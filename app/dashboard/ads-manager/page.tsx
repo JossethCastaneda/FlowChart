@@ -1151,107 +1151,144 @@ function AdsManagerContent() {
         {renderHeader()}
 
         {/* ── META ADS CONNECTION PANEL ── */}
-        {justConnected ? (
+        {justConnected && (
           <div style={{
             display: "flex", alignItems: "center", gap: "10px",
             padding: "12px 16px",
             background: "var(--surface)",
             border: "1px solid rgba(52,183,124,0.3)",
             borderRadius: "6px",
+            marginBottom: "24px"
           }}>
             <CheckCircle className="w-4 h-4" style={{ color: "var(--emerald)", flexShrink: 0 }} />
             <span style={{ fontSize: "12px", color: "var(--emerald)", fontWeight: 600 }}>
               ✅ Meta Ads conectado — sincronizando cuentas publicitarias...
             </span>
           </div>
-        ) : (
-          <div style={{
-            position: "relative",
-            display: "flex", alignItems: "center", gap: "16px",
-            padding: "16px 20px",
-            background: "linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(155,123,232,0.06) 50%, rgba(236,72,153,0.08) 100%)",
-            border: "1px solid rgba(155,123,232,0.2)",
-            borderRadius: "12px",
-            overflow: "hidden",
-            
-          }}>
-            {/* Animated gradient accent line */}
-            <div style={{
-              position: "absolute", top: 0, left: 0, right: 0, height: "2px",
-              background: "linear-gradient(90deg, var(--purple), var(--purple), var(--red), var(--purple))",
-              backgroundSize: "200% 100%",
-              animation: "shimmer 3s linear infinite",
-            }} />
-            <div style={{
-              display: "flex", alignItems: "center", justifyContent: "center",
-              width: "40px", height: "40px", borderRadius: "10px", flexShrink: 0,
-              background: "linear-gradient(135deg, rgba(99,102,241,0.2), rgba(155,123,232,0.2))",
-              boxShadow: "0 0 20px rgba(155,123,232,0.15)",
-            }}>
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--purple)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                <path d="M2 17l10 5 10-5" />
-                <path d="M2 12l10 5 10-5" />
-              </svg>
-            </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <p style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)", margin: 0, lineHeight: 1.3 }}>
-                Conecta Meta Ads Manager
-              </p>
-              <p style={{ fontSize: "11px", color: "var(--text-secondary)", margin: "3px 0 0", lineHeight: 1.4 }}>
-                Vincula tu cuenta de Meta Ads para ver campañas, conjuntos y anuncios en tiempo real.
-              </p>
-            </div>
-            <a
-              href="/api/connect/ads"
-              style={{
-                display: "inline-flex", alignItems: "center", gap: "8px",
-                padding: "10px 20px",
-                background: "linear-gradient(135deg, var(--purple), var(--purple))",
-                color: "var(--foreground)",
-                fontSize: "12px", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase" as const,
-                borderRadius: "8px", cursor: "pointer", textDecoration: "none",
-                whiteSpace: "nowrap",
-                boxShadow: "0 4px 15px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.15)",
-                border: "none",
-                transition: "all 0.3s ease",
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget;
-                el.style.transform = "translateY(-1px)";
-                el.style.boxShadow = "0 6px 20px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.2)";
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget;
-                el.style.transform = "translateY(0)";
-                el.style.boxShadow = "0 4px 15px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.15)";
-              }}
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-                <polyline points="15 3 21 3 21 9" />
-                <line x1="10" y1="14" x2="21" y2="3" />
-              </svg>
-              Conectar
-            </a>
-            <style>{`
-              @keyframes shimmer {
-                0% { background-position: 200% 0; }
-                100% { background-position: -200% 0; }
-              }
-            `}</style>
-          </div>
         )}
 
+        <div 
+          className="glass-panel" 
+          style={{ 
+            padding: "80px 24px", 
+            textAlign: "center",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            background: "linear-gradient(180deg, rgba(30, 41, 59, 0.4) 0%, rgba(15, 23, 42, 0.4) 100%)",
+            border: "1px solid rgba(255, 255, 255, 0.05)",
+            borderRadius: "16px",
+            boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+            position: "relative",
+            overflow: "hidden"
+          }}
+        >
+          {/* Subtle background glow */}
+          <div style={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "300px",
+            height: "300px",
+            background: "radial-gradient(circle, rgba(24, 119, 242, 0.15) 0%, rgba(24, 119, 242, 0) 70%)",
+            pointerEvents: "none"
+          }} />
 
-        <div className="glass-panel" style={{ padding: "48px 24px", textAlign: "center" }}>
-          <Megaphone className="w-10 h-10 mx-auto mb-4" style={{ color: "var(--text-secondary)" }} />
-          <p style={{ fontFamily: "var(--font-display)", fontSize: "11px", letterSpacing: "0.2em", color: "var(--text-muted)", textTransform: "uppercase", marginBottom: "8px" }}>
-            Conexión Meta Ads requerida
+          <div style={{
+            width: "64px",
+            height: "64px",
+            borderRadius: "20px",
+            background: "linear-gradient(135deg, #1877F2 0%, #0C56BD 100%)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "24px",
+            boxShadow: "0 10px 25px rgba(24, 119, 242, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.2)",
+            color: "white",
+            position: "relative",
+            zIndex: 1
+          }}>
+            <MetaIcon />
+          </div>
+          
+          <h2 style={{ 
+            fontSize: "24px", 
+            fontWeight: 700, 
+            color: "var(--foreground)", 
+            marginBottom: "12px",
+            letterSpacing: "-0.02em",
+            position: "relative",
+            zIndex: 1
+          }}>
+            Conecta tu cuenta publicitaria
+          </h2>
+          
+          <p style={{ 
+            fontSize: "15px", 
+            color: "var(--text-secondary)", 
+            marginBottom: "32px",
+            maxWidth: "460px",
+            lineHeight: 1.6,
+            position: "relative",
+            zIndex: 1
+          }}>
+            Inicia sesión con Facebook para importar tus campañas, conjuntos de anuncios y métricas en tiempo real a Zefirus.
           </p>
-          <p style={{ fontSize: "13px", color: "var(--text-secondary)", marginBottom: "20px" }}>
-            Conecta tu cuenta de Meta Ads Manager para acceder a campañas, conjuntos de anuncios y métricas en tiempo real.
-          </p>
+
+          <a
+            href="/api/connect/ads"
+            style={{
+              display: "inline-flex", 
+              alignItems: "center", 
+              gap: "10px",
+              padding: "14px 28px",
+              background: "#1877F2",
+              color: "white",
+              fontSize: "15px", 
+              fontWeight: 600, 
+              borderRadius: "12px", 
+              cursor: "pointer", 
+              textDecoration: "none",
+              boxShadow: "0 4px 12px rgba(24, 119, 242, 0.25), inset 0 1px 0 rgba(255,255,255,0.2)",
+              transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+              position: "relative",
+              zIndex: 1
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget;
+              el.style.transform = "translateY(-2px)";
+              el.style.boxShadow = "0 8px 20px rgba(24, 119, 242, 0.35), inset 0 1px 0 rgba(255,255,255,0.2)";
+              el.style.background = "#166FE5";
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget;
+              el.style.transform = "translateY(0)";
+              el.style.boxShadow = "0 4px 12px rgba(24, 119, 242, 0.25), inset 0 1px 0 rgba(255,255,255,0.2)";
+              el.style.background = "#1877F2";
+            }}
+          >
+            <MetaIcon />
+            Iniciar sesión con Facebook
+          </a>
+          
+          <div style={{ 
+            marginTop: "24px", 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "8px", 
+            color: "var(--text-muted)", 
+            fontSize: "12px",
+            position: "relative",
+            zIndex: 1
+          }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+              <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+            </svg>
+            Conexión segura oficial
+          </div>
         </div>
       </div>
     );

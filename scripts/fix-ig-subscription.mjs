@@ -14,7 +14,7 @@ import { env } from "../lib/env";
 const META_API_VERSION = env.META_API_VERSION || "v25.0";
 
 // Descifrar token
-function decryptToken(encryptedValue: string): string {
+function decryptToken(encryptedValue) {
   if (!encryptedValue.startsWith("enc:")) return encryptedValue;
   const [, ivHex, authTagHex, ciphertextHex] = encryptedValue.split(":");
   if (!ivHex || !authTagHex || !ciphertextHex) throw new Error("Invalid token format");
@@ -43,9 +43,9 @@ async function main() {
   console.log(`Encontradas: ${integrations.length} integración(es)`);
 
   for (const integ of integrations) {
-    const creds = integ.credentials as Record<string, unknown>;
+    const creds = integ.credentials;
     const instagramUserId = creds?.instagramUserId ? String(creds.instagramUserId) : null;
-    const existingResult = creds?.webhookSubscriptionResult as string | null;
+    const existingResult = creds?.webhookSubscriptionResult;
 
     console.log(`\n🔍 Integración: ${integ.id}`);
     console.log(`   workspace: ${integ.workspaceId}`);
@@ -57,12 +57,12 @@ async function main() {
       continue;
     }
 
-    let token: string;
+    let token;
     try {
       token = decryptToken(creds.accessToken);
       console.log(`   🔑 Token descifrado: ${token.slice(0, 20)}...`);
     } catch (err) {
-      console.error(`   ❌ No se pudo descifrar el token:`, (err as Error).message);
+      console.error(`   ❌ No se pudo descifrar el token:`, err.message);
       continue;
     }
 
@@ -83,11 +83,11 @@ async function main() {
       instagramUserId ? `https://graph.instagram.com/${instagramUserId}/subscribed_apps` : null,
       `https://graph.facebook.com/${META_API_VERSION}/me/subscribed_apps`,
       `https://graph.facebook.com/me/subscribed_apps`,
-    ].filter(Boolean) as string[];
+    ].filter(Boolean);
 
     let success = false;
-    let successEndpoint: string | null = null;
-    let lastError: string | null = null;
+    let successEndpoint = null;
+    let lastError = null;
 
     for (const endpoint of endpointsToTry) {
       console.log(`   📡 Intentando: ${endpoint}`);
@@ -101,13 +101,13 @@ async function main() {
         const data = await res.json();
         console.log(`   📥 Respuesta (${res.status}):`, JSON.stringify(data));
 
-        if (res.ok && (data as any).success) {
+        if (res.ok && data.success) {
           success = true;
           successEndpoint = endpoint;
           console.log(`   ✅ ¡Suscripción activada via ${endpoint}!`);
           break;
         } else {
-          lastError = JSON.stringify((data as any)?.error ?? data).slice(0, 300);
+          lastError = JSON.stringify(data?.error ?? data).slice(0, 300);
         }
       } catch (err) {
         lastError = String(err).slice(0, 300);
@@ -133,7 +133,7 @@ async function main() {
       });
       console.log(`   💾 DB actualizada: ${success ? "✅ success" : "❌ failed"}`);
     } catch (dbErr) {
-      console.error(`   ❌ Error actualizando DB:`, (dbErr as Error).message);
+      console.error(`   ❌ Error actualizando DB:`, dbErr.message);
     }
   }
 
