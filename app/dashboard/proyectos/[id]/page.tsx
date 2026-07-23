@@ -284,7 +284,26 @@ export default function ProjectDashboardPage() {
     fetch("/api/meta/adaccounts").then(r => r.json()).then(d => {
       if (d.data) { const n: Record<string, string> = {}; d.data.forEach((a: any) => { n[a.id] = a.name?.split(" — ")[0] || a.id; }); setAccountNames(n); }
     }).catch(() => {});
-    fetch("/api/meta/pages?module=social").then(r => r.json()).then(d => { if (d.data) setMetaPages(d.data); }).catch(() => {});
+    Promise.all([
+      fetch("/api/meta/pages?module=social").catch(() => null),
+      fetch("/api/meta/pages?module=ads").catch(() => null)
+    ]).then(async ([resSocial, resAds]) => {
+      let allPages: any[] = [];
+      if (resSocial?.ok) {
+        const d = await resSocial.json();
+        if (d.data) allPages = [...d.data];
+      }
+      if (resAds?.ok) {
+        const d = await resAds.json();
+        if (d.data) {
+          const existingIds = new Set(allPages.map((p) => p.id));
+          d.data.forEach((p: any) => {
+            if (!existingIds.has(p.id)) allPages.push(p);
+          });
+        }
+      }
+      setMetaPages(allPages);
+    });
     fetch("/api/workspace/integrations").then(r => r.json()).then(d => { if (Array.isArray(d.data?.data)) setActiveIntegrations(d.data.data.filter((i: any) => i.connected)); }).catch(() => {});
   }, []);
 

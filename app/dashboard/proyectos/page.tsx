@@ -274,11 +274,31 @@ function ProyectosContent() {
 
   const fetchMetaPages = useCallback(async () => {
     try {
-      const res = await fetch("/api/meta/pages?module=social");
-      if (res.ok) {
-        const json = await res.json();
-        if (json.data) setMetaPages(json.data);
+      const [resSocial, resAds] = await Promise.all([
+        fetch("/api/meta/pages?module=social").catch(() => null),
+        fetch("/api/meta/pages?module=ads").catch(() => null)
+      ]);
+      
+      let allPages: MetaPage[] = [];
+      
+      if (resSocial?.ok) {
+        const json = await resSocial.json();
+        if (json.data) allPages = [...allPages, ...json.data];
       }
+      
+      if (resAds?.ok) {
+        const json = await resAds.json();
+        if (json.data) {
+          const existingIds = new Set(allPages.map((p) => p.id));
+          json.data.forEach((p: MetaPage) => {
+            if (!existingIds.has(p.id)) {
+              allPages.push(p);
+            }
+          });
+        }
+      }
+      
+      setMetaPages(allPages);
     } catch (err) { console.error("Failed to fetch meta pages", err); }
   }, []);
 
