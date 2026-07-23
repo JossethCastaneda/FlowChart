@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState, useEffect, useRef } from "react";
 import { Calendar, ChevronLeft, ChevronRight } from "lucide-react";
@@ -301,21 +301,12 @@ export default function DateRangePicker({
 
       {/* Dropdown Panel */}
       {showDatePicker && (
-        <div style={{
-          position: "absolute", top: "calc(100% + 6px)", right: 0, zIndex: 9999,
-          background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "12px",
-          boxShadow: "0 25px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(148,163,184,0.05)",
-          display: "flex", flexDirection: "column", overflow: "hidden"
-        }}>
+        <div className="absolute top-full right-0 mt-2 z-[9999] bg-[#0d121f] border border-white/10 rounded-xl shadow-[0_25px_80px_rgba(0,0,0,0.7),inset_0_0_0_1px_rgba(255,255,255,0.05)] flex flex-col overflow-hidden max-w-[95vw] sm:max-w-none">
           {/* Main content area */}
-          <div style={{ display: "flex" }}>
+          <div className="flex flex-col sm:flex-row">
 
             {/* -- LEFT: Presets -- */}
-            <div style={{
-              width: "170px", border: "1px solid var(--border-neutral)",
-              overflowY: "auto", maxHeight: "400px",
-              padding: "8px 0"
-            }}>
+            <div className="w-full sm:w-[170px] border-b sm:border-b-0 sm:border-r border-white/10 overflow-y-auto max-h-[150px] sm:max-h-[400px] py-2 flex flex-col">
               {DATE_PRESETS.map(p => {
                 const active = pendingPreset === p.id;
                 return (
@@ -353,7 +344,7 @@ export default function DateRangePicker({
             </div>
 
             {/* -- RIGHT: Calendars -- */}
-            <div style={{ flex: 1, padding: "16px 20px", minWidth: "460px" }}>
+            <div className="flex-1 p-4 sm:p-5 sm:min-w-[460px] overflow-x-auto">
               {/* Month navigation */}
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px" }}>
                 <button
@@ -367,11 +358,11 @@ export default function DateRangePicker({
                   <ChevronLeft className="w-4 h-4" />
                 </button>
 
-                <div style={{ display: "flex", gap: "80px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>
+                <div className="flex gap-4 sm:gap-20">
+                  <span className="text-xs sm:text-[13px] font-semibold text-white">
                     {MONTH_NAMES_LONG[calMonth.getMonth()]} {calMonth.getFullYear()}
                   </span>
-                  <span style={{ fontSize: "13px", fontWeight: 600, color: "var(--foreground)" }}>
+                  <span className="text-xs sm:text-[13px] font-semibold text-white hidden sm:block">
                     {MONTH_NAMES_LONG[nextMonth.getMonth()]} {nextMonth.getFullYear()}
                   </span>
                 </div>
@@ -389,7 +380,7 @@ export default function DateRangePicker({
               </div>
 
               {/* Dual calendar grid */}
-              <div style={{ display: "flex", gap: "24px" }}>
+              <div className="flex flex-col sm:flex-row gap-6">
                 <MonthGrid
                   monthDate={calMonth}
                   today={today}
@@ -402,18 +393,20 @@ export default function DateRangePicker({
                   onDayClick={handleDayClick}
                   onDayHover={setHoverDate}
                 />
-                <MonthGrid
-                  monthDate={nextMonth}
-                  today={today}
-                  selStart={selStart}
-                  selEnd={selEnd}
-                  hoverDate={hoverDate}
-                  isInRange={isInRange}
-                  isRangeStart={isRangeStart}
-                  isRangeEnd={isRangeEnd}
-                  onDayClick={handleDayClick}
-                  onDayHover={setHoverDate}
-                />
+                <div className="hidden sm:block">
+                  <MonthGrid
+                    monthDate={nextMonth}
+                    today={today}
+                    selStart={selStart}
+                    selEnd={selEnd}
+                    hoverDate={hoverDate}
+                    isInRange={isInRange}
+                    isRangeStart={isRangeStart}
+                    isRangeEnd={isRangeEnd}
+                    onDayClick={handleDayClick}
+                    onDayHover={setHoverDate}
+                  />
+                </div>
               </div>
 
               {/* Selection summary */}

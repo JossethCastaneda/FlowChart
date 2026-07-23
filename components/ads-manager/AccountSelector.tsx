@@ -1,4 +1,4 @@
-﻿import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, Search, Folder, CreditCard, ChevronRight, Settings, Command } from "lucide-react";
 import { HoloIcon } from "@/components/ui/HoloIcon";
 import { motion, AnimatePresence } from "framer-motion";
@@ -67,32 +67,25 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
   }) || [];
 
   return (
-    <div className="relative" style={{ minWidth: "260px", zIndex: 60 }} ref={containerRef}>
+    <div className="relative z-50 w-full sm:w-auto" ref={containerRef}>
       {/* ── Selector Button ── */}
       <motion.button
-        whileHover={{ scale: 1.01, backgroundColor: "rgba(255, 255, 255, 0.05)", borderColor: "rgba(59,130,246, 0.4)" }}
+        whileHover={{ scale: 1.01 }}
         whileTap={{ scale: 0.98 }}
         onClick={() => setIsOpen(!isOpen)}
-        style={{
-          display: "flex", alignItems: "center", gap: "10px", width: "100%", padding: "10px 14px",
-          background: isOpen ? "rgba(255, 255, 255, 0.05)" : "rgba(10, 15, 30, 0.6)",
-          border: isOpen ? "1px solid rgba(59,130,246, 0.5)" : "1px solid rgba(255, 255, 255, 0.1)",
-          borderRadius: "10px", color: "var(--foreground)", fontSize: "14px", fontWeight: 600,
-          textAlign: "left", cursor: "pointer", 
-          boxShadow: isOpen ? "0 0 20px rgba(59,130,246, 0.15)" : "0 4px 12px rgba(0,0,0,0.2)",
-          transition: "border 0.2s ease, background 0.2s ease"
-        }}
+        className={`flex items-center gap-2 w-full sm:min-w-[220px] px-3 py-2 rounded-lg text-sm font-medium text-left cursor-pointer transition-colors shadow-sm
+          ${isOpen 
+            ? "bg-white/5 border border-blue-500/50 shadow-[0_0_15px_rgba(59,130,246,0.15)]" 
+            : "bg-[#0a0f1e]/60 border border-white/10 hover:bg-white/5 hover:border-blue-500/40"
+          }`}
       >
-        <div style={{ background: "linear-gradient(135deg, var(--emerald), #2b9a67)", padding: "4px", borderRadius: "6px", boxShadow: "0 2px 8px rgba(16, 185, 129, 0.4)" }}>
-           <HoloIcon icon={Folder} variant="emerald" isActive={true} className="w-4 h-4" />
+        <div className="p-1 rounded bg-gradient-to-br from-emerald-500 to-[#2b9a67] shadow-[0_2px_8px_rgba(16,185,129,0.4)]">
+           <HoloIcon icon={Folder} variant="emerald" isActive={true} className="w-3.5 h-3.5" />
         </div>
-        <span style={{ flex: 1, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+        <span className="flex-1 truncate text-[13px]">
           {selectedAccountId === "all" ? `Todas las cuentas (${accounts.length})` : selectedAccount ? selectedAccount.name.split(" — ")[0] : "Seleccionar Cuenta"}
         </span>
-        <div style={{
-           background: "var(--surface-hover)", color: "var(--foreground)", padding: "2px 8px", 
-           borderRadius: "12px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.05em"
-        }}>
+        <div className="bg-white/5 text-white px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider">
            {accounts.length}
         </div>
         <motion.div animate={{ rotate: isOpen ? 180 : 0 }} transition={{ duration: 0.2 }}>
@@ -108,53 +101,38 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -10, scale: 0.98 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            style={{
-              position: "absolute", top: "100%", left: 0, marginTop: "8px",
-              background: "var(--surface)", 
-              border: "1px solid var(--border)", borderRadius: "14px",
-              boxShadow: "0 20px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.05) inset",
-              zIndex: 70, width: "750px", display: "flex", flexDirection: "column",
-              color: "var(--foreground)", overflow: "hidden"
-            }}
+            className="absolute top-full left-0 sm:left-auto sm:right-auto mt-2 bg-[#0d121f] border border-white/10 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.6),inset_0_0_0_1px_rgba(255,255,255,0.05)] overflow-hidden flex flex-col w-[90vw] sm:w-[650px] max-w-full"
           >
             {/* Top Search Bar */}
-            <div style={{ padding: "16px 20px", border: "1px solid var(--border)", background: "var(--surface-hover)" }}>
-              <div style={{
-                display: "flex", alignItems: "center", gap: "10px", padding: "10px 14px",
-                background: "var(--surface)", border: "1px solid var(--border)",
-                borderRadius: "8px", transition: "all 0.2s"
-              }}>
-                <HoloIcon icon={Search} variant="cyan" isActive={true} className="w-4 h-4" />
+            <div className="p-3 border-b border-white/10 bg-white/[0.02]">
+              <div className="flex items-center gap-2 px-3 py-2 bg-[#0d121f] border border-white/10 rounded-lg">
+                <HoloIcon icon={Search} variant="cyan" isActive={true} className="w-4 h-4 shrink-0" />
                 <input
                   type="text" autoFocus
-                  placeholder="Buscar una cuenta por nombre o ID..."
+                  placeholder="Buscar cuenta por nombre o ID..."
                   value={search} onChange={(e) => setSearch(e.target.value)}
-                  style={{
-                    background: "none", border: "none", color: "var(--foreground)", fontSize: "14px",
-                    outline: "none", width: "100%", fontWeight: 500
-                  }}
+                  className="bg-transparent border-none text-white text-xs sm:text-sm w-full outline-none font-medium placeholder:text-white/30"
                 />
-                <div style={{ display: "flex", gap: "4px" }}>
-                  <span style={{ fontSize: "10px", color: "var(--text-muted)", background: "var(--surface-hover)", padding: "2px 6px", borderRadius: "4px", border: "1px solid var(--hairline)" }}>⌘</span>
-                  <span style={{ fontSize: "10px", color: "var(--text-muted)", background: "var(--surface-hover)", padding: "2px 6px", borderRadius: "4px", border: "1px solid var(--hairline)" }}>K</span>
+                <div className="hidden sm:flex gap-1 shrink-0">
+                  <span className="text-[10px] text-white/40 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">⌘</span>
+                  <span className="text-[10px] text-white/40 bg-white/5 px-1.5 py-0.5 rounded border border-white/10">K</span>
                 </div>
               </div>
             </div>
 
             {/* Content Area */}
-            <div style={{ display: "flex", height: "480px" }}>
+            <div className="flex flex-col sm:flex-row h-[380px] max-h-[60vh]">
               
               {/* Left Sidebar: Portfolios */}
-              <div style={{ width: "280px", border: "1px solid var(--border)", display: "flex", flexDirection: "column", background: "var(--surface-hover)" }}>
-                <div style={{ padding: "20px", fontSize: "11px", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.1em", display: "flex", alignItems: "center", justifyContent: "space-between", color: "var(--text-muted)" }}>
+              <div className="w-full sm:w-[200px] border-b sm:border-b-0 sm:border-r border-white/10 flex flex-col bg-white/[0.01] shrink-0 h-[140px] sm:h-auto">
+                <div className="px-4 py-3 text-[10px] font-bold uppercase tracking-wider flex items-center justify-between text-white/40">
                   Portfolios
-                  <div style={{ background: "var(--surface-hover)", color: "var(--foreground)", borderRadius: "50%", width: "14px", height: "14px", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", cursor: "help" }}>?</div>
                 </div>
                 
-                <div style={{ overflowY: "auto", flex: 1, padding: "0 12px" }} className="custom-scrollbar">
+                <div className="overflow-y-auto flex-1 px-2 custom-scrollbar">
                   {Object.entries(portfolios).map(([portName, items], idx) => {
                     const isSelected = selectedPortfolio === portName;
-                    const bgColors = ["linear-gradient(135deg, var(--emerald), #2b9a67)", "linear-gradient(135deg, var(--amber), var(--amber))", "linear-gradient(135deg, var(--amber), var(--amber))", "linear-gradient(135deg, var(--purple), var(--purple))", "linear-gradient(135deg, var(--cyan), var(--cyan))"];
+                    const bgColors = ["bg-gradient-to-br from-emerald-500 to-emerald-700", "bg-gradient-to-br from-amber-500 to-amber-700", "bg-gradient-to-br from-purple-500 to-purple-700", "bg-gradient-to-br from-cyan-500 to-cyan-700"];
                     const bgColor = portName.includes("LID") ? bgColors[0] : bgColors[idx % bgColors.length];
                     const initial = portName.charAt(0).toUpperCase();
                     
@@ -163,33 +141,27 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                         key={portName}
                         initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.05 }}
                         onClick={() => setSelectedPortfolio(portName)}
-                        style={{
-                          display: "flex", alignItems: "center", gap: "12px", width: "100%", padding: "12px",
-                          borderRadius: "10px", background: isSelected ? "rgba(59,130,246, 0.1)" : "transparent",
-                          border: isSelected ? "1px solid rgba(59,130,246, 0.3)" : "1px solid transparent",
-                          color: isSelected ? "white" : "rgba(255,255,255,0.6)",
-                          cursor: "pointer", marginBottom: "6px", textAlign: "left",
-                          boxShadow: isSelected ? "inset 0 0 20px rgba(59,130,246, 0.05)" : "none"
-                        }}
-                        whileHover={{ backgroundColor: isSelected ? "rgba(59,130,246, 0.15)" : "rgba(255,255,255,0.05)" }}
+                        className={`flex items-center gap-3 w-full p-2.5 rounded-lg mb-1 text-left transition-colors ${
+                          isSelected ? "bg-blue-500/10 border border-blue-500/30 text-white shadow-[inset_0_0_20px_rgba(59,130,246,0.05)]" : "border border-transparent text-white/60 hover:bg-white/5"
+                        }`}
                       >
-                        <div style={{ width: "38px", height: "38px", borderRadius: "8px", background: bgColor, display: "flex", alignItems: "center", justifyContent: "center", color: "var(--foreground)", fontWeight: 800, fontSize: "16px", flexShrink: 0, boxShadow: "0 4px 10px rgba(0,0,0,0.3)" }}>
-                          {portName.includes("LID") ? <HoloIcon icon={Folder} variant="emerald" isActive={true} className="w-5 h-5" /> : initial}
+                        <div className={`w-8 h-8 rounded-md flex items-center justify-center text-white font-bold text-sm shrink-0 shadow-md ${bgColor}`}>
+                          {portName.includes("LID") ? <HoloIcon icon={Folder} variant="emerald" isActive={true} className="w-4 h-4" /> : initial}
                         </div>
-                        <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "2px" }}>
-                          <div style={{ fontWeight: 700, fontSize: "14px", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden", color: isSelected ? "white" : "var(--foreground)" }}>{portName}</div>
-                          <div style={{ fontSize: "11px", color: isSelected ? "rgba(255,255,255,0.7)" : "var(--text-muted)", fontWeight: 500 }}>{items.length} cuentas</div>
+                        <div className="flex-1 overflow-hidden flex flex-col">
+                          <div className={`font-bold text-xs truncate ${isSelected ? "text-white" : "text-white/80"}`}>{portName}</div>
+                          <div className={`text-[10px] font-medium ${isSelected ? "text-white/70" : "text-white/40"}`}>{items.length} cuentas</div>
                         </div>
-                        {isSelected && <HoloIcon icon={ChevronRight} variant="cyan" isActive={true} className="w-4 h-4" />}
+                        {isSelected && <HoloIcon icon={ChevronRight} variant="cyan" isActive={true} className="w-3.5 h-3.5" />}
                       </motion.button>
                     );
                   })}
                 </div>
 
-                <div style={{ padding: "16px", borderTop: "1px solid var(--hairline)" }}>
+                <div className="p-3 border-t border-white/5">
                   <motion.button 
-                    whileHover={{ scale: 1.02, backgroundColor: "rgba(255,255,255,0.08)" }} whileTap={{ scale: 0.98 }}
-                    style={{ width: "100%", padding: "10px", background: "var(--row-hover)", border: "1px solid var(--hairline)", borderRadius: "8px", fontSize: "12px", fontWeight: 700, color: "var(--foreground)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: "6px" }}
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                    className="w-full p-2 bg-white/5 hover:bg-white/10 border border-white/5 rounded-md text-[11px] font-bold text-white flex items-center justify-center gap-1.5 transition-colors"
                   >
                     + Nuevo Portfolio
                   </motion.button>
@@ -197,56 +169,54 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
               </div>
 
               {/* Right Content: Accounts */}
-              <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "var(--surface)" }}>
-                <div style={{ padding: "24px 28px 16px", display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    <h3 style={{ fontSize: "20px", fontWeight: 800, margin: 0, color: "var(--foreground)", letterSpacing: "-0.02em" }}>{selectedPortfolio}</h3>
-                    <p style={{ fontSize: "13px", color: "var(--text-secondary)", margin: 0 }}>Gestiona las cuentas asignadas a este portfolio.</p>
+              <div className="flex-1 flex flex-col bg-[#0d121f] overflow-hidden min-h-0">
+                <div className="px-5 pt-4 pb-3 flex justify-between items-start">
+                  <div className="flex flex-col gap-1">
+                    <h3 className="text-base font-bold text-white tracking-tight">{selectedPortfolio}</h3>
+                    <p className="text-[11px] text-white/50">Gestiona las cuentas asignadas a este portfolio.</p>
                   </div>
                   <motion.button whileHover={{ rotate: 90 }} transition={{ duration: 0.2 }}>
-                    <HoloIcon icon={Settings} variant="cyan" isActive={true} className="w-5 h-5" style={{ cursor: "pointer" }} />
+                    <HoloIcon icon={Settings} variant="cyan" isActive={true} className="w-4 h-4 cursor-pointer" />
                   </motion.button>
                 </div>
                 
-                <div style={{ padding: "0 28px 16px", display: "flex", justifyContent: "space-between", alignItems: "center", border: "1px solid var(--hairline)", marginBottom: "16px" }}>
-                  <span style={{ fontSize: "13px", fontWeight: 700, color: "var(--foreground)" }}>
+                <div className="px-5 pb-3 mb-2 border-b border-white/5 flex justify-between items-center">
+                  <span className="text-[11px] font-bold text-white/70">
                     {displayedAccounts.length} {displayedAccounts.length === 1 ? 'cuenta encontrada' : 'cuentas encontradas'}
                   </span>
                 </div>
 
-                <div style={{ overflowY: "auto", flex: 1, padding: "0 28px 28px" }} className="custom-scrollbar">
+                <div className="overflow-y-auto flex-1 px-5 pb-5 custom-scrollbar">
                   {displayedAccounts.length === 0 && selectedAccountId !== "all" ? (
-                    <div style={{ textAlign: "center", padding: "40px", color: "var(--text-muted)", display: "flex", flexDirection: "column", alignItems: "center", gap: "12px" }}>
-                      <HoloIcon icon={Search} variant="cyan" isActive={false} className="w-8 h-8 opacity-20" />
-                      <div style={{ fontSize: "14px", fontWeight: 600 }}>No hay cuentas coincidentes</div>
-                      <div style={{ fontSize: "12px", maxWidth: "200px" }}>Intenta buscar con otro término o selecciona otro portfolio.</div>
+                    <div className="text-center py-8 text-white/40 flex flex-col items-center gap-3">
+                      <HoloIcon icon={Search} variant="cyan" isActive={false} className="w-6 h-6 opacity-30" />
+                      <div className="text-xs font-bold">No hay cuentas coincidentes</div>
+                      <div className="text-[10px] max-w-[180px]">Intenta buscar con otro término o selecciona otro portfolio.</div>
                     </div>
                   ) : (
-                    <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    <div className="flex flex-col gap-2">
                       {/* ── 'All accounts' option ── */}
                       {accounts.length > 1 && search === "" && (
                         <motion.div
                           initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                           onClick={() => { onSelectAccount("all"); setIsOpen(false); }}
-                          whileHover={{ scale: 1.01, backgroundColor: "var(--surface-hover)" }}
+                          whileHover={{ scale: 1.01 }}
                           whileTap={{ scale: 0.99 }}
-                          style={{
-                            display: "flex", alignItems: "center", gap: "16px", padding: "16px",
-                            borderRadius: "12px", cursor: "pointer",
-                            background: selectedAccountId === "all" ? "rgba(59,130,246, 0.08)" : "rgba(255,255,255,0.015)",
-                            border: selectedAccountId === "all" ? "1px solid rgba(59,130,246, 0.5)" : "1px solid rgba(255,255,255,0.05)",
-                            boxShadow: selectedAccountId === "all" ? "0 4px 20px rgba(59,130,246, 0.15)" : "none"
-                          }}
+                          className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
+                            selectedAccountId === "all" 
+                              ? "bg-blue-500/10 border border-blue-500/50 shadow-[0_4px_20px_rgba(59,130,246,0.15)]" 
+                              : "bg-white/[0.015] border border-white/5 hover:bg-white/5"
+                          }`}
                         >
-                          <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "linear-gradient(135deg, rgba(59,130,246,0.2), rgba(162,93,220,0.2))", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid rgba(59,130,246,0.3)" }}>
-                            <HoloIcon icon={Command} variant="cyan" isActive={true} className="w-5 h-5" />
+                          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center shrink-0 border border-blue-500/30">
+                            <HoloIcon icon={Command} variant="cyan" isActive={true} className="w-4 h-4" />
                           </div>
-                          <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "2px" }}>
-                            <div style={{ fontWeight: 800, fontSize: "15px", color: selectedAccountId === "all" ? "var(--cyan)" : "white" }}>Vista Global (Todas las cuentas)</div>
-                            <div style={{ fontSize: "12px", color: "var(--text-secondary)", fontWeight: 500 }}>Agrega la data de las {accounts.length} cuentas combinadas</div>
+                          <div className="flex-1 overflow-hidden flex flex-col gap-0.5">
+                            <div className={`font-bold text-[13px] ${selectedAccountId === "all" ? "text-cyan-400" : "text-white"}`}>Vista Global (Todas)</div>
+                            <div className="text-[10px] text-white/50 font-medium">Agrega la data de las {accounts.length} cuentas</div>
                           </div>
                           {selectedAccountId === "all" && (
-                            <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--cyan)", boxShadow: "0 0 10px var(--cyan)" }} />
+                            <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,1)]" />
                           )}
                         </motion.div>
                       )}
@@ -258,43 +228,41 @@ export function AccountSelector({ accounts, selectedAccountId, onSelectAccount }
                           <motion.div
                             key={acc.id}
                             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.03 }}
-                            whileHover={{ scale: 1.01, backgroundColor: isSelected ? "rgba(59,130,246, 0.1)" : "var(--surface-hover)" }}
+                            whileHover={{ scale: 1.01 }}
                             whileTap={{ scale: 0.99 }}
                             onClick={() => { onSelectAccount(acc.id); setIsOpen(false); }}
-                            style={{
-                              display: "flex", alignItems: "center", gap: "16px", padding: "16px",
-                              borderRadius: "12px", cursor: "pointer",
-                              background: isSelected ? "rgba(59,130,246, 0.08)" : "rgba(255,255,255,0.015)",
-                              border: isSelected ? "1px solid rgba(59,130,246, 0.5)" : "1px solid rgba(255,255,255,0.05)",
-                              boxShadow: isSelected ? "0 4px 20px rgba(59,130,246, 0.15)" : "none"
-                            }}
+                            className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-colors ${
+                              isSelected 
+                                ? "bg-blue-500/10 border border-blue-500/50 shadow-[0_4px_20px_rgba(59,130,246,0.15)]" 
+                                : "bg-white/[0.015] border border-white/5 hover:bg-white/5"
+                            }`}
                           >
-                            <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: "var(--surface-hover)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, border: "1px solid var(--hairline)" }}>
-                              <HoloIcon icon={CreditCard} variant="pink" isActive={isSelected} className="w-5 h-5" />
+                            <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center shrink-0 border border-white/10">
+                              <HoloIcon icon={CreditCard} variant="pink" isActive={isSelected} className="w-4 h-4" />
                             </div>
-                            <div style={{ flex: 1, overflow: "hidden", display: "flex", flexDirection: "column", gap: "4px" }}>
-                              <div style={{ display: "flex", alignItems: "center", gap: "10px", overflow: "hidden" }}>
-                                <span style={{ fontWeight: 700, fontSize: "14px", color: isSelected ? "var(--cyan)" : "white", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                            <div className="flex-1 overflow-hidden flex flex-col gap-1">
+                              <div className="flex items-center gap-2 overflow-hidden">
+                                <span className={`font-bold text-[13px] truncate ${isSelected ? "text-cyan-400" : "text-white"}`}>
                                   {acc.name.split(" — ")[0]}
                                 </span>
                                 {acc.id === topSpendId && (acc.spend || 0) > 0 && (
-                                  <span style={{ flexShrink: 0, fontSize: "10px", fontWeight: 800, color: "var(--emerald)", background: "var(--surface)", border: "1px solid rgba(16,185,129,0.4)", borderRadius: "6px", padding: "2px 8px", letterSpacing: "0.05em", boxShadow: "0 0 10px rgba(16,185,129,0.2)" }}>
-                                    TOP GASTO
+                                  <span className="shrink-0 text-[9px] font-bold text-emerald-400 bg-[#0d121f] border border-emerald-500/40 rounded px-1.5 py-0.5 tracking-wider shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                                    TOP
                                   </span>
                                 )}
                               </div>
-                              <div style={{ fontSize: "12px", color: "var(--text-secondary)", display: "flex", gap: "14px", alignItems: "center", fontWeight: 500 }}>
-                                <span>ID: <span style={{ color: "var(--foreground)" }}>{acc.id.replace("act_", "")}</span></span>
+                              <div className="text-[10px] text-white/50 flex gap-3 items-center font-medium">
+                                <span>ID: <span className="text-white/80">{acc.id.replace("act_", "")}</span></span>
                                 {(acc.spend || 0) > 0 && (
-                                  <span style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                    <span style={{ width: "4px", height: "4px", borderRadius: "50%", background: "var(--text-muted)" }} />
-                                    <span>Inversión: <span style={{ color: "var(--emerald)", fontWeight: 700 }}>{fmtSpend(acc.spend || 0)}</span></span>
+                                  <span className="flex items-center gap-1.5">
+                                    <span className="w-1 h-1 rounded-full bg-white/30" />
+                                    <span>Inv: <span className="text-emerald-400 font-bold">{fmtSpend(acc.spend || 0)}</span></span>
                                   </span>
                                 )}
                               </div>
                             </div>
                             {isSelected && (
-                              <div style={{ width: "10px", height: "10px", borderRadius: "50%", background: "var(--cyan)", boxShadow: "0 0 10px var(--cyan)" }} />
+                              <div className="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_10px_rgba(34,211,238,1)]" />
                             )}
                           </motion.div>
                         );
