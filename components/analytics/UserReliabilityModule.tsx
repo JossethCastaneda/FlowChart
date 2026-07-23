@@ -8,7 +8,9 @@ import {
 import {
   Loader2, ShieldCheck, MapPin, Smartphone, Users, AlertTriangle,
   TrendingDown, Globe, Crosshair, ArrowRight, Layers,
+  BarChart3, Link, CircleCheck, DollarSign,
 } from "lucide-react";
+import { SIcon } from "@/components/ui/SIcon";
 
 /* ═══════════════════════════════════════════════════════════════════════════
    MÓDULO DE CONFIABILIDAD DEL USUARIO
@@ -123,12 +125,12 @@ export function UserReliabilityModule({
       }}>
         <p style={{ fontWeight: 700, color: "var(--foreground)", marginBottom: 6 }}>{label}</p>
         <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-          <span style={{ color: "var(--cyan)" }}>🎯 Score: {m.reliabilityScore}</span>
-          <span style={{ color: "#10b981" }}>📊 CVR: {m.cvr}%</span>
-          <span style={{ color: "var(--text-secondary)" }}>🔗 Link Clicks: {fmtNum(m.linkClicks)}</span>
-          <span style={{ color: "var(--text-secondary)" }}>✅ {config.goalLabel}: {fmtNum(m.goalResults)}</span>
-          <span style={{ color: "var(--text-secondary)" }}>💰 CPA: {fmtMXN(m.cpa)}</span>
-          <span style={{ color: "var(--amber)" }}>🎯 Intención: {m.intentionRate}%</span>
+          <span style={{ color: "var(--cyan)", display: "inline-flex", alignItems: "center", gap: 5 }}><SIcon icon={Crosshair} size={12} />Score: {m.reliabilityScore}</span>
+          <span style={{ color: "#10b981", display: "inline-flex", alignItems: "center", gap: 5 }}><SIcon icon={BarChart3} size={12} />CVR: {m.cvr}%</span>
+          <span style={{ color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", gap: 5 }}><SIcon icon={Link} size={12} />Link Clicks: {fmtNum(m.linkClicks)}</span>
+          <span style={{ color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", gap: 5 }}><SIcon icon={CircleCheck} size={12} />{config.goalLabel}: {fmtNum(m.goalResults)}</span>
+          <span style={{ color: "var(--text-secondary)", display: "inline-flex", alignItems: "center", gap: 5 }}><SIcon icon={DollarSign} size={12} />CPA: {fmtMXN(m.cpa)}</span>
+          <span style={{ color: "var(--amber)", display: "inline-flex", alignItems: "center", gap: 5 }}><SIcon icon={Crosshair} size={12} />Intención: {m.intentionRate}%</span>
         </div>
       </div>
     );

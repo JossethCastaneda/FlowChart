@@ -8,8 +8,9 @@ import {
   Users, Palette, Settings, ChevronDown, ChevronUp, AlertTriangle,
   Layers, Monitor, Smartphone, Globe, PieChart as PieIcon,
   HeartPulse, RefreshCw, MousePointer, Shield,
-  Tag, Building, MapPin, Link, ShieldCheck
+  Tag, Building, MapPin, Link, ShieldCheck, Trophy, Medal
 } from "lucide-react";
+import { SIcon } from "@/components/ui/SIcon";
 
 
 import { GoogleSourcesPanel } from "@/components/projects/GoogleSourcesPanel";
@@ -2135,7 +2136,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   }}>
                     <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🏆</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}><SIcon icon={Trophy} size={12} style={{ color: "var(--amber)" }} /></div>
                       <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
@@ -2163,7 +2164,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   }}>
                     <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>🥇</div>
+                      <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}><SIcon icon={Medal} size={12} style={{ color: "var(--purple)" }} /></div>
                       <p style={{ fontSize: 9, color: "var(--purple)", fontWeight: 800, letterSpacing: "0.12em" }}>ADSET GANADOR</p>
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>

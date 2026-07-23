@@ -1,6 +1,7 @@
 import React from "react";
 import { useRouter } from "next/navigation";
-import { MoreHorizontal, ExternalLink, Calendar } from "lucide-react";
+import { MoreHorizontal, ExternalLink, Calendar, AlertTriangle } from "lucide-react";
+import { SIcon } from "@/components/ui/SIcon";
 import { PLATFORMS } from "@/lib/project-constants";
 import type { Project } from "@/types/project";
 import { useInsightsStore } from "@/stores/insightsStore";
@@ -140,7 +141,7 @@ export function ProjectCard({ project: p, menuOpen, setMenuOpen, setMenuPos }: P
                   <span style={{ width: 5, height: 5, borderRadius: "50%", background: isExpired ? "var(--amber)" : (pl?.color || "currentColor"), flexShrink: 0 }} />
                 )}
                 {c.platformName}
-                {isExpired && <span style={{ fontSize: 9, marginLeft: 2 }} role="img" aria-label="warning">⚠️</span>}
+                {isExpired && <SIcon icon={AlertTriangle} size={10} style={{ marginLeft: 2, color: "var(--amber)" }} />}
               </span>
             );
           })}

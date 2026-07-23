@@ -1,5 +1,8 @@
 ﻿"use client";
 import React from "react";
+import { SIcon } from "@/components/ui/SIcon";
+import { Pencil, Shuffle } from "lucide-react";
+import { FacebookIcon, InstagramIcon } from "@/components/ui/AppIcons";
 
 interface Props {
   enabled: boolean;
@@ -68,7 +71,7 @@ export function PlatformContentTabs({
             fontFamily: "var(--font-sans)",
           }}
         >
-          ✏️ Mismo texto
+          <SIcon icon={Pencil} size={14} /> Mismo texto
         </button>
         <button
           onClick={() => onToggle(true)}
@@ -90,7 +93,7 @@ export function PlatformContentTabs({
             fontFamily: "var(--font-sans)",
           }}
         >
-          🔀 Por plataforma
+          <SIcon icon={Shuffle} size={14} /> Por plataforma
         </button>
       </div>
 
@@ -127,7 +130,7 @@ export function PlatformContentTabs({
                 fontFamily: "var(--font-sans)",
               }}
             >
-              📘 Facebook
+              <FacebookIcon size={14} /> Facebook
             </button>
             {/* Instagram tab */}
             <button
@@ -151,7 +154,7 @@ export function PlatformContentTabs({
                 fontFamily: "var(--font-sans)",
               }}
             >
-              📷 Instagram
+              <InstagramIcon size={14} /> Instagram
             </button>
           </div>
 
