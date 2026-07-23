@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { Command } from "cmdk";
 import { useRouter } from "next/navigation";
 import { Search, FolderKanban, Users, Settings, Inbox, LayoutDashboard } from "lucide-react";
-import { useSession } from "next-auth/react";
+import { SIcon } from "@/components/ui/SIcon";
 
 export function CommandMenu() {
   const [open, setOpen] = useState(false);
@@ -33,7 +33,7 @@ export function CommandMenu() {
       >
         <Command className="w-full bg-transparent text-foreground">
           <div className="flex items-center border-b border-border px-4 py-3">
-            <Search className="w-5 h-5 text-cyan mr-3" />
+            <SIcon icon={Search} size={20} className="text-cyan mr-3" />
             <Command.Input 
               placeholder="Escribe un comando o busca algo..." 
               className="flex-1 bg-transparent border-none outline-none text-base placeholder:text-text-muted"
@@ -49,19 +49,19 @@ export function CommandMenu() {
                 onSelect={() => { router.push("/dashboard/resumen"); setOpen(false); }}
                 className="flex items-center px-3 py-2 mt-1 rounded-md cursor-pointer hover:bg-cyan/10 hover:text-cyan aria-selected:bg-cyan/10 aria-selected:text-cyan"
               >
-                <LayoutDashboard className="w-4 h-4 mr-2" /> Resumen (Dashboard)
+                <SIcon icon={LayoutDashboard} size={16} className="mr-2" /> Resumen (Dashboard)
               </Command.Item>
               <Command.Item 
                 onSelect={() => { router.push("/dashboard/proyectos"); setOpen(false); }}
                 className="flex items-center px-3 py-2 mt-1 rounded-md cursor-pointer hover:bg-cyan/10 hover:text-cyan aria-selected:bg-cyan/10 aria-selected:text-cyan"
               >
-                <FolderKanban className="w-4 h-4 mr-2" /> Proyectos Activos
+                <SIcon icon={FolderKanban} size={16} className="mr-2" /> Proyectos Activos
               </Command.Item>
               <Command.Item 
                 onSelect={() => { router.push("/dashboard/inbox"); setOpen(false); }}
                 className="flex items-center px-3 py-2 mt-1 rounded-md cursor-pointer hover:bg-cyan/10 hover:text-cyan aria-selected:bg-cyan/10 aria-selected:text-cyan"
               >
-                <Inbox className="w-4 h-4 mr-2" /> Inbox de Conversaciones
+                <SIcon icon={Inbox} size={16} className="mr-2" /> Inbox de Conversaciones
               </Command.Item>
             </Command.Group>
 
@@ -69,16 +69,16 @@ export function CommandMenu() {
 
             <Command.Group heading="Administración" className="text-xs font-semibold text-text-muted px-2 py-1 uppercase tracking-wider">
               <Command.Item 
-                onSelect={() => { router.push("/dashboard/integraciones"); setOpen(false); }}
+                onSelect={() => { router.push("/dashboard/integrations"); setOpen(false); }}
                 className="flex items-center px-3 py-2 mt-1 rounded-md cursor-pointer hover:bg-cyan/10 hover:text-cyan aria-selected:bg-cyan/10 aria-selected:text-cyan"
               >
-                <Settings className="w-4 h-4 mr-2" /> Integraciones (Meta, Google)
+                <SIcon icon={Settings} size={16} className="mr-2" /> Integraciones (Meta, Google)
               </Command.Item>
               <Command.Item 
-                onSelect={() => { router.push("/dashboard/miembros"); setOpen(false); }}
+                onSelect={() => { router.push("/dashboard/settings"); setOpen(false); }}
                 className="flex items-center px-3 py-2 mt-1 rounded-md cursor-pointer hover:bg-cyan/10 hover:text-cyan aria-selected:bg-cyan/10 aria-selected:text-cyan"
               >
-                <Users className="w-4 h-4 mr-2" /> Miembros de Equipo
+                <SIcon icon={Users} size={16} className="mr-2" /> Miembros de Equipo
               </Command.Item>
             </Command.Group>
           </Command.List>
