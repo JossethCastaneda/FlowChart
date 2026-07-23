@@ -182,6 +182,12 @@ export async function GET(req: NextRequest) {
       Object.entries(dateHourMap).forEach(([date, hours]) => {
         logger.info(`[BREAKDOWNS:hourly_daily] ${date}: hours ${Math.min(...hours)}-${Math.max(...hours)} (${hours.length} rows)`);
       });
+      // Log action_types found in heatmap data
+      const actionTypesInHeatmap = new Set<string>();
+      data.forEach((r: any) => {
+        (r.actions || []).forEach((a: any) => actionTypesInHeatmap.add(a.action_type));
+      });
+      logger.info(`[BREAKDOWNS:${breakdownKey}] action_types_in_heatmap=${Array.from(actionTypesInHeatmap).join(',') || '(none)'}`);
     }
 
     return NextResponse.json({

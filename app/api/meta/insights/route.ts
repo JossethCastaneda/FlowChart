@@ -172,6 +172,18 @@ export async function GET(req: NextRequest) {
     ),
   ]);
 
+  // DEBUG: Log all unique action_types returned by Meta for this account
+  const tsData = tsR.status === 'fulfilled' ? tsR.value : [];
+  if (tsData.length > 0) {
+    const actionTypeSet = new Set<string>();
+    tsData.forEach((d: any) => {
+      (d.actions || []).forEach((a: any) => actionTypeSet.add(a.action_type));
+    });
+    logger.info(`[INSIGHTS:DEBUG] ad_account=${adAccountId} action_types_returned=${Array.from(actionTypeSet).join(',') || '(none)'}`);
+  } else {
+    logger.info(`[INSIGHTS:DEBUG] ad_account=${adAccountId} no timeSeries rows returned`);
+  }
+
   if (tokenExpired) {
     return NextResponse.json({
       status: "error",
