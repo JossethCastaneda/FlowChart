@@ -14,6 +14,15 @@ import { logger } from "@/lib/logger";
 
 // ── GOAL → Meta action_type mapping (idéntico al del proyecto) ──────────
 const GOAL_ACTION_MAP: Record<string, string[]> = {
+  // Explícitas
+  "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
+  "Leads (Formulario Meta)": ["lead", "leadgen_grouped"],
+  "Leads (Sitio Web / Pixel)": ["offsite_conversion.fb_pixel_lead"],
+  "Leads (Todas las fuentes)": ["lead", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead"],
+  "Ventas (Sitio Web)": ["offsite_conversion.fb_pixel_purchase"],
+  "Ventas (Todas las fuentes)": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase"],
+
+  // Legacy
   "Conversaciones": [
     "onsite_conversion.messaging_conversation_started_7d",
     "messaging_conversation_started_7d",
@@ -53,15 +62,24 @@ const RESULT_TYPES_FALLBACK = [
 
 // Human-readable labels for each goal
 const GOAL_LABELS: Record<string, string> = {
+  // Explícitas
+  "Conversaciones (WhatsApp / Messenger)": "Conversación Iniciada",
+  "Leads (Formulario Meta)": "Lead (Formulario)",
+  "Leads (Sitio Web / Pixel)": "Lead (Sitio Web)",
+  "Leads (Todas las fuentes)": "Lead Generado",
+  "Ventas (Sitio Web)": "Compra en Sitio Web",
+  "Ventas (Todas las fuentes)": "Compra Realizada",
+
+  // Legacy
   "Conversaciones": "Conversación Iniciada",
   "Leads": "Lead Generado",
   "Ventas (Purchase)": "Compra Realizada",
   "Registros": "Registro Completado",
   "Clics al sitio": "Visita al Sitio",
-  "Descargas app": "Instalación de App",
-  "Video views": "Reproducción de Video",
-  "Alcance (Reach)": "Alcance",
-  "Seguidores": "Engagement / Seguidor",
+  "Descargas app": "App Instalada",
+  "Video views": "Video Reproducido",
+  "Alcance (Reach)": "Persona Alcanzada",
+  "Seguidores": "Nuevo Seguidor",
   "Tráfico a tienda": "Visita a Tienda",
 };
 

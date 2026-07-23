@@ -53,8 +53,16 @@ const goalLabel = (goal?: string) => {
   if (goal.includes("Registro")) return "Registros";
   return "Resultados";
 };
-// Goal → Meta action_type priority mapping
+// Goal → Meta action_type mapping
 const GOAL_ACTION_MAP: Record<string, string[]> = {
+  "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
+  "Leads (Formulario Meta)": ["lead", "leadgen_grouped"],
+  "Leads (Sitio Web / Pixel)": ["offsite_conversion.fb_pixel_lead"],
+  "Leads (Todas las fuentes)": ["lead", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead"],
+  "Ventas (Sitio Web)": ["offsite_conversion.fb_pixel_purchase"],
+  "Ventas (Todas las fuentes)": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase"],
+  
+  // Legacy goals
   "Conversaciones": ["onsite_conversion.messaging_conversation_started_7d", "messaging_conversation_started_7d", "onsite_conversion.messaging_first_reply"],
   "Leads": ["lead", "leadgen_grouped", "onsite_conversion.lead_grouped", "offsite_conversion.fb_pixel_lead", "omni_lead"],
   "Ventas (Purchase)": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase"],

@@ -11,8 +11,14 @@ export const VERTICALS = [
 ];
 
 export const GOALS = [
-  "Conversaciones", "Clics al sitio", "Seguidores", "Leads",
-  "Ventas (Purchase)", "Registros", "Descargas app", "Video views",
+  "Conversaciones (WhatsApp / Messenger)",
+  "Leads (Formulario Meta)",
+  "Leads (Sitio Web / Pixel)",
+  "Leads (Todas las fuentes)",
+  "Ventas (Sitio Web)",
+  "Ventas (Todas las fuentes)",
+  "Clics al sitio", "Seguidores",
+  "Registros", "Descargas app", "Video views",
   "Alcance (Reach)", "Tráfico a tienda",
 ];
 
@@ -23,6 +29,15 @@ export const GOOGLE_PLATFORM = "__google__";
 export const NO_BOT_PLATFORM = "__none__";
 
 export const CPR_MAP: Record<string, string> = {
+  // Nuevas metas explícitas
+  "Conversaciones (WhatsApp / Messenger)": "Costo / conversación",
+  "Leads (Formulario Meta)": "CPL",
+  "Leads (Sitio Web / Pixel)": "CPL",
+  "Leads (Todas las fuentes)": "CPL",
+  "Ventas (Sitio Web)": "CPA",
+  "Ventas (Todas las fuentes)": "CPA",
+  
+  // Legacy goals para retrocompatibilidad
   "Conversaciones": "Costo / conversación",
   "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
   "Leads": "CPL", "Ventas (Purchase)": "CPA",
