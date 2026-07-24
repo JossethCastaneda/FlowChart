@@ -121,7 +121,7 @@ export function AdsManagerTable({
         case "clicks":     valA = safeInt(insA.clicks); valB = safeInt(insB.clicks); break;
         case "ctr":        valA = safeFloat(insA.ctr); valB = safeFloat(insB.ctr); break;
         case "cpc":        valA = safeFloat(insA.cpc); valB = safeFloat(insB.cpc); break;
-        case "results":    valA = findResultsValue(insA.actions); valB = findResultsValue(insB.actions); break;
+        case "results":    valA = findResultsValue(insA.actions, a.objective); valB = findResultsValue(insB.actions, b.objective); break;
         case "conversations": valA = findConversationsValue(insA.actions); valB = findConversationsValue(insB.actions); break;
         case "cost_per_message":
         case "cost_per_conversation": {
@@ -366,7 +366,7 @@ export function AdsManagerTable({
     totalSpend         += safeFloat(ins.spend);
     totalImpressions   += safeInt(ins.impressions);
     totalClicks        += safeInt(ins.clicks);
-    totalResults       += findResultsValue(ins.actions);
+    totalResults       += findResultsValue(ins.actions, row.objective);
     totalConversations += findConversationsValue(ins.actions);
     totalReach         += safeInt(ins.reach);
     totalLPV           += calcLandingPageViews(ins);
@@ -569,8 +569,8 @@ export function AdsManagerTable({
               sortedData.map(row => {
                 const isSelected   = selectedIds.includes(row.id);
                 const ins          = row.insights || {};
-                const resultsCount = findResultsValue(ins.actions);
-                const resultsLabel = getResultsLabel(ins.actions);
+                const resultsCount = findResultsValue(ins.actions, row.objective);
+                const resultsLabel = getResultsLabel(ins.actions, row.objective);
                 const convsCount   = findConversationsValue(ins.actions);
                 const hasDaily     = row.daily_budget !== undefined;
                 const hasLifetime  = row.lifetime_budget !== undefined;

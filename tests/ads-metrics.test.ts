@@ -54,8 +54,6 @@ describe("calcCPA", () => {
     expect(r).toEqual({ value: 50, label: "CPC" });
   });
   it("ignores page_engagement in cost_per_action_type fallback", () => {
-    // This was the original bug: cost_per_action_type[0] was page_engagement ($0.04)
-    // and calcCPA blindly returned that value as CPA
     const r = calcCPA({
       spend: 574,
       actions: [{ action_type: "page_engagement", value: "1000" }],
@@ -87,6 +85,47 @@ describe("calcCPA", () => {
     });
     expect(r).toEqual({ value: 20, label: "CPL" });
   });
+
+  // ── Objective-aware CPA tests ──
+  it("VIDEO_VIEWS objective → CPV from video_view", () => {
+    const r = calcCPA({
+      spend: 300,
+      actions: [
+        { action_type: "video_view", value: "100" },
+        { action_type: "link_click", value: "10" },
+      ],
+    }, "VIDEO_VIEWS");
+    expect(r).toEqual({ value: 3, label: "CPV" });
+  });
+  it("OUTCOME_LEADS objective → CPL from lead (ignores conversations)", () => {
+    const r = calcCPA({
+      spend: 500,
+      actions: [
+        { action_type: "onsite_conversion.messaging_conversation_started_7d", value: "5" },
+        { action_type: "lead", value: "10" },
+      ],
+    }, "OUTCOME_LEADS");
+    expect(r).toEqual({ value: 50, label: "CPL" });
+  });
+  it("OUTCOME_LEADS with only Messenger → CPL from conversations", () => {
+    const r = calcCPA({
+      spend: 500,
+      actions: [
+        { action_type: "onsite_conversion.messaging_conversation_started_7d", value: "10" },
+      ],
+    }, "OUTCOME_LEADS");
+    expect(r).toEqual({ value: 50, label: "CPL" });
+  });
+  it("MESSAGES objective → CPConv from conversations", () => {
+    const r = calcCPA({
+      spend: 200,
+      actions: [
+        { action_type: "onsite_conversion.messaging_conversation_started_7d", value: "20" },
+        { action_type: "link_click", value: "100" },
+      ],
+    }, "MESSAGES");
+    expect(r).toEqual({ value: 10, label: "CPConv" });
+  });
 });
 
 describe("findResultsValue", () => {
@@ -106,6 +145,25 @@ describe("findResultsValue", () => {
     expect(findResultsValue([])).toBe(0);
     expect(findResultsValue(undefined as never)).toBe(0);
   });
+
+  // ── Objective-aware tests ──
+  it("VIDEO_VIEWS objective → returns video_view count", () => {
+    expect(findResultsValue([
+      { action_type: "video_view", value: "200" },
+      { action_type: "link_click", value: "10" },
+    ], "VIDEO_VIEWS")).toBe(200);
+  });
+  it("OUTCOME_LEADS objective → returns lead count (ignores conversations)", () => {
+    expect(findResultsValue([
+      { action_type: "onsite_conversion.messaging_conversation_started_7d", value: "5" },
+      { action_type: "lead", value: "10" },
+    ], "OUTCOME_LEADS")).toBe(10);
+  });
+  it("OUTCOME_LEADS with only Messenger → falls back to conversations", () => {
+    expect(findResultsValue([
+      { action_type: "onsite_conversion.messaging_conversation_started_7d", value: "8" },
+    ], "OUTCOME_LEADS")).toBe(8);
+  });
 });
 
 describe("getResultsLabel", () => {
@@ -120,6 +178,25 @@ describe("getResultsLabel", () => {
   });
   it("returns empty string for empty array", () => {
     expect(getResultsLabel([])).toBe("");
+  });
+
+  // ── Objective-aware tests ──
+  it("VIDEO_VIEWS objective → 'ThruPlays'", () => {
+    expect(getResultsLabel([
+      { action_type: "video_view", value: "100" },
+      { action_type: "link_click", value: "10" },
+    ], "VIDEO_VIEWS")).toBe("ThruPlays");
+  });
+  it("OUTCOME_LEADS objective → 'Leads' (not 'Conversaciones')", () => {
+    expect(getResultsLabel([
+      { action_type: "onsite_conversion.messaging_conversation_started_7d", value: "5" },
+      { action_type: "lead", value: "10" },
+    ], "OUTCOME_LEADS")).toBe("Leads");
+  });
+  it("OUTCOME_LEADS with only Messenger → 'Leads (Messenger)'", () => {
+    expect(getResultsLabel([
+      { action_type: "onsite_conversion.messaging_conversation_started_7d", value: "5" },
+    ], "OUTCOME_LEADS")).toBe("Leads (Messenger)");
   });
 });
 

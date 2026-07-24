@@ -76,12 +76,50 @@ export function calcROAS(ins: any): number {
   return 0;
 }
 
+// ── Objective → Result Action Type mapping ──────────────────────────────────
+/** Maps Meta campaign objectives to their expected primary result action type(s).
+ *  Order within each array matters: first match wins.
+ *  This is the single source of truth that keeps calcCPA, findResultsValue,
+ *  and getResultsLabel in sync with the campaign's actual configuration. */
+const OBJECTIVE_RESULT_MAP: Record<string, { type: string; resultLabel: string; cpaLabel: string }[]> = {
+  // Leads — look for form leads first, then Messenger leads
+  OUTCOME_LEADS:         [{ type: "lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }],
+  LEAD_GENERATION:       [{ type: "lead", resultLabel: "Leads", cpaLabel: "CPL" }, { type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Leads (Messenger)", cpaLabel: "CPL" }],
+  // Sales / Conversions
+  OUTCOME_SALES:         [{ type: "omni_purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "add_to_cart", resultLabel: "Carritos", cpaLabel: "CPATC" }],
+  CONVERSIONS:           [{ type: "omni_purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "purchase", resultLabel: "Compras", cpaLabel: "CPA" }, { type: "complete_registration", resultLabel: "Registros", cpaLabel: "CPR" }, { type: "lead", resultLabel: "Leads", cpaLabel: "CPL" }],
+  // Messages
+  MESSAGES:              [{ type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Conversaciones", cpaLabel: "CPConv" }],
+  // Traffic
+  OUTCOME_TRAFFIC:       [{ type: "link_click", resultLabel: "Clics al enlace", cpaLabel: "CPC" }],
+  LINK_CLICKS:           [{ type: "link_click", resultLabel: "Clics al enlace", cpaLabel: "CPC" }],
+  // Video Views
+  VIDEO_VIEWS:           [{ type: "video_view", resultLabel: "ThruPlays", cpaLabel: "CPV" }],
+  // Engagement
+  OUTCOME_ENGAGEMENT:    [{ type: "onsite_conversion.messaging_conversation_started_7d", resultLabel: "Conversaciones", cpaLabel: "CPConv" }, { type: "video_view", resultLabel: "ThruPlays", cpaLabel: "CPV" }, { type: "post_engagement", resultLabel: "Interacciones", cpaLabel: "CPE" }],
+  POST_ENGAGEMENT:       [{ type: "post_engagement", resultLabel: "Interacciones", cpaLabel: "CPE" }],
+  // Awareness / Reach — no action-based result, but we still check ThruPlays for video awareness
+  OUTCOME_AWARENESS:     [{ type: "video_view", resultLabel: "ThruPlays", cpaLabel: "CPV" }],
+  BRAND_AWARENESS:       [{ type: "video_view", resultLabel: "ThruPlays", cpaLabel: "CPV" }],
+  REACH:                 [{ type: "video_view", resultLabel: "ThruPlays", cpaLabel: "CPV" }],
+  // App Promotion
+  OUTCOME_APP_PROMOTION: [{ type: "omni_app_install", resultLabel: "Instalaciones", cpaLabel: "CPI" }, { type: "app_install", resultLabel: "Instalaciones", cpaLabel: "CPI" }],
+};
+
 // ── CPA / CPL (dynamic by objective) ────────────────────────────────────────
 export function calcCPA(ins: any, objective?: string): { value: number; label: string } {
   const spend = ins.spend || 0;
   if (spend === 0) return { value: 0, label: "CPA" };
 
-  // Try different action types based on objective
+  // 1. Objective-aware: use the campaign's objective to pick the right action type
+  if (objective && OBJECTIVE_RESULT_MAP[objective]) {
+    for (const at of OBJECTIVE_RESULT_MAP[objective]) {
+      const count = findActionValue(ins.actions, at.type);
+      if (count > 0) return { value: spend / count, label: at.cpaLabel };
+    }
+  }
+
+  // 2. Generic fallback: try common action types in priority order
   const actionTypes = [
     { type: "lead", label: "CPL" },
     { type: "omni_purchase", label: "CPA" },
@@ -90,6 +128,7 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
     { type: "add_to_cart", label: "CPATC" },
     { type: "onsite_conversion.messaging_conversation_started_7d", label: "CPConv" },
     { type: "link_click", label: "CPC" },
+    { type: "video_view", label: "CPV" },
   ];
 
   for (const at of actionTypes) {
@@ -97,13 +136,13 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
     if (count > 0) return { value: spend / count, label: at.label };
   }
 
-  // Fallback: use cost_per_action_type if available — but only for relevant action types,
+  // 3. Filtered cost_per_action_type fallback — only for relevant action types,
   // not generic ones like page_engagement that would produce nonsensical CPA values.
   if (ins.cost_per_action_type && ins.cost_per_action_type.length > 0) {
     const relevantTypes = [
       "lead", "omni_purchase", "purchase", "complete_registration",
       "add_to_cart", "onsite_conversion.messaging_conversation_started_7d",
-      "link_click",
+      "link_click", "video_view",
     ];
     const match = ins.cost_per_action_type.find(
       (c: any) => relevantTypes.includes(c.action_type)
@@ -116,10 +155,9 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
   return { value: 0, label: "CPA" };
 }
 
-// ── Results value & label (shared priority list) ────────────────────────────
-/** Priority-ordered action types used by both "Results" and "CPA" columns.
- *  Keeping a single source of truth prevents the desync bug where
- *  findResultsValue would count link_click but calcCPA would not. */
+// ── Results value & label (objective-aware) ─────────────────────────────────
+/** Generic fallback priority list — used when objective is unknown or doesn't
+ *  match any action in the data. */
 const RESULTS_PRIORITY: { type: string; label: string }[] = [
   { type: "onsite_conversion.messaging_conversation_started_7d", label: "Conversaciones" },
   { type: "lead", label: "Leads" },
@@ -128,11 +166,25 @@ const RESULTS_PRIORITY: { type: string; label: string }[] = [
   { type: "complete_registration", label: "Registros" },
   { type: "add_to_cart", label: "Carritos" },
   { type: "link_click", label: "Clics al enlace" },
+  { type: "video_view", label: "ThruPlays" },
 ];
 
-/** Find the primary result count from Meta's actions array (priority-based). */
-export function findResultsValue(actions: any[]): number {
+/** Find the primary result count from Meta's actions array.
+ *  When `objective` is provided, the campaign's objective drives which action
+ *  type is considered the "result" — e.g. a LEADS campaign prioritises `lead`
+ *  over `messaging_conversation_started_7d`, even if both exist in the data. */
+export function findResultsValue(actions: any[], objective?: string): number {
   if (!actions || !Array.isArray(actions)) return 0;
+
+  // 1. Objective-specific lookup
+  if (objective && OBJECTIVE_RESULT_MAP[objective]) {
+    for (const { type } of OBJECTIVE_RESULT_MAP[objective]) {
+      const a = actions.find((x: any) => x.action_type === type);
+      if (a) return parseInt(a.value || "0", 10);
+    }
+  }
+
+  // 2. Generic fallback
   for (const { type } of RESULTS_PRIORITY) {
     const a = actions.find((x: any) => x.action_type === type);
     if (a) return parseInt(a.value || "0", 10);
@@ -140,9 +192,20 @@ export function findResultsValue(actions: any[]): number {
   return 0;
 }
 
-/** Human-readable label for the primary result type. */
-export function getResultsLabel(actions: any[]): string {
+/** Human-readable label for the primary result type.
+ *  Respects the campaign objective — a LEADS campaign using Messenger will
+ *  show "Leads (Messenger)" instead of "Conversaciones". */
+export function getResultsLabel(actions: any[], objective?: string): string {
   if (!actions || !Array.isArray(actions)) return "";
+
+  // 1. Objective-specific lookup
+  if (objective && OBJECTIVE_RESULT_MAP[objective]) {
+    for (const { type, resultLabel } of OBJECTIVE_RESULT_MAP[objective]) {
+      if (actions.find((x: any) => x.action_type === type)) return resultLabel;
+    }
+  }
+
+  // 2. Generic fallback
   for (const { type, label } of RESULTS_PRIORITY) {
     if (actions.find((x: any) => x.action_type === type)) return label;
   }
