@@ -166,23 +166,32 @@ export function Composer() {
     setAllTargets(targets);
   }, [pages]);
 
-  /* ── Load pages on mount ────────────────────────────── */
+  /* ── Load pages on mount and on connection ──────────── */
+  const loadPages = useCallback(async () => {
+    setPagesLoading(true);
+    try {
+      const res = await fetch("/api/meta/pages?module=publisher_facebook");
+      const data = await res.json();
+      const list: MetaPage[] = data.data || [];
+      setPages(list);
+    } catch {
+      /* silent */
+    } finally {
+      setPagesLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const loadPages = async () => {
-      setPagesLoading(true);
-      try {
-        const res = await fetch("/api/meta/pages?module=publisher_facebook");
-        const data = await res.json();
-        const list: MetaPage[] = data.data || [];
-        setPages(list);
-      } catch {
-        /* silent */
-      } finally {
-        setPagesLoading(false);
+    loadPages();
+    const handleMessage = (e: MessageEvent) => {
+      if (e.origin !== window.location.origin) return;
+      if (e.data?.type === "OAUTH_SUCCESS" || e.data?.type === "INTEGRATION_UPDATED") {
+        loadPages();
       }
     };
-    loadPages();
-  }, []);
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [loadPages]);
 
   /* ── Load social connection status ──────────────────── */
   const loadSocialStatus = useCallback(async () => {
@@ -771,12 +780,28 @@ export function Composer() {
                     )}
 
                     {allTargets.length === 0 && !pagesLoading && (
-                      <div style={{ padding: "32px 16px" }}>
+                      <div style={{ padding: "32px 16px", display: "flex", flexDirection: "column", alignItems: "center" }}>
                         <EmptyState 
-                          icon={<AlertTriangle style={{ width: 32, height: 32, color: "var(--red)" }} />}
+                          icon={<AlertTriangle style={{ width: 32, height: 32, color: "var(--amber)" }} />}
                           title="SIN CONEXIÓN DE COMUNICACIONES"
-                          description="No hay satélites enlazados al servidor maestro. Dirígete a la sección de Integraciones para restaurar el flujo."
+                          description="No hay cuentas enlazadas para publicar. Conecta tu perfil para otorgar acceso a las páginas."
                         />
+                        <button
+                          onClick={() => openConnectPopup("publisher_facebook", loadPages)}
+                          style={{
+                            marginTop: 16,
+                            padding: "8px 16px",
+                            borderRadius: 20,
+                            background: "var(--cyan)",
+                            color: "var(--background)",
+                            fontSize: 13,
+                            fontWeight: 600,
+                            cursor: "pointer",
+                            border: "none"
+                          }}
+                        >
+                          Conectar Meta
+                        </button>
                       </div>
                     )}
                     </div>
