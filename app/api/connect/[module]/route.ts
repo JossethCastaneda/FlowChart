@@ -62,16 +62,18 @@ export async function GET(
   let baseUrl = env.NEXT_PUBLIC_APP_URL || env.NEXTAUTH_URL || request.nextUrl.origin;
   baseUrl = baseUrl.replace(/\/$/, "");
   
+  const force = request.nextUrl.searchParams.get("force") === "1";
+
   // -- REUSE EXISTING CONNECTION LOGIC --
   // If the user already has a valid Meta connection, clone it to avoid double-login.
   const existingProviders = ["meta_publisher_facebook", "meta_social", "meta_community", "meta_inbox", "meta_publisher_instagram", "instagram"];
-  const existingIntegration = await prisma.integration.findFirst({
+  const existingIntegration = !force ? await prisma.integration.findFirst({
     where: {
       workspaceId,
       provider: { in: existingProviders, not: `meta_${module}` },
       connected: true,
     }
-  });
+  }) : null;
 
   if (existingIntegration) {
     const targetProvider = module === "instagram" ? "instagram" : `meta_${module}`;

@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { openConnectPopup } from "@/lib/connect-popup";
-import { X } from "lucide-react";
+import { X, Plus } from "lucide-react";
 import { MetaIcon, FacebookIcon, InstagramIcon } from "@/components/ui/AppIcons";
 
 interface ConnectedProfile {
@@ -176,33 +176,61 @@ export function ConnectedMetaBadge({
         </span>
         <div style={{ width: 6, height: 6, borderRadius: "50%", background: "var(--emerald)", marginLeft: 4 }} />
       </div>
+      <div style={{ display: "flex", gap: 2, paddingLeft: 4, borderLeft: "1px solid var(--border)", marginLeft: 4 }}>
+        <button
+          onClick={() => openConnectPopup(`${module}?force=1`, fetchIntegrations)}
+          style={{
+            background: "none",
+            border: "none",
+            color: "var(--text-muted)",
+            cursor: "pointer",
+            padding: "2px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            transition: "color 0.2s, background-color 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--text-primary)";
+            e.currentTarget.style.backgroundColor = "var(--surface)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--text-muted)";
+            e.currentTarget.style.backgroundColor = "transparent";
+          }}
+          title="Agregar más cuentas"
+        >
+          <Plus className="w-3.5 h-3.5" />
+        </button>
 
-      <button
-        onClick={handleDisconnect}
-        style={{
-          background: "none",
-          border: "none",
-          color: "var(--text-muted)",
-          cursor: "pointer",
-          padding: "2px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          borderRadius: "50%",
-          transition: "color 0.2s, background-color 0.2s",
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.color = "var(--red)";
-          e.currentTarget.style.backgroundColor = "rgba(229,72,77, 0.1)";
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.color = "var(--text-muted)";
-          e.currentTarget.style.backgroundColor = "transparent";
-        }}
-        title="Desconectar cuenta"
-      >
-        <X className="w-3.5 h-3.5" />
-      </button>
+        <button
+          onClick={handleDisconnect}
+          style={{
+            background: "none",
+            border: "none",
+            color: "var(--text-muted)",
+            cursor: "pointer",
+            padding: "2px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            borderRadius: "50%",
+            transition: "color 0.2s, background-color 0.2s",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.color = "var(--red)";
+            e.currentTarget.style.backgroundColor = "rgba(229,72,77, 0.1)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.color = "var(--text-muted)";
+            e.currentTarget.style.backgroundColor = "transparent";
+          }}
+          title="Desconectar cuenta"
+        >
+          <X className="w-3.5 h-3.5" />
+        </button>
+      </div>
     </div>
   );
 }
