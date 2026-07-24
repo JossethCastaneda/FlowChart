@@ -3,6 +3,7 @@ import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-au
 import { mapMetaError } from "@/lib/meta-errors";
 import { validateBody } from "@/lib/validate";
 import { CampaignCreateSchema } from "@/lib/ads-schemas";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/meta/campaigns/create — create a NEW campaign.
@@ -53,22 +54,43 @@ export async function POST(req: NextRequest) {
     }
 
     const url = `https://graph.facebook.com/${META_API_VERSION}/${adAccountId}/campaigns`;
+    logger.info("[ADS] Campaign create payload", { adAccountId, objective, payload });
+
     const res = await metaFetch(url, accessToken, { method: "POST", body: JSON.stringify(payload) });
     const json = await res.json();
 
     if (!res.ok) {
+      // Log the full Meta error for diagnosis
+      logger.error("[ADS] Campaign create failed", {
+        adAccountId,
+        objective,
+        status: res.status,
+        error: json?.error,
+        blame_fields: json?.error?.error_data?.blame_field_specs,
+      });
+
       const parsed = mapMetaError(json);
+
+      // Surface blame field if available for better UX
+      const blameFields = json?.error?.error_data?.blame_field_specs;
+      const blameDetail = Array.isArray(blameFields) && blameFields.length > 0
+        ? ` Campo: ${blameFields.map((b: any) => b?.field || b).join(", ")}.`
+        : "";
+
       return NextResponse.json({
         status: "error",
         error_code: parsed.original_code,
         error_action: parsed.action,
-        user_message: parsed.user_message,
+        user_message: parsed.user_message + blameDetail,
         error_details: parsed,
+        blame_fields: blameFields || null,
       }, { status: res.status });
     }
 
+    logger.info("[ADS] Campaign created", { adAccountId, objective, id: json.id });
     return NextResponse.json({ status: "success", object_id: json.id, created_paused: true, data: json });
   } catch (error: any) {
+    logger.error("[ADS] Campaign create unhandled", { error: error.message });
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }
 }
