@@ -247,6 +247,7 @@ export default function ProjectDashboardPage() {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [activeIntegrations, setActiveIntegrations] = useState<{id: string, provider: string}[]>([]);
   const [heatMetricState, setHeatMetricState] = useState<"results" | "impressions" | "spend">("results");
+  const [audienceMetric, setAudienceMetric] = useState<"spend" | "impressions" | "clicks">("impressions");
   const [editingMonth, setEditingMonth] = useState<string>("global"); // "global" or "YYYY-MM"
 
   // Load project from API
@@ -1638,7 +1639,20 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   Demografía, ubicación geográfica, plataformas y dispositivos — basado en inversión del periodo.
                 </p>
               </div>
-              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
+                <select 
+                  value={audienceMetric} 
+                  onChange={e => setAudienceMetric(e.target.value as any)}
+                  style={{
+                    padding: "4px 10px", borderRadius: 6, fontSize: 11, fontWeight: 600,
+                    background: "var(--surface-hover)", border: "1px solid var(--border)", color: "var(--text-primary)", cursor: "pointer",
+                    outline: "none", marginRight: 8
+                  }}
+                >
+                  <option value="impressions">Impresiones (Alcance)</option>
+                  <option value="spend">Inversión ($)</option>
+                  <option value="clicks">Clics</option>
+                </select>
                 {[
                   { label: "Edad/Género", color: "var(--cyan)" },
                   { label: "Región", color: "var(--amber)" },
@@ -1679,7 +1693,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     const age = r.age || "?";
                     const g = r.gender === "male" ? "Hombres" : r.gender === "female" ? "Mujeres" : "Otro";
                     if (!buckets[age]) buckets[age] = { age, Hombres: 0, Mujeres: 0, Otro: 0 };
-                    buckets[age][g as "Hombres" | "Mujeres" | "Otro"] += Number(r.spend) || 0;
+                    buckets[age][g as "Hombres" | "Mujeres" | "Otro"] += Number(r[audienceMetric]) || 0;
                   }
                   const cd = Object.values(buckets).sort((a, b) => a.age.localeCompare(b.age));
                   if (!cd.length) return <NoData msg="Sin datos de audiencia" />;
@@ -1688,11 +1702,11 @@ background: "var(--surface)", border: "1px solid var(--border)",
                       <BarChart data={cd} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
                         <XAxis dataKey="age" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
-                        <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v))]} />
+                        <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
-                        <Bar dataKey="Mujeres" stackId="a" fill="var(--cyan)" />
-                        <Bar dataKey="Hombres" stackId="a" fill="var(--emerald)" radius={[3, 3, 0, 0]} barSize={6} />
+                        <Bar dataKey="Mujeres" stackId="a" fill="var(--purple)" />
+                        <Bar dataKey="Hombres" stackId="a" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={12} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -1709,18 +1723,18 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   const raw = breakdownData["region"];
                   if (raw === undefined) return <NoData msg="Cargando..." />;
                   const d = raw
-                    .map((r: any) => ({ region: r.region || "?", spend: Number(r.spend) || 0 }))
-                    .sort((a: any, b: any) => b.spend - a.spend)
+                    .map((r: any) => ({ region: r.region || "?", metric: Number(r[audienceMetric]) || 0 }))
+                    .sort((a: any, b: any) => b.metric - a.metric)
                     .slice(0, 8);
                   if (!d.length) return <NoData msg="Sin datos de región" />;
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
-                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
+                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                         <YAxis type="category" dataKey="region" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} width={90} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [fmtMXN(Number(v)), "Inversión"]} />
-                        <Bar dataKey="spend" fill="var(--amber)" radius={[0, 4, 4, 0]} barSize={14} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
+                        <Bar dataKey="metric" fill="var(--amber)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
                   );
@@ -1736,20 +1750,30 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 {(() => {
                   const raw = breakdownData["country"];
                   if (raw === undefined) return <NoData msg="Cargando..." />;
-                  const d = raw
-                    .map((r: any) => ({ country: r.country || "?", spend: Number(r.spend) || 0, impressions: Number(r.impressions) || 0, clicks: Number(r.clicks) || 0 }))
-                    .sort((a: any, b: any) => b.spend - a.spend)
-                    .slice(0, 8);
-                  if (!d.length) return <NoData msg="Sin datos de país" />;
+                  const aggregatedCountry = raw.reduce((acc: any, r: any) => {
+                    let country = r.country || "Desconocido";
+                    if (country === "unknown") country = "Desconocido";
+                    if (!acc[country]) acc[country] = { name: country, metric: 0 };
+                    acc[country].metric += Number(r[audienceMetric]) || 0;
+                    return acc;
+                  }, {});
+                  const dCountry = Object.values(aggregatedCountry).sort((a: any, b: any) => b.metric - a.metric);
+                  if (!dCountry.length) return <NoData msg="Sin datos de país" />;
                   return (
                     <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
-                        <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
-                        <YAxis type="category" dataKey="country" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} width={40} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
-                        <Bar dataKey="spend" fill="var(--cyan)" radius={[0, 4, 4, 0]} barSize={14} />
-                      </BarChart>
+                      <PieChart>
+                        <Pie data={dCountry} dataKey="metric" nameKey="name" cx="50%" cy="50%"
+                          innerRadius={60} outerRadius={100}
+                          label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
+                          labelLine={{ stroke: "rgba(148,163,184,0.65)" }}
+                        >
+                          {dCountry.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                        </Pie>
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
+                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
+                        }} />
+                        <Legend wrapperStyle={{ fontSize: 10 }} />
+                      </PieChart>
                     </ResponsiveContainer>
                   );
                 })()}
@@ -1767,29 +1791,36 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   
                   const aggregated = raw.reduce((acc: any, r: any) => {
                     const rawName = (r.publisher_platform || "otro").toLowerCase();
-                    const name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
-                    if (!acc[name]) acc[name] = { name, spend: 0, impressions: 0, clicks: 0 };
-                    acc[name].spend += Number(r.spend) || 0;
-                    acc[name].impressions += Number(r.impressions) || 0;
-                    acc[name].clicks += Number(r.clicks) || 0;
+                    let name = rawName.charAt(0).toUpperCase() + rawName.slice(1);
+                    if (rawName === "audience_network") name = "Audience Network";
+                    if (rawName === "messenger") name = "Messenger";
+                    if (!acc[name]) acc[name] = { name, metric: 0 };
+                    acc[name].metric += Number(r[audienceMetric]) || 0;
                     return acc;
                   }, {});
                   
-                  const d = Object.values(aggregated);
+                  const d = Object.values(aggregated).sort((a: any, b: any) => b.metric - a.metric);
                   if (!d.length) return <NoData msg="Sin datos de plataforma" />;
+
+                  const platformColors: Record<string, string> = {
+                    "Facebook": "#1877F2",
+                    "Instagram": "#E1306C",
+                    "Audience Network": "var(--cyan)",
+                    "Messenger": "#00B2FF"
+                  };
+
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
-                        <Pie data={d} dataKey="spend" nameKey="name" cx="50%" cy="50%"
+                        <Pie data={d} dataKey="metric" nameKey="name" cx="50%" cy="50%"
                           innerRadius={60} outerRadius={100}
                           label={({ name, percent }) => `${name} ${((percent ?? 0) * 100).toFixed(0)}%`}
                           labelLine={{ stroke: "rgba(148,163,184,0.65)" }}
                         >
-                          {d.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
+                          {d.map((entry: any, i: number) => <Cell key={i} fill={platformColors[entry.name] || CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
-                          if (name === "spend") return [fmtMXN(Number(v)), "Inversión"];
-                          return [Number(v).toLocaleString(), name];
+                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
                         }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </PieChart>
