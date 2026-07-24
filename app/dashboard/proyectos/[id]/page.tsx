@@ -74,9 +74,43 @@ const GOAL_ACTION_MAP: Record<string, string[]> = {
   "Seguidores": ["page_engagement", "like"],
   "Tráfico a tienda": ["store_visit"],
 };
+
+const NATIVE_OBJECTIVE_MAP: Record<string, string[]> = {
+  "OUTCOME_LEADS": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead", "onsite_conversion.lead_grouped", "onsite_conversion.lead"],
+  "LEAD_GENERATION": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "omni_lead", "offsite_conversion.fb_pixel_lead", "onsite_conversion.lead_grouped", "onsite_conversion.lead"],
+  "OUTCOME_ENGAGEMENT": ["onsite_conversion.messaging_conversation_started_7d", "messaging_conversation_started_7d", "onsite_conversion.messaging_first_reply", "post_engagement", "page_engagement"],
+  "MESSAGES": ["onsite_conversion.messaging_conversation_started_7d", "messaging_conversation_started_7d", "onsite_conversion.messaging_first_reply"],
+  "VIDEO_VIEWS": ["video_view"],
+  "OUTCOME_AWARENESS": ["reach", "brand_awareness", "video_view"],
+  "OUTCOME_TRAFFIC": ["link_click", "landing_page_view"],
+  "LINK_CLICKS": ["link_click", "landing_page_view"],
+  "OUTCOME_SALES": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase"],
+  "CONVERSIONS": ["purchase", "omni_purchase", "offsite_conversion.fb_pixel_purchase", "lead"],
+  "OUTCOME_APP_PROMOTION": ["app_install", "omni_app_install"]
+};
+
 const RESULT_TYPES_FALLBACK = ['onsite_conversion.messaging_conversation_started_7d','onsite_conversion.flow_complete','lead','purchase','complete_registration','omni_purchase','offsite_conversion','onsite_conversion','app_install','landing_page_view','link_click'];
-const findResultAction = (actions: any[] | undefined, goal?: string) => {
+
+const getObjective = (entity: any, insights: any) => {
+  if (!entity) return null;
+  if (entity.objective) return entity.objective;
+  if (entity.campaign_id && insights?.campaigns) {
+    const c = insights.campaigns.find((c: any) => c.campaign_id === entity.campaign_id);
+    if (c?.objective) return c.objective;
+  }
+  return null;
+};
+
+const findResultAction = (actions: any[] | undefined, goal?: string, objective?: string) => {
   if (!actions?.length) return null;
+  
+  if (objective && NATIVE_OBJECTIVE_MAP[objective]) {
+    for (const t of NATIVE_OBJECTIVE_MAP[objective]) {
+      const exact = actions.find((a: any) => a.action_type === t);
+      if (exact) return exact;
+    }
+  }
+
   // 1. If we know the goal AND it has a specific map, use ONLY those types
   if (goal && GOAL_ACTION_MAP[goal]) {
     for (const t of GOAL_ACTION_MAP[goal]) {
@@ -1111,7 +1145,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             dateMap[dateStr][hour].spend += row.spend || 0;
             dateMap[dateStr][hour].clicks += row.clicks || 0;
             
-            const ra = findResultAction(row.actions, ch?.goal);
+            const ra = findResultAction(row.actions, ch?.goal, getObjective(row, insights));
             dateMap[dateStr][hour].results += ra ? parseInt(ra.value, 10) : 0;
           });
 
@@ -1978,7 +2012,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             const ranked = adCreatives
               .filter(a => a.spend > 0)
               .map((ad: any) => {
-                const ra = findResultAction(ad.actions, ch?.goal);
+                const ra = findResultAction(ad.actions, ch?.goal, getObjective(ad, insights));
                 const results = ra ? parseInt(ra.value, 10) : 0;
                 const cprVal = results > 0 ? ad.spend / results : Infinity;
                 const ctrVal = ad.ctr || (ad.clicks > 0 && ad.impressions > 0 ? (ad.clicks / ad.impressions) * 100 : 0);
@@ -2041,7 +2075,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   </thead>
                   <tbody>
                     {adCreatives.filter(a => a.spend > 0).slice(0, 30).map((ad: any, i: number) => {
-                      const ra = findResultAction(ad.actions, ch?.goal);
+                      const ra = findResultAction(ad.actions, ch?.goal, getObjective(ad, insights));
                       const results = ra ? parseInt(ra.value, 10) : 0;
                       const cprVal = results > 0 ? ad.spend / results : 0;
                       const ctrVal = ad.ctr || (ad.clicks > 0 && ad.impressions > 0 ? (ad.clicks / ad.impressions) * 100 : 0);
@@ -2049,7 +2083,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <tr key={ad.adId || i} style={{ border: "1px solid var(--border)", transition: "background 0.15s", cursor: "pointer" }}
                           onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.02)"}
                           onMouseLeave={e => e.currentTarget.style.background = "transparent"}
-                          onClick={() => { const ra2 = findResultAction(ad.actions, ch?.goal); setPreviewAd({ ...ad, results, cprVal, ctrVal }); }}>
+                          onClick={() => { const ra2 = findResultAction(ad.actions, ch?.goal, getObjective(ad, insights)); setPreviewAd({ ...ad, results, cprVal, ctrVal }); }}>
                           <td style={{ padding: "8px 6px", color: "var(--text-muted)", fontSize: 10 }}>{i + 1}</td>
                           <td style={{ padding: "8px 6px", maxWidth: 250 }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
@@ -2097,7 +2131,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
               const grouped: Record<string, { text: string; spend: number; results: number; clicks: number; count: number; isDCO: boolean }> = {};
               adCreatives.forEach((ad: any) => {
-                const ra = findResultAction(ad.actions, ch?.goal);
+                const ra = findResultAction(ad.actions, ch?.goal, getObjective(ad, insights));
                 const adResults = ra ? parseInt(ra.value, 10) : 0;
                 const texts: string[] = [];
                 const hasDCO = cfg.arrayKey && Array.isArray(ad[cfg.arrayKey]) && ad[cfg.arrayKey].length > 0;
@@ -2170,7 +2204,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     const fmt = ad.format === "video" ? "Video" : ad.format === "carousel" ? "Carrusel" : "Imagen";
                     if (!formatMap[fmt]) formatMap[fmt] = { name: fmt, spend: 0, results: 0, count: 0 };
                     formatMap[fmt].spend += ad.spend || 0;
-                    const ra = findResultAction(ad.actions, ch?.goal);
+                    const ra = findResultAction(ad.actions, ch?.goal, getObjective(ad, insights));
                     formatMap[fmt].results += ra ? parseInt(ra.value, 10) : 0;
                     formatMap[fmt].count++;
                   });
@@ -2205,7 +2239,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     const fmt = ad.format === "video" ? "Video" : ad.format === "carousel" ? "Carrusel" : "Imagen";
                     if (!formatStats[fmt]) formatStats[fmt] = { spend: 0, results: 0, count: 0 };
                     formatStats[fmt].spend += ad.spend || 0;
-                    const ra = findResultAction(ad.actions, ch?.goal);
+                    const ra = findResultAction(ad.actions, ch?.goal, getObjective(ad, insights));
                     formatStats[fmt].results += ra ? parseInt(ra.value, 10) : 0;
                     formatStats[fmt].count++;
                   });
@@ -2275,7 +2309,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {(() => {
-                const top = (insights?.campaigns || []).map((c: any) => { const s = parseFloat(c.spend || "0"); const ra = findResultAction(c.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: c.campaign_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
+                const top = (insights?.campaigns || []).map((c: any) => { const s = parseFloat(c.spend || "0"); const ra = findResultAction(c.actions, ch?.goal, getObjective(c, insights)); const r = ra ? parseInt(ra.value, 10) : 0; return { name: c.campaign_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
                 return top ? (
                   <div style={{
                     background: "linear-gradient(135deg, rgba(253,171,61,0.08), rgba(0,0,0,0.15))",
@@ -2303,7 +2337,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>Sin datos de campaña</div>;
               })()}
               {(() => {
-                const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
+                const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal, getObjective(a, insights)); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
                 return top ? (
                   <div style={{
                     background: "linear-gradient(135deg, rgba(139,141,242,0.08), rgba(0,0,0,0.15))",
