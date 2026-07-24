@@ -1,4 +1,4 @@
-﻿import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import { StatusToggle } from "./StatusToggle";
 import { InlineEditor } from "./InlineEditor";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -7,6 +7,7 @@ import {
   OBJECTIVE_MAP, LEARNING_PHASE_MAP, SW_STATUS,
   calcROAS, calcCPA, calcHookRate, calcLandingPageViews,
   frequencyAlertLevel, isAdvantagePlus, findActionValue,
+  findResultsValue, getResultsLabel,
   fmtROAS,
 } from "@/lib/ads-metrics";
 
@@ -58,34 +59,8 @@ const TH_BORDER_BOTTOM = "2px solid rgba(59,130,246,0.45)";
 const TF_BORDER_TOP    = "2px solid rgba(59,130,246,0.55)";
 
 // ── Action helpers ──────────────────────────────────────────────────────────
-function findResultsValue(actions: any[]): number {
-  if (!actions || !Array.isArray(actions)) return 0;
-  const priority = [
-    "onsite_conversion.messaging_conversation_started_7d",
-    "lead", "omni_purchase", "purchase", "complete_registration",
-    "add_to_cart", "link_click",
-  ];
-  for (const type of priority) {
-    const a = actions.find((x: any) => x.action_type === type);
-    if (a) return parseInt(a.value || "0", 10);
-  }
-  return 0;
-}
-
-function getResultsLabel(actions: any[]): string {
-  if (!actions || !Array.isArray(actions)) return "";
-  const map: Record<string, string> = {
-    "onsite_conversion.messaging_conversation_started_7d": "Conversaciones",
-    lead: "Leads", omni_purchase: "Compras", purchase: "Compras",
-    complete_registration: "Registros", add_to_cart: "Carritos",
-    link_click: "Clics al enlace",
-  };
-  const priority = Object.keys(map);
-  for (const type of priority) {
-    if (actions.find((x: any) => x.action_type === type)) return map[type];
-  }
-  return "";
-}
+// findResultsValue and getResultsLabel are imported from @/lib/ads-metrics
+// to keep a single source of truth and prevent CPA/Results desync.
 
 function findConversationsValue(actions: any[]): number {
   return findActionValue(actions, "onsite_conversion.messaging_conversation_started_7d");

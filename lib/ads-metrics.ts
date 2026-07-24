@@ -89,6 +89,7 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
     { type: "complete_registration", label: "CPR" },
     { type: "add_to_cart", label: "CPATC" },
     { type: "onsite_conversion.messaging_conversation_started_7d", label: "CPConv" },
+    { type: "link_click", label: "CPC" },
   ];
 
   for (const at of actionTypes) {
@@ -96,13 +97,56 @@ export function calcCPA(ins: any, objective?: string): { value: number; label: s
     if (count > 0) return { value: spend / count, label: at.label };
   }
 
-  // Fallback: use cost_per_action_type if available
+  // Fallback: use cost_per_action_type if available — but only for relevant action types,
+  // not generic ones like page_engagement that would produce nonsensical CPA values.
   if (ins.cost_per_action_type && ins.cost_per_action_type.length > 0) {
-    const first = ins.cost_per_action_type[0];
-    return { value: parseFloat(first.value || "0"), label: "CPA" };
+    const relevantTypes = [
+      "lead", "omni_purchase", "purchase", "complete_registration",
+      "add_to_cart", "onsite_conversion.messaging_conversation_started_7d",
+      "link_click",
+    ];
+    const match = ins.cost_per_action_type.find(
+      (c: any) => relevantTypes.includes(c.action_type)
+    );
+    if (match) {
+      return { value: parseFloat(match.value || "0"), label: "CPA" };
+    }
   }
 
   return { value: 0, label: "CPA" };
+}
+
+// ── Results value & label (shared priority list) ────────────────────────────
+/** Priority-ordered action types used by both "Results" and "CPA" columns.
+ *  Keeping a single source of truth prevents the desync bug where
+ *  findResultsValue would count link_click but calcCPA would not. */
+const RESULTS_PRIORITY: { type: string; label: string }[] = [
+  { type: "onsite_conversion.messaging_conversation_started_7d", label: "Conversaciones" },
+  { type: "lead", label: "Leads" },
+  { type: "omni_purchase", label: "Compras" },
+  { type: "purchase", label: "Compras" },
+  { type: "complete_registration", label: "Registros" },
+  { type: "add_to_cart", label: "Carritos" },
+  { type: "link_click", label: "Clics al enlace" },
+];
+
+/** Find the primary result count from Meta's actions array (priority-based). */
+export function findResultsValue(actions: any[]): number {
+  if (!actions || !Array.isArray(actions)) return 0;
+  for (const { type } of RESULTS_PRIORITY) {
+    const a = actions.find((x: any) => x.action_type === type);
+    if (a) return parseInt(a.value || "0", 10);
+  }
+  return 0;
+}
+
+/** Human-readable label for the primary result type. */
+export function getResultsLabel(actions: any[]): string {
+  if (!actions || !Array.isArray(actions)) return "";
+  for (const { type, label } of RESULTS_PRIORITY) {
+    if (actions.find((x: any) => x.action_type === type)) return label;
+  }
+  return "";
 }
 
 // ── Hook Rate (video campaigns) ─────────────────────────────────────────────
