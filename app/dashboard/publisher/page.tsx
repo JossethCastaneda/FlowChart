@@ -12,7 +12,12 @@ export default function PublisherPage() {
         title="Planner"
         description="Planifica, redacta, programa y prepara aprobaciones para tus canales sociales."
         icon={<Zap className="w-6 h-6" style={{ color: "var(--amber)" }} />}
-        action={<ConnectedMetaBadge />}
+        action={
+          <div style={{ display: "flex", gap: 8 }}>
+            <ConnectedMetaBadge module="publisher_facebook" />
+            <ConnectedMetaBadge module="publisher_instagram" />
+          </div>
+        }
       />
 
       <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: "column" }}>
