@@ -33,9 +33,9 @@ export const CampaignObjective = z.enum([
 export const SpecialAdCategory = z.enum([
   "HOUSING",
   "EMPLOYMENT",
-  "CREDIT",
-  "ISSUES_ELECTIONS_POLITICS",
+  // CREDIT was deprecated in Jan 2025 → replaced by FINANCIAL_PRODUCTS_SERVICES
   "FINANCIAL_PRODUCTS_SERVICES",
+  "ISSUES_ELECTIONS_POLITICS",
   "ONLINE_GAMBLING_AND_GAMING",
 ]);
 

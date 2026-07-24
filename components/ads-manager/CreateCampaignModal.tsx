@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useState } from "react";
 import { X, Megaphone, AlertTriangle, Loader2, PauseCircle } from "lucide-react";
@@ -22,7 +22,6 @@ const SPECIAL = [
   { id: "", label: "Ninguna" },
   { id: "HOUSING", label: "Vivienda" },
   { id: "EMPLOYMENT", label: "Empleo" },
-  { id: "CREDIT", label: "Crédito" },
   { id: "ISSUES_ELECTIONS_POLITICS", label: "Política / Temas sociales" },
   { id: "FINANCIAL_PRODUCTS_SERVICES", label: "Productos/servicios financieros" },
   { id: "ONLINE_GAMBLING_AND_GAMING", label: "Juego y apuestas" },

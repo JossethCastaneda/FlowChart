@@ -34,9 +34,12 @@ export async function POST(req: NextRequest) {
       name: String(name).trim(),
       objective,
       status: "PAUSED", // SAFETY — always paused on creation
-      buying_type: buying_type === "RESERVED" ? "RESERVED" : "AUCTION",
-      special_ad_categories: special_ad_categories ?? [],
+      special_ad_categories: special_ad_categories && special_ad_categories.length > 0
+        ? special_ad_categories
+        : ["NONE"],
     };
+    // Only send buying_type when non-default (AUCTION is Meta's default)
+    if (buying_type === "RESERVED") payload.buying_type = "RESERVED";
     
     // C. Advantage+ Shopping (ASC)
     if (smart_promotion_type) {
