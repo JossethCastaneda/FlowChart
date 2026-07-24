@@ -11,7 +11,7 @@ interface ToastProps {
 }
 
 const SEVERITY_CONFIG: Record<AlertSeverity, {
-  bg: string; border: string; text: string; icon: React.FC<{ size?: number; className?: string }>;
+  bg: string; border: string; text: string; icon: React.FC<{ size?: number; className?: string; color?: string }>;
 }> = {
   danger:  { bg: "rgba(226,68,92,0.12)", border: "rgba(226,68,92,0.4)", text: "var(--red)",     icon: AlertCircle },
   warning: { bg: "rgba(251,191,36,0.12)", border: "rgba(251,191,36,0.4)", text: "var(--amber)",  icon: AlertTriangle },

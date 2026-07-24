@@ -4,7 +4,7 @@ import { AlertTriangle, Info, AlertCircle, CheckCircle, X, Trash2, CheckCheck, B
 import { useAlertsStore, type ZefirusAlert, type AlertSeverity } from "@/stores/alertsStore";
 
 const SEVERITY_CONFIG: Record<AlertSeverity, {
-  bg: string; border: string; text: string; label: string; icon: React.FC<{ size?: number; style?: React.CSSProperties }>;
+  bg: string; border: string; text: string; label: string; icon: React.FC<{ size?: number; style?: React.CSSProperties; color?: string }>;
 }> = {
   danger:  { bg: "rgba(226,68,92,0.06)", border: "rgba(226,68,92,0.2)", text: "var(--red)",     label: "Critico",       icon: AlertCircle },
   warning: { bg: "rgba(251,191,36,0.06)", border: "rgba(251,191,36,0.2)", text: "var(--amber)",  label: "Advertencia", icon: AlertTriangle },
