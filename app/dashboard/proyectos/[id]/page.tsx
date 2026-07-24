@@ -1956,7 +1956,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   if (raw === undefined) return <NoData msg="Cargando..." />;
                   const hourMap: Record<string, { hour: string; sortKey: number; spend: number; impressions: number; clicks: number }> = {};
                   for (const r of raw) {
-                    const h = r.hourly_stats_aggregated_by_audience_time_zone || "?";
+                    const h = r.hourly_stats_aggregated_by_audience_time_zone ?? r.hourly_stats_aggregated_by_advertiser_time_zone ?? "?";
                     // Meta returns ranges like "00:00:00 - 00:59:59" or just "0"
                     const hourNum = parseInt(h.split(":")[0]) || 0;
                     const label = `${hourNum}h`;
