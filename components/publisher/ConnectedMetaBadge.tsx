@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { openConnectPopup } from "@/lib/connect-popup";
 import { X } from "lucide-react";
-import { MetaIcon } from "@/components/ui/AppIcons";
+import { MetaIcon, FacebookIcon, InstagramIcon } from "@/components/ui/AppIcons";
 
 interface ConnectedProfile {
   id?: string;
@@ -124,6 +124,7 @@ export function ConnectedMetaBadge({
   }
 
   if (!profile) {
+    const Icon = module.includes("instagram") ? InstagramIcon : FacebookIcon;
     return (
       <button
         onClick={() => openConnectPopup(module, fetchIntegrations)}
@@ -135,13 +136,13 @@ export function ConnectedMetaBadge({
           borderRadius: 16,
           background: "var(--surface)",
           border: "1px solid rgba(0,132,255,0.2)",
-          color: "#0084ff",
+          color: module.includes("instagram") ? "#E1306C" : "#0084ff",
           fontSize: 12,
           fontWeight: 600,
           cursor: "pointer",
         }}
       >
-        <MetaIcon size={14} />
+        <Icon size={14} />
         {labelToUse}
       </button>
     );
