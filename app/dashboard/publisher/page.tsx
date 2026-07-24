@@ -14,8 +14,8 @@ export default function PublisherPage() {
         icon={<Zap className="w-6 h-6" style={{ color: "var(--amber)" }} />}
         action={
           <div style={{ display: "flex", gap: 8 }}>
-            <ConnectedMetaBadge module="publisher_facebook" />
-            <ConnectedMetaBadge module="publisher_instagram" />
+            <ConnectedMetaBadge module="publisher_facebook" providers={["meta_publisher_facebook", "meta_social", "meta_community", "meta_inbox"]} />
+            <ConnectedMetaBadge module="publisher_instagram" providers={["meta_publisher_instagram", "instagram", "meta_social"]} />
           </div>
         }
       />

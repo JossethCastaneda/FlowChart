@@ -116,39 +116,80 @@ export async function GET(request: NextRequest) {
   // ────────────────────────────────────────────────────────────────────────────
 
   try {
-    // 1. Exchange code for short-lived token
-    const tokenUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
-    tokenUrl.searchParams.set("client_id", clientId);
-    tokenUrl.searchParams.set("client_secret", clientSecret);
-    tokenUrl.searchParams.set("redirect_uri", redirectUri);
-    tokenUrl.searchParams.set("code", code);
+    let userAccessToken = "";
 
-    const tokenRes = await fetch(tokenUrl.toString());
-    const tokenData = await tokenRes.json();
+    if (module === "publisher_instagram") {
+      // 1. Exchange code for short-lived token via Instagram API
+      const formBody = new URLSearchParams();
+      formBody.append("client_id", clientId);
+      formBody.append("client_secret", clientSecret);
+      formBody.append("grant_type", "authorization_code");
+      formBody.append("redirect_uri", redirectUri);
+      formBody.append("code", code);
 
-    if (!tokenRes.ok || !tokenData.access_token) {
-      logger.error("[CONNECT CALLBACK] Token exchange failed:", tokenData);
-      return NextResponse.redirect(`${baseUrl}/connect/done?error=token_exchange_failed&details=${encodeURIComponent(tokenData.error?.message || "Unknown error")}`);
-    }
+      const tokenRes = await fetch("https://api.instagram.com/oauth/access_token", {
+        method: "POST",
+        body: formBody,
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      });
+      const tokenData = await tokenRes.json();
 
-    let userAccessToken = tokenData.access_token;
-
-    // 2. Exchange for long-lived token (~60 days)
-    try {
-      const llUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
-      llUrl.searchParams.set("grant_type", "fb_exchange_token");
-      llUrl.searchParams.set("client_id", clientId);
-      llUrl.searchParams.set("client_secret", clientSecret);
-      llUrl.searchParams.set("fb_exchange_token", userAccessToken);
-
-      const llRes = await fetch(llUrl.toString());
-      const llData = await llRes.json();
-      if (llRes.ok && llData.access_token) {
-        userAccessToken = llData.access_token;
-        logger.info(`[CONNECT CALLBACK] Long-lived user token obtained for module: ${module}`);
+      if (!tokenRes.ok || !tokenData.access_token) {
+        logger.error("[CONNECT CALLBACK] IG Token exchange failed:", tokenData);
+        return NextResponse.redirect(`${baseUrl}/connect/done?error=token_exchange_failed&details=${encodeURIComponent(tokenData.error?.message || tokenData.error_message || "Unknown error")}`);
       }
-    } catch (e) {
-      logger.warn("[CONNECT CALLBACK] Long-lived exchange failed, using short-lived:", e);
+      userAccessToken = tokenData.access_token;
+
+      // 2. Exchange for long-lived token (~60 days) via Instagram Graph API
+      try {
+        const llUrl = new URL(`https://graph.instagram.com/access_token`);
+        llUrl.searchParams.set("grant_type", "ig_exchange_token");
+        llUrl.searchParams.set("client_secret", clientSecret);
+        llUrl.searchParams.set("access_token", userAccessToken);
+
+        const llRes = await fetch(llUrl.toString());
+        const llData = await llRes.json();
+        if (llRes.ok && llData.access_token) {
+          userAccessToken = llData.access_token;
+          logger.info(`[CONNECT CALLBACK] Long-lived user token obtained for module: ${module}`);
+        }
+      } catch (e) {
+        logger.warn("[CONNECT CALLBACK] Long-lived exchange failed for IG, using short-lived:", e);
+      }
+    } else {
+      // 1. Exchange code for short-lived token via Facebook Graph API
+      const tokenUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
+      tokenUrl.searchParams.set("client_id", clientId);
+      tokenUrl.searchParams.set("client_secret", clientSecret);
+      tokenUrl.searchParams.set("redirect_uri", redirectUri);
+      tokenUrl.searchParams.set("code", code);
+
+      const tokenRes = await fetch(tokenUrl.toString());
+      const tokenData = await tokenRes.json();
+
+      if (!tokenRes.ok || !tokenData.access_token) {
+        logger.error("[CONNECT CALLBACK] FB Token exchange failed:", tokenData);
+        return NextResponse.redirect(`${baseUrl}/connect/done?error=token_exchange_failed&details=${encodeURIComponent(tokenData.error?.message || "Unknown error")}`);
+      }
+      userAccessToken = tokenData.access_token;
+
+      // 2. Exchange for long-lived token (~60 days) via Facebook Graph API
+      try {
+        const llUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
+        llUrl.searchParams.set("grant_type", "fb_exchange_token");
+        llUrl.searchParams.set("client_id", clientId);
+        llUrl.searchParams.set("client_secret", clientSecret);
+        llUrl.searchParams.set("fb_exchange_token", userAccessToken);
+
+        const llRes = await fetch(llUrl.toString());
+        const llData = await llRes.json();
+        if (llRes.ok && llData.access_token) {
+          userAccessToken = llData.access_token;
+          logger.info(`[CONNECT CALLBACK] Long-lived user token obtained for module: ${module}`);
+        }
+      } catch (e) {
+        logger.warn("[CONNECT CALLBACK] Long-lived exchange failed for FB, using short-lived:", e);
+      }
     }
 
     // FIX: Use USER access token to fetch pages, then validate
