@@ -116,7 +116,7 @@ export const CampaignCreateSchema = z.object({
 export const AdsetCreateSchema = z.object({
   adAccountId: AdAccountId,
   campaignId: MetaId,
-  objective: z.enum(["OUTCOME_TRAFFIC", "OUTCOME_AWARENESS", "OUTCOME_ENGAGEMENT"]),
+  objective: CampaignObjective,
   name: EntityName,
   dailyBudget: z.number().nonnegative().max(100_000_000).optional(),
   countries: z.array(z.string().regex(/^[A-Za-z]{2}$/)).max(25).optional(),
@@ -125,10 +125,29 @@ export const AdsetCreateSchema = z.object({
   genders: z.array(z.union([z.literal(1), z.literal(2)])).max(2).optional(),
   advantageAudience: z.boolean().optional(),
   advantagePlacements: z.boolean().optional(),
+  // promoted_object — required for LEADS (page_id), SALES (pixel_id)
+  promoted_object: z.record(z.string(), z.unknown()).optional(),
   // Programación del conjunto (ISO 8601). Antes no estaban en el schema → Zod los
   // strippeaba y las fechas elegidas en el modal se descartaban silenciosamente.
   start_time: z.string().datetime({ offset: true }).optional(),
   end_time: z.string().datetime({ offset: true }).optional(),
+  confirmed_by_user: ConfirmedByUser,
+});
+
+export const AdCreateSchema = z.object({
+  adAccountId: AdAccountId,
+  adsetId: MetaId,
+  name: EntityName,
+  pageId: MetaId,
+  // Creative fields
+  message: z.string().max(5000).optional(),
+  headline: z.string().max(255).optional(),
+  description: z.string().max(255).optional(),
+  link: z.string().url().max(2048).optional(),
+  imageUrl: z.string().url().max(2048).optional(),
+  imageHash: z.string().regex(/^[a-f0-9]+$/i).optional(),
+  videoId: MetaId.optional(),
+  callToAction: z.string().regex(/^[A-Z_]+$/).max(40).optional(),
   confirmed_by_user: ConfirmedByUser,
 });
 

@@ -1,6 +1,6 @@
-﻿"use client";
+"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { X, Layers, AlertTriangle, Loader2, PauseCircle, Info } from "lucide-react";
 
 interface Campaign { id: string; name: string; objective?: string }
@@ -11,12 +11,18 @@ interface Props {
   onCreated: (id: string) => void;
 }
 
-// Objectives we can create an ad set for without a pixel/form/app.
-const SUPPORTED: Record<string, string> = {
+const OBJ_LABELS: Record<string, string> = {
   OUTCOME_TRAFFIC: "Optimiza por clics en el enlace",
   OUTCOME_AWARENESS: "Optimiza por alcance",
   OUTCOME_ENGAGEMENT: "Optimiza por interacción",
+  OUTCOME_LEADS: "Optimiza por generación de leads",
+  OUTCOME_SALES: "Optimiza por conversiones",
+  OUTCOME_APP_PROMOTION: "Optimiza por instalaciones de app",
 };
+
+// Objectives that need extra config (promoted_object)
+const NEEDS_PAGE = ["OUTCOME_LEADS"];
+const NEEDS_PIXEL = ["OUTCOME_SALES"];
 
 const inp: React.CSSProperties = {
   width: "100%", padding: "9px 12px", background: "var(--surface-hover)",
@@ -26,8 +32,7 @@ const inp: React.CSSProperties = {
 const lbl: React.CSSProperties = { fontSize: 11, color: "var(--text-secondary)", display: "block", marginBottom: 5, fontWeight: 500 };
 
 export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }: Props) {
-  const supported = campaigns.filter((c) => c.objective && SUPPORTED[c.objective]);
-  const [campaignId, setCampaignId] = useState(supported[0]?.id || campaigns[0]?.id || "");
+  const [campaignId, setCampaignId] = useState(campaigns[0]?.id || "");
   const [name, setName] = useState("");
   const [dailyBudget, setDailyBudget] = useState("");
   const [countries, setCountries] = useState("MX");
@@ -41,25 +46,62 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  // Pages for LEADS (promoted_object.page_id)
+  const [pages, setPages] = useState<{id: string; name: string}[]>([]);
+  const [selectedPageId, setSelectedPageId] = useState("");
+  const [loadingPages, setLoadingPages] = useState(false);
+
+  // Pixels for SALES (promoted_object.pixel_id)
+  const [pixelId, setPixelId] = useState("");
+
   const campaign = campaigns.find((c) => c.id === campaignId) || null;
-  const objSupported = !!(campaign?.objective && SUPPORTED[campaign.objective]);
+  const obj = campaign?.objective || "";
+  const needsPage = NEEDS_PAGE.includes(obj);
+  const needsPixel = NEEDS_PIXEL.includes(obj);
+  const isAppPromo = obj === "OUTCOME_APP_PROMOTION";
+  const objLabel = OBJ_LABELS[obj] || "";
+
+  // Fetch pages when LEADS objective selected
+  useEffect(() => {
+    if (needsPage && pages.length === 0) {
+      setLoadingPages(true);
+      fetch("/api/meta/pages?module=ads")
+        .then(r => r.json())
+        .then(d => {
+          const list = (d.data || []).map((p: any) => ({ id: p.id, name: p.name }));
+          setPages(list);
+          if (list.length > 0 && !selectedPageId) setSelectedPageId(list[0].id);
+        })
+        .catch(() => {})
+        .finally(() => setLoadingPages(false));
+    }
+  }, [needsPage]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const canSubmit = (() => {
+    if (!campaign || !name.trim()) return false;
+    if (isAppPromo) return false; // Not supported yet
+    if (needsPage && !selectedPageId) return false;
+    if (needsPixel && !pixelId.trim()) return false;
+    return true;
+  })();
 
   const submit = async () => {
-    if (!campaign) { setError("Selecciona una campaña."); return; }
-    if (!objSupported) { setError("El objetivo de esta campaña requiere configuración extra (píxel/formulario). Créalo en Meta."); return; }
-    if (!name.trim()) { setError("Escribe un nombre para el conjunto."); return; }
-    // Budget is optional if the parent campaign is using Campaign Budget Optimization (CBO)
-    // We just warn or let the API handle the validation error.
+    if (!canSubmit) return;
     setSaving(true);
     setError("");
     try {
+      // Build promoted_object
+      let promoted_object: Record<string, string> | undefined;
+      if (needsPage) promoted_object = { page_id: selectedPageId };
+      else if (needsPixel) promoted_object = { pixel_id: pixelId.trim() };
+
       const res = await fetch("/api/meta/adsets/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           adAccountId,
           campaignId,
-          objective: campaign.objective,
+          objective: campaign!.objective,
           name: name.trim(),
           dailyBudget: Number(dailyBudget),
           countries: countries.split(",").map((c) => c.trim()).filter(Boolean),
@@ -68,6 +110,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           genders: gender === "male" ? [1] : gender === "female" ? [2] : [],
           advantageAudience,
           advantagePlacements,
+          promoted_object,
           start_time: startDate ? new Date(startDate).toISOString() : undefined,
           end_time: endDate ? new Date(endDate).toISOString() : undefined,
           confirmed_by_user: true,
@@ -83,7 +126,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
   };
 
   return (
-    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)",  }}>
+    <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9999, display: "flex", alignItems: "flex-start", justifyContent: "center", overflowY: "auto", padding: "5vh 16px", background: "var(--overlay-dark)" }}>
       <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: 540, background: "var(--surface)", border: "1px solid rgba(139,141,242,0.25)", borderRadius: 10, animation: "fadeInScale 0.2s ease-out" }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 22px", border: "1px solid var(--hairline)" }}>
           <span style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 14, fontWeight: 700, color: "var(--foreground)" }}>
@@ -96,19 +139,46 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
           <div>
             <label style={lbl}>Campaña *</label>
             <select style={{ ...inp, cursor: "pointer" }} value={campaignId} onChange={(e) => setCampaignId(e.target.value)}>
-              {campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}{c.objective && !SUPPORTED[c.objective] ? " (objetivo no soportado aquí)" : ""}</option>)}
+              {campaigns.map((c) => <option key={c.id} value={c.id}>{c.name}{c.objective === "OUTCOME_APP_PROMOTION" ? " ⚠ (App no soportada aún)" : ""}</option>)}
             </select>
-            {campaign && objSupported && (
+            {campaign && objLabel && (
               <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4, display: "flex", alignItems: "center", gap: 4 }}>
-                <Info style={{ width: 11, height: 11 }} /> {SUPPORTED[campaign.objective!]}
+                <Info style={{ width: 11, height: 11 }} /> {objLabel}
               </div>
             )}
           </div>
 
-          {campaign && !objSupported && (
+          {isAppPromo && (
             <div style={{ display: "flex", gap: 8, alignItems: "flex-start", padding: "10px 12px", borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(251,191,36,0.18)" }}>
               <AlertTriangle style={{ width: 15, height: 15, color: "var(--amber)", flexShrink: 0, marginTop: 1 }} />
-              <div style={{ fontSize: 11, color: "var(--amber)" }}>Este objetivo (Leads/Ventas/App) necesita píxel, formulario o app. Créalo en Meta, o usa una campaña de <strong>Tráfico, Reconocimiento o Interacción</strong>.</div>
+              <div style={{ fontSize: 11, color: "var(--amber)" }}>La promoción de app aún no está soportada desde Zefirus. Créalo directamente en Meta.</div>
+            </div>
+          )}
+
+          {/* Page selector for LEADS */}
+          {needsPage && (
+            <div>
+              <label style={lbl}>Página de Facebook * (para leads)</label>
+              {loadingPages ? (
+                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-muted)", padding: 8 }}>
+                  <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> Cargando páginas…
+                </div>
+              ) : pages.length > 0 ? (
+                <select style={{ ...inp, cursor: "pointer" }} value={selectedPageId} onChange={(e) => setSelectedPageId(e.target.value)}>
+                  {pages.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                </select>
+              ) : (
+                <div style={{ fontSize: 11, color: "var(--amber)", padding: 8 }}>No se encontraron páginas. Conecta una página en Integraciones.</div>
+              )}
+            </div>
+          )}
+
+          {/* Pixel ID for SALES */}
+          {needsPixel && (
+            <div>
+              <label style={lbl}>Pixel ID * (para conversiones)</label>
+              <input style={inp} value={pixelId} onChange={(e) => setPixelId(e.target.value)} placeholder="Ej. 123456789012345" />
+              <div style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 3 }}>Encuéntralo en Meta Business Suite → Orígenes de datos → Píxeles.</div>
             </div>
           )}
 
@@ -192,7 +262,7 @@ export function CreateAdSetModal({ adAccountId, campaigns, onClose, onCreated }:
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, padding: "14px 22px", border: "1px solid var(--hairline)" }}>
           <button onClick={onClose} style={{ padding: "9px 18px", background: "transparent", border: "1px solid var(--border)", color: "var(--text-secondary)", cursor: "pointer", fontSize: 12, borderRadius: 6, fontFamily: "inherit" }}>Cancelar</button>
-          <button onClick={submit} disabled={saving || !objSupported || !name.trim()} className="btn-primary" style={{ padding: "9px 22px", opacity: saving || !objSupported || !name.trim() ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 7 }}>
+          <button onClick={submit} disabled={saving || !canSubmit} className="btn-primary" style={{ padding: "9px 22px", opacity: saving || !canSubmit ? 0.5 : 1, display: "inline-flex", alignItems: "center", gap: 7 }}>
             {saving ? <Loader2 style={{ width: 14, height: 14, animation: "spin 1s linear infinite" }} /> : <PauseCircle style={{ width: 14, height: 14 }} />}
             Crear en pausa
           </button>

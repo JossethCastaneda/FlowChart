@@ -3,6 +3,7 @@ import { getMetaAccessToken, metaFetch, META_API_VERSION } from "@/lib/server-au
 import { mapMetaError } from "@/lib/meta-errors";
 import { validateBody } from "@/lib/validate";
 import { AdsetCreateSchema } from "@/lib/ads-schemas";
+import { logger } from "@/lib/logger";
 
 /**
  * POST /api/meta/adsets/create — create a NEW ad set under a campaign.
@@ -10,14 +11,16 @@ import { AdsetCreateSchema } from "@/lib/ads-schemas";
  * SAFETY: created PAUSED. An ad set with no ads cannot deliver, so it spends $0
  * even with a budget. Gated behind confirmed_by_user.
  *
- * Scope: only objectives that need NO promoted_object (pixel/form/app), so the
- * payload is always valid. Leads/Sales/App require extra setup → create those
- * in Meta for now.
+ * Supports all 6 ODAX objectives. LEADS and SALES require a promoted_object
+ * (page_id or pixel_id respectively) which the frontend must provide.
  */
-const OBJ_MAP: Record<string, { optimization_goal: string; billing_event: string }> = {
-  OUTCOME_TRAFFIC: { optimization_goal: "LINK_CLICKS", billing_event: "IMPRESSIONS" },
-  OUTCOME_AWARENESS: { optimization_goal: "REACH", billing_event: "IMPRESSIONS" },
-  OUTCOME_ENGAGEMENT: { optimization_goal: "POST_ENGAGEMENT", billing_event: "IMPRESSIONS" },
+const OBJ_MAP: Record<string, { optimization_goal: string; billing_event: string; needs_promoted?: string }> = {
+  OUTCOME_TRAFFIC:       { optimization_goal: "LINK_CLICKS",          billing_event: "IMPRESSIONS" },
+  OUTCOME_AWARENESS:     { optimization_goal: "REACH",                billing_event: "IMPRESSIONS" },
+  OUTCOME_ENGAGEMENT:    { optimization_goal: "POST_ENGAGEMENT",      billing_event: "IMPRESSIONS" },
+  OUTCOME_LEADS:         { optimization_goal: "LEAD_GENERATION",      billing_event: "IMPRESSIONS", needs_promoted: "page_id" },
+  OUTCOME_SALES:         { optimization_goal: "OFFSITE_CONVERSIONS",  billing_event: "IMPRESSIONS", needs_promoted: "pixel_id" },
+  OUTCOME_APP_PROMOTION: { optimization_goal: "APP_INSTALLS",         billing_event: "IMPRESSIONS", needs_promoted: "application_id" },
 };
 
 export async function POST(req: NextRequest) {
@@ -28,14 +31,25 @@ export async function POST(req: NextRequest) {
     const _validate = await validateBody(req, AdsetCreateSchema);
     if (!_validate.ok) return _validate.response;
     let { adAccountId } = _validate.data;
-    const { campaignId, objective, name, dailyBudget, countries, ageMin, ageMax, genders, advantageAudience, advantagePlacements, start_time, end_time } = _validate.data;
+    const { campaignId, objective, name, dailyBudget, countries, ageMin, ageMax, genders, advantageAudience, advantagePlacements, promoted_object, start_time, end_time } = _validate.data;
 
     const map = OBJ_MAP[objective];
     if (!map) {
-      return NextResponse.json({ status: "error", error: "Este objetivo requiere configurar píxel, formulario o app. Créalo en Meta, o usa Tráfico, Reconocimiento o Interacción." }, { status: 400 });
+      return NextResponse.json({ status: "error", error: "Objetivo no reconocido." }, { status: 400 });
     }
-    // dailyBudget might be omitted if campaign uses CBO.
-    // If provided, we set it, if not we ignore it and rely on campaign CBO.
+
+    // Validate promoted_object for objectives that require it
+    if (map.needs_promoted && !promoted_object?.[map.needs_promoted]) {
+      const fieldLabels: Record<string, string> = {
+        page_id: "una página de Facebook",
+        pixel_id: "un píxel de conversión",
+        application_id: "una aplicación",
+      };
+      return NextResponse.json({
+        status: "error",
+        error: `Este objetivo requiere ${fieldLabels[map.needs_promoted] || map.needs_promoted}. Conéctalo en la configuración.`,
+      }, { status: 400 });
+    }
 
     if (!String(adAccountId).startsWith("act_")) adAccountId = `act_${adAccountId}`;
 
@@ -50,9 +64,7 @@ export async function POST(req: NextRequest) {
     // genders: [1]=male, [2]=female. Omit for "all".
     if (Array.isArray(genders) && genders.length === 1) targeting.genders = genders;
 
-    // Advantage+ Audience — official Marketing API format. Meta requires the
-    // flag to be declared explicitly inside targeting.targeting_automation:
-    // 1 = audience as suggestion (Advantage+), 0 = hard constraints.
+    // Advantage+ Audience — official Marketing API format
     targeting.targeting_automation = { advantage_audience: advantageAudience ? 1 : 0 };
 
     const payload: Record<string, any> = {
@@ -63,6 +75,11 @@ export async function POST(req: NextRequest) {
       targeting,
       status: "PAUSED", // SAFETY — always paused
     };
+
+    // promoted_object for LEADS/SALES/APP
+    if (map.needs_promoted && promoted_object) {
+      payload.promoted_object = promoted_object;
+    }
 
     if (dailyBudget && Number(dailyBudget) > 0) {
       payload.daily_budget = Math.round(Number(dailyBudget) * 100);
@@ -78,10 +95,13 @@ export async function POST(req: NextRequest) {
     }
 
     const url = `https://graph.facebook.com/${META_API_VERSION}/${adAccountId}/adsets`;
+    logger.info("[ADS] AdSet create payload", { adAccountId, objective, campaignId });
+
     const res = await metaFetch(url, accessToken, { method: "POST", body: JSON.stringify(payload) });
     const json = await res.json();
 
     if (!res.ok) {
+      logger.error("[ADS] AdSet create failed", { status: res.status, error: json?.error });
       const parsed = mapMetaError(json);
       return NextResponse.json({
         status: "error",
@@ -92,8 +112,10 @@ export async function POST(req: NextRequest) {
       }, { status: res.status });
     }
 
+    logger.info("[ADS] AdSet created", { id: json.id, objective });
     return NextResponse.json({ status: "success", object_id: json.id, created_paused: true, data: json });
   } catch (error: any) {
+    logger.error("[ADS] AdSet create unhandled", { error: error.message });
     return NextResponse.json({ status: "error", error: error.message }, { status: 500 });
   }
 }
