@@ -686,7 +686,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <AlertBellButton />
-            <NotificationBell />
           </div>
         </header>
 
@@ -810,7 +809,6 @@ export function ClientMainWrapper({ children }: { children: React.ReactNode }) {
           </Link>
 
           <AlertBellButton />
-          <NotificationBell />
 
           <button className="text-[var(--text-secondary)] hover:text-[var(--foreground)] transition-colors" title="Ayuda" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
             <HoloIcon icon={HelpCircle} variant="emerald" isActive={true} className="w-[18px] h-[18px]" />

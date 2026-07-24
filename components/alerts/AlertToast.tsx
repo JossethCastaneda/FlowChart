@@ -204,17 +204,6 @@ export function AlertBellButton() {
           </span>
         )}
       </button>
-      <button
-        onClick={(e) => { e.stopPropagation(); toggleSound(); }}
-        title={soundEnabled ? "Silenciar alertas" : "Activar sonido de alertas"}
-        style={{
-          background: "none", border: "none", padding: 4, cursor: "pointer",
-          color: soundEnabled ? "var(--text-secondary)" : "var(--text-muted)",
-          opacity: 0.7,
-        }}
-      >
-        {soundEnabled ? <Bell size={10} /> : <BellOff size={10} />}
-      </button>
       </div>
 
       {open && (
