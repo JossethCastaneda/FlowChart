@@ -720,16 +720,11 @@ svg.lucide:hover { transform: scale(1.05); }
   width: 100%;
 }
 
-  /* ── Grid Item Wrapper ── */
-  .dashboard-grid-item {
-    display: flex;
-    flex-direction: column;
-  }
-  .dashboard-grid-item > .dashboard-widget {
-    flex: 1;
-    width: 100%;
-    height: 100%;
-  }
+/* ── Grid Item Wrapper ── */
+.dashboard-grid-item {
+  /* Let content drive height — DO NOT force stretch */
+  width: 100%;
+}
 
 /* ── Widget ── */
 .dashboard-widget {
@@ -739,8 +734,10 @@ svg.lucide:hover { transform: scale(1.05); }
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
-  overflow: hidden;
+  /* NO overflow:hidden — widget height driven by content via ResizeObserver */
   transition: box-shadow 0.2s, border-color 0.2s, opacity 0.15s;
+  /* Clip border-radius visually without hiding content */
+  overflow: visible;
 }
 .dashboard-widget:hover {
   border-color: var(--border-strong);
@@ -854,8 +851,8 @@ svg.lucide:hover { transform: scale(1.05); }
 /* ── Widget Content ── */
 .dashboard-widget__content {
   padding: 14px 16px;
-  flex: 1;
-  overflow: auto;
+  /* NO overflow:auto — height determined by content, no internal scroll */
+  overflow: visible;
 }
 
 /* ── Resize Handle ── */
