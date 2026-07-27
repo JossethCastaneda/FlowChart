@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useCallback, useState, useEffect } from "react";
-import { ResponsiveGridLayout, useContainerWidth, type Layout, type LayoutItem } from "react-grid-layout";
+import React, { useMemo, useCallback, useState, useEffect, useRef } from "react";
+import { ResponsiveGridLayout, type Layout, type LayoutItem } from "react-grid-layout";
 import "react-grid-layout/css/styles.css";
 import "react-resizable/css/styles.css";
 import { RotateCcw } from "lucide-react";
@@ -16,7 +16,7 @@ export interface WidgetDefinition {
   id: string;
   title: string;
   icon?: React.ReactNode;
-  /** Default width in columns (1-4) */
+  /** Default width in columns */
   defaultColSpan: number;
   /** Minimum allowed column span */
   minColSpan?: number;
@@ -39,7 +39,7 @@ interface DashboardGridProps {
   widgets: WidgetDefinition[];
   /** Templates for dynamic widgets */
   templates?: Record<string, WidgetDefinition>;
-  /** Number of grid columns (default 4) */
+  /** Number of grid columns (default 12) */
   columns?: number;
   /** Show reset button */
   showReset?: boolean;
@@ -47,12 +47,48 @@ interface DashboardGridProps {
   renderToolbarActions?: () => React.ReactNode;
 }
 
+/* ═══ Hook: use container width via ResizeObserver ═══ */
+function useContainerMeasure() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const measure = () => {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0) {
+        setWidth(rect.width);
+        setReady(true);
+      }
+    };
+
+    // Measure immediately
+    measure();
+
+    const ro = new ResizeObserver(() => measure());
+    ro.observe(el);
+
+    // Also listen to window resize as a fallback
+    window.addEventListener("resize", measure);
+
+    return () => {
+      ro.disconnect();
+      window.removeEventListener("resize", measure);
+    };
+  }, []);
+
+  return { containerRef, width, ready };
+}
+
 /* ═══ COMPONENT ═══ */
 export function DashboardGrid({
   layoutKey,
   widgets,
   templates,
-  columns = 4,
+  columns = 12,
   showReset = true,
   renderToolbarActions,
 }: DashboardGridProps) {
@@ -64,7 +100,7 @@ export function DashboardGrid({
     setMounted(true);
   }, []);
 
-  const { width, containerRef, mounted: containerMounted } = useContainerWidth();
+  const { containerRef, width, ready } = useContainerMeasure();
 
   /* ── Build default layout from widget definitions ── */
   const defaults: WidgetLayout[] = useMemo(
@@ -140,14 +176,18 @@ export function DashboardGrid({
       maxW: def?.maxColSpan || columns,
       minH: def?.minRowSpan || 3,
       maxH: wl.maxH || def?.maxRowSpan,
-      static: false, // Make items draggable
+      static: false,
     };
   });
 
   if (!mounted) return null; // Avoid hydration mismatch
 
   return (
-    <div className="dashboard-grid-container" ref={containerRef}>
+    <div
+      className="dashboard-grid-container"
+      ref={containerRef}
+      style={{ width: "100%", boxSizing: "border-box" }}
+    >
       {/* Toolbar */}
       {(showReset && hasStoredLayout) || renderToolbarActions ? (
         <div className="dashboard-grid-toolbar" style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginBottom: 12 }}>
@@ -165,7 +205,8 @@ export function DashboardGrid({
         </div>
       ) : null}
 
-      {containerMounted && (
+      {/* Render the grid only once we have an accurate measurement */}
+      {ready && width > 0 && (
         <ResponsiveGridLayout
           className="layout"
           width={width}
@@ -175,17 +216,17 @@ export function DashboardGrid({
           rowHeight={50}
           onLayoutChange={handleLayoutChange}
           dragConfig={{ handle: ".dashboard-widget__drag-handle" }}
-          margin={[16, 16]}
+          margin={[12, 12]}
           containerPadding={[0, 0]}
         >
           {widgetLayouts.map((wl) => {
             // Si tiene type, es un widget dinámico; si no, es uno estático (legacy)
             const def = wl.type && templates ? templates[wl.type] : widgetMap.get(wl.id);
             if (!def) return <div key={wl.id} />;
-            
+
             // El título puede venir de la configuración del widget o del default de la plantilla
             const title = wl.config?.title || def.title;
-            
+
             return (
               <div key={wl.id} className="dashboard-grid-item">
                 <DashboardWidget

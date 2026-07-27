@@ -261,9 +261,27 @@
   display: none;
 }
 
-.page-content { padding: 14px 18px 14px; }
-@media (max-width: 768px)  { .page-content { padding: 10px 12px 10px; } }
-@media (min-width: 1440px) { .page-content { padding: 16px 22px 16px; } }
+/* ── Page padding via CSS vars so children can negate it ── */
+:root {
+  --page-px: 18px;
+  --page-py: 14px;
+}
+@media (max-width: 768px)  { :root { --page-px: 12px; --page-py: 10px; } }
+@media (min-width: 1440px) { :root { --page-px: 22px; --page-py: 16px; } }
+
+.page-content {
+  padding: var(--page-py) var(--page-px) var(--page-py);
+  box-sizing: border-box;
+}
+
+/* ── Dashboard grid: break out of page padding → full-bleed ── */
+.page-content .dashboard-grid-container {
+  /* Negate the horizontal page padding so the grid fills 100% of main content */
+  margin-left:  calc(-1 * var(--page-px));
+  margin-right: calc(-1 * var(--page-px));
+  width: calc(100% + 2 * var(--page-px));
+  box-sizing: border-box;
+}
 
 .page-enter { animation: page-fade-in 0.4s ease-out forwards; }
 @keyframes page-fade-in { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
