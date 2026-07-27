@@ -124,11 +124,16 @@ export async function GET(
   let authUrl: URL;
 
   if (module === "publisher_instagram") {
-    authUrl = new URL("https://www.instagram.com/oauth/authorize");
-    authUrl.searchParams.set("client_id", metaAppId);
+    const instagramAppId = env.INSTAGRAM_APP_ID;
+    if (!instagramAppId) {
+      return NextResponse.json({ error: "INSTAGRAM_APP_ID not configured" }, { status: 500 });
+    }
+    
+    authUrl = new URL("https://api.instagram.com/oauth/authorize");
+    authUrl.searchParams.set("client_id", instagramAppId);
     authUrl.searchParams.set("redirect_uri", redirectUri);
     authUrl.searchParams.set("response_type", "code");
-    authUrl.searchParams.set("scope", "instagram_business_basic,instagram_business_content_publish,instagram_business_manage_messages,pages_show_list,pages_read_engagement");
+    authUrl.searchParams.set("scope", "instagram_business_basic,instagram_business_content_publish,instagram_business_manage_messages");
     authUrl.searchParams.set("state", encodedState);
   } else {
     authUrl = new URL(`https://www.facebook.com/${META_API_VERSION}/dialog/oauth`);

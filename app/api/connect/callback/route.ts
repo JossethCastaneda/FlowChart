@@ -104,13 +104,14 @@ export async function GET(request: NextRequest) {
   // ── BRANCH: Instagram Platform Direct Login ─────────────────────────────────
   // Cuando module=instagram, el flujo usa instagram.com/oauth → graph.instagram.com
   // con INSTAGRAM_APP_ID/SECRET (app separada, no la app de Meta Ads/Webhooks).
-  if (module === "instagram") {
+  if (module === "instagram" || module === "publisher_instagram") {
     return await handleInstagramDirectCallback({
       code,
       baseUrl,
       redirectUri,
       userId,
       workspaceId,
+      providerName: module === "publisher_instagram" ? "meta_publisher_instagram" : "instagram",
     });
   }
   // ────────────────────────────────────────────────────────────────────────────
@@ -119,43 +120,7 @@ export async function GET(request: NextRequest) {
     let userAccessToken = "";
 
     if (module === "publisher_instagram") {
-      // 1. Exchange code for short-lived token via Instagram API
-      const formBody = new URLSearchParams();
-      formBody.append("client_id", clientId);
-      formBody.append("client_secret", clientSecret);
-      formBody.append("grant_type", "authorization_code");
-      formBody.append("redirect_uri", redirectUri);
-      formBody.append("code", code);
-
-      const tokenRes = await fetch("https://api.instagram.com/oauth/access_token", {
-        method: "POST",
-        body: formBody,
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      });
-      const tokenData = await tokenRes.json();
-
-      if (!tokenRes.ok || !tokenData.access_token) {
-        logger.error("[CONNECT CALLBACK] IG Token exchange failed:", tokenData);
-        return NextResponse.redirect(`${baseUrl}/connect/done?error=token_exchange_failed&details=${encodeURIComponent(tokenData.error?.message || tokenData.error_message || "Unknown error")}`);
-      }
-      userAccessToken = tokenData.access_token;
-
-      // 2. Exchange for long-lived token (~60 days) via Instagram Graph API
-      try {
-        const llUrl = new URL(`https://graph.instagram.com/access_token`);
-        llUrl.searchParams.set("grant_type", "ig_exchange_token");
-        llUrl.searchParams.set("client_secret", clientSecret);
-        llUrl.searchParams.set("access_token", userAccessToken);
-
-        const llRes = await fetch(llUrl.toString());
-        const llData = await llRes.json();
-        if (llRes.ok && llData.access_token) {
-          userAccessToken = llData.access_token;
-          logger.info(`[CONNECT CALLBACK] Long-lived user token obtained for module: ${module}`);
-        }
-      } catch (e) {
-        logger.warn("[CONNECT CALLBACK] Long-lived exchange failed for IG, using short-lived:", e);
-      }
+      // Logic moved to handleInstagramDirectCallback
     } else {
       // 1. Exchange code for short-lived token via Facebook Graph API
       const tokenUrl = new URL(`https://graph.facebook.com/${META_API_VERSION}/oauth/access_token`);
@@ -545,12 +510,14 @@ async function handleInstagramDirectCallback({
   redirectUri,
   userId,
   workspaceId,
+  providerName = "instagram",
 }: {
   code: string;
   baseUrl: string;
   redirectUri: string;
   userId: string;
   workspaceId: string;
+  providerName?: string;
 }): Promise<Response> {
   const igAppId = env.INSTAGRAM_APP_ID;
   const igAppSecret = env.INSTAGRAM_APP_SECRET;
@@ -663,7 +630,7 @@ async function handleInstagramDirectCallback({
       where: {
         workspaceId_provider_userId: {
           workspaceId: resolvedWorkspaceId,
-          provider: "instagram",
+          provider: providerName,
           userId: "workspace",
         },
       },
@@ -686,7 +653,7 @@ async function handleInstagramDirectCallback({
       },
       create: {
         workspaceId: resolvedWorkspaceId,
-        provider: "instagram",
+        provider: providerName,
         userId: "workspace",
         connected: true,
         connectedAt: new Date(),

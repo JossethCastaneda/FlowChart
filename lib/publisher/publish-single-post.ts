@@ -119,10 +119,15 @@ export async function publishSinglePost(
       return { id: claimedPost.id, status: "Failed", error: "Invalid token" };
     }
 
+    const isDirectInstagram = integration?.provider === "meta_publisher_instagram" && !!(credentials as any)?.instagramUserId && !(credentials as any)?.pages;
+    const directIgUserId = isDirectInstagram ? (credentials as any).instagramUserId as string : undefined;
+
     const { externalIds, errors, targetPage } = await publishPostToMeta({
       post: claimedPost,
       accessToken,
       mode: "now",
+      isDirectInstagram,
+      directIgUserId,
     });
 
     const hasSuccess = Object.keys(externalIds).length > 0;

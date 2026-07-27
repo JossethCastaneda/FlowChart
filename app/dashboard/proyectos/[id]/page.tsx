@@ -28,9 +28,18 @@ import { TrafficAnalytics } from "@/components/proyectos/TrafficAnalytics";
 import { ChartTheme } from "@/components/ui/charts/ChartTheme";
 import { CustomTooltip } from "@/components/ui/charts/CustomTooltip";
 
-/* ═══ TYPES ═══ */
+/* â•â•â• DASHBOARD GRID SYSTEM â•â•â• */
+import { DashboardGrid, type WidgetDefinition } from "@/components/projects/DashboardGrid";
+import { ProyeccionWidget } from "@/components/projects/widgets/ProyeccionWidget";
+import { InversionChartWidget, CtrCpcChartWidget } from "@/components/projects/widgets/ChartWidgets";
+import { CuentasWidget, PresupuestoWidget } from "@/components/projects/widgets/SidebarWidgets";
+import { HeatmapWidget } from "@/components/projects/widgets/HeatmapWidget";
+import { AlertasGastoWidget, BudgetCardsWidget } from "@/components/projects/widgets/GastoWidgets";
+import { GastoSpendTableInline } from "@/components/projects/widgets/GastoSpendTableInline";
+
+/* â•â•â• TYPES â•â•â• */
 interface ChannelConfig { platformId: string; platformName: string; adAccounts: string[]; budget: string; period: string; goal: string; cpr: string; monthlyOverrides?: Record<string, { budget?: string; cpr?: string; goal?: string }>; }
-interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN ÓRBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; crmIntegrationIds?: string[]; googleSources?: { adsCustomerId?: string; ga4PropertyId?: string; gtmAccountId?: string; gtmContainerId?: string; } | null; }
+interface Project { id: string; alias: string; client: string; vertical: string; fanpage: string[]; instagram: string[]; whatsapp: string[]; website: string; channels: ChannelConfig[]; dateStart: string; dateEnd: string; persona: string; geo: string; status: "Activo"|"Pausado"|"Draft"|"Completado"|"EN VUELO"|"EN Ã“RBITA"; createdAt: string; crmIntegrationId?: string | null; crmType?: string | null; crmIntegrationIds?: string[]; googleSources?: { adsCustomerId?: string; ga4PropertyId?: string; gtmAccountId?: string; gtmContainerId?: string; } | null; }
 
 
 const PLATFORMS = [
@@ -41,9 +50,9 @@ const PLATFORMS = [
 ];
 const STATUS_COLORS: Record<string, string> = { Activo: "emerald", Pausado: "amber", Draft: "muted", Completado: "cyan" };
 const CPR_MAP: Record<string, string> = {
-  "Conversaciones": "Costo / conversación", "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
+  "Conversaciones": "Costo / conversaciÃ³n", "Clics al sitio": "CPC", "Seguidores": "Costo / seguidor",
   "Leads": "CPL", "Ventas (Purchase)": "CPA", "Registros": "Costo / registro", "Descargas app": "CPI",
-  "Video views": "CPV", "Alcance (Reach)": "CPM", "Tráfico a tienda": "Costo / visita",
+  "Video views": "CPV", "Alcance (Reach)": "CPM", "TrÃ¡fico a tienda": "Costo / visita",
 };
 const goalLabel = (goal?: string) => {
   if (!goal) return "Resultados";
@@ -53,7 +62,7 @@ const goalLabel = (goal?: string) => {
   if (goal.includes("Registro")) return "Registros";
   return "Resultados";
 };
-// Goal → Meta action_type mapping
+// Goal â†’ Meta action_type mapping
 const GOAL_ACTION_MAP: Record<string, string[]> = {
   "Conversaciones (WhatsApp / Messenger)": ["onsite_conversion.messaging_conversation_started_7d"],
   "Leads (Formulario Meta)": ["onsite_conversion.flow_complete", "lead", "leadgen", "leadgen_grouped", "onsite_conversion.lead_grouped", "onsite_conversion.lead", "omni_lead"],
@@ -72,7 +81,7 @@ const GOAL_ACTION_MAP: Record<string, string[]> = {
   "Video views": ["video_view"],
   "Alcance (Reach)": ["reach"],
   "Seguidores": ["page_engagement", "like"],
-  "Tráfico a tienda": ["store_visit"],
+  "TrÃ¡fico a tienda": ["store_visit"],
 };
 
 const NATIVE_OBJECTIVE_MAP: Record<string, string[]> = {
@@ -117,7 +126,7 @@ const findResultAction = (actions: any[] | undefined, goal?: string, objective?:
       const exact = actions.find((a: any) => a.action_type === t);
       if (exact) return exact;
     }
-    // Goal has explicit map but no matching action found — return null (0 results)
+    // Goal has explicit map but no matching action found â€” return null (0 results)
     // NEVER fall through to generic fallback, which would pick page_engagement/link_click
     return null;
   }
@@ -140,7 +149,7 @@ const fmtMXN0 = (n: number) => new Intl.NumberFormat('es-MX', { style: 'currency
 const fmtNum = (n: number) => new Intl.NumberFormat('es-MX').format(n);
 const pct = (n: number) => `${n.toFixed(1)}%`;
 
-/* ═══ HELPERS ═══ */
+/* â•â•â• HELPERS â•â•â• */
 function getDaysInCurrentMonth() { const n = new Date(); return new Date(n.getFullYear(), n.getMonth() + 1, 0).getDate(); }
 function getDaysElapsedInMonth() { return new Date().getDate(); }
 function getDaysRemainingInMonth() { return getDaysInCurrentMonth() - getDaysElapsedInMonth(); }
@@ -150,13 +159,13 @@ function getBudgetBreakdown(budget: number, period: string) {
   switch (period.toLowerCase()) {
     case "mensual": case "mes": return { daily: budget / daysInMonth, weekly: (budget / daysInMonth) * 7, monthly: budget, label: "Mensual" };
     case "semanal": case "semana": return { daily: budget / 7, weekly: budget, monthly: budget * 4.33, label: "Semanal" };
-    case "anual": case "año": return { daily: budget / 365, weekly: budget / 52, monthly: budget / 12, label: "Anual" };
-    case "diario": case "dia": case "día": return { daily: budget, weekly: budget * 7, monthly: budget * daysInMonth, label: "Diario" };
+    case "anual": case "aÃ±o": return { daily: budget / 365, weekly: budget / 52, monthly: budget / 12, label: "Anual" };
+    case "diario": case "dia": case "dÃ­a": return { daily: budget, weekly: budget * 7, monthly: budget * daysInMonth, label: "Diario" };
     default: return { daily: budget / daysInMonth, weekly: (budget / daysInMonth) * 7, monthly: budget, label: period || "Mensual" };
   }
 }
 
-/* ═══ SHARED UI ═══ */
+/* â•â•â• SHARED UI â•â•â• */
 const panelStyle: React.CSSProperties = {
   background: "var(--surface)",
   border: "1px solid var(--border)",
@@ -229,7 +238,7 @@ function TabButton({ active, label, icon, onClick }: { active: boolean; label: s
 function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div style={{ display: "flex", gap: 4, background: "var(--row-hover)", borderRadius: 6, padding: 3 }}>
-      {[{ k: "day", l: "Día" }, { k: "week", l: "Semana" }, { k: "month", l: "Mes" }].map(t => (
+      {[{ k: "day", l: "DÃ­a" }, { k: "week", l: "Semana" }, { k: "month", l: "Mes" }].map(t => (
         <button key={t.k} onClick={() => onChange(t.k)} style={{
           padding: "4px 12px", fontSize: 10, fontWeight: 600, borderRadius: 4, border: "none", cursor: "pointer",
           background: value === t.k ? "rgba(59,130,246,0.12)" : "transparent",
@@ -240,7 +249,7 @@ function TimeToggle({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-/* ═══ DB → Frontend Channel Mapper ═══ */
+/* â•â•â• DB â†’ Frontend Channel Mapper â•â•â• */
 function mapDbChannelsToConfig(dbChannels: any[]): ChannelConfig[] {
   if (!dbChannels?.length) return [];
   return dbChannels.map((ch: any) => {
@@ -258,7 +267,7 @@ function mapDbChannelsToConfig(dbChannels: any[]): ChannelConfig[] {
   });
 }
 
-/* ═══ MAIN PAGE ═══ */
+/* â•â•â• MAIN PAGE â•â•â• */
 export default function ProjectDashboardPage() {
   const params = useParams();
   const router = useRouter();
@@ -328,7 +337,7 @@ export default function ProjectDashboardPage() {
   // Load account names + pages + integrations
   useEffect(() => {
     fetch("/api/meta/adaccounts").then(r => r.json()).then(d => {
-      if (d.data) { const n: Record<string, string> = {}; d.data.forEach((a: any) => { n[a.id] = a.name?.split(" — ")[0] || a.id; }); setAccountNames(n); }
+      if (d.data) { const n: Record<string, string> = {}; d.data.forEach((a: any) => { n[a.id] = a.name?.split(" â€” ")[0] || a.id; }); setAccountNames(n); }
     }).catch(() => {});
     Promise.all([
       fetch("/api/meta/pages?module=social").catch(() => null),
@@ -353,7 +362,7 @@ export default function ProjectDashboardPage() {
     fetch("/api/workspace/integrations").then(r => r.json()).then(d => { if (Array.isArray(d.data?.data)) setActiveIntegrations(d.data.data.filter((i: any) => i.connected)); }).catch(() => {});
   }, []);
 
-  // Load insights — cache-first with background revalidation
+  // Load insights â€” cache-first with background revalidation
   const insightsStore = useInsightsStore();
   useEffect(() => {
     if (!project || !activePlatform) return;
@@ -367,7 +376,7 @@ export default function ProjectDashboardPage() {
     const cached = insightsStore.getCached(project.id, effectivePreset, dateStart, dateEnd);
     if (cached) {
       setInsights(cached);
-      // Don't show loading for revalidation — data is already visible
+      // Don't show loading for revalidation â€” data is already visible
     } else {
       setIsLoading(true);
     }
@@ -398,7 +407,7 @@ export default function ProjectDashboardPage() {
     breakdownFetchedRef.current = {};
   }, [project, activePlatform, dateStart, dateEnd, datePreset, selectedAccountId, heatmapTimezone]);
 
-  // Load breakdowns for audience/creative tabs — uses same date range
+  // Load breakdowns for audience/creative tabs â€” uses same date range
   // KEY FIX: Aggregate across ALL ad accounts when "all" selected (not just first)
   const loadBreakdown = useCallback(async (key: string) => {
     // Skip if already fetched for this key
@@ -528,7 +537,7 @@ export default function ProjectDashboardPage() {
   let resolvedCpr = ch?.cpr || "0";
   let resolvedGoal = ch?.goal || "";
   
-  // Si estamos filtrando por un mes específico, buscar el override
+  // Si estamos filtrando por un mes especÃ­fico, buscar el override
   let viewedMonth = "";
   if (datePreset === "this_month") {
     const now = new Date();
@@ -641,7 +650,7 @@ export default function ProjectDashboardPage() {
   return (
     <div className="space-y-4 page-enter">
       <svg style={{ width: 0, height: 0, position: "absolute" }}><ChartTheme /></svg>
-      {/* ── HEADER ── */}
+      {/* â”€â”€ HEADER â”€â”€ */}
       <div style={{
         position: "relative", zIndex: 999,
         display: "flex", alignItems: "flex-start", justifyContent: "space-between",
@@ -674,11 +683,11 @@ export default function ProjectDashboardPage() {
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
               {project.client && <span style={{ fontSize: 11, color: "var(--text-secondary)", fontWeight: 500 }}>{project.client}</span>}
-              {project.client && project.vertical && <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>·</span>}
+              {project.client && project.vertical && <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>Â·</span>}
               {project.vertical && <span style={{ fontSize: 11, color: "var(--text-muted)", fontWeight: 500 }}>{project.vertical}</span>}
               {project.channels.length > 0 && (
                 <>
-                  <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>·</span>
+                  <span style={{ fontSize: 10, color: "rgba(108,124,147,0.5)" }}>Â·</span>
                   {project.channels.slice(0, 3).map(c => {
                     const pl = PLATFORMS.find(x => x.id === c.platformId);
                     return (
@@ -702,11 +711,11 @@ export default function ProjectDashboardPage() {
           onCustomRange={(s: string, e: string) => { setDatePreset("custom"); setDateStart(s); setDateEnd(e); setBreakdownData({}); }} />
       </div>
 
-      {/* ── KPIs ── (hidden on Ads Manager tab) */}
+      {/* â”€â”€ KPIs â”€â”€ (hidden on Ads Manager tab) */}
       {activeTab !== "ads" && (
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3" style={{ position: "relative" }}>
         {isLoading && <LoadingOverlay />}
-        <KpiBox title="Inversión" value={fmtMXN0(totalSpend)} sub={`de ${fmtMXN0(budgetNum)} (${bk.label})`} icon={<DollarSign style={{ width: 16, height: 16 }} />} color="amber" progress={spendProgress} />
+        <KpiBox title="InversiÃ³n" value={fmtMXN0(totalSpend)} sub={`de ${fmtMXN0(budgetNum)} (${bk.label})`} icon={<DollarSign style={{ width: 16, height: 16 }} />} color="amber" progress={spendProgress} />
         <KpiBox title="Resultados" value={fmtNum(totalResults)} sub={ch?.goal || "Objetivo"} icon={<Target style={{ width: 16, height: 16 }} />} color="emerald" progress={goalCompletion} />
         <KpiBox title="CPR" value={fmtMXN(cpr)} sub={cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Costo por resultado"} icon={<Activity style={{ width: 16, height: 16 }} />} color="cyan" />
         <KpiBox title="CTR" value={pct(ctr)} sub="Click-through rate" icon={<Eye style={{ width: 16, height: 16 }} />} color="purple" />
@@ -714,7 +723,7 @@ export default function ProjectDashboardPage() {
       </div>
       )}
 
-      {/* ── TABS + PLATFORM SELECTOR ── */}
+      {/* â”€â”€ TABS + PLATFORM SELECTOR â”€â”€ */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8 }}>
         {/* Tabs scrollable container */}
         <div style={{ overflowX: "auto", flexShrink: 1, minWidth: 0, paddingBottom: 2 }}>
@@ -728,10 +737,10 @@ export default function ProjectDashboardPage() {
             <TabButton active={activeTab === "ads"} label="Ads Manager" icon={<Layers style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("ads")} />
 
             {!!project.website && (
-              <TabButton active={activeTab === "trafico"} label="Tráfico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
+              <TabButton active={activeTab === "trafico"} label="TrÃ¡fico" icon={<Globe style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("trafico")} />
             )}
             <TabButton active={activeTab === "historial"} label="Historial" icon={<TrendingUp style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("historial")} />
-            <TabButton active={activeTab === "config"} label="Configuración" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
+            <TabButton active={activeTab === "config"} label="ConfiguraciÃ³n" icon={<Settings style={{ width: 13, height: 13 }} />} onClick={() => setActiveTab("config")} />
           </div>
         </div>
         {/* Platform + Account selectors */}
@@ -765,7 +774,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </div>
       </div>
 
-      {/* ═══ TAB: HISTORIAL ═══ */}
+      {/* â•â•â• TAB: HISTORIAL â•â•â• */}
       {activeTab === "historial" && (
         <ErrorBoundary name="Tab Historial">
           <div style={panelStyle}>
@@ -780,7 +789,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             {datePreset !== "this_year" && datePreset !== "all_time" && (
               <div style={{ padding: "10px 14px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 6, marginBottom: 16, display: "flex", alignItems: "center", gap: 10 }}>
                 <Activity style={{ width: 16, height: 16, color: "var(--cyan)" }} />
-                <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Para ver un historial completo, cambia el filtro de fechas a <strong>"Este Año"</strong>.</span>
+                <span style={{ fontSize: 12, color: "var(--text-secondary)" }}>Para ver un historial completo, cambia el filtro de fechas a <strong>"Este AÃ±o"</strong>.</span>
               </div>
             )}
 
@@ -789,8 +798,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 <thead>
                   <tr style={{ border: "1px solid var(--border)" }}>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Mes</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Real</th>
-                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Inversión Meta</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>InversiÃ³n Real</th>
+                    <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>InversiÃ³n Meta</th>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>CPA Real</th>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>CPA Meta</th>
                     <th style={{ padding: "10px 14px", color: "var(--text-muted)", fontWeight: 600 }}>Resultados</th>
@@ -877,7 +886,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </ErrorBoundary>
       )}
 
-      {/* ═══ TAB: CONFIABILIDAD ═══ */}
+      {/* â•â•â• TAB: CONFIABILIDAD â•â•â• */}
       {activeTab === "confiabilidad" && activePlatform === "meta" && (
         <ErrorBoundary name="Tab Confiabilidad">
           <UserReliabilityModule 
@@ -890,771 +899,207 @@ background: "var(--surface)", border: "1px solid var(--border)",
         </ErrorBoundary>
       )}
 
-      {/* ═══ TAB: RESUMEN ═══ */}
+      {/* â•â•â• TAB: RESUMEN â•â•â• */}
       {activeTab === "resumen" && activePlatform === "google" && (
         <GoogleAdsDashboard project={project} dateStart={dateStart} dateEnd={dateEnd} preset={datePreset} />
       )}
       {activeTab === "resumen" && activePlatform !== "google" && (
         <ErrorBoundary name="Tab Resumen">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-          <div className="lg:col-span-2 space-y-3">
-            {/* Proyeccion al Cierre */}
-            <div style={panelStyle}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-                <div>
-                  <h3 style={headingStyle}>Proyección al Cierre</h3>
-                  <p style={subStyle}>Día {daysElapsed} de {daysInMonth} del mes{goalNum > 0 ? ` · Meta: ${fmtNum(goalNum)} resultados (${fmtMXN0(bk.monthly)} ÷ ${fmtMXN(cprTarget)})` : ""}</p>
-                </div>
-                <div style={{
-                  padding: "5px 14px", borderRadius: 20, fontSize: 10, fontWeight: 800, letterSpacing: "0.1em",
-                  background: trackStatus === "on-track" ? "rgba(0,200,117,0.12)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.12)" : "rgba(226,68,92,0.12)",
-                  color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)",
-                  border: `1px solid ${trackStatus === "on-track" ? "rgba(0,200,117,0.25)" : trackStatus === "at-risk" ? "rgba(253,171,61,0.25)" : "rgba(226,68,92,0.25)"}`,
-                  boxShadow: trackStatus === "on-track" ? "0 0 12px rgba(0,200,117,0.15)" : trackStatus === "at-risk" ? "0 0 12px rgba(253,171,61,0.15)" : "0 0 12px rgba(226,68,92,0.15)",
-                }}>
-                  {trackStatus === "on-track" ? "EN TRACK" : trackStatus === "at-risk" ? "EN RIESGO" : trackStatus === "off-track" ? "FUERA DE TRACK" : cprTarget <= 0 ? "FALTA CPR META" : "SIN OBJETIVO"}
-                </div>
-              </div>
-              {/* Sub-KPI mini-cards */}
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                {[
-                  { label: "Res. proyectados", value: fmtNum(projectedResults), sub: goalNum > 0 ? `de ${fmtNum(goalNum)} objetivo` : "sin meta", color: "var(--emerald)", accentColor: "rgba(0,200,117,0.35)" },
-                  { label: "Gasto proyectado", value: fmtMXN0(projectedSpend), sub: `de ${fmtMXN0(bk.monthly)} mensual`, color: "var(--amber)", accentColor: "rgba(253,171,61,0.35)" },
-                  { label: "Meta diaria ideal", value: goalBreakdown.daily > 0 ? goalBreakdown.daily.toFixed(1) : "—", sub: "resultados/día", color: "var(--cyan)", accentColor: "rgba(59,130,246,0.35)" },
-                  { label: "Ritmo necesario", value: dailyNeeded > 0 ? fmtNum(dailyNeeded) : "—", sub: "res/día restantes", color: dailyNeeded > 0 ? "var(--amber)" : "var(--text-muted)", accentColor: dailyNeeded > 0 ? "rgba(253,171,61,0.35)" : "rgba(255,255,255,0.1)" },
-                  { label: "Cumplimiento", value: goalNum > 0 ? pct(goalCompletion) : "—", sub: `${daysRemaining} días restantes`, color: goalCompletion >= 100 ? "var(--emerald)" : "white", accentColor: goalCompletion >= 100 ? "rgba(0,200,117,0.35)" : "rgba(255,255,255,0.1)" },
-                ].map((item, i) => (
-                  <div key={i} style={{
-                    background: "var(--surface-hover)", borderRadius: 10,
-                    border: "1px solid var(--border)", padding: "12px 14px",
-                    borderTop: `2px solid ${item.accentColor}`, position: "relative", overflow: "hidden",
-                  }}>
-                    <p style={{ ...labelStyle, marginBottom: 6 }}>{item.label}</p>
-                    <p style={{ fontSize: 18, fontWeight: 700, color: item.color, fontFamily: "var(--font-display)", lineHeight: 1 }}>{item.value}</p>
-                    <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{item.sub}</p>
-                  </div>
-                ))}
-              </div>
-              {goalNum > 0 && (
-                <div style={{ marginTop: 16 }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 5 }}>
-                    <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600, letterSpacing: "0.1em" }}>PROGRESO DEL MES</span>
-                    <span style={{ fontSize: 9, fontWeight: 700, color: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)" }}>{pct(Math.min(goalCompletion, 100))}</span>
-                  </div>
-                  <div style={{ height: 6, background: "var(--surface-hover)", borderRadius: 3, overflow: "hidden" }}>
-                    <div style={{ height: "100%", width: `${Math.min(goalCompletion, 100)}%`, background: trackStatus === "on-track" ? "var(--emerald)" : trackStatus === "at-risk" ? "var(--amber)" : "var(--red)", borderRadius: 3, transition: "width 0.5s", boxShadow: `0 0 8px ${trackStatus === "on-track" ? "rgba(0,200,117,0.5)" : "rgba(253,171,61,0.5)"}` }} />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Charts Row */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-3" style={{ position: "relative" }}>
-              {isLoading && <LoadingOverlay />}
-
-              {/* Chart 1: Inversión vs Resultados */}
-              <div className="chart-panel">
-                <div className="chart-panel-header">
-                  <div>
-                    <span className="chart-panel-title">Inversión vs Resultados</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Inversión</span></div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--emerald)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>Resultados</span></div>
-                    </div>
-                  </div>
-                </div>
-                <div className="chart-panel-body">
-                  <div style={{ width: "100%", height: 240 }}>
-                    {timeSeriesData.length > 0 ? (
-                      <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                        <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "var(--font-mono)" }} />
-                        <YAxis yAxisId="left" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} tick={{ fontFamily: "var(--font-mono)" }} />
-                        <YAxis yAxisId="right" orientation="right" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tick={{ fontFamily: "var(--font-mono)" }} />
-                        <Tooltip content={<CustomTooltip formatter={(name, v) => name === "spend" || name === "Inversión" ? [fmtMXN(Number(v)), "Inversión"] : [String(v), "Resultados"]} />} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
-                        <Area yAxisId="left" type="monotone" dataKey="spend" name="Inversión" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#colorCyanArea)" dot={false} />
-                        <Bar yAxisId="right" dataKey="results" name="Resultados" fill="url(#colorEmeraldBar)" radius={[4, 4, 0, 0]} barSize={7} />
-                      </ComposedChart></ResponsiveContainer>
-                    ) : <NoData />}
-                  </div>
-                </div>
-              </div>
-
-              {/* Chart 2: CTR vs CPC */}
-              <div className="chart-panel">
-                <div className="chart-panel-header">
-                  <div>
-                    <span className="chart-panel-title">CTR vs CPC</span>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 6 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--cyan)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CTR %</span></div>
-                      <div style={{ display: "flex", alignItems: "center", gap: 5 }}><span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--amber)", display: "inline-block" }} /><span style={{ fontSize: 10, color: "var(--text-muted)" }}>CPC $</span></div>
-                    </div>
-                  </div>
-                </div>
-                <div className="chart-panel-body">
-                  <div style={{ width: "100%", height: 240 }}>
-                    {timeSeriesData.length > 0 ? (
-                      <ResponsiveContainer><ComposedChart data={timeSeriesData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="0" stroke="rgba(255,255,255,0.04)" vertical={false} />
-                        <XAxis dataKey="date" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" tick={{ fontFamily: "var(--font-mono)" }} />
-                        <YAxis yAxisId="l" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `${v}%`} tick={{ fontFamily: "var(--font-mono)" }} />
-                        <YAxis yAxisId="r" orientation="right" stroke="var(--text-muted)" fontSize={9} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} tick={{ fontFamily: "var(--font-mono)" }} />
-                        <Tooltip content={<CustomTooltip formatter={(name, v) => name === "ctr" || name === "CTR (%)" ? [`${Number(v).toFixed(2)}%`, "CTR"] : [fmtMXN(Number(v)), "CPC"]} />} cursor={{ fill: "rgba(255,255,255,0.02)" }} />
-                        <Area yAxisId="l" type="monotone" dataKey="ctr" name="CTR (%)" stroke="var(--cyan)" strokeWidth={2} fillOpacity={1} fill="url(#colorCyanArea)" dot={false} />
-                        <Line yAxisId="r" type="monotone" dataKey="cpc" name="CPC ($)" stroke="var(--amber)" strokeWidth={2} dot={{ r: 3, fill: "var(--surface)", stroke: "var(--amber)", strokeWidth: 2 }} activeDot={{ r: 5, fill: "var(--amber)" }} />
-                      </ComposedChart></ResponsiveContainer>
-                    ) : <NoData />}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right: Accounts Panel */}
-          <div className="space-y-3">
-            {/* Cuentas Vinculadas */}
-            <div style={panelStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-                <div className="icon-container icon-container-sm icon-container-active">
-                  <Link style={{ width: 14, height: 14, color: "var(--cyan)" }} />
-                </div>
-                <div>
-                  <h3 style={headingStyle}>Cuentas Vinculadas</h3>
-                  <p style={subStyle}>{ch?.adAccounts?.length || 0} cuenta{(ch?.adAccounts?.length || 0) !== 1 ? "s" : ""} conectada{(ch?.adAccounts?.length || 0) !== 1 ? "s" : ""}</p>
-                </div>
-              </div>
-              {ch?.adAccounts?.length ? ch.adAccounts.map(acc => (
-                <div key={acc} style={{
-                  display: "flex", alignItems: "center", gap: 10,
-                  padding: "10px 12px", marginBottom: 6, borderRadius: 10,
-                  background: "var(--surface-hover)", border: "1px solid var(--border)",
-                  transition: "background 0.15s", cursor: "default",
-                }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.05)")}
-                onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.025)")}
-                >
-                  <div style={{ width: 32, height: 32, borderRadius: 8, background: "linear-gradient(135deg, #1877F2, #0A4FBD)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <span style={{ fontSize: 12, fontWeight: 900, color: "var(--foreground)", fontFamily: "serif" }}>f</span>
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <p style={{ fontSize: 12, color: "var(--foreground)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{accountNames[acc] || "Ad Account"}</p>
-                    <p style={{ fontSize: 9, color: "var(--text-muted)", fontFamily: "var(--font-mono)" }}>{acc}</p>
-                  </div>
-                  <div style={{ width: 7, height: 7, borderRadius: "50%", background: "var(--emerald)", boxShadow: "0 0 6px rgba(0,200,117,0.6)", flexShrink: 0 }} />
-                </div>
-              )) : (
-                <div style={{ padding: "16px", textAlign: "center", color: "var(--text-muted)", fontSize: 12 }}>
-                  <p style={{ marginBottom: 4 }}>Sin cuentas vinculadas</p>
-                  <p style={{ fontSize: 10 }}>Ve a Configuración para conectar</p>
-                </div>
-              )}
-            </div>
-
-            {/* Presupuesto Diario */}
-            <div style={panelStyle}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
-                <div className="icon-container icon-container-sm" style={{ background: "var(--surface)", borderColor: "rgba(224,168,60,0.2)", color: "var(--amber)" }}>
-                  <DollarSign style={{ width: 14, height: 14, color: "var(--amber)" }} />
-                </div>
-                <div>
-                  <h3 style={headingStyle}>Presupuesto</h3>
-                  <p style={subStyle}>{bk.label}: {fmtMXN0(budgetNum)}</p>
-                </div>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 12 }}>
-                <div style={{ padding: "10px 12px", background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.12)", borderRadius: 10 }}>
-                  <p style={{ ...labelStyle, marginBottom: 4 }}>Diario ideal</p>
-                  <p style={{ fontSize: 16, fontWeight: 700, color: "var(--cyan)", fontFamily: "var(--font-display)" }}>{fmtMXN(bk.daily)}</p>
-                </div>
-                <div style={{ padding: "10px 12px", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: 10 }}>
-                  <p style={{ ...labelStyle, marginBottom: 4 }}>Semanal ideal</p>
-                  <p style={{ fontSize: 16, fontWeight: 600, color: "var(--foreground)", fontFamily: "var(--font-display)" }}>{fmtMXN(bk.weekly)}</p>
-                </div>
-              </div>
-              {/* Ritmo de gasto */}
-              <div style={{
-                padding: "12px 14px", borderRadius: 10,
-                background: spendPace > 10 ? "rgba(226,68,92,0.08)" : spendPace < -10 ? "rgba(253,171,61,0.08)" : "rgba(0,200,117,0.08)",
-                border: `1px solid ${spendPace > 10 ? "rgba(226,68,92,0.2)" : spendPace < -10 ? "rgba(253,171,61,0.2)" : "rgba(0,200,117,0.2)"}`,
-              }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-                  <TrendingUp style={{ width: 12, height: 12, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }} />
-                  <p style={{ fontSize: 9, color: "var(--text-secondary)", fontWeight: 700, letterSpacing: "0.1em" }}>RITMO DE GASTO</p>
-                </div>
-                <p style={{ fontSize: 14, fontWeight: 700, color: spendPace > 10 ? "var(--red)" : spendPace < -10 ? "var(--amber)" : "var(--emerald)" }}>
-                  {spendPace > 10 ? `Adelantado +${pct(spendPace)}` : spendPace < -10 ? `Atrasado ${pct(spendPace)}` : "Al ritmo"}
-                </p>
-                <p style={{ fontSize: 10, color: "var(--text-muted)", marginTop: 4 }}>
-                  Ideal hoy: <strong style={{ color: "var(--text-secondary)" }}>{fmtMXN(idealSpendToday)}</strong> · Real: <strong style={{ color: "var(--text-secondary)" }}>{fmtMXN(totalSpend)}</strong>
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Heatmap: Resultados por Hora y Día ── */}
-        {(() => {
-          const hourlyData = breakdownData["hourly_daily"] || [];
-          if (hourlyData.length === 0) return null;
-
-          const HOURS = Array.from({ length: 24 }, (_, i) => i);
-          const DOW_LABELS_SHORT = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-
-          // Build date × hour matrix from hourly_daily breakdown
-          // Each row is a specific date (not aggregated by day-of-week)
-          const dateMap: Record<string, Record<number, { impressions: number; spend: number; clicks: number; results: number }>> = {};
-
-          // Debug: log first few rows to understand the data shape
-          if (hourlyData.length > 0) {
-            console.debug("[Heatmap] Sample row keys:", Object.keys(hourlyData[0]));
-            console.debug("[Heatmap] Sample row:", hourlyData[0]);
-            console.debug("[Heatmap] Total rows:", hourlyData.length);
-          }
-
-          // Helper: subtract one day from a YYYY-MM-DD string
-          const prevDate = (dateStr: string) => {
-            const dt = new Date(dateStr + "T12:00:00");
-            dt.setDate(dt.getDate() - 1);
-            return dt.toISOString().slice(0, 10);
-          };
-
-          hourlyData.forEach((row: any) => {
-            // Use the normalized 'hour' field from the API route
-            // Fall back to the raw field names in case of older cached data
-            const hourRaw =
-              row.hour ??
-              row.hourly_stats_aggregated_by_audience_time_zone ??
-              row.hourly_stats_aggregated_by_advertiser_time_zone;
-            if (hourRaw === null || hourRaw === undefined) return;
-            const hour = parseInt(String(hourRaw), 10);
-            if (isNaN(hour) || hour < 0 || hour > 23) return;
-
-            // Detect "day overflow": Meta sometimes reports hours 0-5 under
-            // the NEXT calendar date when the account timezone is behind UTC
-            // (e.g., UTC-6 account: hour 18 UTC = hour 00 of account's tomorrow).
-            // Heuristic: if ALL the data for a date are hours 0-5 AND there's a
-            // previous date, assign those rows to the previous date instead.
-            // We process this in a second pass below, so for now just use date_start.
-            const dateStr = row.date_start;
-            if (!dateStr) return;
-            if (!dateMap[dateStr]) {
-              dateMap[dateStr] = {};
-              for (let h = 0; h < 24; h++) dateMap[dateStr][h] = { impressions: 0, spend: 0, clicks: 0, results: 0 };
-            }
-            dateMap[dateStr][hour].impressions += row.impressions || 0;
-            dateMap[dateStr][hour].spend += row.spend || 0;
-            dateMap[dateStr][hour].clicks += row.clicks || 0;
-            
-            const ra = findResultAction(row.actions, ch?.goal, getObjective(row, insights));
-            dateMap[dateStr][hour].results += ra ? parseInt(ra.value, 10) : 0;
-          });
-
-          // Sort dates chronologically
-          const sortedDates = Object.keys(dateMap).sort();
-
-          // Format date label: "Lun 02/06"
-          const formatDateLabel = (dateStr: string) => {
-            const dt = new Date(dateStr + "T12:00:00");
-            const dow = DOW_LABELS_SHORT[dt.getDay()];
-            const dd = String(dt.getDate()).padStart(2, "0");
-            const mm = String(dt.getMonth() + 1).padStart(2, "0");
-            return `${dow} ${dd}/${mm}`;
-          };
-
-          // Find max for color scaling
-              // Metric selector state (scoped inside this IIFE so it's a local var rendered inline)
-          // We use a dataset attribute trick since we can't use useState inside IIFE
-          // Instead, wire up a simple toggle via a controlled span + onClick trick with data-attr
-          const heatMetrics = [
-            { key: "results" as const, label: goalLabel(ch?.goal) || "Resultados" },
-            { key: "impressions" as const, label: "Impresiones" },
-            { key: "spend" as const, label: "Gasto" },
-          ];
-
-          // Determine which metric key is selected (stored in a sibling div via id)
-          // We can't use useState here, so we use a JavaScript module-level approach:
-          // Render buttons that swap via inline onclick + DOM class toggling.
-          // To keep it simple and React-idiomatic, we will just render all 3 variants
-          // using a React.useState-style approach by using the parent component's state.
-          // Since this is inside an IIFE, we read from a ref set above the IIFE.
-          const [heatMetric, setHeatMetric] = [
-            heatMetricState ?? "results",
-            (v: "results" | "impressions" | "spend") => setHeatMetricState(v),
-          ] as const;
-
-          const getVal = (cell: { impressions: number; spend: number; clicks: number; results: number }) => {
-            if (heatMetric === "impressions") return cell.impressions;
-            if (heatMetric === "spend") return cell.spend;
-            return cell.results;
-          };
-
-          const fmtVal = (cell: { impressions: number; spend: number; clicks: number; results: number }) => {
-            const v = getVal(cell);
-            if (heatMetric === "spend") return v > 0 ? fmtMXN(v) : "";
-            return v > 0 ? (v > 999 ? `${(v / 1000).toFixed(1)}k` : String(Math.round(v))) : "";
-          };
-
-          let maxVal = 0;
-          sortedDates.forEach(date => {
-            for (let h = 0; h < 24; h++) {
-              const v = getVal(dateMap[date][h]);
-              if (v > maxVal) maxVal = v;
-            }
-          });
-
-          const getColor2 = (val: number) => {
-            if (maxVal === 0 || val === 0) return "var(--row-hover)";
-            const intensity = val / maxVal;
-            if (intensity > 0.75) return heatMetric === "spend" ? "rgba(251,191,36,0.7)" : "rgba(0,200,117,0.6)";
-            if (intensity > 0.5)  return heatMetric === "spend" ? "rgba(251,191,36,0.45)" : "rgba(0,200,117,0.35)";
-            if (intensity > 0.25) return heatMetric === "spend" ? "rgba(251,191,36,0.25)" : "rgba(59,130,246,0.25)";
-            if (intensity > 0.1)  return heatMetric === "spend" ? "rgba(251,191,36,0.12)" : "rgba(59,130,246,0.12)";
-            return "var(--border-neutral)";
-          };
-
-          // Today's date string for highlighting
-          const todayStr = new Date().toISOString().slice(0, 10);
-
-          return (
-            <div style={{ ...panelStyle, marginTop: 12 }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 8, marginBottom: 12 }}>
-                <div>
-                  <h3 style={headingStyle}>Distribución por Hora y Día</h3>
-                  <p style={subStyle}>Hover para ver detalle · Horas en zona horaria de la {heatmapTimezone === "advertiser" ? "cuenta publicitaria" : "audiencia"}</p>
-                </div>
-                <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-                  {/* Timezone switcher */}
-                  <div style={{ display: "flex", gap: 3, background: "var(--surface-hover)", borderRadius: 8, padding: "3px" }}>
-                    {[
-                      { key: "advertiser", label: "Cuenta" },
-                      { key: "audience", label: "Audiencia" }
-                    ].map(tz => (
-                      <button
-                        key={tz.key}
-                        onClick={() => setHeatmapTimezone(tz.key as "advertiser" | "audience")}
-                        style={{
-                          padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
-                          borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
-                          background: heatmapTimezone === tz.key ? "var(--cyan)" : "transparent",
-                          color: heatmapTimezone === tz.key ? "#000" : "var(--text-secondary)",
-                          letterSpacing: "0.04em",
-                        }}
-                      >
-                        {tz.label}
-                      </button>
-                    ))}
-                  </div>
-                  {/* Metric switcher */}
-                  <div style={{ display: "flex", gap: 3, background: "var(--surface-hover)", borderRadius: 8, padding: "3px" }}>
-                    {heatMetrics.map(m => (
-                      <button
-                        key={m.key}
-                        onClick={() => setHeatMetric(m.key)}
-                        style={{
-                          padding: "5px 12px", fontSize: 10, fontWeight: 700, border: "none",
-                          borderRadius: 6, cursor: "pointer", transition: "all 0.15s",
-                          background: heatMetric === m.key ? "var(--cyan)" : "transparent",
-                          color: heatMetric === m.key ? "#000" : "var(--text-secondary)",
-                          letterSpacing: "0.04em",
-                        }}
-                      >
-                        {m.label}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              <div style={{ overflowX: "auto", maxHeight: 520, overflowY: "auto" }}>
-                <table style={{ borderCollapse: "collapse", width: "100%", minWidth: 740 }}>
-                  <thead style={{ position: "sticky", top: 0, zIndex: 2 }}>
-                    <tr>
-                      <th style={{ padding: "5px 10px", fontSize: 9, color: "var(--text-muted)", textAlign: "left", fontWeight: 700, width: 76, background: "var(--surface)", letterSpacing: "0.06em" }}>FECHA</th>
-                      {HOURS.map(h => (
-                        <th key={h} style={{ padding: "5px 2px", fontSize: 9, color: "var(--text-muted)", textAlign: "center", fontWeight: 600, minWidth: 28, background: "var(--surface)" }}>
-                          {h.toString().padStart(2, "0")}
-                        </th>
-                      ))}
-                      <th style={{ padding: "5px 8px", fontSize: 9, color: "rgba(59,130,246,0.6)", textAlign: "right", fontWeight: 700, minWidth: 52, background: "var(--surface)", letterSpacing: "0.06em" }}>TOTAL</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {sortedDates.map((dateStr) => {
-                      const dateLabel = formatDateLabel(dateStr);
-                      const dt = new Date(dateStr + "T12:00:00");
-                      const isWeekend = dt.getDay() === 0 || dt.getDay() === 6;
-                      const isToday = dateStr === todayStr;
-                      // Row total
-                      const rowTotal = HOURS.reduce((sum, h) => sum + getVal(dateMap[dateStr][h]), 0);
-                      return (
-                        <tr key={dateStr} style={{ background: isToday ? "rgba(59,130,246,0.04)" : "transparent" }}>
-                          <td style={{
-                            padding: "3px 10px", fontSize: 10,
-                            color: isToday ? "var(--cyan)" : isWeekend ? "rgba(59,130,246,0.45)" : "var(--text-secondary)",
-                            fontWeight: isToday ? 800 : 600, whiteSpace: "nowrap",
-                            borderRight: isToday ? "2px solid rgba(59,130,246,0.35)" : "1px solid var(--hairline)",
-                          }}>
-                            {isToday ? "● " : ""}{dateLabel}
-                          </td>
-                          {HOURS.map(h => {
-                            const cell = dateMap[dateStr][h];
-                            const val = getVal(cell);
-                            return (
-                              <td
-                                key={h}
-                                title={`${dateLabel} ${h.toString().padStart(2, "0")}:00\nResultados: ${fmtNum(cell.results)}\nGasto: ${fmtMXN(cell.spend)}\nImpresiones: ${fmtNum(cell.impressions)}`}
-                                style={{ padding: "1px", textAlign: "center" }}
-                              >
-                                <div style={{
-                                  width: "100%", height: 26,
-                                  background: getColor2(val),
-                                  borderRadius: 3,
-                                  display: "flex", alignItems: "center", justifyContent: "center",
-                                  fontSize: 9, color: val > 0 ? "var(--foreground)" : "transparent",
-                                  fontWeight: 700,
-                                  cursor: "default",
-                                  transition: "transform 0.1s",
-                                }}
-                                onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.4)"; e.currentTarget.style.zIndex = "10"; e.currentTarget.style.position = "relative"; e.currentTarget.style.boxShadow = "0 4px 12px rgba(0,0,0,0.5)"; }}
-                                onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.zIndex = "auto"; e.currentTarget.style.position = "static"; e.currentTarget.style.boxShadow = "none"; }}
-                                >
-                                  {fmtVal(cell)}
-                                </div>
-                              </td>
-                            );
-                          })}
-                          {/* Row total */}
-                          <td style={{ padding: "3px 8px", textAlign: "right" }}>
-                            <span style={{ fontSize: 10, fontWeight: 700, color: rowTotal > 0 ? "rgba(59,130,246,0.8)" : "rgba(108,124,147,0.5)" }}>
-                              {rowTotal > 0 ? (heatMetric === "spend" ? fmtMXN(rowTotal) : fmtNum(Math.round(rowTotal))) : "—"}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                  {/* Column totals footer */}
-                  <tfoot style={{ position: "sticky", bottom: 0 }}>
-                    <tr style={{ border: "1px solid var(--border)", background: "var(--surface)" }}>
-                      <td style={{ padding: "5px 10px", fontSize: 9, color: "rgba(59,130,246,0.6)", fontWeight: 700, letterSpacing: "0.08em" }}>TOTAL</td>
-                      {HOURS.map(h => {
-                        const colTotal = sortedDates.reduce((sum, dateStr) => sum + getVal(dateMap[dateStr][h]), 0);
-                        return (
-                          <td key={h} style={{ padding: "3px 1px", textAlign: "center" }}>
-                            <span style={{ fontSize: 8, fontWeight: 700, color: colTotal > 0 ? "rgba(59,130,246,0.7)" : "var(--hairline)" }}>
-                              {colTotal > 0 ? (colTotal > 999 ? `${(colTotal / 1000).toFixed(1)}k` : Math.round(colTotal)) : ""}
-                            </span>
-                          </td>
-                        );
-                      })}
-                      <td />
-                    </tr>
-                  </tfoot>
-                </table>
-              </div>
-              {/* Legend */}
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 10, justifyContent: "flex-end" }}>
-                <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Menor actividad</span>
-                {["var(--row-hover)", "var(--border-neutral)", "rgba(59,130,246,0.12)", "rgba(59,130,246,0.25)", "rgba(0,200,117,0.35)", "rgba(0,200,117,0.6)"].map((c, i) => (
-                  <div key={i} style={{ width: 16, height: 12, borderRadius: 3, background: c }} />
-                ))}
-                <span style={{ fontSize: 9, color: "var(--text-muted)", fontWeight: 600 }}>Mayor actividad</span>
-              </div>
-            </div>
-          );
-        })()}
+        <DashboardGrid
+          layoutKey="project-resumen"
+          columns={4}
+          widgets={[
+            {
+              id: "proyeccion",
+              title: "ProyecciÃ³n al Cierre",
+              icon: <Target style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 4,
+              minColSpan: 2,
+              render: () => (
+                <ProyeccionWidget
+                  budgetNum={budgetNum} cprTarget={cprTarget} bk={bk}
+                  goalNum={goalNum} goalBreakdown={goalBreakdown}
+                  totalSpend={totalSpend} totalResults={totalResults}
+                  totalImpressions={totalImpressions} totalClicks={totalClicks}
+                  totalReach={totalReach} totalActionValue={totalActionValue}
+                  cpr={cpr} ctr={ctr} roas={roas} spendProgress={spendProgress}
+                  daysElapsed={daysElapsed} daysInMonth={daysInMonth}
+                  daysRemaining={daysRemaining} idealSpendToday={idealSpendToday}
+                  spendPace={spendPace} projectedResults={projectedResults}
+                  projectedSpend={projectedSpend} goalCompletion={goalCompletion}
+                  dailyNeeded={dailyNeeded} trackStatus={trackStatus}
+                  timeSeriesData={timeSeriesData} ch={ch} isLoading={isLoading}
+                  breakdownData={breakdownData} insights={insights}
+                  fmtMXN={fmtMXN} fmtMXN0={fmtMXN0} fmtNum={fmtNum} pct={pct}
+                />
+              ),
+            },
+            {
+              id: "inversion-chart",
+              title: "InversiÃ³n vs Resultados",
+              icon: <BarChart2 style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 2,
+              minColSpan: 2,
+              render: () => (
+                <InversionChartWidget
+                  timeSeriesData={timeSeriesData}
+                  isLoading={isLoading}
+                  fmtMXN={fmtMXN}
+                />
+              ),
+            },
+            {
+              id: "ctr-cpc-chart",
+              title: "CTR vs CPC",
+              icon: <Activity style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 2,
+              minColSpan: 2,
+              render: () => (
+                <CtrCpcChartWidget
+                  timeSeriesData={timeSeriesData}
+                  isLoading={isLoading}
+                  fmtMXN={fmtMXN}
+                />
+              ),
+            },
+            {
+              id: "cuentas",
+              title: "Cuentas Vinculadas",
+              icon: <Link style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 2,
+              minColSpan: 1,
+              render: () => (
+                <CuentasWidget
+                  ch={ch}
+                  accountNames={accountNames}
+                />
+              ),
+            },
+            {
+              id: "presupuesto",
+              title: "Presupuesto",
+              icon: <DollarSign style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 2,
+              minColSpan: 1,
+              render: () => (
+                <PresupuestoWidget
+                  bk={bk} budgetNum={budgetNum}
+                  spendPace={spendPace} idealSpendToday={idealSpendToday}
+                  totalSpend={totalSpend}
+                  fmtMXN={fmtMXN} fmtMXN0={fmtMXN0} pct={pct}
+                />
+              ),
+            },
+            {
+              id: "heatmap",
+              title: "DistribuciÃ³n por Hora y DÃ­a",
+              icon: <Calendar style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 4,
+              minColSpan: 3,
+              render: () => (
+                <HeatmapWidget
+                  breakdownData={breakdownData}
+                  ch={ch} insights={insights}
+                  heatmapTimezone={heatmapTimezone}
+                  setHeatmapTimezone={setHeatmapTimezone}
+                  findResultAction={findResultAction}
+                  getObjective={getObjective}
+                  goalLabel={goalLabel}
+                  fmtMXN={fmtMXN} fmtNum={fmtNum}
+                />
+              ),
+            },
+          ] as WidgetDefinition[]}
+        />
         </ErrorBoundary>
       )}
 
-      {/* ═══ TAB: GASTO & PRESUPUESTO ═══ */}
+
+
+      {/* TAB: GASTO & PRESUPUESTO */}
       {activeTab === "gasto" && (
         <ErrorBoundary name="Tab Gasto">
-        <div className="space-y-3">
-          {/* Smart Alerts */}
-          {(() => {
-            const alerts: { type: "warning" | "danger" | "info"; msg: string }[] = [];
-            const todayStr2 = new Date().toISOString().slice(0, 10);
-            const todayS = timeSeriesData.filter((d: any) => d.fullDate === todayStr2).reduce((s: number, d: any) => s + d.spend, 0);
-            if (todayS > bk.daily * 1.5) alerts.push({ type: "danger", msg: `Sobregasto hoy: ${fmtMXN0(todayS)} gastado (${pct((todayS / bk.daily) * 100)} del diario ideal de ${fmtMXN(bk.daily)})` });
-            if (totalSpend > idealSpendToday * 1.2 && idealSpendToday > 0) alerts.push({ type: "warning", msg: `El acumulado (${fmtMXN0(totalSpend)}) va ${pct(((totalSpend / idealSpendToday) - 1) * 100)} por encima de la curva ideal (${fmtMXN0(idealSpendToday)})` });
-            if (cprTarget > 0 && cpr > cprTarget * 1.5 && totalResults > 0) alerts.push({ type: "danger", msg: `CPR elevado: ${fmtMXN(cpr)} vs meta de ${fmtMXN(cprTarget)} (+${pct(((cpr / cprTarget) - 1) * 100)})` });
-            if (bk.monthly > 0 && totalSpend < idealSpendToday * 0.5 && daysElapsed > 5) alerts.push({ type: "info", msg: `Sub-gasto: solo ${pct((totalSpend / idealSpendToday) * 100)} del ideal acumulado. La campana esta activa?` });
-            if (alerts.length === 0) return null;
-            const colorMap = { danger: { bg: "rgba(226,68,92,0.08)", border: "rgba(226,68,92,0.3)", text: "var(--red)" }, warning: { bg: "rgba(251,191,36,0.08)", border: "rgba(251,191,36,0.3)", text: "var(--amber)" }, info: { bg: "rgba(59,130,246,0.08)", border: "rgba(59,130,246,0.3)", text: "var(--cyan)" } };
-            return (
-              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                {alerts.map((a, i) => {
-                  const c = colorMap[a.type];
-                  return <div key={i} style={{ padding: "8px 14px", borderRadius: 8, background: c.bg, border: `1px solid ${c.border}`, fontSize: 11, color: c.text, fontWeight: 500 }}>{a.msg}</div>;
-                })}
-              </div>
-            );
-          })()}
-
-          {/* Budget Summary Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-            {/* Presupuesto mensual */}
-            <div style={{ ...panelStyle, borderTop: "2px solid rgba(251,191,36,0.5)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <DollarSign style={{ width: 12, height: 12, color: "var(--amber)" }} />
-                </div>
-                <p style={labelStyle}>Presupuesto Mensual</p>
-              </div>
-              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--amber)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(bk.monthly)}</p>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>Diario: {fmtMXN(bk.daily)} · Semanal: {fmtMXN(bk.weekly)}</p>
-            </div>
-            {/* Gastado acumulado */}
-            {(() => {
-              const pctUsed = bk.monthly > 0 ? (totalSpend / bk.monthly) * 100 : 0;
-              const isOverBudget = totalSpend > idealSpendToday * 1.1;
-              return (
-                <div style={{ ...panelStyle, borderTop: `2px solid ${isOverBudget ? "rgba(226,68,92,0.5)" : "rgba(59,130,246,0.5)"}` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 6, background: isOverBudget ? "rgba(226,68,92,0.1)" : "rgba(59,130,246,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Activity style={{ width: 12, height: 12, color: isOverBudget ? "var(--red)" : "var(--cyan)" }} />
-                    </div>
-                    <p style={labelStyle}>Gastado Acumulado</p>
-                  </div>
-                  <p style={{ fontSize: 22, fontWeight: 700, color: isOverBudget ? "var(--red)" : "var(--cyan)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(totalSpend)}</p>
-                  <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN0(bk.monthly)} ({pct(pctUsed)})</p>
-                  {bk.monthly > 0 && (
-                    <div style={{ marginTop: 8, height: 3, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${Math.min(pctUsed, 100)}%`, background: isOverBudget ? "var(--red)" : "var(--cyan)", borderRadius: 2 }} />
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-            {/* Gastado hoy — now actually shows today's spend */}
-            {(() => {
-              const todayStr = new Date().toISOString().slice(0, 10);
-              const todaySpend = timeSeriesData.filter((d: any) => d.fullDate === todayStr).reduce((sum: number, d: any) => sum + d.spend, 0);
-              const todayResults = timeSeriesData.filter((d: any) => d.fullDate === todayStr).reduce((sum: number, d: any) => sum + d.results, 0);
-              const todayOverBudget = todaySpend > bk.daily * 1.1;
-              const todayPct = bk.daily > 0 ? (todaySpend / bk.daily) * 100 : 0;
-              return (
-                <div style={{ ...panelStyle, borderTop: `2px solid ${todayOverBudget ? "rgba(226,68,92,0.5)" : "rgba(0,200,117,0.5)"}` }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                    <div style={{ width: 24, height: 24, borderRadius: 6, background: todayOverBudget ? "rgba(226,68,92,0.1)" : "rgba(0,200,117,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                      <Target style={{ width: 12, height: 12, color: todayOverBudget ? "var(--red)" : "var(--emerald)" }} />
-                    </div>
-                    <p style={labelStyle}>Gastado Hoy</p>
-                  </div>
-                  <p style={{ fontSize: 22, fontWeight: 700, color: todayOverBudget ? "var(--red)" : "var(--emerald)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(todaySpend)}</p>
-                  <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>de {fmtMXN(bk.daily)} diario ideal{todayResults > 0 ? ` · ${todayResults} resultado${todayResults > 1 ? "s" : ""}` : ""}</p>
-                  {bk.daily > 0 && (
-                    <div style={{ marginTop: 8, height: 3, background: "var(--surface-hover)", borderRadius: 2, overflow: "hidden" }}>
-                      <div style={{ height: "100%", width: `${Math.min(todayPct, 100)}%`, background: todayOverBudget ? "var(--red)" : "var(--emerald)", borderRadius: 2 }} />
-                    </div>
-                  )}
-                </div>
-              );
-            })()}
-            {/* Restante */}
-            <div style={{ ...panelStyle, borderTop: "2px solid rgba(139,141,242,0.5)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 8 }}>
-                <div style={{ width: 24, height: 24, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                  <TrendingDown style={{ width: 12, height: 12, color: "var(--purple)" }} />
-                </div>
-                <p style={labelStyle}>Restante</p>
-              </div>
-              <p style={{ fontSize: 22, fontWeight: 700, color: "var(--foreground)", fontFamily: "var(--font-display)", lineHeight: 1 }}>{fmtMXN0(Math.max(bk.monthly - totalSpend, 0))}</p>
-              <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{bk.monthly > 0 ? `${pct(Math.min((totalSpend / bk.monthly) * 100, 100))} utilizado · ${daysRemaining} días restantes` : "Sin presupuesto configurado"}</p>
-            </div>
-          </div>
-
-          {/* Spend Table — Spreadsheet Style (dates as columns) */}
-          <div style={panelStyle}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
-              <div><h3 style={headingStyle}>Tabla de Gasto</h3><p style={subStyle}>Desglose de inversión y rendimiento</p></div>
-              <TimeToggle value={timeGranularity} onChange={setTimeGranularity} />
-            </div>
-            <div style={{ overflowX: "auto" }}>
-              {(() => {
-                const tableData = getSpendTable();
-                const DAYS_ES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
-
-                // Build column info with day name
-                const cols = tableData.map((d: any) => {
-                  let dayName = "";
-                  if (d.fullDate) {
-                    const dt = new Date(d.fullDate + "T12:00:00");
-                    dayName = DAYS_ES[dt.getDay()] || "";
-                  }
-                  return { ...d, dayName };
-                });
-
-                // Accumulated totals for "AL DIA" column
-                const totPresupuesto = budgetNum;
-                const totGastado = totalSpend;
-                const pctGastado = budgetNum > 0 ? (totalSpend / budgetNum) * 100 : 0;
-                const totLeads = totalResults;
-                const totCPL = totalResults > 0 ? totalSpend / totalResults : 0;
-                const totCumplimiento = goalNum > 0 ? (totalResults / goalNum) * 100 : 0;
-                const projCPL = projectedResults > 0 ? projectedSpend / projectedResults : 0;
-                const desvioCPL = cprTarget > 0 ? ((totCPL / cprTarget) - 1) * 100 : 0;
-
-                const cellStyle: React.CSSProperties = { padding: "6px 8px", textAlign: "right", fontSize: 11, color: "var(--foreground)", border: "1px solid var(--hairline)", whiteSpace: "nowrap" };
-                const headerCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "var(--foreground)", fontWeight: 700, fontSize: 10, background: "var(--cyan)", borderBottom: "none" };
-                const subHeaderStyle: React.CSSProperties = { ...cellStyle, textAlign: "center", color: "var(--foreground)", fontWeight: 600, fontSize: 9, background: "var(--surface)", borderBottom: "1px solid rgba(0,120,255,0.3)" };
-                const labelCellStyle: React.CSSProperties = { ...cellStyle, textAlign: "left", fontWeight: 600, color: "var(--foreground)", fontSize: 11, paddingLeft: 12, position: "sticky" as const, left: 0, background: "var(--surface)", border: "1px solid var(--border)", zIndex: 2 };
-                const totalCellStyle: React.CSSProperties = { ...cellStyle, fontWeight: 700, background: "var(--surface-hover)", border: "1px solid var(--hairline)", position: "sticky" as const, left: 0, zIndex: 2 };
-
-                // Today's date for column highlighting
-                const todayFullDate = new Date().toISOString().slice(0, 10);
-
-                // Smart color function for each cell based on metric context
-                const getCellColor = (rowLabel: string, value: string, colIndex: number): string => {
-                  if (value === "—" || value === "$0.00" || value === "0") return "var(--text-muted)";
-                  
-                  // %Gastado: red if > 120%, amber if > 100%, green if 60-100%, muted if < 60%
-                  if (rowLabel === "%Gastado") {
-                    const num = parseFloat(value.replace("%", ""));
-                    if (num > 120) return "var(--red)";
-                    if (num > 100) return "var(--amber)";
-                    if (num >= 60) return "var(--emerald)";
-                    return "var(--text-secondary)";
-                  }
-                  // Cumplimiento: green if >= 100%, amber if >= 50%, red if < 50%
-                  if (rowLabel === "Cumplimiento") {
-                    const num = parseFloat(value.replace("%", ""));
-                    if (num >= 100) return "var(--emerald)";
-                    if (num >= 50) return "var(--amber)";
-                    return "var(--red)";
-                  }
-                  // Desvío: green if negative (below target), red if > 30%, amber if > 0%
-                  if (rowLabel === "Desvío") {
-                    const num = parseFloat(value.replace("+", "").replace("%", ""));
-                    if (num <= 0) return "var(--emerald)";
-                    if (num > 30) return "var(--red)";
-                    return "var(--amber)";
-                  }
-                  return "inherit"; // fallback to row color
-                };
-
-                const metricRows = [
-                  { label: "Presupuesto", key: "presupuesto", total: fmtMXN0(totPresupuesto), values: cols.map(() => fmtMXN(bk.daily)), color: "var(--foreground)" },
-                  { label: "Importe Gastado", key: "gastado", total: fmtMXN0(totGastado), values: cols.map((c: any) => fmtMXN(c.spend)), color: "var(--amber)" },
-                  { label: "%Gastado", key: "pctGastado", total: pct(pctGastado), values: cols.map((c: any) => bk.daily > 0 ? pct((c.spend / bk.daily) * 100) : "—"), color: "var(--foreground)" },
-                  { label: goalLabel(ch?.goal), key: "leads", total: fmtNum(totLeads), values: cols.map((c: any) => String(c.results || 0)), color: "var(--emerald)" },
-                  { label: "Cumplimiento", key: "cumplimiento", total: goalNum > 0 ? pct(totCumplimiento) : "—", values: cols.map((c: any) => goalBreakdown.daily > 0 ? pct((c.results / goalBreakdown.daily) * 100) : "—"), color: "#c084fc" },
-                  { label: CPR_MAP[ch?.goal || ""] || "CPR", key: "cpr", total: fmtMXN(totCPL), values: cols.map((c: any) => c.results > 0 ? fmtMXN(c.spend / c.results) : "—"), color: "var(--cyan)" },
-                  { label: `${CPR_MAP[ch?.goal || ""] || "CPR"} Objetivo`, key: "cprObj", total: cprTarget > 0 ? fmtMXN(cprTarget) : "—", values: cols.map(() => cprTarget > 0 ? fmtMXN(cprTarget) : "—"), color: "var(--text-secondary)" },
-                  { label: "Desvío", key: "desvio", total: cprTarget > 0 ? `${desvioCPL > 0 ? "+" : ""}${desvioCPL.toFixed(1)}%` : "—", values: cols.map((c: any) => { if (!cprTarget || c.results === 0) return "—"; const d = ((c.spend / c.results) / cprTarget - 1) * 100; return `${d > 0 ? "+" : ""}${d.toFixed(1)}%`; }), color: "var(--text-secondary)" },
-                ];
-
-                // Export to CSV function
-                const exportCSV = () => {
-                  const headers = ["Métrica", "Al Día", ...cols.map((c: any) => c.fullDate || c.date)];
-                  const rows = metricRows.map(row => [row.label, row.total, ...row.values]);
-                  const csvContent = [headers, ...rows].map(r => r.map(v => `"${v}"`).join(",")).join("\n");
-                  const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
-                  const url = URL.createObjectURL(blob);
-                  const a = document.createElement("a");
-                  a.href = url;
-                  a.download = `gasto_${project.alias || "proyecto"}_${new Date().toISOString().slice(0, 10)}.csv`;
-                  a.click();
-                  URL.revokeObjectURL(url);
-                };
-
-                return (
-                  <>
-                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
-                    <button
-                      onClick={exportCSV}
-                      style={{
-                        display: "flex", alignItems: "center", gap: 4,
-                        padding: "5px 10px", borderRadius: 6, fontSize: 10, fontWeight: 600,
-                        color: "var(--text-secondary)", background: "var(--surface-hover)",
-                        border: "1px solid var(--border)", cursor: "pointer",
-                        transition: "all 0.15s",
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; e.currentTarget.style.color = "var(--foreground)"; }}
-                      onMouseLeave={e => { e.currentTarget.style.background = "var(--surface-hover)"; e.currentTarget.style.color = "var(--text-secondary)"; }}
-                    >
-                      Exportar CSV
-                    </button>
-                  </div>
-                  <table style={{ borderCollapse: "collapse", fontSize: 11, minWidth: "100%" }}>
-                    {/* Day names header */}
-                    <thead>
-                      <tr>
-                        <th style={{ ...totalCellStyle, background: "var(--surface-hover)", borderBottom: "none", minWidth: 100, textAlign: "left", fontSize: 10, color: "var(--foreground)" }}>AL DÍA</th>
-                        <th style={{ ...labelCellStyle, borderBottom: "none", minWidth: 120, fontSize: 10, color: "var(--foreground)" }}>FECHA</th>
-                        {cols.map((c: any, i: number) => {
-                          const isToday = c.fullDate === todayFullDate;
-                          return <th key={i} style={{ ...headerCellStyle, ...(isToday ? { background: "var(--emerald)", fontWeight: 800 } : {}) }}>{c.dayName}{isToday ? " (Hoy)" : ""}</th>;
-                        })}
-                      </tr>
-                      {/* Date numbers row */}
-                      <tr>
-                        <th style={{ ...totalCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
-                        <th style={{ ...labelCellStyle, borderBottom: "2px solid rgba(0,120,255,0.3)" }}></th>
-                        {cols.map((c: any, i: number) => {
-                          const isToday = c.fullDate === todayFullDate;
-                          return <th key={i} style={{ ...subHeaderStyle, ...(isToday ? { background: "rgba(0,200,117,0.1)", borderBottom: "2px solid var(--emerald)" } : {}) }}>{c.date}</th>;
-                        })}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {/* Campaign name row */}
-                      <tr>
-                        <td colSpan={2 + cols.length} style={{ padding: "8px 12px", fontWeight: 700, fontSize: 11, color: "var(--cyan)", background: "var(--cyan-dim)", borderBottom: "1px solid rgba(59,130,246,0.1)", letterSpacing: "0.05em" }}>
-                          {project.alias?.toUpperCase() || "PROYECTO"}
-                        </td>
-                      </tr>
-                      {metricRows.map((row, ri) => (
-                        <tr key={ri} onMouseEnter={e => e.currentTarget.style.background = "rgba(255,255,255,0.015)"} onMouseLeave={e => e.currentTarget.style.background = "transparent"}>
-                          <td style={{ ...totalCellStyle, color: row.color, textAlign: "right", paddingRight: 12, minWidth: 100 }}>{row.total}</td>
-                          <td style={labelCellStyle}>{row.label}</td>
-                          {row.values.map((v: string, ci: number) => {
-                            const isToday = cols[ci]?.fullDate === todayFullDate;
-                            const smartColor = getCellColor(row.label, v, ci);
-                            const cellColor = smartColor !== "inherit" ? smartColor : (row.color === "var(--foreground)" ? "var(--text-muted)" : row.color);
-                            return (
-                              <td key={ci} style={{
-                                ...cellStyle,
-                                color: cellColor,
-                                fontWeight: v !== "—" && v !== "$0.00" && v !== "0" ? 500 : 400,
-                                ...(isToday ? { background: "rgba(0,200,117,0.04)", borderLeft: "1px solid rgba(0,200,117,0.2)", borderRight: "1px solid rgba(0,200,117,0.2)" } : {}),
-                              }}>{v}</td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                  </>
-                );
-              })()}
-            </div>
-          </div>
-
-          {/* Spend Chart */}
-          <div style={panelStyle}>
-            <h3 style={headingStyle}>Curva de Gasto vs Presupuesto Ideal</h3>
-            <div style={{ width: "100%", height: 280 }}>
-              {timeSeriesData.length > 0 ? <ResponsiveContainer><ComposedChart data={timeSeriesData.map((d: any, i: number) => ({ ...d, idealAccum: bk.daily * (i + 1), spendAccum: timeSeriesData.slice(0, i + 1).reduce((a: number, b: any) => a + b.spend, 0) }))} margin={{ top: 10, right: 10, left: -10, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} /><XAxis dataKey="date" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} interval="preserveStartEnd" angle={0} textAnchor="middle" />
-                <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
-                <Tooltip contentStyle={tooltipStyle} formatter={(v: any, n: any) => [fmtMXN(v as number), n]} /><Legend wrapperStyle={{ fontSize: 10 }} />
-                <Line type="monotone" dataKey="spendAccum" name="Gasto acumulado" stroke="var(--amber)" strokeWidth={2} dot={false} />
-                <Line type="monotone" dataKey="idealAccum" name="Presupuesto ideal" stroke="rgba(148,163,184,0.65)" strokeWidth={2} strokeDasharray="5 5" dot={false} />
-              </ComposedChart></ResponsiveContainer> : <NoData />}
-            </div>
-          </div>
-        </div>
+        <DashboardGrid
+          layoutKey="project-gasto"
+          columns={4}
+          widgets={[
+            {
+              id: "alertas-gasto",
+              title: "Alertas de Gasto",
+              icon: <AlertTriangle style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 4,
+              minColSpan: 2,
+              render: () => (
+                <AlertasGastoWidget
+                  timeSeriesData={timeSeriesData} bk={bk}
+                  totalSpend={totalSpend} idealSpendToday={idealSpendToday}
+                  cprTarget={cprTarget} cpr={cpr} totalResults={totalResults}
+                  daysElapsed={daysElapsed}
+                  fmtMXN={fmtMXN} fmtMXN0={fmtMXN0} pct={pct}
+                />
+              ),
+            },
+            {
+              id: "budget-cards",
+              title: "Resumen de Presupuesto",
+              icon: <CreditCard style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 4,
+              minColSpan: 2,
+              render: () => (
+                <BudgetCardsWidget
+                  bk={bk} totalSpend={totalSpend}
+                  idealSpendToday={idealSpendToday}
+                  daysRemaining={daysRemaining}
+                  timeSeriesData={timeSeriesData}
+                  goalBreakdown={goalBreakdown}
+                  fmtMXN={fmtMXN} fmtMXN0={fmtMXN0} pct={pct}
+                  panelStyle={panelStyle}
+                />
+              ),
+            },
+            {
+              id: "desglose-gasto",
+              title: "Tabla de Gasto",
+              icon: <BarChart2 style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 4,
+              minColSpan: 3,
+              render: () => (
+                <GastoSpendTableInline
+                  panelStyle={panelStyle} headingStyle={headingStyle} subStyle={subStyle} labelStyle={labelStyle}
+                  timeSeriesData={timeSeriesData} timeGranularity={timeGranularity} setTimeGranularity={setTimeGranularity}
+                  getSpendTable={getSpendTable} bk={bk} totalSpend={totalSpend} totalResults={totalResults}
+                  goalNum={goalNum} goalBreakdown={goalBreakdown} cprTarget={cprTarget}
+                  ch={ch} project={project} insights={insights}
+                  daysElapsed={daysElapsed} daysInMonth={daysInMonth}
+                  fmtMXN={fmtMXN} fmtMXN0={fmtMXN0} fmtNum={fmtNum} pct={pct}
+                  goalLabel={goalLabel} findResultAction={findResultAction}
+                />
+              ),
+            },
+          ] as WidgetDefinition[]}
+        />
         </ErrorBoundary>
       )}
 
-      {/* ═══ TAB: AUDIENCIA ═══ */}
+      {/* â•â•â• TAB: AUDIENCIA â•â•â• */}
       {activeTab === "audiencia" && (
         <ErrorBoundary name="Tab Audiencia">
-        <div className="space-y-3">
+        <DashboardGrid
+          layoutKey="project-audiencia"
+          columns={4}
+          widgets={[
+            {
+              id: "audiencia-header",
+              title: "Análisis de Audiencia",
+              icon: <Users style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 4,
+              minColSpan: 2,
+              render: () => (
+                <>
           {/* Loading state when no breakdowns loaded yet */}
           {Object.keys(breakdownData).length === 0 && <LoadingOverlay />}
 
-          {/* Section header — enriched banner */}
+          {/* Section header â€” enriched banner */}
           <div style={{
             ...panelStyle,
             padding: "18px 22px",
@@ -1667,10 +1112,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
               <div style={{ flex: 1 }}>
                 <h3 style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", marginBottom: 3 }}>
-                  ¿A quién estás llegando?
+                  Â¿A quiÃ©n estÃ¡s llegando?
                 </h3>
                 <p style={{ fontSize: 11, color: "var(--text-secondary)", lineHeight: 1.5 }}>
-                  Demografía, ubicación geográfica, plataformas y dispositivos — basado en inversión del periodo.
+                  DemografÃ­a, ubicaciÃ³n geogrÃ¡fica, plataformas y dispositivos â€” basado en inversiÃ³n del periodo.
                 </p>
               </div>
               <div style={{ display: "flex", gap: 8, flexShrink: 0, alignItems: "center" }}>
@@ -1684,12 +1129,12 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   }}
                 >
                   <option value="impressions">Impresiones (Alcance)</option>
-                  <option value="spend">Inversión ($)</option>
+                  <option value="spend">InversiÃ³n ($)</option>
                   <option value="clicks">Clics</option>
                 </select>
                 {[
-                  { label: "Edad/Género", color: "var(--cyan)" },
-                  { label: "Región", color: "var(--amber)" },
+                  { label: "Edad/GÃ©nero", color: "var(--cyan)" },
+                  { label: "RegiÃ³n", color: "var(--amber)" },
                   { label: "Dispositivo", color: "var(--purple)" },
                   { label: "Plataforma", color: "var(--emerald)" },
                 ].map((chip, i) => (
@@ -1700,13 +1145,23 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
           </div>
-
+                </>
+              ),
+            },
+            {
+              id: "audiencia-demographics",
+              title: "Demografía y Geografía",
+              icon: <Globe style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 4,
+              minColSpan: 2,
+              render: () => (
+                <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-            {/* ── Edad y Género ── */}
+            {/* â”€â”€ Edad y GÃ©nero â”€â”€ */}
             <div style={panelStyle}>
-              <h3 style={headingStyle}><Users style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Edad y Género</h3>
-              <p style={subStyle}>¿Quiénes ven tus anuncios? Distribución por rango de edad y género</p>
+              <h3 style={headingStyle}><Users style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Edad y GÃ©nero</h3>
+              <p style={subStyle}>Â¿QuiÃ©nes ven tus anuncios? DistribuciÃ³n por rango de edad y gÃ©nero</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   // 3-state: undefined = loading, [] = empty, [...] = data
@@ -1737,7 +1192,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" vertical={false} />
                         <XAxis dataKey="age" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} />
                         <YAxis stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "InversiÃ³n" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                         <Bar dataKey="Mujeres" stackId="a" fill="var(--purple)" />
                         <Bar dataKey="Hombres" stackId="a" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={12} />
@@ -1748,10 +1203,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* ── Top Regiones ── */}
+            {/* â”€â”€ Top Regiones â”€â”€ */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Top Regiones</h3>
-              <p style={subStyle}>¿De dónde vienen? Estados y ciudades con mayor alcance</p>
+              <p style={subStyle}>Â¿De dÃ³nde vienen? Estados y ciudades con mayor alcance</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["region"];
@@ -1760,14 +1215,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     .map((r: any) => ({ region: r.region || "?", metric: Number(r[audienceMetric]) || 0 }))
                     .sort((a: any, b: any) => b.metric - a.metric)
                     .slice(0, 8);
-                  if (!d.length) return <NoData msg="Sin datos de región" />;
+                  if (!d.length) return <NoData msg="Sin datos de regiÃ³n" />;
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={d} layout="vertical" margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
                         <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => audienceMetric === "spend" ? `$${v}` : v >= 1000 ? `${(v/1000).toFixed(0)}k` : v} />
                         <YAxis type="category" dataKey="region" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} width={90} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any) => [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "InversiÃ³n" : audienceMetric === "impressions" ? "Impresiones" : "Clics"]} />
                         <Bar dataKey="metric" fill="var(--amber)" radius={[0, 4, 4, 0]} barSize={14} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -1776,10 +1231,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* ── País ── */}
+            {/* â”€â”€ PaÃ­s â”€â”€ */}
             <div style={panelStyle}>
-              <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />País</h3>
-              <p style={subStyle}>¿Desde qué país te ven? Útil para campañas multi-país</p>
+              <h3 style={headingStyle}><Globe style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />PaÃ­s</h3>
+              <p style={subStyle}>Â¿Desde quÃ© paÃ­s te ven? Ãštil para campaÃ±as multi-paÃ­s</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["country"];
@@ -1792,7 +1247,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     return acc;
                   }, {});
                   const dCountry = Object.values(aggregatedCountry).sort((a: any, b: any) => b.metric - a.metric);
-                  if (!dCountry.length) return <NoData msg="Sin datos de país" />;
+                  if (!dCountry.length) return <NoData msg="Sin datos de paÃ­s" />;
                   return (
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
@@ -1804,7 +1259,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           {dCountry.map((_: any, i: number) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
-                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
+                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "InversiÃ³n" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
                         }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </PieChart>
@@ -1814,10 +1269,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* ── Plataforma ── */}
+            {/* â”€â”€ Plataforma â”€â”€ */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Plataforma</h3>
-              <p style={subStyle}>¿Dónde ven tus anuncios? Facebook, Instagram o Audience Network</p>
+              <p style={subStyle}>Â¿DÃ³nde ven tus anuncios? Facebook, Instagram o Audience Network</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["platform"];
@@ -1854,7 +1309,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           {d.map((entry: any, i: number) => <Cell key={i} fill={platformColors[entry.name] || CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
-                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "Inversión" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
+                          return [audienceMetric === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), audienceMetric === "spend" ? "InversiÃ³n" : audienceMetric === "impressions" ? "Impresiones" : "Clics"];
                         }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </PieChart>
@@ -1864,10 +1319,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* ── Dispositivo ── */}
+            {/* â”€â”€ Dispositivo â”€â”€ */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Monitor style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Dispositivo</h3>
-              <p style={subStyle}>¿Desde qué dispositivo? Mobile suele dominar en campañas de Social</p>
+              <p style={subStyle}>Â¿Desde quÃ© dispositivo? Mobile suele dominar en campaÃ±as de Social</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["device"];
@@ -1897,7 +1352,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           {cd.map((_, i) => <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
-                          if (name === "spend") return [fmtMXN(Number(v)), "Inversión"];
+                          if (name === "spend") return [fmtMXN(Number(v)), "InversiÃ³n"];
                           return [Number(v).toLocaleString(), name];
                         }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
@@ -1910,13 +1365,13 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
           </div>
 
-          {/* ── Row 3: Placement + Hora del Día ── */}
+          {/* â”€â”€ Row 3: Placement + Hora del DÃ­a â”€â”€ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-            {/* ── Placement ── */}
+            {/* â”€â”€ Placement â”€â”€ */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Layers style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Placement</h3>
-              <p style={subStyle}>¿Dónde rinde mejor? Feed, Stories, Reels, Explore y más</p>
+              <p style={subStyle}>Â¿DÃ³nde rinde mejor? Feed, Stories, Reels, Explore y mÃ¡s</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["placement"];
@@ -1925,7 +1380,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     .map((r: any) => {
                       const plat = r.publisher_platform || "";
                       const pos = r.platform_position || "";
-                      const label = pos ? `${plat.charAt(0).toUpperCase() + plat.slice(1)} — ${pos.replace(/_/g, " ")}` : plat;
+                      const label = pos ? `${plat.charAt(0).toUpperCase() + plat.slice(1)} â€” ${pos.replace(/_/g, " ")}` : plat;
                       return { placement: label, spend: Number(r.spend) || 0, impressions: Number(r.impressions) || 0, clicks: Number(r.clicks) || 0 };
                     })
                     .sort((a: any, b: any) => b.spend - a.spend)
@@ -1937,7 +1392,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
                         <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${v}`} />
                         <YAxis type="category" dataKey="placement" stroke="var(--text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={120} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "Inversión" : name === "impressions" ? "Impresiones" : "Clicks"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "spend" ? fmtMXN(Number(v)) : Number(v).toLocaleString(), name === "spend" ? "InversiÃ³n" : name === "impressions" ? "Impresiones" : "Clicks"]} />
                         <Bar dataKey="spend" fill="#9b7be8" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -1946,10 +1401,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* ── Hora del Día ── */}
+            {/* â”€â”€ Hora del DÃ­a â”€â”€ */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><Clock style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Rendimiento por Hora</h3>
-              <p style={subStyle}>¿A qué hora publicar? Identifica los mejores horarios para tu audiencia</p>
+              <p style={subStyle}>Â¿A quÃ© hora publicar? Identifica los mejores horarios para tu audiencia</p>
               <div style={{ width: "100%", height: 280 }}>
                 {(() => {
                   const raw = breakdownData["time_of_day"];
@@ -1974,8 +1429,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <XAxis dataKey="hour" stroke="var(--text-secondary)" fontSize={9} tickLine={false} axisLine={false} interval={1} />
                         <YAxis yAxisId="left" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
                         <YAxis yAxisId="right" orientation="right" stroke="rgba(148,163,184,0.65)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${(v/1000).toFixed(0)}k`} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "Inversión" ? fmtMXN(Number(v)) : fmtNum(Number(v)), name]} />
-                        <Bar yAxisId="left" dataKey="spend" name="Inversión" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={10} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "InversiÃ³n" ? fmtMXN(Number(v)) : fmtNum(Number(v)), name]} />
+                        <Bar yAxisId="left" dataKey="spend" name="InversiÃ³n" fill="var(--cyan)" radius={[3, 3, 0, 0]} barSize={10} />
                         <Line yAxisId="right" type="monotone" dataKey="impressions" name="Impresiones" stroke="var(--amber)" strokeWidth={2} dot={false} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
                       </ComposedChart>
@@ -1986,13 +1441,28 @@ background: "var(--surface)", border: "1px solid var(--border)",
             </div>
 
           </div>
-        </div>
+                </>
+              ),
+            },
+          ] as WidgetDefinition[]}
+        />
         </ErrorBoundary>
       )}
 
-      {/* ═══ TAB: CREATIVOS ═══ */}
+      {/* â•â•â• TAB: CREATIVOS â•â•â• */}
       {activeTab === "creativos" && (
         <ErrorBoundary name="Tab Creativos">
+        <DashboardGrid
+          layoutKey="project-creativos"
+          columns={4}
+          widgets={[
+            {
+              id: "creativos-analisis",
+              title: "Análisis de Creativos",
+              icon: <Palette style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 4,
+              minColSpan: 2,
+              render: () => (
         <div className="space-y-3">
           {creativesLoading && <LoadingOverlay />}
 
@@ -2000,14 +1470,14 @@ background: "var(--surface)", border: "1px solid var(--border)",
           <div style={{ ...panelStyle, padding: "14px 18px", background: "linear-gradient(135deg, rgba(162,93,220,0.06), rgba(253,171,61,0.04))" }}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 4 }}>
               <Palette style={{ width: 15, height: 15, display: "inline", verticalAlign: "middle", marginRight: 8, color: "#9b7be8" }} />
-              Análisis de Creativos
+              AnÃ¡lisis de Creativos
             </h3>
             <p style={{ fontSize: 11, color: "var(--text-muted)", lineHeight: 1.5 }}>
-              Identifica qué anuncios funcionan mejor y cuáles necesitan optimización. Ordenados por eficiencia (CPR).
+              Identifica quÃ© anuncios funcionan mejor y cuÃ¡les necesitan optimizaciÃ³n. Ordenados por eficiencia (CPR).
             </p>
           </div>
 
-          {/* ── TOP 3 Mejores + TOP 3 Peores ── */}
+          {/* â”€â”€ TOP 3 Mejores + TOP 3 Peores â”€â”€ */}
           {(() => {
             const ranked = adCreatives
               .filter(a => a.spend > 0)
@@ -2033,7 +1503,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 {/* Best */}
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingUp style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--emerald)" }} />Top 3 Mejores Anuncios</h3>
-                  <p style={subStyle}>Menor costo por resultado — clic para ver preview</p>
+                  <p style={subStyle}>Menor costo por resultado â€” clic para ver preview</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {best.length > 0 ? best.map((ad) => (
                       <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
@@ -2043,7 +1513,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 {/* Worst */}
                 <div style={panelStyle}>
                   <h3 style={headingStyle}><TrendingDown style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: "var(--red)" }} />Top 3 Peores Anuncios</h3>
-                  <p style={subStyle}>Mayor gasto sin resultados o CPR más alto</p>
+                  <p style={subStyle}>Mayor gasto sin resultados o CPR mÃ¡s alto</p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 10, marginTop: 10, alignItems: "flex-start" }}>
                     {worstByEfficiency.length > 0 ? worstByEfficiency.map((ad) => (
                       <CreativeCard key={ad.adId} ad={ad} fmtMXN={fmtMXN} cprTarget={cprTarget} onPreview={() => setPreviewAd(ad)} />
@@ -2054,10 +1524,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
             );
           })()}
 
-          {/* ── All Ads table view ── */}
+          {/* â”€â”€ All Ads table view â”€â”€ */}
           <div style={panelStyle}>
             <h3 style={headingStyle}>Todos los Anuncios</h3>
-            <p style={subStyle}>Ranking completo por inversión. Haz scroll para ver más.</p>
+            <p style={subStyle}>Ranking completo por inversiÃ³n. Haz scroll para ver mÃ¡s.</p>
             {adCreatives.length > 0 ? (
               <div style={{ overflowX: "auto", marginTop: 10 }}>
                 <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 11 }}>
@@ -2066,7 +1536,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                       <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase", letterSpacing: "0.05em" }}>#</th>
                       <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Anuncio</th>
                       <th style={{ padding: "8px 6px", textAlign: "left", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Estado</th>
-                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Inversión</th>
+                      <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>InversiÃ³n</th>
                       <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>Result.</th>
                       <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CPR</th>
                       <th style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)", fontWeight: 600, fontSize: 9, textTransform: "uppercase" }}>CTR</th>
@@ -2093,7 +1563,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                                   : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center" }}><Eye style={{ width: 14, height: 14, color: "var(--text-secondary)" }} /></div>
                                 }
                                 {ad.format === "video" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}></span>}
-                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>⟡</span>}
+                                {ad.format === "carousel" && <span style={{ position: "absolute", bottom: 1, right: 1, fontSize: 7, background: "var(--surface)", color: "var(--foreground)", padding: "0 3px", borderRadius: 2, fontWeight: 700 }}>âŸ¡</span>}
                               </div>
                               <span style={{ color: "var(--foreground)", fontWeight: 500, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ad.adName}</span>
                             </div>
@@ -2106,7 +1576,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           </td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--amber)", fontWeight: 600 }}>{fmtMXN(ad.spend)}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--emerald)", fontWeight: 700 }}>{results}</td>
-                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "—"}</td>
+                          <td style={{ padding: "8px 6px", textAlign: "right", color: results === 0 ? "var(--red)" : cprTarget > 0 && cprVal > cprTarget ? "var(--red)" : "var(--cyan)", fontWeight: 600 }}>{results > 0 ? fmtMXN(cprVal) : "â€”"}</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{ctrVal.toFixed(2)}%</td>
                           <td style={{ padding: "8px 6px", textAlign: "right", color: "var(--text-secondary)" }}>{fmtNum(ad.impressions || 0)}</td>
                         </tr>
@@ -2118,10 +1588,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
             ) : !creativesLoading ? <NoData msg="Sin anuncios con datos en el periodo seleccionado" /> : null}
           </div>
 
-          {/* ── Text Analysis Panels (powered by allTitles / allBodies from DCO feed) ── */}
+          {/* â”€â”€ Text Analysis Panels (powered by allTitles / allBodies from DCO feed) â”€â”€ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
             {([
-              { arrayKey: "allTitles",  fallbackKey: "title",       label: "Mejores Títulos" },
+              { arrayKey: "allTitles",  fallbackKey: "title",       label: "Mejores TÃ­tulos" },
               { arrayKey: "allBodies",  fallbackKey: "body",        label: "Mejores Textos Principales" },
               { arrayKey: null,         fallbackKey: "description",  label: "Mejores Descripciones" },
               { arrayKey: null,         fallbackKey: "cta",          label: "Mejores CTAs" },
@@ -2142,7 +1612,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   if (!text) continue;
                   const key = normalize(text);
                   if (!grouped[key]) grouped[key] = { text: text.trim(), spend: 0, results: 0, clicks: 0, count: 0, isDCO: false };
-                  // Don't split spend across DCO variants — assign 100% to each
+                  // Don't split spend across DCO variants â€” assign 100% to each
                   // (Meta doesn't report per-variant performance)
                   grouped[key].spend += ad.spend;
                   grouped[key].results += adResults;
@@ -2162,7 +1632,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               return (
                 <div key={cfg.fallbackKey} style={panelStyle}>
                   <h3 style={headingStyle}>{cfg.label}</h3>
-                  <p style={subStyle}>Top 5 por inversión{data.some(d => d.isDCO) ? " · En DCO el gasto se comparte entre variantes" : ""}</p>
+                  <p style={subStyle}>Top 5 por inversiÃ³n{data.some(d => d.isDCO) ? " Â· En DCO el gasto se comparte entre variantes" : ""}</p>
                   {!adCreatives.length && creativesLoading
                     ? <NoData msg="Cargando..." />
                     : data.length > 0
@@ -2176,7 +1646,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                               <div style={{ display: "flex", gap: 12, marginTop: 4, flexWrap: "wrap" }}>
                                 <span style={{ fontSize: 10, color: "var(--amber)" }}>{fmtMXN(d.spend)}</span>
                                 <span style={{ fontSize: 10, color: "var(--emerald)" }}>{Math.round(d.results)} result.</span>
-                                <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "—"} CPR</span>
+                                <span style={{ fontSize: 10, color: "var(--cyan)" }}>{d.results > 0 ? fmtMXN(d.spend / d.results) : "â€”"} CPR</span>
                                 <span style={{ fontSize: 10, color: "var(--text-secondary)" }}>{d.count} anuncios</span>
                               </div>
                             </div>
@@ -2189,13 +1659,13 @@ background: "var(--surface)", border: "1px solid var(--border)",
             })}
           </div>
 
-          {/* ── Formato y CTR por Creativo ── */}
+          {/* â”€â”€ Formato y CTR por Creativo â”€â”€ */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-            {/* ── Formato de Creativos (Imagen vs Video) ── */}
+            {/* â”€â”€ Formato de Creativos (Imagen vs Video) â”€â”€ */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><PieIcon style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />Formato de Creativos</h3>
-              <p style={subStyle}>Imagen vs Video — ¿qué formato te da mejores resultados?</p>
+              <p style={subStyle}>Imagen vs Video â€” Â¿quÃ© formato te da mejores resultados?</p>
               <div style={{ width: "100%", height: 250 }}>
                 {(() => {
                   if (!adCreatives.length && creativesLoading) return <NoData msg="Cargando..." />;
@@ -2222,7 +1692,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                           {d.map((_, i) => <Cell key={i} fill={formatColors[i % formatColors.length]} />)}
                         </Pie>
                         <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => {
-                          if (name === "spend") return [fmtMXN(Number(v)), "Inversión"];
+                          if (name === "spend") return [fmtMXN(Number(v)), "InversiÃ³n"];
                           return [Number(v).toLocaleString(), name];
                         }} />
                         <Legend wrapperStyle={{ fontSize: 10 }} />
@@ -2249,7 +1719,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                       <div style={{ display: "flex", gap: 12, fontSize: 11 }}>
                         <span style={{ color: "var(--amber)" }}>{fmtMXN(s.spend)}</span>
                         <span style={{ color: "var(--emerald)" }}>{Math.round(s.results)} res.</span>
-                        <span style={{ color: "var(--cyan)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "—"} CPR</span>
+                        <span style={{ color: "var(--cyan)" }}>{s.results > 0 ? fmtMXN(s.spend / s.results) : "â€”"} CPR</span>
                       </div>
                       <p style={{ fontSize: 9, color: "var(--text-muted)", marginTop: 4 }}>{s.count} anuncios</p>
                     </div>
@@ -2258,7 +1728,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             </div>
 
-            {/* ── CTR por Creativo (Top 10) ── */}
+            {/* â”€â”€ CTR por Creativo (Top 10) â”€â”€ */}
             <div style={panelStyle}>
               <h3 style={headingStyle}><MousePointer style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6 }} />CTR por Creativo</h3>
               <p style={subStyle}>Top 10 anuncios con mejor tasa de clics</p>
@@ -2281,7 +1751,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" horizontal={false} />
                         <XAxis type="number" stroke="var(--text-secondary)" fontSize={10} tickLine={false} axisLine={false} tickFormatter={v => `${v.toFixed(1)}%`} />
                         <YAxis type="category" dataKey="name" stroke="var(--text-secondary)" fontSize={8} tickLine={false} axisLine={false} width={140} />
-                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "Inversión"]} />
+                        <Tooltip contentStyle={tooltipStyle} formatter={(v: any, name: any) => [name === "ctr" ? `${Number(v).toFixed(2)}%` : fmtMXN(Number(v)), name === "ctr" ? "CTR" : "InversiÃ³n"]} />
                         <Bar dataKey="ctr" fill="var(--emerald)" radius={[0, 4, 4, 0]} barSize={12} />
                       </BarChart>
                     </ResponsiveContainer>
@@ -2292,7 +1762,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
           </div>
 
-          {/* Combinación Ganadora */}
+          {/* CombinaciÃ³n Ganadora */}
           <div style={{
             ...panelStyle,
             background: "linear-gradient(135deg, rgba(253,171,61,0.06) 0%, rgba(0,0,0,0) 60%)",
@@ -2303,8 +1773,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 <Zap style={{ width: 16, height: 16, color: "var(--amber)" }} />
               </div>
               <div>
-                <h3 style={headingStyle}>Combinación Ganadora</h3>
-                <p style={subStyle}>Campaña y conjunto de anuncios con mejor rendimiento del periodo</p>
+                <h3 style={headingStyle}>CombinaciÃ³n Ganadora</h3>
+                <p style={subStyle}>CampaÃ±a y conjunto de anuncios con mejor rendimiento del periodo</p>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2319,7 +1789,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     <div style={{ position: "absolute", top: -10, right: -10, width: 60, height: 60, borderRadius: "50%", background: "var(--surface)" }} />
                     <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                       <div style={{ width: 22, height: 22, borderRadius: 6, background: "var(--surface)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}></div>
-                      <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÑA GANADORA</p>
+                      <p style={{ fontSize: 9, color: "var(--amber)", fontWeight: 800, letterSpacing: "0.12em" }}>CAMPAÃ‘A GANADORA</p>
                     </div>
                     <p style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", marginBottom: 12, lineHeight: 1.4 }}>{top.name}</p>
                     <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
@@ -2330,11 +1800,11 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(253,171,61,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>InversiÃ³n: </span><span style={{ color: "var(--amber)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
-                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>Sin datos de campaña</div>;
+                ) : <div style={{ padding: 20, color: "var(--text-muted)", fontSize: 12, textAlign: "center", border: "1px dashed var(--border)", borderRadius: 12 }}>Sin datos de campaÃ±a</div>;
               })()}
               {(() => {
                 const top = (insights?.adsets || []).map((a: any) => { const s = parseFloat(a.spend || "0"); const ra = findResultAction(a.actions, ch?.goal, getObjective(a, insights)); const r = ra ? parseInt(ra.value, 10) : 0; return { name: a.adset_name || "?", results: r, cpa: r > 0 ? s / r : 0, spend: s }; }).sort((a: any, b: any) => b.spend - a.spend)[0];
@@ -2358,7 +1828,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         <span style={{ color: "var(--text-secondary)" }}>CPA: </span><span style={{ color: "var(--cyan)", fontWeight: 700 }}>{fmtMXN(top.cpa)}</span>
                       </div>
                       <div style={{ padding: "4px 10px", background: "var(--surface)", border: "1px solid rgba(139,141,242,0.2)", borderRadius: 20, fontSize: 10 }}>
-                        <span style={{ color: "var(--text-secondary)" }}>Inversión: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
+                        <span style={{ color: "var(--text-secondary)" }}>InversiÃ³n: </span><span style={{ color: "var(--purple)", fontWeight: 700 }}>{fmtMXN(top.spend)}</span>
                       </div>
                     </div>
                   </div>
@@ -2367,7 +1837,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             </div>
           </div>
 
-          {/* ── Lightbox modal ── */}
+          {/* â”€â”€ Lightbox modal â”€â”€ */}
           {previewAd && (
             <CreativeLightbox
               ad={previewAd}
@@ -2385,13 +1855,29 @@ background: "var(--surface)", border: "1px solid var(--border)",
             />
           )}
         </div>
+              ),
+            },
+          ] as WidgetDefinition[]}
+        />
         </ErrorBoundary>
       )}
 
 
-      {/* ═══ TAB: SALUD DEL RESULTADO ═══ */}
+      {/* â•â•â• TAB: SALUD DEL RESULTADO â•â•â• */}
       {activeTab === "salud" && (
         <ErrorBoundary name="Tab Salud">
+        <DashboardGrid
+          layoutKey="project-salud"
+          columns={4}
+          widgets={[
+            {
+              id: "salud-resultados",
+              title: "Salud del Resultado",
+              icon: <HeartPulse style={{ width: 13, height: 13 }} />,
+              defaultColSpan: 4,
+              minColSpan: 2,
+              render: () => (
+                <div>
           {(() => {
             // Health calculations
             const frequency = totalImpressions > 0 && totalReach > 0 ? totalImpressions / totalReach : 0;
@@ -2413,7 +1899,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
             const trendScore = firstHalfCPR > 0 ? Math.max(0, Math.min(100, Math.round(secondHalfCPR <= firstHalfCPR ? 100 : 100 - ((secondHalfCPR / firstHalfCPR - 1) * 200)))) : 50;
 
             const healthScore = Math.round(cprScore * 0.25 + freqScore * 0.20 + ctrScore * 0.15 + convScore * 0.15 + paceScore * 0.15 + trendScore * 0.10);
-            const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "Crítica";
+            const healthLabel = healthScore >= 80 ? "Excelente" : healthScore >= 60 ? "Buena" : healthScore >= 40 ? "En Riesgo" : "CrÃ­tica";
             const healthColor = healthScore >= 80 ? "var(--emerald)" : healthScore >= 60 ? "var(--amber)" : "var(--red)";
 
             // SVG gauge params
@@ -2425,47 +1911,47 @@ background: "var(--surface)", border: "1px solid var(--border)",
               { name: "Eficiencia CPR", icon: <DollarSign style={{ width: 14, height: 14 }} />, score: cprScore, value: fmtMXN(cpr), bench: cprTarget > 0 ? `Meta: ${fmtMXN(cprTarget)}` : "Sin meta", color: cprScore >= 70 ? "var(--emerald)" : cprScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Frecuencia", icon: <RefreshCw style={{ width: 14, height: 14 }} />, score: freqScore, value: frequency.toFixed(2), bench: "Ideal: 1.0 - 2.5", color: freqScore >= 70 ? "var(--emerald)" : freqScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "CTR", icon: <MousePointer style={{ width: 14, height: 14 }} />, score: ctrScore, value: pct(ctr), bench: "Ideal: > 1.5%", color: ctrScore >= 70 ? "var(--emerald)" : ctrScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tasa Conversión", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tasa ConversiÃ³n", icon: <Target style={{ width: 14, height: 14 }} />, score: convScore, value: pct(conversionRate), bench: "Ideal: > 5%", color: convScore >= 70 ? "var(--emerald)" : convScore >= 40 ? "var(--amber)" : "var(--red)" },
               { name: "Ritmo de Gasto", icon: <TrendingUp style={{ width: 14, height: 14 }} />, score: paceScore, value: pct(spendPaceRatio * 100), bench: "Ideal: 100%", color: paceScore >= 70 ? "var(--emerald)" : paceScore >= 40 ? "var(--amber)" : "var(--red)" },
-              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "↓" : "↑"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "—", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
+              { name: "Tendencia CPR", icon: <Activity style={{ width: 14, height: 14 }} />, score: trendScore, value: firstHalfCPR > 0 ? `${secondHalfCPR <= firstHalfCPR ? "â†“" : "â†‘"} ${Math.abs(((secondHalfCPR / firstHalfCPR) - 1) * 100).toFixed(1)}%` : "â€”", bench: "Estable o mejorando", color: trendScore >= 70 ? "var(--emerald)" : trendScore >= 40 ? "var(--amber)" : "var(--red)" },
             ];
 
             // Recommendations (Cross-diagnostic logic)
             const recs: { severity: string; text: string }[] = [];
             
             if (cprScore >= 80) {
-              recs.push({ severity: "success", text: `Costo por Resultado excelente (${fmtMXN(cpr)}). El embudo está sano y convirtiendo eficientemente. Sugerencia: Escalar presupuesto un 15-20%.` });
+              recs.push({ severity: "success", text: `Costo por Resultado excelente (${fmtMXN(cpr)}). El embudo estÃ¡ sano y convirtiendo eficientemente. Sugerencia: Escalar presupuesto un 15-20%.` });
             } else if (cprScore < 50 && cprTarget > 0) {
-              recs.push({ severity: "critical", text: `Costo por Resultado en riesgo (${fmtMXN(cpr)} vs meta ${fmtMXN(cprTarget)}). Costos de adquisición elevados.` });
+              recs.push({ severity: "critical", text: `Costo por Resultado en riesgo (${fmtMXN(cpr)} vs meta ${fmtMXN(cprTarget)}). Costos de adquisiciÃ³n elevados.` });
             }
 
             if (ctrScore >= 60 && convScore < 50) {
-              recs.push({ severity: "warning", text: `Fuga en Bottom-Funnel: Alto CTR (${pct(ctr)}) pero baja conversión (${pct(conversionRate)}). El anuncio atrae pero la landing page no convence o el lead es de baja intención.` });
+              recs.push({ severity: "warning", text: `Fuga en Bottom-Funnel: Alto CTR (${pct(ctr)}) pero baja conversiÃ³n (${pct(conversionRate)}). El anuncio atrae pero la landing page no convence o el lead es de baja intenciÃ³n.` });
             } else if (ctrScore < 50 && convScore >= 60) {
-              recs.push({ severity: "warning", text: `Fuga en Mid-Funnel: Baja atracción (${pct(ctr)}) pero buena conversión (${pct(conversionRate)}). Mejora los creativos y hooks, tu landing page funciona bien.` });
+              recs.push({ severity: "warning", text: `Fuga en Mid-Funnel: Baja atracciÃ³n (${pct(ctr)}) pero buena conversiÃ³n (${pct(conversionRate)}). Mejora los creativos y hooks, tu landing page funciona bien.` });
             } else if (ctrScore < 50 && convScore < 50) {
-              recs.push({ severity: "critical", text: `Fuga General: Los creativos no atraen (${pct(ctr)}) y la oferta no convierte (${pct(conversionRate)}). Revisión total de campaña requerida.` });
+              recs.push({ severity: "critical", text: `Fuga General: Los creativos no atraen (${pct(ctr)}) y la oferta no convierte (${pct(conversionRate)}). RevisiÃ³n total de campaÃ±a requerida.` });
             }
 
             if (freqScore < 50 && ctrScore < 50) {
-              recs.push({ severity: "warning", text: `Fatiga Creativa: Frecuencia alta (${frequency.toFixed(1)}) y CTR cayendo. La audiencia ya se cansó de los anuncios actuales. Rota creativos inmediatamente.` });
+              recs.push({ severity: "warning", text: `Fatiga Creativa: Frecuencia alta (${frequency.toFixed(1)}) y CTR cayendo. La audiencia ya se cansÃ³ de los anuncios actuales. Rota creativos inmediatamente.` });
             }
 
             if (paceScore < 40) {
                if (spendPaceRatio < 1) {
-                  recs.push({ severity: "warning", text: `Sub-inversión: El gasto está por debajo del ritmo ideal. Revisa si las pujas son muy bajas o la audiencia muy pequeña.` });
+                  recs.push({ severity: "warning", text: `Sub-inversiÃ³n: El gasto estÃ¡ por debajo del ritmo ideal. Revisa si las pujas son muy bajas o la audiencia muy pequeÃ±a.` });
                } else {
-                  recs.push({ severity: "warning", text: `Sobre-inversión: El gasto está muy acelerado. Ajusta límites diarios para no quedarte sin presupuesto antes de fin de mes.` });
+                  recs.push({ severity: "warning", text: `Sobre-inversiÃ³n: El gasto estÃ¡ muy acelerado. Ajusta lÃ­mites diarios para no quedarte sin presupuesto antes de fin de mes.` });
                }
             }
 
-            if (recs.length === 0) recs.push({ severity: "success", text: "Todas las métricas están dentro de rangos saludables. Mantén la estrategia actual y monitorea diariamente." });
+            if (recs.length === 0) recs.push({ severity: "success", text: "Todas las mÃ©tricas estÃ¡n dentro de rangos saludables. MantÃ©n la estrategia actual y monitorea diariamente." });
 
             const funnelSteps = [
-              { ...indicators[1], step: "1. Atracción", desc: "¿A cuántos llegamos sin saturar?" },
-              { ...indicators[2], step: "2. Interacción", desc: "¿El creativo llama la atención?" },
-              { ...indicators[3], step: "3. Conversión", desc: "¿La oferta o página convence?" },
-              { ...indicators[4], step: "4. Gasto", desc: "¿Estamos gastando al ritmo ideal?" },
+              { ...indicators[1], step: "1. AtracciÃ³n", desc: "Â¿A cuÃ¡ntos llegamos sin saturar?" },
+              { ...indicators[2], step: "2. InteracciÃ³n", desc: "Â¿El creativo llama la atenciÃ³n?" },
+              { ...indicators[3], step: "3. ConversiÃ³n", desc: "Â¿La oferta o pÃ¡gina convence?" },
+              { ...indicators[4], step: "4. Gasto", desc: "Â¿Estamos gastando al ritmo ideal?" },
             ];
 
             return (
@@ -2476,7 +1962,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   <div style={{ ...panelStyle, display: "flex", alignItems: "center", justifyContent: "space-between", padding: 20, minHeight: 140 }}>
                     <div>
                       <h3 style={{ fontSize: 13, fontWeight: 700, color: "var(--foreground)", letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Pulse Check</h3>
-                      <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>Estado general de la campaña</p>
+                      <p style={{ fontSize: 11, color: "var(--text-secondary)" }}>Estado general de la campaÃ±a</p>
                       <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
                          <div style={{ width: 12, height: 12, borderRadius: "50%", background: healthColor, boxShadow: `0 0 10px ${healthColor}` }} />
                          <span style={{ fontSize: 16, fontWeight: 700, color: "var(--foreground)", textTransform: "uppercase" }}>{healthLabel}</span>
@@ -2496,7 +1982,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     </div>
                   </div>
 
-                  {/* Eficiencia CPR (Métrica Estrella) */}
+                  {/* Eficiencia CPR (MÃ©trica Estrella) */}
                   <div className="lg:col-span-2" style={{ ...panelStyle, position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "space-between", padding: "20px 30px", background: `linear-gradient(135deg, rgba(15,23,42,1) 0%, ${indicators[0].color}15 100%)`, border: `1px solid ${indicators[0].color}30` }}>
                     <div style={{ zIndex: 2 }}>
                        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, color: indicators[0].color }}>
@@ -2519,11 +2005,11 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   </div>
                 </div>
 
-                {/* Fila 2: Análisis del Embudo (Funnel Health) */}
+                {/* Fila 2: AnÃ¡lisis del Embudo (Funnel Health) */}
                 <div style={panelStyle}>
                   <div style={{ padding: "16px 20px", borderBottom: "1px solid var(--border)" }}>
-                    <h3 style={headingStyle}>Análisis del Embudo de Conversión</h3>
-                    <p style={subStyle}>Diagnóstico del viaje del usuario: Atracción, Interacción, Conversión y Gasto.</p>
+                    <h3 style={headingStyle}>AnÃ¡lisis del Embudo de ConversiÃ³n</h3>
+                    <p style={subStyle}>DiagnÃ³stico del viaje del usuario: AtracciÃ³n, InteracciÃ³n, ConversiÃ³n y Gasto.</p>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 0 }}>
                     {funnelSteps.map((step, i) => (
@@ -2551,12 +2037,12 @@ background: "var(--surface)", border: "1px solid var(--border)",
                   </div>
                 </div>
 
-                {/* Fila 3: Tendencia vs Diagnóstico Cruzado */}
+                {/* Fila 3: Tendencia vs DiagnÃ³stico Cruzado */}
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                   {/* CPR Trend Chart */}
                   <div className="lg:col-span-2" style={panelStyle}>
                     <h3 style={headingStyle}>Tendencia de CPR vs Meta</h3>
-                    <p style={subStyle}>Evolución del costo por resultado a lo largo del periodo</p>
+                    <p style={subStyle}>EvoluciÃ³n del costo por resultado a lo largo del periodo</p>
                     <div style={{ width: "100%", height: 280 }}>
                       {tsd.length > 0 ? (
                         <ResponsiveContainer>
@@ -2581,8 +2067,8 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
                   {/* Diagnostic + Recommendations */}
                   <div style={{ ...panelStyle, display: "flex", flexDirection: "column" }}>
-                    <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Plan de Acción Inmediato</h3>
-                    <p style={subStyle}>Diagnóstico cruzado y sugerencias</p>
+                    <h3 style={headingStyle}><Shield style={{ width: 14, height: 14, display: "inline", verticalAlign: "middle", marginRight: 6, color: healthColor }} />Plan de AcciÃ³n Inmediato</h3>
+                    <p style={subStyle}>DiagnÃ³stico cruzado y sugerencias</p>
                     <div className="space-y-3 flex-1 overflow-y-auto pr-2">
                       {recs.map((r, i) => (
                         <div key={i} style={{ display: "flex", gap: 10, padding: "12px", background: r.severity === "critical" ? "rgba(226,68,92,0.06)" : r.severity === "warning" ? "rgba(253,171,61,0.06)" : "rgba(0,200,117,0.06)", border: `1px solid ${r.severity === "critical" ? "rgba(226,68,92,0.12)" : r.severity === "warning" ? "rgba(253,171,61,0.12)" : "rgba(0,200,117,0.12)"}`, borderRadius: 8 }}>
@@ -2598,10 +2084,15 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
             );
           })()}
+                </div>
+              ),
+            },
+          ] as WidgetDefinition[]}
+        />
         </ErrorBoundary>
       )}
 
-      {/* ═══ TAB: ADS MANAGER ═══ */}
+      {/* â•â•â• TAB: ADS MANAGER â•â•â• */}
       {activeTab === "ads" && (
         <ErrorBoundary name="Tab Ads Manager">
           {(() => {
@@ -2635,19 +2126,19 @@ background: "var(--surface)", border: "1px solid var(--border)",
 
 
 
-      {/* ═══ TAB: ANÁLISIS DE TRÁFICO (GA4) ═══ */}
+      {/* â•â•â• TAB: ANÃLISIS DE TRÃFICO (GA4) â•â•â• */}
       {activeTab === "trafico" && (
         <ErrorBoundary name="Tab Trafico">
           <TrafficAnalytics project={project as any} />
         </ErrorBoundary>
       )}
 
-      {/* ═══ TAB: CONFIGURACIÓN ═══ */}
+      {/* â•â•â• TAB: CONFIGURACIÃ“N â•â•â• */}
       {activeTab === "config" && (
         <ErrorBoundary name="Tab Configuracion">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
 
-          {/* ── Google Sources Panel ── */}
+          {/* â”€â”€ Google Sources Panel â”€â”€ */}
           <div style={{ ...panelStyle, gridColumn: "1 / -1" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
               <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--surface)", border: "1px solid rgba(66,133,244,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -2655,7 +2146,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
               </div>
               <div>
                 <h3 style={headingStyle}>Fuentes de Google</h3>
-                <p style={{ ...subStyle, marginBottom: 0 }}>Vincula las cuentas de Google de este cliente al proyecto para ver su rendimiento 360°.</p>
+                <p style={{ ...subStyle, marginBottom: 0 }}>Vincula las cuentas de Google de este cliente al proyecto para ver su rendimiento 360Â°.</p>
               </div>
             </div>
             <GoogleSourcesPanel projectId={project.id} />
@@ -2667,7 +2158,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                 <div style={{ width: 30, height: 30, borderRadius: 8, background: "var(--cyan-dim)", border: "1px solid rgba(59,130,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                   <Settings style={{ width: 14, height: 14, color: "var(--cyan)" }} />
                 </div>
-                <h3 style={headingStyle}>Información General</h3>
+                <h3 style={headingStyle}>InformaciÃ³n General</h3>
               </div>
               {!isEditing ? (
                 <button onClick={() => setIsEditing(true)} style={{
@@ -2766,7 +2257,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
           <div style={panelStyle}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
               <div>
-                <h3 style={headingStyle}>Configuración de Canales</h3>
+                <h3 style={headingStyle}>ConfiguraciÃ³n de Canales</h3>
                 <p style={subStyle}>{project.channels.length} canales configurados</p>
               </div>
               <select 
@@ -2825,7 +2316,7 @@ background: "var(--surface)", border: "1px solid var(--border)",
                         }} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid rgba(59,130,246,0.15)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4 }} />
                       </div>
                       <div>
-                        <p style={labelStyle}>Período {isGlobal ? "" : "(Global)"}</p>
+                        <p style={labelStyle}>PerÃ­odo {isGlobal ? "" : "(Global)"}</p>
                         <select value={editForm.channels?.[i]?.period || c.period} onChange={e => { const ch2 = [...(editForm.channels || project.channels)]; ch2[i] = { ...ch2[i], period: e.target.value }; setEditForm({ ...editForm, channels: ch2 }); }} disabled={!isGlobal} style={{ width: "100%", background: "var(--surface-hover)", border: "1px solid var(--hairline)", color: "var(--foreground)", fontSize: 12, padding: "6px 10px", borderRadius: 4, cursor: isGlobal ? "pointer" : "not-allowed", opacity: isGlobal ? 1 : 0.6 }}><option value="Diario">Diario</option><option value="Semanal">Semanal</option><option value="Mensual">Mensual</option><option value="Anual">Anual</option></select>
                       </div>
                       <div>
@@ -2868,10 +2359,10 @@ background: "var(--surface)", border: "1px solid var(--border)",
                     </div>
                   ) : (
                     <div className="grid grid-cols-2 gap-y-3 gap-x-6" style={{ fontSize: 12 }}>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{currentBudget || "—"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Período:</span> <span style={{ color: "var(--foreground)" }}>{c.period || "—"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "—"}</span></div>
-                      <div><span style={{ color: "var(--text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "—"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Presupuesto:</span> <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{currentBudget || "â€”"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>PerÃ­odo:</span> <span style={{ color: "var(--foreground)" }}>{c.period || "â€”"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>Objetivo:</span> <span style={{ color: "var(--emerald)", fontWeight: 600 }}>{currentGoal || "â€”"}</span></div>
+                      <div><span style={{ color: "var(--text-secondary)" }}>CPR Meta:</span> <span style={{ color: "var(--cyan)", fontWeight: 600 }}>{currentCpr || "â€”"}</span></div>
                       <div><span style={{ color: "var(--text-secondary)" }}>Diario ideal:</span> <span style={{ color: "var(--foreground)" }}>{fmtMXN(bk2.daily)}</span></div>
                       <div><span style={{ color: "var(--text-secondary)" }}>Cuentas:</span> <span style={{ color: "var(--foreground)" }}>{c.adAccounts?.length || 0}</span></div>
                     </div>

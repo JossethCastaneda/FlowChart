@@ -69,10 +69,33 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
 
   // Resuelve el token estrictamente según el canal del post (sin fallback cruzado para respetar accesos)
   let accessToken = null;
+  let isDirectInstagram = false;
+  let directIgUserId: string | undefined = undefined;
+
+  let providerToUse = "";
   if (post.channels.includes("facebook")) {
+    providerToUse = "publisher_facebook";
     accessToken = await getMetaAccessToken(req, "publisher_facebook");
   } else if (post.channels.includes("instagram")) {
+    providerToUse = "publisher_instagram";
     accessToken = await getMetaAccessToken(req, "publisher_instagram");
+  }
+
+  if (providerToUse === "publisher_instagram") {
+    // Check if it's a direct integration
+    const integration = await prisma.integration.findUnique({
+      where: {
+        workspaceId_provider_userId: {
+          workspaceId: ctx.workspaceId,
+          provider: "meta_publisher_instagram",
+          userId: "workspace",
+        },
+      },
+    });
+    if (integration && (integration.credentials as any)?.instagramUserId && !(integration.credentials as any)?.pages) {
+      isDirectInstagram = true;
+      directIgUserId = (integration.credentials as any).instagramUserId as string;
+    }
   }
 
   if (!accessToken) {
@@ -93,6 +116,8 @@ export const POST = withWorkspace(async (req: NextRequest, ctx) => {
     post,
     accessToken,
     mode,
+    isDirectInstagram,
+    directIgUserId,
   });
 
   logger.info("Publisher post publish attempted", {
