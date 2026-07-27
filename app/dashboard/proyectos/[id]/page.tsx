@@ -2436,12 +2436,13 @@ background: "var(--surface)", border: "1px solid var(--border)",
       {isWidgetBuilderOpen && (
         <WidgetBuilderModal
           onClose={() => setIsWidgetBuilderOpen(false)}
-          onAdd={(type, config, colSpan) => {
+          onAdd={(type, config, w, h) => {
             useDashboardLayoutStore.getState().addWidget("project-resumen", {
               id: `widget-${Date.now()}`,
               type,
               config,
-              colSpan,
+              w,
+              h,
               collapsed: false,
             });
             setIsWidgetBuilderOpen(false);

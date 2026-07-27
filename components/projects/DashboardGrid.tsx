@@ -1,22 +1,9 @@
 "use client";
 
-import React, { useMemo, useCallback } from "react";
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragStartEvent,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  sortableKeyboardCoordinates,
-  rectSortingStrategy,
-} from "@dnd-kit/sortable";
+import React, { useMemo, useCallback, useState, useEffect } from "react";
+import { ResponsiveGridLayout, useContainerWidth, type Layout, type LayoutItem } from "react-grid-layout";
+import "react-grid-layout/css/styles.css";
+import "react-resizable/css/styles.css";
 import { RotateCcw } from "lucide-react";
 import { DashboardWidget } from "./DashboardWidget";
 import {
@@ -29,12 +16,18 @@ export interface WidgetDefinition {
   id: string;
   title: string;
   icon?: React.ReactNode;
-  /** Default column span (1-4) */
+  /** Default width in columns (1-4) */
   defaultColSpan: number;
   /** Minimum allowed column span */
   minColSpan?: number;
   /** Maximum allowed column span */
   maxColSpan?: number;
+  /** Default height in rows */
+  defaultRowSpan?: number;
+  /** Minimum allowed row span */
+  minRowSpan?: number;
+  /** Maximum allowed row span */
+  maxRowSpan?: number;
   /** Content render function — receives current layout config if dynamic */
   render: (config?: any) => React.ReactNode;
 }
@@ -63,23 +56,36 @@ export function DashboardGrid({
   showReset = true,
   renderToolbarActions,
 }: DashboardGridProps) {
-  const { getLayout, setLayout, updateWidget, removeWidget, reorderWidgets, resetLayout } =
+  const { getLayout, setLayout, removeWidget, resetLayout } =
     useDashboardLayoutStore();
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const { width, containerRef, mounted: containerMounted } = useContainerWidth();
 
   /* ── Build default layout from widget definitions ── */
   const defaults: WidgetLayout[] = useMemo(
     () =>
       widgets.map((w, i) => ({
         id: w.id,
-        colSpan: w.defaultColSpan,
-        order: i,
+        x: (i * w.defaultColSpan) % columns, // initial approximation
+        y: Infinity, // puts it at the bottom
+        w: w.defaultColSpan,
+        h: w.defaultRowSpan || 6, // default height in rows
+        minW: w.minColSpan || 1,
+        maxW: w.maxColSpan || columns,
+        minH: w.minRowSpan || 3,
+        maxH: w.maxRowSpan,
         collapsed: false,
       })),
-    [widgets]
+    [widgets, columns]
   );
 
   /* ── Merged layout (stored + defaults) ── */
-  const layout = useMemo(
+  const widgetLayouts = useMemo(
     () => getLayout(layoutKey, defaults),
     [getLayout, layoutKey, defaults]
   );
@@ -96,75 +102,52 @@ export function DashboardGrid({
     return map;
   }, [widgets]);
 
-  /* ── DnD sensors ── */
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: { distance: 8 },
-    }),
-    useSensor(KeyboardSensor, {
-      coordinateGetter: sortableKeyboardCoordinates,
-    })
-  );
-
-  const [activeId, setActiveId] = React.useState<string | null>(null);
-
-  const handleDragStart = useCallback((event: DragStartEvent) => {
-    setActiveId(String(event.active.id));
-  }, []);
-
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      setActiveId(null);
-      const { active, over } = event;
-      if (!over || active.id === over.id) return;
-
-      // Ensure layout is persisted before reordering
-      if (!hasStoredLayout) {
-        setLayout(layoutKey, layout);
-      }
-      reorderWidgets(layoutKey, String(active.id), String(over.id));
+  const handleLayoutChange = useCallback(
+    (currentLayout: Layout) => {
+      // Map react-grid-layout changes back to our store schema
+      const updatedWidgets = widgetLayouts.map((wl) => {
+        const match = currentLayout.find((l: LayoutItem) => l.i === wl.id);
+        if (match) {
+          return {
+            ...wl,
+            x: match.x,
+            y: match.y,
+            w: match.w,
+            h: match.h,
+          };
+        }
+        return wl;
+      });
+      setLayout(layoutKey, updatedWidgets);
     },
-    [layoutKey, layout, hasStoredLayout, setLayout, reorderWidgets]
-  );
-
-  const handleResize = useCallback(
-    (widgetId: string, newColSpan: number) => {
-      // Ensure layout is persisted
-      if (!hasStoredLayout) {
-        setLayout(layoutKey, layout);
-      }
-      updateWidget(layoutKey, widgetId, { colSpan: newColSpan });
-    },
-    [layoutKey, layout, hasStoredLayout, setLayout, updateWidget]
-  );
-
-  const handleToggleCollapse = useCallback(
-    (widgetId: string) => {
-      const w = layout.find((l) => l.id === widgetId);
-      if (!w) return;
-      if (!hasStoredLayout) {
-        setLayout(layoutKey, layout);
-      }
-      updateWidget(layoutKey, widgetId, { collapsed: !w.collapsed });
-    },
-    [layoutKey, layout, hasStoredLayout, setLayout, updateWidget]
+    [layoutKey, setLayout, widgetLayouts]
   );
 
   const handleReset = useCallback(() => {
     resetLayout(layoutKey);
   }, [layoutKey, resetLayout]);
 
-  /* ── Sorted widget IDs for SortableContext ── */
-  const sortedIds = useMemo(() => layout.map((l) => l.id), [layout]);
+  // Translate to react-grid-layout format
+  const rgridLayout: Layout = widgetLayouts.map((wl) => {
+    const def = wl.type && templates ? templates[wl.type] : widgetMap.get(wl.id);
+    return {
+      i: wl.id,
+      x: wl.x,
+      y: wl.y,
+      w: wl.w,
+      h: wl.h,
+      minW: wl.minW || def?.minColSpan || 1,
+      maxW: wl.maxW || def?.maxColSpan || columns,
+      minH: wl.minH || def?.minRowSpan || 3,
+      maxH: wl.maxH || def?.maxRowSpan,
+      static: false, // Make items draggable
+    };
+  });
 
-  /* ── Active widget for DragOverlay ── */
-  const activeWidget = activeId ? widgetMap.get(activeId) : null;
-  const activeLayout = activeId
-    ? layout.find((l) => l.id === activeId)
-    : null;
+  if (!mounted) return null; // Avoid hydration mismatch
 
   return (
-    <div className="dashboard-grid-container">
+    <div className="dashboard-grid-container" ref={containerRef}>
       {/* Toolbar */}
       {(showReset && hasStoredLayout) || renderToolbarActions ? (
         <div className="dashboard-grid-toolbar" style={{ display: "flex", justifyContent: "flex-end", gap: 12, marginBottom: 12 }}>
@@ -182,77 +165,42 @@ export function DashboardGrid({
         </div>
       ) : null}
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        <SortableContext items={sortedIds} strategy={rectSortingStrategy}>
-          <div
-            className="dashboard-grid"
-            style={{
-              gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            }}
-          >
-            {layout.map((wl) => {
-              // Si tiene type, es un widget dinámico; si no, es uno estático (legacy)
-              const def = wl.type && templates ? templates[wl.type] : widgetMap.get(wl.id);
-              if (!def) return null;
-              
-              // El título puede venir de la configuración del widget o del default de la plantilla
-              const title = wl.config?.title || def.title;
-              
-              return (
+      {containerMounted && (
+        <ResponsiveGridLayout
+          className="layout"
+          width={width}
+          layouts={{ lg: rgridLayout }}
+          breakpoints={{ lg: 1200, md: 996, sm: 768, xs: 480, xxs: 0 }}
+          cols={{ lg: columns, md: columns, sm: columns, xs: 1, xxs: 1 }}
+          rowHeight={50}
+          onLayoutChange={handleLayoutChange}
+          dragConfig={{ handle: ".dashboard-widget__drag-handle" }}
+          margin={[16, 16]}
+          containerPadding={[0, 0]}
+        >
+          {widgetLayouts.map((wl) => {
+            // Si tiene type, es un widget dinámico; si no, es uno estático (legacy)
+            const def = wl.type && templates ? templates[wl.type] : widgetMap.get(wl.id);
+            if (!def) return <div key={wl.id} />;
+            
+            // El título puede venir de la configuración del widget o del default de la plantilla
+            const title = wl.config?.title || def.title;
+            
+            return (
+              <div key={wl.id}>
                 <DashboardWidget
-                  key={wl.id}
                   id={wl.id}
                   title={title}
                   icon={def.icon}
-                  colSpan={wl.colSpan}
-                  collapsed={wl.collapsed}
-                  minColSpan={def.minColSpan ?? 1}
-                  maxColSpan={def.maxColSpan ?? columns}
-                  gridColumns={columns}
-                  onResize={(newSpan) => handleResize(wl.id, newSpan)}
-                  onToggleCollapse={() => handleToggleCollapse(wl.id)}
                   onRemove={() => removeWidget(layoutKey, wl.id)}
                 >
                   {def.render(wl.config)}
                 </DashboardWidget>
-              );
-            })}
-          </div>
-        </SortableContext>
-
-        {/* ── Drag Overlay ── */}
-        <DragOverlay>
-          {activeWidget && activeLayout ? (
-            <div
-              className="dashboard-widget dashboard-widget--overlay"
-              style={{ gridColumn: `span ${activeLayout.colSpan}` }}
-            >
-              <div className="dashboard-widget__header">
-                <div className="dashboard-widget__drag-handle">
-                  <span style={{ width: 14, height: 14 }} />
-                </div>
-                <div className="dashboard-widget__title">
-                  {activeWidget.icon && (
-                    <span className="dashboard-widget__icon">
-                      {activeWidget.icon}
-                    </span>
-                  )}
-                  <span>{activeWidget.title}</span>
-                </div>
               </div>
-              <div
-                className="dashboard-widget__content"
-                style={{ opacity: 0.4, minHeight: 80 }}
-              />
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+            );
+          })}
+        </ResponsiveGridLayout>
+      )}
     </div>
   );
 }

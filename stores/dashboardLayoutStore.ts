@@ -10,10 +10,22 @@ export interface WidgetLayout {
   type?: string;
   /** Custom configuration for the widget (metrics, title, etc) */
   config?: any;
-  /** Column span (1-4 on a 4-column grid) */
-  colSpan: number;
-  /** Sort order */
-  order: number;
+  /** X position in grid */
+  x: number;
+  /** Y position in grid */
+  y: number;
+  /** Width in columns */
+  w: number;
+  /** Height in rows */
+  h: number;
+  /** Min width */
+  minW?: number;
+  /** Max width */
+  maxW?: number;
+  /** Min height */
+  minH?: number;
+  /** Max height */
+  maxH?: number;
   /** Whether the widget is collapsed */
   collapsed: boolean;
 }
@@ -32,24 +44,22 @@ interface DashboardLayoutState {
   updateWidget: (
     tabKey: string,
     widgetId: string,
-    updates: Partial<Pick<WidgetLayout, "colSpan" | "collapsed" | "config">>
+    updates: Partial<Pick<WidgetLayout, "w" | "h" | "collapsed" | "config">>
   ) => void;
 
   /** Add a new widget to the layout */
-  addWidget: (tabKey: string, widget: Omit<WidgetLayout, "order">) => void;
+  addWidget: (tabKey: string, widget: Omit<WidgetLayout, "x" | "y">) => void;
 
   /** Remove a widget from the layout */
   removeWidget: (tabKey: string, widgetId: string) => void;
-
-  /** Reorder widgets after a drag-and-drop */
-  reorderWidgets: (tabKey: string, activeId: string, overId: string) => void;
 
   /** Reset a tab's layout to defaults */
   resetLayout: (tabKey: string) => void;
 }
 
 /* ═══ LOCALSTORAGE HELPERS ═══ */
-const STORAGE_KEY = "zef:dashboard-layouts";
+// v2 key invalidates v1 linear cache (order, colSpan)
+const STORAGE_KEY = "zef:dashboard-layouts-v2";
 
 function loadFromStorage(): Record<string, WidgetLayout[]> {
   if (typeof window === "undefined") return {};
@@ -79,26 +89,27 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>(
       const stored = get().layouts[tabKey];
       if (!stored || stored.length === 0) return defaults;
 
-      // Merge: keep stored order/colSpan/collapsed but ensure all default
+      // Merge: keep stored positions but ensure all default
       // widgets exist (in case new widgets were added since last save)
       const storedMap = new Map(stored.map((w) => [w.id, w]));
       const merged: WidgetLayout[] = [];
-      let maxOrder = stored.reduce((m, w) => Math.max(m, w.order), 0);
+      let maxY = 0;
 
-      // First: add all stored widgets in their saved order
+      // First: add all stored widgets
       for (const s of stored) {
+        if (s.y + s.h > maxY) maxY = s.y + s.h;
         merged.push(s);
       }
 
       // Then: add any NEW defaults that don't exist in stored
       for (const d of defaults) {
         if (!storedMap.has(d.id)) {
-          maxOrder++;
-          merged.push({ ...d, order: maxOrder });
+          merged.push({ ...d, x: 0, y: maxY });
+          maxY += d.h;
         }
       }
 
-      return merged.sort((a, b) => a.order - b.order);
+      return merged;
     },
 
     setLayout(tabKey, layout) {
@@ -120,8 +131,14 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>(
 
     addWidget(tabKey, widget) {
       const current = get().layouts[tabKey] || [];
-      const maxOrder = current.reduce((m, w) => Math.max(m, w.order), -1);
-      const newWidget: WidgetLayout = { ...widget, order: maxOrder + 1 };
+      
+      // Find lowest free Y
+      let maxY = 0;
+      for (const s of current) {
+        if (s.y + s.h > maxY) maxY = s.y + s.h;
+      }
+      
+      const newWidget: WidgetLayout = { ...widget, x: 0, y: maxY };
       const layouts = { ...get().layouts, [tabKey]: [...current, newWidget] };
       set({ layouts });
       saveToStorage(layouts);
@@ -131,28 +148,7 @@ export const useDashboardLayoutStore = create<DashboardLayoutState>(
       const current = get().layouts[tabKey];
       if (!current) return;
       const filtered = current.filter((w) => w.id !== widgetId);
-      // Re-assign orders
-      const withOrder = filtered.map((w, i) => ({ ...w, order: i }));
-      const layouts = { ...get().layouts, [tabKey]: withOrder };
-      set({ layouts });
-      saveToStorage(layouts);
-    },
-
-    reorderWidgets(tabKey, activeId, overId) {
-      const current = get().layouts[tabKey];
-      if (!current) return;
-
-      const oldIndex = current.findIndex((w) => w.id === activeId);
-      const newIndex = current.findIndex((w) => w.id === overId);
-      if (oldIndex === -1 || newIndex === -1) return;
-
-      const reordered = [...current];
-      const [moved] = reordered.splice(oldIndex, 1);
-      reordered.splice(newIndex, 0, moved);
-
-      // Re-assign order values
-      const withOrder = reordered.map((w, i) => ({ ...w, order: i }));
-      const layouts = { ...get().layouts, [tabKey]: withOrder };
+      const layouts = { ...get().layouts, [tabKey]: filtered };
       set({ layouts });
       saveToStorage(layouts);
     },

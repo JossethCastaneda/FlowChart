@@ -8,7 +8,7 @@ export type WidgetType = "DynamicComposedChart" | "DynamicKpiCard";
 
 interface WidgetBuilderModalProps {
   onClose: () => void;
-  onAdd: (type: WidgetType, config: any, colSpan: number) => void;
+  onAdd: (type: WidgetType, config: any, w: number, h: number) => void;
   availableMetrics: { key: string; label: string; type: "currency" | "percentage" | "number" }[];
 }
 
@@ -36,7 +36,7 @@ export function WidgetBuilderModal({ onClose, onAdd, availableMetrics }: WidgetB
         isCurrency: metric.type === "currency",
         isPercentage: metric.type === "percentage",
       };
-      onAdd(selectedType, config, 1);
+      onAdd(selectedType, config, 1, 3); // w: 1, h: 3
     } else if (selectedType === "DynamicComposedChart") {
       const colors = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6"];
       const config: DynamicChartConfig = {
@@ -54,7 +54,7 @@ export function WidgetBuilderModal({ onClose, onAdd, availableMetrics }: WidgetB
           };
         }),
       };
-      onAdd(selectedType, config, 2);
+      onAdd(selectedType, config, 2, 6); // w: 2, h: 6
     }
   };
 
